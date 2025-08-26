@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/page.tsx
 import type { ProductCategory, DeliveryMode, Unit } from "@prisma/client";
 

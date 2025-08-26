@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/auth.ts
 import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
