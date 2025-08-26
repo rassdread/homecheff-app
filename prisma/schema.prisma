@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// ------ AUTH ------
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(BUYER)
+  createdAt    DateTime @default(now())
+
+  sellerProfile SellerProfile?
+}
+
+//
+// ------ PRODUCTEN ------
+enum ProductCategory {
+  CHEFF
+  GROWN
+  DESIGNER
+}
+
+enum Unit {
+  PORTION
+  STUK
+  HUNDRED_G
+  KG
+  BOSJE
+  SET
+  METER
+  CM
+  M2
+}
+
+enum DeliveryMode {
+  PICKUP
+  DELIVERY
+  BOTH
+}
+
+model SellerProfile {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  displayName  String?
+  bio          String?
+  lat          Float?
+  lng          Float?
+  user         User      @relation(fields: [userId], references: [id])
+  products     Product[]
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  sellerId    String
+  category    ProductCategory
+  title       String
+  description String
+  priceCents  Int
+  unit        Unit
+  delivery    DeliveryMode
+  createdAt   DateTime        @default(now())
+  isActive    Boolean         @default(true)
+
+  seller      SellerProfile   @relation(fields: [sellerId], references: [id])
+
+  @@index([category])
+  @@index([sellerId])
+}
