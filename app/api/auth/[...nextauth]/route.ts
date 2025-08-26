@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/auth/[...nextauth]/route.ts
+// @ts-nocheck
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 

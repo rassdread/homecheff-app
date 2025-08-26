@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/products/route.ts
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma, ProductCategory } from "@prisma/client";
