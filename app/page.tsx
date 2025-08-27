@@ -16,7 +16,9 @@ type FeedItem = {
 };
 
 export default async function Home() {
-  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const base = process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : process.env.NEXTAUTH_URL || "http://localhost:3000";
   const res = await fetch(`${base}/api/products`, { cache: "no-store" });
   const data = (await res.json()) as { items: FeedItem[] };
   const items = data?.items ?? [];

@@ -5,29 +5,38 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma, ProductCategory } from "@prisma/client";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const c = searchParams.get("category");
+  try {
+    console.log('GET /api/products called');
+    const { searchParams } = new URL(req.url);
+    const c = searchParams.get("category");
 
-  const where: Prisma.ProductWhereInput = { isActive: true };
-  if (c === "CHEFF" || c === "GROWN" || c === "DESIGNER") {
-    where.category = c as ProductCategory;
+    const where: Prisma.ProductWhereInput = { isActive: true };
+    if (c === "CHEFF" || c === "GROWN" || c === "DESIGNER") {
+      where.category = c as ProductCategory;
+    }
+
+    const products = await prisma.product.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: {
+          select: { fileUrl: true, sortOrder: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    // Optionally, only return the first image for each product
+    const items = products.map(product => ({
+      ...product,
+      images: product.images ? [product.images[0]] : [],
+    }));
+
+    return NextResponse.json({ items });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to fetch products", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
   }
-
-  const products = await prisma.product.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      category: true,
-      priceCents: true,
-      unit: true,
-      delivery: true,
-      createdAt: true,
-      images: { select: { fileUrl: true, sortOrder: true }, take: 1, orderBy: { sortOrder: "asc" } },
-    },
-  });
-
-  return NextResponse.json({ items: products });
 }

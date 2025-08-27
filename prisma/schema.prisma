@@ -62,6 +62,15 @@ model SellerProfile {
   products     Product[]
 }
 
+
+model Image {
+  id        String   @id @default(cuid())
+  fileUrl   String
+  sortOrder Int
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
 model Product {
   id          String          @id @default(cuid())
   sellerId    String
@@ -75,6 +84,7 @@ model Product {
   isActive    Boolean         @default(true)
 
   seller      SellerProfile   @relation(fields: [sellerId], references: [id])
+  images      Image[]
 
   @@index([category])
   @@index([sellerId])
