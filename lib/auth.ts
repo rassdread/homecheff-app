@@ -4,7 +4,7 @@ import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 // Kleine hulp-typen (geen "any")
 type Role = "BUYER" | "SELLER" | "ADMIN";
