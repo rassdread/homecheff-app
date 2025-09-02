@@ -1,0 +1,27 @@
+// --- BEGIN SUBSCRIPTION PATCH ---
+enum SubscriptionPlan {
+  BASIC
+  PRO
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+model Subscription {
+  id        String              @id @default(uuid())
+  user      User                @relation(fields: [userId], references: [id])
+  userId    String              @unique
+  plan      SubscriptionPlan
+  status    SubscriptionStatus  @default(ACTIVE)
+  startDate DateTime            @default(now())
+  endDate   DateTime?
+  createdAt DateTime            @default(now())
+}
+
+// Voeg in je User model toe:
+//   subscription Subscription?
+// --- END SUBSCRIPTION PATCH ---

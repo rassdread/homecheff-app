@@ -1,0 +1,39 @@
+{
+  "messages": {
+    "uploadNoUrl": "Kon upload-URL niet krijgen",
+    "uploadFailed": "Upload mislukt",
+    "saved": "Opgeslagen",
+    "listingCreated": "Item geplaatst",
+    "listingFailed": "Plaatsen mislukt"
+  },
+  "buttons": {
+    "addItem": "Gerecht of product toevoegen",
+    "cancel": "Annuleren",
+    "publish": "Publiceer",
+    "chooseFile": "Kies bestand…",
+    "save": "Opslaan"
+  },
+  "form": {
+    "title": "Titel",
+    "price": "Prijs (€)",
+    "group": "Groep",
+    "photos": "Foto’s (max 5)"
+  },
+  "filters": {
+    "radius": "Radius",
+    "km": "km",
+    "searchPlaceholder": "Zoek naar items of verkopers…",
+    "subfilter": "Subfilter",
+    "vertical": {
+      "all": "Alles",
+      "cheff": "Cheff",
+      "garden": "Garden",
+      "designer": "Designer"
+    }
+  },
+  "hero": {
+    "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
+    "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
+    "greeting": "Welkom, {username}! Wat zal het vandaag worden?"
+  }
+}

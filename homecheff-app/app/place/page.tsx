@@ -1,0 +1,50 @@
+"use client";
+import React, { useState } from "react";
+
+type PlaceState = {
+  address: string;
+  description: string;
+  error: string | null;
+  success: boolean;
+};
+
+export default function PlacePage() {
+  const [state, setState] = useState<PlaceState>({
+    address: "",
+    description: "",
+    error: null,
+    success: false,
+  });
+
+  const handleSave = () => {
+    if (!state.address || !state.description) {
+      setState({ ...state, error: "Vul alle velden in.", success: false });
+      return;
+    }
+    setState({ ...state, error: null, success: true });
+  };
+
+  return (
+    <main className="min-h-screen" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+      <header className="w-full border-b" style={{ borderColor: "#e5e7eb", background: "#fff" }}>
+        <div className="mx-auto max-w-5xl px-6 py-6 flex items-center justify-between">
+          <span className="text-2xl font-bold" style={{ color: "var(--primary)" }}>Locatie toevoegen</span>
+        </div>
+      </header>
+      <section className="mx-auto max-w-5xl px-6 py-8 grid gap-8">
+        <div className="mb-4 text-sm text-gray-600 bg-yellow-50 border-l-4 p-3 rounded" style={{ borderColor: "var(--accent)" }}>
+          Voeg een locatie toe voor je product, dienst of ruimte. Vul het adres en een korte omschrijving in.
+        </div>
+        <div className="rounded-xl bg-white p-6 border" style={{ borderColor: "#e5e7eb" }}>
+          <input type="text" value={state.address} onChange={e => setState({ ...state, address: e.target.value })} placeholder="Adres" className="mb-4 px-3 py-2 border rounded w-full" />
+          <textarea value={state.description} onChange={e => setState({ ...state, description: e.target.value })} placeholder="Omschrijving" className="mb-4 px-3 py-2 border rounded w-full" />
+          <button className="px-4 py-2 rounded text-white" style={{ background: "var(--primary)" }} onClick={handleSave}>
+            Opslaan
+          </button>
+          {state.error && <div className="mt-2 text-red-600">{state.error}</div>}
+          {state.success && <div className="mt-2 text-green-600">Locatie succesvol opgeslagen!</div>}
+        </div>
+      </section>
+    </main>
+  );
+}

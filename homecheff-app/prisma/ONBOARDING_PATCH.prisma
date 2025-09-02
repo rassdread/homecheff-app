@@ -1,0 +1,42 @@
+// --- BEGIN ONBOARDING PATCH ---
+// Plak onderstaande velden in je bestaande modellen en migreer.
+
+// In User:
+/*
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String?
+  role         UserRole  @default(BUYER)
+  name         String?
+  createdAt    DateTime  @default(now())
+
+  // 👇 nieuw
+  bio          String?
+  interests    String[]  @default([])
+  profileImage String?
+}
+*/
+
+// In Company (voor sellers):
+/*
+model Company {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @unique
+  name            String
+  kvkNumber       String?
+  vatNumber       String?
+  address         String?
+  city            String?
+  country         String?  @default("NL")
+  verified        Boolean  @default(false)
+  verifiedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 👇 nieuw
+  workplacePhotos String[] @default([])
+}
+*/
+// --- END ONBOARDING PATCH ---

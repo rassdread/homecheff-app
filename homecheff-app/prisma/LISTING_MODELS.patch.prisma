@@ -1,0 +1,32 @@
+// Voeg onderstaande modellen toe als je ze nog niet hebt.
+// Pas veldnamen aan naar jouw voorkeur; zorg dat FEED en LISTINGS routes hiermee kloppen.
+
+enum Vertical {
+  CHEFF
+  GARDEN
+  DESIGNER
+}
+
+model Listing {
+  id          String         @id @default(uuid())
+  user        User           @relation(fields: [userId], references: [id])
+  userId      String
+  title       String
+  description String?
+  price       Float?
+  vertical    Vertical
+  tags        String[]
+  lat         Float?
+  lng         Float?
+  isPublished Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  images      ListingImage[]
+}
+
+model ListingImage {
+  id        String   @id @default(uuid())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+  url       String
+  order     Int      @default(0)
+}

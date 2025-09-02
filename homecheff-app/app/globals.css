@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #F6F8FA;
+  --foreground: #171717;
+  --primary: #006D52;
+  --secondary: #0067B1;
+  --accent: #FFD600;
+  --success: #00C853;
+  --error: #D32F2F;
+  --info: #0288D1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --primary: #00C853;
+    --secondary: #0288D1;
+    --accent: #FFD600;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* Tailwind v4 tokens mapping to CSS variables */
+@theme {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+}
