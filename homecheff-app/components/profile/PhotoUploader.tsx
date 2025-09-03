@@ -20,19 +20,14 @@ export default function PhotoUploader({ buttonLabel = "Foto kiezen" }: { buttonL
     setBusy(true);
     setError(null);
     try {
-      const presign = await fetch("/api/upload", {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: file.name, type: file.type || "image/jpeg" }),
+        body: formData,
       });
-      if (!presign.ok) throw new Error("Kon upload-URL niet krijgen");
-      const { url, publicUrl } = await presign.json();
-      const put = await fetch(url, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || "image/jpeg" },
-      });
-      if (!put.ok) throw new Error("Upload mislukt");
+      if (!uploadRes.ok) throw new Error("Upload naar blob mislukt");
+      const { publicUrl } = await uploadRes.json();
       const save = await fetch("/api/profile/photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
