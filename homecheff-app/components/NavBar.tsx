@@ -13,7 +13,7 @@ export default function NavBar() {
     <header className="w-full border-b bg-white">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="text-xl font-semibold">HomeCheff</Link>
-        <nav className="flex items-center gap-3">
+        <nav className="flex items-center" style={{gap: 'var(--spacing)'}}>
           <Link href="/"><Button variant="ghost">Feed</Button></Link>
 
           {status !== 'loading' && !user && (
