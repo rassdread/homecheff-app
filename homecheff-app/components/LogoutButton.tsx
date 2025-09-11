@@ -7,7 +7,10 @@ export default function LogoutButton() {
   return (
     <button
       className="px-3 py-1 rounded bg-gray-200 text-gray-700 text-xs hover:bg-gray-300 transition"
-      onClick={() => signOut({ callbackUrl: "/" })}
+      onClick={async () => {
+        await signOut({ callbackUrl: "/" });
+        window.location.href = "/";
+      }}
       title="Uitloggen"
     >
       Uitloggen

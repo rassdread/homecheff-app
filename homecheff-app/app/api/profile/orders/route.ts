@@ -45,7 +45,28 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,
       take: perPage,
-      include: { items: { select: { id: true, title: true, quantity: true, price: true } } }
+      include: {
+        items: {
+          select: {
+            id: true,
+            quantity: true,
+            priceCents: true,
+            productId: true,
+            Product: {
+              select: {
+                id: true,
+                title: true,
+                priceCents: true,
+                description: true,
+                category: true,
+                sellerId: true,
+                createdAt: true,
+                isActive: true
+              }
+            }
+          }
+        }
+      }
     });
 
     return NextResponse.json({ items, meta: { page, perPage, totalPages, total } });

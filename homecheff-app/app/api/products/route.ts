@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
+// Cache voor 5 minuten voor betere performance
+export const revalidate = 300;
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -12,29 +14,36 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const take = Number(searchParams.get("take") ?? 24);
 
-    const listings = await prisma.listing.findMany({
-      where: { isPublished: true },
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    const dishes = await prisma.dish.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(take, 1), 100),
       include: {
-        author: {
-          select: { id: true, name: true, image: true, username: true },
+        user: {
+          select: { id: true, name: true, image: true, username: true, buyerTypes: true },
+        },
+        photos: {
+          where: { isMain: true },
+          take: 1,
         },
       },
     });
 
-    const items = listings.map((l: any) => ({
-      id: l.id,
-      title: l.title,
-      description: l.description,
-      priceCents: l.priceCents,
-      image: l.image ?? null,
-      createdAt: l.publishedAt ?? l.createdAt,
+    const items = dishes.map((d: any) => ({
+      id: d.id,
+      title: d.title,
+      description: d.description,
+      priceCents: d.priceCents,
+      image: d.photos?.[0]?.url ?? null,
+      createdAt: d.createdAt,
+      category: d.category,
+      subcategory: d.subcategory,
       seller: {
-        id: l.author?.id ?? null,
-        name: l.author?.name ?? null,
-        avatar: l.author?.image ?? null,
-        username: l.author?.username ?? null,
+        id: d.user?.id ?? null,
+        name: d.user?.name ?? null,
+        avatar: d.user?.image ?? null,
+        username: d.user?.username ?? null,
+        buyerTypes: d.user?.buyerTypes ?? [],
       },
     }));
 

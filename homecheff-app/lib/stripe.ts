@@ -1,62 +1,140 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+// Test mode - geen echte Stripe keys nodig
+const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'test';
 
-export const SUBSCRIPTION_PLANS = {
-  basic: { priceId: 'price_basic', monthly: 39, fee: 0.07 },
-  pro: { priceId: 'price_pro', monthly: 99, fee: 0.04 },
-  premium: { priceId: 'price_premium', monthly: 199, fee: 0.02 },
+export const stripe = isTestMode 
+  ? null 
+  : new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-08-27.basil',
+    });
+
+// Fee structuur
+export const FEE_STRUCTURE = {
+  STRIPE_FEE_PERCENTAGE: 1.4, // 1.4% + €0.25 per transactie
+  STRIPE_FIXED_FEE: 0.25, // €0.25 per transactie
+  HOMECHEFF_FEE_PERCENTAGE: 5, // 5% naar HomeCheff
+  SELLER_PERCENTAGE: 93.6, // Rest naar verkoper (100% - 1.4% - 5% = 93.6%)
 };
 
-export async function createSubscription({
-  customerId,
-  plan,
-  duration,
-  couponCode,
-}: {
-  customerId: string;
-  plan: keyof typeof SUBSCRIPTION_PLANS;
-  duration: 6 | 12;
-  couponCode?: string;
-}) {
-  // Bereken prijs en korting
-  const planInfo = SUBSCRIPTION_PLANS[plan];
-  let price = planInfo.monthly * duration;
-  let discount = 0;
-  if (duration === 12) discount = price * 0.2;
-  // Coupon verwerken
-  let couponId = undefined;
-  if (couponCode) {
-    const coupon = await stripe.coupons.list({ limit: 100 });
-    const found = coupon.data.find(c => c.name === couponCode && c.valid);
-    if (found) couponId = found.id;
+// Bereken uitbetaling voor verkoper
+export function calculatePayout(amount: number): {
+  totalAmount: number;
+  stripeFee: number;
+  homecheffFee: number;
+  sellerPayout: number;
+} {
+  const totalAmount = amount;
+  const stripeFee = (totalAmount * FEE_STRUCTURE.STRIPE_FEE_PERCENTAGE / 100) + FEE_STRUCTURE.STRIPE_FIXED_FEE;
+  const homecheffFee = totalAmount * FEE_STRUCTURE.HOMECHEFF_FEE_PERCENTAGE / 100;
+  const sellerPayout = totalAmount - stripeFee - homecheffFee;
+
+  return {
+    totalAmount,
+    stripeFee: Math.round(stripeFee * 100) / 100,
+    homecheffFee: Math.round(homecheffFee * 100) / 100,
+    sellerPayout: Math.round(sellerPayout * 100) / 100,
+  };
+}
+
+// Maak Stripe Payment Intent
+export async function createPaymentIntent(
+  amount: number,
+  currency: string = 'eur',
+  metadata: Record<string, string> = {}
+) {
+  const { totalAmount } = calculatePayout(amount);
+  
+  if (isTestMode) {
+    // Mock payment intent voor test modus
+    return {
+      id: `pi_test_${Date.now()}`,
+      amount: Math.round(totalAmount * 100),
+      currency,
+      status: 'requires_payment_method',
+      metadata: {
+        ...metadata,
+        homecheff_app: 'true',
+        test_mode: 'true',
+      },
+    };
   }
-  // Maak subscription aan
-  return stripe.subscriptions.create({
-  customer: customerId,
-  items: [{ price: planInfo.priceId }],
-  metadata: { duration, discount, couponCode: couponCode || "" },
+  
+  return await stripe!.paymentIntents.create({
+    amount: Math.round(totalAmount * 100), // Stripe verwacht centen
+    currency,
+    metadata: {
+      ...metadata,
+      homecheff_app: 'true',
+    },
   });
 }
 
-export async function createPaymentIntentWithFee({
-  amount,
-  sellerStripeAccountId,
-  feePercent,
-}: {
-  amount: number;
-  sellerStripeAccountId: string;
-  feePercent: number;
-}) {
-  // Split payment: fee naar platform, rest naar verkoper
-  const feeAmount = Math.round(amount * feePercent);
-  return stripe.paymentIntents.create({
-    amount,
+// Maak Stripe Connect account voor verkoper
+export async function createConnectAccount(
+  email: string,
+  country: string = 'NL',
+  type: 'express' | 'standard' = 'express'
+) {
+  if (isTestMode) {
+    // Mock connect account voor test modus
+    return {
+      id: `acct_test_${Date.now()}`,
+      type,
+      country,
+      email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      test_mode: true,
+    };
+  }
+  
+  return await stripe!.accounts.create({
+    type,
+    country,
+    email,
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
+}
+
+// Format bedrag voor Stripe (euro naar centen)
+export function formatAmountForStripe(amount: number): number {
+  return Math.round(amount * 100);
+}
+
+// Maak uitbetaling naar verkoper
+export async function createTransfer(
+  amount: number,
+  destinationAccountId: string,
+  metadata: Record<string, string> = {}
+) {
+  if (isTestMode) {
+    // Mock transfer voor test modus
+    return {
+      id: `tr_test_${Date.now()}`,
+      amount: Math.round(amount * 100),
+      currency: 'eur',
+      destination: destinationAccountId,
+      metadata: {
+        ...metadata,
+        homecheff_payout: 'true',
+        test_mode: 'true',
+      },
+    };
+  }
+  
+  return await stripe!.transfers.create({
+    amount: Math.round(amount * 100), // Stripe verwacht centen
     currency: 'eur',
-    payment_method_types: ['card'],
-    application_fee_amount: feeAmount,
-    transfer_data: { destination: sellerStripeAccountId },
+    destination: destinationAccountId,
+    metadata: {
+      ...metadata,
+      homecheff_payout: 'true',
+    },
   });
 }

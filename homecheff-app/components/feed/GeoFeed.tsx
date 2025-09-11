@@ -22,6 +22,7 @@ export default function GeoFeed() {
   const [coords, setCoords] = useState<{lat:number,lng:number} | null>(null);
   const [radius, setRadius] = useState(25);
   const [q, setQ] = useState("");
+  const [place, setPlace] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -39,7 +40,9 @@ export default function GeoFeed() {
         });
       } catch {}
       const params = new URLSearchParams();
-      if (lat != null && lng != null) {
+      if (place.trim()) {
+        params.set("place", place.trim());
+      } else if (lat != null && lng != null) {
         params.set("lat", String(lat));
         params.set("lng", String(lng));
         params.set("radius", String(radius));
@@ -56,14 +59,18 @@ export default function GeoFeed() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 items-end">
-        <div>
-          <label className="block text-sm font-medium">Radius (km)</label>
-          <input type="number" min={1} max={100} value={radius} onChange={e => setRadius(Math.max(1, Math.min(100, Number(e.target.value))))} className="mt-1 w-28 rounded-xl border px-3 py-2" />
+  <div className="flex flex-wrap gap-3 items-end bg-white/60 rounded-xl p-4 border border-gray-200">
+        <div className="flex-1 min-w-[180px]">
+          <label className="block text-base font-semibold mb-1">Plaats</label>
+          <input value={place} onChange={e => setPlace(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" placeholder="Typ een woonplaats, bv. Amsterdam" />
         </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium">Zoeken</label>
-          <input value={q} onChange={e => setQ(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="bv. pasta, soep, bagels" />
+        <div className="min-w-[120px]">
+          <label className="block text-base font-semibold mb-1">Straal (km)</label>
+          <input type="number" min={1} max={100} value={radius} onChange={e => setRadius(Math.max(1, Math.min(100, Number(e.target.value))))} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg" />
+        </div>
+        <div className="flex-1 min-w-[180px]">
+          <label className="block text-base font-semibold mb-1">Zoeken</label>
+          <input value={q} onChange={e => setQ(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" placeholder="bv. pasta, soep, bagels" />
         </div>
         {coords ? <p className="text-xs text-muted-foreground ml-auto">Jouw locatie: {coords.lat.toFixed(3)}, {coords.lng.toFixed(3)}</p> : <p className="text-xs text-muted-foreground ml-auto">Geen locatie: sorteren op nieuwste</p>}
       </div>
@@ -75,7 +82,7 @@ export default function GeoFeed() {
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {items.map(it => (
-            <div key={it.id} className="rounded-xl border bg-white overflow-hidden">
+            <a key={it.id} href={`/listings/${it.id}`} className="rounded-xl border bg-white overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={it.photo ?? "/placeholder.webp"} alt="" className="w-full h-36 object-cover" />
               <div className="p-3 space-y-1">
@@ -86,7 +93,7 @@ export default function GeoFeed() {
                 </p>
                 <p className="text-xs">{it.deliveryMode === "PICKUP" ? "Afhalen" : it.deliveryMode === "DELIVERY" ? "Bezorgen" : it.deliveryMode === "BOTH" ? "Afhalen of bezorgen" : ""}</p>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       )}

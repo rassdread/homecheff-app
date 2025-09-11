@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
 
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
+  const place = searchParams.get("place")?.trim() || "";
 
   if ((!lat || !lng) && userId) {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { lat: true, lng: true } });
@@ -30,6 +31,12 @@ export async function GET(req: NextRequest) {
   }
 
   const where: any = { isPublic: true };
+  // Als plaats ingevuld is, filter op plaats en negeer lat/lng
+  if (place) {
+    where.place = { contains: place, mode: "insensitive" };
+    lat = null;
+    lng = null;
+  }
 
   if (q) {
     where.OR = [

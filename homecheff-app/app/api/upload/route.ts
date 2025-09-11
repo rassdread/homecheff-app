@@ -1,8 +1,7 @@
-export const runtime = 'nodejs';
-
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -16,13 +15,17 @@ export async function POST(req: Request) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "Geen geldig bestand ontvangen in FormData." }, { status: 400 });
     }
-    const blob = await put(file.name, file, {
+    console.log("Uploaden bestand:", file.name);
+    const key = `avatars/${crypto.randomUUID()}-${file.name}`;
+    const blob = await put(key, file, {
       access: "public",
       token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN,
+      addRandomSuffix: true,
     });
-    return NextResponse.json({ url: blob.url, key: blob.pathname, publicUrl: blob.url });
+    console.log("Blob url:", blob.url);
+    return Response.json({ url: blob.url });
   } catch (e) {
-    console.error(e);
+    console.error("Upload error:", e);
     return NextResponse.json({ error: "Blob upload mislukt" }, { status: 500 });
   }
 }

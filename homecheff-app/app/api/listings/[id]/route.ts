@@ -1,11 +1,46 @@
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
-  // Example: extract id from the URL
-  const url = new URL(request.url);
-  const id = url.pathname.split('/').pop();
-  return new Response(JSON.stringify({ message: `Listing details for id: ${id}` }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const listing = await prisma.listing.findUnique({
+      where: {
+        id: params.id,
+      },
+      include: {
+        User: { 
+          select: { 
+            id: true, 
+            name: true, 
+            username: true, 
+            image: true,
+            profileImage: true 
+          } 
+        },
+        ListingMedia: { 
+          select: { 
+            url: true, 
+            order: true,
+            alt: true 
+          },
+          orderBy: { order: 'asc' }
+        }
+      },
+    });
+
+    if (!listing) {
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(listing);
+  } catch (error) {
+    console.error("Error fetching listing:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

@@ -72,14 +72,14 @@ export default function ProductForm({ market }: ProductFormProps) {
   }
 
   return (
-    <form className="max-w-2xl mx-auto p-6" onSubmit={handleSubmit}>
+  <form className="max-w-2xl mx-auto p-4" onSubmit={handleSubmit}>
   <h1 className="text-2xl font-bold mb-6 text-primary font-montserrat">{config.title}</h1>
-      <div className="mb-4 text-sm text-gray-600 bg-yellow-50 border-l-4" style={{ borderColor: "var(--accent)" }}>
+      <div className="mb-3 text-xs text-gray-600 bg-yellow-50 border-l-4 p-2" style={{ borderColor: "var(--accent)" }}>
         {config.instructions}
       </div>
       <div className="bg-white rounded-xl p-4 mb-6">
-  <div className="font-semibold mb-2 text-primary font-montserrat">{config.photoLabel}</div>
-        <div className="flex gap-4">
+  <div className="font-semibold mb-1 text-primary font-montserrat text-xs">{config.photoLabel}</div>
+  <div className="flex gap-1 flex-wrap">
           {[...Array(5)].map((_, idx) => (
             <label key={idx} className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center cursor-pointer" style={{ border: isFavorite ? "2px solid var(--accent)" : undefined }}>
               {photos[idx] ? (
@@ -93,24 +93,46 @@ export default function ProductForm({ market }: ProductFormProps) {
         </div>
       </div>
       <div className="bg-white rounded-xl p-4 mb-6">
-  <div className="font-semibold mb-2 text-primary font-montserrat">Beschrijving</div>
+  <div className="font-semibold mb-1 text-primary font-montserrat text-xs">Beschrijving</div>
         <textarea
-          className="w-full h-24 p-2 border rounded"
+          className="w-full h-14 p-1 border rounded text-xs"
           placeholder={config.descriptionLabel}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
       <div className="bg-white rounded-xl p-4 mb-6">
-  <div className="font-semibold mb-2 text-primary font-montserrat">Categorie & filters</div>
-        <ul className="list-disc pl-6">
+  <div className="font-semibold mb-1 text-primary font-montserrat text-xs">Categorie & filters</div>
+        <ul className="list-disc pl-2 text-xs mb-2">
           {config.categories.map((cat) => (
             <li key={cat}>{cat}</li>
           ))}
         </ul>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Prijs</label>
+              <input type="number" min={0} step={0.01} className="w-24 px-2 py-1 rounded border text-xs" placeholder="Prijs (€)" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Levering</label>
+              <div className="flex gap-2">
+                <label className="flex items-center gap-1 text-xs">
+                  <input type="radio" name="delivery" value="PICKUP" className="w-3 h-3" /> Afhalen
+                </label>
+                <label className="flex items-center gap-1 text-xs">
+                  <input type="radio" name="delivery" value="DELIVERY" className="w-3 h-3" /> Bezorgen
+                </label>
+                <label className="flex items-center gap-1 text-xs">
+                  <input type="radio" name="delivery" value="BOTH" className="w-3 h-3" /> Afhalen of bezorgen
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex gap-4 mb-6">
-  <button type="button" className={`px-4 py-2 rounded text-black ${isFavorite ? 'bg-green-500' : 'bg-secondary'}`} onClick={handleFavorite}>
+        <button type="button" className={`px-2 py-1 rounded text-black text-xs ${isFavorite ? 'bg-green-500' : 'bg-secondary'}`} onClick={handleFavorite}>
           {isFavorite ? 'Verwijderd uit favorieten' : 'Opslaan als favoriet'}
         </button>
       </div>

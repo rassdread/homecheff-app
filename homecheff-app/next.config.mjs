@@ -1,7 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   eslint: { ignoreDuringBuilds: true },
-}
-
-export default nextConfig
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
+  output: 'standalone',
+  // Remove any potential document configuration
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+};
+export default nextConfig;

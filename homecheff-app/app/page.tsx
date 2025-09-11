@@ -1,23 +1,66 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
+import { Search, MapPin, Filter, Heart, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro } from "lucide-react";
+import Link from "next/link";
 
-type FeedItem = {
+const CATEGORIES = {
+  CHEFF: {
+    label: "Chef",
+    icon: "🍳",
+    subcategories: [
+      "Hoofdgerecht", "Voorgerecht", "Dessert", "Snack", "Soep", "Salade", "Pasta", "Rijst", 
+      "Vlees", "Vis", "Vegetarisch", "Veganistisch", "Glutenvrij", "Aziatisch", "Mediterraans", 
+      "Italiaans", "Frans", "Spaans", "Surinaams", "Marokkaans", "Indisch", "Thais", "Chinees", 
+      "Japans", "Mexicaans", "Amerikaans", "Nederlands", "Anders"
+    ]
+  },
+  GROWN: {
+    label: "Garden", 
+    icon: "🌱",
+    subcategories: [
+      "Groenten", "Fruit", "Kruiden", "Zaden", "Planten", "Bloemen", "Kamerplanten", "Tuinplanten",
+      "Moestuin", "Biologisch", "Lokaal geteeld", "Seizoensgebonden", "Zeldzame variëteiten", 
+      "Struiken", "Bomen", "Bollen", "Stekken", "Compost", "Meststoffen", "Tuingereedschap", "Anders"
+    ]
+  },
+  DESIGNER: {
+    label: "Designer",
+    icon: "🎨", 
+    subcategories: [
+      "Handgemaakt", "Kunst", "Decoratie", "Meubels", "Textiel", "Keramiek", "Houtwerk", "Metaalwerk",
+      "Glaswerk", "Juwelen", "Accessoires", "Kleding", "Schoenen", "Tassen", "Interieur", "Exterieur",
+      "Fotografie", "Illustraties", "Printwerk", "Digitale kunst", "Upcycling", "Vintage", "Modern",
+      "Klassiek", "Minimalistisch", "Eclectisch", "Anders"
+    ]
+  }
+};
+
+type HomeItem = {
   id: string;
   title: string;
   description?: string | null;
   priceCents: number;
   image?: string | null;
   createdAt: string | Date;
-  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null } | null;
+  category?: string;
+  subcategory?: string;
+  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null; buyerTypes?: string[] } | null;
 };
 
 export default function HomePage() {
   const [username, setUsername] = useState<string>("");
-  const [items, setItems] = useState<FeedItem[]>([]);
+  const [items, setItems] = useState<HomeItem[]>([]);
   const [q, setQ] = useState<string>("");
   const [radius, setRadius] = useState<number>(10);
   const [category, setCategory] = useState<string>("all");
+  const [subcategory, setSubcategory] = useState<string>("all");
+  const [deliveryMode, setDeliveryMode] = useState<string>("all");
+  const [priceRange, setPriceRange] = useState<{min: number, max: number}>({min: 0, max: 1000});
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState<string>("newest");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [location, setLocation] = useState<string>("");
 
   useEffect(() => {
     // Haal (display)naam op – vervang endpoint indien nodig
@@ -33,132 +76,558 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Feed laden
+    // Home laden met caching voor betere performance
     (async () => {
       try {
-        const r = await fetch("/api/products", { cache: "no-store" });
+        setIsLoading(true);
+        const r = await fetch("/api/products");
         if (!r.ok) return;
-        const data = (await r.json()) as { items: FeedItem[] };
+        const data = (await r.json()) as { items: HomeItem[] };
         setItems(data?.items ?? []);
       } catch {}
+      finally {
+        setIsLoading(false);
+      }
     })();
   }, []);
 
-  // Client-side filter (demo). Category hangt af van jouw data; hier filteren we alleen op titel/omschrijving.
+  // Client-side filter met uitgebreide zoekfunctionaliteit
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const list = items.filter((it) => {
-      if (!term) return true;
-      const hay = `${it.title ?? ""} ${it.description ?? ""}`.toLowerCase();
-      return hay.includes(term);
+    let list = items.filter((it) => {
+      // Zoekfilter
+      if (term) {
+        const hay = `${it.title ?? ""} ${it.description ?? ""} ${it.subcategory ?? ""}`.toLowerCase();
+        if (!hay.includes(term)) return false;
+      }
+      
+      // Categorie filter
+      if (category !== "all") {
+        const categoryMap: { [key: string]: string } = {
+          "cheff": "CHEFF",
+          "garden": "GROWN", 
+          "designer": "DESIGNER"
+        };
+        if (it.category !== categoryMap[category]) return false;
+      }
+      
+      // Subcategorie filter
+      if (subcategory !== "all" && it.subcategory) {
+        if (it.subcategory !== subcategory) return false;
+      }
+      
+      // Prijs filter
+      if (it.priceCents) {
+        const price = it.priceCents / 100;
+        if (price < priceRange.min || price > priceRange.max) return false;
+      }
+      
+      // Locatie filter
+      if (location.trim()) {
+        const locationTerm = location.trim().toLowerCase();
+        // Zoek in plaats, postcode, of andere locatie-gerelateerde velden
+        // Voor nu zoeken we in de titel en beschrijving als placeholder
+        const locationFields = `${it.title ?? ""} ${it.description ?? ""}`.toLowerCase();
+        if (!locationFields.includes(locationTerm)) return false;
+      }
+      
+      // Delivery mode filter (dit zou in de toekomst toegevoegd moeten worden aan de HomeItem type)
+      // Voor nu slaan we dit over omdat het niet in de huidige data structuur zit
+      
+      return true;
     });
-    // radius en category zijn placeholders; pas aan als je geo/categorie hebt
-    return list;
-  }, [items, q, category, radius]);
+    
+    // Sorteer op basis van geselecteerde optie
+    return list.sort((a, b) => {
+      switch (sortBy) {
+        case "price-low":
+          return (a.priceCents || 0) - (b.priceCents || 0);
+        case "price-high":
+          return (b.priceCents || 0) - (a.priceCents || 0);
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "newest":
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+  }, [items, q, category, subcategory, priceRange, sortBy, location]);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="relative bg-gradient-to-r from-primary to-secondary py-12 md:py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h1 className="leading-tight font-bold text-3xl md:text-5xl text-white drop-shadow-md">
-            Wat mag het vandaag worden{username ? `, ${username}` : ""}?
+    <main className="min-h-screen bg-neutral-50">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-green-600 via-green-700 to-green-800 py-12 md:py-24">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
+              {username ? `Welkom, ${username}! 👋` : "Welkom bij HomeCheff! 👋"}
           </h1>
-          <p className="mt-2 text-white/90 md:text-lg drop-shadow-sm">
-            Huisgemaakt, lokaal en vers—vind gerechten en producten van mensen bij jou in de buurt.
-          </p>
+            <p className="text-lg sm:text-xl md:text-2xl text-green-100 mb-6 md:mb-8 max-w-3xl mx-auto px-4">
+              Ontdek lokale gerechten, verse producten en unieke creaties van mensen in jouw buurt
+            </p>
+          </div>
 
-          {/* Filterbar */}
-          <div className="mt-8 rounded-2xl bg-white/90 text-gray-900 shadow-lg backdrop-blur-lg p-6">
-            <div className="grid gap-4 md:grid-cols-[2fr,1fr,1fr,auto] items-center">
+          {/* Search Bar */}
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                className="h-12 rounded-xl border px-4 outline-none w-full bg-gray-50 text-gray-900"
-                placeholder="Zoeken naar gerechten of producten…"
-              />
-              <div className="flex items-center gap-3 px-2">
-                <label className="text-sm whitespace-nowrap">Straal</label>
+                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 text-base md:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    placeholder="Zoek naar gerechten, producten..."
+                  />
+                </div>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors"
+                >
+                  <Filter className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="font-medium text-sm md:text-base">
+                    {showFilters ? 'Filters toepassen' : 'Filters'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Advanced Filters */}
+              {showFilters && (
+                <div className="mt-6 pt-6 border-t border-neutral-200">
+                  <div className="space-y-6">
+                    {/* First Row - Main Categories */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Categorie</label>
+                        <select
+                          value={category}
+                          onChange={(e) => {
+                            setCategory(e.target.value);
+                            setSubcategory("all"); // Reset subcategory when category changes
+                          }}
+                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        >
+                          <option value="all">Alle categorieën</option>
+                          {Object.entries(CATEGORIES).map(([key, cat]) => (
+                            <option key={key} value={key.toLowerCase()}>
+                              {cat.icon} {cat.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Subcategorie</label>
+                        <select
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                          disabled={category === "all"}
+                        >
+                          <option value="all">Alle subcategorieën</option>
+                          {category !== "all" && CATEGORIES[category.toUpperCase() as keyof typeof CATEGORIES]?.subcategories.map(sub => (
+                            <option key={sub} value={sub}>{sub}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Sorteren op</label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        >
+                          <option value="newest">Nieuwste eerst</option>
+                          <option value="oldest">Oudste eerst</option>
+                          <option value="price-low">Prijs: laag naar hoog</option>
+                          <option value="price-high">Prijs: hoog naar laag</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Second Row - Price and Location */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Prijs: €{priceRange.min} - €{priceRange.max}
+                        </label>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">Vanaf prijs</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max={priceRange.max}
+                              step="5"
+                              value={priceRange.min}
+                              onChange={(e) => {
+                                const newMin = Number(e.target.value);
+                                if (newMin <= priceRange.max) {
+                                  setPriceRange(prev => ({ ...prev, min: newMin }));
+                                }
+                              }}
+                              className="w-full accent-green-600"
+                            />
+                            <span className="text-xs text-gray-500">€{priceRange.min}</span>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">Tot prijs</label>
+                            <input
+                              type="range"
+                              min={priceRange.min}
+                              max="1000"
+                              step="5"
+                              value={priceRange.max}
+                              onChange={(e) => {
+                                const newMax = Number(e.target.value);
+                                if (newMax >= priceRange.min) {
+                                  setPriceRange(prev => ({ ...prev, max: newMax }));
+                                }
+                              }}
+                              className="w-full accent-green-600"
+                            />
+                            <span className="text-xs text-gray-500">€{priceRange.max}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-neutral-500 mt-1">
+                          <span>€0</span>
+                          <span>€1000+</span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Locatie</label>
+                        <input
+                          type="text"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          placeholder="Zoek op plaats of postcode..."
+                          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Straal: {radius} km</label>
                 <input
                   type="range"
                   min={1}
                   max={50}
                   value={radius}
                   onChange={(e) => setRadius(Number(e.target.value))}
-                  className="w-full accent-primary"
-                />
-                <span className="text-sm w-[3.5ch] text-right">{radius} km</span>
+                          className="w-full accent-green-600"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>1 km</span>
+                          <span>50+ km</span>
+                        </div>
+                      </div>
               </div>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="h-12 rounded-xl border px-4 bg-gray-50 text-gray-900"
-              >
-                <option value="all">Alles</option>
-                <option value="cheff">HomeCheff</option>
-                <option value="garden">HomeGarden</option>
-                <option value="designer">HomeDesigner</option>
-              </select>
+
+                    {/* Third Row - Delivery Options */}
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-3">Levering</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button
+                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "PICKUP" : "all")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
+                            deliveryMode === "PICKUP" 
+                              ? "border-primary-500 bg-primary-50 text-primary-700" 
+                              : "border-neutral-200 hover:border-neutral-300"
+                          }`}
+                        >
+                          <Package className="w-4 h-4" />
+                          <span className="text-sm font-medium">Alleen afhalen</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "DELIVERY" : "all")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
+                            deliveryMode === "DELIVERY" 
+                              ? "border-primary-500 bg-primary-50 text-primary-700" 
+                              : "border-neutral-200 hover:border-neutral-300"
+                          }`}
+                        >
+                          <Truck className="w-4 h-4" />
+                          <span className="text-sm font-medium">Alleen bezorgen</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "BOTH" : "all")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
+                            deliveryMode === "BOTH" 
+                              ? "border-primary-500 bg-primary-50 text-primary-700" 
+                              : "border-neutral-200 hover:border-neutral-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1">
+                            <Package className="w-3 h-3" />
+                            <Truck className="w-3 h-3" />
+                          </div>
+                          <span className="text-sm font-medium">Beide opties</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    <div className="flex justify-end pt-4 border-t border-neutral-200">
               <button
-                className="h-12 px-6 rounded-xl text-white font-semibold border border-white/20 bg-primary shadow"
                 onClick={() => {
-                  // placeholder voor submit/filter call
-                }}
-              >
-                Zoeken
+                          setQ("");
+                          setCategory("all");
+                          setSubcategory("all");
+                          setDeliveryMode("all");
+                          setPriceRange({min: 0, max: 1000});
+                          setRadius(10);
+                          setSortBy("newest");
+                        }}
+                        className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition-colors"
+                      >
+                        Alle filters resetten
               </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Feed */}
-      <section className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-semibold" style={{ color: "#0b1220" }}>
-            Aanbevolen in jouw buurt
+      {/* Home Section */}
+      <section className="py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-neutral-900">
+                {filtered.length} {filtered.length === 1 ? 'item' : 'items'} gevonden
           </h2>
-          <a href="/profile" className="text-sm underline" style={{ color: "#0067B1" }}>
-            Naar mijn profiel
-          </a>
+              <p className="text-neutral-600 mt-1">
+                {category !== 'all' ? `In categorie: ${category}` : 'Alle categorieën'}
+              </p>
+            </div>
+            {username ? (
+              <Link 
+                href="/profile" 
+                className="flex items-center gap-2 px-4 py-2 text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              >
+                <span>Mijn profiel</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ) : (
+              <Link 
+                href="/login" 
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors"
+              >
+                <span>Inloggen</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            )}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-gray-600">Niets gevonden. Probeer een andere zoekterm.</div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
-            {filtered.map((it) => (
-              <article key={it.id} className="rounded-2xl border bg-white shadow-sm overflow-hidden">
-                {it.image ? (
-                  <img src={it.image} alt={it.title} className="h-40 w-full object-cover" />
-                ) : (
-                  <div className="h-40 w-full bg-gray-100" />
-                )}
-                <div className="p-4">
-                  <h3 className="font-medium leading-snug">{it.title}</h3>
-                  <div className="mt-1 text-sm text-gray-600 line-clamp-2">{it.description}</div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="font-semibold">€{(it.priceCents / 100).toFixed(2)}</div>
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
+                  <div className="h-64 bg-neutral-200"></div>
+                  <div className="p-6">
+                    <div className="h-4 bg-neutral-200 rounded mb-2"></div>
+                    <div className="h-3 bg-neutral-200 rounded w-2/3 mb-4"></div>
                     <div className="flex items-center gap-2">
-                      {it.seller?.avatar ? (
-                        <img
-                          src={it.seller.avatar}
-                          alt={it.seller?.name ?? "Verkoper"}
-                          className="w-7 h-7 rounded-full object-cover border"
-                        />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full bg-gray-200 border" />
-                      )}
-                      <div className="text-sm text-gray-700">
-                        {it.seller?.name ?? it.seller?.username ?? "Anoniem"}
-                      </div>
+                      <div className="w-8 h-8 bg-neutral-200 rounded-full"></div>
+                      <div className="h-3 bg-neutral-200 rounded w-1/2"></div>
                     </div>
                   </div>
                 </div>
-              </article>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-12 h-12 text-neutral-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Geen resultaten gevonden</h3>
+              <p className="text-neutral-600 mb-6">Probeer andere zoektermen of filters aan te passen</p>
+              <button
+                onClick={() => {
+                  setQ("");
+                  setCategory("all");
+                  setSubcategory("all");
+                  setDeliveryMode("all");
+                  setPriceRange({min: 0, max: 1000});
+                  setRadius(10);
+                  setSortBy("newest");
+                  setShowFilters(false);
+                }}
+                className="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+              >
+                Reset filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filtered.map((item) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => {
+                    if (!username) {
+                      window.location.href = '/login?message=Je moet ingelogd zijn om producten te bekijken';
+                    } else {
+                      window.location.href = `/product/${item.id}`;
+                    }
+                  }}
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                >
+                  {/* Image */}
+                  <div className="relative h-64 overflow-hidden">
+                    {item.image ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
+                        <div className="text-neutral-400 text-4xl">
+                          {item.category === 'CHEFF' ? <ChefHat className="w-12 h-12 mx-auto" /> :
+                           item.category === 'GROWN' ? <Sprout className="w-12 h-12 mx-auto" /> :
+                           item.category === 'DESIGNER' ? <Palette className="w-12 h-12 mx-auto" /> :
+                           <ChefHat className="w-12 h-12 mx-auto" />}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Category Badge */}
+                    {item.category && (
+                      <div className="absolute top-4 left-4">
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                          item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800' :
+                          item.category === 'GROWN' ? 'bg-success-100 text-success-800' :
+                          item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800' :
+                          'bg-neutral-100 text-neutral-800'
+                        }`}>
+                          {item.category === 'CHEFF' ? '🍳 Chef' :
+                           item.category === 'GROWN' ? '🌱 Garden' :
+                           item.category === 'DESIGNER' ? '🎨 Designer' : item.category}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Heart Button */}
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // TODO: Implement favorite functionality
+                      }}
+                      className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                    >
+                      <Heart className="w-5 h-5 text-neutral-600 hover:text-error-500" />
+                    </button>
+
+                    {/* Price */}
+                    <div className="absolute bottom-4 left-4">
+                      <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-lg font-bold">
+                        €{(item.priceCents / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 flex-1">
+                        {item.title}
+                      </h3>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // TODO: Implement more options functionality
+                        }}
+                        className="p-1 hover:bg-neutral-100 rounded-full transition-colors"
+                      >
+                        <MoreHorizontal className="w-4 h-4 text-neutral-400" />
+                      </button>
+                    </div>
+                    
+                    {item.subcategory && (
+                      <p className="text-sm text-primary-600 font-medium mb-2">{item.subcategory}</p>
+                    )}
+                    
+                    <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
+                    
+                    {/* Seller Info */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
+                      <div className="flex-shrink-0">
+                        {item.seller?.avatar ? (
+                          <img
+                            src={item.seller.avatar}
+                            alt={item.seller?.name ?? "Verkoper"}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-primary-100"
+                        />
+                      ) : (
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                            <span className="text-primary-600 font-semibold text-sm">
+                              {(item.seller?.name ?? item.seller?.username ?? "A").charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-900 truncate">
+                          {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-neutral-500 mb-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
+                        </div>
+                        {/* Buyer Types */}
+                        {item.seller?.buyerTypes && item.seller.buyerTypes.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.seller.buyerTypes.slice(0, 2).map((type, index) => {
+                              const typeInfo = {
+                                chef: { icon: "👨‍🍳", label: "Chef" },
+                                garden: { icon: "🌱", label: "Garden" },
+                                designer: { icon: "🎨", label: "Designer" },
+                                ontdekker: { icon: "🔍", label: "Ontdekker" }
+                              }[type];
+                              
+                              return (
+                                <span
+                                  key={index}
+                                  className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1"
+                                >
+                                  <span className="text-xs">{typeInfo?.icon}</span>
+                                  <span>{typeInfo?.label}</span>
+                                </span>
+                              );
+                            })}
+                            {item.seller.buyerTypes.length > 2 && (
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                +{item.seller.buyerTypes.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-warning-400 fill-current" />
+                        <span className="text-sm font-medium text-neutral-700">4.8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
+        </div>
       </section>
     </main>
   );

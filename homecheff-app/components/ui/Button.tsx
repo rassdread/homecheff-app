@@ -11,7 +11,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const base =
-    'inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-medium transition';
+    'inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition';
   const styles = {
     primary: 'bg-[#006D52] text-white hover:opacity-90',
     outline:

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 export default function SellerOnboardingPage() {
   const router = useRouter();
   const [bio, setBio] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [workplacePhotos, setWorkplacePhotos] = useState<string[]>([]);
   const [error, setError] = useState("");
   const userId = 'anon'; // TODO: vervang met echte sessie userId
@@ -25,7 +25,7 @@ export default function SellerOnboardingPage() {
     const f = e.target.files?.[0];
     if (f) {
       const url = await uploadFile(f);
-      if (url) setProfileImage(url);
+      if (url) setImage(url);
     }
   }
 
@@ -46,7 +46,7 @@ export default function SellerOnboardingPage() {
     const res = await fetch("/api/profile/seller", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, bio, profileImage, workplacePhotos })
+      body: JSON.stringify({ userId, bio, image, workplacePhotos })
     });
     if (res.ok) router.push("/");
     else {
@@ -75,7 +75,7 @@ export default function SellerOnboardingPage() {
             <div>
               <label className="block font-medium mb-1">Profielfoto</label>
               <input type="file" accept="image/*" onChange={onPickProfile} />
-              {profileImage && <img src={profileImage} alt="profielfoto" className="mt-2 w-32 h-32 object-cover rounded-full border" />}
+              {image && <img src={image} alt="profielfoto" className="mt-2 w-32 h-32 object-cover rounded-full border" />}
             </div>
 
             <div>

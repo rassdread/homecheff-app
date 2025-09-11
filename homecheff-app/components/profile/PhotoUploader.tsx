@@ -1,68 +1,62 @@
 // components/profile/PhotoUploader.tsx — CLIENT component
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Image from "next/image";
 
-export default function PhotoUploader({ buttonLabel = "Foto kiezen" }: { buttonLabel?: string }) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-
-  async function onPick() {
-    fileRef.current?.click();
-  }
+export default function PhotoUploader({ initialUrl }: { initialUrl?: string }) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(initialUrl ?? null);
+  const src = preview ?? url ?? "/avatar-placeholder.png";
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBusy(true);
-    setError(null);
+    
+    // Instant preview
+    const reader = new FileReader();
+    reader.onload = () => setPreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    // Upload file to server
     try {
       const formData = new FormData();
-      formData.append("file", file);
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
+      formData.append('file', file);
+      
+      const response = await fetch('/api/profile/photo/upload', {
+        method: 'POST',
         body: formData,
       });
-      if (!uploadRes.ok) throw new Error("Upload naar blob mislukt");
-      const { publicUrl } = await uploadRes.json();
-      const save = await fetch("/api/profile/photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: publicUrl }),
-      });
-      if (!save.ok) throw new Error("Opslaan mislukt");
-      await save.json();
-      router.refresh();
-    } catch (e: any) {
-      setError(e.message || "Er ging iets mis");
-    } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      const data = await response.json();
+      if (data.url) {
+        setUrl(data.url);
+        setPreview(null); // Clear preview since we now have the actual URL
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      // Keep preview for user to see what they selected, but show error
+      alert('Foto upload mislukt. Probeer het opnieuw.');
     }
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onFileChange}
-      />
-      <button
-        type="button"
-        onClick={onPick}
-        disabled={busy}
-        className="rounded-full bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        {busy ? "Bezig…" : buttonLabel}
-      </button>
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-      <p className="text-[11px] text-gray-500">Tip: na upload wordt je avatar direct ververst.</p>
+    <div className="group relative flex flex-col items-center gap-3">
+      <div className="relative rounded-full overflow-hidden border-2 border-emerald-700/60 shadow-sm"
+           style={{ width: "200px", height: "200px" }}>
+        <Image src={src} alt="Profielfoto" fill className="object-cover" sizes="200px" />
+        <label
+          className="absolute inset-0 grid place-items-center text-emerald-800 font-medium cursor-pointer transition-opacity opacity-0 group-hover:opacity-100 whitespace-nowrap"
+          style={{ background: "rgba(255,255,255,0.35)" }}
+        >
+          Foto wijzigen
+          <input className="hidden" type="file" accept="image/*" onChange={onFileChange} />
+        </label>
+      </div>
     </div>
   );
 }

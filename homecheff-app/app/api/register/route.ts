@@ -12,16 +12,42 @@ import { randomUUID } from "crypto";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-  const { email, password, name, isBusiness, kvk, btw, company, subscription } = body;
+    console.log('Registration attempt with data:', { 
+      email: body.email, 
+      isBusiness: body.isBusiness,
+      hasBankData: !!(body.bankName || body.iban || body.accountHolderName)
+    });
+    
+  const { email, password, firstName, lastName, username, gender, userTypes, selectedBuyerType, interests, location, bio, isBusiness, kvk, btw, company, subscription, bankName, iban, accountHolderName } = body;
   if (!email || !password)
       return NextResponse.json({ error: "Email en wachtwoord vereist" }, { status: 400 });
 
+  // Check if user has at least one role or buyer type
+  if ((!userTypes || userTypes.length === 0) && !selectedBuyerType) {
+    return NextResponse.json({ error: "Selecteer tenminste één rol of koper type" }, { status: 400 });
+  }
+
     const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) return NextResponse.json({ error: "Bestaat al" }, { status: 409 });
+    if (exists) return NextResponse.json({ error: "E-mail bestaat al" }, { status: 409 });
+
+    if (!username) return NextResponse.json({ error: "Gebruikersnaam vereist" }, { status: 400 });
+    const usernameExists = await prisma.user.findUnique({ where: { username } });
+    if (usernameExists) return NextResponse.json({ error: "Gebruikersnaam bestaat al" }, { status: 409 });
 
   const passwordHash = await bcrypt.hash(password, 10);
-    let user;
-    if (isBusiness) {
+  
+  // Determine user role based on selections
+  let roleValue = UserRole.BUYER; // Default to buyer
+  if (isBusiness) {
+    roleValue = UserRole.SELLER;
+  } else if (userTypes && userTypes.length > 0) {
+    roleValue = UserRole.SELLER; // Has selling roles
+  } else if (selectedBuyerType) {
+    roleValue = UserRole.BUYER; // Only buyer type selected
+  }
+  
+  let user;
+  if (isBusiness) {
       if (!kvk || !btw || !company || !subscription) {
         return NextResponse.json({ error: "Bedrijfsinfo en abonnement vereist" }, { status: 400 });
       }
@@ -30,10 +56,20 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Ongeldig abonnement" }, { status: 400 });
       }
       user = await prisma.user.create({
-        data: {
-          email,
+        data: {email,
           passwordHash,
-          role: UserRole.SELLER,
+          role: roleValue,
+          username,
+          name: `${firstName} ${lastName}`.trim(),
+          buyerTypes: userTypes || [],
+          selectedBuyerType: selectedBuyerType || null,
+          interests: interests || [],
+          place: location,
+          bio,
+          // Uitbetaalgegevens
+          bankName: bankName || null,
+          iban: iban || null,
+          accountHolderName: accountHolderName || null,
           SellerProfile: {
             create: {
               id: randomUUID(),
@@ -42,21 +78,45 @@ export async function POST(req: Request) {
               companyName: company,
               subscriptionId: sub.id,
               subscriptionValidUntil: new Date(Date.now() + sub.durationDays * 24 * 60 * 60 * 1000),
-              displayName: company,
+              displayName: username,
             },
           },
         },
-        select: { id: true, email: true },
+        select: { id: true, email: true, username: true, name: true },
       });
     } else {
-  const roleValue: UserRole = body.role === "ADMIN" ? UserRole.ADMIN : UserRole.BUYER;
+  // roleValue is already determined above
       user = await prisma.user.create({
-        data: { email, passwordHash, name, role: roleValue },
-        select: { id: true, email: true },
+        data: {
+          email,
+          passwordHash,
+          name: `${firstName} ${lastName}`.trim(),
+          username,
+          gender,
+          interests: interests || [],
+          buyerTypes: userTypes || [],
+          selectedBuyerType: selectedBuyerType || null,
+          place: location,
+          bio,
+          role: roleValue,
+          // Uitbetaalgegevens
+          bankName: bankName || null,
+          iban: iban || null,
+          accountHolderName: accountHolderName || null
+        },
+        select: { id: true, email: true, username: true, name: true },
       });
     }
     return NextResponse.json({ ok: true, user });
   } catch (e) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Registration error:", e);
+    console.error("Error stack:", e instanceof Error ? e.stack : 'No stack trace');
+    console.error("Error message:", e instanceof Error ? e.message : String(e));
+    
+    return NextResponse.json({ 
+      error: "Server error", 
+      details: process.env.NODE_ENV === 'development' ? String(e) : undefined,
+      message: e instanceof Error ? e.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

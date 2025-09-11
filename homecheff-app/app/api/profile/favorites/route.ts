@@ -28,7 +28,10 @@ export async function GET() {
     const items = await anyPrisma.favorite.findMany({
       where: { userId: me.id },
       orderBy: { createdAt: "desc" },
-      include: { listing: { select: { id: true, title: true, price: true, image: true } } }
+      include: {
+  Listing: { select: { id: true, title: true, priceCents: true, description: true, category: true, status: true, place: true, lat: true, lng: true, isPublic: true, viewCount: true, createdAt: true, updatedAt: true } },
+        Product: { select: { id: true, title: true, priceCents: true, description: true, category: true, unit: true, delivery: true, createdAt: true, isActive: true } }
+      }
     });
     return NextResponse.json({ items });
   } catch (e) {

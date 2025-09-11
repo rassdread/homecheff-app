@@ -1,0 +1,50 @@
+{
+  "tailwind_configs": [
+    "tailwind.config.js"
+  ],
+  "globals_css": [
+    "app/globals.css"
+  ],
+  "suspects": [
+    {
+      "file": ".next/server/vendor-chunks/next.js",
+      "patterns": [
+        "\\*\\s*{[^}]*margin\\s*:\\s*0[^}]*}",
+        "!\\s*important"
+      ]
+    },
+    {
+      "file": ".next/server/vendor-chunks/next-auth.js",
+      "patterns": [
+        "!\\s*important"
+      ]
+    },
+    {
+      "file": ".next/static/chunks/main-app.js",
+      "patterns": [
+        "\\*\\s*{[^}]*margin\\s*:\\s*0[^}]*}",
+        "!\\s*important"
+      ]
+    },
+    {
+      "file": ".next/static/css/app/layout.css",
+      "patterns": [
+        "--spacing\\s*:\\s*[^;]+;",
+        "@layer\\s+base",
+        "\\bgap\\s*:\\s*var\\(--spacing\\)",
+        "\\bletter-spacing\\b\\s*:\\s*[^;]+",
+        "!\\s*important"
+      ]
+    },
+    {
+      "file": "app/globals.css",
+      "patterns": [
+        "--spacing\\s*:\\s*[^;]+;",
+        "\\bgap\\s*:\\s*var\\(--spacing\\)",
+        "\\bletter-spacing\\b\\s*:\\s*[^;]+"
+      ]
+    }
+  ],
+  "inline_var_gap_files": [],
+  "file_count": 258
+}

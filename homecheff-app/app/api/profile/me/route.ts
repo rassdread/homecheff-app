@@ -11,7 +11,7 @@ export async function GET() {
       if (email) {
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, username: true, email: true, image: true },
+          select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
         });
         return NextResponse.json({ user });
       }
@@ -26,7 +26,7 @@ export async function GET() {
       if (email) {
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, username: true, email: true, image: true },
+          select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
         });
         return NextResponse.json({ user });
       }

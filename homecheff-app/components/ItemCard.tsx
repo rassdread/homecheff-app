@@ -1,0 +1,170 @@
+'use client';
+
+import { useState } from 'react';
+import { Heart, MoreHorizontal, Star, Clock, Truck, Package } from 'lucide-react';
+import Image from 'next/image';
+
+type HomeItem = {
+  id: string;
+  title: string;
+  description?: string | null;
+  priceCents: number;
+  image?: string | null;
+  createdAt: string;
+  category?: string | null;
+  subcategory?: string | null;
+  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null } | null;
+};
+
+const CATEGORY_COLORS = {
+  CHEFF: { bg: 'bg-warning-100', text: 'text-warning-800' },
+  GROWN: { bg: 'bg-success-100', text: 'text-success-800' },
+  DESIGNER: { bg: 'bg-secondary-100', text: 'text-secondary-800' },
+};
+
+const CATEGORY_ICONS = {
+  CHEFF: '👨‍🍳',
+  GROWN: '🌱',
+  DESIGNER: '🎨',
+};
+
+interface ItemCardProps {
+  item: HomeItem;
+}
+
+export default function ItemCard({ item }: ItemCardProps) {
+  const [isLiked, setIsLiked] = useState(false);
+
+  const formatPrice = (cents: number) => {
+    return `€${(cents / 100).toFixed(2)}`;
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Net geleden';
+    if (diffInHours < 24) return `${diffInHours}u geleden`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d geleden`;
+    return date.toLocaleDateString('nl-NL');
+  };
+
+  return (
+    <article className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group">
+      {/* Image */}
+      <div className="relative h-48 bg-neutral-100">
+        {item.image ? (
+          <Image
+            src={item.image}
+            alt={item.title || 'Item afbeelding'}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-200"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
+            <div className="text-neutral-400">
+              <Package className="w-12 h-12" />
+            </div>
+          </div>
+        )}
+        
+        {/* Category Badge */}
+        {item.category && (
+          <div className="absolute top-3 left-3">
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${CATEGORY_COLORS[item.category as keyof typeof CATEGORY_COLORS]?.bg || 'bg-neutral-100'} ${CATEGORY_COLORS[item.category as keyof typeof CATEGORY_COLORS]?.text || 'text-neutral-800'}`}>
+              <span className="text-xs">
+                {CATEGORY_ICONS[item.category as keyof typeof CATEGORY_ICONS] || '📦'}
+              </span>
+              {item.category}
+            </span>
+          </div>
+        )}
+        
+        {/* Like Button */}
+        <button
+          onClick={() => setIsLiked(!isLiked)}
+          className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+        >
+          <Heart 
+            className={`w-4 h-4 transition-colors ${
+              isLiked ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'
+            }`} 
+          />
+        </button>
+        
+        {/* Price Tag */}
+        {item.priceCents && (
+          <div className="absolute bottom-3 left-3">
+            <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+              {formatPrice(item.priceCents)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {/* Title */}
+        <h3 className="font-semibold text-neutral-900 mb-1 line-clamp-1">
+          {item.title || 'Zonder titel'}
+        </h3>
+        
+        {/* Subcategory */}
+        {item.subcategory && (
+          <p className="text-sm text-primary-600 mb-2">
+            {item.subcategory}
+          </p>
+        )}
+        
+        {/* Description */}
+        {item.description && (
+          <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
+            {item.description}
+          </p>
+        )}
+
+        {/* Seller Info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {item.seller?.avatar ? (
+              <Image
+                src={item.seller.avatar}
+                alt={item.seller.name || 'Verkoper'}
+                width={24}
+                height={24}
+                className="rounded-full border border-primary-100"
+              />
+            ) : (
+              <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                <span className="text-xs text-primary-600 font-medium">
+                  {(item.seller?.name || 'U')[0].toUpperCase()}
+                </span>
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-neutral-900">
+                {item.seller?.name || 'Onbekend'}
+              </p>
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-neutral-500" />
+                <span className="text-xs text-neutral-500">
+                  {formatTimeAgo(item.createdAt)}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <button className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors">
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+
+

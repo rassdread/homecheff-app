@@ -49,13 +49,15 @@ export async function POST(req: Request) {
     const title = String(body.title || "").trim();
     const description = String(body.description || "").trim();
     const status = body.status === "PUBLISHED" ? "PUBLISHED" : "PRIVATE";
-    const photos: string[] = Array.isArray(body.photos) ? body.photos.slice(0, 5) : [];
+    const photos: {url: string, isMain: boolean}[] = Array.isArray(body.photos) ? body.photos.slice(0, 5) : [];
 
-    const priceCents = parsePriceCents(body.priceEuro);
+    const priceCents = body.priceCents || parsePriceCents(body.priceEuro);
     const deliveryMode = (["PICKUP","DELIVERY","BOTH"].includes(body.deliveryMode)) ? body.deliveryMode as "PICKUP"|"DELIVERY"|"BOTH" : null;
     const lat = typeof body.lat === "number" ? body.lat : null;
     const lng = typeof body.lng === "number" ? body.lng : null;
     const place = typeof body.place === "string" ? (body.place as string).slice(0, 100) : null;
+    const category = (["CHEFF","GROWN","DESIGNER"].includes(body.category)) ? body.category as "CHEFF"|"GROWN"|"DESIGNER" : null;
+    const subcategory = typeof body.subcategory === "string" ? (body.subcategory as string).slice(0, 100) : null;
 
     if (status === "PUBLISHED") {
       if (!priceCents) return NextResponse.json({ error: "Prijs is verplicht voor publiceren" }, { status: 400 });
@@ -73,7 +75,15 @@ export async function POST(req: Request) {
         lat: lat ?? undefined,
         lng: lng ?? undefined,
         place: place ?? undefined,
-        photos: { create: photos.map((url: string, i: number) => ({ url, idx: i })) }
+        category: category ?? undefined,
+        subcategory: subcategory ?? undefined,
+        photos: { 
+          create: photos.map((photo: {url: string, isMain: boolean}, i: number) => ({ 
+            url: photo.url, 
+            idx: i,
+            isMain: photo.isMain || false
+          })) 
+        }
       },
       include: { photos: true }
     });

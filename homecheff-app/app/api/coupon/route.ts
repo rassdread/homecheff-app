@@ -7,6 +7,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   const { code } = await req.json();
+  if (!stripe) {
+    return NextResponse.json({ coupons: [], testMode: true });
+  }
+  
   const coupons = await stripe.coupons.list({ limit: 100 });
   const found = coupons.data.find(c => c.name === code && c.valid);
   if (!found) {

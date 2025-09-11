@@ -3,16 +3,30 @@
 import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import { prisma } from "./prisma";
 import bcrypt from "bcrypt";
+import { UserRole } from "@prisma/client";
 
-type Role = "BUYER" | "SELLER" | "ADMIN";
+type Role = UserRole;
 type AppUser = { id: string; email: string; role: Role };
 
 export const authOptions: NextAuthOptions = {
   pages: { signIn: "/login" },
-  session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID || "",
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
+    }),
     Credentials({
       name: "Inloggen",
       credentials: {
@@ -30,16 +44,65 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" || account?.provider === "facebook") {
+        try {
+          // Check if user exists
+          let existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
+
+          if (!existingUser) {
+            // Create new user for social login with enhanced profile
+            const nameParts = (user.name || "").split(" ");
+            const firstName = nameParts[0] || "";
+            const lastName = nameParts.slice(1).join(" ") || "";
+            
+            existingUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || "",
+                username: user.email!.split('@')[0],
+                image: user.image,
+                passwordHash: "", // No password for social users
+                role: UserRole.BUYER,
+                // Add some default interests for social users
+                interests: ["Koken", "Lokaal", "Duurzaamheid"],
+                bio: "Welkom op HomeCheff! Mijn profiel is aangemaakt via social login.",
+              }
+            });
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Error in signIn callback:", error);
+          return false;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
         const u = user as AppUser;
         (token as { role?: Role }).role = u.role;
+        
+        // For social login, get user from database
+        if (account?.provider === "google" || account?.provider === "facebook") {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
+          if (dbUser) {
+            token.role = dbUser.role as Role;
+            token.id = dbUser.id;
+          }
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as { role?: Role }).role = (token as { role?: Role }).role;
+        (session.user as { id?: string }).id = (token as { id?: string }).id;
       }
       return session;
     },

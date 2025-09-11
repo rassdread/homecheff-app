@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, bio, profileImage, workplacePhotos } = await req.json();
+    const { userId, bio, image, workplacePhotos } = await req.json();
     if (!userId) return NextResponse.json({ error: "userId ontbreekt" }, { status: 400 });
     if (!workplacePhotos || !Array.isArray(workplacePhotos) || workplacePhotos.length < 1) {
       return NextResponse.json({ error: "Minimaal één werkplek-foto vereist" }, { status: 400 });
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.update({
       where: { id: userId },
-      data: { bio, profileImage }
+      data: { bio, image }
     });
 
   await prisma.business.update({
