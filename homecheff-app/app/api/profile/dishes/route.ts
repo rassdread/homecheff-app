@@ -28,7 +28,7 @@ export async function GET() {
       status: listing.status === 'ACTIVE' ? 'PUBLISHED' : 'PRIVATE',
       createdAt: listing.createdAt.toISOString(),
       priceCents: listing.priceCents,
-      deliveryMode: listing.deliveryMode,
+      deliveryMode: 'PICKUP', // Default value since deliveryMode doesn't exist in listing table
       place: listing.place,
       category: listing.category,
       subcategory: listing.subcategory,
