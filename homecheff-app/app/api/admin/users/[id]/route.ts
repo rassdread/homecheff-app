@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user) {
@@ -24,13 +25,13 @@ export async function DELETE(
     }
 
     // Check if trying to delete self
-    if ((session.user as any).id === params.id) {
+    if ((session.user as any).id === id) {
       return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
     }
 
     // Delete user and all related data
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ success: true });
