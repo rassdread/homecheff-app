@@ -19,5 +19,13 @@ const nextConfig = {
   output: 'standalone',
   // Remove any potential document configuration
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  // Force webpack to ignore lightningcss
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('lightningcss');
+    }
+    return config;
+  },
 };
 export default nextConfig;
