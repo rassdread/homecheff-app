@@ -36,7 +36,7 @@ export async function GET() {
         id: media.id,
         url: media.url,
         idx: media.order,
-        isMain: media.isMain
+        isMain: media.order === 0 // First photo is main photo
       }))
     }));
 
