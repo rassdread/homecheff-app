@@ -1,2 +1,6 @@
-node_modules/bcrypt
-node_modules/@types/bcrypt
+node_modules/lightningcss/linux-x64-gnu.node
+node_modules/lightningcss/darwin-x64.node
+node_modules/lightningcss/win32-x64.node
+node_modules/@tailwindcss/node/linux-x64-gnu.node
+node_modules/@tailwindcss/node/darwin-x64.node
+node_modules/@tailwindcss/node/win32-x64.node

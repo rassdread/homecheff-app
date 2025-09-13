@@ -5,6 +5,10 @@ module.exports = {
 		'./pages/**/*.{js,ts,jsx,tsx}',
 		'./components/**/*.{js,ts,jsx,tsx}',
 	],
+	// Disable LightningCSS to prevent build issues on Vercel
+	experimental: {
+		optimizeUniversalDefaults: false,
+	},
 	theme: {
 		extend: {
 			fontFamily: {

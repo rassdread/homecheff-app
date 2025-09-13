@@ -60,7 +60,6 @@ export async function POST(req: Request) {
       id: randomUUID(),
       userId: user.id,
       displayName: user.email?.split("@")[0] ?? "Seller",
-      User: { connect: { id: user.id } },
     },
   });
 

@@ -19,12 +19,32 @@ const nextConfig = {
   output: 'standalone',
   // Remove any potential document configuration
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-  // Force webpack to ignore lightningcss
-  webpack: (config, { isServer }) => {
+  // Fix LightningCSS compatibility issue on Vercel
+  webpack: (config, { isServer, dev }) => {
+    // Handle LightningCSS module resolution issue
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      crypto: false,
+    };
+
+    // Externalize problematic native modules
     if (isServer) {
       config.externals = config.externals || [];
-      config.externals.push('lightningcss');
+      config.externals.push({
+        'lightningcss': 'commonjs lightningcss',
+        'lightningcss/linux-x64-gnu': 'commonjs lightningcss/linux-x64-gnu',
+        'lightningcss/linux-x64-gnu.node': 'commonjs lightningcss/linux-x64-gnu.node',
+      });
     }
+
+    // Ignore LightningCSS native binaries during build
+    config.module.rules.push({
+      test: /lightningcss\.(linux-x64-gnu\.node|darwin-x64\.node|win32-x64\.node)$/,
+      use: 'null-loader',
+    });
+
     return config;
   },
 };
