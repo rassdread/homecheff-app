@@ -31,7 +31,7 @@ export async function GET() {
       deliveryMode: 'PICKUP', // Default value since deliveryMode doesn't exist in listing table
       place: listing.place,
       category: listing.category,
-      subcategory: listing.subcategory,
+      subcategory: null, // Default value since subcategory doesn't exist in listing table
       photos: listing.ListingMedia.map(media => ({
         id: media.id,
         url: media.url,
