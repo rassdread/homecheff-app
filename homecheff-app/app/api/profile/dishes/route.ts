@@ -102,9 +102,7 @@ export async function POST(req: NextRequest) {
             id: `media_${Date.now()}_${i}`,
             listingId: dish.id,
             url: photo.url,
-            type: 'IMAGE',
             order: i,
-            isMain: photo.isMain || i === 0,
           },
         });
       }
