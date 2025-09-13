@@ -563,7 +563,11 @@ export default function MyDishesManager() {
             {items.map(d => {
               const mainPhoto = d.photos?.find(p => p.isMain) || d.photos?.[0];
               return (
-                <div key={d.id} className="rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div 
+                  key={d.id} 
+                  onClick={() => window.location.href = `/product/${d.id}`}
+                  className="rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                >
                   {/* Main Photo */}
                   <div className="relative">
                     <img 
@@ -619,16 +623,31 @@ export default function MyDishesManager() {
                     
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
-                      <button 
-                        onClick={() => togglePublish(d.id, d.status !== "PUBLISHED")} 
-                        className={`text-sm px-3 py-1 rounded-lg transition-colors ${
-                          d.status === "PUBLISHED"
-                            ? "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                            : "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
-                        }`}
-                      >
-                        {d.status === "PUBLISHED" ? "Maak privé" : "Publiceer"}
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePublish(d.id, d.status !== "PUBLISHED");
+                          }} 
+                          className={`text-sm px-3 py-1 rounded-lg transition-colors ${
+                            d.status === "PUBLISHED"
+                              ? "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                              : "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
+                          }`}
+                        >
+                          {d.status === "PUBLISHED" ? "Maak privé" : "Publiceer"}
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/product/${d.id}/edit`;
+                          }} 
+                          className="text-sm px-3 py-1 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                        >
+                          Bewerken
+                        </button>
+                      </div>
                       
                       <div className="flex items-center space-x-2">
                         {d.photos && d.photos.length > 1 && (
