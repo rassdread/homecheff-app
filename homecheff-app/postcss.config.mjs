@@ -1,6 +1,11 @@
 export default {
   plugins: {
-    tailwindcss: {},
+    tailwindcss: {
+      // Explicitly disable LightningCSS
+      experimental: {
+        optimizeUniversalDefaults: false,
+      },
+    },
     autoprefixer: {},
   },
 };
