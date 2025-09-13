@@ -422,78 +422,6 @@ export default function RegisterPage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Kies je rollen</h2>
                 <p className="text-gray-600 mb-8">Wat ga je doen op HomeCheff? Je kunt meerdere rollen selecteren.</p>
                 
-                {/* Business Option */}
-                <div className="mb-8">
-                  <div
-                    className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                      state.isBusiness
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300'
-                    }`}
-                    onClick={handleBusinessToggle}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className="text-3xl">🏢</div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">Bedrijf</h3>
-                        <p className="text-gray-600 mb-3">Registreer je bedrijf en kies een abonnement</p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">KVK registratie</span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">BTW nummer</span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Abonnement</span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Uitbetalingen</span>
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 ${
-                        state.isBusiness
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300'
-                      }`}>
-                        {state.isBusiness && (
-                          <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Subscription Options - Only show when business is selected */}
-                {state.isBusiness && (
-                  <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-xl">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Kies je abonnement</h3>
-                    <p className="text-gray-600 mb-6">Selecteer het abonnement dat het beste bij je bedrijf past</p>
-                    
-                    <div className="grid gap-4">
-                      {subscriptionOptions.map((option) => (
-                        <div
-                          key={option.value}
-                          className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                            state.subscription === option.value
-                              ? 'border-blue-500 bg-blue-100'
-                              : 'border-gray-200 hover:border-blue-300'
-                          }`}
-                          onClick={() => setState(prev => ({ ...prev, subscription: option.value }))}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-5 h-5 rounded-full border-2 ${
-                              state.subscription === option.value
-                                ? 'border-blue-500 bg-blue-500'
-                                : 'border-gray-300'
-                            }`}>
-                              {state.subscription === option.value && (
-                                <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900">{option.label}</h4>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
                 <div className="grid gap-4">
                   {userTypes.map((type) => (
                     <div
@@ -629,6 +557,20 @@ export default function RegisterPage() {
                     />
                   </div>
                   
+                  {/* Business Checkbox */}
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="isBusiness"
+                      checked={state.isBusiness}
+                      onChange={handleBusinessToggle}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <label htmlFor="isBusiness" className="text-sm font-medium text-gray-700 cursor-pointer">
+                      Ik registreer me als bedrijf
+                    </label>
+                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">E-mailadres *</label>
                     <input
@@ -678,42 +620,87 @@ export default function RegisterPage() {
                   </div>
                 </div>
                 
-                {/* Business Fields - Only show when business is selected */}
+                {/* Business Fields - Collapsible section when business is selected */}
                 {state.isBusiness && (
-                  <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-xl">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Bedrijfsgegevens</h3>
-                    <div className="space-y-4">
+                  <div className="mt-6 p-6 bg-blue-50 border border-blue-200 rounded-xl transition-all duration-300">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">🏢</span>
+                      Bedrijfsgegevens & Abonnement
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      {/* Company Information */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam *</label>
-                        <input
-                          type="text"
-                          value={state.company}
-                          onChange={e => setState(prev => ({ ...prev, company: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Je bedrijfsnaam"
-                        />
+                        <h4 className="text-md font-medium text-gray-800 mb-3">Bedrijfsinformatie</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam *</label>
+                            <input
+                              type="text"
+                              value={state.company}
+                              onChange={e => setState(prev => ({ ...prev, company: e.target.value }))}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Je bedrijfsnaam"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">KVK nummer *</label>
+                              <input
+                                type="text"
+                                value={state.kvk}
+                                onChange={e => setState(prev => ({ ...prev, kvk: e.target.value }))}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="12345678"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">BTW nummer</label>
+                              <input
+                                type="text"
+                                value={state.btw}
+                                onChange={e => setState(prev => ({ ...prev, btw: e.target.value }))}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="NL123456789B01"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">KVK nummer *</label>
-                          <input
-                            type="text"
-                            value={state.kvk}
-                            onChange={e => setState(prev => ({ ...prev, kvk: e.target.value }))}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="12345678"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">BTW nummer</label>
-                          <input
-                            type="text"
-                            value={state.btw}
-                            onChange={e => setState(prev => ({ ...prev, btw: e.target.value }))}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="NL123456789B01"
-                          />
+                      {/* Subscription Selection */}
+                      <div>
+                        <h4 className="text-md font-medium text-gray-800 mb-3">Kies je abonnement</h4>
+                        <p className="text-sm text-gray-600 mb-4">Selecteer het abonnement dat het beste bij je bedrijf past</p>
+                        
+                        <div className="grid gap-3">
+                          {subscriptionOptions.map((option) => (
+                            <div
+                              key={option.value}
+                              className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                state.subscription === option.value
+                                  ? 'border-blue-500 bg-blue-100'
+                                  : 'border-gray-200 hover:border-blue-300'
+                              }`}
+                              onClick={() => setState(prev => ({ ...prev, subscription: option.value }))}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-5 h-5 rounded-full border-2 ${
+                                  state.subscription === option.value
+                                    ? 'border-blue-500 bg-blue-500'
+                                    : 'border-gray-300'
+                                }`}>
+                                  {state.subscription === option.value && (
+                                    <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-semibold text-gray-900">{option.label}</h5>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
