@@ -1,6 +1,6 @@
 {
-	"buildCommand": "rm -rf .next node_modules package-lock.json && npm install && npx prisma generate && npm run build",
-	"installCommand": "npm install",
+	"buildCommand": "npm run build",
+	"installCommand": "npm ci",
 	"outputDirectory": ".next",
 	"framework": "nextjs",
 	"env": {

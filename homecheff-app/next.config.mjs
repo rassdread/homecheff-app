@@ -15,7 +15,6 @@ const nextConfig = {
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   output: 'standalone',
-  outputFileTracingRoot: '.',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   // Aggressive webpack config to completely block LightningCSS
   webpack: (config, { isServer }) => {
