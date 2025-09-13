@@ -41,6 +41,7 @@ export default function PhotoUploader({ initialUrl }: { initialUrl?: string }) {
       console.error('Upload error:', error);
       // Keep preview for user to see what they selected, but show error
       alert('Foto upload mislukt. Probeer het opnieuw.');
+      setPreview(null); // Clear preview on error
     }
   }
 

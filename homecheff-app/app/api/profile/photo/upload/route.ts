@@ -23,45 +23,45 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "File missing" }, { status: 400 });
   }
 
-  // Prefer Vercel Blob if token configured
+  // Use Vercel Blob for production, fallback for development
   const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_TOKEN || process.env.BLOB_RW_TOKEN;
   let publicUrl: string | null = null;
 
   if (token) {
-    const blobForm = new FormData();
-    blobForm.set("file", file, (form.get("filename") as string) || "avatar.jpg");
-    blobForm.set("access", "public");
-    const res = await fetch("https://blob.vercel.app/api/upload", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: blobForm as any,
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json({ error: "Blob upload failed", details: errText }, { status: 500 });
-    }
-    const data = await res.json() as { url: string };
-    publicUrl = data.url;
-  } else {
-    // Dev fallback: store to /public/uploads (node fs)
-    // WARNING: on Vercel this won't persist; this is only for local dev.
     try {
-      // @ts-ignore
+      const blobForm = new FormData();
+      blobForm.set("file", file, (form.get("filename") as string) || "avatar.jpg");
+      blobForm.set("access", "public");
+      const res = await fetch("https://blob.vercel.app/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: blobForm as any,
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Blob upload failed:", errText);
+        // Fall through to local storage
+      } else {
+        const data = await res.json() as { url: string };
+        publicUrl = data.url;
+      }
+    } catch (error) {
+      console.error("Blob upload error:", error);
+      // Fall through to local storage
+    }
+  }
+
+  // Fallback: use a simple base64 data URL for now
+  if (!publicUrl) {
+    try {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const crypto = await import("crypto");
-      const hash = crypto.createHash("sha1").update(buffer).digest("hex").slice(0, 10);
-      const ext = ((form.get("filename") as string) || "avatar.jpg").split(".").pop() || "jpg";
-      const filename = `avatar_${hash}.${ext}`;
-      const fs = await import("fs");
-      const path = (await import("path")).default;
-      const outDir = path.join(process.cwd(), "public", "uploads");
-      if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-      const outPath = path.join(outDir, filename);
-      fs.writeFileSync(outPath, buffer);
-      publicUrl = `/uploads/${filename}`;
-    } catch (e:any) {
-      return NextResponse.json({ error: "Local save failed", details: String(e) }, { status: 500 });
+      const base64 = buffer.toString('base64');
+      const mimeType = file.type || 'image/jpeg';
+      publicUrl = `data:${mimeType};base64,${base64}`;
+    } catch (e: any) {
+      console.error("Base64 conversion failed:", e);
+      return NextResponse.json({ error: "File processing failed", details: String(e) }, { status: 500 });
     }
   }
 
