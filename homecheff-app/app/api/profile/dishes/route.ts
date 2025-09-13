@@ -5,14 +5,23 @@ import { auth } from "@/lib/auth";
 export async function GET() {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get user by email first
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Get user's dishes (using listings for now)
     const listings = await prisma.listing.findMany({
       where: {
-        ownerId: (session.user as any).id,
+        ownerId: user.id,
       },
       include: {
         ListingMedia: true,
@@ -53,8 +62,17 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get user by email first
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const body = await req.json();
@@ -80,7 +98,7 @@ export async function POST(req: NextRequest) {
     const dish = await prisma.listing.create({
       data: {
         id: `listing_${Date.now()}`,
-        ownerId: (session.user as any).id,
+        ownerId: user.id,
         title,
         description,
         priceCents: priceCents || 0,
