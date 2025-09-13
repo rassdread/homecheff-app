@@ -1,2 +1,4 @@
 node_modules/bcrypt
 node_modules/@types/bcrypt
+node_modules/lightningcss
+node_modules/@tailwindcss

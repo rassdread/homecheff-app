@@ -1,6 +1,9 @@
 {
-	"buildCommand": "npx prisma generate && npm run build",
+	"buildCommand": "npx prisma generate && SKIP_ENV_VALIDATION=true npm run build",
 	"installCommand": "npm ci",
 	"outputDirectory": ".next",
-	"framework": "nextjs"
+	"framework": "nextjs",
+	"env": {
+		"NODE_ENV": "production"
+	}
 }

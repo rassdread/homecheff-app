@@ -45,5 +45,12 @@
     "tailwindcss": "^4.1.13",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "overrides": {
+    "lightningcss": {
+      "optionalDependencies": {
+        "lightningcss-linux-x64-gnu": "false"
+      }
+    }
   }
 }
