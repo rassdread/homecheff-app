@@ -46,7 +46,28 @@ export default function ProductPage() {
           return;
         }
         const data = await response.json();
-        setProduct(data);
+        
+        // Transform the data to match the expected structure
+        const transformedProduct = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          priceCents: data.priceCents,
+          image: data.ListingMedia?.[0]?.url || null,
+          createdAt: data.createdAt,
+          category: data.category,
+          subcategory: data.subcategory,
+          seller: {
+            id: data.User?.id,
+            name: data.User?.name,
+            username: data.User?.username,
+            avatar: data.User?.image || data.User?.profileImage,
+            rating: 4.8,
+            reviewCount: 24
+          }
+        };
+        
+        setProduct(transformedProduct);
       } catch (error) {
         console.error('Error fetching product:', error);
         router.push('/');

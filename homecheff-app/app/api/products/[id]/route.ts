@@ -8,30 +8,26 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const product = await prisma.product.findUnique({
+    const product = await prisma.listing.findUnique({
       where: {
         id,
       },
       include: {
-        seller: {
-          include: {
-            User: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                image: true,
-                profileImage: true
-              }
-            }
+        User: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+            profileImage: true
           }
         },
-        Image: {
+        ListingMedia: {
           select: {
-            fileUrl: true,
-            sortOrder: true,
+            url: true,
+            order: true,
           },
-          orderBy: { sortOrder: 'asc' }
+          orderBy: { order: 'asc' }
         }
       },
     });
@@ -65,56 +61,50 @@ export async function PUT(
     const { title, description, priceCents, stock, maxStock, isActive } = body;
 
     // Check if user owns this product
-    const product = await prisma.product.findUnique({
+    const product = await prisma.listing.findUnique({
       where: { id },
-      select: { sellerId: true }
+      select: { ownerId: true }
     });
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Get seller profile for current user
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: (session.user as any).id },
+    // Get user by email
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
       select: { id: true }
     });
 
-    if (!sellerProfile || product.sellerId !== sellerProfile.id) {
+    if (!user || product.ownerId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Update product
-    const updatedProduct = await prisma.product.update({
+    const updatedProduct = await prisma.listing.update({
       where: { id },
       data: {
         title,
         description,
         priceCents,
-        stock,
-        maxStock,
-        isActive
+        status: isActive ? 'ACTIVE' : 'DRAFT'
       },
       include: {
-        seller: {
-          include: {
-            User: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                image: true,
-                profileImage: true
-              }
-            }
+        User: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+            profileImage: true
           }
         },
-        Image: {
+        ListingMedia: {
           select: {
-            fileUrl: true,
-            sortOrder: true,
+            url: true,
+            order: true,
           },
-          orderBy: { sortOrder: 'asc' }
+          orderBy: { order: 'asc' }
         }
       }
     });
