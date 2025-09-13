@@ -13,7 +13,7 @@ const CATEGORY_MAP: Record<string, any> = {
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!(session?.user as any)?.id) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
     }
 
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         priceCents: Number(priceCents),
         isPublic: Boolean(isPublic),
         category: cat as any,
-        ownerId: session.user.id as string,
+        ownerId: (session?.user as any)?.id as string,
         updatedAt: new Date(),
         ListingMedia: {
           create: images.map((url: string, i: number) => ({

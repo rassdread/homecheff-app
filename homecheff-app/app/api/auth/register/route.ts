@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 
@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
       bio,
       bankName,
       iban,
-      accountHolderName
+      accountHolderName,
+      kvk,
+      btw,
+      subscription
     } = body as any;
     
     if (!email || !password) {
@@ -52,6 +55,18 @@ export async function POST(req: NextRequest) {
     let user;
     if (hasSellerRole) {
       const { v4: uuidv4 } = require('uuid');
+      
+      // Get subscription if provided
+      let subscriptionData = null;
+      if (subscription) {
+        subscriptionData = await prisma.subscription.findUnique({ 
+          where: { id: subscription, isActive: true } 
+        });
+        if (!subscriptionData) {
+          return NextResponse.json({ error: "Ongeldig abonnement" }, { status: 400 });
+        }
+      }
+      
       user = await prisma.user.create({
         data: {
           name,
@@ -70,11 +85,12 @@ export async function POST(req: NextRequest) {
               bio: bio || null,
               lat: null,
               lng: null,
-              btw: null,
-              companyName: company?.name || null,
-              kvk: company?.kvkNumber || null,
-              subscriptionId: null,
-              subscriptionValidUntil: null
+              btw: btw || null,
+              companyName: company || null,
+              kvk: kvk || null,
+              subscriptionId: subscriptionData?.id || null,
+              subscriptionValidUntil: subscriptionData ? 
+                new Date(Date.now() + subscriptionData.durationDays * 24 * 60 * 60 * 1000) : null
             }
           }
         },
@@ -82,16 +98,16 @@ export async function POST(req: NextRequest) {
       });
       
       // Create Business record if company data is provided
-      if (isBusiness && company?.name) {
+      if (isBusiness && company) {
         await prisma.business.create({
           data: {
             userId: user.id,
-            name: company.name,
-            kvkNumber: company.kvkNumber,
-            vatNumber: company.vatNumber,
-            address: company.address,
-            city: company.city,
-            country: company.country || "NL",
+            name: company,
+            kvkNumber: kvk,
+            vatNumber: btw,
+            address: null,
+            city: null,
+            country: "NL",
             verified: false
           }
         });
@@ -113,8 +129,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const next = hasSellerRole ? "/onboarding/seller" : "/onboarding/buyer";
-    return NextResponse.json({ ok: true, userId: user.id, next });
+    return NextResponse.json({ 
+      ok: true, 
+      user: {
+        id: user.id,
+        email,
+        name,
+        username,
+        role: userRole
+      }
+    });
   } catch (e) {
     console.error("Register error:", e);
     

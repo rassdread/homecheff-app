@@ -1,96 +1,72 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-async function getEmail() {
-  try {
-    const mod: any = await import("@/lib/auth");
-    const session = await mod.auth?.();
-    if (session?.user?.email) return session.user.email as string;
-  } catch {}
-  try {
-    const { getServerSession } = await import("next-auth");
-    const { authOptions } = await import("@/lib/auth");
-    const session = await getServerSession(authOptions as any);
-    if ((session as any)?.user?.email) return (session as any).user.email as string;
-  } catch {}
-  return null;
-}
+import { auth } from "@/lib/auth";
 
 export async function GET() {
-  const email = await getEmail();
-  if (!email) return NextResponse.json({ items: [] });
-  const me = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-  if (!me) return NextResponse.json({ items: [] });
-
-  const items = await prisma.dish.findMany({
-    where: { userId: me.id },
-    orderBy: { createdAt: "desc" },
-    include: { photos: { orderBy: { idx: "asc" } } }
-  });
-  return NextResponse.json({ items });
-}
-
-function parsePriceCents(euroStr: string | null | undefined) {
-  if (!euroStr) return null;
-  const cleaned = euroStr.replace(/[^0-9,\.]/g, "").replace(",", ".");
-  const n = Number(cleaned);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return Math.round(n * 100);
-}
-
-export async function POST(req: Request) {
   try {
-    const email = await getEmail();
-    if (!email) return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
-    const me = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-    if (!me) return NextResponse.json({ error: "Gebruiker niet gevonden" }, { status: 404 });
-
-    const body = await req.json();
-    const title = String(body.title || "").trim();
-    const description = String(body.description || "").trim();
-    const status = body.status === "PUBLISHED" ? "PUBLISHED" : "PRIVATE";
-    const photos: {url: string, isMain: boolean}[] = Array.isArray(body.photos) ? body.photos.slice(0, 5) : [];
-
-    const priceCents = body.priceCents || parsePriceCents(body.priceEuro);
-    const deliveryMode = (["PICKUP","DELIVERY","BOTH"].includes(body.deliveryMode)) ? body.deliveryMode as "PICKUP"|"DELIVERY"|"BOTH" : null;
-    const lat = typeof body.lat === "number" ? body.lat : null;
-    const lng = typeof body.lng === "number" ? body.lng : null;
-    const place = typeof body.place === "string" ? (body.place as string).slice(0, 100) : null;
-    const category = (["CHEFF","GROWN","DESIGNER"].includes(body.category)) ? body.category as "CHEFF"|"GROWN"|"DESIGNER" : null;
-    const subcategory = typeof body.subcategory === "string" ? (body.subcategory as string).slice(0, 100) : null;
-
-    if (status === "PUBLISHED") {
-      if (!priceCents) return NextResponse.json({ error: "Prijs is verplicht voor publiceren" }, { status: 400 });
-      if (!deliveryMode) return NextResponse.json({ error: "Bezorgoptie is verplicht voor publiceren" }, { status: 400 });
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const dish = await prisma.dish.create({
-      data: {
-        userId: me.id,
-        title,
-        description,
-        status,
-        priceCents: priceCents ?? undefined,
-        deliveryMode: deliveryMode ?? undefined,
-        lat: lat ?? undefined,
-        lng: lng ?? undefined,
-        place: place ?? undefined,
-        category: category ?? undefined,
-        subcategory: subcategory ?? undefined,
-        photos: { 
-          create: photos.map((photo: {url: string, isMain: boolean}, i: number) => ({ 
-            url: photo.url, 
-            idx: i,
-            isMain: photo.isMain || false
-          })) 
-        }
+    // Get user's dishes (using listings for now)
+    const dishes = await prisma.listing.findMany({
+      where: {
+        ownerId: (session.user as any).id,
       },
-      include: { photos: true }
+      include: {
+        ListingMedia: true,
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json({ ok: true, dish });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ dishes });
+  } catch (error) {
+    console.error("Error fetching dishes:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { title, description, priceCents, category, place, lat, lng } = body;
+
+    if (!title || !description) {
+      return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
+    }
+
+    // Create a new listing
+    const dish = await prisma.listing.create({
+      data: {
+        id: `listing_${Date.now()}`,
+        ownerId: (session.user as any).id,
+        title,
+        description,
+        priceCents: priceCents || 0,
+        category: category || 'HOMECHEFF',
+        place: place || null,
+        lat: lat || null,
+        lng: lng || null,
+        status: 'DRAFT',
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({ dish });
+  } catch (error) {
+    console.error("Error creating dish:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

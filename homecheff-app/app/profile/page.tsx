@@ -45,13 +45,7 @@ export default async function ProfilePage({
       place: true,
       gender: true,
       interests: true,
-      buyerTypes: true,
-      selectedBuyerType: true,
       profileImage: true,
-      // Uitbetaalgegevens
-      bankName: true,
-      iban: true,
-      accountHolderName: true,
       role: true,
       createdAt: true
     }

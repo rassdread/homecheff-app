@@ -15,7 +15,7 @@ export default async function ProfileSummary({ avatarOnly = false, stacked = tru
   let me: { image?: string | null; profileImage?: string | null; username?: string | null; name?: string | null } | null = null;
   try {
     const session = await auth();
-    const email: string | undefined = session?.user?.email;
+    const email: string | undefined = session?.user?.email || undefined;
     if (email) {
       me = await prisma.user.findUnique({
         where: { email },

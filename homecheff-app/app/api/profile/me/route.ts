@@ -7,7 +7,7 @@ export async function GET() {
     try {
       const mod: any = await import("@/lib/auth");
       const session = await mod.auth?.();
-      const email: string | undefined = session?.user?.email;
+      const email: string | undefined = session?.user?.email || undefined;
       if (email) {
         const user = await prisma.user.findUnique({
           where: { email },

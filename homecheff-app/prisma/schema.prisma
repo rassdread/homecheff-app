@@ -25,15 +25,6 @@ model User {
   username                               String?                   @unique
   gender                               String?
   passwordHash                           String?
-  // HomeCheff Verdienmodel
-  pricingTier                           PricingTier?              @default(INDIVIDUAL)
-  isBusiness                            Boolean                   @default(false)
-  subscriptionStatus                    SubscriptionStatus?       @default(INACTIVE)
-  subscriptionTier                      String?
-  subscriptionStartDate                 DateTime?
-  subscriptionEndDate                   DateTime?
-  yearlyRevenue                         Int                       @default(0) // In cents
-  monthlyRevenue                        Int                       @default(0) // In cents
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
@@ -57,22 +48,7 @@ model User {
   followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
   followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
   Dish                                   Dish[]
-  // HomeCheff Transacties
-  transactionsAsBuyer                    HomeCheffTransaction[]    @relation("TransactionBuyer")
-  transactionsAsSeller                   HomeCheffTransaction[]    @relation("TransactionSeller")
-  // Payments
-  paymentsAsBuyer                        Payment[]                 @relation("PaymentBuyer")
-  paymentsAsSeller                       Payment[]                 @relation("PaymentSeller")
   interests                              String[]
-  buyerTypes                             String[]  // Array van gekozen koper types
-  selectedBuyerType                      String?   // Gekozen koper type (1 keuze)
-  // Uitbetaalgegevens
-  bankName                               String?
-  iban                                   String?
-  accountHolderName                      String?
-  // Stripe Connect
-  stripeAccountId                        String?
-  stripeAccountStatus                    String?
   Business                                Business?
 }
 
@@ -104,11 +80,12 @@ model Product {
   delivery    DeliveryMode
   createdAt   DateTime        @default(now())
   isActive    Boolean         @default(true)
+  stock       Int             @default(0)  // Voorraad aantal
+  maxStock    Int?            // Maximale voorraad (optioneel)
   Image       Image[]
   seller      SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
   favorites   Favorite[]
   orderItems  OrderItem[]
-  payments    Payment[]
 
   @@index([category])
   @@index([sellerId])
@@ -583,12 +560,6 @@ model Dish {
   lat          Float?
   lng          Float?
   place        String?
-  // categorieën:
-  category     ProductCategory?
-  subcategory  String?
-  
-  // HomeCheff Transacties
-  transactions HomeCheffTransaction[]
 
   @@index([userId])
 }
@@ -599,101 +570,6 @@ model DishPhoto {
   dish   Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
   url    String
   idx    Int    @default(0)
-  isMain Boolean @default(false)
 
   @@index([dishId])
-}
-
-// HomeCheff Verdienmodel Enums
-enum PricingTier {
-  INDIVIDUAL
-  BUSINESS_BASIC
-  BUSINESS_PRO
-  BUSINESS_PREMIUM
-}
-
-enum SubscriptionStatus {
-  INACTIVE
-  ACTIVE
-  CANCELLED
-  EXPIRED
-  TRIAL
-}
-
-// Transactie model voor HomeCheff verdienmodel
-model HomeCheffTransaction {
-  id                String      @id @default(uuid())
-  dishId            String
-  dish              Dish        @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  buyerId           String
-  buyer             User        @relation("TransactionBuyer", fields: [buyerId], references: [id])
-  sellerId          String
-  seller            User        @relation("TransactionSeller", fields: [sellerId], references: [id])
-  
-  // Transactie details
-  amountCents       Int         // Totale transactie bedrag in cents
-  feeCents          Int         // HomeCheff fee in cents
-  netAmountCents    Int         // Bedrag voor verkoper in cents
-  
-  // Pricing tier info
-  pricingTier       PricingTier
-  feePercentage     Int         // Fee percentage dat werd toegepast
-  
-  // Stripe details
-  stripeSessionId   String?     @unique
-  stripePaymentId   String?     @unique
-  paymentStatus     PaymentStatus @default(PENDING)
-  
-  // Delivery info
-  deliveryMode      DeliveryMode
-  deliveryAddress   String?
-  deliveryMessage   String?
-  quantity          Int         @default(1)
-  
-  // Timestamps
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  completedAt       DateTime?
-  
-  @@index([buyerId])
-  @@index([sellerId])
-  @@index([dishId])
-  @@index([pricingTier])
-  @@index([paymentStatus])
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-  CANCELLED
-}
-
-// Payment model voor HomeItem betalingen
-model Payment {
-  id                    String   @id @default(uuid())
-  productId             String
-  buyerId               String
-  sellerId              String
-  amount                Float
-  currency              String   @default("eur")
-  status                PaymentStatus @default(PENDING)
-  stripePaymentIntentId String?
-  stripeChargeId        String?
-  stripeTransferId      String?
-  // Fee breakdown
-  stripeFee             Float?
-  homecheffFee          Float?
-  sellerPayout          Float?
-  // Timestamps
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  completedAt           DateTime?
-
-  product               Product @relation(fields: [productId], references: [id])
-  buyer                 User     @relation("PaymentBuyer", fields: [buyerId], references: [id])
-  seller                User     @relation("PaymentSeller", fields: [sellerId], references: [id])
-
-  @@map("payments")
 }

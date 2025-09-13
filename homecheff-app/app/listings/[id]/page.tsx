@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Heart, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { ShareButton } from "@/components/ui/ShareButton";
 
 type Listing = {
   id: string;
@@ -37,8 +38,12 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
+    // Set base URL for sharing
+    setBaseUrl(window.location.origin);
+    
     const fetchListing = async () => {
       try {
         setIsLoading(true);
@@ -145,10 +150,21 @@ export default function ListingDetailPage() {
                 </span>
               </div>
 
-              {/* Heart Button */}
-              <button className="absolute top-4 right-4 p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
-                <Heart className="w-6 h-6 text-gray-600 hover:text-red-500" />
-              </button>
+              {/* Action Buttons */}
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                  <Heart className="w-6 h-6 text-gray-600 hover:text-red-500" />
+                </button>
+                <ShareButton
+                  url={`${baseUrl}/listings/${listing.id}`}
+                  title={listing.title}
+                  description={listing.description || ''}
+                  type="buyer"
+                  productId={listing.id}
+                  productTitle={listing.title}
+                  className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                />
+              </div>
             </div>
 
             {/* Additional Images */}

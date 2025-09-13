@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const key = `avatars/${crypto.randomUUID()}-${file.name}`;
     const blob = await put(key, file, {
       access: "public",
-      token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
       addRandomSuffix: true,
     });
     console.log("Blob url:", blob.url);

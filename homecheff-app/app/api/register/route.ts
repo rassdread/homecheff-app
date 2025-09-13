@@ -61,15 +61,9 @@ export async function POST(req: Request) {
           role: roleValue,
           username,
           name: `${firstName} ${lastName}`.trim(),
-          buyerTypes: userTypes || [],
-          selectedBuyerType: selectedBuyerType || null,
           interests: interests || [],
           place: location,
           bio,
-          // Uitbetaalgegevens
-          bankName: bankName || null,
-          iban: iban || null,
-          accountHolderName: accountHolderName || null,
           SellerProfile: {
             create: {
               id: randomUUID(),
@@ -94,15 +88,9 @@ export async function POST(req: Request) {
           username,
           gender,
           interests: interests || [],
-          buyerTypes: userTypes || [],
-          selectedBuyerType: selectedBuyerType || null,
           place: location,
           bio,
           role: roleValue,
-          // Uitbetaalgegevens
-          bankName: bankName || null,
-          iban: iban || null,
-          accountHolderName: accountHolderName || null
         },
         select: { id: true, email: true, username: true, name: true },
       });

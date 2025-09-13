@@ -7,7 +7,7 @@ export default async function ProfileSummaryInfo({ type }: { type: "name" | "sta
   let me = null;
   try {
     const session = await auth();
-    const email: string | undefined = session?.user?.email;
+    const email: string | undefined = session?.user?.email || undefined;
     if (email) {
       me = await prisma.user.findUnique({
         where: { email },

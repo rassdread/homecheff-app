@@ -1,13 +1,13 @@
 import Stripe from 'stripe';
 
-// Test mode - geen echte Stripe keys nodig
-const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'test';
+// Test mode - gebruik sandbox keys
+const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test');
 
-export const stripe = isTestMode 
-  ? null 
-  : new Stripe(process.env.STRIPE_SECRET_KEY!, {
+export const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-08-27.basil',
-    });
+    })
+  : null;
 
 // Fee structuur
 export const FEE_STRUCTURE = {

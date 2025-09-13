@@ -31,8 +31,6 @@ export async function GET(req: NextRequest) {
         createdAt: true,
         image: true,
         profileImage: true,
-        stripeAccountStatus: true,
-        isBusiness: true,
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -46,4 +44,5 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
 

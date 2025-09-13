@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if trying to delete self
-    if (userIds.includes(session.user.id)) {
+    if (userIds.includes((session.user as any).id)) {
       return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
     }
 
@@ -45,4 +45,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 

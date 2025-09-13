@@ -246,11 +246,16 @@ export default function RegisterPage() {
         })
         .then(async data => {
           setState(prev => ({ ...prev, success: true }));
-          await signIn("credentials", {
-            email: state.email,
-            password: state.password,
-            redirect: false,
-          });
+          // Try to sign in with credentials
+          try {
+            await signIn("credentials", {
+              email: state.email,
+              password: state.password,
+              redirect: false,
+            });
+          } catch (error) {
+            console.error("Auto sign-in failed:", error);
+          }
           router.push("/profile");
         })
         .catch(() => setState(s => ({ ...s, error: "Server error", success: false })));

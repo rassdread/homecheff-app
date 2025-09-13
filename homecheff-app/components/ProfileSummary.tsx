@@ -5,7 +5,7 @@ async function getMe() {
   try {
   const mod: any = await import("@/lib/auth");
     const session = await mod.auth();
-    const email: string | undefined = session?.user?.email;
+    const email: string | undefined = session?.user?.email || undefined;
     if (!email) return null;
     const user = await prisma.user.findUnique({
       where: { email },

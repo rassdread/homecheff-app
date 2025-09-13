@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ShareButton } from "@/components/ui/ShareButton";
 
 type FeedItem = {
   id: string;
@@ -23,8 +24,12 @@ export default function GeoFeed() {
   const [radius, setRadius] = useState(25);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState("");
+  const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
+    // Set base URL for sharing
+    setBaseUrl(window.location.origin);
+    
     (async () => {
       setLoading(true);
       let lat: number | null = null;
@@ -82,18 +87,33 @@ export default function GeoFeed() {
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {items.map(it => (
-            <a key={it.id} href={`/listings/${it.id}`} className="rounded-xl border bg-white overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.photo ?? "/placeholder.webp"} alt="" className="w-full h-36 object-cover" />
+            <div key={it.id} className="rounded-xl border bg-white overflow-hidden hover:shadow-lg transition-shadow">
+              <a href={`/listings/${it.id}`} className="block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={it.photo ?? "/placeholder.webp"} alt="" className="w-full h-36 object-cover" />
+              </a>
               <div className="p-3 space-y-1">
-                <p className="font-medium truncate">{it.title ?? "Gerecht"}</p>
+                <div className="flex justify-between items-start">
+                  <a href={`/listings/${it.id}`} className="flex-1">
+                    <p className="font-medium truncate">{it.title ?? "Gerecht"}</p>
+                  </a>
+                  <ShareButton
+                    url={`${baseUrl}/listings/${it.id}`}
+                    title={it.title ?? "Gerecht"}
+                    description={it.description || ''}
+                    type="buyer"
+                    productId={it.id}
+                    productTitle={it.title ?? "Gerecht"}
+                    className="ml-2 p-1 text-gray-400 hover:text-blue-600"
+                  />
+                </div>
                 {it.priceCents ? <p className="text-sm">€ {(it.priceCents/100).toFixed(2)}</p> : null}
                 <p className="text-xs text-muted-foreground">
                   {it.place ?? "Onbekende locatie"}{(it.distanceKm != null && it.distanceKm !== Infinity) ? ` • ${it.distanceKm.toFixed(1)} km` : ""}
                 </p>
                 <p className="text-xs">{it.deliveryMode === "PICKUP" ? "Afhalen" : it.deliveryMode === "DELIVERY" ? "Bezorgen" : it.deliveryMode === "BOTH" ? "Afhalen of bezorgen" : ""}</p>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       )}

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Heart, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import PaymentButton from "@/components/PaymentButton";
+import { ShareButton } from "@/components/ui/ShareButton";
 
 type Product = {
   id: string;
@@ -30,8 +31,12 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
+    // Set base URL for sharing
+    setBaseUrl(window.location.origin);
+    
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
@@ -149,10 +154,21 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Heart Button */}
-              <button className="absolute top-4 right-4 p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
-                <Heart className="w-6 h-6 text-neutral-600 hover:text-error-500" />
-              </button>
+              {/* Action Buttons */}
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                  <Heart className="w-6 h-6 text-neutral-600 hover:text-error-500" />
+                </button>
+                <ShareButton
+                  url={`${baseUrl}/product/${product.id}`}
+                  title={product.title}
+                  description={product.description || ''}
+                  type="buyer"
+                  productId={product.id}
+                  productTitle={product.title}
+                  className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                />
+              </div>
             </div>
           </div>
 

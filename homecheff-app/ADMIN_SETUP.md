@@ -109,3 +109,4 @@ Voor vragen over het admin systeem, controleer:
 3. Session status
 4. Console errors in browser
 
+

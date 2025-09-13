@@ -33,7 +33,7 @@ export default async function AdminPage() {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.listing.count(),
-    prisma.payment.count(),
+    prisma.transaction.count(),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },

@@ -17,7 +17,7 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
-  const token = process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     console.error("No Vercel Blob token");
     return res.status(500).json({ error: "No Vercel Blob token" });

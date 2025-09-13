@@ -2,11 +2,12 @@
 // @ts-nocheck
 import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
+import { getServerSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import { prisma } from "./prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 
 type Role = UserRole;
@@ -116,4 +117,9 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const { auth } = NextAuth(authOptions);
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+
+// For server-side usage in API routes
+export const auth = () => getServerSession(authOptions);

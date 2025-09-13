@@ -24,7 +24,7 @@ export async function DELETE(
     }
 
     // Check if trying to delete self
-    if (session.user.id === params.id) {
+    if ((session.user as any).id === params.id) {
       return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
     }
 
@@ -42,4 +42,5 @@ export async function DELETE(
     );
   }
 }
+
 
