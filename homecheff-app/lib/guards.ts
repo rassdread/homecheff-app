@@ -19,7 +19,7 @@ export async function requireAdmin(request: NextRequest) {
   }
   
   // Check if user is admin
-  if (session.user.role !== 'ADMIN') {
+  if ((session.user as any).role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   
@@ -34,7 +34,7 @@ export async function requireSeller(request: NextRequest) {
   }
   
   // Check if user is seller
-  if (session.user.role !== 'SELLER' && session.user.role !== 'ADMIN') {
+  if ((session.user as any).role !== 'SELLER' && (session.user as any).role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   
@@ -49,7 +49,7 @@ export async function requireBuyer(request: NextRequest) {
   }
   
   // Check if user is buyer
-  if (session.user.role !== 'BUYER' && session.user.role !== 'ADMIN') {
+  if ((session.user as any).role !== 'BUYER' && (session.user as any).role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   
