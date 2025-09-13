@@ -1,14 +1,9 @@
 {
-	"buildCommand": "npx prisma generate && SKIP_ENV_VALIDATION=true npm run build",
-	"installCommand": "npm ci --force",
+	"buildCommand": "rm -rf node_modules package-lock.json && npm install && npx prisma generate && SKIP_ENV_VALIDATION=true npm run build",
+	"installCommand": "npm install",
 	"outputDirectory": ".next",
 	"framework": "nextjs",
 	"env": {
 		"NODE_ENV": "production"
-	},
-	"functions": {
-		"app/api/**/*.ts": {
-			"runtime": "nodejs18.x"
-		}
 	}
 }
