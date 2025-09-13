@@ -216,7 +216,8 @@ export default function MyDishesManager() {
         });
         
         if (!res.ok) {
-          throw new Error('Upload mislukt');
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Upload mislukt');
         }
         
         const data = await res.json();
@@ -271,7 +272,9 @@ export default function MyDishesManager() {
         setMessage({type: 'error', text: j?.error ?? "Opslaan mislukt"});
       }
     } catch (error) {
-      setMessage({type: 'error', text: 'Er is een fout opgetreden bij het uploaden'});
+      console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Er is een fout opgetreden bij het uploaden';
+      setMessage({type: 'error', text: errorMessage});
     } finally {
       setIsUploading(false);
     }
