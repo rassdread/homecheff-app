@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         title,
         description,
         priceCents: priceCents || 0,
-        category: category || 'HOMECHEFF',
+        category: category === 'CHEFF' ? 'HOMECHEFF' : category === 'GROWN' ? 'HOMEGROWN' : 'HOMECHEFF',
         place: place || null,
         lat: lat || null,
         lng: lng || null,

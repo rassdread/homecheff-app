@@ -14,36 +14,36 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const take = Number(searchParams.get("take") ?? 24);
 
-    const dishes = await prisma.dish.findMany({
-      where: { status: "PUBLISHED" },
+    const listings = await prisma.listing.findMany({
+      where: { status: "ACTIVE" },
       orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(take, 1), 100),
       include: {
-        user: {
-          select: { id: true, name: true, image: true, username: true, buyerTypes: true },
+        User: {
+          select: { id: true, name: true, image: true, username: true },
         },
-        photos: {
-          where: { isMain: true },
+        ListingMedia: {
+          where: { order: 0 },
           take: 1,
         },
       },
     });
 
-    const items = dishes.map((d: any) => ({
-      id: d.id,
-      title: d.title,
-      description: d.description,
-      priceCents: d.priceCents,
-      image: d.photos?.[0]?.url ?? null,
-      createdAt: d.createdAt,
-      category: d.category,
-      subcategory: d.subcategory,
+    const items = listings.map((l: any) => ({
+      id: l.id,
+      title: l.title,
+      description: l.description,
+      priceCents: l.priceCents,
+      image: l.ListingMedia?.[0]?.url ?? null,
+      createdAt: l.createdAt,
+      category: l.category,
+      subcategory: null, // Not available in listing table
       seller: {
-        id: d.user?.id ?? null,
-        name: d.user?.name ?? null,
-        avatar: d.user?.image ?? null,
-        username: d.user?.username ?? null,
-        buyerTypes: d.user?.buyerTypes ?? [],
+        id: l.User?.id ?? null,
+        name: l.User?.name ?? null,
+        avatar: l.User?.image ?? null,
+        username: l.User?.username ?? null,
+        buyerTypes: [], // Not available in user model
       },
     }));
 
