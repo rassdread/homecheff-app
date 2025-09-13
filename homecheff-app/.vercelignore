@@ -1,6 +1,14 @@
-node_modules/lightningcss/linux-x64-gnu.node
-node_modules/lightningcss/darwin-x64.node
-node_modules/lightningcss/win32-x64.node
-node_modules/@tailwindcss/node/linux-x64-gnu.node
-node_modules/@tailwindcss/node/darwin-x64.node
-node_modules/@tailwindcss/node/win32-x64.node
+# Ignore unnecessary files for Vercel deployment
+node_modules
+.next
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
