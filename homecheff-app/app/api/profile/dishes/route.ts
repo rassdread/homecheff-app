@@ -40,7 +40,7 @@ export async function GET() {
       }))
     }));
 
-    return NextResponse.json({ dishes });
+    return NextResponse.json({ items: dishes });
   } catch (error) {
     console.error("Error fetching dishes:", error);
     return NextResponse.json(
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ dish });
+    return NextResponse.json({ item: dish });
   } catch (error) {
     console.error("Error creating dish:", error);
     return NextResponse.json(

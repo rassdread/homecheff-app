@@ -51,7 +51,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
       return NextResponse.json({ error: "Niet toegestaan" }, { status: 403 });
     }
 
-    return NextResponse.json({ ok: true, dish: updated });
+    return NextResponse.json({ ok: true, item: updated });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
