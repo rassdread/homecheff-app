@@ -38,13 +38,16 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
     if (!allowed.includes(status)) {
       return NextResponse.json({ error: "Ongeldige status" }, { status: 400 });
     }
-    const updated = await prisma.dish.update({
+    const updated = await prisma.listing.update({
       where: { id },
-      data: { status: status as any },
-      include: { photos: true }
+      data: { 
+        status: status === 'PUBLISHED' ? 'ACTIVE' : 'DRAFT',
+        updatedAt: new Date()
+      },
+      include: { ListingMedia: true }
     });
 
-    if (updated.userId !== me.id) {
+    if (updated.ownerId !== me.id) {
       return NextResponse.json({ error: "Niet toegestaan" }, { status: 403 });
     }
 
