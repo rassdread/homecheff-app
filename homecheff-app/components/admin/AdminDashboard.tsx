@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
+import SellerManagement from './SellerManagement';
 import NotificationCenter from './NotificationCenter';
 
 interface AdminStats {
   totalUsers: number;
-  totalListings: number;
+  totalProducts: number;
   totalOrders: number;
   recentUsers: Array<{
     id: string;
@@ -19,17 +20,19 @@ interface AdminStats {
     image: string | null;
     profileImage: string | null;
   }>;
-  recentListings: Array<{
+  recentProducts: Array<{
     id: string;
     title: string;
     priceCents: number;
-    status: string;
+    isActive: boolean;
     createdAt: Date;
-    User: {
-      name: string | null;
-      username: string | null;
-      image: string | null;
-      profileImage: string | null;
+    seller: {
+      User: {
+        name: string | null;
+        username: string | null;
+        image: string | null;
+        profileImage: string | null;
+      };
     };
   }>;
 }
@@ -44,6 +47,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
   const tabs = [
     { id: 'overview', label: 'Overzicht', icon: Eye },
     { id: 'users', label: 'Gebruikers', icon: Users },
+    { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'notifications', label: 'Berichten', icon: MessageSquare },
   ];
@@ -115,7 +119,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Totaal Producten</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalListings}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
                   </div>
                 </div>
               </div>
@@ -177,25 +181,25 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                 </div>
                 <div className="p-6">
                   <div className="space-y-4">
-                    {stats.recentListings.map((listing) => (
-                      <div key={listing.id} className="flex items-center space-x-3">
+                    {stats.recentProducts.map((product) => (
+                      <div key={product.id} className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
                           <Package className="w-5 h-5 text-gray-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {listing.title}
+                            {product.title}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
-                            door {listing.User.name || listing.User.username || 'Onbekend'}
+                            door {product.seller.User.name || product.seller.User.username || 'Onbekend'}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium text-gray-900">
-                            €{(listing.priceCents / 100).toFixed(2)}
+                            €{(product.priceCents / 100).toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-400">
-                            {new Date(listing.createdAt).toLocaleDateString('nl-NL')}
+                            {new Date(product.createdAt).toLocaleDateString('nl-NL')}
                           </p>
                         </div>
                       </div>
@@ -208,11 +212,13 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         )}
 
         {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'sellers' && <SellerManagement />}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>
   );
 }
+
 
 

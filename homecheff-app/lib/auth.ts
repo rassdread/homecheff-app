@@ -11,7 +11,7 @@ import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 
 type Role = UserRole;
-type AppUser = { id: string; email: string; role: Role };
+type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
 
 export const authOptions: NextAuthOptions = {
   pages: { signIn: "/login" },
@@ -40,7 +40,13 @@ export const authOptions: NextAuthOptions = {
         if (!user) return null;
         const ok = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!ok) return null;
-        return { id: user.id, email: user.email, role: user.role as Role };
+        return { 
+          id: user.id, 
+          email: user.email, 
+          role: user.role as Role,
+          name: user.name,
+          image: user.image
+        };
       },
     }),
   ],
@@ -86,6 +92,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         const u = user as AppUser;
         (token as { role?: Role }).role = u.role;
+        (token as { id?: string }).id = u.id;
         
         // For social login, get user from database
         if (account?.provider === "google" || account?.provider === "facebook") {

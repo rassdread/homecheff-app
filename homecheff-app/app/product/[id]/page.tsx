@@ -1,10 +1,15 @@
 'use client';
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Heart, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { ArrowLeft, Heart, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle, Edit3, Trash2, MessageCircle, Plus, X } from "lucide-react";
 import Link from "next/link";
 import PaymentButton from "@/components/PaymentButton";
 import { ShareButton } from "@/components/ui/ShareButton";
+// import { auth } from "@/lib/auth"; // Removed - using client-side auth instead
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
+import StartChatButton from "@/components/chat/StartChatButton";
 
 type Product = {
   id: string;
@@ -12,9 +17,14 @@ type Product = {
   description?: string | null;
   priceCents: number;
   image?: string | null;
+  photos?: { id: string; url: string; idx: number }[];
+  stock?: number | null;
+  maxStock?: number | null;
+  deliveryMode?: string | null;
   createdAt: string | Date;
   category?: string;
   subcategory?: string;
+  displayNameType?: string;
   seller?: { 
     id?: string | null; 
     name?: string | null; 
@@ -25,13 +35,43 @@ type Product = {
   } | null;
 };
 
+// Helper function to get display name based on displayNameType
+const getDisplayName = (product: Product | null) => {
+  if (!product?.seller) return 'Anoniem';
+  
+  if (product.displayNameType === 'username') {
+    return product.seller.username || product.seller.name || 'Anoniem';
+  } else {
+    return product.seller.name || product.seller.username || 'Anoniem';
+  }
+};
+
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [baseUrl, setBaseUrl] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    title: '',
+    description: '',
+    priceCents: 0,
+    stock: 0,
+    maxStock: 0
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     // Set base URL for sharing
@@ -53,10 +93,19 @@ export default function ProductPage() {
           title: data.title,
           description: data.description,
           priceCents: data.priceCents,
-          image: data.ListingMedia?.[0]?.url || null,
+          image: data.photos?.[0]?.url || data.ListingMedia?.[0]?.url || null,
+          photos: data.photos || data.ListingMedia?.map((media: any) => ({
+            id: media.id,
+            url: media.url,
+            idx: media.order || media.idx
+          })) || [],
+          stock: data.stock,
+          maxStock: data.maxStock,
+          deliveryMode: data.deliveryMode,
           createdAt: data.createdAt,
           category: data.category,
           subcategory: data.subcategory,
+          displayNameType: data.displayNameType || 'fullname',
           seller: {
             id: data.User?.id,
             name: data.User?.name,
@@ -68,6 +117,38 @@ export default function ProductPage() {
         };
         
         setProduct(transformedProduct);
+        
+        // Check if current user is the owner
+        if (session?.user?.email) {
+          try {
+            const userResponse = await fetch('/api/profile/me');
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              setCurrentUser(userData);
+              setIsOwner(userData.id === data.User?.id);
+              
+              // Set edit data
+              setEditData({
+                title: data.title || '',
+                description: data.description || '',
+                priceCents: data.priceCents || 0,
+                stock: data.stock || 0,
+                maxStock: data.maxStock || 0
+              });
+            }
+          } catch (authError) {
+            console.error('Error checking user profile:', authError);
+            // Don't redirect for auth errors, just log them
+          }
+        }
+
+        // Load reviews
+        try {
+          await loadReviews(data.id);
+        } catch (reviewError) {
+          console.error('Error loading reviews:', reviewError);
+          // Don't redirect for review errors, just log them
+        }
       } catch (error) {
         console.error('Error fetching product:', error);
         router.push('/');
@@ -79,7 +160,150 @@ export default function ProductPage() {
     if (params.id) {
       fetchProduct();
     }
-  }, [params.id, router]);
+  }, [params.id]);
+
+  const handleSave = async () => {
+    if (!product) return;
+    
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/profile/dishes/${product.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update product');
+      }
+
+      const updatedData = await response.json();
+      setProduct(prev => prev ? {
+        ...prev,
+        title: editData.title,
+        description: editData.description,
+        priceCents: editData.priceCents,
+        stock: editData.stock,
+        maxStock: editData.maxStock
+      } : null);
+      
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Er is een fout opgetreden bij het bijwerken van het product');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!product) return;
+    
+    try {
+      const response = await fetch(`/api/profile/dishes/${product.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      alert('Product succesvol verwijderd');
+      router.push('/profile');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Er is een fout opgetreden bij het verwijderen van het product');
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!contactMessage.trim()) {
+      alert('Voer een bericht in');
+      return;
+    }
+
+    try {
+      // Hier zou je een bericht API kunnen aanroepen
+      // Voor nu tonen we gewoon een bevestiging
+      alert(`Bericht verzonden naar ${getDisplayName(product)}: "${contactMessage}"`);
+      setShowContactModal(false);
+      setContactMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Er is een fout opgetreden bij het verzenden van het bericht');
+    }
+  };
+
+  const loadReviews = async (productId: string) => {
+    try {
+      const response = await fetch(`/api/products/${productId}/reviews`);
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data.reviews || []);
+      }
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    }
+  };
+
+  const handleReviewSubmit = async (reviewData: any) => {
+    if (!product) return;
+
+    setIsSubmittingReview(true);
+    try {
+      const response = await fetch(`/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (response.ok) {
+        setShowReviewForm(false);
+        await loadReviews(product.id);
+        alert('Beoordeling succesvol geplaatst!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Er is een fout opgetreden bij het plaatsen van de beoordeling');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Er is een fout opgetreden bij het plaatsen van de beoordeling');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const handleReviewReply = async (reviewId: string) => {
+    // TODO: Implement review reply functionality
+    console.log('Reply to review:', reviewId);
+  };
+
+  const handleReviewResponseSubmit = async (reviewId: string, comment: string) => {
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment }),
+      });
+
+      if (response.ok) {
+        await loadReviews(product!.id);
+        alert('Reactie succesvol geplaatst!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Er is een fout opgetreden bij het plaatsen van je reactie');
+      }
+    } catch (error) {
+      console.error('Error submitting response:', error);
+      alert('Er is een fout opgetreden bij het plaatsen van je reactie');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -139,10 +363,17 @@ export default function ProductPage() {
       {/* Product Details */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Product Image */}
+          {/* Product Images */}
           <div className="space-y-4">
+            {/* Main Image */}
             <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden bg-white shadow-sm">
-              {product.image ? (
+              {product.photos && product.photos.length > 0 ? (
+                <img 
+                  src={product.photos[selectedImageIndex]?.url} 
+                  alt={product.title} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : product.image ? (
                 <img 
                   src={product.image} 
                   alt={product.title} 
@@ -175,11 +406,53 @@ export default function ProductPage() {
                 </div>
               )}
 
+              {/* Stock Badge */}
+              {product.stock !== undefined && product.stock !== null && (
+                <div className="absolute top-4 right-20">
+                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${
+                    product.stock === 0 ? 'bg-red-100 text-red-800' :
+                    product.stock <= 5 ? 'bg-orange-100 text-orange-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {product.stock === 0 ? 'Uitverkocht' :
+                     product.stock <= 5 ? 'Laag voorraad' :
+                     `${product.stock} op voorraad`}
+                  </span>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="absolute top-4 right-4 flex gap-2">
-                <button className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
-                  <Heart className="w-6 h-6 text-neutral-600 hover:text-error-500" />
-                </button>
+                {isOwner ? (
+                  <>
+                    <button 
+                      onClick={() => setIsEditing(!isEditing)}
+                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                      title="Bewerken"
+                    >
+                      <Edit3 className="w-6 h-6 text-blue-600" />
+                    </button>
+                    <button 
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                      title="Verwijderen"
+                    >
+                      <Trash2 className="w-6 h-6 text-red-600" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <StartChatButton
+                      productId={product.id}
+                      sellerId={product.seller.User.id}
+                      sellerName={getDisplayName(product)}
+                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                    />
+                    <button className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                      <Heart className="w-6 h-6 text-neutral-600 hover:text-error-500" />
+                    </button>
+                  </>
+                )}
                 <ShareButton
                   url={`${baseUrl}/product/${product.id}`}
                   title={product.title}
@@ -190,27 +463,140 @@ export default function ProductPage() {
                   className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
                 />
               </div>
+
+              {/* Image Navigation */}
+              {product.photos && product.photos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
+                    disabled={selectedImageIndex === 0}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-neutral-600" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageIndex(Math.min(product.photos.length - 1, selectedImageIndex + 1))}
+                    disabled={selectedImageIndex === product.photos.length - 1}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-neutral-600 rotate-180" />
+                  </button>
+                </>
+              )}
             </div>
+
+            {/* Thumbnail Gallery */}
+            {product.photos && product.photos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {product.photos.map((photo, index) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                      selectedImageIndex === index 
+                        ? 'border-primary-500' 
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                  >
+                    <img 
+                      src={photo.url} 
+                      alt={`${product.title} ${index + 1}`}
+                      className="w-full h-full object-cover" 
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900 mb-2">{product.title}</h1>
-              {product.subcategory && (
-                <p className="text-lg text-primary-600 font-medium mb-4">{product.subcategory}</p>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Titel</label>
+                    <input
+                      type="text"
+                      value={editData.title}
+                      onChange={(e) => setEditData({...editData, title: e.target.value})}
+                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Beschrijving</label>
+                    <textarea
+                      value={editData.description}
+                      onChange={(e) => setEditData({...editData, description: e.target.value})}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">Prijs (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={(editData.priceCents / 100).toFixed(2)}
+                        onChange={(e) => setEditData({...editData, priceCents: Math.round(parseFloat(e.target.value) * 100)})}
+                        className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">Voorraad</label>
+                      <input
+                        type="number"
+                        value={editData.stock}
+                        onChange={(e) => setEditData({...editData, stock: parseInt(e.target.value) || 0})}
+                        className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">Max voorraad</label>
+                      <input
+                        type="number"
+                        value={editData.maxStock}
+                        onChange={(e) => setEditData({...editData, maxStock: parseInt(e.target.value) || 0})}
+                        className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                    >
+                      {isSaving ? 'Opslaan...' : 'Opslaan'}
+                    </button>
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="px-6 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors"
+                    >
+                      Annuleren
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold text-neutral-900 mb-2">{product.title}</h1>
+                  {product.subcategory && (
+                    <p className="text-lg text-primary-600 font-medium mb-4">{product.subcategory}</p>
+                  )}
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-5 h-5 text-warning-400 fill-current" />
+                      <span className="text-lg font-semibold text-neutral-700">4.8</span>
+                      <span className="text-neutral-500">(24 reviews)</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-neutral-500">
+                      <Clock className="w-4 h-4" />
+                      <span>Gepost {new Date(product.createdAt).toLocaleDateString('nl-NL')}</span>
+                    </div>
+                  </div>
+                </>
               )}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-1">
-                  <Star className="w-5 h-5 text-warning-400 fill-current" />
-                  <span className="text-lg font-semibold text-neutral-700">4.8</span>
-                  <span className="text-neutral-500">(24 reviews)</span>
-                </div>
-                <div className="flex items-center gap-1 text-neutral-500">
-                  <Clock className="w-4 h-4" />
-                  <span>Gepost {new Date(product.createdAt).toLocaleDateString('nl-NL')}</span>
-                </div>
-              </div>
             </div>
 
             {/* Price & Payment */}
@@ -225,20 +611,46 @@ export default function ProductPage() {
                     value={quantity} 
                     onChange={(e) => setQuantity(Number(e.target.value))}
                     className="border border-neutral-200 rounded-lg px-3 py-1 text-sm"
+                    disabled={product.stock === 0}
                   >
-                    {[1,2,3,4,5].map(num => (
+                    {Array.from({ length: Math.min(5, product.stock || 5) }, (_, i) => i + 1).map(num => (
                       <option key={num} value={num}>{num}</option>
                     ))}
                   </select>
                 </div>
               </div>
+
+              {/* Stock Information */}
+              {product.stock !== undefined && product.stock !== null && (
+                <div className="mb-4 p-3 bg-white rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-neutral-600">Voorraad:</span>
+                    <span className={`font-medium ${
+                      product.stock === 0 ? 'text-red-600' : 
+                      product.stock <= 5 ? 'text-orange-600' : 
+                      'text-green-600'
+                    }`}>
+                      {product.stock === 0 ? 'Uitverkocht' :
+                       product.stock <= 5 ? `Laag voorraad (${product.stock})` :
+                       `${product.stock} beschikbaar`}
+                      {product.maxStock && ` / ${product.maxStock}`}
+                    </span>
+                  </div>
+                </div>
+              )}
               
-              <PaymentButton
-                productId={product.id}
-                amount={(product.priceCents / 100) * quantity}
-                productTitle={product.title}
-                sellerName={product.seller?.name ?? product.seller?.username ?? "Anoniem"}
-              />
+              {product.stock === 0 ? (
+                <div className="w-full py-3 px-4 bg-gray-300 text-gray-500 rounded-xl text-center font-medium">
+                  Uitverkocht
+                </div>
+              ) : (
+                <PaymentButton
+                  productId={product.id}
+                  amount={(product.priceCents / 100) * quantity}
+                  productTitle={product.title}
+                  sellerName={getDisplayName(product)}
+                />
+              )}
             </div>
 
             {/* Description */}
@@ -263,15 +675,18 @@ export default function ProductPage() {
                   ) : (
                     <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
                       <span className="text-primary-600 font-semibold text-xl">
-                        {(product.seller?.name ?? product.seller?.username ?? "A").charAt(0).toUpperCase()}
+                        {getDisplayName(product).charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-lg font-semibold text-neutral-900">
-                    {product.seller?.name ?? product.seller?.username ?? "Anoniem"}
-                  </h4>
+                  <Link 
+                    href={`/seller/${product.seller.User.id}`}
+                    className="text-lg font-semibold text-neutral-900 hover:text-emerald-600 transition-colors"
+                  >
+                    {getDisplayName(product)}
+                  </Link>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-warning-400 fill-current" />
@@ -310,7 +725,107 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Beoordelingen</h2>
+            {currentUser && !isOwner && (
+              <button
+                onClick={() => setShowReviewForm(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Schrijf een beoordeling
+              </button>
+            )}
+          </div>
+
+          {showReviewForm && (
+            <div className="mb-8">
+              <ReviewForm
+                productId={product.id}
+                onSubmit={handleReviewSubmit}
+                onCancel={() => setShowReviewForm(false)}
+                isSubmitting={isSubmittingReview}
+              />
+            </div>
+          )}
+
+          <ReviewList
+            reviews={reviews}
+            onReply={handleReviewReply}
+            onResponseSubmit={handleReviewResponseSubmit}
+            canReply={isOwner}
+            isSeller={isOwner}
+          />
+        </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-4">Item verwijderen</h3>
+            <p className="text-neutral-600 mb-6">
+              Weet je zeker dat je dit item wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Ja, verwijderen
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors"
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Seller Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-neutral-900 mb-4">
+              Contact {getDisplayName(product)}
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Je bericht
+              </label>
+              <textarea
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Stel je vraag aan de verkoper..."
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleContactSeller}
+                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors"
+              >
+                Verzenden
+              </button>
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  setContactMessage('');
+                }}
+                className="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors"
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </main>
   );

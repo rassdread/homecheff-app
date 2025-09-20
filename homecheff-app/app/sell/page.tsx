@@ -5,17 +5,36 @@ import React from "react";
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
 
 type Plan = 'BASIC' | 'PRO' | 'PREMIUM';
 
 export default function SellPage() {
   const [loading, setLoading] = useState<Plan | null>(null);
-  const plans: { key: Plan; title: string; price: string; fee: string; perks: string[] }[] = [
-    { key: 'BASIC', title: 'Basic', price: '€39 / maand', fee: '7% fee', perks: ['Start voor kleine speciaalzaken', 'Basis zichtbaarheid'] },
-    { key: 'PRO', title: 'Pro', price: '€99 / maand', fee: '4% fee', perks: ['Verhoogde zichtbaarheid', 'Aanbevolen in categorie'] },
-    { key: 'PREMIUM', title: 'Premium', price: '€199 / maand', fee: '2% fee', perks: ['Toppositie', 'Uitgelichte promoties'] },
-  ];
+  const [userHasKVK, setUserHasKVK] = useState<boolean | null>(null);
+  const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Business plans - alleen zichtbaar voor KVK gebruikers
+  const businessPlans: { key: Plan; title: string; price: string; fee: string; perks: string[] }[] = [
+    { key: 'BASIC', title: 'Basic', price: 'Vanaf €39 / maand', fee: 'Klein percentage', perks: ['Start voor kleine speciaalzaken', 'Basis zichtbaarheid'] },
+    { key: 'PRO', title: 'Pro', price: 'Vanaf €99 / maand', fee: 'Klein percentage', perks: ['Verhoogde zichtbaarheid', 'Aanbevolen in categorie'] },
+    { key: 'PREMIUM', title: 'Premium', price: 'Vanaf €199 / maand', fee: 'Klein percentage', perks: ['Toppositie', 'Uitgelichte promoties'] },
+  ];
+
+  // Check if user has KVK number
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.email) {
+      fetch('/api/profile/me')
+        .then(res => res.json())
+        .then(data => {
+          setUserHasKVK(!!data?.kvkNumber);
+        })
+        .catch(() => setUserHasKVK(false));
+    } else {
+      setUserHasKVK(false);
+    }
+  }, [session, status]);
 
   async function start(plan: Plan) {
     setLoading(plan);
@@ -35,7 +54,8 @@ export default function SellPage() {
   return (
     <React.Suspense fallback={null}>
       <SellPageContent
-        plans={plans}
+        plans={userHasKVK ? businessPlans : []}
+        userHasKVK={userHasKVK}
         loading={loading}
         setLoading={setLoading}
         router={router}
@@ -46,8 +66,9 @@ export default function SellPage() {
 }
 
 // Verwijderd: dubbele declaratie SellPageContent
-function SellPageContent({ plans, loading, setLoading, router, start }: {
+function SellPageContent({ plans, userHasKVK, loading, setLoading, router, start }: {
   plans: { key: Plan; title: string; price: string; fee: string; perks: string[] }[];
+  userHasKVK: boolean | null;
   loading: Plan | null;
   setLoading: (plan: Plan | null) => void;
   router: any;

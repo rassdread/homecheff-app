@@ -18,39 +18,31 @@ export async function POST(req: Request) {
     console.log("Uploaden bestand:", file.name);
     
     // Try Vercel Blob first if token is available
-    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_TOKEN || process.env.BLOB_RW_TOKEN;
+    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
     let publicUrl: string | null = null;
     
     if (token) {
       try {
         const { put } = await import("@vercel/blob");
-        const key = `dishes/${crypto.randomUUID()}-${file.name}`;
+        const key = `products/${crypto.randomUUID()}-${file.name}`;
         const blob = await put(key, file, {
           access: "public",
           token: token,
           addRandomSuffix: true,
         });
         publicUrl = blob.url;
-        console.log("Blob url:", blob.url);
+        console.log("Blob upload successful:", blob.url);
       } catch (error) {
         console.error("Blob upload failed:", error);
-        // Fall through to base64 fallback
+        return NextResponse.json({ error: "Upload naar Vercel Blob mislukt" }, { status: 500 });
       }
+    } else {
+      console.error("No Vercel Blob token found");
+      return NextResponse.json({ error: "Upload service niet geconfigureerd" }, { status: 500 });
     }
     
-    // Fallback: use base64 data URL
     if (!publicUrl) {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const base64 = buffer.toString('base64');
-        const mimeType = file.type || 'image/jpeg';
-        publicUrl = `data:${mimeType};base64,${base64}`;
-        console.log("Using base64 fallback for:", file.name);
-      } catch (error) {
-        console.error("Base64 conversion failed:", error);
-        return NextResponse.json({ error: "File processing failed" }, { status: 500 });
-      }
+      return NextResponse.json({ error: "Upload mislukt - geen URL gegenereerd" }, { status: 500 });
     }
     
     return Response.json({ url: publicUrl });

@@ -47,6 +47,12 @@ export default async function ProfilePage({
       interests: true,
       profileImage: true,
       role: true,
+      sellerRoles: true,
+      buyerRoles: true,
+      displayFullName: true,
+      bankName: true,
+      iban: true,
+      accountHolderName: true,
       createdAt: true
     }
   });

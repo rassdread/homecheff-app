@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 
 export default function NavBar() {
@@ -29,6 +29,13 @@ export default function NavBar() {
               <Button variant="ghost" className="flex items-center space-x-2">
                 <Home className="w-4 h-4" />
                 <span>Home</span>
+              </Button>
+            </Link>
+            
+            <Link href="/faq">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <HelpCircle className="w-4 h-4" />
+                <span>FAQ</span>
               </Button>
             </Link>
 
@@ -67,6 +74,9 @@ export default function NavBar() {
                     Profiel
                   </span>
                 </Link>
+                <Link href="/verkoper/dashboard" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                  Dashboard
+                </Link>
                 <Button 
                   variant="ghost" 
                   onClick={async () => {
@@ -104,6 +114,13 @@ export default function NavBar() {
                   <span>Home</span>
                 </Button>
               </Link>
+              
+              <Link href="/faq" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>FAQ</span>
+                </Button>
+              </Link>
 
               {status !== 'loading' && !user && (
                 <>
@@ -139,6 +156,12 @@ export default function NavBar() {
                     <span className="text-sm font-medium text-gray-700">
                       Profiel
                     </span>
+                  </Link>
+                  <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <Settings className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </Button>
                   </Link>
                   <Button 
                     variant="ghost" 

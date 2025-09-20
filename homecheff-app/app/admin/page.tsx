@@ -26,13 +26,13 @@ export default async function AdminPage() {
   // Get admin statistics
   const [
     totalUsers,
-    totalListings,
+    totalProducts,
     totalOrders,
     recentUsers,
-    recentListings
+    recentProducts
   ] = await Promise.all([
     prisma.user.count(),
-    prisma.listing.count(),
+    prisma.product.count(),
     prisma.transaction.count(),
     prisma.user.findMany({
       take: 5,
@@ -47,16 +47,20 @@ export default async function AdminPage() {
         profileImage: true
       }
     }),
-    prisma.listing.findMany({
+    prisma.product.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
-        User: {
-          select: {
-            name: true,
-            username: true,
-            image: true,
-            profileImage: true
+        seller: {
+          include: {
+            User: {
+              select: {
+                name: true,
+                username: true,
+                image: true,
+                profileImage: true
+              }
+            }
           }
         }
       }
@@ -67,10 +71,10 @@ export default async function AdminPage() {
     <AdminDashboard
       stats={{
         totalUsers,
-        totalListings,
+        totalProducts,
         totalOrders,
         recentUsers,
-        recentListings
+        recentProducts
       }}
     />
   );

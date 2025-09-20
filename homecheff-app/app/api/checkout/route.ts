@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { stripe, createConnectPaymentIntent, calculatePayout } from '@/lib/stripe';
 import { formatAmountForStripe } from '@/lib/stripe';
 import { calculateFee, PRICING_TIERS, type PricingTier } from '@/lib/pricing';
 import { PrismaClient } from '@prisma/client';
@@ -28,19 +28,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Haal seller en buyer info op
-    const dish = await prisma.dish.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
-      include: { user: true }
+      include: { 
+        seller: {
+          include: {
+            User: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                stripeConnectAccountId: true,
+                stripeConnectOnboardingCompleted: true
+              }
+            }
+          }
+        }
+      }
     });
 
-    if (!dish) {
+    if (!product) {
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
       );
     }
 
-    const seller = dish.user;
+    const seller = product.seller.User;
     const buyer = await prisma.user.findUnique({
       where: { id: buyerId }
     });
@@ -52,14 +66,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Bepaal pricing tier (default to INDIVIDUAL)
-    const pricingTier: PricingTier = 'INDIVIDUAL';
+    // Bepaal pricing tier op basis van seller type
+    const isBusiness = product.seller.kvk && product.seller.kvk.length > 0;
+    const pricingTier: PricingTier = isBusiness ? 'BUSINESS_BASIC' : 'INDIVIDUAL';
     const pricing = PRICING_TIERS[pricingTier];
 
     // Bereken fees volgens HomeCheff verdienmodel
     const totalAmount = priceCents * quantity;
     const feeCents = calculateFee(totalAmount, pricingTier);
     const netAmountCents = totalAmount - feeCents;
+
+    // Controleer of seller Stripe Connect account heeft
+    if (!seller.stripeConnectAccountId) {
+      return NextResponse.json(
+        { error: 'Seller moet eerst Stripe Connect account opzetten' },
+        { status: 400 }
+      );
+    }
 
     // Valideer individuele gebruiker limiet
     if (pricingTier === 'INDIVIDUAL') {
@@ -74,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     const formattedAmount = formatAmountForStripe(totalAmount / 100); // Convert to euros first
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session with Connect
     if (!stripe) {
       // Return mock session for development
       return NextResponse.json({
@@ -101,6 +124,13 @@ export async function POST(req: NextRequest) {
       mode: 'payment',
       success_url: `${req.nextUrl.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.nextUrl.origin}/product/${productId}`,
+      // Stripe Connect settings
+      payment_intent_data: {
+        application_fee_amount: feeCents,
+        transfer_data: {
+          destination: seller.stripeConnectAccountId!,
+        },
+      },
       metadata: {
         productId,
         quantity: quantity.toString(),

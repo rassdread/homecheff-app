@@ -3,11 +3,16 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// Pas deze mappings aan als jouw Prisma enums anders heten:
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
-  GARDEN: 'GARDEN',
+  GARDEN: 'GROWN', // Note: GARDEN maps to GROWN in schema
   DESIGNER: 'DESIGNER',
+};
+
+const DELIVERY_MAP: Record<string, any> = {
+  PICKUP: 'PICKUP',
+  DELIVERY: 'DELIVERY',
+  BOTH: 'BOTH',
 };
 
 export async function POST(req: Request) {
@@ -23,37 +28,63 @@ export async function POST(req: Request) {
       description,
       priceCents,
       category,
+      deliveryMode = 'PICKUP',
       images = [],
       isPublic = true,
+      displayNameType = 'fullname',
     } = body || {};
 
     if (!title || !description || !priceCents || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'Ontbrekende velden' }, { status: 400 });
     }
 
-    const cat = CATEGORY_MAP[category] ?? CATEGORY_MAP.CHEFF;
+    // Get user's seller profile
+    const user = await prisma.user.findUnique({
+      where: { id: (session?.user as any)?.id },
+      include: { SellerProfile: true }
+    });
 
-    // Probeer Listing aan te maken (met ListingMedia)
-    const result = await prisma.listing.create({
+    if (!user?.SellerProfile) {
+      return NextResponse.json({ error: 'Geen verkopersprofiel gevonden. Registreer eerst als verkoper.' }, { status: 400 });
+    }
+
+    const cat = CATEGORY_MAP[category] ?? 'CHEFF';
+    const delivery = DELIVERY_MAP[deliveryMode] ?? 'PICKUP';
+
+    // Create Product (not Listing)
+    const result = await prisma.product.create({
       data: {
         id: crypto.randomUUID(),
         title,
         description,
         priceCents: Number(priceCents),
-        isPublic: Boolean(isPublic),
         category: cat as any,
-        ownerId: (session?.user as any)?.id as string,
-        updatedAt: new Date(),
-        ListingMedia: {
+        unit: 'PORTION', // Default unit
+        delivery: delivery as any,
+        isActive: Boolean(isPublic),
+        displayNameType,
+        sellerId: user.SellerProfile.id,
+        Image: {
           create: images.map((url: string, i: number) => ({
             id: crypto.randomUUID(),
-            url,
-            order: i,
+            fileUrl: url,
+            sortOrder: i,
           })),
         },
       },
       include: {
-        ListingMedia: true,
+        Image: true,
+        seller: {
+          include: {
+            User: {
+              select: {
+                name: true,
+                username: true,
+                profileImage: true
+              }
+            }
+          }
+        }
       },
     });
 

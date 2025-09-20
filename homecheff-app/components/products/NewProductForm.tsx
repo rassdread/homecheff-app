@@ -26,6 +26,7 @@ export default function NewProductForm() {
   const [images, setImages] = React.useState<Uploaded[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
+  const [displayNameType, setDisplayNameType] = React.useState<'fullname' | 'username'>('fullname');
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +56,7 @@ export default function NewProductForm() {
           deliveryMode,
           images: images.map(i => i.url),
           isPublic: true,
+          displayNameType,
         }),
       });
       const data = await res.json();
@@ -133,6 +135,22 @@ export default function NewProductForm() {
       </div>
 
       <MultiImageUploader value={images} onChange={setImages} />
+
+      {/* Naamweergave keuze */}
+      <div className="hc-tight">
+        <label className="hc-label">Naamweergave bij product</label>
+        <select
+          className="w-full rounded-md border p-2"
+          value={displayNameType}
+          onChange={(e) => setDisplayNameType(e.target.value as 'fullname' | 'username')}
+        >
+          <option value="fullname">Voor- en achternaam</option>
+          <option value="username">Gebruikersnaam</option>
+        </select>
+        <p className="text-sm text-gray-500 mt-1">
+          Kies hoe je naam wordt weergegeven bij dit product
+        </p>
+      </div>
 
       <div className="flex items-center gap-3">
         <button

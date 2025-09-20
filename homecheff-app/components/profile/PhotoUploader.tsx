@@ -13,6 +13,17 @@ export default function PhotoUploader({ initialUrl }: { initialUrl?: string }) {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Client-side validation
+    if (!file.type.startsWith('image/')) {
+      alert('Alleen afbeeldingen zijn toegestaan.');
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      alert('Bestand is te groot. Maximum 10MB toegestaan.');
+      return;
+    }
+    
     // Instant preview
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result as string);
@@ -29,18 +40,21 @@ export default function PhotoUploader({ initialUrl }: { initialUrl?: string }) {
       });
       
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Upload mislukt');
       }
       
       const data = await response.json();
       if (data.url) {
         setUrl(data.url);
         setPreview(null); // Clear preview since we now have the actual URL
+      } else {
+        throw new Error('Geen URL ontvangen van server');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      // Keep preview for user to see what they selected, but show error
-      alert('Foto upload mislukt. Probeer het opnieuw.');
+      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout';
+      alert(`Foto upload mislukt: ${errorMessage}`);
       setPreview(null); // Clear preview on error
     }
   }

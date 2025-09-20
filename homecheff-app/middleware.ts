@@ -2,12 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Check if the request is for admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // For now, just redirect to login - admin check will be done in the page component
-    return NextResponse.redirect(new URL('/login?callbackUrl=/admin', request.url));
-  }
-
+  // Admin routes are now handled by the page component itself
+  // No need to redirect here - let the page component handle authentication
   return NextResponse.next();
 }
 

@@ -173,7 +173,7 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
+                  <Search size={20} className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}

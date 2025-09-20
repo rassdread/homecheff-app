@@ -33,7 +33,7 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({ item }: ItemCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
+  const [hasProps, setHasProps] = useState(false);
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -83,14 +83,14 @@ export default function ItemCard({ item }: ItemCardProps) {
           </div>
         )}
         
-        {/* Like Button */}
+        {/* Props Button */}
         <button
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={() => setHasProps(!hasProps)}
           className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
         >
           <Heart 
             className={`w-4 h-4 transition-colors ${
-              isLiked ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'
+              hasProps ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'
             }`} 
           />
         </button>
@@ -165,6 +165,7 @@ export default function ItemCard({ item }: ItemCardProps) {
     </article>
   );
 }
+
 
 
 

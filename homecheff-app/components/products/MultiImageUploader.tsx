@@ -23,16 +23,39 @@ export default function MultiImageUploader({ max = 5, value = [], onChange }: Pr
     for (let i = 0; i < files.length; i++) {
       if (current.length >= max) break;
       const file = files[i];
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) {
-        console.error('Upload failed');
+      
+      // Client-side validation
+      if (!file.type.startsWith('image/')) {
+        alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
         continue;
       }
-      const data = await res.json();
-      if (data?.url) {
-        current.push({ url: data.url });
+      
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
+        continue;
+      }
+      
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const errorMessage = errorData.error || 'Upload mislukt';
+          alert(`Upload van "${file.name}" mislukt: ${errorMessage}`);
+          console.error('Upload failed:', errorData);
+          continue;
+        }
+        const data = await res.json();
+        if (data?.url) {
+          current.push({ url: data.url });
+        } else {
+          alert(`Upload van "${file.name}" mislukt: Geen URL ontvangen`);
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Upload van "${file.name}" mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
       }
     }
     setItems(current);

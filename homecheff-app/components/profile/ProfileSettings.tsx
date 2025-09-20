@@ -3,6 +3,75 @@
 import { useState, useEffect } from 'react';
 import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
 
+const sellerTypes = [
+  {
+    id: "chef",
+    title: "Chef",
+    description: "Verkoop je culinaire creaties",
+    icon: "👨‍🍳",
+    features: ["Gerechten verkopen", "Bezorging & ophalen", "Reviews ontvangen", "Fans verzamelen"]
+  },
+  {
+    id: "garden",
+    title: "Garden",
+    description: "Deel je groenten en kruiden",
+    icon: "🌱",
+    features: ["Groenten verkopen", "Seizoensproducten", "Lokale community", "Duurzaamheid"]
+  },
+  {
+    id: "designer",
+    title: "Designer",
+    description: "Verkoop je handgemaakte items",
+    icon: "🎨",
+    features: ["Handwerk verkopen", "Custom orders", "Portfolio opbouwen", "Kunstenaarsnetwerk"]
+  },
+];
+
+const buyerTypes = [
+  {
+    id: "ontdekker",
+    title: "Ontdekker",
+    description: "Ik ontdek graag lokale parels en verborgen talenten",
+    icon: "🔍"
+  },
+  {
+    id: "verzamelaar",
+    title: "Verzamelaar",
+    description: "Ik verzamel unieke en bijzondere items",
+    icon: "📦"
+  },
+  {
+    id: "liefhebber",
+    title: "Liefhebber",
+    description: "Ik waardeer kwaliteit en vakmanschap",
+    icon: "❤️"
+  },
+  {
+    id: "avonturier",
+    title: "Avonturier",
+    description: "Ik zoek nieuwe ervaringen en uitdagingen",
+    icon: "🗺️"
+  },
+  {
+    id: "fijnproever",
+    title: "Fijnproever",
+    description: "Ik geniet van subtiele smaken en details",
+    icon: "👅"
+  },
+  {
+    id: "connaisseur",
+    title: "Connaisseur",
+    description: "Ik heb kennis van kwaliteit en authenticiteit",
+    icon: "🎭"
+  },
+  {
+    id: "genieter",
+    title: "Genieter",
+    description: "Ik waardeer het goede leven en mooie dingen",
+    icon: "✨"
+  }
+];
+
 interface ProfileSettingsProps {
   user: {
     id: string;
@@ -13,6 +82,12 @@ interface ProfileSettingsProps {
     gender?: string;
     interests?: string[];
     image?: string;
+    sellerRoles?: string[];
+    buyerRoles?: string[];
+    displayFullName?: boolean;
+    bankName?: string;
+    iban?: string;
+    accountHolderName?: string;
   };
   onSave: (data: any) => Promise<void>;
 }
@@ -20,22 +95,35 @@ interface ProfileSettingsProps {
 export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user.name || '',
-    username: user.username || '',
-    bio: user.bio || '',
-    place: user.place || '',
-    gender: user.gender || '',
-    interests: user.interests || []
+    name: user?.name || '',
+    username: user?.username || '',
+    bio: user?.bio || '',
+    place: user?.place || '',
+    gender: user?.gender || '',
+    interests: user?.interests || [],
+    sellerRoles: user?.sellerRoles || [],
+    buyerRoles: user?.buyerRoles || [],
+    displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
+    // Bank details
+    bankName: user?.bankName || '',
+    iban: user?.iban || '',
+    accountHolderName: user?.accountHolderName || ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSave = async () => {
     setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
       await onSave(formData);
+      setSuccess('Profiel succesvol bijgewerkt!');
       setIsEditing(false);
-    } catch (error) {
-      console.error('Error saving profile:', error);
+    } catch (error: any) {
+      setError(error.message || 'Er is een fout opgetreden bij het opslaan');
     } finally {
       setIsLoading(false);
     }
@@ -43,12 +131,18 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
   const handleCancel = () => {
     setFormData({
-      name: user.name || '',
-      username: user.username || '',
-      bio: user.bio || '',
-      place: user.place || '',
-      gender: user.gender || '',
-      interests: user.interests || []
+      name: user?.name || '',
+      username: user?.username || '',
+      bio: user?.bio || '',
+      place: user?.place || '',
+      gender: user?.gender || '',
+      interests: user?.interests || [],
+      sellerRoles: user?.sellerRoles || [],
+      buyerRoles: user?.buyerRoles || [],
+      displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
+      bankName: user?.bankName || '',
+      iban: user?.iban || '',
+      accountHolderName: user?.accountHolderName || ''
     });
     setIsEditing(false);
   };
@@ -69,32 +163,48 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     }));
   };
 
+  const handleSellerRoleToggle = (roleId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sellerRoles: prev.sellerRoles.includes(roleId)
+        ? prev.sellerRoles.filter(r => r !== roleId)
+        : [...prev.sellerRoles, roleId]
+    }));
+  };
+
+  const handleBuyerRoleToggle = (roleId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      buyerRoles: prev.buyerRoles.includes(roleId) ? [] : [roleId]
+    }));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-emerald-100 rounded-lg">
-            <User className="w-6 h-6 text-emerald-600" />
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Profielinstellingen</h2>
-            <p className="text-sm text-gray-500">Beheer je persoonlijke informatie</p>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Profielinstellingen</h2>
+            <p className="text-xs sm:text-sm text-gray-500">Beheer je persoonlijke informatie</p>
           </div>
         </div>
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
           >
             <Edit3 className="w-4 h-4" />
             <span>Bewerken</span>
           </button>
         ) : (
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               onClick={handleCancel}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto"
             >
               <X className="w-4 h-4" />
               <span>Annuleren</span>
@@ -102,7 +212,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
               <span>{isLoading ? 'Opslaan...' : 'Opslaan'}</span>
@@ -111,10 +221,39 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         )}
       </div>
 
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <X className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-800">{success}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Form */}
       <div className="space-y-6">
         {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Volledige naam
@@ -134,10 +273,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             <input
               type="text"
               value={formData.username}
-              onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-              disabled={!isEditing}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
+              disabled={true}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
             />
+            <p className="text-xs text-gray-500 mt-1">Gebruikersnaam kan niet worden gewijzigd na aanmaak</p>
           </div>
         </div>
 
@@ -183,10 +322,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             disabled={!isEditing}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           >
-            <option value="">Niet opgegeven</option>
-            <option value="MALE">Man</option>
-            <option value="FEMALE">Vrouw</option>
-            <option value="OTHER">Anders</option>
+            <option value="">Maak een keuze</option>
+            <option value="man">Man</option>
+            <option value="vrouw">Vrouw</option>
           </select>
         </div>
 
@@ -215,7 +353,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               ))}
             </div>
             {isEditing && (
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <input
                   type="text"
                   placeholder="Voeg interesse toe..."
@@ -233,12 +371,201 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                     addInterest(input.value);
                     input.value = '';
                   }}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
                 >
                   Toevoegen
                 </button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Seller Roles Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Verkopersrollen</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Kies welke verkopersrollen je wilt gebruiken op het platform
+          </p>
+          
+          <div className="grid gap-3 sm:gap-4">
+            {sellerTypes.map((type) => (
+              <div
+                key={type.id}
+                className={`p-3 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.sellerRoles.includes(type.id)
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 hover:border-emerald-300'
+                } ${!isEditing ? 'cursor-not-allowed opacity-50' : ''}`}
+                onClick={() => isEditing && handleSellerRoleToggle(type.id)}
+              >
+                <div className="flex items-start space-x-3 sm:space-x-4">
+                  <div className="text-2xl sm:text-3xl">{type.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-base sm:text-lg font-semibold text-gray-900">{type.title}</h4>
+                    <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{type.description}</p>
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                      {type.features.map((feature, index) => (
+                        <span key={index} className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
+                    formData.sellerRoles.includes(type.id)
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-gray-300'
+                  }`}>
+                    {formData.sellerRoles.includes(type.id) && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {formData.sellerRoles.length > 0 && (
+            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <p className="text-sm text-emerald-700">
+                <strong>Geselecteerd:</strong> {formData.sellerRoles.map(id => sellerTypes.find(t => t.id === id)?.title).join(', ')}
+              </p>
+            </div>
+          )}
+
+          {/* Bank Details - Only show when seller roles are selected */}
+          {formData.sellerRoles.length > 0 && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                <span className="mr-2">🏦</span>
+                Uitbetaalgegevens
+              </h4>
+              <p className="text-sm text-gray-600 mb-4">Vul je bankgegevens in om uitbetalingen te ontvangen</p>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Banknaam</label>
+                    <input
+                      type="text"
+                      value={formData.bankName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="ABN AMRO, ING, Rabobank..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
+                    <input
+                      type="text"
+                      value={formData.iban}
+                      onChange={(e) => setFormData(prev => ({ ...prev, iban: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="NL91ABNA0417164300"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rekeninghouder naam</label>
+                  <input
+                    type="text"
+                    value={formData.accountHolderName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, accountHolderName: e.target.value }))}
+                    disabled={!isEditing}
+                    placeholder="Jouw volledige naam"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Buyer Roles Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Koperrol</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Kies 1 koperrol die het beste bij je past
+          </p>
+          
+          <div className="grid gap-2 sm:gap-3">
+            {buyerTypes.map((type) => (
+              <label
+                key={type.id}
+                className={`p-3 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.buyerRoles.includes(type.id)
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                } ${!isEditing ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="text-xl sm:text-2xl">{type.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">{type.title}</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">{type.description}</p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="buyerRole"
+                    checked={formData.buyerRoles.includes(type.id)}
+                    onChange={() => isEditing && handleBuyerRoleToggle(type.id)}
+                    disabled={!isEditing}
+                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 disabled:opacity-50 flex-shrink-0"
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
+          
+          {formData.buyerRoles.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700">
+                <strong>Geselecteerd:</strong> {formData.buyerRoles.map(id => buyerTypes.find(t => t.id === id)?.title).join(', ')}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Display Settings */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Weergave-instellingen</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Kies hoe je naam wordt weergegeven bij het posten van items
+          </p>
+          
+          <div className="space-y-2 sm:space-y-3">
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={formData.displayFullName}
+                onChange={() => setFormData(prev => ({ ...prev, displayFullName: true }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">Volledige naam</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon je volledige naam bij items (bijv. "Jan de Vries")</div>
+              </div>
+            </label>
+            
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={!formData.displayFullName}
+                onChange={() => setFormData(prev => ({ ...prev, displayFullName: false }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">Gebruikersnaam</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon je gebruikersnaam bij items (bijv. "@jandevries")</div>
+              </div>
+            </label>
           </div>
         </div>
       </div>

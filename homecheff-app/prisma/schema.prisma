@@ -25,6 +25,17 @@ model User {
   username                               String?                   @unique
   gender                               String?
   passwordHash                           String?
+  // Nieuwe velden voor rollen en instellingen
+  sellerRoles                            String[]                 @default([]) // chef, garden, designer
+  buyerRoles                             String[]                 @default([]) // ontdekker, verzamelaar, liefhebber, etc.
+  displayFullName                        Boolean                  @default(true) // true = volledige naam, false = gebruikersnaam
+  // Bank details voor uitbetalingen
+  bankName                               String?
+  iban                                   String?
+  accountHolderName                      String?
+  // Stripe Connect account voor uitbetalingen
+  stripeConnectAccountId                 String?
+  stripeConnectOnboardingCompleted       Boolean                  @default(false)
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
@@ -39,8 +50,6 @@ model User {
   Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
   Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
-  Review_Review_revieweeIdToUser         Review[]                  @relation("Review_revieweeIdToUser")
-  Review_Review_reviewerIdToUser         Review[]                  @relation("Review_reviewerIdToUser")
   SellerProfile                          SellerProfile?
   Session                                Session[]
   Transaction                            Transaction[]
@@ -50,6 +59,19 @@ model User {
   Dish                                   Dish[]
   interests                              String[]
   Business                                Business?
+  // Privacy en marketing toestemmingen
+  privacyPolicyAccepted                  Boolean                  @default(false)
+  privacyPolicyAcceptedAt                DateTime?
+  termsAccepted                          Boolean                  @default(false)
+  termsAcceptedAt                        DateTime?
+  marketingAccepted                      Boolean                  @default(false)
+  marketingAcceptedAt                    DateTime?
+  // Belastingverantwoordelijkheid
+  taxResponsibilityAccepted              Boolean                  @default(false)
+  taxResponsibilityAcceptedAt            DateTime?
+  // Review relaties
+  productReviewsAsBuyer                  ProductReview[]          @relation("ProductReviewBuyer")
+  reviewResponsesAsSeller                ReviewResponse[]         @relation("ReviewResponseSeller")
 }
 
 model Business {
@@ -70,22 +92,25 @@ model Business {
 }
 
 model Product {
-  id          String          @id @default(uuid())
-  sellerId    String
-  category    ProductCategory
-  title       String
-  description String
-  priceCents  Int
-  unit        Unit
-  delivery    DeliveryMode
-  createdAt   DateTime        @default(now())
-  isActive    Boolean         @default(true)
-  stock       Int             @default(0)  // Voorraad aantal
-  maxStock    Int?            // Maximale voorraad (optioneel)
-  Image       Image[]
-  seller      SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
-  favorites   Favorite[]
-  orderItems  OrderItem[]
+  id              String          @id @default(uuid())
+  sellerId        String
+  category        ProductCategory
+  title           String
+  description     String
+  priceCents      Int
+  unit            Unit
+  delivery        DeliveryMode
+  createdAt       DateTime        @default(now())
+  isActive        Boolean         @default(true)
+  stock           Int             @default(0)  // Voorraad aantal
+  maxStock        Int?            // Maximale voorraad (optioneel)
+  displayNameType String          @default("fullname") // "fullname" of "username"
+  Image           Image[]
+  seller          SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
+  favorites       Favorite[]
+  orderItems      OrderItem[]
+  reviews         ProductReview[]
+  conversations   Conversation[]  // Conversations about this product
 
   @@index([category])
   @@index([sellerId])
@@ -136,10 +161,22 @@ model AuditLog {
 model Conversation {
   id                      String                    @id
   createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
   reservationId           String?                   @unique
+  productId               String?                   // Link to product for context
+  orderId                 String?                   // Link to order for purchase-related conversations
+  title                   String?                   // Custom conversation title
+  lastMessageAt           DateTime?
+  isActive                Boolean                   @default(true)
   Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
+  Product                 Product?                  @relation(fields: [productId], references: [id])
+  Order                   Order?                    @relation(fields: [orderId], references: [id])
   ConversationParticipant ConversationParticipant[]
   Message                 Message[]
+
+  @@index([productId])
+  @@index([orderId])
+  @@index([lastMessageAt])
 }
 
 model ConversationParticipant {
@@ -224,7 +261,6 @@ model Listing {
   ListingTag   ListingTag[]
   Report       Report[]
   Reservation  Reservation[]
-  Review       Review[]
 
   @@index([lat, lng])
   @@index([status, category, createdAt])
@@ -255,16 +291,25 @@ model ListingTag {
 }
 
 model Message {
-  id             String       @id
+  id             String       @id @default(uuid())
   conversationId String
   senderId       String
-  text           String
+  text           String?
+  messageType    MessageType  @default(TEXT)
+  attachmentUrl  String?      // For file uploads
+  attachmentName String?      // Original filename
+  attachmentType String?      // MIME type
+  orderNumber    String?      // For order-related messages (#ORD-2024-001)
   createdAt      DateTime     @default(now())
   readAt         DateTime?
+  editedAt       DateTime?
+  deletedAt      DateTime?
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([orderNumber])
 }
 
 model Notification {
@@ -334,21 +379,27 @@ model Reservation {
   @@index([sellerId, status, createdAt])
 }
 
-model Review {
-  id                           String   @id
-  listingId                    String
-  reviewerId                   String
-  revieweeId                   String
-  rating                       Int
-  comment                      String?
-  createdAt                    DateTime @default(now())
-  Listing                      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  User_Review_revieweeIdToUser User     @relation("Review_revieweeIdToUser", fields: [revieweeId], references: [id], onDelete: Cascade)
-  User_Review_reviewerIdToUser User     @relation("Review_reviewerIdToUser", fields: [reviewerId], references: [id], onDelete: Cascade)
-
-  @@unique([listingId, reviewerId])
-  @@index([listingId])
-  @@index([revieweeId, createdAt])
+model ProductReview {
+  id          String         @id @default(uuid())
+  productId   String
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerId     String
+  buyer       User           @relation("ProductReviewBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  orderId     String?        // Link naar de bestelling
+  order       Order?         @relation(fields: [orderId], references: [id])
+  rating      Int            // 1-5 sterren
+  title       String?        // Optionele titel voor de review
+  comment     String?        // Review tekst
+  images      ReviewImage[]  // Foto's bij de review
+  isVerified  Boolean        @default(false) // Alleen gekochte producten kunnen reviews krijgen
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  responses   ReviewResponse[] // Verkoper reacties
+  
+  @@unique([productId, buyerId]) // Een gebruiker kan maar één review per product
+  @@index([productId])
+  @@index([buyerId])
+  @@index([rating])
 }
 
 model SellerProfile {
@@ -425,12 +476,33 @@ model VerificationToken {
 }
 
 model Order {
-  id        String   @id @default(uuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User     @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
-  items     OrderItem[]
+  id             String          @id @default(uuid())
+  userId         String
+  orderNumber    String?         // Human-readable order number like "ORD-2024-001"
+  status         OrderStatus     @default(PENDING)
+  totalAmount    Int             // Total amount in cents
+  deliveryMode   DeliveryMode    @default(PICKUP)
+  pickupAddress  String?         // Address for pickup
+  deliveryAddress String?        // Address for delivery
+  pickupDate     DateTime?       // Scheduled pickup date
+  deliveryDate   DateTime?       // Scheduled delivery date
+  notes          String?         // Additional notes from buyer
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  User           User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items          OrderItem[]
+  reviews        ProductReview[]
+  conversations  Conversation[]  // Conversations about this order
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
 }
 
 model OrderItem {
@@ -483,11 +555,25 @@ enum ListingStatus {
   MODERATED
 }
 
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  PRODUCT_SHARE
+  SYSTEM
+  ORDER_STATUS_UPDATE
+  ORDER_PICKUP_INFO
+  ORDER_DELIVERY_INFO
+  ORDER_ADDRESS_UPDATE
+}
+
 enum NotificationType {
   NEW_LISTING_NEARBY
   RESERVATION_UPDATE
   MESSAGE_RECEIVED
   ADMIN_NOTICE
+  NEW_CONVERSATION
+  MESSAGE_REACTION
 }
 
 enum ProductCategory {
@@ -560,6 +646,8 @@ model Dish {
   lat          Float?
   lng          Float?
   place        String?
+  stock        Int?            @default(0)
+  maxStock     Int?
 
   @@index([userId])
 }
@@ -570,6 +658,32 @@ model DishPhoto {
   dish   Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
   url    String
   idx    Int    @default(0)
+  isMain Boolean @default(false)
 
   @@index([dishId])
+}
+
+
+model ReviewImage {
+  id       String @id @default(uuid())
+  reviewId String
+  review   ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  url      String
+  sortOrder Int   @default(0)
+  
+  @@index([reviewId])
+}
+
+model ReviewResponse {
+  id        String   @id @default(uuid())
+  reviewId  String
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    User     @relation("ReviewResponseSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([reviewId])
+  @@index([sellerId])
 }

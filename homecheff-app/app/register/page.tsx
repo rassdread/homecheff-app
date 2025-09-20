@@ -107,6 +107,12 @@ type RegisterState = {
   showSubscriptions: boolean;
   currentStep: number;
   showPassword: boolean;
+  // Privacy en voorwaarden
+  acceptPrivacyPolicy: boolean;
+  acceptTerms: boolean;
+  acceptMarketing: boolean;
+  // Belastingverantwoordelijkheid
+  acceptTaxResponsibility: boolean;
 };
 
 export default function RegisterPage() {
@@ -137,6 +143,12 @@ export default function RegisterPage() {
     showSubscriptions: false,
     currentStep: 1,
     showPassword: false,
+    // Privacy en voorwaarden
+    acceptPrivacyPolicy: false,
+    acceptTerms: false,
+    acceptMarketing: false,
+    // Belastingverantwoordelijkheid
+    acceptTaxResponsibility: false,
   });
 
   const steps = [
@@ -144,7 +156,8 @@ export default function RegisterPage() {
     { id: 2, title: "Je rol", description: "Wat ga je doen?" },
     { id: 3, title: "Account", description: "Je gegevens" },
     { id: 4, title: "Profiel", description: "Vertel over jezelf" },
-    { id: 5, title: "Uitbetaling", description: "Bankgegevens (verkopers)" }
+    { id: 5, title: "Uitbetaling", description: "Bankgegevens (verkopers)" },
+    { id: 6, title: "Voorwaarden", description: "Privacy & voorwaarden" }
   ];
 
   function handleBusinessToggle() {
@@ -210,6 +223,15 @@ export default function RegisterPage() {
   async function handleRegister() {
     setState(prev => ({ ...prev, error: null, success: false }));
     
+    // Validatie voor privacy en voorwaarden
+    if (!state.acceptPrivacyPolicy || !state.acceptTerms) {
+      setState(prev => ({ 
+        ...prev, 
+        error: "Je moet de privacyverklaring en algemene voorwaarden accepteren om door te gaan." 
+      }));
+      return;
+    }
+    
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -234,33 +256,59 @@ export default function RegisterPage() {
           // Uitbetaalgegevens
           bankName: state.bankName,
           iban: state.iban,
-          accountHolderName: state.accountHolderName
+          accountHolderName: state.accountHolderName,
+          // Privacy en marketing
+          acceptPrivacyPolicy: state.acceptPrivacyPolicy,
+          acceptTerms: state.acceptTerms,
+          acceptMarketing: state.acceptMarketing,
+          // Belastingverantwoordelijkheid
+          acceptTaxResponsibility: state.acceptTaxResponsibility
         })
-      })
-        .then(async res => {
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || "Registration failed");
-          }
-          return data;
-        })
-        .then(async data => {
-          setState(prev => ({ ...prev, success: true }));
-          // Try to sign in with credentials
-          try {
-            await signIn("credentials", {
-              email: state.email,
-              password: state.password,
-              redirect: false,
-            });
-          } catch (error) {
-            console.error("Auto sign-in failed:", error);
-          }
-          router.push("/profile");
-        })
-        .catch(() => setState(s => ({ ...s, error: "Server error", success: false })));
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Toon specifieke foutmelding van de server
+        setState(prev => ({ 
+          ...prev, 
+          error: data.error || "Er is een fout opgetreden bij de registratie. Probeer het opnieuw.", 
+          success: false 
+        }));
+        return;
+      }
+      
+      // Registratie succesvol
+      setState(prev => ({ ...prev, success: true }));
+      
+      // Probeer automatisch in te loggen
+      try {
+        await signIn("credentials", {
+          email: state.email,
+          password: state.password,
+          redirect: false,
+        });
+      } catch (error) {
+        console.error("Auto sign-in failed:", error);
+        // Redirect naar login pagina met succesmelding
+        setTimeout(() => {
+          router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");
+        }, 2000);
+        return;
+      }
+      
+      // Redirect naar profiel bij succesvolle auto-login
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
+      
     } catch (error) {
-      setState(prev => ({ ...prev, error: "An error occurred", success: false }));
+      console.error("Registration error:", error);
+      setState(prev => ({ 
+        ...prev, 
+        error: "Er is een netwerkfout opgetreden. Controleer je internetverbinding en probeer het opnieuw.", 
+        success: false 
+      }));
     }
   }
 
@@ -801,6 +849,176 @@ export default function RegisterPage() {
                       placeholder="Jouw volledige naam"
                     />
                   </div>
+
+                  {/* Belastingverantwoordelijkheid checkbox */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="acceptTaxResponsibility"
+                        checked={state.acceptTaxResponsibility}
+                        onChange={e => setState(prev => ({ ...prev, acceptTaxResponsibility: e.target.checked }))}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-1"
+                        required
+                      />
+                      <div>
+                        <label htmlFor="acceptTaxResponsibility" className="text-sm font-medium text-blue-900 cursor-pointer">
+                          Ik begrijp mijn belastingverantwoordelijkheid als verkoper
+                        </label>
+                        <div className="mt-2 text-sm text-blue-800 space-y-2">
+                          <p>
+                            <strong>Jouw verantwoordelijkheid:</strong> Je bent zelf verantwoordelijk voor het opgeven van alle inkomsten bij de Belastingdienst. 
+                            Er is geen minimumbedrag - alle inkomsten moeten worden opgegeven.
+                          </p>
+                          <p>
+                            <strong>Onze verplichting:</strong> HomeCheff is wettelijk verplicht om je gegevens door te geven aan de Belastingdienst 
+                            als je meer dan <strong>30 transacties per jaar</strong> uitvoert of meer dan <strong>€2.000 omzet</strong> behaalt.
+                          </p>
+                          <p className="text-xs text-blue-600">
+                            Consulteer een accountant voor specifieke belastingadvies. HomeCheff biedt geen belastingadvies.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Privacy en Voorwaarden */}
+            {state.currentStep === 6 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Privacy & Voorwaarden</h2>
+                <p className="text-gray-600 mb-8">Lees en accepteer onze privacyverklaring en algemene voorwaarden</p>
+                
+                <div className="space-y-6">
+                  {/* Privacy Policy */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">🔒</span>
+                      Privacyverklaring
+                    </h3>
+                    <div className="max-h-64 overflow-y-auto text-sm text-gray-700 space-y-3">
+                      <p>
+                        <strong>HomeCheff B.V.</strong> respecteert uw privacy en is verantwoordelijk voor de verwerking van uw persoonsgegevens 
+                        in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG) en de Nederlandse privacywetgeving.
+                      </p>
+                      <p>
+                        <strong>Welke gegevens verzamelen wij?</strong><br/>
+                        • Identificatiegegevens: Naam, e-mailadres, telefoonnummer<br/>
+                        • Accountgegevens: Profielfoto, biografie, locatie<br/>
+                        • Verkoopgegevens: Productinformatie, prijzen, transacties<br/>
+                        • Communicatiegegevens: Berichten, reviews, klachten
+                      </p>
+                      <p>
+                        <strong>Hoe gebruiken wij uw gegevens?</strong><br/>
+                        • Uitvoering van de overeenkomst en platformfunctionaliteiten<br/>
+                        • Verwerking van betalingen en uitbetalingen<br/>
+                        • Klantenservice en ondersteuning<br/>
+                        • Platformverbetering en gebruikerservaring
+                      </p>
+                      <p>
+                        <strong>Uw rechten:</strong><br/>
+                        U heeft het recht op toegang, rectificatie, verwijdering, beperking van verwerking, 
+                        gegevensoverdraagbaarheid en bezwaar tegen verwerking van uw persoonsgegevens.
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Voor de volledige privacyverklaring, zie: <a href="/privacy" className="text-emerald-600 hover:text-emerald-700 underline">Privacy Statement</a>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Terms and Conditions */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">📋</span>
+                      Algemene Voorwaarden
+                    </h3>
+                    <div className="max-h-64 overflow-y-auto text-sm text-gray-700 space-y-3">
+                      <p>
+                        <strong>Gebruik van het platform:</strong><br/>
+                        • U bent verantwoordelijk voor de juistheid van uw gegevens<br/>
+                        • U mag geen illegale of schadelijke content plaatsen<br/>
+                        • U respecteert de rechten van andere gebruikers
+                      </p>
+                      <p>
+                        <strong>Verkoop en transacties:</strong><br/>
+                        • Verkopers zijn zelf verantwoordelijk voor belastingaangifte<br/>
+                        • Producten moeten voldoen aan Nederlandse wetgeving<br/>
+                        • HomeCheff is een platform, geen partij in transacties
+                      </p>
+                      <p>
+                        <strong>Betalingen:</strong><br/>
+                        • Betalingen worden verwerkt via Stripe<br/>
+                        • Platformkosten worden in rekening gebracht<br/>
+                        • Uitbetalingen vinden plaats volgens de afgesproken voorwaarden
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Voor de volledige voorwaarden, zie: <a href="/terms" className="text-emerald-600 hover:text-emerald-700 underline">Algemene Voorwaarden</a>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Checkboxes */}
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="acceptPrivacyPolicy"
+                        checked={state.acceptPrivacyPolicy}
+                        onChange={e => setState(prev => ({ ...prev, acceptPrivacyPolicy: e.target.checked }))}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
+                      />
+                      <label htmlFor="acceptPrivacyPolicy" className="text-sm text-gray-700 cursor-pointer">
+                        <span className="font-medium">Ik accepteer de privacyverklaring *</span><br/>
+                        <span className="text-gray-500">Ik begrijp hoe HomeCheff mijn persoonsgegevens verwerkt en beschermt.</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="acceptTerms"
+                        checked={state.acceptTerms}
+                        onChange={e => setState(prev => ({ ...prev, acceptTerms: e.target.checked }))}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
+                      />
+                      <label htmlFor="acceptTerms" className="text-sm text-gray-700 cursor-pointer">
+                        <span className="font-medium">Ik accepteer de algemene voorwaarden *</span><br/>
+                        <span className="text-gray-500">Ik ga akkoord met de regels en voorwaarden voor het gebruik van HomeCheff.</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="acceptMarketing"
+                        checked={state.acceptMarketing}
+                        onChange={e => setState(prev => ({ ...prev, acceptMarketing: e.target.checked }))}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
+                      />
+                      <label htmlFor="acceptMarketing" className="text-sm text-gray-700 cursor-pointer">
+                        <span className="font-medium">Ik wil marketingcommunicatie ontvangen (optioneel)</span><br/>
+                        <span className="text-gray-500">Ontvang updates over nieuwe features, tips en aanbiedingen via e-mail.</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Belastingverantwoordelijkheid waarschuwing */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <span className="text-yellow-600 text-xl">⚠️</span>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-yellow-800 mb-1">Belastingverantwoordelijkheid</h4>
+                        <p className="text-sm text-yellow-700">
+                          Als verkoper ben je zelf verantwoordelijk voor het aangeven van je inkomsten bij de belastingdienst. 
+                          HomeCheff biedt geen belastingadvies. Consulteer een accountant voor specifieke vragen.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -818,7 +1036,10 @@ export default function RegisterPage() {
               {state.currentStep < steps.length ? (
                 <Button
                   onClick={nextStep}
-                  disabled={state.currentStep === 2 && state.userTypes.length === 0 && state.selectedBuyerType === ""}
+                  disabled={
+                    (state.currentStep === 2 && state.userTypes.length === 0 && state.selectedBuyerType === "") ||
+                    (state.currentStep === 5 && state.userTypes.length > 0 && (!state.bankName || !state.iban || !state.accountHolderName || !state.acceptTaxResponsibility))
+                  }
                   className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Volgende
@@ -826,7 +1047,8 @@ export default function RegisterPage() {
               ) : (
                 <Button
                   onClick={handleRegister}
-                  className="px-8 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-semibold"
+                  disabled={!state.acceptPrivacyPolicy || !state.acceptTerms}
+                  className="px-8 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Account Aanmaken
                 </Button>

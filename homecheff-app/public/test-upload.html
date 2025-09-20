@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Test - HomeCheff</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #10b981;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background-color: #f0fdf4;
+        }
+        .upload-area.dragover {
+            background-color: #dcfce7;
+            border-color: #059669;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #059669;
+        }
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .success {
+            background-color: #dcfce7;
+            border: 1px solid #16a34a;
+            color: #166534;
+        }
+        .error {
+            background-color: #fef2f2;
+            border: 1px solid #dc2626;
+            color: #991b1b;
+        }
+        .loading {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Upload Test - HomeCheff</h1>
+        <p>Test de upload functionaliteit met Vercel Blob</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Sleep een afbeelding hierheen of klik om te selecteren</p>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+        
+        <button id="uploadBtn" disabled>Upload Bestanden</button>
+        
+        <div id="result" class="result"></div>
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const result = document.getElementById('result');
+        const preview = document.getElementById('preview');
+        
+        let selectedFiles = [];
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            uploadBtn.disabled = selectedFiles.length === 0;
+            
+            if (selectedFiles.length > 0) {
+                showPreview();
+            }
+        }
+
+        function showPreview() {
+            preview.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = 'image-preview';
+                img.alt = `Preview ${index + 1}`;
+                preview.appendChild(img);
+            });
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            uploadBtn.disabled = true;
+            showResult('Uploading...', 'loading');
+
+            try {
+                const uploadPromises = selectedFiles.map(file => uploadFile(file));
+                const results = await Promise.all(uploadPromises);
+                
+                const successCount = results.filter(r => r.success).length;
+                const errorCount = results.filter(r => !r.success).length;
+                
+                if (errorCount === 0) {
+                    showResult(`✅ Alle ${successCount} bestanden succesvol geüpload!`, 'success');
+                    showUploadedImages(results.filter(r => r.success).map(r => r.url));
+                } else {
+                    showResult(`⚠️ ${successCount} succesvol, ${errorCount} gefaald`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Upload fout: ${error.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Upload failed');
+                }
+
+                return { success: true, url: data.url, filename: file.name };
+            } catch (error) {
+                console.error('Upload error:', error);
+                return { success: false, error: error.message, filename: file.name };
+            }
+        }
+
+        function showResult(message, type) {
+            result.textContent = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+        }
+
+        function showUploadedImages(urls) {
+            const imageContainer = document.createElement('div');
+            imageContainer.innerHTML = '<h3>Geüploade afbeeldingen:</h3>';
+            
+            urls.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'image-preview';
+                img.style.margin = '5px';
+                imageContainer.appendChild(img);
+            });
+            
+            preview.appendChild(imageContainer);
+        }
+    </script>
+</body>
+</html>

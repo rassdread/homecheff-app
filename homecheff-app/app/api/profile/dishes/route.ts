@@ -18,38 +18,40 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get user's dishes (using listings for now)
-    const listings = await prisma.listing.findMany({
+    // Get user's dishes
+    const dishes = await prisma.dish.findMany({
       where: {
-        ownerId: user.id,
+        userId: user.id,
       },
       include: {
-        ListingMedia: true,
+        photos: {
+          orderBy: { idx: 'asc' }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     // Transform to match expected format
-    const dishes = listings.map(listing => ({
-      id: listing.id,
-      title: listing.title,
-      description: listing.description,
-      status: listing.status === 'ACTIVE' ? 'PUBLISHED' : 'PRIVATE',
-      createdAt: listing.createdAt.toISOString(),
-      priceCents: listing.priceCents,
-      deliveryMode: 'PICKUP', // Default value since deliveryMode doesn't exist in listing table
-      place: listing.place,
-      category: listing.category,
-      subcategory: null, // Default value since subcategory doesn't exist in listing table
-      photos: listing.ListingMedia.map(media => ({
-        id: media.id,
-        url: media.url,
-        idx: media.order,
-        isMain: media.order === 0 // First photo is main photo
+    const transformedDishes = dishes.map(dish => ({
+      id: dish.id,
+      title: dish.title,
+      description: dish.description,
+      status: dish.status,
+      createdAt: dish.createdAt.toISOString(),
+      priceCents: dish.priceCents,
+      deliveryMode: dish.deliveryMode,
+      place: dish.place,
+      stock: dish.stock,
+      maxStock: dish.maxStock,
+      photos: dish.photos.map(photo => ({
+        id: photo.id,
+        url: photo.url,
+        idx: photo.idx,
+        isMain: photo.isMain
       }))
     }));
 
-    return NextResponse.json({ items: dishes });
+    return NextResponse.json({ items: transformedDishes });
   } catch (error) {
     console.error("Error fetching dishes:", error);
     return NextResponse.json(
@@ -87,27 +89,29 @@ export async function POST(req: NextRequest) {
       deliveryMode, 
       place, 
       lat, 
-      lng 
+      lng,
+      stock,
+      maxStock
     } = body;
 
     if (!title || !description) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
     }
 
-    // Create a new listing
-    const dish = await prisma.listing.create({
+    // Create a new dish instead of listing
+    const dish = await prisma.dish.create({
       data: {
-        id: `listing_${Date.now()}`,
-        ownerId: user.id,
+        userId: user.id,
         title,
         description,
-        priceCents: priceCents || 0,
-        category: category === 'CHEFF' ? 'HOMECHEFF' : category === 'GROWN' ? 'HOMEGROWN' : 'HOMECHEFF',
+        status: status || 'PRIVATE',
+        priceCents: priceCents || null,
+        deliveryMode: deliveryMode || null,
         place: place || null,
         lat: lat || null,
         lng: lng || null,
-        status: status === 'PUBLISHED' ? 'ACTIVE' : 'DRAFT',
-        updatedAt: new Date(),
+        stock: stock || 0,
+        maxStock: maxStock || null,
       },
     });
 
@@ -115,12 +119,12 @@ export async function POST(req: NextRequest) {
     if (photos && photos.length > 0) {
       for (let i = 0; i < photos.length; i++) {
         const photo = photos[i];
-        await prisma.listingMedia.create({
+        await prisma.dishPhoto.create({
           data: {
-            id: `media_${Date.now()}_${i}`,
-            listingId: dish.id,
+            dishId: dish.id,
             url: photo.url,
-            order: i,
+            idx: i,
+            isMain: photo.isMain || false,
           },
         });
       }

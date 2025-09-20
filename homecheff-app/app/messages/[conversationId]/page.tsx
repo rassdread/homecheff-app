@@ -1,23 +1,103 @@
+'use client';
 
-// @ts-ignore
-import type { PageProps } from ".next/types/routes";
-import { notFound } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import ChatWindow from '@/components/chat/ChatWindow';
+import { useSession } from 'next-auth/react';
 
-export default async function MessageDetailPage(props: PageProps<"/messages/[conversationId]">) {
-  const params = await props.params;
-  if (!params.conversationId) return notFound();
+interface Conversation {
+  id: string;
+  title: string;
+  product?: {
+    id: string;
+    title: string;
+    priceCents: number;
+    Image: Array<{
+      fileUrl: string;
+      sortOrder: number;
+    }>;
+  };
+  otherParticipant?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    profileImage: string | null;
+  };
+  lastMessageAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export default function ConversationPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const conversationId = params.conversationId as string;
+
+  useEffect(() => {
+    if (!session?.user) {
+      router.push('/api/auth/signin');
+      return;
+    }
+
+    loadConversation();
+  }, [conversationId, session]);
+
+  const loadConversation = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/conversations');
+      
+      if (!response.ok) {
+        throw new Error('Failed to load conversations');
+      }
+
+      const { conversations } = await response.json();
+      const foundConversation = conversations.find((c: Conversation) => c.id === conversationId);
+      
+      if (foundConversation) {
+        setConversation(foundConversation);
+      } else {
+        // Conversation not found, redirect to messages
+        router.push('/messages');
+      }
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      router.push('/messages');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToList = () => {
+    router.push('/messages');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-gray-500">Gesprek laden...</div>
+      </div>
+    );
+  }
+
+  if (!conversation) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-gray-500">Gesprek niet gevonden</div>
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[#F6F8FA]">
-      <header className="w-full border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-6 flex items-center justify-between">
-          <span className="text-2xl font-bold text-[#006D52]">Bericht detail</span>
-        </div>
-      </header>
-      <section className="mx-auto max-w-5xl px-6 py-8">
-        <div className="rounded-xl bg-white p-6 border border-gray-200">
-          Hier komt het detail van het gesprek <b>{params.conversationId}</b>.
-        </div>
-      </section>
-    </main>
+    <div className="h-screen flex flex-col">
+      <ChatWindow
+        conversation={conversation}
+        onBack={handleBackToList}
+      />
+    </div>
   );
 }

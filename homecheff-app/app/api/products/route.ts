@@ -1,49 +1,55 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 // Cache voor 5 minuten voor betere performance
 export const revalidate = 300;
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-const prisma = (globalThis as any).__prisma ?? new PrismaClient();
-if (!(globalThis as any).__prisma) (globalThis as any).__prisma = prisma;
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const take = Number(searchParams.get("take") ?? 24);
 
-    const listings = await prisma.listing.findMany({
-      where: { status: "ACTIVE" },
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
       orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(take, 1), 100),
       include: {
-        User: {
-          select: { id: true, name: true, image: true, username: true },
+        seller: {
+          include: {
+            User: {
+              select: { 
+                id: true, 
+                name: true, 
+                profileImage: true, 
+                username: true,
+                buyerRoles: true
+              },
+            }
+          }
         },
-        ListingMedia: {
-          where: { order: 0 },
+        Image: {
+          where: { sortOrder: 0 },
           take: 1,
         },
       },
     });
 
-    const items = listings.map((l: any) => ({
-      id: l.id,
-      title: l.title,
-      description: l.description,
-      priceCents: l.priceCents,
-      image: l.ListingMedia?.[0]?.url ?? null,
-      createdAt: l.createdAt,
-      category: l.category,
-      subcategory: null, // Not available in listing table
+    const items = products.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      priceCents: p.priceCents,
+      image: p.Image?.[0]?.fileUrl ?? null,
+      createdAt: p.createdAt,
+      category: p.category,
+      subcategory: null, // Could be added to Product schema if needed
       seller: {
-        id: l.User?.id ?? null,
-        name: l.User?.name ?? null,
-        avatar: l.User?.image ?? null,
-        username: l.User?.username ?? null,
-        buyerTypes: [], // Not available in user model
+        id: p.seller?.User?.id ?? null,
+        name: p.seller?.User?.name ?? null,
+        avatar: p.seller?.User?.profileImage ?? null,
+        username: p.seller?.User?.username ?? null,
+        buyerTypes: p.seller?.User?.buyerRoles ?? [],
       },
     }));
 
