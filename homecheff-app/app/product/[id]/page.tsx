@@ -186,8 +186,26 @@ export default function ProductPage() {
 
     if (params.id) {
       fetchProduct();
+      // Track view
+      trackView(params.id);
     }
   }, [params.id]);
+
+  const trackView = async (productId: string) => {
+    try {
+      await fetch('/api/analytics/track-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          userId: session?.user?.id || null,
+          type: 'product'
+        })
+      });
+    } catch (error) {
+      console.error('Failed to track view:', error);
+    }
+  };
 
   const handleSave = async () => {
     if (!product) return;

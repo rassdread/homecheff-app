@@ -7,6 +7,7 @@ import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
 import NotificationCenter from './NotificationCenter';
 import DeliveryManagement from './DeliveryManagement';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 interface AdminStats {
   totalUsers: number;
@@ -89,6 +90,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'delivery', label: 'Bezorgers', icon: Truck },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'notifications', label: 'Berichten', icon: MessageSquare },
   ];
 
@@ -268,6 +270,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'sellers' && <SellerManagement />}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'delivery' && <DeliveryManagement deliveryProfiles={stats.deliveryProfiles} />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>

@@ -777,3 +777,19 @@ enum Role {
   SELLER
   ADMIN
 }
+
+// Analytics and tracking
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  eventType  String   // VIEW, CLICK, PURCHASE, etc.
+  entityType String   // PRODUCT, USER, ORDER, etc.
+  entityId   String   // ID of the entity being tracked
+  userId     String?  // Optional user ID if logged in
+  metadata   Json?    // Additional tracking data
+  createdAt  DateTime @default(now())
+
+  @@index([eventType, entityType])
+  @@index([entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
