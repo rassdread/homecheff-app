@@ -46,11 +46,10 @@ interface AdminStats {
     availableDays: string[];
     availableTimeSlots: string[];
     isActive: boolean;
-    completedDeliveries: number;
-    rating: number;
+    totalDeliveries: number;
+    averageRating: number | null;
     totalEarnings: number;
     bio: string | null;
-    profileImage: string | null;
     createdAt: Date;
     user: {
       id: string;

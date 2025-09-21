@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import AdminDashboard from '@/components/admin/AdminDashboard';
+import { clearUserCache } from '@/lib/api-auth';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -71,13 +72,35 @@ export default async function AdminPage() {
     prisma.deliveryProfile.findMany({
       take: 10,
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        age: true,
+        transportation: true,
+        maxDistance: true,
+        availableDays: true,
+        availableTimeSlots: true,
+        isActive: true,
+        totalDeliveries: true,
+        averageRating: true,
+        totalEarnings: true,
+        bio: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
             name: true,
             email: true,
+            image: true,
             profileImage: true
+          }
+        },
+        deliveryOrders: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            deliveryFee: true
           }
         }
       }

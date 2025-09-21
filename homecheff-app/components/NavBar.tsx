@@ -9,6 +9,7 @@ import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCar
 import { useState, useRef, useEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
+import { clearAllUserData, validateAndCleanSession } from '@/lib/session-cleanup';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -34,17 +35,22 @@ export default function NavBar() {
     };
   }, []);
 
-  // Sync cart with user ID for isolation
+  // Sync cart with user ID for isolation and validate session
   useEffect(() => {
-    if (session?.user) {
-      setCartUserId((session.user as any).id);
+    // Validate session integrity
+    validateAndCleanSession();
+
+    if (session?.user?.email) {
+      // Use email as user identifier for cart isolation
+      setCartUserId(session.user.email);
     } else {
       setCartUserId(null);
     }
   }, [session]);
 
   const handleLogout = async () => {
-    clearAllCartData(); // Clear cart data on logout
+    // Clear all user data for complete session isolation
+    clearAllUserData();
     await signOut({ callbackUrl: '/' });
   };
 

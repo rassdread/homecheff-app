@@ -174,6 +174,7 @@ export async function POST(req: NextRequest) {
                 currentLat: true,
                 currentLng: true,
                 maxDistance: true,
+                isActive: true,
                 deliveryMode: true,
                 deliveryRegions: true,
                 availableDays: true,

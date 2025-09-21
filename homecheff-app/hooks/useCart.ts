@@ -1,17 +1,26 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getCart, addToCart, updateCartItemQuantity, removeFromCart, clearCart, type Cart, type CartItem } from '@/lib/cart';
+import { useSession } from 'next-auth/react';
+import { getCart, addToCart, updateCartItemQuantity, removeFromCart, clearCart, setCartUserId, type Cart, type CartItem } from '@/lib/cart';
 
 export function useCart() {
+  const { data: session } = useSession();
   const [cart, setCart] = useState<Cart>({ items: [], totalItems: 0, totalAmount: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set user ID for cart isolation
+    if (session?.user?.email) {
+      setCartUserId(session.user.email);
+    } else {
+      setCartUserId(null);
+    }
+
     // Load cart from localStorage on mount
     const loadedCart = getCart();
     setCart(loadedCart);
     setIsLoading(false);
-  }, []);
+  }, [session]);
 
   const addItem = (product: {
     id: string;

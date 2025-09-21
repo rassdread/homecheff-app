@@ -36,11 +36,10 @@ interface DeliveryProfile {
   availableDays: string[];
   availableTimeSlots: string[];
   isActive: boolean;
-  completedDeliveries: number;
-  rating: number;
+  totalDeliveries: number;
+  averageRating: number | null;
   totalEarnings: number;
   bio: string | null;
-  profileImage: string | null;
   createdAt: Date;
   user: {
     id: string;
@@ -95,9 +94,9 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
   const stats = useMemo(() => {
     const activeProfiles = deliveryProfiles.filter(p => p.isActive);
     const totalEarnings = deliveryProfiles.reduce((sum, p) => sum + p.totalEarnings, 0);
-    const totalDeliveries = deliveryProfiles.reduce((sum, p) => sum + p.completedDeliveries, 0);
+    const totalDeliveries = deliveryProfiles.reduce((sum, p) => sum + p.totalDeliveries, 0);
     const avgRating = deliveryProfiles.length > 0 
-      ? deliveryProfiles.reduce((sum, p) => sum + p.rating, 0) / deliveryProfiles.length 
+      ? deliveryProfiles.reduce((sum, p) => sum + (p.averageRating || 0), 0) / deliveryProfiles.length 
       : 0;
 
     return {
@@ -123,7 +122,8 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
     return isActive ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
   };
 
-  const getRatingColor = (rating: number) => {
+  const getRatingColor = (rating: number | null) => {
+    if (!rating) return 'text-gray-400';
     if (rating >= 4.5) return 'text-green-600';
     if (rating >= 3.5) return 'text-yellow-600';
     return 'text-red-600';
@@ -352,15 +352,15 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                           {profile.isActive ? 'Actief' : 'Inactief'}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Star className={`w-4 h-4 ${getRatingColor(profile.rating)}`} />
-                          <span className={`text-sm ${getRatingColor(profile.rating)}`}>
-                            {profile.rating.toFixed(1)}
+                          <Star className={`w-4 h-4 ${getRatingColor(profile.averageRating)}`} />
+                          <span className={`text-sm ${getRatingColor(profile.averageRating)}`}>
+                            {profile.averageRating?.toFixed(1) || 'N/A'}
                           </span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>{profile.completedDeliveries} bezorgingen</div>
+                      <div>{profile.totalDeliveries} bezorgingen</div>
                       <div className="text-gray-500">{profile.maxDistance}km max</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -450,9 +450,9 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                       {selectedProfile.isActive ? 'Actief' : 'Inactief'}
                     </span>
                     <div className="flex items-center gap-1">
-                      <Star className={`w-4 h-4 ${getRatingColor(selectedProfile.rating)}`} />
-                      <span className={`text-sm ${getRatingColor(selectedProfile.rating)}`}>
-                        {selectedProfile.rating.toFixed(1)}
+                      <Star className={`w-4 h-4 ${getRatingColor(selectedProfile.averageRating)}`} />
+                      <span className={`text-sm ${getRatingColor(selectedProfile.averageRating)}`}>
+                        {selectedProfile.averageRating?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -466,7 +466,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                   <div className="text-sm text-gray-600">Leeftijd</div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-gray-900">{selectedProfile.completedDeliveries}</div>
+                  <div className="text-2xl font-bold text-gray-900">{selectedProfile.totalDeliveries}</div>
                   <div className="text-sm text-gray-600">Bezorgingen</div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 text-center">

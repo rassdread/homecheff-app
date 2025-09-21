@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { useSessionCleanup } from '@/hooks/useSessionCleanup';
 import { Button } from '@/components/ui/Button';
 import { 
   MapPin, 
@@ -57,6 +58,7 @@ interface DeliveryOrder {
 
 function DeliveryDashboardContent() {
   const { data: session } = useSession();
+  const { isAuthenticated, isLoading } = useSessionCleanup();
   const searchParams = useSearchParams();
   const [profile, setProfile] = useState<DeliveryProfile | null>(null);
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
@@ -236,12 +238,13 @@ function DeliveryDashboardContent() {
                 </button>
               </div>
               
-              <Button variant="outline" asChild>
-                <Link href="/delivery/instellingen">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Instellingen
-                </Link>
-              </Button>
+              <Link 
+                href="/delivery/instellingen"
+                className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border-2 border-primary-brand text-primary-brand bg-white hover:bg-primary-50 focus:ring-primary-brand hover:shadow-md"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Instellingen
+              </Link>
             </div>
           </div>
         </div>

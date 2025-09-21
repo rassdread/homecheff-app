@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { validateApiSession } from '@/lib/api-auth';
 import { PrismaClient } from '@prisma/client';
 import { TransportationMode } from '@prisma/client';
 
@@ -7,20 +7,9 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
-    }
-
-    // Get user ID from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { id: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
-    }
+    // Validate session and get user
+    const { error, user } = await validateApiSession(req);
+    if (error) return error;
 
     const { age, transportation, maxDistance, availableDays, availableTimeSlots, bio } = await req.json();
 
@@ -33,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     // Check if user already has a delivery profile
     const existingProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: user.id }
+      where: { userId: user!.id }
     });
 
     if (existingProfile) {
@@ -56,7 +45,7 @@ export async function POST(req: NextRequest) {
     // Create delivery profile
     const deliveryProfile = await prisma.deliveryProfile.create({
       data: {
-        userId: user.id,
+        userId: user!.id,
         age,
         transportation: validTransportModes,
         maxDistance,
@@ -82,23 +71,12 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
-    }
-
-    // Get user ID from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { id: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
-    }
+    // Validate session and get user
+    const { error, user } = await validateApiSession(req);
+    if (error) return error;
 
     const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: user.id },
+      where: { userId: user!.id },
       include: {
         user: {
           select: {
@@ -123,20 +101,9 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
-    }
-
-    // Get user ID from database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { id: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
-    }
+    // Validate session and get user
+    const { error, user } = await validateApiSession(req);
+    if (error) return error;
 
     const { 
       age, 
@@ -175,7 +142,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const updatedProfile = await prisma.deliveryProfile.update({
-      where: { userId: user.id },
+      where: { userId: user!.id },
       data: {
         ...(age && { age }),
         ...(validTransportModes && { transportation: validTransportModes }),

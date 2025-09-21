@@ -229,9 +229,9 @@ export default function DeliveryInstellingenPage() {
           <p className="text-gray-600 mb-6">
             Je hebt nog geen bezorger profiel. Meld je aan om te beginnen met bezorgen!
           </p>
-          <Button asChild>
-            <a href="/delivery/signup">Word Bezorger</a>
-          </Button>
+          <a href="/delivery/signup">
+            <Button>Word Bezorger</Button>
+          </a>
         </div>
       </div>
     );

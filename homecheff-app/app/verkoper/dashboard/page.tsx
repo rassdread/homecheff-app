@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSessionCleanup } from '@/hooks/useSessionCleanup';
 import { 
   TrendingUp, 
   TrendingDown, 
