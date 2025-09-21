@@ -4,6 +4,7 @@ import { formatAmountForStripe } from '@/lib/stripe';
 // Removed pricing import - fees are now calculated differently
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
+import { findDeliveryProfilesInRadius, isProfileAvailable } from '@/lib/geolocation';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,8 @@ export async function POST(req: NextRequest) {
       notes,
       pickupDate,
       deliveryDate,
-      deliveryTime
+      deliveryTime,
+      coordinates // { lat, lng } for delivery location
     } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -159,17 +161,46 @@ export async function POST(req: NextRequest) {
           })
         ));
 
-        // Create delivery order
-        await fetch(`${req.nextUrl.origin}/api/delivery/orders`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId: order.id,
-            deliveryMode: 'DELIVERY',
-            address: address,
-            coordinates: null // TODO: Add geocoding
-          })
-        });
+        // Create delivery order with geolocation
+        if (deliveryMode === 'DELIVERY' && coordinates) {
+          try {
+            // Find available delivery profiles within radius
+            const deliveryProfiles = await prisma.deliveryProfile.findMany({
+              where: { isActive: true },
+              select: {
+                id: true,
+                homeLat: true,
+                homeLng: true,
+                maxDistance: true,
+                availableDays: true,
+                availableTimeSlots: true
+              }
+            });
+
+            const availableProfiles = findDeliveryProfilesInRadius(
+              { lat: coordinates.lat, lng: coordinates.lng, address },
+              deliveryProfiles
+            );
+
+            if (availableProfiles.length > 0) {
+              // Assign to closest available profile
+              const assignedProfile = availableProfiles[0];
+              
+              await prisma.deliveryOrder.create({
+                data: {
+                  orderId: order.id,
+                  deliveryProfileId: assignedProfile.id,
+                  deliveryFee: 200, // €2.00 in cents
+                  status: 'PENDING',
+                  notes: notes || null
+                }
+              });
+            }
+          } catch (error) {
+            console.error('Error creating delivery order:', error);
+            // Continue with checkout even if delivery order creation fails
+          }
+        }
       } catch (error) {
         console.error('Error creating delivery order:', error);
         // Continue with checkout even if delivery order creation fails

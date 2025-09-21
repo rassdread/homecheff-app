@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Clock, Package, Truck, Bike, Users, CreditCard, CheckCircle } from 'lucide-react';
+import { MapPin, Clock, Package, Truck, Bike, Users, CreditCard, CheckCircle, Navigation } from 'lucide-react';
 import Link from 'next/link';
 import TeenDeliveryInfo from '@/components/delivery/TeenDeliveryInfo';
+import { getCurrentLocation } from '@/lib/geolocation';
 
 type DeliveryOption = {
   id: string;
@@ -27,6 +28,20 @@ export default function CheckoutPage() {
   const [deliveryTime, setDeliveryTime] = useState('');
   const [notes, setNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Get current location for delivery
+  const getLocation = async () => {
+    try {
+      setLocationError(null);
+      const coords = await getCurrentLocation();
+      setCoordinates(coords);
+    } catch (error) {
+      console.error('Location error:', error);
+      setLocationError('Locatie kon niet worden opgehaald. Voer handmatig een adres in.');
+    }
+  };
 
   const deliveryOptions: DeliveryOption[] = [
     {
@@ -95,7 +110,8 @@ export default function CheckoutPage() {
           notes,
           pickupDate: selectedDelivery === 'pickup' ? deliveryDate : null,
           deliveryDate: selectedDelivery !== 'pickup' ? deliveryDate : null,
-          deliveryTime
+          deliveryTime,
+          coordinates: coordinates
         })
       });
 
@@ -222,13 +238,35 @@ export default function CheckoutPage() {
                           <MapPin className="w-4 h-4 inline mr-1" />
                           Bezorgadres
                         </label>
-                        <textarea
-                          value={deliveryAddress}
-                          onChange={(e) => setDeliveryAddress(e.target.value)}
-                          placeholder="Straat, huisnummer, postcode, plaats"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                          rows={3}
-                        />
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <textarea
+                              value={deliveryAddress}
+                              onChange={(e) => setDeliveryAddress(e.target.value)}
+                              placeholder="Straat, huisnummer, postcode, plaats"
+                              className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                              rows={3}
+                            />
+                            <Button
+                              type="button"
+                              onClick={getLocation}
+                              variant="outline"
+                              className="px-3 py-2 h-auto"
+                              title="Huidige locatie gebruiken"
+                            >
+                              <Navigation className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          {coordinates && (
+                            <p className="text-sm text-green-600 flex items-center gap-1">
+                              <CheckCircle className="w-4 h-4" />
+                              Locatie opgehaald: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+                            </p>
+                          )}
+                          {locationError && (
+                            <p className="text-sm text-red-600">{locationError}</p>
+                          )}
+                        </div>
                       </div>
                     )}
 

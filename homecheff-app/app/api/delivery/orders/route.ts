@@ -30,11 +30,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Geen bezorger profiel gevonden' }, { status: 404 });
     }
 
-    // Get available orders for this delivery person
+    // Get all orders for this delivery person
     const orders = await prisma.deliveryOrder.findMany({
       where: {
-        deliveryProfileId: profile.id,
-        status: 'PENDING'
+        deliveryProfileId: profile.id
       },
       include: {
         order: {
