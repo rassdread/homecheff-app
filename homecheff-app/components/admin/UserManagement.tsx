@@ -311,6 +311,7 @@ export default function UserManagement() {
                         <Link 
                           href={`/profile/${user.id}`}
                           className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
+                          onClick={() => console.log('Clicked user profile:', user.id, user.name)}
                         >
                           {user.name || 'Geen naam'}
                         </Link>
