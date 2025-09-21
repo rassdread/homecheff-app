@@ -48,8 +48,12 @@ export function findDeliveryProfilesInRadius(
     id: string;
     homeLat: number | null;
     homeLng: number | null;
+    currentLat: number | null;
+    currentLng: number | null;
     maxDistance: number;
     isActive: boolean;
+    deliveryMode: string;
+    deliveryRegions: string[];
     availableDays: string[];
     availableTimeSlots: string[];
   }>,
@@ -60,6 +64,7 @@ export function findDeliveryProfilesInRadius(
   maxDistance: number;
   availableDays: string[];
   availableTimeSlots: string[];
+  deliveryMode: string;
 }> {
   if (!orderLocation.lat || !orderLocation.lng) {
     return [];
@@ -70,23 +75,45 @@ export function findDeliveryProfilesInRadius(
       // Must be active
       if (!profile.isActive) return false;
       
-      // Must have location data
-      if (!profile.homeLat || !profile.homeLng) return false;
+      // Check delivery mode and location
+      if (profile.deliveryMode === 'FIXED') {
+        // Fixed mode: use home location
+        if (!profile.homeLat || !profile.homeLng) return false;
+        
+        const distance = calculateDistance(
+          { lat: orderLocation.lat, lng: orderLocation.lng },
+          { lat: profile.homeLat, lng: profile.homeLng }
+        );
+        
+        const radius = maxRadius || profile.maxDistance;
+        return distance <= radius;
+      } else if (profile.deliveryMode === 'DYNAMIC') {
+        // Dynamic mode: use current location if available, otherwise home location
+        const useCurrentLocation = profile.currentLat && profile.currentLng;
+        const lat = useCurrentLocation ? profile.currentLat : profile.homeLat;
+        const lng = useCurrentLocation ? profile.currentLng : profile.homeLng;
+        
+        if (!lat || !lng) return false;
+        
+        const distance = calculateDistance(
+          { lat: orderLocation.lat, lng: orderLocation.lng },
+          { lat, lng }
+        );
+        
+        const radius = maxRadius || profile.maxDistance;
+        return distance <= radius;
+      }
       
-      // Calculate distance
-      const distance = calculateDistance(
-        { lat: orderLocation.lat, lng: orderLocation.lng },
-        { lat: profile.homeLat, lng: profile.homeLng }
-      );
-      
-      // Check if within radius
-      const radius = maxRadius || profile.maxDistance;
-      return distance <= radius;
+      return false;
     })
     .map(profile => {
+      const useCurrentLocation = profile.deliveryMode === 'DYNAMIC' && profile.currentLat && profile.currentLng;
+      const lat = useCurrentLocation ? profile.currentLat : profile.homeLat;
+      const lng = useCurrentLocation ? profile.currentLng : profile.homeLng;
+      
       const distance = calculateDistance(
         { lat: orderLocation.lat, lng: orderLocation.lng },
-        { lat: profile.homeLat!, lng: profile.homeLng! }
+        { lat: lat!, lng: lng! }
       );
       
       return {
@@ -94,7 +121,8 @@ export function findDeliveryProfilesInRadius(
         distance,
         maxDistance: profile.maxDistance,
         availableDays: profile.availableDays,
-        availableTimeSlots: profile.availableTimeSlots
+        availableTimeSlots: profile.availableTimeSlots,
+        deliveryMode: profile.deliveryMode
       };
     })
     .sort((a, b) => a.distance - b.distance); // Sort by distance (closest first)

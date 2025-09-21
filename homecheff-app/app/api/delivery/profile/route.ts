@@ -138,7 +138,20 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
     }
 
-    const { age, transportation, maxDistance, availableDays, availableTimeSlots, bio, isActive } = await req.json();
+    const { 
+      age, 
+      transportation, 
+      maxDistance, 
+      availableDays, 
+      availableTimeSlots, 
+      bio, 
+      isActive,
+      deliveryMode,
+      deliveryRegions,
+      homeLat,
+      homeLng,
+      homeAddress
+    } = await req.json();
 
     // Validate age if provided
     if (age && (age < 15 || age > 25)) {
@@ -171,6 +184,11 @@ export async function PUT(req: NextRequest) {
         ...(availableTimeSlots && { availableTimeSlots }),
         ...(bio !== undefined && { bio }),
         ...(isActive !== undefined && { isActive }),
+        ...(deliveryMode && { deliveryMode }),
+        ...(deliveryRegions && { deliveryRegions }),
+        ...(homeLat && { homeLat }),
+        ...(homeLng && { homeLng }),
+        ...(homeAddress && { homeAddress }),
         updatedAt: new Date()
       }
     });

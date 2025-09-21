@@ -629,6 +629,16 @@ model DeliveryProfile {
   homeLng           Float?
   homeAddress       String?
   
+  // Live location tracking
+  currentLat        Float?
+  currentLng        Float?
+  currentAddress    String?
+  lastLocationUpdate DateTime?
+  
+  // Delivery mode
+  deliveryMode      String   @default("FIXED") // "FIXED" or "DYNAMIC"
+  deliveryRegions   String[] @default([]) // for dynamic mode
+  
   // Availability
   availableDays     String[] // ["maandag", "dinsdag", etc.]
   availableTimeSlots String[] // ["morning", "afternoon", "evening"]

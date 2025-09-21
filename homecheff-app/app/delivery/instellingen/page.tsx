@@ -29,6 +29,8 @@ interface DeliveryProfile {
   homeLat: number | null;
   homeLng: number | null;
   homeAddress: string | null;
+  deliveryMode: string;
+  deliveryRegions: string[];
   availableDays: string[];
   availableTimeSlots: string[];
   isActive: boolean;
@@ -71,6 +73,8 @@ export default function DeliveryInstellingenPage() {
     maxDistance: 5,
     preferredRadius: 5,
     homeAddress: '',
+    deliveryMode: 'FIXED' as 'FIXED' | 'DYNAMIC',
+    deliveryRegions: [] as string[],
     availableDays: [] as string[],
     availableTimeSlots: [] as string[],
     isActive: true,
@@ -96,6 +100,8 @@ export default function DeliveryInstellingenPage() {
             maxDistance: data.profile.maxDistance || 5,
             preferredRadius: data.profile.preferredRadius || 5,
             homeAddress: data.profile.homeAddress || '',
+            deliveryMode: data.profile.deliveryMode || 'FIXED',
+            deliveryRegions: data.profile.deliveryRegions || [],
             availableDays: data.profile.availableDays || [],
             availableTimeSlots: data.profile.availableTimeSlots || [],
             isActive: data.profile.isActive !== false,
@@ -182,6 +188,22 @@ export default function DeliveryInstellingenPage() {
       availableTimeSlots: prev.availableTimeSlots.includes(slot)
         ? prev.availableTimeSlots.filter(s => s !== slot)
         : [...prev.availableTimeSlots, slot]
+    }));
+  };
+
+  const addRegion = (region: string) => {
+    if (region.trim() && !formData.deliveryRegions.includes(region.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        deliveryRegions: [...prev.deliveryRegions, region.trim()]
+      }));
+    }
+  };
+
+  const removeRegion = (region: string) => {
+    setFormData(prev => ({
+      ...prev,
+      deliveryRegions: prev.deliveryRegions.filter(r => r !== region)
     }));
   };
 
@@ -337,12 +359,58 @@ export default function DeliveryInstellingenPage() {
             </div>
           </div>
 
-          {/* Locatie */}
+          {/* Bezorgmodus */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5" />
-              Locatie & Bereik
+              Bezorgmodus & Locatie
             </h2>
+
+            {/* Bezorgmodus Type */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Bezorgmodus
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                    formData.deliveryMode === 'FIXED'
+                      ? 'border-primary-brand bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'FIXED' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <Home className="w-5 h-5 text-primary-brand" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Vast Punt</h3>
+                      <p className="text-sm text-gray-600">
+                        Je bezorgt vanuit één vaste locatie
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                    formData.deliveryMode === 'DYNAMIC'
+                      ? 'border-primary-brand bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'DYNAMIC' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <Navigation className="w-5 h-5 text-primary-brand" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Dynamisch</h3>
+                      <p className="text-sm text-gray-600">
+                        Je bezorgt in verschillende regio's met live locatie
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-6">
               {/* Thuisadres */}
@@ -410,6 +478,63 @@ export default function DeliveryInstellingenPage() {
                   <p className="text-sm text-gray-500 mt-1">Ideale afstand voor bezorgingen</p>
                 </div>
               </div>
+
+              {/* Bezorgregio's (voor dynamische modus) */}
+              {formData.deliveryMode === 'DYNAMIC' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bezorgregio's
+                  </label>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Voeg regio toe (bijv. Amsterdam, Utrecht)"
+                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            addRegion(e.currentTarget.value);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={(e) => {
+                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                          addRegion(input.value);
+                          input.value = '';
+                        }}
+                      >
+                        Toevoegen
+                      </Button>
+                    </div>
+                    
+                    {formData.deliveryRegions.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.deliveryRegions.map((region, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm"
+                          >
+                            {region}
+                            <button
+                              type="button"
+                              onClick={() => removeRegion(region)}
+                              className="hover:text-primary-600"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Voeg regio's toe waar je wilt bezorgen. Je locatie wordt live gedeeld.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
