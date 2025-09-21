@@ -26,8 +26,8 @@ interface DeliveryProfile {
   availableDays: string[];
   availableTimeSlots: string[];
   isActive: boolean;
-  completedDeliveries: number;
-  rating: number;
+  totalDeliveries: number;
+  averageRating: number | null;
   totalEarnings: number;
   bio: string;
   user: {
@@ -254,7 +254,7 @@ function DeliveryDashboardContent() {
               <div>
                 <p className="text-sm text-gray-600">Bezorgingen</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {profile.completedDeliveries}
+                  {profile.totalDeliveries}
                 </p>
               </div>
             </div>
@@ -282,7 +282,7 @@ function DeliveryDashboardContent() {
               <div>
                 <p className="text-sm text-gray-600">Beoordeling</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {profile.rating.toFixed(1)}
+                  {profile.averageRating?.toFixed(1) || 'N/A'}
                 </p>
               </div>
             </div>
