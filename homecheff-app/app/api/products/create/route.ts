@@ -88,6 +88,21 @@ export async function POST(req: Request) {
       },
     });
 
+    // Send notifications to followers
+    try {
+      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/notifications/new-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: result.id,
+          sellerId: user.SellerProfile.id
+        })
+      });
+    } catch (notificationError) {
+      console.error('Failed to send notifications:', notificationError);
+      // Don't fail the product creation if notifications fail
+    }
+
     return NextResponse.json({ ok: true, item: result }, { status: 201 });
   } catch (err: any) {
     console.error('Create product failed:', err);

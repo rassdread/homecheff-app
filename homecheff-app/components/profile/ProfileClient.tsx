@@ -7,7 +7,6 @@ import Link from 'next/link';
 import PhotoUploader from './PhotoUploader';
 import MyDishesManager from './MyDishesManager';
 import OrderList from './OrderList';
-import FavoritesGrid from './FavoritesGrid';
 import FollowsList from './FollowsList';
 import SettingsMenu from './SettingsMenu';
 import ProfileSettings from './ProfileSettings';
@@ -108,8 +107,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     { id: 'overview', label: 'Overzicht', icon: Grid },
     { id: 'dishes', label: 'Mijn Items', icon: Plus },
     { id: 'orders', label: 'Bestellingen', icon: ShoppingBag },
-    { id: 'favorites', label: 'Favorieten', icon: Heart },
-    { id: 'follows', label: 'Fan', icon: Users }
+    { id: 'follows', label: 'Fans', icon: Heart }
   ];
 
   const handleProfileSave = async (data: any) => {
@@ -585,11 +583,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div className="bg-gradient-to-br from-secondary-brand via-secondary-600 to-secondary-700 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-secondary-100 text-sm font-medium">Favorieten</p>
+                            <p className="text-secondary-100 text-sm font-medium">Fans</p>
                             <p className="text-3xl font-bold">
-                              {loadingStats ? '...' : stats.favorites}
+                              {loadingStats ? '...' : stats.following}
                             </p>
-                            <p className="text-secondary-200 text-xs mt-1">Opgeslagen items</p>
+                            <p className="text-secondary-200 text-xs mt-1">Verkopers die je volgt</p>
                           </div>
                           <div className="bg-white/20 rounded-full p-3">
                             <Heart className="w-8 h-8 text-white" />
@@ -662,16 +660,16 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </div>
                 )}
 
-                {activeTab === 'favorites' && (
+                {activeTab === 'follows' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Favorieten</h2>
-                        <p className="text-sm text-gray-500">Items die je hebt opgeslagen</p>
+                        <h2 className="text-lg font-semibold text-gray-900">Fans</h2>
+                        <p className="text-sm text-gray-500">Verkopers die je volgt</p>
                       </div>
                     </div>
                     <Suspense fallback={<div className="h-32 rounded-xl bg-gray-100 animate-pulse" />}>
-                      <FavoritesGrid />
+                      <FollowsList />
                     </Suspense>
                   </div>
                 )}

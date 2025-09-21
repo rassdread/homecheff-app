@@ -152,7 +152,7 @@ export default function NavBar() {
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <ShoppingCart className="w-4 h-4" />
-                        <span>Mijn Favorieten</span>
+                        <span>Mijn Fans</span>
                       </Link>
                       
                       <Link 
@@ -291,7 +291,7 @@ export default function NavBar() {
                   <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                       <ShoppingCart className="w-4 h-4" />
-                      <span>Mijn Favorieten</span>
+                      <span>Mijn Fans</span>
                     </Button>
                   </Link>
                   

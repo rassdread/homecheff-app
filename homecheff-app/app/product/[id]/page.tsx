@@ -10,7 +10,7 @@ import { ShareButton } from "@/components/ui/ShareButton";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import StartChatButton from "@/components/chat/StartChatButton";
-import FavoriteButton from "@/components/favorite/FavoriteButton";
+import FollowButton from "@/components/follow/FollowButton";
 import PropsButton from "@/components/props/PropsButton";
 
 type Product = {
@@ -494,9 +494,9 @@ export default function ProductPage() {
                       sellerName={getDisplayName(product)}
                       className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
                     />
-                    <FavoriteButton 
-                      productId={product.id}
-                      productTitle={product.title}
+                    <FollowButton 
+                      sellerId={product.seller?.User.id || ''}
+                      sellerName={getDisplayName(product)}
                       size="lg"
                     />
                     <PropsButton 
