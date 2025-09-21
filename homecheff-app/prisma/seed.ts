@@ -72,7 +72,7 @@ async function main() {
       name: 'Test Delivery',
       username: 'testdelivery',
       passwordHash: hashedPassword,
-      role: UserRole.DELIVERY,
+      role: UserRole.USER,
       bio: 'Test delivery driver',
       place: 'Amsterdam',
       gender: 'OTHER',
