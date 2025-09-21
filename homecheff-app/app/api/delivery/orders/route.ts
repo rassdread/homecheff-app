@@ -11,9 +11,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
     }
 
+    // Get user ID from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
+    }
+
     // Get user's delivery profile
     const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: (session.user as any).id }
+      where: { userId: user.id }
     });
 
     if (!profile) {
