@@ -122,6 +122,37 @@ export default function AnalyticsDashboard() {
     setSortOrder('desc');
   };
 
+  const generateOrganicData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/analytics/generate-organic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          days: 7,
+          eventsPerDay: 15
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Generated organic data:', result);
+        // Refresh analytics data
+        await fetchAnalytics();
+        alert(`Generated ${result.generated} organic events!`);
+      } else {
+        const error = await response.json();
+        console.error('Error generating organic data:', error);
+        alert('Failed to generate organic data');
+      }
+    } catch (error) {
+      console.error('Error generating organic data:', error);
+      alert('Failed to generate organic data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -175,6 +206,14 @@ export default function AnalyticsDashboard() {
             <option value="90d">Laatste 90 dagen</option>
             <option value="1y">Laatste jaar</option>
           </select>
+          
+          <button
+            onClick={generateOrganicData}
+            disabled={loading}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Genereren...' : 'Genereer Organische Data'}
+          </button>
           
           <select
             value={entityType}

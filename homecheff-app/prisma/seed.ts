@@ -31,6 +31,26 @@ const dishImages = [
   'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=400&h=300&fit=crop'
 ];
 
+// Sample garden/plant images
+const gardenImages = [
+  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1463320726281-696a485928c7?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&h=300&fit=crop'
+];
+
+// Sample design/craft images
+const designImages = [
+  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1506629905607-6d1c5b1b8c7b?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1506629905607-6d1c5b1b8c7b?w=400&h=300&fit=crop'
+];
+
 async function main() {
   console.log('🌱 Seeding database with comprehensive test data...');
 
@@ -44,7 +64,14 @@ async function main() {
     { name: 'Maria Rodriguez', username: 'maria_cooks', email: 'maria@test.nl', role: UserRole.SELLER, bio: 'Passionate home cook from Spain specializing in authentic Mediterranean cuisine', place: 'Amsterdam', interests: ['spanish', 'mediterranean', 'seafood', 'paella', 'tapas'] },
     { name: 'Ahmed Hassan', username: 'ahmed_kitchen', email: 'ahmed@test.nl', role: UserRole.SELLER, bio: 'Middle Eastern cuisine specialist with 15 years of experience in traditional recipes', place: 'Utrecht', interests: ['middle_eastern', 'spices', 'grilled', 'shawarma', 'hummus'] },
     { name: 'Lisa Chen', username: 'lisa_food', email: 'lisa@test.nl', role: UserRole.SELLER, bio: 'Asian fusion cooking expert creating healthy and delicious meals', place: 'Rotterdam', interests: ['asian', 'fusion', 'healthy', 'ramen', 'sushi'] },
-    { name: 'James Wilson', username: 'james_buyer', email: 'james@test.nl', role: UserRole.BUYER, bio: 'Food enthusiast and local supporter who loves discovering new flavors', place: 'Amsterdam', interests: ['food', 'local', 'organic', 'sustainable', 'artisanal'] }
+    { name: 'James Wilson', username: 'james_buyer', email: 'james@test.nl', role: UserRole.BUYER, bio: 'Food enthusiast and local supporter who loves discovering new flavors', place: 'Amsterdam', interests: ['food', 'local', 'organic', 'sustainable', 'artisanal'] },
+    // GROWN category users
+    { name: 'Emma van der Berg', username: 'emma_garden', email: 'emma@garden.nl', role: UserRole.SELLER, bio: 'Urban gardener and sustainable living enthusiast growing organic vegetables', place: 'Amsterdam', interests: ['gardening', 'organic', 'sustainable', 'vegetables', 'herbs'] },
+    { name: 'Tom de Vries', username: 'tom_grower', email: 'tom@garden.nl', role: UserRole.SELLER, bio: 'Professional gardener specializing in rare herbs and medicinal plants', place: 'Utrecht', interests: ['herbs', 'medicinal', 'rare_plants', 'gardening', 'natural'] },
+    { name: 'Sophie Green', username: 'sophie_plants', email: 'sophie@garden.nl', role: UserRole.SELLER, bio: 'Plant lover and indoor gardening expert with beautiful houseplants', place: 'Rotterdam', interests: ['houseplants', 'indoor_gardening', 'decorative', 'succulents', 'flowers'] },
+    // DESIGNER category users
+    { name: 'Alex Creative', username: 'alex_design', email: 'alex@design.nl', role: UserRole.SELLER, bio: 'Handmade jewelry designer creating unique pieces with natural materials', place: 'Amsterdam', interests: ['jewelry', 'handmade', 'design', 'natural_materials', 'artisan'] },
+    { name: 'Maya Artisan', username: 'maya_craft', email: 'maya@design.nl', role: UserRole.SELLER, bio: 'Textile artist and fashion designer creating sustainable clothing', place: 'Den Haag', interests: ['textiles', 'fashion', 'sustainable', 'handmade', 'design'] }
   ];
 
   for (let i = 0; i < userData.length; i++) {
@@ -149,6 +176,22 @@ async function main() {
     { title: 'Kimchi', description: 'Gefermenteerde kool met kruiden', priceCents: 450, category: 'CHEFF', unit: 'STUK' }
   ];
 
+  const grownProducts = [
+    { title: 'Verse Tomaatjes', description: 'Biologische cherry tomaten uit eigen tuin', priceCents: 450, category: 'GROWN', unit: 'BOSJE' },
+    { title: 'Kruiden Mix', description: 'Verse basilicum, peterselie en tijm', priceCents: 350, category: 'GROWN', unit: 'BOSJE' },
+    { title: 'Lavendel Plant', description: 'Gedroogde lavendel voor aromatherapie', priceCents: 850, category: 'GROWN', unit: 'STUK' },
+    { title: 'Aloe Vera', description: 'Gezonde aloe vera plant voor binnen', priceCents: 1250, category: 'GROWN', unit: 'STUK' },
+    { title: 'Munt Thee Mix', description: 'Verse munt voor verfrissende thee', priceCents: 250, category: 'GROWN', unit: 'BOSJE' }
+  ];
+
+  const designProducts = [
+    { title: 'Handgemaakt Sieraad', description: 'Unieke hanger gemaakt van natuurlijke materialen', priceCents: 1850, category: 'DESIGNER', unit: 'STUK' },
+    { title: 'Woven Tassen', description: 'Duurzame tas geweven van natuurlijke vezels', priceCents: 2250, category: 'DESIGNER', unit: 'STUK' },
+    { title: 'Keramiek Schaal', description: 'Handgemaakte keramiek schaal voor decoratie', priceCents: 1450, category: 'DESIGNER', unit: 'STUK' },
+    { title: 'Textiel Kunstwerk', description: 'Wanddecoratie gemaakt van gerecyclede materialen', priceCents: 1950, category: 'DESIGNER', unit: 'M2' },
+    { title: 'Houten Beeldje', description: 'Handgesneden houten figuur voor interieur', priceCents: 1650, category: 'DESIGNER', unit: 'STUK' }
+  ];
+
   let productCount = 0;
   for (const seller of sellerProfiles) {
     let dishes = [];
@@ -158,9 +201,27 @@ async function main() {
       dishes = middleEasternDishes;
     } else if (seller.User.name?.includes('Lisa')) {
       dishes = asianDishes;
+    } else if (seller.User.name?.includes('Emma')) {
+      dishes = grownProducts;
+    } else if (seller.User.name?.includes('Tom')) {
+      dishes = grownProducts;
+    } else if (seller.User.name?.includes('Sophie')) {
+      dishes = grownProducts;
+    } else if (seller.User.name?.includes('Alex')) {
+      dishes = designProducts;
+    } else if (seller.User.name?.includes('Maya')) {
+      dishes = designProducts;
     }
 
     for (const dish of dishes) {
+      // Choose appropriate image array based on category
+      let imageArray = dishImages;
+      if (dish.category === 'GROWN') {
+        imageArray = gardenImages;
+      } else if (dish.category === 'DESIGNER') {
+        imageArray = designImages;
+      }
+
       const product = await prisma.product.create({
         data: {
           id: crypto.randomUUID(),
@@ -177,17 +238,17 @@ async function main() {
               data: [
                 {
                   id: crypto.randomUUID(),
-                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  fileUrl: imageArray[Math.floor(Math.random() * imageArray.length)],
                   sortOrder: 1
                 },
                 {
                   id: crypto.randomUUID(),
-                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  fileUrl: imageArray[Math.floor(Math.random() * imageArray.length)],
                   sortOrder: 2
                 },
                 Math.random() > 0.5 ? {
                   id: crypto.randomUUID(),
-                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  fileUrl: imageArray[Math.floor(Math.random() * imageArray.length)],
                   sortOrder: 3
                 } : null
               ].filter(Boolean)
@@ -204,12 +265,16 @@ async function main() {
   console.log('✅ Database seeded successfully!');
   console.log('📧 Test accounts created:');
   console.log('   Admin: admin@homecheff.nl / password123');
-  console.log('   Sellers: maria@test.nl, ahmed@test.nl, lisa@test.nl / password123');
+  console.log('   CHEFF Sellers: maria@test.nl, ahmed@test.nl, lisa@test.nl / password123');
+  console.log('   GROWN Sellers: emma@garden.nl, tom@garden.nl, sophie@garden.nl / password123');
+  console.log('   DESIGNER Sellers: alex@design.nl, maya@design.nl / password123');
   console.log('   Buyer: james@test.nl / password123');
-  console.log(`🍽️  Created ${productCount} dishes with images across different categories`);
-  console.log('   - Maria (Spanish): 5 dishes');
-  console.log('   - Ahmed (Middle Eastern): 5 dishes');
-  console.log('   - Lisa (Asian): 5 dishes');
+  console.log(`🍽️  Created ${productCount} products with images across different categories`);
+  console.log('   - Maria (Spanish CHEFF): 5 dishes');
+  console.log('   - Ahmed (Middle Eastern CHEFF): 5 dishes');
+  console.log('   - Lisa (Asian CHEFF): 5 dishes');
+  console.log('   - Emma, Tom, Sophie (GROWN): 5 garden products each');
+  console.log('   - Alex, Maya (DESIGNER): 5 design products each');
 }
 
 main()

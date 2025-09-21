@@ -9,15 +9,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    // Increment view count for the product
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        viewCount: {
-          increment: 1
-        }
-      }
-    });
+    // Note: viewCount is not a field in the Product model
+    // We track views through the AnalyticsEvent table instead
 
     // Create analytics record for detailed tracking
     await prisma.analyticsEvent.create({
