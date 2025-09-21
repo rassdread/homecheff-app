@@ -72,20 +72,7 @@ export default async function AdminPage() {
     prisma.deliveryProfile.findMany({
       take: 10,
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        userId: true,
-        age: true,
-        transportation: true,
-        maxDistance: true,
-        availableDays: true,
-        availableTimeSlots: true,
-        isActive: true,
-        totalDeliveries: true,
-        averageRating: true,
-        totalEarnings: true,
-        bio: true,
-        createdAt: true,
+      include: {
         user: {
           select: {
             id: true,

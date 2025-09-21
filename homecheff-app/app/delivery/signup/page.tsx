@@ -125,8 +125,8 @@ export default function DeliverySignupPage() {
         throw new Error('Automatisch inloggen mislukt. Je kunt nu handmatig inloggen.');
       }
 
-      // Redirect to dashboard with welcome message
-      router.push('/delivery/dashboard?welcome=true');
+      // Redirect directly to delivery dashboard with welcome message
+      router.push('/delivery/dashboard?welcome=true&newSignup=true');
 
     } catch (error) {
       console.error('Error:', error);

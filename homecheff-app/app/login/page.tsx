@@ -75,6 +75,19 @@ function LoginForm() {
       // Check if user is authenticated
       const session = await getSession();
       if (session) {
+        // Check if user has delivery profile and redirect accordingly
+        try {
+          const profileResponse = await fetch('/api/delivery/profile');
+          if (profileResponse.ok) {
+            // User has delivery profile, redirect to delivery dashboard
+            router.push('/delivery/dashboard');
+            return;
+          }
+        } catch (error) {
+          // User doesn't have delivery profile, continue with normal redirect
+        }
+        
+        // Default redirect
         router.push(callbackUrl);
       }
     } catch (error) {
@@ -91,8 +104,9 @@ function LoginForm() {
     setState({ ...state, isLoading: true, error: null });
     
     try {
+      // For social login, we'll use a custom callback URL that checks for delivery profile
       await signIn(provider, { 
-        callbackUrl: callbackUrl,
+        callbackUrl: '/api/auth/callback/delivery-redirect',
         redirect: true 
       });
     } catch (error) {

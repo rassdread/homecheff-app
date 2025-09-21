@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit } from 'lucide-react';
+import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit, MessageSquare, Phone, X } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
+import Link from 'next/link';
 
 interface User {
   id: string;
@@ -25,6 +26,13 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
+  const [bulkMessageData, setBulkMessageData] = useState({
+    subject: '',
+    message: '',
+    type: 'email'
+  });
+  const [isSendingBulkMessage, setIsSendingBulkMessage] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -109,6 +117,49 @@ export default function UserManagement() {
     }
   };
 
+  const handleBulkMessage = async () => {
+    if (!bulkMessageData.message.trim() || selectedUsers.length === 0) return;
+    
+    setIsSendingBulkMessage(true);
+    try {
+      const response = await fetch('/api/admin/send-bulk-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userIds: selectedUsers,
+          subject: bulkMessageData.subject,
+          message: bulkMessageData.message,
+          type: bulkMessageData.type
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Bericht verzonden naar ${selectedUsers.length} gebruikers!`);
+        setShowBulkMessageModal(false);
+        setBulkMessageData({ subject: '', message: '', type: 'email' });
+        setSelectedUsers([]);
+      } else {
+        alert('Fout bij het verzenden van berichten');
+      }
+    } catch (error) {
+      console.error('Error sending bulk message:', error);
+      alert('Fout bij het verzenden van berichten');
+    } finally {
+      setIsSendingBulkMessage(false);
+    }
+  };
+
+  const openBulkMessageModal = () => {
+    setBulkMessageData({
+      subject: `Bericht voor ${selectedUsers.length} gebruikers`,
+      message: '',
+      type: 'email'
+    });
+    setShowBulkMessageModal(true);
+  };
+
   const filteredUsers = users.filter(user =>
     user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,12 +222,22 @@ export default function UserManagement() {
           />
         </div>
         {selectedUsers.length > 0 && (
-          <button
-            onClick={handleBulkDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Verwijder Geselecteerd ({selectedUsers.length})
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={openBulkMessageModal}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4 inline mr-2" />
+              Bericht Sturen ({selectedUsers.length})
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 className="w-4 h-4 inline mr-2" />
+              Verwijderen ({selectedUsers.length})
+            </button>
+          </div>
         )}
       </div>
 
@@ -247,9 +308,12 @@ export default function UserManagement() {
                         )}
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <Link 
+                          href={`/profile/${user.id}`}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
                           {user.name || 'Geen naam'}
-                        </div>
+                        </Link>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         {user.username && (
                           <div className="text-xs text-gray-400">@{user.username}</div>
@@ -271,20 +335,28 @@ export default function UserManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => window.open(`/profile/${user.id}`, '_blank')}
+                      <Link
+                        href={`/profile/${user.id}`}
+                        target="_blank"
                         className="text-blue-600 hover:text-blue-900"
                         title="Bekijk profiel"
                       >
                         <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleSendEmail(user.id)}
+                      </Link>
+                      <Link
+                        href={`/messages?user=${user.id}`}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Bericht sturen"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </Link>
+                      <a
+                        href={`mailto:${user.email}`}
                         className="text-green-600 hover:text-green-900"
                         title="E-mail sturen"
                       >
                         <Mail className="w-4 h-4" />
-                      </button>
+                      </a>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="text-red-600 hover:text-red-900"
@@ -307,6 +379,99 @@ export default function UserManagement() {
         onClose={() => setShowCreateModal(false)}
         onUserCreated={fetchUsers}
       />
+
+      {/* Bulk Message Modal */}
+      {showBulkMessageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Bulk Bericht Sturen
+                </h3>
+                <button
+                  onClick={() => setShowBulkMessageModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Naar {selectedUsers.length} geselecteerde gebruikers
+              </p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Onderwerp
+                </label>
+                <input
+                  type="text"
+                  value={bulkMessageData.subject}
+                  onChange={(e) => setBulkMessageData({ ...bulkMessageData, subject: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Onderwerp van het bericht"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bericht Type
+                </label>
+                <select
+                  value={bulkMessageData.type}
+                  onChange={(e) => setBulkMessageData({ ...bulkMessageData, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="email">E-mail</option>
+                  <option value="push">Push Notificatie</option>
+                  <option value="both">Beide (E-mail + Push)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bericht
+                </label>
+                <textarea
+                  value={bulkMessageData.message}
+                  onChange={(e) => setBulkMessageData({ ...bulkMessageData, message: e.target.value })}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Typ je bericht hier..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowBulkMessageModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleBulkMessage}
+                  disabled={!bulkMessageData.message.trim() || isSendingBulkMessage}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSendingBulkMessage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline mr-2"></div>
+                      Verzenden...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4 inline mr-2" />
+                      Verzenden
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

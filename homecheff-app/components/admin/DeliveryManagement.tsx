@@ -23,7 +23,12 @@ import {
   Activity,
   TrendingUp,
   Users,
-  AlertTriangle
+  AlertTriangle,
+  Send,
+  Map,
+  RefreshCw,
+  Bell,
+  Mail as MailIcon
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -41,6 +46,15 @@ interface DeliveryProfile {
   totalEarnings: number;
   bio: string | null;
   createdAt: Date;
+  homeLat: number | null;
+  homeLng: number | null;
+  homeAddress: string | null;
+  currentLat: number | null;
+  currentLng: number | null;
+  currentAddress: string | null;
+  lastLocationUpdate: Date | null;
+  deliveryMode: string;
+  deliveryRegions: string[];
   user: {
     id: string;
     name: string | null;
@@ -67,6 +81,13 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
   const [ageFilter, setAgeFilter] = useState<string>('all');
   const [selectedProfile, setSelectedProfile] = useState<DeliveryProfile | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageData, setMessageData] = useState({
+    subject: '',
+    message: '',
+    type: 'push'
+  });
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   // Filter and search logic
   const filteredProfiles = useMemo(() => {
@@ -129,19 +150,79 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
     return 'text-red-600';
   };
 
+  const getLocationStatus = (profile: DeliveryProfile) => {
+    if (!profile.currentLat || !profile.currentLng) {
+      return { status: 'offline', text: 'Geen locatie', color: 'text-gray-500' };
+    }
+    
+    const lastUpdate = profile.lastLocationUpdate;
+    if (!lastUpdate) {
+      return { status: 'unknown', text: 'Locatie onbekend', color: 'text-yellow-500' };
+    }
+    
+    const minutesAgo = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60));
+    if (minutesAgo > 30) {
+      return { status: 'stale', text: `${minutesAgo} min geleden`, color: 'text-orange-500' };
+    }
+    
+    return { status: 'online', text: 'Online', color: 'text-green-500' };
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedProfile || !messageData.message.trim()) return;
+    
+    setIsSendingMessage(true);
+    try {
+      const response = await fetch('/api/admin/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deliveryProfileId: selectedProfile.id,
+          subject: messageData.subject,
+          message: messageData.message,
+          type: messageData.type
+        }),
+      });
+
+      if (response.ok) {
+        alert('Bericht succesvol verzonden!');
+        setShowMessageModal(false);
+        setMessageData({ subject: '', message: '', type: 'push' });
+      } else {
+        alert('Fout bij het verzenden van het bericht');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Fout bij het verzenden van het bericht');
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const openMessageModal = () => {
+    setMessageData({
+      subject: `Bericht voor ${selectedProfile?.user.name || 'Bezorger'}`,
+      message: '',
+      type: 'push'
+    });
+    setShowMessageModal(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Bezorgersbeheer</h2>
-          <p className="text-gray-600">Beheer en monitor alle jongeren bezorgers</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Bezorgersbeheer</h2>
+          <p className="text-sm sm:text-base text-gray-600">Beheer en monitor alle jongeren bezorgers</p>
         </div>
         
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
               viewMode === 'list' 
                 ? 'bg-primary-brand text-white' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -151,7 +232,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
               viewMode === 'map' 
                 ? 'bg-primary-brand text-white' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -163,71 +244,71 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-5 h-5 text-blue-600" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+        <div className="bg-white rounded-lg border p-2 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-2 bg-blue-100 rounded-lg">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Totaal</p>
-              <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Totaal</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <div className="bg-white rounded-lg border p-2 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-2 bg-green-100 rounded-lg">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Actief</p>
-              <p className="text-xl font-bold text-gray-900">{stats.active}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Actief</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.active}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
+        <div className="bg-white rounded-lg border p-2 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-2 bg-purple-100 rounded-lg">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Totaal Bezorgingen</p>
-              <p className="text-xl font-bold text-gray-900">{stats.totalDeliveries}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Totaal Bezorgingen</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.totalDeliveries}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Euro className="w-5 h-5 text-orange-600" />
+        <div className="bg-white rounded-lg border p-2 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-2 bg-orange-100 rounded-lg">
+              <Euro className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Totale Verdiensten</p>
-              <p className="text-xl font-bold text-gray-900">€{(stats.totalEarnings / 100).toFixed(2)}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Totale Verdiensten</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">€{(stats.totalEarnings / 100).toFixed(2)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Star className="w-5 h-5 text-yellow-600" />
+        <div className="bg-white rounded-lg border p-2 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-2 bg-yellow-100 rounded-lg">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Gem. Rating</p>
-              <p className="text-xl font-bold text-gray-900">{stats.avgRating.toFixed(1)}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Gem. Rating</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.avgRating.toFixed(1)}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="bg-white rounded-lg border p-3 sm:p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -295,7 +376,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
       {viewMode === 'list' ? (
         <div className="bg-white rounded-lg border">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -306,6 +387,9 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status & Rating
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Locatie
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Statistieken
@@ -359,6 +443,26 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                         </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className={`text-sm ${getLocationStatus(profile).color}`}>
+                            {getLocationStatus(profile).text}
+                          </span>
+                        </div>
+                        {profile.currentAddress && (
+                          <div className="text-xs text-gray-500 truncate max-w-32">
+                            {profile.currentAddress}
+                          </div>
+                        )}
+                        {profile.deliveryMode === 'DYNAMIC' && profile.deliveryRegions.length > 0 && (
+                          <div className="text-xs text-blue-600">
+                            {profile.deliveryRegions.length} regio's
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>{profile.totalDeliveries} bezorgingen</div>
                       <div className="text-gray-500">{profile.maxDistance}km max</div>
@@ -371,15 +475,34 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                         <button
                           onClick={() => setSelectedProfile(profile)}
                           className="text-primary-brand hover:text-primary-700"
+                          title="Details bekijken"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="text-blue-600 hover:text-blue-700">
+                        <button 
+                          onClick={() => {
+                            setSelectedProfile(profile);
+                            openMessageModal();
+                          }}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Bericht sturen"
+                        >
                           <MessageSquare className="w-4 h-4" />
                         </button>
-                        <button className="text-gray-600 hover:text-gray-700">
+                        <button 
+                          className="text-green-600 hover:text-green-700"
+                          title="Telefoon nummer niet beschikbaar"
+                          disabled
+                        >
                           <Phone className="w-4 h-4" />
                         </button>
+                        <a 
+                          href={`mailto:${profile.user.email}`}
+                          className="text-purple-600 hover:text-purple-700"
+                          title="E-mail sturen"
+                        >
+                          <MailIcon className="w-4 h-4" />
+                        </a>
                       </div>
                     </td>
                   </tr>
@@ -557,16 +680,101 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                 </div>
               </div>
 
+              {/* Location Information */}
+              <div>
+                <h5 className="font-medium text-gray-900 mb-2">Locatie Informatie</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h6 className="text-sm font-medium text-gray-700 mb-1">Huidige Locatie</h6>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className={`text-sm ${getLocationStatus(selectedProfile).color}`}>
+                        {getLocationStatus(selectedProfile).text}
+                      </span>
+                    </div>
+                    {selectedProfile.currentAddress && (
+                      <p className="text-sm text-gray-600 mt-1">{selectedProfile.currentAddress}</p>
+                    )}
+                    {selectedProfile.lastLocationUpdate && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Laatste update: {new Date(selectedProfile.lastLocationUpdate).toLocaleString('nl-NL')}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <h6 className="text-sm font-medium text-gray-700 mb-1">Thuis Adres</h6>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {selectedProfile.homeAddress || 'Niet opgegeven'}
+                      </span>
+                    </div>
+                    {selectedProfile.homeLat && selectedProfile.homeLng && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {selectedProfile.homeLat.toFixed(4)}, {selectedProfile.homeLng.toFixed(4)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery Settings */}
+              <div>
+                <h5 className="font-medium text-gray-900 mb-2">Bezorg Instellingen</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h6 className="text-sm font-medium text-gray-700 mb-1">Bezorg Modus</h6>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      selectedProfile.deliveryMode === 'DYNAMIC' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedProfile.deliveryMode === 'DYNAMIC' ? 'Dynamisch' : 'Vast'}
+                    </span>
+                  </div>
+                  <div>
+                    <h6 className="text-sm font-medium text-gray-700 mb-1">Maximale Afstand</h6>
+                    <span className="text-sm text-gray-600">{selectedProfile.maxDistance} km</span>
+                  </div>
+                </div>
+                {selectedProfile.deliveryRegions.length > 0 && (
+                  <div className="mt-2">
+                    <h6 className="text-sm font-medium text-gray-700 mb-1">Bezorg Regio's</h6>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedProfile.deliveryRegions.map((region, index) => (
+                        <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                          {region}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
-                <button className="flex-1 bg-primary-brand text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+                <button 
+                  onClick={openMessageModal}
+                  className="flex-1 bg-primary-brand text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                >
                   <MessageSquare className="w-4 h-4 inline mr-2" />
                   Bericht Sturen
                 </button>
-                <button className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                  className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed text-center"
+                  disabled
+                  title="Telefoon nummer niet beschikbaar"
+                >
                   <Phone className="w-4 h-4 inline mr-2" />
                   Bellen
                 </button>
+                <a 
+                  href={`mailto:${selectedProfile.user.email}`}
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-center"
+                >
+                  <MailIcon className="w-4 h-4 inline mr-2" />
+                  E-mail
+                </a>
                 <button className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                   selectedProfile.isActive 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
@@ -581,6 +789,99 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                     <>
                       <CheckCircle className="w-4 h-4 inline mr-2" />
                       Activeren
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Modal */}
+      {showMessageModal && selectedProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Bericht Sturen
+                </h3>
+                <button
+                  onClick={() => setShowMessageModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Naar: {selectedProfile.user.name || 'Bezorger'} ({selectedProfile.user.email})
+              </p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Onderwerp
+                </label>
+                <input
+                  type="text"
+                  value={messageData.subject}
+                  onChange={(e) => setMessageData({ ...messageData, subject: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-transparent"
+                  placeholder="Onderwerp van het bericht"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bericht Type
+                </label>
+                <select
+                  value={messageData.type}
+                  onChange={(e) => setMessageData({ ...messageData, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-transparent"
+                >
+                  <option value="push">Push Notificatie</option>
+                  <option value="email">E-mail</option>
+                  <option value="both">Beide (Push + E-mail)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bericht
+                </label>
+                <textarea
+                  value={messageData.message}
+                  onChange={(e) => setMessageData({ ...messageData, message: e.target.value })}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-transparent"
+                  placeholder="Typ je bericht hier..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowMessageModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageData.message.trim() || isSendingMessage}
+                  className="flex-1 bg-primary-brand text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSendingMessage ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 inline mr-2 animate-spin" />
+                      Verzenden...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 inline mr-2" />
+                      Verzenden
                     </>
                   )}
                 </button>

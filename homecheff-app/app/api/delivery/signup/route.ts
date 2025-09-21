@@ -106,19 +106,19 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create delivery profile - temporarily skip due to Prisma client issues
-    // const deliveryProfile = await prisma.deliveryProfile.create({
-    //   data: {
-    //     userId: user.id,
-    //     age,
-    //     transportation: validTransportModes,
-    //     maxDistance: maxDistance || 3,
-    //     availableDays: availableDays || [],
-    //     availableTimeSlots: availableTimeSlots || [],
-    //     bio: bio || null,
-    //     isActive: true
-    //   }
-    // });
+    // Create delivery profile
+    const deliveryProfile = await prisma.deliveryProfile.create({
+      data: {
+        userId: user.id,
+        age,
+        transportation: validTransportModes,
+        maxDistance: maxDistance || 3,
+        availableDays: availableDays || [],
+        availableTimeSlots: availableTimeSlots || [],
+        bio: bio || null,
+        isActive: true
+      }
+    });
 
     return NextResponse.json({ 
       success: true, 
@@ -128,12 +128,12 @@ export async function POST(req: NextRequest) {
         email: user.email,
         username: user.username,
         role: user.role
+      },
+      deliveryProfile: {
+        id: deliveryProfile.id,
+        age: deliveryProfile.age,
+        isActive: deliveryProfile.isActive
       }
-      // deliveryProfile: {
-      //   id: deliveryProfile.id,
-      //   age: deliveryProfile.age,
-      //   isActive: deliveryProfile.isActive
-      // }
     });
 
   } catch (error) {

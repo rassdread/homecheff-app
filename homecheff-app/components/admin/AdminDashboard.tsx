@@ -51,6 +51,15 @@ interface AdminStats {
     totalEarnings: number;
     bio: string | null;
     createdAt: Date;
+    homeLat: number | null;
+    homeLng: number | null;
+    homeAddress: string | null;
+    currentLat: number | null;
+    currentLng: number | null;
+    currentAddress: string | null;
+    lastLocationUpdate: Date | null;
+    deliveryMode: string;
+    deliveryRegions: string[];
     user: {
       id: string;
       name: string | null;
@@ -102,24 +111,25 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Navigation Tabs */}
-        <div className="mb-8">
-          <nav className="flex space-x-8">
+        <div className="mb-6 sm:mb-8">
+          <nav className="flex flex-wrap gap-2 sm:gap-8">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`flex items-center space-x-1 sm:space-x-2 py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm ${
                     activeTab === tab.id
                       ? 'border-emerald-500 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{tab.label}</span>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               );
             })}
@@ -130,58 +140,58 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="bg-white rounded-xl shadow-sm border p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Users className="w-6 h-6 text-blue-600" />
+                  <div className="p-1 sm:p-2 bg-blue-100 rounded-lg">
+                    <Users className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Totaal Gebruikers</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Gebruikers</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white rounded-xl shadow-sm border p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Package className="w-6 h-6 text-green-600" />
+                  <div className="p-1 sm:p-2 bg-green-100 rounded-lg">
+                    <Package className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Totaal Producten</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Producten</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white rounded-xl shadow-sm border p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <ShoppingCart className="w-6 h-6 text-purple-600" />
+                  <div className="p-1 sm:p-2 bg-purple-100 rounded-lg">
+                    <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Totaal Bestellingen</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Bestellingen</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white rounded-xl shadow-sm border p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Truck className="w-6 h-6 text-orange-600" />
+                  <div className="p-1 sm:p-2 bg-orange-100 rounded-lg">
+                    <Truck className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Actieve Bezorgers</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalDeliveryProfiles}</p>
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">Actieve Bezorgers</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalDeliveryProfiles}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
               {/* Recent Users */}
               <div className="bg-white rounded-xl shadow-sm border">
                 <div className="p-6 border-b">
