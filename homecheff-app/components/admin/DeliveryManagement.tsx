@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { 
   Truck, 
   MapPin, 
@@ -417,9 +418,12 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <Link 
+                            href={`/profile/${profile.user.id}`}
+                            className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
+                          >
                             {profile.user.name || 'Geen naam'}
-                          </div>
+                          </Link>
                           <div className="text-sm text-gray-500">{profile.user.email}</div>
                         </div>
                       </div>
@@ -471,37 +475,37 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                       €{(profile.totalEarnings / 100).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 sm:gap-2">
                         <button
                           onClick={() => setSelectedProfile(profile)}
-                          className="text-primary-brand hover:text-primary-700"
+                          className="p-2 text-primary-brand hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors duration-200 touch-manipulation"
                           title="Details bekijken"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <button 
                           onClick={() => {
                             setSelectedProfile(profile);
                             openMessageModal();
                           }}
-                          className="text-blue-600 hover:text-blue-700"
+                          className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
                           title="Bericht sturen"
                         >
-                          <MessageSquare className="w-4 h-4" />
+                          <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <button 
-                          className="text-green-600 hover:text-green-700"
+                          className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors duration-200 touch-manipulation"
                           title="Telefoon nummer niet beschikbaar"
                           disabled
                         >
-                          <Phone className="w-4 h-4" />
+                          <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <a 
                           href={`mailto:${profile.user.email}`}
-                          className="text-purple-600 hover:text-purple-700"
+                          className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation"
                           title="E-mail sturen"
                         >
-                          <MailIcon className="w-4 h-4" />
+                          <MailIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </a>
                       </div>
                     </td>
@@ -564,9 +568,12 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                   className="h-20 w-20 rounded-full object-cover"
                 />
                 <div>
-                  <h4 className="text-xl font-semibold text-gray-900">
+                  <Link 
+                    href={`/profile/${selectedProfile.user.id}`}
+                    className="text-lg sm:text-xl font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
+                  >
                     {selectedProfile.user.name || 'Geen naam'}
-                  </h4>
+                  </Link>
                   <p className="text-gray-600">{selectedProfile.user.email}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedProfile.isActive)}`}>

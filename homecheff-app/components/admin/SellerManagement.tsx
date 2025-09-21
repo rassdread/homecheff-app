@@ -274,9 +274,9 @@ export default function SellerManagement() {
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
-                            <Link 
+                            <Link
                               href={`/profile/${seller.user.id}`}
-                              className="text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                              className="text-base sm:text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                             >
                               {seller.displayName || seller.user.name || 'Onbekend'}
                             </Link>

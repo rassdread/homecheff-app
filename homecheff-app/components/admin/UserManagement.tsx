@@ -310,7 +310,7 @@ export default function UserManagement() {
                       <div className="ml-4">
                         <Link 
                           href={`/profile/${user.id}`}
-                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                          className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                         >
                           {user.name || 'Geen naam'}
                         </Link>
@@ -334,28 +334,28 @@ export default function UserManagement() {
                     {new Date(user.createdAt).toLocaleDateString('nl-NL')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-1 sm:space-x-2">
                       <Link
                         href={`/profile/${user.id}`}
                         target="_blank"
-                        className="text-blue-600 hover:text-blue-900"
+                        className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Bekijk profiel"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Link>
                       <Link
                         href={`/messages?user=${user.id}`}
-                        className="text-purple-600 hover:text-purple-900"
+                        className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Bericht sturen"
                       >
-                        <MessageSquare className="w-4 h-4" />
+                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Link>
                       <a
                         href={`mailto:${user.email}`}
-                        className="text-green-600 hover:text-green-900"
+                        className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="E-mail sturen"
                       >
-                        <Mail className="w-4 h-4" />
+                        <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                       </a>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
