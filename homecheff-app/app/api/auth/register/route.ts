@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
       const { v4: uuidv4 } = require('uuid');
       
       // Get subscription if provided
-      let subscriptionData = null;
+      let subscriptionData: any = null;
       if (subscription) {
         subscriptionData = await prisma.subscription.findUnique({ 
           where: { id: subscription, isActive: true } 

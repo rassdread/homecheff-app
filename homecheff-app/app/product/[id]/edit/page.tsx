@@ -53,7 +53,7 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/products/${params.id}`);
+        const response = await fetch(`/api/products/${params?.id}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('API Error:', errorData);
@@ -106,10 +106,10 @@ export default function EditProductPage() {
       }
     };
 
-    if (params.id) {
+    if (params?.id) {
       fetchProduct();
     }
-  }, [params.id, router]);
+  }, [params?.id, router]);
 
   const handleSave = async () => {
     if (!product) return;
@@ -119,7 +119,7 @@ export default function EditProductPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${params?.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ export default function EditProductPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${params?.id}`, {
         method: 'DELETE',
       });
 

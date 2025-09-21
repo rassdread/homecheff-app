@@ -64,6 +64,7 @@ model User {
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
   reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
   SellerProfile                          SellerProfile?
+  DeliveryProfile                        DeliveryProfile?
   Session                                Session[]
   Transaction                            Transaction[]
 }
@@ -487,6 +488,7 @@ model Order {
   User            User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
   items           OrderItem[]
   reviews         ProductReview[]
+  deliveryOrder   DeliveryOrder?
 }
 
 model OrderItem {
@@ -592,10 +594,80 @@ enum DeliveryMode {
 }
 
 enum TransportationMode {
-  BIKE
-  SCOOTER
   WALKING
-  PUBLIC_TRANSPORT
+  BIKE
+  ELECTRIC_BIKE
+  SCOOTER
+}
+
+model DeliveryProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Personal info
+  age               Int
+  bio               String?
+  
+  // Transportation settings
+  transportation    TransportationMode[]
+  maxDistance       Float    @default(3.0) // in kilometers
+  preferredRadius   Float?   // user-defined radius in km
+  
+  // Location settings
+  homeLat           Float?
+  homeLng           Float?
+  homeAddress       String?
+  
+  // Availability
+  availableDays     String[] // ["maandag", "dinsdag", etc.]
+  availableTimeSlots String[] // ["morning", "afternoon", "evening"]
+  
+  // Status
+  isActive          Boolean  @default(true)
+  isVerified        Boolean  @default(false)
+  
+  // Performance tracking
+  totalDeliveries   Int      @default(0)
+  averageRating     Float?
+  totalEarnings     Float    @default(0)
+  
+  // Relations
+  deliveryOrders    DeliveryOrder[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("DeliveryProfile")
+}
+
+model DeliveryOrder {
+  id              String   @id @default(cuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  deliveryProfileId String
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
+  
+  status          String   @default("PENDING") // PENDING, ACCEPTED, PICKED_UP, DELIVERED, CANCELLED
+  deliveryFee     Float
+  estimatedTime   Int?     // in minutes
+  
+  // Tracking
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+  
+  // Location tracking
+  currentLat      Float?
+  currentLng      Float?
+  
+  // Communication
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("DeliveryOrder")
 }
 
 enum ListingCategory {

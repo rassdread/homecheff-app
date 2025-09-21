@@ -35,7 +35,7 @@ export default function ConversationPage() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const conversationId = params.conversationId as string;
+  const conversationId = params?.conversationId as string;
 
   useEffect(() => {
     if (!session?.user) {

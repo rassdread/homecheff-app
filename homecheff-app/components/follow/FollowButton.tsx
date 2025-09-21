@@ -24,7 +24,7 @@ export default function FollowButton({
 
   // Check follow status on mount
   useEffect(() => {
-    if (!session?.user?.id) {
+    if (!session?.user) {
       setCheckingStatus(false);
       return;
     }
@@ -44,10 +44,10 @@ export default function FollowButton({
     };
 
     checkFollowStatus();
-  }, [sellerId, session?.user?.id]);
+  }, [sellerId, session?.user]);
 
   const handleToggleFollow = async () => {
-    if (!session?.user?.id) {
+    if (!session?.user) {
       alert('Je moet ingelogd zijn om verkopers te volgen');
       return;
     }
@@ -84,7 +84,7 @@ export default function FollowButton({
     }
   };
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return null; // Don't show follow button if not logged in
   }
 

@@ -49,7 +49,7 @@ async function getSellerProfile(sellerId: string) {
   }
 
   // Calculate average rating
-  const allReviews = sellerProfile.products.flatMap(product => product.ProductReview);
+  const allReviews = sellerProfile.products.flatMap(product => product.reviews);
   const averageRating = allReviews.length > 0 
     ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length 
     : 0;
@@ -134,8 +134,9 @@ export default async function SellerProfilePage({ params }: SellerProfilePagePro
 
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3">
-                    <StartChatButton 
+                    <StartChatButton
                       sellerId={user.id}
+                      sellerName={user.name || user.username || 'Verkoper'}
                       className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                     />
                     <FollowButton 
@@ -202,11 +203,11 @@ export default async function SellerProfilePage({ params }: SellerProfilePagePro
                         €{(product.priceCents / 100).toFixed(2)}
                       </span>
                       
-                      {product.ProductReview.length > 0 && (
+                      {product.reviews.length > 0 && (
                         <div className="flex items-center gap-1 text-sm text-gray-500">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
                           <span>
-                            {(product.ProductReview.reduce((sum, review) => sum + review.rating, 0) / product.ProductReview.length).toFixed(1)}
+                            {(product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length).toFixed(1)}
                           </span>
                         </div>
                       )}

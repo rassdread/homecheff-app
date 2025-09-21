@@ -19,7 +19,7 @@ type DeliveryOption = {
 };
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCart();
+  const { cart, clear } = useCart();
   const { data: session } = useSession();
   const [selectedDelivery, setSelectedDelivery] = useState<string>('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -63,7 +63,7 @@ export default function CheckoutPage() {
       icon: <Truck className="w-6 h-6" />,
       price: 8,
       estimatedTime: '1-3 werkdagen',
-      available: cart.items.some(item => item.category === 'DESIGNER')
+      available: true // Always available for now
     }
   ];
 

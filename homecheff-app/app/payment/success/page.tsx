@@ -6,7 +6,7 @@ import Link from "next/link";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const paymentId = searchParams.get('payment_id');
+  const paymentId = searchParams?.get('payment_id');
   const [payment, setPayment] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 

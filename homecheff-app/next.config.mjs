@@ -11,7 +11,6 @@ const nextConfig = {
     ],
   },
   eslint: { ignoreDuringBuilds: true },
-  serverExternalPackages: ['@prisma/client'],
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   output: 'standalone',

@@ -76,7 +76,7 @@ function SellPageContent({ plans, userHasKVK, loading, setLoading, router, start
 }) {
   const params = useSearchParams();
   useEffect(() => {
-    if (params.get('success') === '1') {
+    if (params?.get('success') === '1') {
       router.replace('/');
     }
   }, [params, router]);

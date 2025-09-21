@@ -26,7 +26,7 @@ export default function FavoriteButton({
 
   // Check favorite status on mount
   useEffect(() => {
-    if (!session?.user?.id) {
+    if (!session?.user) {
       setCheckingStatus(false);
       return;
     }
@@ -46,7 +46,7 @@ export default function FavoriteButton({
     };
 
     checkFavoriteStatus();
-  }, [productId, session?.user?.id]);
+  }, [productId, session?.user]);
 
   const handleToggleFavorite = async (e?: React.MouseEvent) => {
     if (e) {
@@ -54,7 +54,7 @@ export default function FavoriteButton({
       e.stopPropagation();
     }
 
-    if (!session?.user?.id) {
+    if (!session?.user) {
       alert('Je moet ingelogd zijn om producten te favorieten');
       return;
     }

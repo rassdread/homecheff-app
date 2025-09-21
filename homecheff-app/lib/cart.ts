@@ -186,7 +186,7 @@ export function clearAllCartData(): void {
   sessionStorage.removeItem('anonymous_cart_id');
   
   // Clear all cart-related localStorage items
-  const keysToRemove = [];
+  const keysToRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith(CART_KEY_PREFIX)) {

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export default async function ProfileSummaryInfo({ type }: { type: "name" | "stats" }) {
   // Haal user info op
-  let me = null;
+  let me: any = null;
   try {
     const session = await auth();
     const email: string | undefined = session?.user?.email || undefined;

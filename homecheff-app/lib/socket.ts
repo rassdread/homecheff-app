@@ -1,12 +1,12 @@
 import { Server as NetServer } from 'http';
 import { NextApiResponse } from 'next';
 import { Server as SocketIOServer } from 'socket.io';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+// import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: any & {
     server: NetServer & {
-      io: SocketIOServer<DefaultEventsMap, DefaultEventsMap>;
+      io: SocketIOServer;
     };
   };
 };

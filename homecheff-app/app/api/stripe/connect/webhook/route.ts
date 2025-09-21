@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    }
+
     let event;
     try {
       event = stripe.webhooks.constructEvent(
@@ -92,6 +96,10 @@ async function handleCapabilityUpdated(capability: any) {
     }
 
     // Check if all required capabilities are active
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    }
+    
     const account = await stripe.accounts.retrieve(accountId);
     const isCompleted = account.charges_enabled && account.payouts_enabled;
 

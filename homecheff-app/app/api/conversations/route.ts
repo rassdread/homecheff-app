@@ -149,8 +149,9 @@ export async function POST(req: NextRequest) {
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
-      conversation = await prisma.conversation.create({
+      const newConversation = await prisma.conversation.create({
         data: {
+          id: crypto.randomUUID(),
           productId,
           title: null,
           isActive: true
@@ -160,15 +161,23 @@ export async function POST(req: NextRequest) {
       // Add participants
       await prisma.conversationParticipant.createMany({
         data: [
-          { conversationId: conversation.id, userId: user.id },
-          { conversationId: conversation.id, userId: sellerId }
+          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: user.id },
+          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: sellerId }
         ]
+      });
+
+      // Fetch the conversation with participants
+      conversation = await prisma.conversation.findUnique({
+        where: { id: newConversation.id },
+        include: {
+          ConversationParticipant: true
+        }
       });
     }
 
     // Send initial message if provided
-    let initialMessage = null;
-    if (message) {
+    let initialMessage: any = null;
+    if (message && conversation) {
       initialMessage = await prisma.message.create({
         data: {
           conversationId: conversation.id,
@@ -193,6 +202,10 @@ export async function POST(req: NextRequest) {
         where: { id: conversation.id },
         data: { lastMessageAt: new Date() }
       });
+    }
+
+    if (!conversation) {
+      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
     }
 
     return NextResponse.json({

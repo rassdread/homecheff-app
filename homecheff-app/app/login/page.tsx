@@ -30,8 +30,8 @@ function LoginForm() {
     loginMethod: 'email',
   });
 
-  const message = searchParams.get('message');
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const message = searchParams?.get('message');
+  const callbackUrl = searchParams?.get('callbackUrl') || '/';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -33,8 +33,7 @@ export async function POST(
         status: 'PENDING' // Only allow accepting pending orders
       },
       data: {
-        status: 'ACCEPTED',
-        acceptedAt: new Date()
+        status: 'ACCEPTED'
       },
       include: {
         order: {

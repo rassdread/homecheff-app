@@ -50,10 +50,10 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user) {
       fetchOrders();
     }
-  }, [session?.user?.id, statusFilter]);
+  }, [session?.user, statusFilter]);
 
   const fetchOrders = async () => {
     try {

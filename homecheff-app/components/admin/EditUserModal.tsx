@@ -49,7 +49,7 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
     setSuccess('');
 
     try {
-      const updateData = {
+      let updateData: any = {
         ...formData,
         interests: formData.interests.split(',').map(i => i.trim()).filter(i => i),
         profileImage: profileImage
@@ -57,7 +57,8 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
 
       // Remove empty password from update data
       if (!updateData.password) {
-        delete updateData.password;
+        const { password, ...updateDataWithoutPassword } = updateData;
+        updateData = updateDataWithoutPassword;
       }
 
       const response = await fetch(`/api/admin/users/${user.id}`, {

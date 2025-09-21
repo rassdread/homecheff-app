@@ -12,7 +12,7 @@ function SuccessContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id');
+    const sessionId = searchParams?.get('session_id');
     if (sessionId) {
       fetchSessionData(sessionId);
     }

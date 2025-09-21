@@ -214,7 +214,7 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
-            <Message className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+            <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
             <p>Nog geen berichten</p>
             <p className="text-sm">Start het gesprek!</p>
           </div>

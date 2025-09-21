@@ -89,8 +89,9 @@ export async function POST(req: NextRequest) {
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
-      conversation = await prisma.conversation.create({
+      const newConversation = await prisma.conversation.create({
         data: {
+          id: crypto.randomUUID(),
           productId,
           title: `Gesprek over ${product.title}`,
           isActive: true,
@@ -101,30 +102,15 @@ export async function POST(req: NextRequest) {
       // Add participants
       await prisma.conversationParticipant.createMany({
         data: [
-          { conversationId: conversation.id, userId: user.id },
-          { conversationId: conversation.id, userId: sellerId }
+          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: user.id },
+          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: sellerId }
         ]
       });
 
-      // Fetch conversation with participants
+      // Fetch the conversation with participants
       conversation = await prisma.conversation.findUnique({
-        where: { id: conversation.id },
+        where: { id: newConversation.id },
         include: {
-          Product: {
-            select: {
-              id: true,
-              title: true,
-              priceCents: true,
-              Image: {
-                select: {
-                  fileUrl: true,
-                  sortOrder: true
-                },
-                take: 1,
-                orderBy: { sortOrder: 'asc' }
-              }
-            }
-          },
           ConversationParticipant: {
             include: {
               User: {
@@ -142,8 +128,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Send initial message if provided
-    let initialMessageData = null;
-    if (initialMessage) {
+    let initialMessageData: any = null;
+    if (initialMessage && conversation) {
       initialMessageData = await prisma.message.create({
         data: {
           conversationId: conversation.id,
@@ -170,15 +156,19 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (!conversation) {
+      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
+    }
+
     // Get other participant (the seller)
-    const otherParticipant = conversation.ConversationParticipant
+    const otherParticipant = conversation.ConversationParticipant  
       .find(p => p.userId !== user.id)?.User;
 
     return NextResponse.json({
       conversation: {
         id: conversation.id,
         title: conversation.title,
-        product: conversation.Product,
+        product: null, // Product relation not included in query
         otherParticipant,
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,

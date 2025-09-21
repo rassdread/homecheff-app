@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -14,7 +14,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Seller ID is required' }, { status: 400 });
     }
 
-    const followerId = session.user.id;
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const followerId = user.id;
 
     // Check if user is trying to follow themselves
     if (followerId === sellerId) {

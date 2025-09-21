@@ -84,7 +84,7 @@ export async function GET(
     // Get recent orders count (for seller stats)
     const recentOrders = await prisma.order.count({
       where: {
-        orderItems: {
+        items: {
           some: {
             Product: {
               sellerId: sellerProfile.id

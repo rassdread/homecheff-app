@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
             totalAmount: totalWithStripeFee,
             deliveryAddress: address,
             deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
-            deliveryMode: 'TEEN_DELIVERY',
+            deliveryMode: 'DELIVERY',
             notes: notes,
             status: 'PENDING'
           }
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderId: order.id,
-            deliveryMode: 'TEEN_DELIVERY',
+            deliveryMode: 'DELIVERY',
             address: address,
             coordinates: null // TODO: Add geocoding
           })

@@ -32,8 +32,7 @@ async function getPublicProfile(userId: string) {
           id: true,
           displayName: true,
           bio: true,
-          companyName: true,
-          verified: true
+          companyName: true
         }
       },
       // Include delivery profile if exists
@@ -43,8 +42,8 @@ async function getPublicProfile(userId: string) {
           age: true,
           transportation: true,
           maxDistance: true,
-          completedDeliveries: true,
-          rating: true,
+          totalDeliveries: true,
+          averageRating: true,
           isActive: true
         }
       }
@@ -56,7 +55,7 @@ async function getPublicProfile(userId: string) {
   }
 
   // Get user's products if they're a seller
-  let products = [];
+  let products: any[] = [];
   if (user.SellerProfile) {
     products = await prisma.product.findMany({
       where: {
@@ -216,13 +215,13 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
             <>
               <div className="bg-white rounded-xl p-4 text-center">
                 <div className="text-2xl font-bold text-secondary-brand">
-                  {user.DeliveryProfile.completedDeliveries}
+                  {user.DeliveryProfile.totalDeliveries}
                 </div>
                 <div className="text-sm text-gray-600">Bezorgingen</div>
               </div>
               <div className="bg-white rounded-xl p-4 text-center">
                 <div className="text-2xl font-bold text-yellow-600">
-                  {user.DeliveryProfile.rating.toFixed(1)}
+                  {user.DeliveryProfile.averageRating?.toFixed(1) || 'N/A'}
                 </div>
                 <div className="text-sm text-gray-600">Beoordeling</div>
               </div>
@@ -312,9 +311,9 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                       className="px-2 py-1 bg-secondary-brand/10 text-secondary-brand text-xs rounded-full"
                     >
                       {transport === 'BIKE' ? 'Fiets' : 
-                       transport === 'SCOOTER' ? 'Scooter' :
-                       transport === 'WALKING' ? 'Lopen' :
-                       transport === 'PUBLIC_TRANSPORT' ? 'OV' : transport}
+                        transport === 'SCOOTER' ? 'Scooter' :       
+                        transport === 'WALKING' ? 'Lopen' :
+                        transport === 'ELECTRIC_BIKE' ? 'Elektrische fiets' : transport}
                     </span>
                   ))}
                 </div>

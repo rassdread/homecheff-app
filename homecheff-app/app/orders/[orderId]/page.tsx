@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function OrderTrackingPage() {
   const params = useParams();
-  const orderId = params.orderId as string;
+  const orderId = params?.orderId as string;
 
   return (
     <div className="min-h-screen bg-gray-50">

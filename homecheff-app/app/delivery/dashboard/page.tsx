@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -55,7 +55,7 @@ interface DeliveryOrder {
   };
 }
 
-export default function DeliveryDashboardPage() {
+function DeliveryDashboardContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [profile, setProfile] = useState<DeliveryProfile | null>(null);
@@ -69,7 +69,7 @@ export default function DeliveryDashboardPage() {
     fetchOrders();
     
     // Check for welcome parameter
-    if (searchParams.get('welcome') === 'true') {
+    if (searchParams?.get('welcome') === 'true') {
       setShowWelcome(true);
     }
   }, [searchParams]);
@@ -236,7 +236,7 @@ export default function DeliveryDashboardPage() {
                 </button>
               </div>
               
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
                 Instellingen
               </Button>
@@ -405,5 +405,13 @@ export default function DeliveryDashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DeliveryDashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DeliveryDashboardContent />
+    </Suspense>
   );
 }

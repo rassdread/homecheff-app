@@ -23,7 +23,7 @@ export async function GET(
       include: {
         items: {
           include: {
-            product: {
+            Product: {
               include: {
                 seller: {
                   include: {
@@ -43,7 +43,7 @@ export async function GET(
         },
         conversations: {
           include: {
-            messages: {
+            Message: {
               orderBy: { createdAt: 'desc' },
               take: 1
             }

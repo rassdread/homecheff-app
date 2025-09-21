@@ -54,7 +54,7 @@ export default function MessageInput({
     if (!message.trim() && !attachment) return;
 
     const messageData = {
-      text: message.trim() || null,
+      text: message.trim() || '',
       messageType: attachment ? (attachment.type.startsWith('image/') ? 'IMAGE' : 'FILE') as 'IMAGE' | 'FILE' : 'TEXT' as 'TEXT',
       attachmentUrl: attachment?.url,
       attachmentName: attachment?.name,

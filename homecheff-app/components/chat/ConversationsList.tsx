@@ -213,14 +213,14 @@ export default function ConversationsList({ onSelectConversation }: Conversation
                   
                   {conversation.lastMessage && (
                     <p className="text-sm text-gray-500 truncate">
-                      {getLastMessageSender(conversation.lastMessage, session?.user?.id || '')}
+                      {getLastMessageSender(conversation.lastMessage, session?.user?.email || '')}
                       {getLastMessagePreview(conversation.lastMessage)}
                     </p>
                   )}
                 </div>
 
                 <div className="flex-shrink-0 ml-2">
-                  {conversation.lastMessage && conversation.lastMessage.User.id === session?.user?.id && (
+                  {conversation.lastMessage && conversation.lastMessage.User.id === session?.user?.email && (
                     <CheckCheck className="w-4 h-4 text-blue-500" />
                   )}
                 </div>

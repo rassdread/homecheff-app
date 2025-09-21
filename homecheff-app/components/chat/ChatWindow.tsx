@@ -64,7 +64,7 @@ export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
   const { data: session } = useSession();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const currentUserId = session?.user?.id || '';
+  const currentUserId = session?.user?.email || '';
 
   useEffect(() => {
     if (!socket || !conversation.id) return;
