@@ -236,9 +236,11 @@ function DeliveryDashboardContent() {
                 </button>
               </div>
               
-              <Button variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Instellingen
+              <Button variant="outline" asChild>
+                <Link href="/delivery/instellingen">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Instellingen
+                </Link>
               </Button>
             </div>
           </div>
