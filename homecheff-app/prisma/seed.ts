@@ -36,20 +36,15 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash('password123', 12);
 
-  // Create 10 test users
+  // Create 5 test users with complete profiles
   const users = [];
   
   const userData = [
     { name: 'Admin User', username: 'admin', email: 'admin@homecheff.nl', role: UserRole.ADMIN, bio: 'Platform administrator', place: 'Amsterdam', interests: ['management', 'platform'] },
-    { name: 'Maria Rodriguez', username: 'maria_cooks', email: 'maria@test.nl', role: UserRole.SELLER, bio: 'Passionate home cook from Spain', place: 'Amsterdam', interests: ['spanish', 'mediterranean', 'seafood'] },
-    { name: 'Ahmed Hassan', username: 'ahmed_kitchen', email: 'ahmed@test.nl', role: UserRole.SELLER, bio: 'Middle Eastern cuisine specialist', place: 'Utrecht', interests: ['middle_eastern', 'spices', 'grilled'] },
-    { name: 'Lisa Chen', username: 'lisa_food', email: 'lisa@test.nl', role: UserRole.SELLER, bio: 'Asian fusion cooking expert', place: 'Rotterdam', interests: ['asian', 'fusion', 'healthy'] },
-    { name: 'Marco Bianchi', username: 'marco_italian', email: 'marco@test.nl', role: UserRole.SELLER, bio: 'Authentic Italian recipes from Nonna', place: 'Den Haag', interests: ['italian', 'pasta', 'traditional'] },
-    { name: 'Sophie Dubois', username: 'sophie_french', email: 'sophie@test.nl', role: UserRole.SELLER, bio: 'French pastry and cuisine artist', place: 'Eindhoven', interests: ['french', 'pastry', 'elegant'] },
-    { name: 'James Wilson', username: 'james_buyer', email: 'james@test.nl', role: UserRole.BUYER, bio: 'Food enthusiast and local supporter', place: 'Amsterdam', interests: ['food', 'local', 'organic'] },
-    { name: 'Emma van der Berg', username: 'emma_foodie', email: 'emma@test.nl', role: UserRole.BUYER, bio: 'Healthy eating advocate', place: 'Utrecht', interests: ['healthy', 'vegetarian', 'sustainable'] },
-    { name: 'Tom Bakker', username: 'tom_delivery', email: 'tom@test.nl', role: UserRole.USER, bio: 'Reliable delivery driver', place: 'Amsterdam', interests: ['delivery', 'transport', 'service'] },
-    { name: 'Anna Kowalski', username: 'anna_delivery', email: 'anna@test.nl', role: UserRole.USER, bio: 'Professional delivery specialist', place: 'Rotterdam', interests: ['delivery', 'efficiency', 'customer_service'] }
+    { name: 'Maria Rodriguez', username: 'maria_cooks', email: 'maria@test.nl', role: UserRole.SELLER, bio: 'Passionate home cook from Spain specializing in authentic Mediterranean cuisine', place: 'Amsterdam', interests: ['spanish', 'mediterranean', 'seafood', 'paella', 'tapas'] },
+    { name: 'Ahmed Hassan', username: 'ahmed_kitchen', email: 'ahmed@test.nl', role: UserRole.SELLER, bio: 'Middle Eastern cuisine specialist with 15 years of experience in traditional recipes', place: 'Utrecht', interests: ['middle_eastern', 'spices', 'grilled', 'shawarma', 'hummus'] },
+    { name: 'Lisa Chen', username: 'lisa_food', email: 'lisa@test.nl', role: UserRole.SELLER, bio: 'Asian fusion cooking expert creating healthy and delicious meals', place: 'Rotterdam', interests: ['asian', 'fusion', 'healthy', 'ramen', 'sushi'] },
+    { name: 'James Wilson', username: 'james_buyer', email: 'james@test.nl', role: UserRole.BUYER, bio: 'Food enthusiast and local supporter who loves discovering new flavors', place: 'Amsterdam', interests: ['food', 'local', 'organic', 'sustainable', 'artisanal'] }
   ];
 
   for (let i = 0; i < userData.length; i++) {
@@ -131,10 +126,12 @@ async function main() {
   console.log('✅ Database seeded successfully!');
   console.log('📧 Test accounts created:');
   console.log('   Admin: admin@homecheff.nl / password123');
-  console.log('   Sellers: maria@test.nl, ahmed@test.nl, lisa@test.nl, marco@test.nl, sophie@test.nl / password123');
-  console.log('   Buyers: james@test.nl, emma@test.nl / password123');
-  console.log('   Delivery: tom@test.nl, anna@test.nl / password123');
+  console.log('   Sellers: maria@test.nl, ahmed@test.nl, lisa@test.nl / password123');
+  console.log('   Buyer: james@test.nl / password123');
   console.log('🍽️  Created 15 dishes with multiple images across different categories');
+  console.log('   - Maria (Spanish): 5 dishes with 2-3 images each');
+  console.log('   - Ahmed (Middle Eastern): 5 dishes with 2-3 images each');
+  console.log('   - Lisa (Asian): 5 dishes with 1-3 images each');
 }
 
 main()
