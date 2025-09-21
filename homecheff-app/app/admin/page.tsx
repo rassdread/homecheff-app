@@ -28,12 +28,15 @@ export default async function AdminPage() {
     totalUsers,
     totalProducts,
     totalOrders,
+    totalDeliveryProfiles,
     recentUsers,
-    recentProducts
+    recentProducts,
+    deliveryProfiles
   ] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
     prisma.transaction.count(),
+    prisma.deliveryProfile.count(),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -64,6 +67,28 @@ export default async function AdminPage() {
           }
         }
       }
+    }),
+    prisma.deliveryProfile.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            profileImage: true
+          }
+        },
+        deliveryOrders: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            deliveryFee: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
     })
   ]);
 
@@ -73,8 +98,10 @@ export default async function AdminPage() {
         totalUsers,
         totalProducts,
         totalOrders,
+        totalDeliveryProfiles,
         recentUsers,
-        recentProducts
+        recentProducts,
+        deliveryProfiles
       }}
     />
   );

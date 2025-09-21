@@ -1,8 +1,9 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
-import { Search, MapPin, Filter, Heart, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro } from "lucide-react";
+import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro } from "lucide-react";
 import Link from "next/link";
+import FavoriteButton from "@/components/favorite/FavoriteButton";
 
 const CATEGORIES = {
   CHEFF: {
@@ -45,7 +46,15 @@ type HomeItem = {
   createdAt: string | Date;
   category?: string;
   subcategory?: string;
-  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null; buyerTypes?: string[] } | null;
+  favoriteCount?: number;
+  seller?: { 
+    id?: string | null; 
+    name?: string | null; 
+    username?: string | null; 
+    avatar?: string | null; 
+    buyerTypes?: string[];
+    followerCount?: number;
+  } | null;
 };
 
 export default function HomePage() {
@@ -156,15 +165,28 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-neutral-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-green-600 via-green-700 to-green-800 py-12 md:py-24">
+      <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-12 md:py-24">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
-              {username ? `Welkom, ${username}! 👋` : "Welkom bij HomeCheff! 👋"}
+              {username ? (
+                <span>
+                  Welkom terug,{' '}
+                  <Link 
+                    href="/profile" 
+                    className="text-white hover:text-primary-100 transition-colors underline decoration-2 underline-offset-4 hover:decoration-primary-200"
+                  >
+                    {username}
+                  </Link>
+                  !
+                </span>
+              ) : (
+                'Ontdek Lokale Delicatessen'
+              )}
           </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-green-100 mb-6 md:mb-8 max-w-3xl mx-auto px-4">
-              Ontdek lokale gerechten, verse producten en unieke creaties van mensen in jouw buurt
+            <p className="text-lg sm:text-xl md:text-2xl text-primary-100 mb-6 md:mb-8 max-w-3xl mx-auto px-4">
+              Vind verse producten, heerlijke gerechten en unieke creaties van lokale makers in jouw buurt
             </p>
           </div>
 
@@ -177,17 +199,17 @@ export default function HomePage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 text-base md:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                    placeholder="Zoek naar gerechten, producten..."
+                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 text-base md:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                    placeholder="Zoek naar producten, gerechten of makers..."
                   />
                 </div>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-secondary-brand hover:bg-secondary-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <Filter className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="font-medium text-sm md:text-base">
-                    {showFilters ? 'Filters toepassen' : 'Filters'}
+                    {showFilters ? 'Filters wissen' : 'Filters'}
                   </span>
                 </button>
               </div>
@@ -268,7 +290,7 @@ export default function HomePage() {
                                   setPriceRange(prev => ({ ...prev, min: newMin }));
                                 }
                               }}
-                              className="w-full accent-green-600"
+                              className="w-full accent-primary-brand"
                             />
                             <span className="text-xs text-gray-500">€{priceRange.min}</span>
                           </div>
@@ -286,7 +308,7 @@ export default function HomePage() {
                                   setPriceRange(prev => ({ ...prev, max: newMax }));
                                 }
                               }}
-                              className="w-full accent-green-600"
+                              className="w-full accent-primary-brand"
                             />
                             <span className="text-xs text-gray-500">€{priceRange.max}</span>
                           </div>
@@ -316,7 +338,7 @@ export default function HomePage() {
                   max={50}
                   value={radius}
                   onChange={(e) => setRadius(Number(e.target.value))}
-                          className="w-full accent-green-600"
+                          className="w-full accent-primary-brand"
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>1 km</span>
@@ -382,7 +404,7 @@ export default function HomePage() {
                           setRadius(10);
                           setSortBy("newest");
                         }}
-                        className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition-colors"
+                        className="px-4 py-2 text-sm text-secondary-brand hover:text-secondary-700 hover:bg-secondary-50 rounded-lg transition-all duration-200 font-medium"
                       >
                         Alle filters resetten
               </button>
@@ -410,7 +432,7 @@ export default function HomePage() {
             {username ? (
               <Link 
                 href="/profile" 
-                className="flex items-center gap-2 px-4 py-2 text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-primary-brand hover:text-primary-700 font-medium transition-colors bg-primary-50 hover:bg-primary-100 rounded-lg"
               >
                 <span>Mijn profiel</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,7 +442,7 @@ export default function HomePage() {
             ) : (
               <Link 
                 href="/login" 
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary-brand text-white rounded-xl hover:bg-primary-700 font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <span>Inloggen</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -465,7 +487,7 @@ export default function HomePage() {
                   setSortBy("newest");
                   setShowFilters(false);
                 }}
-                className="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+                className="px-6 py-3 bg-primary-brand text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
               >
                 Reset filters
               </button>
@@ -506,11 +528,11 @@ export default function HomePage() {
                     {/* Category Badge */}
                     {item.category && (
                       <div className="absolute top-4 left-4">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                          item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800' :
-                          item.category === 'GROWN' ? 'bg-success-100 text-success-800' :
-                          item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800' :
-                          'bg-neutral-100 text-neutral-800'
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                          item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
+                          item.category === 'GROWN' ? 'bg-primary-100 text-primary-800 border border-primary-200' :
+                          item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800 border border-secondary-200' :
+                          'bg-neutral-100 text-neutral-800 border border-neutral-200'
                         }`}>
                           {item.category === 'CHEFF' ? '🍳 Chef' :
                            item.category === 'GROWN' ? '🌱 Garden' :
@@ -519,21 +541,18 @@ export default function HomePage() {
                       </div>
                     )}
 
-                    {/* Heart Button */}
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // TODO: Implement favorite functionality
-                      }}
-                      className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                    >
-                      <Heart className="w-5 h-5 text-neutral-600 hover:text-error-500" />
-                    </button>
+                    {/* Favorite Button */}
+                    <div className="absolute top-4 right-4">
+                      <FavoriteButton 
+                        productId={item.id}
+                        productTitle={item.title}
+                        size="lg"
+                      />
+                    </div>
 
                     {/* Price */}
                     <div className="absolute bottom-4 left-4">
-                      <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-lg font-bold">
+                      <span className="bg-primary-brand text-white px-3 py-1 rounded-full text-lg font-bold shadow-lg">
                         €{(item.priceCents / 100).toFixed(2)}
                       </span>
                     </div>
@@ -558,7 +577,7 @@ export default function HomePage() {
                     </div>
                     
                     {item.subcategory && (
-                      <p className="text-sm text-primary-600 font-medium mb-2">{item.subcategory}</p>
+                      <p className="text-sm text-primary-brand font-medium mb-2">{item.subcategory}</p>
                     )}
                     
                     <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
@@ -581,12 +600,30 @@ export default function HomePage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-neutral-900 truncate">
-                          {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
-                        </p>
-                        <div className="flex items-center gap-1 text-xs text-neutral-500 mb-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
+                        <div className="flex items-center gap-2">
+                          <Link 
+                            href={`/profile/${item.seller?.id}`}
+                            className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
+                          >
+                            {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
+                          </Link>
+                          {item.seller?.followerCount && item.seller?.followerCount > 0 && (
+                            <span className="text-xs text-neutral-500">
+                              ({item.seller?.followerCount} fans)
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-neutral-500 mb-1">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
+                          </div>
+                          {item.favoriteCount && item.favoriteCount > 0 && (
+                            <div className="flex items-center gap-1">
+                              <span>❤️</span>
+                              <span>{item.favoriteCount}</span>
+                            </div>
+                          )}
                         </div>
                         {/* Buyer Types */}
                         {item.seller?.buyerTypes && item.seller.buyerTypes.length > 0 && (
@@ -628,6 +665,67 @@ export default function HomePage() {
           </div>
         )}
         </div>
+
+        {/* Delivery Signup CTA */}
+        <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <div className="bg-primary-brand/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Package className="w-8 h-8 text-primary-brand" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                Word Jongeren Bezorger
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Verdien geld door bestellingen te bezorgen in je buurt. 
+                Vanaf 15 jaar en perfect voor jongerenwerk.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="bg-green-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                  <Euro className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">Verdien Geld</h3>
+                <p className="text-gray-600 text-sm">
+                  €2-5 per bezorging direct op je rekening
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">Flexibel Werken</h3>
+                <p className="text-gray-600 text-sm">
+                  Kies zelf wanneer je beschikbaar bent
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="bg-purple-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                  <MapPin className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">In Je Buurt</h3>
+                <p className="text-gray-600 text-sm">
+                  Alleen bestellingen binnen 3km van je locatie
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Link href="/delivery/signup">
+                <button className="bg-primary-brand text-white hover:bg-primary-700 px-6 py-3 rounded-xl font-medium text-base transition-all duration-200 shadow-md hover:shadow-lg">
+                  Meld Je Aan als Bezorger
+                </button>
+              </Link>
+              <p className="text-gray-500 text-sm mt-3">
+                Vanaf 15 jaar • Wettelijk toegestaan • Veilig en betrouwbaar
+              </p>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
   );

@@ -223,7 +223,7 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.followers}
                   </div>
-                  <div className="text-xs text-gray-500">Fan</div>
+                  <div className="text-xs text-gray-500">Volgers</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
@@ -233,15 +233,23 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                 </div>
               </div>
 
-              {/* Interests */}
+              {/* Interests - Enhanced */}
               {user.interests && user.interests.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Interesses</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-success-500 rounded-full"></span>
+                      Interesses
+                    </h3>
+                    <span className="text-xs text-success-600 font-medium bg-success-50 px-2 py-1 rounded-full">
+                      {user.interests.length} items
+                    </span>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {user.interests.map((interest, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full"
+                        className="px-3 py-1 bg-gradient-to-r from-success-100 to-success-50 text-success-800 text-xs rounded-full font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 border border-success-200"
                       >
                         {interest}
                       </span>
@@ -250,56 +258,143 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                 </div>
               )}
 
-              {/* Active Seller Roles */}
+              {/* Active Seller Roles - Enhanced */}
               {user.sellerRoles && user.sellerRoles.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Mijn verkopersrollen</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-primary-brand rounded-full"></span>
+                      Mijn Verkopersrollen
+                    </h3>
+                    <span className="text-xs text-primary-brand font-medium bg-primary-50 px-2 py-1 rounded-full">
+                      {user.sellerRoles.length} actief
+                    </span>
+                  </div>
+                  <div className="space-y-3">
                     {user.sellerRoles.map((role, index) => {
                       const roleInfo = {
-                        chef: { icon: "👨‍🍳", label: "Chef" },
-                        garden: { icon: "🌱", label: "Garden" },
-                        designer: { icon: "🎨", label: "Designer" }
+                        chef: { 
+                          icon: "👨‍🍳", 
+                          label: "Chef", 
+                          title: "Culinaire Meester",
+                          description: "Creëert heerlijke gerechten en culinaire ervaringen",
+                          color: "from-warning-500 to-warning-600",
+                          bgColor: "bg-warning-50",
+                          textColor: "text-warning-800",
+                          borderColor: "border-warning-200"
+                        },
+                        garden: { 
+                          icon: "🌱", 
+                          label: "Garden", 
+                          title: "Groene Duim Expert",
+                          description: "Teelt verse groenten, fruit en kruiden",
+                          color: "from-primary-brand to-primary-700",
+                          bgColor: "bg-primary-50",
+                          textColor: "text-primary-800",
+                          borderColor: "border-primary-200"
+                        },
+                        designer: { 
+                          icon: "🎨", 
+                          label: "Designer", 
+                          title: "Creatief Talent",
+                          description: "Maakt unieke handgemaakte items en kunst",
+                          color: "from-secondary-brand to-secondary-700",
+                          bgColor: "bg-secondary-50",
+                          textColor: "text-secondary-800",
+                          borderColor: "border-secondary-200"
+                        }
                       }[role];
                       
                       return (
-                        <span
+                        <div
                           key={index}
-                          className="px-3 py-2 bg-green-100 text-green-800 text-xs rounded-full flex items-center gap-1"
+                          className={`relative overflow-hidden rounded-xl border-2 ${roleInfo?.borderColor} ${roleInfo?.bgColor} p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02]`}
                         >
-                          <span>{roleInfo?.icon}</span>
-                          <span>{roleInfo?.label}</span>
-                        </span>
+                          {/* Gradient overlay */}
+                          <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${roleInfo?.color}`}></div>
+                          
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${roleInfo?.color} flex items-center justify-center text-white text-xl shadow-lg`}>
+                                {roleInfo?.icon}
+                              </div>
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className={`font-bold ${roleInfo?.textColor} text-sm`}>
+                                  {roleInfo?.title}
+                                </h4>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo?.bgColor} ${roleInfo?.textColor} border ${roleInfo?.borderColor}`}>
+                                  {roleInfo?.label}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 leading-relaxed">
+                                {roleInfo?.description}
+                              </p>
+                            </div>
+                            
+                            {/* Status indicator */}
+                            <div className="flex-shrink-0">
+                              <div className="w-3 h-3 bg-success-500 rounded-full animate-pulse shadow-lg"></div>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
+                  </div>
+                  
+                  {/* Call to action for more roles */}
+                  <div className="mt-4 p-3 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl border border-primary-200">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 mb-2">Wil je meer verkopersrollen toevoegen?</p>
+                      <Link 
+                        href="/profile" 
+                        onClick={() => setShowSettings(true)}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary-brand hover:text-primary-700 transition-colors"
+                      >
+                        <span>Bewerk profiel</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Active Buyer Roles */}
+              {/* Active Buyer Roles - Enhanced */}
               {user.buyerRoles && user.buyerRoles.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Mijn koperrollen</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-secondary-brand rounded-full"></span>
+                      Mijn Koperrollen
+                    </h3>
+                    <span className="text-xs text-secondary-brand font-medium bg-secondary-50 px-2 py-1 rounded-full">
+                      {user.buyerRoles.length} actief
+                    </span>
+                  </div>
+                  <div className="space-y-2">
                     {user.buyerRoles.map((role, index) => {
                       const roleInfo = {
-                        ontdekker: { icon: "🔍", label: "Ontdekker" },
-                        verzamelaar: { icon: "📦", label: "Verzamelaar" },
-                        liefhebber: { icon: "❤️", label: "Liefhebber" },
-                        avonturier: { icon: "🗺️", label: "Avonturier" },
-                        fijnproever: { icon: "👅", label: "Fijnproever" },
-                        connaisseur: { icon: "🎭", label: "Connaisseur" },
-                        genieter: { icon: "✨", label: "Genieter" }
+                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800" },
+                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800" },
+                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800" },
+                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800" },
+                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800" },
+                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800" },
+                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800" }
                       }[role];
                       
                       return (
-                        <span
+                        <div
                           key={index}
-                          className="px-3 py-2 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center gap-1"
+                          className={`inline-flex items-center gap-2 px-3 py-2 ${roleInfo?.color} rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
                         >
-                          <span>{roleInfo?.icon}</span>
+                          <span className="text-sm">{roleInfo?.icon}</span>
                           <span>{roleInfo?.label}</span>
-                        </span>
+                        </div>
                       );
                     })}
                   </div>
@@ -385,10 +480,10 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                           activeTab === tab.id
-                            ? 'border-emerald-500 text-emerald-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-brand text-primary-brand bg-primary-50'
+                            : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-primary-200 hover:bg-primary-25'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -413,19 +508,19 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                             placeholder="Zoeken..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
                           />
                         </div>
                         <div className="flex border border-gray-300 rounded-lg">
                           <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2 ${viewMode === 'grid' ? 'bg-emerald-100 text-emerald-600' : 'text-gray-400'}`}
+                            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-primary-100 text-primary-brand' : 'text-gray-400 hover:text-primary-brand'}`}
                           >
                             <Grid className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2 ${viewMode === 'list' ? 'bg-emerald-100 text-emerald-600' : 'text-gray-400'}`}
+                            className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-primary-100 text-primary-brand' : 'text-gray-400 hover:text-primary-brand'}`}
                           >
                             <List className="w-4 h-4" />
                           </button>
@@ -435,39 +530,48 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Link href="/verkoper/product-nieuw" className="block">
-                        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-6 text-white hover:from-emerald-600 hover:to-emerald-700 transition-colors cursor-pointer">
+                      <Link href="/sell/new" className="block group">
+                        <div className="bg-gradient-to-br from-primary-brand via-primary-600 to-primary-700 rounded-xl p-6 text-white hover:from-primary-600 hover:to-primary-800 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-emerald-100 text-sm">Totaal Items</p>
+                              <p className="text-primary-100 text-sm font-medium">Totaal Items</p>
                               <p className="text-3xl font-bold">
                                 {loadingStats ? '...' : stats.items}
                               </p>
+                              <p className="text-primary-200 text-xs mt-1">Klik om toe te voegen</p>
                             </div>
-                            <Plus className="w-8 h-8 text-emerald-200" />
+                            <div className="bg-white/20 rounded-full p-3 group-hover:bg-white/30 transition-colors">
+                              <Plus className="w-8 h-8 text-white" />
+                            </div>
                           </div>
                         </div>
                       </Link>
-                      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-secondary-brand via-secondary-600 to-secondary-700 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-blue-100 text-sm">Favorieten</p>
+                            <p className="text-secondary-100 text-sm font-medium">Favorieten</p>
                             <p className="text-3xl font-bold">
                               {loadingStats ? '...' : stats.favorites}
                             </p>
+                            <p className="text-secondary-200 text-xs mt-1">Opgeslagen items</p>
                           </div>
-                          <Heart className="w-8 h-8 text-blue-200" />
+                          <div className="bg-white/20 rounded-full p-3">
+                            <Heart className="w-8 h-8 text-white" />
+                          </div>
                         </div>
                       </div>
-                      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-warning-500 via-warning-600 to-warning-700 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-purple-100 text-sm">Bestellingen</p>
+                            <p className="text-warning-100 text-sm font-medium">Bestellingen</p>
                             <p className="text-3xl font-bold">
                               {loadingStats ? '...' : stats.orders}
                             </p>
+                            <p className="text-warning-200 text-xs mt-1">Totaal aankopen</p>
                           </div>
-                          <ShoppingBag className="w-8 h-8 text-purple-200" />
+                          <div className="bg-white/20 rounded-full p-3">
+                            <ShoppingBag className="w-8 h-8 text-white" />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -540,7 +644,7 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Volgend</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Fan</h2>
                         <p className="text-sm text-gray-500">Verkopers die je volgt</p>
                       </div>
                     </div>
@@ -564,7 +668,7 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
               {/* Header */}
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
-                  <Settings className="w-6 h-6 text-emerald-600" />
+                  <Settings className="w-6 h-6 text-primary-brand" />
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Instellingen</h2>
                 </div>
                 <button
@@ -590,10 +694,10 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
                       <button
                         key={tab.id}
                         onClick={() => setSettingsSection(tab.id)}
-                        className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm ${
+                        className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
                           settingsSection === tab.id
-                            ? 'border-emerald-500 text-emerald-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-primary-brand text-primary-brand bg-primary-50'
+                            : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-primary-200'
                         }`}
                       >
                         <Icon className="w-4 h-4" />

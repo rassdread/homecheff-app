@@ -429,3 +429,8 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
   );
 }
 
+
+
+
+
+

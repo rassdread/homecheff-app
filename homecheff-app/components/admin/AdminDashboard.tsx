@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
 import NotificationCenter from './NotificationCenter';
+import DeliveryManagement from './DeliveryManagement';
 
 interface AdminStats {
   totalUsers: number;
   totalProducts: number;
   totalOrders: number;
+  totalDeliveryProfiles: number;
   recentUsers: Array<{
     id: string;
     name: string | null;
@@ -35,6 +37,35 @@ interface AdminStats {
       };
     };
   }>;
+  deliveryProfiles: Array<{
+    id: string;
+    userId: string;
+    age: number;
+    transportation: string[];
+    maxDistance: number;
+    availableDays: string[];
+    availableTimeSlots: string[];
+    isActive: boolean;
+    completedDeliveries: number;
+    rating: number;
+    totalEarnings: number;
+    bio: string | null;
+    profileImage: string | null;
+    createdAt: Date;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      image: string | null;
+      profileImage: string | null;
+    };
+    deliveryOrders: Array<{
+      id: string;
+      status: string;
+      createdAt: Date;
+      deliveryFee: number;
+    }>;
+  }>;
 }
 
 interface AdminDashboardProps {
@@ -49,6 +80,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     { id: 'users', label: 'Gebruikers', icon: Users },
     { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
+    { id: 'delivery', label: 'Bezorgers', icon: Truck },
     { id: 'notifications', label: 'Berichten', icon: MessageSquare },
   ];
 
@@ -99,7 +131,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -132,6 +164,18 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Totaal Bestellingen</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <div className="flex items-center">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Truck className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Actieve Bezorgers</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalDeliveryProfiles}</p>
                   </div>
                 </div>
               </div>
@@ -214,6 +258,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'users' && <UserManagement />}
         {activeTab === 'sellers' && <SellerManagement />}
         {activeTab === 'products' && <ProductManagement />}
+        {activeTab === 'delivery' && <DeliveryManagement deliveryProfiles={stats.deliveryProfiles} />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>

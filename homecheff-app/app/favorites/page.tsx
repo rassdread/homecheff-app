@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
+import Link from "next/link";
 
 async function fetchFavorites() {
   const res = await fetch("/api/favorites", { cache: "no-store" });
@@ -90,7 +91,12 @@ export default function FavoritesPage() {
           <ul className="space-y-2">
             {data.favoriteSellers.map((s: any) => (
               <li key={s.id}>
-                {s.name}
+                <Link 
+                  href={`/seller/${s.id}`}
+                  className="hover:text-primary-600 transition-colors"
+                >
+                  {s.name}
+                </Link>
                 <button className="ml-2 px-2 py-1 rounded text-white" style={{ background: "var(--secondary)" }} onClick={() => handleShare(`http://localhost:3000/seller-profile/${s.id}`)}>
                   Delen
                 </button>

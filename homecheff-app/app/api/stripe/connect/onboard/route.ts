@@ -10,56 +10,93 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Haal user op
+    // Get user with seller profile
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email! }
+      where: { email: session.user.email },
+      include: { SellerProfile: true }
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Als user al een Stripe Connect account heeft, geef de bestaande link terug
+    if (user.role !== 'SELLER') {
+      return NextResponse.json({ error: 'Only sellers can set up Stripe Connect' }, { status: 403 });
+    }
+
+    // Check if user already has a Stripe Connect account
     if (user.stripeConnectAccountId && user.stripeConnectOnboardingCompleted) {
-      return NextResponse.json({
-        success: true,
-        message: 'Stripe Connect account al ingesteld',
-        accountId: user.stripeConnectAccountId
-      });
+      return NextResponse.json({ 
+        error: 'Stripe Connect already set up',
+        accountId: user.stripeConnectAccountId 
+      }, { status: 400 });
     }
 
     let accountId = user.stripeConnectAccountId;
 
-    // Maak nieuw Stripe Connect account als er nog geen is
+    // Create Stripe Connect account if not exists
     if (!accountId) {
-      const account = await createConnectAccount(user.email!);
+      const account = await createConnectAccount(user.email, 'NL', 'express');
       accountId = account.id;
 
-      // Sla account ID op in database
+      // Save account ID to user
       await prisma.user.update({
         where: { id: user.id },
         data: { stripeConnectAccountId: accountId }
       });
     }
 
-    // Maak onboarding link
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const accountLink = await createAccountLink(
-      accountId,
-      `${baseUrl}/profile?stripe_refresh=true`,
-      `${baseUrl}/profile?stripe_success=true`
-    );
+    // Create account link for onboarding
+    const refreshUrl = `${req.nextUrl.origin}/seller/stripe/refresh`;
+    const returnUrl = `${req.nextUrl.origin}/seller/stripe/success`;
+
+    const accountLink = await createAccountLink(accountId, refreshUrl, returnUrl);
 
     return NextResponse.json({
-      success: true,
-      onboardingUrl: accountLink.url,
-      accountId: accountId
+      url: accountLink.url,
+      accountId,
+      expiresAt: accountLink.expires_at
     });
 
   } catch (error) {
     console.error('Stripe Connect onboarding error:', error);
     return NextResponse.json(
-      { error: 'Failed to create Stripe Connect account' },
+      { error: 'Failed to create Stripe Connect onboarding' },
+      { status: 500 }
+    );
+  }
+}
+
+// Check onboarding status
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: {
+        stripeConnectAccountId: true,
+        stripeConnectOnboardingCompleted: true
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      hasAccount: !!user.stripeConnectAccountId,
+      isCompleted: user.stripeConnectOnboardingCompleted,
+      accountId: user.stripeConnectAccountId
+    });
+
+  } catch (error) {
+    console.error('Stripe Connect status error:', error);
+    return NextResponse.json(
+      { error: 'Failed to check Stripe Connect status' },
       { status: 500 }
     );
   }

@@ -1,35 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, createConnectPaymentIntent, calculatePayout } from '@/lib/stripe';
 import { formatAmountForStripe } from '@/lib/stripe';
-import { calculateFee, PRICING_TIERS, type PricingTier } from '@/lib/pricing';
+// Removed pricing import - fees are now calculated differently
 import { PrismaClient } from '@prisma/client';
+import { auth } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
     const { 
-      productId, 
-      productTitle, 
-      priceCents, 
-      quantity, 
+      items,
       deliveryMode, 
       address, 
-      message,
-      sellerEmail,
-      buyerId 
+      notes,
+      pickupDate,
+      deliveryDate,
+      deliveryTime
     } = await req.json();
 
-    if (!productId || !productTitle || !priceCents || !quantity || !buyerId) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'No items in cart' },
         { status: 400 }
       );
     }
 
-    // Haal seller en buyer info op
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
+    // Get session for buyer info
+    const session = await auth();
+    if (!session?.user || !(session.user as any).id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const buyerId = (session.user as any).id;
+
+    // Get all products from cart
+    const productIds = items.map((item: any) => item.productId);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
       include: { 
         seller: {
           include: {
@@ -47,110 +55,131 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    if (!product) {
+    if (products.length !== items.length) {
       return NextResponse.json(
-        { error: 'Product not found' },
+        { error: 'Some products not found' },
         { status: 404 }
       );
     }
 
-    const seller = product.seller.User;
-    const buyer = await prisma.user.findUnique({
-      where: { id: buyerId }
-    });
+    // Calculate total amount
+    const totalAmount = items.reduce((sum: number, item: any) => {
+      return sum + (item.priceCents * item.quantity);
+    }, 0);
 
-    if (!buyer) {
+    // Calculate fees - buyers only pay Stripe fee, sellers pay platform fee at payout
+    const stripeFeeCents = Math.round((totalAmount * 0.014) + 25); // 1.4% + €0.25
+    const totalWithStripeFee = totalAmount + stripeFeeCents;
+
+    // Check if all sellers have Stripe Connect accounts
+    const sellersWithoutConnect = products.filter(product => 
+      !product.seller.User.stripeConnectAccountId
+    );
+
+    if (sellersWithoutConnect.length > 0) {
       return NextResponse.json(
-        { error: 'Buyer not found' },
-        { status: 404 }
-      );
-    }
-
-    // Bepaal pricing tier op basis van seller type
-    const isBusiness = product.seller.kvk && product.seller.kvk.length > 0;
-    const pricingTier: PricingTier = isBusiness ? 'BUSINESS_BASIC' : 'INDIVIDUAL';
-    const pricing = PRICING_TIERS[pricingTier];
-
-    // Bereken fees volgens HomeCheff verdienmodel
-    const totalAmount = priceCents * quantity;
-    const feeCents = calculateFee(totalAmount, pricingTier);
-    const netAmountCents = totalAmount - feeCents;
-
-    // Controleer of seller Stripe Connect account heeft
-    if (!seller.stripeConnectAccountId) {
-      return NextResponse.json(
-        { error: 'Seller moet eerst Stripe Connect account opzetten' },
+        { error: 'Some sellers need to set up Stripe Connect first' },
         { status: 400 }
       );
     }
 
-    // Valideer individuele gebruiker limiet
-    if (pricingTier === 'INDIVIDUAL') {
-      const currentYearlyRevenue = 0; // Default to 0 for now
-      if (currentYearlyRevenue + totalAmount > pricing.maxRevenue! * 100) {
-        return NextResponse.json(
-          { error: `Individuele gebruikers mogen maximaal €${pricing.maxRevenue} per jaar verdienen. Huidige omzet: €${(currentYearlyRevenue / 100).toFixed(2)}` },
-          { status: 400 }
-        );
-      }
-    }
+    const formattedAmount = formatAmountForStripe(totalWithStripeFee / 100); // Convert to euros first
 
-    const formattedAmount = formatAmountForStripe(totalAmount / 100); // Convert to euros first
-
-    // Create Stripe checkout session with Connect
+    // Create Stripe checkout session
     if (!stripe) {
       // Return mock session for development
       return NextResponse.json({
         sessionId: `cs_test_${Date.now()}`,
-        url: `/checkout/success?session_id=cs_test_${Date.now()}`
+        url: `/payment/success?session_id=cs_test_${Date.now()}`
       });
     }
     
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: productTitle,
-              description: `Aantal: ${quantity}${deliveryMode === 'pickup' ? ' (Afhalen)' : ' (Bezorgen)'}`,
-            },
-            unit_amount: formattedAmount,
+    // Create line items for each product
+    const lineItems = items.map((item: any) => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.title,
+            description: `Quantity: ${item.quantity}${deliveryMode === 'PICKUP' ? ' (Pickup)' : ' (Delivery)'} - Sold by ${item.sellerName}`,
           },
-          quantity: 1,
+          unit_amount: Math.round(item.priceCents / item.quantity), // Price per unit
         },
-      ],
+        quantity: item.quantity,
+      };
+    });
+
+    const checkoutSession = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: lineItems,
       mode: 'payment',
-      success_url: `${req.nextUrl.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.nextUrl.origin}/product/${productId}`,
-      // Stripe Connect settings
-      payment_intent_data: {
-        application_fee_amount: feeCents,
-        transfer_data: {
-          destination: seller.stripeConnectAccountId!,
-        },
-      },
+      success_url: `${req.nextUrl.origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.nextUrl.origin}/checkout`,
       metadata: {
-        productId,
-        quantity: quantity.toString(),
-        deliveryMode,
-        address,
-        message: message || '',
-        sellerEmail: sellerEmail || '',
         buyerId,
-        sellerId: seller.id,
-        pricingTier,
-        feeCents: feeCents.toString(),
-        netAmountCents: netAmountCents.toString(),
+        items: JSON.stringify(items),
+        deliveryMode,
+        address: address || '',
+        notes: notes || '',
+        pickupDate: pickupDate || '',
+        deliveryDate: deliveryDate || '',
+        deliveryTime: deliveryTime || '',
+        totalAmount: totalAmount.toString(),
+        stripeFeeCents: stripeFeeCents.toString(),
+        totalWithStripeFee: totalWithStripeFee.toString(),
       },
     });
 
-    // Maak transactie record aan (vereist een reservation)
-    // Voor nu slaan we dit over omdat we geen reservation hebben
-    // In een echte app zou je eerst een reservation moeten maken
+    // If teen delivery is selected, create delivery order after payment
+    if (deliveryMode === 'TEEN_DELIVERY') {
+      try {
+        // Create order first to get orderId
+        const order = await prisma.order.create({
+          data: {
+            userId: buyerId,
+            totalAmount: totalWithStripeFee,
+            deliveryAddress: address,
+            deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+            deliveryMode: 'TEEN_DELIVERY',
+            notes: notes,
+            status: 'PENDING'
+          }
+        });
 
-    return NextResponse.json({ sessionId: session.id });
+        // Create order items
+        await Promise.all(items.map((item: any) => 
+          prisma.orderItem.create({
+            data: {
+              orderId: order.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              priceCents: item.priceCents
+            }
+          })
+        ));
+
+        // Create delivery order
+        await fetch(`${req.nextUrl.origin}/api/delivery/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: order.id,
+            deliveryMode: 'TEEN_DELIVERY',
+            address: address,
+            coordinates: null // TODO: Add geocoding
+          })
+        });
+      } catch (error) {
+        console.error('Error creating delivery order:', error);
+        // Continue with checkout even if delivery order creation fails
+      }
+    }
+
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url
+    });
   } catch (error) {
     console.error('Error creating checkout session:', error);
     return NextResponse.json(

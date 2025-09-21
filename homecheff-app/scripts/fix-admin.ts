@@ -9,7 +9,7 @@ async function fixAdmin() {
   try {
     // Delete existing admin if exists
     await prisma.user.deleteMany({
-      where: { email: 'admin@homecheff.nl' }
+      where: { email: 'admin@homecheff.eu' }
     });
     console.log('🗑️  Removed existing admin user');
 
@@ -18,7 +18,7 @@ async function fixAdmin() {
     
     const admin = await prisma.user.create({
       data: {
-        email: 'admin@homecheff.nl',
+        email: 'admin@homecheff.eu',
         name: 'Admin User',
         username: 'admin',
         passwordHash: hashedPassword,
@@ -29,14 +29,14 @@ async function fixAdmin() {
     });
 
     console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@homecheff.nl');
+    console.log('📧 Email: admin@homecheff.eu');
     console.log('🔑 Password: admin123');
     console.log('🔐 Role: ADMIN');
     console.log('✅ Email verified: true');
     
     // Verify the user was created correctly
     const verifyAdmin = await prisma.user.findUnique({
-      where: { email: 'admin@homecheff.nl' },
+      where: { email: 'admin@homecheff.eu' },
       select: {
         id: true,
         email: true,
@@ -65,4 +65,7 @@ async function fixAdmin() {
 }
 
 fixAdmin();
+
+
+
 

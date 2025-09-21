@@ -126,7 +126,7 @@ interface MyDishesManagerProps {
 export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Dish[]>([]);
-  const [activeTab, setActiveTab] = useState<'dishes' | 'products'>('dishes');
+  const [activeTab, setActiveTab] = useState<'dishes' | 'products'>('products');
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -381,24 +381,24 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             <button
-              onClick={() => setActiveTab('dishes')}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'dishes'
-                  ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <span>Dishes</span>
-            </button>
-            <button
               onClick={() => setActiveTab('products')}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'products'
-                  ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-brand text-primary-brand'
+                  : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
               }`}
             >
-              <span>Producten</span>
+              <span>Live</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('dishes')}
+              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'dishes'
+                  ? 'border-primary-brand text-primary-brand'
+                  : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
+              }`}
+            >
+              <span>Geschiedenis</span>
             </button>
           </nav>
         </div>

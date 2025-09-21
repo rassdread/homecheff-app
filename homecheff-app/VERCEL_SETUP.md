@@ -7,7 +7,7 @@ Configure these in your Vercel dashboard under Settings > Environment Variables:
 ### Required Variables:
 ```
 DATABASE_URL=postgresql://username:password@host:port/database
-NEXTAUTH_URL=https://your-app.vercel.app
+NEXTAUTH_URL=https://homecheff.eu
 NEXTAUTH_SECRET=your-secret-key-here
 ```
 

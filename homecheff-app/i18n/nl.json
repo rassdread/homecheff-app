@@ -1,4 +1,60 @@
 {
+  "navigation": {
+    "home": "Home",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "profile": "Profiel",
+    "orders": "Bestellingen",
+    "dashboard": "Dashboard",
+    "cart": "Winkelwagen",
+    "logout": "Uitloggen",
+    "settings": "Instellingen",
+    "help": "Help"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "register": "Registreren",
+    "email": "Email adres",
+    "username": "Gebruikersnaam",
+    "emailOrUsername": "Email of Gebruikersnaam",
+    "password": "Wachtwoord",
+    "rememberMe": "Onthoud mij",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "noAccount": "Nog geen account?",
+    "hasAccount": "Al een account?",
+    "loginMethod": "Inlogmethode",
+    "loginWithEmail": "Inloggen met email",
+    "loginWithUsername": "Inloggen met gebruikersnaam"
+  },
+  "cart": {
+    "title": "Winkelwagen",
+    "empty": "Je winkelwagen is leeg",
+    "emptyDescription": "Ontdek heerlijke lokale producten en voeg ze toe aan je winkelwagen",
+    "continueShopping": "Verder winkelen",
+    "checkout": "Naar checkout",
+    "subtotal": "Subtotaal",
+    "stripeFee": "Stripe fee",
+    "total": "Totaal",
+    "quantity": "Aantal",
+    "remove": "Verwijderen",
+    "sellerInfo": "Verkopers informatie",
+    "sellerInfoText": "Verkopers betalen een kleine platform fee bij uitbetaling. Houd hier rekening mee bij het instellen van je verkoopprijzen."
+  },
+  "hero": {
+    "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
+    "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
+    "greeting": "Welkom, {username}! Wat zal het vandaag worden?",
+    "searchPlaceholder": "Zoek naar gerechten, producten of verkopers…",
+    "filters": "Filters",
+    "resetFilters": "Filters resetten",
+    "myProfile": "Mijn profiel"
+  },
+  "categories": {
+    "chef": "Chef",
+    "garden": "Garden", 
+    "designer": "Designer",
+    "all": "Alles"
+  },
   "messages": {
     "uploadNoUrl": "Kon upload-URL niet krijgen",
     "uploadFailed": "Upload mislukt",
@@ -17,7 +73,7 @@
     "title": "Titel",
     "price": "Prijs (€)",
     "group": "Groep",
-    "photos": "Foto’s (max 5)"
+    "photos": "Foto's (max 5)"
   },
   "filters": {
     "radius": "Radius",
@@ -31,9 +87,12 @@
       "designer": "Designer"
     }
   },
-  "hero": {
-    "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
-    "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
-    "greeting": "Welkom, {username}! Wat zal het vandaag worden?"
+  "follow": {
+    "followers": "Volgers",
+    "following": "Fan",
+    "follow": "Volgen",
+    "unfollow": "Fan",
+    "followButton": "Volgen",
+    "followingButton": "Fan"
   }
 }

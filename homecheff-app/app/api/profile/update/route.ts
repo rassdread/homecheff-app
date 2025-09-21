@@ -32,17 +32,16 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if username is already taken by another user
-    const existingUser = await prisma.user.findFirst({
-      where: { 
-        username,
-        NOT: { email: session.user.email }
-      }
+    // Get current user to check if username is being changed
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { username: true }
     });
 
-    if (existingUser) {
+    // Prevent username changes - username is immutable after registration
+    if (currentUser?.username && currentUser.username !== username) {
       return NextResponse.json({ 
-        error: 'Gebruikersnaam is al in gebruik' 
+        error: 'Gebruikersnaam kan niet worden gewijzigd na registratie' 
       }, { status: 400 });
     }
 

@@ -15,7 +15,7 @@ Dit privacy statement verklaart hoe wij uw persoonsgegevens verzamelen, gebruike
 KvK-nummer: [KvK-nummer]  
 BTW-nummer: [BTW-nummer]  
 Adres: [Bedrijfsadres]  
-E-mail: privacy@homecheff.nl  
+E-mail: privacy@homecheff.eu  
 Telefoon: [Telefoonnummer]
 
 ## 3. Welke persoonsgegevens verwerken wij?
@@ -230,3 +230,6 @@ Voor vragen over dit privacy statement of onze gegevensverwerking:
 ---
 
 *Dit privacy statement is opgesteld in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG) en de Nederlandse privacywetgeving.*
+
+
+

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, MoreHorizontal, Star, Clock, Truck, Package } from 'lucide-react';
+import { MoreHorizontal, Star, Clock, Truck, Package } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
+import FavoriteButton from '@/components/favorite/FavoriteButton';
 
 type HomeItem = {
   id: string;
@@ -13,7 +15,14 @@ type HomeItem = {
   createdAt: string;
   category?: string | null;
   subcategory?: string | null;
-  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null } | null;
+  favoriteCount?: number;
+  seller?: { 
+    id?: string | null; 
+    name?: string | null; 
+    username?: string | null; 
+    avatar?: string | null;
+    followerCount?: number;
+  } | null;
 };
 
 const CATEGORY_COLORS = {
@@ -83,17 +92,14 @@ export default function ItemCard({ item }: ItemCardProps) {
           </div>
         )}
         
-        {/* Props Button */}
-        <button
-          onClick={() => setHasProps(!hasProps)}
-          className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-        >
-          <Heart 
-            className={`w-4 h-4 transition-colors ${
-              hasProps ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'
-            }`} 
+        {/* Favorite Button */}
+        <div className="absolute top-3 right-3">
+          <FavoriteButton 
+            productId={item.id}
+            productTitle={item.title}
+            size="md"
           />
-        </button>
+        </div>
         
         {/* Price Tag */}
         {item.priceCents && (
@@ -145,14 +151,32 @@ export default function ItemCard({ item }: ItemCardProps) {
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-neutral-900">
-                {item.seller?.name || 'Onbekend'}
-              </p>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-neutral-500" />
-                <span className="text-xs text-neutral-500">
-                  {formatTimeAgo(item.createdAt)}
-                </span>
+              <div className="flex items-center gap-2">
+                <Link 
+                  href={`/seller/${item.seller?.id}`}
+                  className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors"
+                >
+                  {item.seller?.name || 'Onbekend'}
+                </Link>
+                {item.seller?.followerCount && item.seller.followerCount > 0 && (
+                  <span className="text-xs text-neutral-500">
+                    ({item.seller.followerCount})
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-neutral-500" />
+                  <span className="text-xs text-neutral-500">
+                    {formatTimeAgo(item.createdAt)}
+                  </span>
+                </div>
+                {item.favoriteCount && item.favoriteCount > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs">❤️</span>
+                    <span className="text-xs text-neutral-500">{item.favoriteCount}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

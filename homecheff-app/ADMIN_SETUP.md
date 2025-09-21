@@ -8,7 +8,7 @@
 cd C:\Users\Admin\homecheff-app
 
 # Maak admin account aan
-node scripts/create-admin.js admin@homecheff.nl jouw-wachtwoord123 "Admin User"
+node scripts/create-admin.js admin@homecheff.eu jouw-wachtwoord123 "Admin User"
 ```
 
 ### **Optie B: Via Database Direct**
@@ -18,7 +18,7 @@ node scripts/create-admin.js admin@homecheff.nl jouw-wachtwoord123 "Admin User"
 INSERT INTO "User" (id, email, "passwordHash", name, username, role, bio, interests, "createdAt", "updatedAt")
 VALUES (
   gen_random_uuid(),
-  'admin@homecheff.nl',
+  'admin@homecheff.eu',
   '$2b$12$YOUR_HASHED_PASSWORD', -- Gebruik bcrypt om je wachtwoord te hashen
   'Admin User',
   'admin',
@@ -32,9 +32,9 @@ VALUES (
 
 ## **Stap 2: Inloggen als Admin**
 
-1. Ga naar: `https://jouw-app.vercel.app/login`
+1. Ga naar: `https://homecheff.eu/login`
 2. Log in met je admin credentials
-3. Ga naar: `https://jouw-app.vercel.app/admin`
+3. Ga naar: `https://homecheff.eu/admin`
 
 ## **Stap 3: Admin Functies**
 
@@ -73,7 +73,7 @@ VALUES (
 Als je je wachtwoord vergeet:
 ```bash
 # Update admin wachtwoord
-node scripts/create-admin.js admin@homecheff.nl nieuw-wachtwoord123
+node scripts/create-admin.js admin@homecheff.eu nieuw-wachtwoord123
 ```
 
 ## **Troubleshooting**
@@ -108,6 +108,9 @@ Voor vragen over het admin systeem, controleer:
 2. User rol in database
 3. Session status
 4. Console errors in browser
+
+
+
 
 
 

@@ -30,7 +30,7 @@ export default function PrivacyPage() {
                 <p className="text-gray-700 mb-2">KvK-nummer: [KvK-nummer]</p>
                 <p className="text-gray-700 mb-2">BTW-nummer: [BTW-nummer]</p>
                 <p className="text-gray-700 mb-2">Adres: [Bedrijfsadres]</p>
-                <p className="text-gray-700 mb-2">E-mail: privacy@homecheff.nl</p>
+                <p className="text-gray-700 mb-2">E-mail: privacy@homecheff.eu</p>
                 <p className="text-gray-700">Telefoon: [Telefoonnummer]</p>
               </div>
             </section>
@@ -137,7 +137,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Uitoefening van uw rechten</h2>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-4">Voor het uitoefenen van uw rechten kunt u contact opnemen met:</p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.nl</p>
+                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.eu</p>
                 <p className="text-gray-700 mb-2"><strong>Post:</strong> HomeCheff B.V., [Adres], [Postcode] [Plaats]</p>
                 <p className="text-gray-700 mb-4">Wij reageren binnen 1 maand op uw verzoek. In complexe gevallen kan deze termijn met 2 maanden worden verlengd.</p>
               </div>
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
                 <p className="text-gray-700 mb-4">Voor vragen over dit privacy statement of onze gegevensverwerking:</p>
                 <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>
                 <p className="text-gray-700 mb-2"><strong>Privacy Officer</strong></p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.nl</p>
+                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.eu</p>
                 <p className="text-gray-700 mb-2"><strong>Telefoon:</strong> [Telefoonnummer]</p>
                 <p className="text-gray-700"><strong>Adres:</strong> [Bedrijfsadres]</p>
               </div>
@@ -188,3 +188,6 @@ export default function PrivacyPage() {
     </main>
   );
 }
+
+
+

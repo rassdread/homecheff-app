@@ -104,3 +104,6 @@ async function checkAllProducts() {
 }
 
 checkAllProducts();
+
+
+

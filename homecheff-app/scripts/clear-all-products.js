@@ -52,3 +52,6 @@ async function clearAllProducts() {
 }
 
 clearAllProducts();
+
+
+

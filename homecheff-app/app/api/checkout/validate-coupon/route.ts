@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     // 2) Fallback: losse Coupons (legacy) op basis van naam of id
     // (List is paginated; we halen max 100 op als simpele check.)
-    const coupons = await stripe.coupons.list({ limit: 100 });
+    const coupons = await stripe.coupons.list();
     const found = coupons.data.find(
       (c) =>
         c.valid &&

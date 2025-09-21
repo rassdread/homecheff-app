@@ -10,7 +10,7 @@ async function createAdmin() {
 
   if (!email || !password) {
     console.log('Gebruik: node scripts/create-admin.js <email> <password> [name]');
-    console.log('Voorbeeld: node scripts/create-admin.js admin@homecheff.nl wachtwoord123 "Admin User"');
+    console.log('Voorbeeld: node scripts/create-admin.js admin@homecheff.eu wachtwoord123 "Admin User"');
     process.exit(1);
   }
 
@@ -67,6 +67,9 @@ async function createAdmin() {
 }
 
 createAdmin();
+
+
+
 
 
 

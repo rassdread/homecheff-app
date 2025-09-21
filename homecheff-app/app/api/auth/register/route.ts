@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Validatie van gebruikersrollen
-    if (!userTypes || userTypes.length === 0) {
+    // Validatie van gebruikersrollen - alleen als er geen selectedBuyerType is
+    if ((!userTypes || userTypes.length === 0) && !selectedBuyerType) {
       return NextResponse.json({ error: "Selecteer minimaal één gebruikersrol (Koper of Verkoper)" }, { status: 400 });
     }
 
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Belastingverantwoordelijkheid validatie voor verkopers
-    if (userTypes && userTypes.length > 0 && !acceptTaxResponsibility) {
+    if (userTypes && userTypes.length > 0 && userTypes.some(type => ['chef', 'garden', 'designer'].includes(type)) && !acceptTaxResponsibility) {
       return NextResponse.json({ error: "Als verkoper moet je de belastingverantwoordelijkheid accepteren" }, { status: 400 });
     }
 
@@ -174,9 +174,9 @@ export async function POST(req: NextRequest) {
               btw: btw || null,
               companyName: company || null,
               kvk: kvk || null,
-              subscriptionId: subscriptionData?.id || null,
+              subscriptionId: (subscriptionData as any)?.id || null,
               subscriptionValidUntil: subscriptionData ? 
-                new Date(Date.now() + subscriptionData.durationDays * 24 * 60 * 60 * 1000) : null
+                new Date(Date.now() + (subscriptionData as any).durationDays * 24 * 60 * 60 * 1000) : null
             }
           }
         },

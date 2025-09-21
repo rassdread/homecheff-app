@@ -6,39 +6,43 @@ import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 
 type LoginState = {
-  email: string;
+  emailOrUsername: string;
   password: string;
   rememberMe: boolean;
   error: string | null;
   success: boolean;
   isLoading: boolean;
   showPassword: boolean;
+  loginMethod: 'email' | 'username';
 };
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, setState] = useState<LoginState>({
-    email: "",
+    emailOrUsername: "",
     password: "",
     rememberMe: false,
     error: null,
     success: false,
     isLoading: false,
     showPassword: false,
+    loginMethod: 'email',
   });
 
   const message = searchParams.get('message');
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!state.email || !state.password) {
+    if (!state.emailOrUsername || !state.password) {
       setState({ ...state, error: "Vul alle velden in.", success: false });
       return;
     }
     
-    if (!state.email.match(/^[^@]+@[^@]+\.[^@]+$/)) {
+    // Only validate email format if login method is email
+    if (state.loginMethod === 'email' && !state.emailOrUsername.match(/^[^@]+@[^@]+\.[^@]+$/)) {
       setState({
         ...state,
         error: "Voer een geldig e-mailadres in.",
@@ -52,7 +56,7 @@ function LoginForm() {
     try {
       const result = await signIn("credentials", {
         redirect: false,
-        email: state.email,
+        emailOrUsername: state.emailOrUsername,
         password: state.password,
       });
 
@@ -71,7 +75,7 @@ function LoginForm() {
       // Check if user is authenticated
       const session = await getSession();
       if (session) {
-        router.push("/");
+        router.push(callbackUrl);
       }
     } catch (error) {
       setState({ 
@@ -88,7 +92,7 @@ function LoginForm() {
     
     try {
       await signIn(provider, { 
-        callbackUrl: "/",
+        callbackUrl: callbackUrl,
         redirect: true 
       });
     } catch (error) {
@@ -102,7 +106,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Main Content */}
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
@@ -116,7 +120,7 @@ function LoginForm() {
               <span className="text-sm text-gray-500">Nog geen account?</span>
               <Link 
                 href="/register" 
-                className="text-emerald-600 hover:text-emerald-700 font-medium text-sm"
+                className="text-primary-brand hover:text-primary-700 font-medium text-sm"
               >
                 Registreren
               </Link>
@@ -138,24 +142,51 @@ function LoginForm() {
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email adres
+                <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 mb-2">
+                  {state.loginMethod === 'email' ? 'Email adres' : 'Gebruikersnaam'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
+                    id="emailOrUsername"
+                    name="emailOrUsername"
+                    type={state.loginMethod === 'email' ? 'email' : 'text'}
+                    autoComplete={state.loginMethod === 'email' ? 'email' : 'username'}
                     required
-                    value={state.email}
-                    onChange={(e) => setState({ ...state, email: e.target.value })}
+                    value={state.emailOrUsername}
+                    onChange={(e) => setState({ ...state, emailOrUsername: e.target.value })}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                    placeholder="je@email.com"
+                    placeholder={state.loginMethod === 'email' ? 'je@email.com' : 'je_gebruikersnaam'}
                   />
+                </div>
+                
+                {/* Login Method Toggle */}
+                <div className="flex items-center justify-center space-x-4 text-sm mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setState({ ...state, loginMethod: 'email', emailOrUsername: '' })}
+                    className={`px-3 py-1 rounded-full transition-colors ${
+                      state.loginMethod === 'email' 
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : 'text-gray-500 hover:text-emerald-600'
+                    }`}
+                  >
+                    Email
+                  </button>
+                  <span className="text-gray-300">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setState({ ...state, loginMethod: 'username', emailOrUsername: '' })}
+                    className={`px-3 py-1 rounded-full transition-colors ${
+                      state.loginMethod === 'username' 
+                        ? 'bg-primary-100 text-primary-700' 
+                        : 'text-gray-500 hover:text-primary-brand'
+                    }`}
+                  >
+                    Gebruikersnaam
+                  </button>
                 </div>
               </div>
 
@@ -176,7 +207,7 @@ function LoginForm() {
                     required
                     value={state.password}
                     onChange={(e) => setState({ ...state, password: e.target.value })}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
                     placeholder="Je wachtwoord"
                   />
                   <button

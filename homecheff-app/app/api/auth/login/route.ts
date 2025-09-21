@@ -8,12 +8,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => null);
     if (!body) return NextResponse.json({ error: "Ongeldige body" }, { status: 400 });
 
-    const { email, password } = body as { email: string; password: string };
-    if (!email || !password) {
-      return NextResponse.json({ error: "E-mail en wachtwoord vereist" }, { status: 400 });
+    const { emailOrUsername, password } = body as { emailOrUsername: string; password: string };
+    if (!emailOrUsername || !password) {
+      return NextResponse.json({ error: "E-mail/gebruikersnaam en wachtwoord vereist" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Check if it's an email or username
+    const isEmail = emailOrUsername.includes('@');
+    const user = await prisma.user.findUnique({ 
+      where: isEmail ? { email: emailOrUsername } : { username: emailOrUsername }
+    });
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: "Onjuiste gegevens" }, { status: 401 });
     }

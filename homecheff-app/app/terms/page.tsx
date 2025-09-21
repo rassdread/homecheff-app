@@ -16,7 +16,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Algemene bepalingen</h2>
               <p className="text-gray-700 mb-4">
-                Deze algemene voorwaarden zijn van toepassing op alle diensten die HomeCheff B.V. (hierna: "HomeCheff", "wij", "ons") levert via het platform homecheff.nl en gerelateerde diensten.
+                Deze algemene voorwaarden zijn van toepassing op alle diensten die HomeCheff B.V. (hierna: "HomeCheff", "wij", "ons") levert via het platform homecheff.eu en gerelateerde diensten.
               </p>
               <p className="text-gray-700 mb-4">
                 Door gebruik te maken van onze diensten, gaat u akkoord met deze voorwaarden. Wij behouden ons het recht voor om deze voorwaarden te wijzigen.
@@ -178,7 +178,7 @@ export default function TermsPage() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-4">Voor vragen over deze voorwaarden:</p>
                 <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> support@homecheff.nl</p>
+                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> support@homecheff.eu</p>
                 <p className="text-gray-700 mb-2"><strong>Telefoon:</strong> [Telefoonnummer]</p>
                 <p className="text-gray-700"><strong>Adres:</strong> [Bedrijfsadres]</p>
               </div>
@@ -195,3 +195,6 @@ export default function TermsPage() {
     </main>
   );
 }
+
+
+

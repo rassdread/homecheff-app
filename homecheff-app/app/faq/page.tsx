@@ -61,11 +61,11 @@ const faqData = {
     },
     {
       question: "Hoe werkt HomeCheff?",
-      answer: "Voor particuliere verkopers is het platform volledig gratis! Je betaalt alleen een klein percentage op het aankoopbedrag zodat de app kan blijven bestaan. Bedrijven met een KVK nummer kunnen kiezen voor een abonnement. Kopers kunnen zoeken, filteren en producten kopen."
+      answer: "Voor particuliere verkopers is het platform volledig gratis! Je betaalt alleen transactiekosten zodat de app kan blijven bestaan. Bedrijven met een KVK nummer kunnen kiezen voor een abonnement. Kopers kunnen zoeken, filteren en producten kopen."
     },
     {
       question: "Is HomeCheff gratis te gebruiken?",
-      answer: "Ja! Voor particuliere verkopers is HomeCheff volledig gratis. Je betaalt geen maandelijkse kosten, alleen een klein percentage op elke verkoop. Voor bedrijven met een KVK nummer zijn er abonnementen."
+      answer: "Ja! Voor particuliere verkopers is HomeCheff volledig gratis. Je betaalt geen maandelijkse kosten, alleen transactiekosten op elke verkoop. Voor bedrijven met een KVK nummer zijn er abonnementen beschikbaar."
     },
     {
       question: "In welke steden is HomeCheff beschikbaar?",
@@ -73,17 +73,17 @@ const faqData = {
     },
     {
       question: "Hoe kan ik contact opnemen met HomeCheff?",
-      answer: "Je kunt ons bereiken via support@homecheff.nl, onze helpdesk in de app, of via de contactpagina. We reageren meestal binnen 24 uur."
+      answer: "Je kunt ons bereiken via support@homecheff.eu, onze helpdesk in de app, of via de contactpagina. We reageren meestal binnen 24 uur."
     }
   ],
   selling: [
     {
       question: "Hoe word ik verkoper op HomeCheff?",
-      answer: "Registreer je account, kies een verkopersrol (Chef, Garden, Designer) en vul je bankgegevens in. Voor particulieren is er geen abonnement nodig - je kunt direct beginnen met verkopen! Kleine bedrijven kunnen optioneel een abonnement kiezen voor lagere transactiekosten."
+      answer: "Registreer je account, kies een verkopersrol (Chef, Garden, Designer) en vul je bankgegevens in. Voor particulieren is er geen abonnement nodig - je kunt direct beginnen met verkopen! Kleine bedrijven kunnen optioneel een abonnement kiezen voor voordelige tarieven."
     },
     {
       question: "Welke abonnementen zijn er voor verkopers?",
-      answer: "Voor particulieren: Volledig gratis! Alleen transactiekosten (2-7%)\n\nVoor kleine bedrijven (optioneel):\n• Basic: €39/maand, 4% transactiekosten\n• Pro: €99/maand, 3% transactiekosten\n• Premium: €199/maand, 2% transactiekosten\n\nJe kunt altijd upgraden of downgraden."
+      answer: "Voor particulieren: Volledig gratis! Je betaalt alleen transactiekosten.\n\nVoor kleine bedrijven zijn er optionele abonnementen beschikbaar met verschillende tarieven. Je kunt altijd upgraden of downgraden naar een ander abonnement.\n\nVoor specifieke prijzen en tarieven kun je inloggen op je account en naar de abonnementssectie gaan."
     },
     {
       question: "Wat mag ik verkopen op HomeCheff?",
@@ -117,7 +117,7 @@ const faqData = {
     },
     {
       question: "Kan ik verkopers volgen?",
-      answer: "Ja! Volg je favoriete verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe items toevoegen."
+      answer: "Ja! Word fan van je favoriete verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe items toevoegen."
     }
   ],
   payments: [
@@ -135,7 +135,7 @@ const faqData = {
     },
     {
       question: "Wat zijn de transactiekosten?",
-      answer: "Transactiekosten variëren per abonnement: Basic 7%, Pro 4%, Premium 2%. Deze kosten worden automatisch afgetrokken van je verkoopopbrengst."
+      answer: "Transactiekosten variëren per abonnementstype. Deze kosten worden automatisch afgetrokken van je verkoopopbrengst. Voor de exacte tarieven kun je inloggen op je account en naar de abonnementssectie gaan."
     },
     {
       question: "Hoe werkt de uitbetaling voor verkopers?",
@@ -381,7 +381,7 @@ export default function FAQPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <a
-                        href="mailto:support@homecheff.nl"
+                        href="mailto:support@homecheff.eu"
                         className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         E-mail ons

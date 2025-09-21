@@ -5,16 +5,48 @@ import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import CartIcon from '@/components/cart/CartIcon';
+import { setCartUserId, clearAllCartData } from '@/lib/cart';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
   const user =
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Sync cart with user ID for isolation
+  useEffect(() => {
+    if (session?.user) {
+      setCartUserId((session.user as any).id);
+    } else {
+      setCartUserId(null);
+    }
+  }, [session]);
+
+  const handleLogout = async () => {
+    clearAllCartData(); // Clear cart data on logout
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <header className="w-full border-b bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
@@ -42,12 +74,12 @@ export default function NavBar() {
             {status !== 'loading' && !user && (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" className="text-gray-700 hover:text-emerald-600">
+                  <Button variant="ghost" className="text-gray-700 hover:text-primary-brand">
                     Inloggen
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button className="bg-primary-brand hover:bg-primary-700 text-white">
                     Aanmelden
                   </Button>
                 </Link>
@@ -56,37 +88,115 @@ export default function NavBar() {
 
             {user && (
               <>
-                <Link href="/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  {user.image ? (
-                    <Image
-                      src={user.image}
-                      alt="Profielfoto"
-                      width={32}
-                      height={32}
-                      className="rounded-full border-2 border-emerald-200"
+                <CartIcon />
+                
+                {/* Profile Dropdown */}
+                <div className="relative" ref={profileDropdownRef}>
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                  >
+                    {user.image ? (
+                      <Image
+                        src={user.image}
+                        alt="Profielfoto"
+                        width={32}
+                        height={32}
+                        className="rounded-full border-2 border-primary-200"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary-brand" />
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-700">
+                      {user.name || 'Profiel'}
+                    </span>
+                    <ChevronDown 
+                      className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                        isProfileDropdownOpen ? 'rotate-180' : ''
+                      }`} 
                     />
-                  ) : (
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-emerald-600" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                      <Link 
+                        href="/profile" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Mijn Profiel</span>
+                      </Link>
+                      
+                      <Link 
+                        href="/orders" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Package className="w-4 h-4" />
+                        <span>Mijn Bestellingen</span>
+                      </Link>
+                      
+                      <Link 
+                        href="/favorites" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Mijn Favorieten</span>
+                      </Link>
+                      
+                      <Link 
+                        href="/verkoper/dashboard" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span>Verkoper Dashboard</span>
+                      </Link>
+                      
+                      {/* Admin Dashboard Link - Only for Admins */}
+                      {(user as any)?.role === 'ADMIN' && (
+                        <Link 
+                          href="/admin" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+                      
+                      {/* Delivery Dashboard Link - Only for Delivery Users */}
+                      {(user as any)?.deliveryProfile && (
+                        <Link 
+                          href="/delivery/dashboard" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <Package className="w-4 h-4" />
+                          <span>Bezorger Dashboard</span>
+                        </Link>
+                      )}
+                      
+                      <div className="border-t border-gray-100 my-2"></div>
+                      
+                      <button
+                        onClick={async () => {
+                          setIsProfileDropdownOpen(false);
+                          await handleLogout();
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Uitloggen</span>
+                      </button>
                     </div>
                   )}
-                  <span className="text-sm font-medium text-gray-700">
-                    Profiel
-                  </span>
-                </Link>
-                <Link href="/verkoper/dashboard" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                  Dashboard
-                </Link>
-                <Button 
-                  variant="ghost" 
-                  onClick={async () => {
-                    await signOut({ callbackUrl: '/' });
-                    window.location.href = '/';
-                  }}
-                  className="text-gray-500 hover:text-red-600"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
+                </div>
               </>
             )}
           </nav>
@@ -125,12 +235,12 @@ export default function NavBar() {
               {status !== 'loading' && !user && (
                 <>
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-emerald-600">
+                      <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-primary-brand">
                       Inloggen
                     </Button>
                   </Link>
                   <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <Button className="w-full bg-primary-brand hover:bg-primary-700 text-white">
                       Aanmelden
                     </Button>
                   </Link>
@@ -139,37 +249,63 @@ export default function NavBar() {
 
               {user && (
                 <>
-                  <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
                     {user.image ? (
                       <Image
                         src={user.image}
                         alt="Profielfoto"
                         width={32}
                         height={32}
-                        className="rounded-full border-2 border-emerald-200"
+                        className="rounded-full border-2 border-primary-200"
                       />
                     ) : (
-                      <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-emerald-600" />
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-700">
-                      Profiel
+                      {user.name || 'Profiel'}
                     </span>
+                  </div>
+                  
+                  <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span>Mijn Profiel</span>
+                    </Button>
                   </Link>
+                  
+                  <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <Package className="w-4 h-4" />
+                      <span>Mijn Bestellingen</span>
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>Mijn Favorieten</span>
+                    </Button>
+                  </Link>
+                  
                   <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                       <Settings className="w-4 h-4" />
-                      <span>Dashboard</span>
+                      <span>Verkoper Dashboard</span>
                     </Button>
                   </Link>
+                  
+                  <div className="border-t border-gray-200 my-2"></div>
+                  
                   <Button 
                     variant="ghost" 
                     onClick={async () => {
+                      setIsMobileMenuOpen(false);
                       await signOut({ callbackUrl: '/' });
                       window.location.href = '/';
                     }}
-                    className="w-full justify-start text-gray-500 hover:text-red-600"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Uitloggen

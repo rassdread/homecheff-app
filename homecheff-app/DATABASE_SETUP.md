@@ -14,7 +14,7 @@ Vercel kan niet verbinden met de Neon database. Dit komt omdat:
 
 ```
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/homecheff
-NEXTAUTH_URL=https://your-app.vercel.app
+NEXTAUTH_URL=https://homecheff.eu
 NEXTAUTH_SECRET=your-secret-key-here
 ```
 
@@ -78,7 +78,7 @@ DATABASE_URL=postgresql://username:password@host:port/database
 
 Na het instellen, test de connectie:
 ```bash
-curl https://your-app.vercel.app/api/test-db
+curl https://homecheff.eu/api/test-db
 ```
 
 Dit zou moeten returnen:

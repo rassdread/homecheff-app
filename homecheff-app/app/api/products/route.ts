@@ -35,6 +35,35 @@ export async function GET(req: Request) {
       },
     });
 
+    // Get follow and favorite counts for each product
+    const productIds = products.map((p: any) => p.id);
+    const sellerIds = products.map((p: any) => p.seller?.User?.id).filter(Boolean);
+    
+    // Get follow counts for sellers
+    const followCounts = await prisma.follow.groupBy({
+      by: ['sellerId'],
+      where: {
+        sellerId: { in: sellerIds }
+      },
+      _count: {
+        sellerId: true
+      }
+    });
+    
+    // Get favorite counts for products
+    const favoriteCounts = await prisma.favorite.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: productIds }
+      },
+      _count: {
+        productId: true
+      }
+    });
+    
+    const followCountMap = new Map(followCounts.map(fc => [fc.sellerId, fc._count.sellerId]));
+    const favoriteCountMap = new Map(favoriteCounts.map(fc => [fc.productId, fc._count.productId]));
+
     const items = products.map((p: any) => ({
       id: p.id,
       title: p.title,
@@ -50,7 +79,9 @@ export async function GET(req: Request) {
         avatar: p.seller?.User?.profileImage ?? null,
         username: p.seller?.User?.username ?? null,
         buyerTypes: p.seller?.User?.buyerRoles ?? [],
+        followerCount: followCountMap.get(p.seller?.User?.id) ?? 0,
       },
+      favoriteCount: favoriteCountMap.get(p.id) ?? 0,
     }));
 
     return NextResponse.json({ items });

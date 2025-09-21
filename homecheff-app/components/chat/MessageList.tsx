@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Message, User, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
+import { MessageCircle, User, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 
 interface MessageType {
@@ -172,7 +172,7 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
               
               {message.messageType === 'FILE' && message.attachmentUrl && (
                 <div className="flex items-center space-x-2">
-                  <Message className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4" />
                   <a
                     href={message.attachmentUrl}
                     target="_blank"

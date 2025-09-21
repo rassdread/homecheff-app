@@ -2,14 +2,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Heart, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle, Edit3, Trash2, MessageCircle, Plus, X } from "lucide-react";
+import { ArrowLeft, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle, Edit3, Trash2, MessageCircle, Plus, X } from "lucide-react";
 import Link from "next/link";
-import PaymentButton from "@/components/PaymentButton";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 import { ShareButton } from "@/components/ui/ShareButton";
 // import { auth } from "@/lib/auth"; // Removed - using client-side auth instead
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import StartChatButton from "@/components/chat/StartChatButton";
+import FavoriteButton from "@/components/favorite/FavoriteButton";
 
 type Product = {
   id: string;
@@ -25,24 +26,26 @@ type Product = {
   category?: string;
   subcategory?: string;
   displayNameType?: string;
+  delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
+  Image?: { id: string; fileUrl: string }[];
   seller?: { 
-    id?: string | null; 
-    name?: string | null; 
-    username?: string | null; 
-    avatar?: string | null;
-    rating?: number;
-    reviewCount?: number;
+    User: {
+      id: string;
+      name?: string | null; 
+      username?: string | null;
+      avatar?: string | null;
+    };
   } | null;
 };
 
 // Helper function to get display name based on displayNameType
 const getDisplayName = (product: Product | null) => {
-  if (!product?.seller) return 'Anoniem';
+  if (!product?.seller?.User) return 'Anoniem';
   
   if (product.displayNameType === 'username') {
-    return product.seller.username || product.seller.name || 'Anoniem';
+    return product.seller.User.username || product.seller.User.name || 'Anoniem';
   } else {
-    return product.seller.name || product.seller.username || 'Anoniem';
+    return product.seller.User.name || product.seller.User.username || 'Anoniem';
   }
 };
 
@@ -50,6 +53,25 @@ export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+
+  if (!params?.id || typeof params.id !== 'string') {
+    return (
+      <main className="min-h-screen bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-neutral-900 mb-4">Product ID niet gevonden</h1>
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Terug naar home
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -88,7 +110,7 @@ export default function ProductPage() {
         const data = await response.json();
         
         // Transform the data to match the expected structure
-        const transformedProduct = {
+        const transformedProduct: Product = {
           id: data.id,
           title: data.title,
           description: data.description,
@@ -102,17 +124,22 @@ export default function ProductPage() {
           stock: data.stock,
           maxStock: data.maxStock,
           deliveryMode: data.deliveryMode,
+          delivery: data.delivery || 'PICKUP',
           createdAt: data.createdAt,
           category: data.category,
           subcategory: data.subcategory,
           displayNameType: data.displayNameType || 'fullname',
+          Image: data.Image?.map((img: any) => ({
+            id: img.id,
+            fileUrl: img.fileUrl
+          })),
           seller: {
-            id: data.User?.id,
-            name: data.User?.name,
-            username: data.User?.username,
-            avatar: data.User?.image || data.User?.profileImage,
-            rating: 4.8,
-            reviewCount: 24
+            User: {
+              id: data.User?.id,
+              name: data.User?.name,
+              username: data.User?.username,
+              avatar: data.User?.image || data.User?.profileImage
+            }
           }
         };
         
@@ -367,9 +394,9 @@ export default function ProductPage() {
           <div className="space-y-4">
             {/* Main Image */}
             <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden bg-white shadow-sm">
-              {product.photos && product.photos.length > 0 ? (
+              {product.Image && product.Image.length > 0 ? (
                 <img 
-                  src={product.photos[selectedImageIndex]?.url} 
+                  src={product.Image[selectedImageIndex]?.fileUrl} 
                   alt={product.title} 
                   className="w-full h-full object-cover" 
                 />
@@ -444,13 +471,15 @@ export default function ProductPage() {
                   <>
                     <StartChatButton
                       productId={product.id}
-                      sellerId={product.seller.User.id}
+                      sellerId={product.seller?.User.id || ''}
                       sellerName={getDisplayName(product)}
                       className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
                     />
-                    <button className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
-                      <Heart className="w-6 h-6 text-neutral-600 hover:text-error-500" />
-                    </button>
+                    <FavoriteButton 
+                      productId={product.id}
+                      productTitle={product.title}
+                      size="lg"
+                    />
                   </>
                 )}
                 <ShareButton
@@ -465,7 +494,7 @@ export default function ProductPage() {
               </div>
 
               {/* Image Navigation */}
-              {product.photos && product.photos.length > 1 && (
+              {product.Image && product.Image.length > 1 && (
                 <>
                   <button
                     onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
@@ -475,8 +504,8 @@ export default function ProductPage() {
                     <ArrowLeft className="w-5 h-5 text-neutral-600" />
                   </button>
                   <button
-                    onClick={() => setSelectedImageIndex(Math.min(product.photos.length - 1, selectedImageIndex + 1))}
-                    disabled={selectedImageIndex === product.photos.length - 1}
+                    onClick={() => setSelectedImageIndex(Math.min((product.Image?.length || 1) - 1, selectedImageIndex + 1))}
+                    disabled={selectedImageIndex === (product.Image?.length || 1) - 1}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ArrowLeft className="w-5 h-5 text-neutral-600 rotate-180" />
@@ -486,9 +515,9 @@ export default function ProductPage() {
             </div>
 
             {/* Thumbnail Gallery */}
-            {product.photos && product.photos.length > 1 && (
+            {product.Image && product.Image.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {product.photos.map((photo, index) => (
+                {product.Image?.map((photo, index) => (
                   <button
                     key={photo.id}
                     onClick={() => setSelectedImageIndex(index)}
@@ -499,7 +528,7 @@ export default function ProductPage() {
                     }`}
                   >
                     <img 
-                      src={photo.url} 
+                      src={photo.fileUrl} 
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover" 
                     />
@@ -643,12 +672,27 @@ export default function ProductPage() {
                 <div className="w-full py-3 px-4 bg-gray-300 text-gray-500 rounded-xl text-center font-medium">
                   Uitverkocht
                 </div>
+              ) : (session?.user as any)?.id === product.seller?.User.id ? (
+                <Link
+                  href={`/product/${product.id}/edit`}
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl text-center font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <Edit3 className="w-5 h-5" />
+                  Product bewerken
+                </Link>
               ) : (
-                <PaymentButton
-                  productId={product.id}
-                  amount={(product.priceCents / 100) * quantity}
-                  productTitle={product.title}
-                  sellerName={getDisplayName(product)}
+                <AddToCartButton
+                  product={{
+                    id: product.id,
+                    title: product.title,
+                    priceCents: product.priceCents,
+                    image: product.Image?.[0]?.fileUrl,
+                    sellerName: getDisplayName(product),
+                    sellerId: product.seller?.User.id || '',
+                    deliveryMode: (product.delivery as 'PICKUP' | 'DELIVERY' | 'BOTH') || 'PICKUP',
+                  }}
+                  className="w-full"
+                  size="lg"
                 />
               )}
             </div>
@@ -666,10 +710,10 @@ export default function ProductPage() {
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">Verkoper</h3>
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
-                  {product.seller?.avatar ? (
+                  {product.seller?.User?.avatar ? (
                     <img
-                      src={product.seller.avatar}
-                      alt={product.seller?.name ?? "Verkoper"}
+                      src={product.seller.User.avatar}
+                      alt={product.seller?.User?.name ?? "Verkoper"}
                       className="w-16 h-16 rounded-full object-cover border-2 border-primary-100"
                     />
                   ) : (
@@ -682,7 +726,7 @@ export default function ProductPage() {
                 </div>
                 <div className="flex-1">
                   <Link 
-                    href={`/seller/${product.seller.User.id}`}
+                    href={`/seller/${product.seller?.User.id || ''}`}
                     className="text-lg font-semibold text-neutral-900 hover:text-emerald-600 transition-colors"
                   >
                     {getDisplayName(product)}

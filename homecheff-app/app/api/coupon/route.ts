@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ coupons: [], testMode: true });
   }
   
-  const coupons = await stripe.coupons.list({ limit: 100 });
+  const coupons = await stripe.coupons.list();
   const found = coupons.data.find(c => c.name === code && c.valid);
   if (!found) {
     return NextResponse.json({ valid: false });

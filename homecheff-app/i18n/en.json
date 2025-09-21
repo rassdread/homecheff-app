@@ -1,0 +1,98 @@
+{
+  "navigation": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "orders": "Orders",
+    "dashboard": "Dashboard",
+    "cart": "Shopping Cart",
+    "logout": "Logout",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email address",
+    "username": "Username",
+    "emailOrUsername": "Email or Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginMethod": "Login method",
+    "loginWithEmail": "Login with email",
+    "loginWithUsername": "Login with username"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your shopping cart is empty",
+    "emptyDescription": "Discover delicious local products and add them to your cart",
+    "continueShopping": "Continue Shopping",
+    "checkout": "Go to Checkout",
+    "subtotal": "Subtotal",
+    "stripeFee": "Stripe fee",
+    "total": "Total",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "sellerInfo": "Seller Information",
+    "sellerInfoText": "Sellers pay a small platform fee upon payout. Keep this in mind when setting your selling prices."
+  },
+  "hero": {
+    "title": "HomeCheff – Homemade. Home Delivered.",
+    "subtitle": "Discover dishes, harvest and fashion – directly from people in your neighborhood.",
+    "greeting": "Welcome, {username}! What will it be today?",
+    "searchPlaceholder": "Search for dishes, products or sellers…",
+    "filters": "Filters",
+    "resetFilters": "Reset Filters",
+    "myProfile": "My Profile"
+  },
+  "categories": {
+    "chef": "Chef",
+    "garden": "Garden",
+    "designer": "Designer",
+    "all": "All"
+  },
+  "messages": {
+    "uploadNoUrl": "Could not get upload URL",
+    "uploadFailed": "Upload failed",
+    "saved": "Saved",
+    "listingCreated": "Item posted",
+    "listingFailed": "Posting failed"
+  },
+  "buttons": {
+    "addItem": "Add dish or product",
+    "cancel": "Cancel",
+    "publish": "Publish",
+    "chooseFile": "Choose file…",
+    "save": "Save"
+  },
+  "form": {
+    "title": "Title",
+    "price": "Price (€)",
+    "group": "Group",
+    "photos": "Photos (max 5)"
+  },
+  "filters": {
+    "radius": "Radius",
+    "km": "km",
+    "searchPlaceholder": "Search for items or sellers…",
+    "subfilter": "Subfilter",
+    "vertical": {
+      "all": "All",
+      "cheff": "Cheff",
+      "garden": "Garden",
+      "designer": "Designer"
+    }
+  },
+  "follow": {
+    "followers": "Followers",
+    "following": "Following",
+    "follow": "Follow",
+    "unfollow": "Following",
+    "followButton": "Follow",
+    "followingButton": "Following"
+  }
+}

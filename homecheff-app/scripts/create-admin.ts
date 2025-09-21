@@ -7,9 +7,15 @@ async function createAdmin() {
   console.log('🔐 Creating admin user...');
   
   try {
-    // Check if admin already exists
-    const existingAdmin = await prisma.user.findFirst({
+    // Remove any existing admin users
+    await prisma.user.deleteMany({
       where: { role: 'ADMIN' }
+    });
+    console.log('🗑️  Removed existing admin users');
+
+    // Check if admin already exists with our email
+    const existingAdmin = await prisma.user.findFirst({
+      where: { email: 'admin@homecheff.eu' }
     });
 
     if (existingAdmin) {
@@ -22,7 +28,7 @@ async function createAdmin() {
     
     const admin = await prisma.user.create({
       data: {
-        email: 'admin@homecheff.nl',
+        email: 'admin@homecheff.eu',
         name: 'Admin User',
         username: 'admin',
         passwordHash: hashedPassword,
@@ -32,10 +38,10 @@ async function createAdmin() {
     });
 
     console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@homecheff.nl');
+    console.log('📧 Email: admin@homecheff.eu');
     console.log('🔑 Password: admin123');
-    console.log('🌐 Login at: http://localhost:3000/login');
-    console.log('🎛️  Admin panel: http://localhost:3000/admin');
+    console.log('🌐 Login at: https://homecheff.eu/login');
+    console.log('🎛️  Admin panel: https://homecheff.eu/admin');
     
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
@@ -45,4 +51,7 @@ async function createAdmin() {
 }
 
 createAdmin();
+
+
+
 

@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // mag weg als je geen DIRECT_URL gebruikt
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -15,78 +15,72 @@ model User {
   bio                                    String?
   emailVerified                          DateTime?
   image                                  String?
-  profileImage                           String? // <-- toegevoegd
   lat                                    Float?
   lng                                    Float?
   place                                  String?
   updatedAt                              DateTime                  @updatedAt
   role                                   UserRole                  @default(USER)
   name                                   String?
-  username                               String?                   @unique
-  gender                               String?
   passwordHash                           String?
-  // Nieuwe velden voor rollen en instellingen
-  sellerRoles                            String[]                 @default([]) // chef, garden, designer
-  buyerRoles                             String[]                 @default([]) // ontdekker, verzamelaar, liefhebber, etc.
-  displayFullName                        Boolean                  @default(true) // true = volledige naam, false = gebruikersnaam
-  // Bank details voor uitbetalingen
-  bankName                               String?
-  iban                                   String?
+  profileImage                           String?
+  username                               String?                   @unique
+  interests                              String[]
   accountHolderName                      String?
-  // Stripe Connect account voor uitbetalingen
+  bankName                               String?
+  buyerRoles                             String[]                  @default([])
+  displayFullName                        Boolean                   @default(true)
+  gender                                 String?
+  iban                                   String?
+  marketingAccepted                      Boolean                   @default(false)
+  marketingAcceptedAt                    DateTime?
+  privacyPolicyAccepted                  Boolean                   @default(false)
+  privacyPolicyAcceptedAt                DateTime?
+  sellerRoles                            String[]                  @default([])
   stripeConnectAccountId                 String?
-  stripeConnectOnboardingCompleted       Boolean                  @default(false)
+  stripeConnectOnboardingCompleted       Boolean                   @default(false)
+  taxResponsibilityAccepted              Boolean                   @default(false)
+  taxResponsibilityAcceptedAt            DateTime?
+  termsAccepted                          Boolean                   @default(false)
+  termsAcceptedAt                        DateTime?
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
+  Business                               Business?
   ConversationParticipant                ConversationParticipant[]
   DeviceToken                            DeviceToken[]
+  Dish                                   Dish[]
   Favorite                               Favorite[]
+  followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
+  followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
   Listing                                Listing[]
   Message                                Message[]
   Notification                           Notification[]
+  orders                                 Order[]                   @relation("UserOrders")
   Payout                                 Payout[]
+  productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
   Report_Report_reporterIdToUser         Report[]                  @relation("Report_reporterIdToUser")
   Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
   Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
+  reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
   SellerProfile                          SellerProfile?
   Session                                Session[]
   Transaction                            Transaction[]
-  orders                                 Order[]                   @relation("UserOrders")
-  followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
-  followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
-  Dish                                   Dish[]
-  interests                              String[]
-  Business                                Business?
-  // Privacy en marketing toestemmingen
-  privacyPolicyAccepted                  Boolean                  @default(false)
-  privacyPolicyAcceptedAt                DateTime?
-  termsAccepted                          Boolean                  @default(false)
-  termsAcceptedAt                        DateTime?
-  marketingAccepted                      Boolean                  @default(false)
-  marketingAcceptedAt                    DateTime?
-  // Belastingverantwoordelijkheid
-  taxResponsibilityAccepted              Boolean                  @default(false)
-  taxResponsibilityAcceptedAt            DateTime?
-  // Review relaties
-  productReviewsAsBuyer                  ProductReview[]          @relation("ProductReviewBuyer")
-  reviewResponsesAsSeller                ReviewResponse[]         @relation("ReviewResponseSeller")
 }
 
 model Business {
-  id        String  @id @default(uuid())
-  userId    String   @unique
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  kvkNumber String?
-  vatNumber String?
-  address   String?
-  city      String?
-  country   String? @default("NL")
-  verified  Boolean @default(false)
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  name            String
+  kvkNumber       String?
+  vatNumber       String?
+  address         String?
+  city            String?
+  country         String?  @default("NL")
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
   workplacePhotos String[]
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -102,15 +96,15 @@ model Product {
   delivery        DeliveryMode
   createdAt       DateTime        @default(now())
   isActive        Boolean         @default(true)
-  stock           Int             @default(0)  // Voorraad aantal
-  maxStock        Int?            // Maximale voorraad (optioneel)
-  displayNameType String          @default("fullname") // "fullname" of "username"
-  Image           Image[]
-  seller          SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
+  displayNameType String          @default("fullname")
+  maxStock        Int?
+  stock           Int             @default(0)
+  conversations   Conversation[]
   favorites       Favorite[]
+  Image           Image[]
   orderItems      OrderItem[]
+  seller          SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
   reviews         ProductReview[]
-  conversations   Conversation[]  // Conversations about this product
 
   @@index([category])
   @@index([sellerId])
@@ -161,16 +155,16 @@ model AuditLog {
 model Conversation {
   id                      String                    @id
   createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
   reservationId           String?                   @unique
-  productId               String?                   // Link to product for context
-  orderId                 String?                   // Link to order for purchase-related conversations
-  title                   String?                   // Custom conversation title
-  lastMessageAt           DateTime?
   isActive                Boolean                   @default(true)
-  Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
-  Product                 Product?                  @relation(fields: [productId], references: [id])
+  lastMessageAt           DateTime?
+  productId               String?
+  title                   String?
+  updatedAt               DateTime                  @updatedAt
+  orderId                 String?
   Order                   Order?                    @relation(fields: [orderId], references: [id])
+  Product                 Product?                  @relation(fields: [productId], references: [id])
+  Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
   ConversationParticipant ConversationParticipant[]
   Message                 Message[]
 
@@ -216,14 +210,14 @@ model DeviceToken {
 }
 
 model Favorite {
-  id         String   @id @default(uuid())
-  userId     String
-  listingId  String?
-  productId  String?
-  createdAt  DateTime @default(now())
-  Listing    Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  Product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  listingId String?
+  createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  productId String?
+  Listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  Product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
   @@unique([userId, productId])
@@ -295,15 +289,15 @@ model Message {
   conversationId String
   senderId       String
   text           String?
-  messageType    MessageType  @default(TEXT)
-  attachmentUrl  String?      // For file uploads
-  attachmentName String?      // Original filename
-  attachmentType String?      // MIME type
-  orderNumber    String?      // For order-related messages (#ORD-2024-001)
   createdAt      DateTime     @default(now())
   readAt         DateTime?
-  editedAt       DateTime?
+  attachmentName String?
+  attachmentType String?
+  attachmentUrl  String?
   deletedAt      DateTime?
+  editedAt       DateTime?
+  messageType    MessageType  @default(TEXT)
+  orderNumber    String?
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
@@ -380,23 +374,23 @@ model Reservation {
 }
 
 model ProductReview {
-  id          String         @id @default(uuid())
-  productId   String
-  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  buyerId     String
-  buyer       User           @relation("ProductReviewBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
-  orderId     String?        // Link naar de bestelling
-  order       Order?         @relation(fields: [orderId], references: [id])
-  rating      Int            // 1-5 sterren
-  title       String?        // Optionele titel voor de review
-  comment     String?        // Review tekst
-  images      ReviewImage[]  // Foto's bij de review
-  isVerified  Boolean        @default(false) // Alleen gekochte producten kunnen reviews krijgen
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  responses   ReviewResponse[] // Verkoper reacties
-  
-  @@unique([productId, buyerId]) // Een gebruiker kan maar één review per product
+  id         String           @id @default(uuid())
+  productId  String
+  buyerId    String
+  orderId    String?
+  rating     Int
+  title      String?
+  comment    String?
+  isVerified Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  buyer      User             @relation("ProductReviewBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  order      Order?           @relation(fields: [orderId], references: [id])
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images     ReviewImage[]
+  responses  ReviewResponse[]
+
+  @@unique([productId, buyerId])
   @@index([productId])
   @@index([buyerId])
   @@index([rating])
@@ -476,23 +470,100 @@ model VerificationToken {
 }
 
 model Order {
-  id             String          @id @default(uuid())
-  userId         String
-  orderNumber    String?         // Human-readable order number like "ORD-2024-001"
-  status         OrderStatus     @default(PENDING)
-  totalAmount    Int             // Total amount in cents
-  deliveryMode   DeliveryMode    @default(PICKUP)
-  pickupAddress  String?         // Address for pickup
-  deliveryAddress String?        // Address for delivery
-  pickupDate     DateTime?       // Scheduled pickup date
-  deliveryDate   DateTime?       // Scheduled delivery date
-  notes          String?         // Additional notes from buyer
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  User           User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
-  items          OrderItem[]
-  reviews        ProductReview[]
-  conversations  Conversation[]  // Conversations about this order
+  id              String          @id @default(uuid())
+  userId          String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  orderNumber     String?
+  status          OrderStatus     @default(PENDING)
+  totalAmount     Int
+  deliveryAddress String?
+  deliveryDate    DateTime?
+  deliveryMode    DeliveryMode    @default(PICKUP)
+  notes           String?
+  pickupAddress   String?
+  pickupDate      DateTime?
+  conversations   Conversation[]
+  User            User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+  reviews         ProductReview[]
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  productId  String
+  quantity   Int      @default(1)
+  priceCents Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  sellerId   String
+  createdAt  DateTime @default(now())
+  User       User     @relation("FollowAsFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+}
+
+model Dish {
+  id           String        @id @default(uuid())
+  userId       String
+  title        String?
+  description  String?
+  status       DishStatus    @default(PRIVATE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  priceCents   Int?
+  deliveryMode DeliveryMode?
+  lat          Float?
+  lng          Float?
+  place        String?
+  maxStock     Int?
+  stock        Int?          @default(0)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos       DishPhoto[]
+
+  @@index([userId])
+}
+
+model DishPhoto {
+  id     String  @id @default(uuid())
+  dishId String
+  url    String
+  idx    Int     @default(0)
+  isMain Boolean @default(false)
+  dish   Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@index([dishId])
+}
+
+model ReviewImage {
+  id        String        @id @default(uuid())
+  reviewId  String
+  url       String
+  sortOrder Int           @default(0)
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+model ReviewResponse {
+  id        String        @id @default(uuid())
+  reviewId  String
+  sellerId  String
+  comment   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  seller    User          @relation("ReviewResponseSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([sellerId])
 }
 
 enum OrderStatus {
@@ -503,27 +574,6 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
-}
-
-model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
-  productId String
-  quantity  Int      @default(1)
-  priceCents Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  Product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-model Follow {
-  id         String   @id @default(uuid())
-  followerId String
-  sellerId   String
-  createdAt  DateTime @default(now())
-  User       User     @relation("FollowAsFollower", fields: [followerId], references: [id], onDelete: Cascade)
-  Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
@@ -539,6 +589,13 @@ enum DeliveryMode {
   PICKUP
   DELIVERY
   BOTH
+}
+
+enum TransportationMode {
+  BIKE
+  SCOOTER
+  WALKING
+  PUBLIC_TRANSPORT
 }
 
 enum ListingCategory {
@@ -597,12 +654,6 @@ enum ReservationStatus {
   COMPLETED
 }
 
-enum Role {
-  BUYER
-  SELLER
-  ADMIN
-}
-
 enum TransactionStatus {
   CREATED
   AUTHORIZED
@@ -624,66 +675,13 @@ enum Unit {
   M2
 }
 
-// --- HomeCheff additions (non-destructief) ---
 enum DishStatus {
   PRIVATE
   PUBLISHED
 }
 
-model Dish {
-  id           String        @id @default(uuid())
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title        String?
-  description  String?
-  status       DishStatus    @default(PRIVATE)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  photos       DishPhoto[]
-  // publicatievelden:
-  priceCents   Int?
-  deliveryMode DeliveryMode?
-  lat          Float?
-  lng          Float?
-  place        String?
-  stock        Int?            @default(0)
-  maxStock     Int?
-
-  @@index([userId])
-}
-
-model DishPhoto {
-  id     String @id @default(uuid())
-  dishId String
-  dish   Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  url    String
-  idx    Int    @default(0)
-  isMain Boolean @default(false)
-
-  @@index([dishId])
-}
-
-
-model ReviewImage {
-  id       String @id @default(uuid())
-  reviewId String
-  review   ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  url      String
-  sortOrder Int   @default(0)
-  
-  @@index([reviewId])
-}
-
-model ReviewResponse {
-  id        String   @id @default(uuid())
-  reviewId  String
-  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  sellerId  String
-  seller    User     @relation("ReviewResponseSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-  comment   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([reviewId])
-  @@index([sellerId])
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
 }

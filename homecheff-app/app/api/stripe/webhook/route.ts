@@ -32,6 +32,79 @@ export async function POST(req: NextRequest) {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      
+      // Handle order creation
+      if (session.metadata?.items) {
+        const items = JSON.parse(session.metadata.items);
+        const buyerId = session.metadata.buyerId;
+        const deliveryMode = session.metadata.deliveryMode;
+        const address = session.metadata.address;
+        const notes = session.metadata.notes;
+        const pickupDate = session.metadata.pickupDate;
+        const deliveryDate = session.metadata.deliveryDate;
+        const totalAmount = parseInt(session.metadata.totalAmount);
+
+        // Create order
+        const order = await prisma.order.create({
+          data: {
+            userId: buyerId,
+            orderNumber: `ORD-${Date.now()}`,
+            status: 'CONFIRMED',
+            totalAmount: totalAmount,
+            deliveryMode: deliveryMode as any,
+            pickupAddress: deliveryMode === 'PICKUP' ? address : null,
+            deliveryAddress: deliveryMode === 'DELIVERY' ? address : null,
+            pickupDate: pickupDate ? new Date(pickupDate) : null,
+            deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+            notes: notes,
+          },
+        });
+
+        // Create order items
+        for (const item of items) {
+          await prisma.orderItem.create({
+            data: {
+              orderId: order.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              priceCents: item.priceCents,
+            },
+          });
+
+          // Update product stock
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+
+        // Create order conversation for communication
+        await prisma.conversation.create({
+          data: {
+            id: `order_${order.id}`,
+            orderId: order.id,
+            title: `Bestelling ${order.orderNumber}`,
+            lastMessageAt: new Date(),
+            ConversationParticipant: {
+              create: [
+                { userId: buyerId },
+                // Add seller participants based on items
+                ...items.map((item: any) => ({
+                  userId: item.sellerId,
+                })),
+              ],
+            },
+          },
+        });
+
+        console.log(`Order created: ${order.id} for user: ${buyerId}`);
+      }
+      
+      // Handle subscription updates (existing code)
       const plan = session.metadata?.plan;
       const userId = session.metadata?.userId;
       if (plan && userId) {

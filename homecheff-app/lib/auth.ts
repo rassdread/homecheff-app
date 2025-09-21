@@ -31,13 +31,19 @@ export const authOptions: NextAuthOptions = {
     Credentials({
       name: "Inloggen",
       credentials: {
-        email: { label: "Email", type: "text" },
+        emailOrUsername: { label: "Email of Gebruikersnaam", type: "text" },
         password: { label: "Wachtwoord", type: "password" },
       },
       async authorize(credentials): Promise<AppUser | null> {
-        if (!credentials?.email || !credentials?.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-        if (!user) return null;
+        if (!credentials?.emailOrUsername || !credentials?.password) return null;
+        
+        // Check if input is email or username
+        const isEmail = credentials.emailOrUsername.includes('@');
+        const user = isEmail 
+          ? await prisma.user.findUnique({ where: { email: credentials.emailOrUsername } })
+          : await prisma.user.findUnique({ where: { username: credentials.emailOrUsername } });
+          
+        if (!user || !user.passwordHash) return null;
         const ok = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!ok) return null;
         return { 

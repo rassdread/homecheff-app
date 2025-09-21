@@ -761,7 +761,7 @@ export default function RegisterPage() {
             {state.currentStep === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Profiel setup</h2>
-                <p className="text-gray-600 mb-8">Help anderen je te vinden en te volgen</p>
+                <p className="text-gray-600 mb-8">Help anderen je te vinden en fan te worden</p>
                 
                 <div className="space-y-6">
                   <div>

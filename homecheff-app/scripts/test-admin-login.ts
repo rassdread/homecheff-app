@@ -9,7 +9,7 @@ async function testAdminLogin() {
   try {
     // Find admin user
     const admin = await prisma.user.findUnique({
-      where: { email: 'admin@homecheff.nl' },
+      where: { email: 'admin@homecheff.eu' },
       select: {
         id: true,
         email: true,
@@ -44,8 +44,8 @@ async function testAdminLogin() {
 
     if (isPasswordValid && isAdmin) {
       console.log('🎉 Admin user is ready for login!');
-      console.log('🌐 Try logging in at: http://localhost:3000/login');
-      console.log('📧 Email: admin@homecheff.nl');
+      console.log('🌐 Try logging in at: https://homecheff.eu/login');
+      console.log('📧 Email: admin@homecheff.eu');
       console.log('🔑 Password: admin123');
     } else {
       console.log('❌ Admin user has issues');
@@ -59,4 +59,7 @@ async function testAdminLogin() {
 }
 
 testAdminLogin();
+
+
+
 
