@@ -84,7 +84,17 @@ export async function GET(req: NextRequest) {
       },
       orderBy: [{ createdAt: "desc" }],
       take: 15,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priceCents: true,
+        deliveryMode: true,
+        place: true,
+        lat: true,
+        lng: true,
+        createdAt: true,
+        viewCount: true,
         seller: {
           include: {
             User: { select: { id: true, name: true, username: true, profileImage: true } }
@@ -161,7 +171,7 @@ export async function GET(req: NextRequest) {
     lat: product.seller?.lat || 52.3676,
     lng: product.seller?.lng || 4.9041,
     isPublic: true,
-    viewCount: 0,
+    viewCount: product.viewCount || 0,
     createdAt: product.createdAt,
     updatedAt: product.createdAt,
     User: product.seller?.User || null,
