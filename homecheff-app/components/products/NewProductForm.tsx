@@ -223,7 +223,12 @@ export default function NewProductForm() {
         </div>
       </div>
 
-      <MultiImageUploader value={images} onChange={setImages} />
+      <MultiImageUploader 
+        value={images} 
+        onChange={setImages} 
+        category={vertical}
+        productTitle={title}
+      />
 
       {/* Naamweergave keuze */}
       <div className="hc-tight">

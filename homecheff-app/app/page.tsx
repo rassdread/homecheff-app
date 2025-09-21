@@ -1,9 +1,15 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
-import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro } from "lucide-react";
+import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Layers, Bell } from "lucide-react";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
+import ImageSlider from "@/components/ui/ImageSlider";
+import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
+import MapView from "@/components/feed/MapView";
+import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
+import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
+import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
 
 const CATEGORIES = {
   CHEFF: {
@@ -43,10 +49,18 @@ type HomeItem = {
   description?: string | null;
   priceCents: number;
   image?: string | null;
+  images?: string[]; // Array of all images for slider
   createdAt: string | Date;
   category?: string;
   subcategory?: string;
   favoriteCount?: number;
+  location?: {
+    place?: string;
+    city?: string;
+    lat?: number;
+    lng?: number;
+    distanceKm?: number;
+  };
   seller?: { 
     id?: string | null; 
     name?: string | null; 
@@ -57,7 +71,7 @@ type HomeItem = {
   } | null;
 };
 
-export default function HomePage() {
+function HomePageContent() {
   const [username, setUsername] = useState<string>("");
   const [items, setItems] = useState<HomeItem[]>([]);
   const [q, setQ] = useState<string>("");
@@ -70,6 +84,52 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [showMap, setShowMap] = useState<boolean>(false);
+  const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
+  
+  // New state for advanced filters
+  const [filters, setFilters] = useState(defaultFilters);
+  
+  // Hooks for new features
+  const { savedSearches, saveSearch, loading: searchesLoading } = useSavedSearches();
+  const { addNotification, requestPermission } = useNotifications();
+
+  // Functie om afstand te berekenen tussen twee GPS punten (Haversine formule)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Straal van de aarde in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return Math.round(distance * 10) / 10; // Afronden op 1 decimaal
+  };
+
+  // Gebruikerslocatie ophalen
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+          // Fallback naar Amsterdam als locatie niet beschikbaar is
+          setUserLocation({ lat: 52.3676, lng: 4.9041 });
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+      );
+    } else {
+      // Fallback naar Amsterdam als geolocation niet ondersteund wordt
+      setUserLocation({ lat: 52.3676, lng: 4.9041 });
+    }
+  }, []);
 
   useEffect(() => {
     // Haal (display)naam op – vervang endpoint indien nodig
@@ -100,10 +160,29 @@ export default function HomePage() {
     })();
   }, []);
 
-  // Client-side filter met uitgebreide zoekfunctionaliteit
+  // Client-side filter met uitgebreide zoekfunctionaliteit en afstand berekening
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    let list = items.filter((it) => {
+    let list = items.map((it) => {
+      // Bereken afstand als gebruiker locatie en product locatie beschikbaar zijn
+      let distanceKm: number | null = null;
+      if (userLocation && it.location?.lat && it.location?.lng) {
+        distanceKm = calculateDistance(
+          userLocation.lat, 
+          userLocation.lng, 
+          it.location.lat, 
+          it.location.lng
+        );
+      }
+
+      return {
+        ...it,
+        location: {
+          ...it.location,
+          distanceKm
+        }
+      };
+    }).filter((it) => {
       // Zoekfilter
       if (term) {
         const hay = `${it.title ?? ""} ${it.description ?? ""} ${it.subcategory ?? ""}`.toLowerCase();
@@ -130,13 +209,17 @@ export default function HomePage() {
         const price = it.priceCents / 100;
         if (price < priceRange.min || price > priceRange.max) return false;
       }
+
+      // Afstand filter
+      if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined) {
+        if (it.location.distanceKm > radius) return false;
+      }
       
       // Locatie filter
       if (location.trim()) {
         const locationTerm = location.trim().toLowerCase();
         // Zoek in plaats, postcode, of andere locatie-gerelateerde velden
-        // Voor nu zoeken we in de titel en beschrijving als placeholder
-        const locationFields = `${it.title ?? ""} ${it.description ?? ""}`.toLowerCase();
+        const locationFields = `${it.title ?? ""} ${it.description ?? ""} ${it.location?.place ?? ""}`.toLowerCase();
         if (!locationFields.includes(locationTerm)) return false;
       }
       
@@ -153,6 +236,10 @@ export default function HomePage() {
           return (a.priceCents || 0) - (b.priceCents || 0);
         case "price-high":
           return (b.priceCents || 0) - (a.priceCents || 0);
+        case "distance": 
+          if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
+          if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
+          return a.location.distanceKm - b.location.distanceKm;
         case "oldest":
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case "newest":
@@ -160,7 +247,92 @@ export default function HomePage() {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
     });
-  }, [items, q, category, subcategory, priceRange, sortBy, location]);
+  }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation]);
+
+  // New functions for advanced features
+  const handleSaveSearch = async (name: string) => {
+    try {
+      const currentFilters = {
+        ...filters,
+        q,
+        category,
+        subcategory,
+        priceRange,
+        radius,
+        location,
+        sortBy,
+        deliveryMode,
+      };
+      await saveSearch(name, currentFilters);
+      addNotification({
+        type: 'success',
+        title: 'Zoekopdracht opgeslagen',
+        message: `"${name}" is opgeslagen in je persoonlijke zoekopdrachten`,
+        duration: 3000,
+      });
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Opslaan mislukt',
+        message: 'Er is een fout opgetreden bij het opslaan van je zoekopdracht',
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleLoadSearch = (search: any) => {
+    setQ(search.filters.q);
+    setCategory(search.filters.category);
+    setSubcategory(search.filters.subcategory);
+    setPriceRange(search.filters.priceRange);
+    setRadius(search.filters.radius);
+    setLocation(search.filters.location);
+    setSortBy(search.filters.sortBy);
+    setDeliveryMode(search.filters.deliveryMode);
+    setFilters(search.filters);
+    
+    addNotification({
+      type: 'info',
+      title: 'Zoekopdracht geladen',
+      message: `"${search.name}" is toegepast`,
+      duration: 3000,
+    });
+  };
+
+  const handleClearFilters = () => {
+    setQ('');
+    setCategory('all');
+    setSubcategory('all');
+    setPriceRange({ min: 0, max: 1000 });
+    setRadius(10);
+    setLocation('');
+    setSortBy('newest');
+    setDeliveryMode('all');
+    setFilters(defaultFilters);
+  };
+
+  const handleProductClick = (product: any) => {
+    window.location.href = `/product/${product.id}`;
+  };
+
+  const handleRequestNotificationPermission = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      addNotification({
+        type: 'success',
+        title: 'Notificaties ingeschakeld',
+        message: 'Je ontvangt nu meldingen over nieuwe producten in jouw omgeving',
+        duration: 5000,
+      });
+    } else {
+      addNotification({
+        type: 'warning',
+        title: 'Notificaties uitgeschakeld',
+        message: 'Je kunt notificaties inschakelen via je browser instellingen',
+        duration: 5000,
+      });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-neutral-50">
@@ -212,16 +384,353 @@ export default function HomePage() {
                     {showFilters ? 'Filters wissen' : 'Filters'}
                   </span>
                 </button>
+                
+                {/* New Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowMap(!showMap)}
+                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    title="Kaart weergave"
+                  >
+                    <Layers className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+                  
+                  <button
+                    onClick={handleRequestNotificationPermission}
+                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    title="Notificaties inschakelen"
+                  >
+                    <Bell className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Advanced Filters */}
+              {/* Advanced Filters Panel */}
               {showFilters && (
                 <div className="mt-6 pt-6 border-t border-neutral-200">
-                  <div className="space-y-6">
-                    {/* First Row - Main Categories */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">Categorie</label>
+                  <AdvancedFiltersPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    savedSearches={savedSearches}
+                    onSaveSearch={handleSaveSearch}
+                    onLoadSearch={handleLoadSearch}
+                    onClearFilters={handleClearFilters}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="py-8 md:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Smart Recommendations */}
+          {showRecommendations && (
+            <div className="mb-8">
+              <SmartRecommendations
+                userId={username}
+                userLocation={userLocation}
+                onProductClick={handleProductClick}
+              />
+            </div>
+          )}
+
+          {/* Toggle Recommendations Button */}
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setShowRecommendations(!showRecommendations)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+            >
+              <Star className="w-4 h-4" />
+              {showRecommendations ? 'Verberg aanbevelingen' : 'Toon slimme aanbevelingen'}
+            </button>
+          </div>
+
+          {/* Results Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            {/* Results Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {isLoading ? 'Laden...' : `${filtered.length} producten gevonden`}
+                </h2>
+                {q && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Resultaten voor "{q}"
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowRecommendations(!showRecommendations)}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Aanbevelingen"
+                >
+                  <Star className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Products Grid or Empty State */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-2xl h-64 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-12 h-12 text-neutral-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-neutral-900 mb-2">Geen resultaten gevonden</h3>
+                <p className="text-neutral-600 mb-6">Probeer andere zoektermen of filters aan te passen</p>
+                <button
+                  onClick={handleClearFilters}
+                  className="px-6 py-3 bg-primary-brand text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+                >
+                  Reset filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filtered.map((item) => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => handleProductClick(item)}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                  >
+                    {/* Image with Slider */}
+                    <div className="relative h-64 overflow-hidden">
+                      {item.images && item.images.length > 0 ? (
+                        <ImageSlider 
+                          images={item.images}
+                          alt={item.title}
+                          className="w-full h-full"
+                          showDots={item.images.length > 1}
+                          showArrows={item.images.length > 1}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
+                          <div className="text-neutral-400 text-4xl">
+                            {item.category === 'CHEFF' ? <ChefHat className="w-12 h-12 mx-auto" /> :
+                             item.category === 'GROWN' ? <Sprout className="w-12 h-12 mx-auto" /> :
+                             item.category === 'DESIGNER' ? <Palette className="w-12 h-12 mx-auto" /> :
+                             <ChefHat className="w-12 h-12 mx-auto" />}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Category Badge */}
+                      {item.category && (
+                        <div className="absolute top-4 left-4">
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
+                            item.category === 'GROWN' ? 'bg-primary-100 text-primary-800 border border-primary-200' :
+                            item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800 border border-secondary-200' :
+                            'bg-neutral-100 text-neutral-800 border border-neutral-200'
+                          }`}>
+                            {item.category === 'CHEFF' ? '🍳 Chef' :
+                             item.category === 'GROWN' ? '🌱 Garden' :
+                             item.category === 'DESIGNER' ? '🎨 Designer' : item.category}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Favorite Button */}
+                      <div className="absolute top-4 right-4">
+                        <FavoriteButton 
+                          productId={item.id}
+                          productTitle={item.title}
+                          size="lg"
+                        />
+                      </div>
+
+                      {/* Price */}
+                      <div className="absolute bottom-4 left-4">
+                        <span className="bg-primary-brand text-white px-3 py-1 rounded-full text-lg font-bold shadow-lg">
+                          €{(item.priceCents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 flex-1">
+                          {item.title}
+                        </h3>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // TODO: Implement more options functionality
+                          }}
+                          className="p-1 hover:bg-neutral-100 rounded-full transition-colors"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-neutral-400" />
+                        </button>
+                      </div>
+                      
+                      {item.subcategory && (
+                        <p className="text-sm text-primary-brand font-medium mb-2">{item.subcategory}</p>
+                      )}
+                      
+                      <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
+                      
+                      {/* Seller Info */}
+                      <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
+                        <div className="flex-shrink-0">
+                          {item.seller?.avatar ? (
+                            <img
+                              src={item.seller.avatar}
+                              alt={item.seller?.name ?? "Verkoper"}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-primary-100"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                              <span className="text-primary-600 font-semibold text-sm">
+                                {(item.seller?.name ?? item.seller?.username ?? "A").charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Link 
+                              href={`/profile/${item.seller?.id}`}
+                              className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
+                            >
+                              {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
+                            </Link>
+                            {item.seller?.followerCount && item.seller?.followerCount > 0 && (
+                              <span className="text-xs text-neutral-500">
+                                ({item.seller?.followerCount} fans)
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-neutral-500 mb-1">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
+                            </div>
+                            {item.favoriteCount && item.favoriteCount > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>❤️</span>
+                                <span>{item.favoriteCount}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Location and Distance Info */}
+                          <div className="flex items-center gap-2 text-xs text-neutral-500">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              <span>{item.location?.place || 'Locatie onbekend'}</span>
+                            </div>
+                            {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
+                              <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                <span>📍</span>
+                                <span>{item.location.distanceKm} km</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Map View */}
+      {showMap && (
+        <MapView
+          products={filtered}
+          userLocation={userLocation}
+          onProductClick={handleProductClick}
+          isOpen={showMap}
+          onClose={() => setShowMap(false)}
+        />
+      )}
+
+      {/* Delivery Section */}
+      <section className="py-12 md:py-16 bg-gradient-to-br from-secondary-50 to-secondary-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Word Bezorger bij HomeCheff
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Verdien extra geld door lokale producten te bezorgen in jouw buurt. 
+              Flexibel werken, goede verdiensten en help de lokale economie.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <Euro className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">Goede Verdiensten</h3>
+              <p className="text-gray-600 text-sm">
+                Verdien €3-8 per bezorging plus fooien
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">Flexibel Werken</h3>
+              <p className="text-gray-600 text-sm">
+                Kies zelf wanneer je beschikbaar bent
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-purple-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">In Je Buurt</h3>
+              <p className="text-gray-600 text-sm">
+                Alleen bestellingen binnen 3km van je locatie
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Link href="/delivery/signup">
+              <button className="bg-primary-brand text-white hover:bg-primary-700 px-6 py-3 rounded-xl font-medium text-base transition-all duration-200 shadow-md hover:shadow-lg">
+                Meld Je Aan als Bezorger
+              </button>
+            </Link>
+            <p className="text-gray-500 text-sm mt-3">
+              Vanaf 15 jaar • Wettelijk toegestaan • Veilig en betrouwbaar
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+// Main export with NotificationProvider wrapper
+export default function HomePage() {
+  return (
+    <NotificationProvider>
+      <HomePageContent />
+    </NotificationProvider>
+  );
                         <select
                           value={category}
                           onChange={(e) => {
@@ -265,6 +774,7 @@ export default function HomePage() {
                           <option value="oldest">Oudste eerst</option>
                           <option value="price-low">Prijs: laag naar hoog</option>
                           <option value="price-high">Prijs: hoog naar laag</option>
+                          <option value="distance">Afstand: dichtbij eerst</option>
                         </select>
                       </div>
                     </div>
@@ -508,11 +1018,13 @@ export default function HomePage() {
                 >
                   {/* Image */}
                   <div className="relative h-64 overflow-hidden">
-                    {item.image ? (
-                      <img 
-                        src={item.image} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                    {item.images && item.images.length > 0 ? (
+                      <ImageSlider 
+                        images={item.images}
+                        alt={item.title}
+                        className="w-full h-full"
+                        showDots={item.images.length > 1}
+                        showArrows={item.images.length > 1}
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
@@ -622,6 +1134,20 @@ export default function HomePage() {
                             <div className="flex items-center gap-1">
                               <span>❤️</span>
                               <span>{item.favoriteCount}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Location and Distance Info */}
+                        <div className="flex items-center gap-2 text-xs text-neutral-500">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            <span>{item.location?.place || 'Locatie onbekend'}</span>
+                          </div>
+                          {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
+                            <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                              <span>📍</span>
+                              <span>{item.location.distanceKm} km</span>
                             </div>
                           )}
                         </div>

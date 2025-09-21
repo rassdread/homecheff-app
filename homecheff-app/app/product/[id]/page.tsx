@@ -12,6 +12,7 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import StartChatButton from "@/components/chat/StartChatButton";
 import FollowButton from "@/components/follow/FollowButton";
 import PropsButton from "@/components/props/PropsButton";
+import ReportContentButton from "@/components/reporting/ReportContentButton";
 
 type Product = {
   id: string;
@@ -504,6 +505,12 @@ export default function ProductPage() {
                       productTitle={product.title}
                       size="lg"
                       variant="thumbs"
+                    />
+                    <ReportContentButton
+                      entityId={product.id}
+                      entityType="PRODUCT"
+                      entityTitle={product.title}
+                      size="lg"
                     />
                   </>
                 )}

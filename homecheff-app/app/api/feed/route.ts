@@ -151,6 +151,8 @@ export async function GET(req: NextRequest) {
     createdAt: listing.createdAt,
     updatedAt: listing.createdAt,
     User: listing.User,
+    image: listing.ListingMedia?.[0]?.url || null, // Add main image field
+    images: listing.ListingMedia?.map(media => media.url) || [], // All images for slider
     ListingMedia: listing.ListingMedia.map(media => ({
       url: media.url,
       order: media.order,
@@ -175,6 +177,8 @@ export async function GET(req: NextRequest) {
     createdAt: product.createdAt,
     updatedAt: product.createdAt,
     User: product.seller?.User || null,
+    image: product.Image?.[0]?.fileUrl || null, // Add main image field
+    images: product.Image?.map(img => img.fileUrl) || [], // All images for slider
     ListingMedia: product.Image.map(img => ({
       url: img.fileUrl,
       order: img.sortOrder,

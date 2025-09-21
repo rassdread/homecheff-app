@@ -29,8 +29,7 @@ export async function GET(req: Request) {
           }
         },
         Image: {
-          where: { sortOrder: 0 },
-          take: 1,
+          orderBy: { sortOrder: 'asc' },
         },
       },
     });
@@ -70,9 +69,16 @@ export async function GET(req: Request) {
       description: p.description,
       priceCents: p.priceCents,
       image: p.Image?.[0]?.fileUrl ?? null,
+      images: p.Image?.map((img: any) => img.fileUrl) ?? [], // All images for slider
       createdAt: p.createdAt,
       category: p.category,
       subcategory: null, // Could be added to Product schema if needed
+      location: {
+        place: p.seller?.User?.name ? `${p.seller.User.name}'s locatie` : 'Onbekende locatie',
+        city: 'Nederland', // Default city, could be enhanced with actual location data
+        lat: p.seller?.lat ?? null,
+        lng: p.seller?.lng ?? null,
+      },
       seller: {
         id: p.seller?.User?.id ?? null,
         name: p.seller?.User?.name ?? null,

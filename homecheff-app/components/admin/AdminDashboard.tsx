@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
 import NotificationCenter from './NotificationCenter';
 import DeliveryManagement from './DeliveryManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import ContentModerationDashboard from './ContentModerationDashboard';
 
 interface AdminStats {
   totalUsers: number;
@@ -91,6 +92,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'delivery', label: 'Bezorgers', icon: Truck },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'moderation', label: 'Content Moderation', icon: Shield },
     { id: 'notifications', label: 'Berichten', icon: MessageSquare },
   ];
 
@@ -271,6 +273,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'delivery' && <DeliveryManagement deliveryProfiles={stats.deliveryProfiles} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'moderation' && <ContentModerationDashboard />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>
