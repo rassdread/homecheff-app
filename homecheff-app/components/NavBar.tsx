@@ -171,7 +171,7 @@ export default function NavBar() {
                       )}
                       
                       {/* Delivery Dashboard Link - Only for Delivery Users */}
-                      {(user as any)?.deliveryProfile && (
+                      {((user as any)?.role === 'USER' || (user as any)?.deliveryProfile) && (
                         <Link 
                           href="/delivery/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
@@ -295,6 +295,16 @@ export default function NavBar() {
                       <span>Verkoper Dashboard</span>
                     </Button>
                   </Link>
+                  
+                  {/* Delivery Dashboard Link - Only for Delivery Users */}
+                  {((user as any)?.role === 'USER' || (user as any)?.deliveryProfile) && (
+                    <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">
+                        <Package className="w-4 h-4" />
+                        <span>Bezorger Dashboard</span>
+                      </Button>
+                    </Link>
+                  )}
                   
                   <div className="border-t border-gray-200 my-2"></div>
                   
