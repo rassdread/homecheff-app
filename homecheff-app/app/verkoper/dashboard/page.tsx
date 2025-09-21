@@ -16,9 +16,11 @@ import {
   Search,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Settings
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import Link from 'next/link';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -184,6 +186,15 @@ export default function SellerDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Settings Button */}
+            <Link
+              href="/verkoper/instellingen"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Instellingen
+            </Link>
+
             {/* Period Selector */}
             <select
               value={selectedPeriod}
