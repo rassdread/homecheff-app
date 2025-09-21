@@ -338,31 +338,31 @@ export default function UserManagement() {
                       <Link
                         href={`/profile/${user.id}`}
                         target="_blank"
-                        className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
+                        className="p-3 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Bekijk profiel"
                       >
-                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                       </Link>
                       <Link
                         href={`/messages?user=${user.id}`}
-                        className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation"
+                        className="p-3 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Bericht sturen"
                       >
-                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
                       </Link>
                       <a
                         href={`mailto:${user.email}`}
-                        className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200 touch-manipulation"
+                        className="p-3 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="E-mail sturen"
                       >
-                        <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
                       </a>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="p-3 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Verwijderen"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
                     </div>
                   </td>

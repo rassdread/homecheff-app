@@ -120,18 +120,96 @@ async function main() {
 
   console.log('✅ Created delivery profiles');
 
-  // Note: Dishes can be created through the UI
-  console.log('💡 Dishes can be created through the UI after login');
+  // Create sample products for analytics testing
+  const sellerProfiles = await prisma.sellerProfile.findMany({
+    include: { User: true }
+  });
+
+  const spanishDishes = [
+    { title: 'Paella Valenciana', description: 'Authentieke Spaanse rijstschotel met kip en groenten', priceCents: 1850, category: 'CHEFF', unit: 'PORTION' },
+    { title: 'Gazpacho Andaluz', description: 'Koude tomatensoep uit Andalusië', priceCents: 850, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Tortilla Española', description: 'Spaanse aardappelomelet met ui', priceCents: 1250, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Churros con Chocolate', description: 'Gefrituurde deegsticks met warme chocoladesaus', priceCents: 650, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Patatas Bravas', description: 'Gekruide aardappelblokjes met pittige saus', priceCents: 750, category: 'CHEFF', unit: 'PORTION' }
+  ];
+
+  const middleEasternDishes = [
+    { title: 'Hummus Tradicional', description: 'Cremige kikkererwtenpuree met tahini', priceCents: 950, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Falafel Plate', description: 'Gefrituurde kikkererwtenballetjes met salade', priceCents: 1450, category: 'CHEFF', unit: 'PORTION' },
+    { title: 'Shawarma Wrap', description: 'Gemarineerd vlees in pita brood', priceCents: 1650, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Baklava', description: 'Zoete filodeeg met noten en honing', priceCents: 550, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Tabouleh Salad', description: 'Verse bulgur salade met kruiden', priceCents: 1150, category: 'CHEFF', unit: 'STUK' }
+  ];
+
+  const asianDishes = [
+    { title: 'Pad Thai', description: 'Thaise roerbaknoedels met garnalen', priceCents: 1750, category: 'CHEFF', unit: 'PORTION' },
+    { title: 'Ramen Tonkotsu', description: 'Japanse noedelsoep met varkensvlees', priceCents: 1950, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Spring Rolls', description: 'Verse loempia\'s met groenten', priceCents: 850, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Mango Sticky Rice', description: 'Zoete rijst met verse mango', priceCents: 750, category: 'CHEFF', unit: 'STUK' },
+    { title: 'Kimchi', description: 'Gefermenteerde kool met kruiden', priceCents: 450, category: 'CHEFF', unit: 'STUK' }
+  ];
+
+  let productCount = 0;
+  for (const seller of sellerProfiles) {
+    let dishes = [];
+    if (seller.User.name?.includes('Maria')) {
+      dishes = spanishDishes;
+    } else if (seller.User.name?.includes('Ahmed')) {
+      dishes = middleEasternDishes;
+    } else if (seller.User.name?.includes('Lisa')) {
+      dishes = asianDishes;
+    }
+
+    for (const dish of dishes) {
+      const product = await prisma.product.create({
+        data: {
+          id: crypto.randomUUID(),
+          title: dish.title,
+          description: dish.description,
+          priceCents: dish.priceCents,
+          category: dish.category as any,
+          unit: dish.unit as any,
+          delivery: 'BOTH',
+          isActive: true,
+          sellerId: seller.id,
+          Image: {
+            createMany: {
+              data: [
+                {
+                  id: crypto.randomUUID(),
+                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  sortOrder: 1
+                },
+                {
+                  id: crypto.randomUUID(),
+                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  sortOrder: 2
+                },
+                Math.random() > 0.5 ? {
+                  id: crypto.randomUUID(),
+                  fileUrl: dishImages[Math.floor(Math.random() * dishImages.length)],
+                  sortOrder: 3
+                } : null
+              ].filter(Boolean)
+            }
+          }
+        }
+      });
+      productCount++;
+    }
+  }
+
+  console.log(`✅ Created ${productCount} sample products`);
 
   console.log('✅ Database seeded successfully!');
   console.log('📧 Test accounts created:');
   console.log('   Admin: admin@homecheff.nl / password123');
   console.log('   Sellers: maria@test.nl, ahmed@test.nl, lisa@test.nl / password123');
   console.log('   Buyer: james@test.nl / password123');
-  console.log('🍽️  Created 15 dishes with multiple images across different categories');
-  console.log('   - Maria (Spanish): 5 dishes with 2-3 images each');
-  console.log('   - Ahmed (Middle Eastern): 5 dishes with 2-3 images each');
-  console.log('   - Lisa (Asian): 5 dishes with 1-3 images each');
+  console.log(`🍽️  Created ${productCount} dishes with images across different categories`);
+  console.log('   - Maria (Spanish): 5 dishes');
+  console.log('   - Ahmed (Middle Eastern): 5 dishes');
+  console.log('   - Lisa (Asian): 5 dishes');
 }
 
 main()

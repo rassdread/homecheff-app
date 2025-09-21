@@ -40,10 +40,17 @@ export default function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
+      console.log('Fetching analytics data...');
       const response = await fetch(`/api/analytics/dashboard?period=${period}&entityType=${entityType}`);
+      console.log('Analytics response status:', response.status);
+      
       if (response.ok) {
         const analyticsData = await response.json();
+        console.log('Analytics data received:', analyticsData);
         setData(analyticsData);
+      } else {
+        const errorData = await response.json();
+        console.error('Analytics API error:', errorData);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -131,7 +138,17 @@ export default function AnalyticsDashboard() {
   if (!data) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">Geen analytics data beschikbaar</p>
+        <div className="text-center py-8">
+          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Geen analytics data beschikbaar</h3>
+          <p className="text-gray-500 mb-4">Er zijn nog geen product views getrackt. Analytics data verschijnt zodra gebruikers producten bekijken.</p>
+          <button 
+            onClick={fetchAnalytics}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Opnieuw laden
+          </button>
+        </div>
       </div>
     );
   }
