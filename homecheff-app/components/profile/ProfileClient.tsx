@@ -50,9 +50,10 @@ interface ProfileStats {
 interface ProfileClientProps {
   user: User;
   openNewProducts: boolean;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function ProfileClient({ user, openNewProducts }: ProfileClientProps) {
+export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
@@ -68,6 +69,14 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
     orders: 0
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check for welcome message
+  useEffect(() => {
+    if (searchParams?.welcome === 'true' && searchParams?.newUser === 'true') {
+      setShowWelcome(true);
+    }
+  }, [searchParams]);
 
   // Fetch profile statistics
   const fetchStats = async () => {
@@ -180,6 +189,33 @@ export default function ProfileClient({ user, openNewProducts }: ProfileClientPr
           <Settings className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Welcome Message */}
+      {showWelcome && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4">
+          <div className="bg-green-500 text-white rounded-lg shadow-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Welkom bij HomeCheff!</h3>
+                  <p className="text-sm opacity-90">Vul je profiel aan om te beginnen</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="text-green-200 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">

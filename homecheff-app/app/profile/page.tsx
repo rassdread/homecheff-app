@@ -76,5 +76,5 @@ export default async function ProfilePage({
 
   const openNewProducts = (searchParams?.added ?? "") === "1";
 
-  return <ProfileClient user={user as any} openNewProducts={openNewProducts} />;
+  return <ProfileClient user={user as any} openNewProducts={openNewProducts} searchParams={searchParams} />;
 }

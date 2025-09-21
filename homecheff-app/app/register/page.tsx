@@ -283,24 +283,24 @@ export default function RegisterPage() {
       
       // Probeer automatisch in te loggen
       try {
-        await signIn("credentials", {
+        const signInResult = await signIn("credentials", {
           email: state.email,
           password: state.password,
           redirect: false,
         });
+        
+        if (signInResult?.ok) {
+          // Succesvol ingelogd, redirect direct naar profiel
+          router.push("/profile?welcome=true&newUser=true");
+        } else {
+          // Inloggen mislukt, redirect naar login pagina
+          router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");
+        }
       } catch (error) {
         console.error("Auto sign-in failed:", error);
         // Redirect naar login pagina met succesmelding
-        setTimeout(() => {
-          router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");
-        }, 2000);
-        return;
+        router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");
       }
-      
-      // Redirect naar profiel bij succesvolle auto-login
-      setTimeout(() => {
-        router.push("/profile");
-      }, 1500);
       
     } catch (error) {
       console.error("Registration error:", error);
