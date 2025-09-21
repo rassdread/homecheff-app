@@ -37,7 +37,7 @@ async function main() {
   const hashedPassword = await bcrypt.hash('password123', 12);
 
   // Create 5 test users with complete profiles
-  const users = [];
+  const users: any[] = [];
   
   const userData = [
     { name: 'Admin User', username: 'admin', email: 'admin@homecheff.nl', role: UserRole.ADMIN, bio: 'Platform administrator', place: 'Amsterdam', interests: ['management', 'platform'] },
