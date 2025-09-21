@@ -94,6 +94,9 @@ export default async function AdminPage() {
     })
   ]);
 
+  console.log('Admin page - delivery profiles found:', deliveryProfiles.length);
+  console.log('Admin page - delivery profiles:', deliveryProfiles);
+
   return (
     <AdminDashboard
       stats={{
