@@ -11,6 +11,7 @@ import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import StartChatButton from "@/components/chat/StartChatButton";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
+import PropsButton from "@/components/props/PropsButton";
 
 type Product = {
   id: string;
@@ -497,6 +498,12 @@ export default function ProductPage() {
                       productId={product.id}
                       productTitle={product.title}
                       size="lg"
+                    />
+                    <PropsButton 
+                      productId={product.id}
+                      productTitle={product.title}
+                      size="lg"
+                      variant="thumbs"
                     />
                   </>
                 )}

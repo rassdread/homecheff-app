@@ -88,11 +88,17 @@
     }
   },
   "follow": {
-    "followers": "Volgers",
+    "followers": "Fans",
     "following": "Fan",
-    "follow": "Volgen",
+    "follow": "Fan worden",
     "unfollow": "Fan",
-    "followButton": "Volgen",
+    "followButton": "Fan worden",
     "followingButton": "Fan"
+  },
+  "props": {
+    "giveProps": "Props geven",
+    "propsGiven": "Props!",
+    "propsButton": "Props",
+    "propsWithdrawn": "Props ingetrokken"
   }
 }

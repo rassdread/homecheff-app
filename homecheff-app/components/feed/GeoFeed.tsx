@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ShareButton } from "@/components/ui/ShareButton";
 import { Eye, Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import PropsButton from "@/components/props/PropsButton";
 
 type FeedItem = {
   id: string;
@@ -282,12 +283,20 @@ export default function GeoFeed() {
                 </p>
                 <div className="flex items-center justify-between text-xs">
                   <p>{it.deliveryMode === "PICKUP" ? "Afhalen" : it.deliveryMode === "DELIVERY" ? "Bezorgen" : it.deliveryMode === "BOTH" ? "Afhalen of bezorgen" : ""}</p>
-                  {it.viewCount !== undefined && (
-                    <div className="flex items-center gap-1 text-gray-500">
-                      <Eye className="w-3 h-3" />
-                      <span>{it.viewCount}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {it.viewCount !== undefined && (
+                      <div className="flex items-center gap-1 text-gray-500">
+                        <Eye className="w-3 h-3" />
+                        <span>{it.viewCount}</span>
+                      </div>
+                    )}
+                    <PropsButton 
+                      productId={it.id}
+                      productTitle={it.title ?? "Gerecht"}
+                      size="sm"
+                      variant="thumbs"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

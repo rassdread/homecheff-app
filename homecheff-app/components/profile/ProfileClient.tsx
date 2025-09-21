@@ -259,7 +259,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.followers}
                   </div>
-                  <div className="text-xs text-gray-500">Volgers</div>
+                  <div className="text-xs text-gray-500">Fans</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
