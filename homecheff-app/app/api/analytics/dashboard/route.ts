@@ -104,7 +104,6 @@ export async function GET(req: NextRequest) {
         id: true,
         title: true,
         priceCents: true,
-        viewCount: true,
         seller: {
           select: {
             User: {
@@ -123,7 +122,6 @@ export async function GET(req: NextRequest) {
         views: product._count.entityId,
         title: details?.title || 'Unknown Product',
         priceCents: details?.priceCents || 0,
-        viewCount: details?.viewCount || 0,
         seller: details?.seller?.User?.name || details?.seller?.User?.username || 'Unknown'
       };
     });
