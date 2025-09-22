@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
         where: { email: session.user.email! },
         select: { id: true }
       });
-      targetUserId = user?.id;
+      targetUserId = user?.id || null;
     }
 
     if (!targetUserId) {
