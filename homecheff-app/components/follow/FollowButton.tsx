@@ -9,13 +9,15 @@ interface FollowButtonProps {
   sellerName?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  isOwnProfile?: boolean;
 }
 
 export default function FollowButton({ 
   sellerId, 
   sellerName = 'deze verkoper',
   className = '',
-  size = 'md'
+  size = 'md',
+  isOwnProfile = false
 }: FollowButtonProps) {
   const { data: session } = useSession();
   const [following, setFollowing] = useState(false);
@@ -66,11 +68,18 @@ export default function FollowButton({
         const data = await response.json();
         setFollowing(data.following);
         
-        // Show feedback
+        // Show feedback and redirect to fans list if becoming a fan
         if (data.following) {
           console.log(`Je bent nu fan van ${sellerName}`);
+          // Show success message and redirect to fans list
+          alert(`Je bent nu fan van ${sellerName}! Je vindt deze verkoper in je "Mijn Fans" lijst.`);
+          // Redirect to fans page after a short delay
+          setTimeout(() => {
+            window.location.href = '/favorites';
+          }, 1500);
         } else {
           console.log(`Je bent geen fan meer van ${sellerName}`);
+          alert(`Je bent geen fan meer van ${sellerName}`);
         }
       } else {
         const error = await response.json();

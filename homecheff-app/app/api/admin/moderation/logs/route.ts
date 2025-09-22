@@ -18,23 +18,14 @@ export async function GET(req: NextRequest) {
         entityType: 'IMAGE'
       },
       orderBy: { createdAt: 'desc' },
-      take: 100,
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            username: true
-          }
-        }
-      }
+      take: 100
     });
 
     // Transform events to moderation logs
     const logs = moderationEvents.map(event => ({
       id: event.id,
       userId: event.userId || 'unknown',
-      userName: event.User?.name || event.User?.username || 'Onbekende gebruiker',
+      userName: 'Onbekende gebruiker',
       imageUrl: (event.metadata as any)?.imageUrl || '',
       category: (event.metadata as any)?.category || 'UNKNOWN',
       productTitle: (event.metadata as any)?.productTitle || '',
@@ -95,7 +86,7 @@ function calculateViolationStats(logs: any[]) {
 }
 
 function calculateCategoryAccuracy(logs: any[]) {
-  const accuracy: { [key: string]: number } = {};
+  const accuracy: { [key: string]: { total: number; correct: number } } = {};
   
   logs.forEach(log => {
     const category = log.category;
@@ -113,7 +104,7 @@ function calculateCategoryAccuracy(logs: any[]) {
   const result: { [key: string]: number } = {};
   Object.keys(accuracy).forEach(category => {
     const data = accuracy[category];
-    result[category] = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+    result[category] = accuracy[category].total > 0 ? Math.round((accuracy[category].correct / accuracy[category].total) * 100) : 0;
   });
   
   return result;

@@ -124,31 +124,28 @@ export async function POST(req: Request) {
 
       // Generate some initial view events to simulate organic discovery
       const initialViews = Math.floor(Math.random() * 5) + 1; // 1-5 initial views
-      const viewEvents = [];
-      
       for (let i = 0; i < initialViews; i++) {
         // Create views from the last few hours
         const viewTime = new Date();
         viewTime.setHours(viewTime.getHours() - Math.floor(Math.random() * 6));
         viewTime.setMinutes(Math.floor(Math.random() * 60));
         
-        viewEvents.push({
-          eventType: 'VIEW',
-          entityType: 'PRODUCT',
-          entityId: result.id,
-          userId: user.id, // For now, use the seller as the viewer (in real app, this would be different users)
-          metadata: {
-            category: cat,
-            source: 'product_creation',
-            isInitialView: true
-          },
-          createdAt: viewTime
+        // Create view event
+        await prisma.analyticsEvent.create({
+          data: {
+            eventType: 'VIEW',
+            entityType: 'PRODUCT',
+            entityId: result.id,
+            userId: user.id,
+            metadata: {
+              category: cat,
+              source: 'product_creation',
+              isInitialView: true
+            },
+            createdAt: viewTime
+          }
         });
       }
-
-      await prisma.analyticsEvent.createMany({
-        data: viewEvents
-      });
 
       console.log(`Generated ${initialViews} initial views for product ${result.id}`);
     } catch (analyticsError) {

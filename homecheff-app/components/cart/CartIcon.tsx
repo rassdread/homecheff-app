@@ -5,7 +5,7 @@ import { useState } from 'react';
 import CartDrawer from './CartDrawer';
 
 export default function CartIcon() {
-  const { cart, isLoading } = useCart();
+  const { items: cart, totalItems } = useCart();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
@@ -13,13 +13,13 @@ export default function CartIcon() {
       <button
         onClick={() => setIsDrawerOpen(true)}
         className="relative p-2 text-gray-600 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
-        disabled={isLoading}
+        disabled={false}
         title="Winkelwagen"
       >
         <ShoppingCart className="w-6 h-6" />
-        {!isLoading && cart.totalItems > 0 && (
+        {totalItems > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary-brand text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-            {cart.totalItems > 99 ? '99+' : cart.totalItems}
+            {totalItems > 99 ? '99+' : totalItems}
           </span>
         )}
       </button>

@@ -10,7 +10,7 @@ export interface FilterState {
   sortBy: string;
   deliveryMode: string;
   dateRange: { from: string; to: string };
-  condition: string;
+  // condition: string; // Verwijderd - alles is nieuw op HomeCheff
   sellerRating: number;
   hasImages: boolean;
   isActive: boolean;
@@ -34,7 +34,7 @@ export const defaultFilters: FilterState = {
   sortBy: 'newest',
   deliveryMode: 'all',
   dateRange: { from: '', to: '' },
-  condition: 'all',
+  // condition: 'all', // Verwijderd - alles is nieuw op HomeCheff
   sellerRating: 0,
   hasImages: false,
   isActive: false,

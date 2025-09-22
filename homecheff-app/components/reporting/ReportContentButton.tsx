@@ -122,10 +122,10 @@ export default function ReportContentButton({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={`${sizeClasses[size]} ${className} bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors flex items-center gap-2`}
+        className={`${className} flex items-center gap-2 transition-colors`}
         title="Rapporteer deze content"
       >
-        <Flag className={iconSize[size]} />
+        <Flag className="w-4 h-4" />
         <span>Melden</span>
       </button>
 

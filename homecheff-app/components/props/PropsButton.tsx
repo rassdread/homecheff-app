@@ -115,6 +115,22 @@ export default function PropsButton({
 
   const Icon = variant === 'thumbs' ? ThumbsUp : Heart;
 
+  // If className is provided, use it (for custom styling like in product page)
+  if (className) {
+    return (
+      <button
+        onClick={handleToggleProps}
+        disabled={loading}
+        className={`${className} disabled:opacity-50 disabled:cursor-not-allowed`}
+        title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
+      >
+        <Icon className="w-4 h-4" />
+        <span>{propsGiven ? 'Props!' : 'Props'}</span>
+      </button>
+    );
+  }
+
+  // Default styling for other use cases
   return (
     <button
       onClick={handleToggleProps}
@@ -127,7 +143,6 @@ export default function PropsButton({
           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
         }
         disabled:opacity-50 disabled:cursor-not-allowed
-        ${className}
       `}
       title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
     >

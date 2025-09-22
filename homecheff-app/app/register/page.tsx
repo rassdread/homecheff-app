@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
+import { clearAllUserData } from "@/lib/session-cleanup";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
 import Link from "next/link";
 
@@ -281,6 +282,9 @@ export default function RegisterPage() {
       // Registratie succesvol
       setState(prev => ({ ...prev, success: true }));
       
+      // Clear all user data before auto-login to prevent data leakage
+      clearAllUserData();
+      
       // Probeer automatisch in te loggen
       try {
         const signInResult = await signIn("credentials", {
@@ -290,8 +294,9 @@ export default function RegisterPage() {
         });
         
         if (signInResult?.ok) {
-          // Succesvol ingelogd, redirect direct naar profiel
-          router.push("/profile?welcome=true&newUser=true");
+          // Succesvol ingelogd, redirect naar juiste pagina op basis van rol
+          const redirectUrl = data.redirectUrl || "/";
+          router.push(redirectUrl);
         } else {
           // Inloggen mislukt, redirect naar login pagina
           router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");

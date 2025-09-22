@@ -11,7 +11,7 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { cart, updateQuantity, removeItem, clear } = useCart();
+  const { items: cart, updateQuantity, removeItem, clearCart } = useCart();
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
@@ -29,11 +29,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   const handleClearCart = () => {
     if (confirm('Weet je zeker dat je alle items uit je winkelwagen wilt verwijderen?')) {
-      clear();
+      clearCart();
     }
   };
 
-  const fees = calculateFees(cart.totalAmount);
+  const totalAmount = cart.reduce((sum, item) => sum + item.priceCents * item.quantity, 0);
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const fees = calculateFees(totalAmount);
 
   if (!isOpen) return null;
 
@@ -56,10 +58,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
               <div>
               <h2 className="text-xl font-bold text-neutral-900">
-                Winkelwagen ({cart.totalItems})
+                Winkelwagen ({totalItems})
               </h2>
               <p className="text-sm text-neutral-600">
-                {cart.totalItems > 0 ? 'Klaar om af te rekenen?' : 'Voeg producten toe aan je winkelwagen'}
+                {totalItems > 0 ? 'Klaar om af te rekenen?' : 'Voeg producten toe aan je winkelwagen'}
               </p>
               </div>
             </div>
@@ -73,7 +75,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {cart.items.length === 0 ? (
+            {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full p-6">
                 <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full flex items-center justify-center mb-6">
                   <ShoppingCart className="w-10 h-10 text-primary-brand" />
@@ -98,7 +100,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             ) : (
               <div className="p-6 space-y-4">
                 {/* Items */}
-                {cart.items.map((item) => (
+                {cart.map((item) => (
                   <div
                     key={item.id}
                     className={`bg-gradient-to-r from-neutral-50 to-neutral-100 rounded-xl p-4 transition-all duration-200 border border-neutral-200 hover:shadow-md ${
@@ -127,7 +129,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           {item.title}
                         </h3>
                         <p className="text-sm text-neutral-600 mb-2">
-                          van {item.sellerName}
+                          van Verkoper
                         </p>
                         
                         {/* Quantity Controls */}
@@ -170,7 +172,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 ))}
 
                 {/* Clear Cart Button */}
-                {cart.items.length > 0 && (
+                {cart.length > 0 && (
                   <button
                     onClick={handleClearCart}
                     className="w-full py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
@@ -183,13 +185,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </div>
 
           {/* Footer */}
-          {cart.items.length > 0 && (
+          {cart.length > 0 && (
             <div className="border-t border-neutral-200 p-6 bg-gradient-to-r from-neutral-50 to-primary-50">
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-xl font-bold">
                   <span className="text-neutral-900">Totaal:</span>
-                  <span className="text-primary-brand">€{((cart.totalAmount + fees.stripeFee) / 100).toFixed(2)}</span>
+                  <span className="text-primary-brand">€{((totalAmount + fees.stripeFee) / 100).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -199,7 +201,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={onClose}
                 className="w-full bg-primary-brand text-white py-4 rounded-xl hover:bg-primary-700 transition-all duration-200 font-semibold text-center block shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-Afrekenen ({cart.totalItems} items)
+                Afrekenen ({totalItems} items)
               </Link>
             </div>
           )}

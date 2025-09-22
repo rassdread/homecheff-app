@@ -94,7 +94,7 @@ export function ShareButton({
     <div className="relative">
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`}
+        className={`${className}`}
       >
         📤 Delen
       </Button>

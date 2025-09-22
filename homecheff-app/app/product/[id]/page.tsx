@@ -189,7 +189,7 @@ export default function ProductPage() {
     if (params.id) {
       fetchProduct();
       // Track view
-      trackView(params.id);
+      trackView(Array.isArray(params.id) ? params.id[0] : params.id);
     }
   }, [params.id]);
 
@@ -200,7 +200,7 @@ export default function ProductPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId,
-          userId: session?.user?.id || null,
+          userId: (session as any)?.user?.id || null,
           type: 'product'
         })
       });
@@ -468,62 +468,25 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="absolute top-4 right-4 flex gap-2">
-                {isOwner ? (
-                  <>
-                    <button 
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                      title="Bewerken"
-                    >
-                      <Edit3 className="w-6 h-6 text-blue-600" />
-                    </button>
-                    <button 
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                      title="Verwijderen"
-                    >
-                      <Trash2 className="w-6 h-6 text-red-600" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <StartChatButton
-                      productId={product.id}
-                      sellerId={product.seller?.User.id || ''}
-                      sellerName={getDisplayName(product)}
-                      className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                    />
-                    <FollowButton 
-                      sellerId={product.seller?.User.id || ''}
-                      sellerName={getDisplayName(product)}
-                      size="lg"
-                    />
-                    <PropsButton 
-                      productId={product.id}
-                      productTitle={product.title}
-                      size="lg"
-                      variant="thumbs"
-                    />
-                    <ReportContentButton
-                      entityId={product.id}
-                      entityType="PRODUCT"
-                      entityTitle={product.title}
-                      size="lg"
-                    />
-                  </>
-                )}
-                <ShareButton
-                  url={`${baseUrl}/product/${product.id}`}
-                  title={product.title}
-                  description={product.description || ''}
-                  type="buyer"
-                  productId={product.id}
-                  productTitle={product.title}
-                  className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                />
-              </div>
+              {/* Owner Action Buttons - Keep on image for owners */}
+              {isOwner && (
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button 
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                    title="Bewerken"
+                  >
+                    <Edit3 className="w-6 h-6 text-blue-600" />
+                  </button>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-3 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                    title="Verwijderen"
+                  >
+                    <Trash2 className="w-6 h-6 text-red-600" />
+                  </button>
+                </div>
+              )}
 
               {/* Image Navigation */}
               {product.Image && product.Image.length > 1 && (
@@ -566,6 +529,44 @@ export default function ProductPage() {
                     />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Action Buttons - Under the image */}
+            {!isOwner && (
+              <div className="flex items-center justify-center gap-3 pt-4 border-t border-gray-100">
+                <StartChatButton
+                  productId={product.id}
+                  sellerId={product.seller?.User.id || ''}
+                  sellerName={getDisplayName(product)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                />
+                <FollowButton 
+                  sellerId={product.seller?.User.id || ''}
+                  sellerName={getDisplayName(product)}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors"
+                />
+                <PropsButton 
+                  productId={product.id}
+                  productTitle={product.title}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg transition-colors"
+                  variant="thumbs"
+                />
+                <ShareButton
+                  url={`${baseUrl}/product/${product.id}`}
+                  title={product.title}
+                  description={product.description || ''}
+                  type="buyer"
+                  productId={product.id}
+                  productTitle={product.title}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors"
+                />
+                <ReportContentButton
+                  entityId={product.id}
+                  entityType="PRODUCT"
+                  entityTitle={product.title}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                />
               </div>
             )}
           </div>

@@ -9,12 +9,15 @@ import NotificationCenter from './NotificationCenter';
 import DeliveryManagement from './DeliveryManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ContentModerationDashboard from './ContentModerationDashboard';
+import AdminFilters from './AdminFilters';
 
 interface AdminStats {
   totalUsers: number;
   totalProducts: number;
   totalOrders: number;
   totalDeliveryProfiles: number;
+  totalRevenue: number;
+  activeUsers: number;
   recentUsers: Array<{
     id: string;
     name: string | null;
@@ -23,6 +26,7 @@ interface AdminStats {
     role: string;
     image: string | null;
     profileImage: string | null;
+    lastActiveAt: Date | null;
   }>;
   recentProducts: Array<{
     id: string;
@@ -38,6 +42,12 @@ interface AdminStats {
         profileImage: string | null;
       };
     };
+    Image: Array<{
+      fileUrl: string;
+    }>;
+    favorites: Array<{
+      id: string;
+    }>;
   }>;
   deliveryProfiles: Array<{
     id: string;
@@ -76,6 +86,46 @@ interface AdminStats {
       deliveryFee: number;
     }>;
   }>;
+  topSellers: Array<{
+    id: string;
+    User: {
+      name: string | null;
+      username: string | null;
+      image: string | null;
+      profileImage: string | null;
+    };
+    products: Array<{
+      id: string;
+      priceCents: number;
+      isActive: boolean;
+    }>;
+  }>;
+  recentOrders: Array<{
+    id: string;
+    totalAmount: number;
+    status: string;
+    createdAt: Date;
+    buyer: {
+      name: string | null;
+      username: string | null;
+      image: string | null;
+      profileImage: string | null;
+    };
+    items: Array<{
+      Product: {
+        title: string;
+        Image: Array<{
+          fileUrl: string;
+        }>;
+      };
+    }>;
+  }>;
+  systemMetrics: Array<{
+    eventType: string;
+    _count: {
+      eventType: number;
+    };
+  }>;
 }
 
 interface AdminDashboardProps {
@@ -84,6 +134,17 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ stats }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [filters, setFilters] = useState({
+    search: '',
+    role: 'all',
+    status: 'all',
+    dateRange: { from: '', to: '' },
+    location: '',
+    verificationStatus: 'all',
+    activityStatus: 'all',
+    sellerType: 'all',
+    deliveryRadius: 10
+  });
 
   const tabs = [
     { id: 'overview', label: 'Overzicht', icon: Eye },
@@ -153,6 +214,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   <div className="ml-2 sm:ml-4">
                     <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Gebruikers</p>
                     <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                    <p className="text-xs text-green-600">+{stats.activeUsers} actief</p>
                   </div>
                 </div>
               </div>
@@ -165,6 +227,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   <div className="ml-2 sm:ml-4">
                     <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Producten</p>
                     <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+                    <p className="text-xs text-gray-500">Actief in feed</p>
                   </div>
                 </div>
               </div>
@@ -177,6 +240,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   <div className="ml-2 sm:ml-4">
                     <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Bestellingen</p>
                     <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
+                    <p className="text-xs text-gray-500">Alle transacties</p>
                   </div>
                 </div>
               </div>
@@ -189,6 +253,53 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                   <div className="ml-2 sm:ml-4">
                     <p className="text-xs sm:text-sm font-medium text-gray-600">Actieve Bezorgers</p>
                     <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalDeliveryProfiles}</p>
+                    <p className="text-xs text-gray-500">Online beschikbaar</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Totale Omzet</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      €{(stats.totalRevenue / 100).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-gray-500">Alle transacties</p>
+                  </div>
+                  <div className="p-3 bg-emerald-100 rounded-lg">
+                    <TrendingUp className="w-6 h-6 text-emerald-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Actieve Gebruikers</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
+                    <p className="text-xs text-green-600">Laatste 7 dagen</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Systeem Events</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats.systemMetrics.reduce((sum, metric) => sum + metric._count.eventType, 0)}
+                    </p>
+                    <p className="text-xs text-gray-500">Vandaag</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <MessageSquare className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
               </div>

@@ -194,7 +194,7 @@ async function main() {
 
   let productCount = 0;
   for (const seller of sellerProfiles) {
-    let dishes = [];
+    let dishes: any[] = [];
     if (seller.User.name?.includes('Maria')) {
       dishes = spanishDishes;
     } else if (seller.User.name?.includes('Ahmed')) {
@@ -245,13 +245,8 @@ async function main() {
                   id: crypto.randomUUID(),
                   fileUrl: imageArray[Math.floor(Math.random() * imageArray.length)],
                   sortOrder: 2
-                },
-                Math.random() > 0.5 ? {
-                  id: crypto.randomUUID(),
-                  fileUrl: imageArray[Math.floor(Math.random() * imageArray.length)],
-                  sortOrder: 3
-                } : null
-              ].filter(Boolean)
+                }
+              ]
             }
           }
         }

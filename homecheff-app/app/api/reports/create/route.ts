@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions as any);
 
-  if (!session?.user?.id) {
+  if (!(session as any)?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         eventType: 'USER_REPORT',
         entityType: entityType,
         entityId: entityId,
-        userId: session.user.id
+        userId: (session as any).user.id
       }
     });
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         eventType: 'USER_REPORT',
         entityType: entityType,
         entityId: entityId,
-        userId: session.user.id,
+        userId: (session as any).user.id,
         metadata: {
           reason,
           description: description || '',
@@ -78,7 +78,7 @@ async function notifyAdmins(reportId: string, entityType: string, reason: string
           data: {
             id: `report-${reportId}-${admin.id}`,
             userId: admin.id,
-            type: 'CONTENT_REPORT',
+            type: 'ADMIN_NOTICE',
             payload: {
               title: 'Nieuwe content melding',
               message: `Nieuwe melding ontvangen voor ${entityType.toLowerCase()}: ${reason}`,

@@ -208,14 +208,6 @@ export default function SellerDashboard() {
               <option value="1y">Laatste jaar</option>
             </select>
 
-            {/* Export Button */}
-            <button
-              onClick={() => setShowExportModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Exporteren
-            </button>
           </div>
         </div>
 
@@ -404,19 +396,7 @@ export default function SellerDashboard() {
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Snelle Acties</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button
-              onClick={() => router.push('/sell/new')}
-              className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Activity className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900">Nieuw Product</p>
-                <p className="text-sm text-gray-600">Product toevoegen</p>
-              </div>
-            </button>
-
+            {/* Bestellingen - bovenaan */}
             <button
               onClick={() => router.push('/verkoper/orders')}
               className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
@@ -430,6 +410,7 @@ export default function SellerDashboard() {
               </div>
             </button>
 
+            {/* Analytics - daarna */}
             <button
               onClick={() => router.push('/verkoper/analytics')}
               className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
@@ -443,9 +424,40 @@ export default function SellerDashboard() {
               </div>
             </button>
 
+            {/* Omzet - dan */}
+            <button
+              onClick={() => router.push('/verkoper/revenue')}
+              className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="p-2 bg-green-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-gray-900">Omzet</p>
+                <p className="text-sm text-gray-600">Financiële overzichten</p>
+              </div>
+            </button>
+
+            {/* Nieuw Product */}
+            <button
+              onClick={() => router.push('/sell/new')}
+              className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Activity className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-gray-900">Nieuw Product</p>
+                <p className="text-sm text-gray-600">Product toevoegen</p>
+              </div>
+            </button>
+          </div>
+          
+          {/* Exporteren - helemaal onderaan */}
+          <div className="mt-6 flex justify-center">
             <button
               onClick={() => setShowExportModal(true)}
-              className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
             >
               <div className="p-2 bg-orange-100 rounded-lg">
                 <Download className="w-5 h-5 text-orange-600" />

@@ -95,7 +95,20 @@ export async function POST(req: Request) {
         select: { id: true, email: true, username: true, name: true },
       });
     }
-    return NextResponse.json({ ok: true, user });
+    // Determine redirect URL based on role
+    let redirectUrl = "/";
+    if (roleValue === UserRole.SELLER) {
+      redirectUrl = "/verkoper/dashboard?welcome=true&newUser=true";
+    } else if (roleValue === UserRole.BUYER) {
+      redirectUrl = "/?welcome=true&newUser=true";
+    }
+    
+    return NextResponse.json({ 
+      ok: true, 
+      user,
+      redirectUrl,
+      role: roleValue 
+    });
   } catch (e) {
     console.error("Registration error:", e);
     console.error("Error stack:", e instanceof Error ? e.stack : 'No stack trace');

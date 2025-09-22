@@ -6,13 +6,13 @@
 export function clearAllUserData(): void {
   if (typeof window === 'undefined') return;
 
-  // Clear cart data
+  // Clear cart data first
   clearAllCartData();
 
-  // Clear any other user-specific data
+  // Clear all localStorage items related to the app
   const keysToRemove: string[] = [];
   
-  // Check localStorage
+  // Check localStorage for all possible user-related keys
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && (
@@ -20,8 +20,18 @@ export function clearAllUserData(): void {
       key.startsWith('user_') ||
       key.startsWith('delivery_') ||
       key.startsWith('seller_') ||
+      key.startsWith('current_user') ||
       key.includes('profile') ||
-      key.includes('settings')
+      key.includes('settings') ||
+      key.includes('cart') ||
+      key.includes('favorites') ||
+      key.includes('search') ||
+      key.includes('filters') ||
+      key.includes('preferences') ||
+      key.includes('notifications') ||
+      key.includes('auth') ||
+      key.includes('session') ||
+      key.includes('token')
     )) {
       keysToRemove.push(key);
     }
@@ -32,18 +42,40 @@ export function clearAllUserData(): void {
     localStorage.removeItem(key);
   });
 
-  // Clear sessionStorage
+  // Clear ALL sessionStorage (more aggressive cleanup)
   sessionStorage.clear();
 
   // Clear any cached data
   if ('caches' in window) {
     caches.keys().then(cacheNames => {
       cacheNames.forEach(cacheName => {
-        if (cacheName.includes('homecheff') || cacheName.includes('user')) {
+        if (cacheName.includes('homecheff') || 
+            cacheName.includes('user') || 
+            cacheName.includes('api') ||
+            cacheName.includes('next')) {
           caches.delete(cacheName);
         }
       });
     });
+  }
+
+  // Clear any IndexedDB data
+  if ('indexedDB' in window) {
+    try {
+      indexedDB.databases().then(databases => {
+        databases.forEach(db => {
+          if (db.name && (
+            db.name.includes('homecheff') || 
+            db.name.includes('user') ||
+            db.name.includes('cart')
+          )) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        });
+      });
+    } catch (error) {
+      console.warn('Could not clear IndexedDB:', error);
+    }
   }
 }
 
@@ -114,6 +146,38 @@ export function setupSessionCleanup(): void {
       sessionStorage.removeItem(key);
     });
   });
+}
+
+// Force complete session reset (call on login/logout)
+export function forceSessionReset(): void {
+  if (typeof window === 'undefined') return;
+
+  // Clear all user data
+  clearAllUserData();
+
+  // Force reload to clear any cached state
+  // This ensures no data leaks between users
+  window.location.reload();
+}
+
+// Setup automatic session cleanup on page load
+export function setupSessionIsolation(): void {
+  if (typeof window === 'undefined') return;
+
+  // Clear any existing session data on page load
+  // This prevents data leakage between users
+  const lastUserId = sessionStorage.getItem('last_user_id');
+  const currentUserId = localStorage.getItem('current_user_id');
+  
+  if (lastUserId && lastUserId !== currentUserId) {
+    // Different user detected, clear everything
+    clearAllUserData();
+  }
+  
+  // Store current user ID for next session
+  if (currentUserId) {
+    sessionStorage.setItem('last_user_id', currentUserId);
+  }
 }
 
 // Import cart cleanup function

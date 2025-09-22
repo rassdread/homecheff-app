@@ -50,6 +50,12 @@ const faqCategories = [
     title: 'Veiligheid',
     icon: Shield,
     color: 'indigo'
+  },
+  {
+    id: 'sustainability',
+    title: 'Duurzaamheid & Verspilling',
+    icon: HelpCircle,
+    color: 'green'
   }
 ];
 
@@ -57,7 +63,7 @@ const faqData = {
   general: [
     {
       question: "Wat is HomeCheff?",
-      answer: "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen. We richten ons op thuisgemaakte gerechten, verse producten uit eigen tuin en handgemaakte creaties. Het platform verbindt lokale makers met consumenten in hun buurt."
+      answer: "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen. We richten ons op thuisgemaakte gerechten, verse producten uit eigen tuin en handgemaakte creaties. Het platform verbindt lokale makers met consumenten in hun buurt.\n\n🎯 Onze missie: Het tegengaan van voedselverspilling door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit draagt bij aan een duurzamere en socialere gemeenschap."
     },
     {
       question: "Hoe werkt HomeCheff?",
@@ -162,6 +168,34 @@ const faqData = {
     {
       question: "Kan ik een bestelling ophalen?",
       answer: "Ja, als de verkoper afhalen aanbiedt. Je ontvangt het adres en afhaaltijd na je bestelling. Zorg dat je je bewijs van betaling meeneemt."
+    },
+    {
+      question: "Hoe word ik bezorger op HomeCheff?",
+      answer: "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig."
+    },
+    {
+      question: "Wat verdien ik als bezorger?",
+      answer: "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen."
+    },
+    {
+      question: "Welke verzekeringen heb ik nodig als bezorger?",
+      answer: "Je bent verplicht om een aansprakelijkheidsverzekering (min. €1.000.000) en ongevallenverzekering af te sluiten. Ook moet je je vervoersmiddel verzekeren. HomeCheff biedt geen werkgeversverzekeringen."
+    },
+    {
+      question: "Hoe werkt de betaling voor bezorgers?",
+      answer: "Je verdiensten worden automatisch uitbetaald via het platform. Je bent zelf verantwoordelijk voor het opgeven van je inkomsten bij de Belastingdienst en het betalen van belastingen."
+    },
+    {
+      question: "Kan ik als bezorger mijn werktijden zelf bepalen?",
+      answer: "Ja, als zelfstandige bezorger bepaal je zelf wanneer je beschikbaar bent. Je kunt je beschikbaarheid instellen in je bezorger dashboard en bezorgingen accepteren of weigeren."
+    },
+    {
+      question: "Wat als er iets misgaat tijdens een bezorging?",
+      answer: "Als bezorger ben je zelf verantwoordelijk voor schade of problemen tijdens bezorging. Zorg voor adequate verzekeringen. Bij ernstige incidenten kun je contact opnemen met onze support."
+    },
+    {
+      question: "Hoe wordt mijn locatie gebruikt als bezorger?",
+      answer: "We gebruiken je locatie alleen om je te matchen met nabijgelegen bezorgingen en om de route te optimaliseren. Je locatie wordt niet gedeeld met derden en wordt niet opgeslagen na de bezorging."
     }
   ],
   taxes: [
@@ -232,6 +266,52 @@ const faqData = {
     {
       question: "Wat als een product niet is zoals beschreven?",
       answer: "Neem contact op met de verkoper voor een oplossing. Als dat niet lukt, kunnen wij bemiddelen. Houd foto's en beschrijvingen bij als bewijs."
+    }
+  ],
+  sustainability: [
+    {
+      question: "Hoe draagt HomeCheff bij aan het tegengaan van voedselverspilling?",
+      answer: "🌱 HomeCheff helpt voedselverspilling tegen te gaan door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit is niet alleen duurzaam, maar ook sociaal - je helpt anderen terwijl je verspilling voorkomt.\n\n💡 Denk aan: Extra portie pasta, overtollige groenten uit je tuin, of een taart die te groot was voor je gezin. In plaats van weggooien, deel je het met je gemeenschap."
+    },
+    {
+      question: "Valt het delen van overtollig eten onder commerciële verkoop?",
+      answer: "❌ Nee, dit valt onder 'delen van overtollig voedsel' en niet onder commerciële voedselproductie. Je kookt voor jezelf en deelt alleen wat je over hebt. Dit is vergelijkbaar met het delen van eten met buren of vrienden - alleen dan via een platform.\n\n✅ Je bent geen restaurant of commerciële keuken. Je deelt gewoon je overtollige maaltijden om verspilling tegen te gaan."
+    },
+    {
+      question: "Moet ik me registreren bij de NVWA als ik overtollig eten deel?",
+      answer: "❌ Nee, voor het delen van overtollig eten hoef je je niet te registreren bij de NVWA. Dit geldt alleen voor commerciële voedselproductie. Omdat je voor jezelf kookt en alleen deelt wat over is, val je niet onder de voedselinspectie wetten.\n\n🏠 Je keuken blijft een particuliere keuken, geen commerciële keuken. Je deelt gewoon je overtollige maaltijden met je buurt."
+    },
+    {
+      question: "Wat is het verschil tussen verkopen en delen van overtollig eten?",
+      answer: "🔄 Het verschil zit in de intentie:\n\n📤 DELEN (wat wij doen):\n• Je kookt voor jezelf\n• Je hebt teveel gemaakt\n• Je deelt de overtollige portie\n• Kleine vergoeding voor ingrediënten\n\n💰 VERKOPEN (commercieel):\n• Je kookt specifiek voor verkoop\n• Je produceert op bestelling\n• Je bent een commerciële keuken\n• Volledige winstmarge\n\nHomeCheff richt zich op het eerste: delen van overtollig eten!"
+    },
+    {
+      question: "Zijn er limieten aan hoeveel ik kan delen?",
+      answer: "📊 Ja, om onder de radar te blijven van voedselinspectie:\n\n✅ TOEGESTAAN:\n• Incidentele verkoop van overtollig eten\n• Kleine hoeveelheden (1-5 porties per keer)\n• Thuisgemaakte maaltijden\n• Verse producten uit eigen tuin\n\n❌ NIET TOEGESTAAN:\n• Grote commerciële productie\n• Dagelijkse verkoop van dezelfde producten\n• Professionele keuken setup\n• Massaproductie\n\n🎯 Blijf binnen de 'delen' categorie, niet 'verkopen'!"
+    },
+    {
+      question: "Hoe kan ik veilig overtollig eten delen?",
+      answer: "🛡️ Volg deze richtlijnen voor veilig delen:\n\n🍽️ HYGIËNE:\n• Was je handen voor het koken\n• Gebruik schone keukenapparatuur\n• Bewaar eten koel tot uitgifte\n• Vermeld bereidingsdatum\n\n📝 TRANSPARANTIE:\n• Beschrijf wat je hebt gemaakt\n• Noem de ingrediënten\n• Vermeld allergenen\n• Wees eerlijk over versheid\n\n🤝 COMMUNICATIE:\n• Reageer snel op vragen\n• Geef duidelijke instructies\n• Wees vriendelijk en behulpzaam\n\nZo bouw je vertrouwen op en draag je bij aan een veilige gemeenschap!"
+    },
+    {
+      question: "Mag ik zelf gekweekte groenten en tuinproducten delen?",
+      answer: "🌱 Ja! Het delen van overtollige groenten uit je eigen tuin valt onder dezelfde categorie als overtollig eten. Je kweekt voor jezelf en deelt alleen wat je over hebt.\n\n✅ TOEGESTAAN:\n• Overtollige tomaten, komkommers, sla\n• Teveel kruiden (basilicum, peterselie, tijm)\n• Extra fruit van je fruitbomen\n• Bloemen en planten die je over hebt\n• Zaden en stekjes van je planten\n\n🏡 Dit is geen commerciële landbouw - je deelt gewoon je tuinoogst!"
+    },
+    {
+      question: "Valt het delen van tuinproducten onder landbouwwetgeving?",
+      answer: "❌ Nee, voor het delen van overtollige tuinproducten hoef je je niet te registreren bij de NVWA. Dit geldt alleen voor commerciële landbouw en voedselproductie.\n\n🌿 Jouw situatie:\n• Particuliere tuin (geen commerciële kwekerij)\n• Je kweekt voor jezelf\n• Je deelt alleen wat over is\n• Geen grootschalige productie\n\n✅ Je bent geen boer of kweker - je deelt gewoon je tuinoogst om verspilling tegen te gaan!"
+    },
+    {
+      question: "Wat als ik teveel planten heb gekweekt?",
+      answer: "🌱 Perfect! Veel tuiniers kweken graag planten maar hebben er teveel van. Dit is een geweldige manier om verspilling tegen te gaan:\n\n🌿 DELEN VAN PLANTEN:\n• Extra zaailingen die je over hebt\n• Stekjes van je favoriete planten\n• Bloembollen die je teveel hebt\n• Kamerplanten die je wilt delen\n\n🤝 GEMEENSCHAP:\n• Andere tuiniers helpen\n• Plantenverspilling tegengaan\n• Lokale biodiversiteit ondersteunen\n• Groene gemeenschap opbouwen\n\n💡 Tip: Veel mensen vinden kweken leuk maar hebben niet altijd groene vingers - jij helpt hen!"
+    },
+    {
+      question: "Zijn er limieten aan het delen van tuinproducten?",
+      answer: "📊 Ja, om binnen de 'delen' categorie te blijven:\n\n✅ TOEGESTAAN (incidenteel delen):\n• Kleine hoeveelheden overtollige groenten\n• Enkele planten/stekjes per keer\n• Verse kruiden uit je tuin\n• Bloemen die je over hebt\n• Zaden van je eigen planten\n\n❌ NIET TOEGESTAAN (commerciële productie):\n• Grote hoeveelheden van dezelfde groente\n• Dagelijkse verkoop van tuinproducten\n• Professionele kwekerij setup\n• Massaproductie van planten\n\n🎯 Blijf binnen de 'hobbytuinier deelt overtollige oogst' categorie!"
+    },
+    {
+      question: "Hoe kan ik veilig tuinproducten delen?",
+      answer: "🛡️ Volg deze richtlijnen voor veilig delen van tuinproducten:\n\n🌱 HYGIËNE:\n• Was groenten en fruit goed\n• Gebruik schone emmers/dozen\n• Vermijd contact met grond\n• Bewaar koel tot uitgifte\n\n📝 TRANSPARANTIE:\n• Beschrijf wat je hebt gekweekt\n• Vermeld groeimethode (biologisch/conventioneel)\n• Geef bewaaradvies\n• Wees eerlijk over versheid\n\n🌿 PLANTEN DELEN:\n• Geef verzorgingsinstructies\n• Vermeld zon/water behoeften\n• Leg uit hoe te verpotten\n• Deel je ervaring en tips\n\n🤝 Zo help je anderen en bouw je een groene gemeenschap op!"
     }
   ]
 };

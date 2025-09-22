@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions as any);
     
-    if (!session?.user?.id) {
+    if (!(session as any)?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const lastCheck = await prisma.analyticsEvent.findFirst({
       where: {
         eventType: 'NOTIFICATION_CHECK',
-        userId: session.user.id,
+        userId: (session as any).user.id,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     // Get user location
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: (session as any).user.id },
       select: { lat: true, lng: true },
     });
 
@@ -77,8 +77,8 @@ export async function GET(req: NextRequest) {
       data: {
         eventType: 'NOTIFICATION_CHECK',
         entityType: 'USER',
-        entityId: session.user.id,
-        userId: session.user.id,
+        entityId: (session as any).user.id,
+        userId: (session as any).user.id,
         metadata: {
           radius,
           hours,

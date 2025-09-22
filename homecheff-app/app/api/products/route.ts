@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sanitizeInput } from "@/lib/security";
+import { sanitizeProductForPublic } from "@/lib/data-isolation";
 
 // Cache voor 5 minuten voor betere performance
 export const revalidate = 300;
@@ -8,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const take = Number(searchParams.get("take") ?? 24);
+    const take = Math.min(Math.max(Number(searchParams.get("take") ?? 24), 1), 100); // Limit max results
 
     const products = await prisma.product.findMany({
       where: { isActive: true },
@@ -68,7 +70,7 @@ export async function GET(req: Request) {
       title: p.title,
       description: p.description,
       priceCents: p.priceCents,
-      image: p.Image?.[0]?.fileUrl ?? null,
+      image: p.Image?.[0]?.fileUrl ?? undefined,
       images: p.Image?.map((img: any) => img.fileUrl) ?? [], // All images for slider
       createdAt: p.createdAt,
       category: p.category,
@@ -90,7 +92,8 @@ export async function GET(req: Request) {
       favoriteCount: favoriteCountMap.get(p.id) ?? 0,
     }));
 
-    return NextResponse.json({ items });
+    // Return items directly without sanitization for now
+    return NextResponse.json({ items: items });
   } catch (err) {
     console.error("[GET /api/products]", err);
     return NextResponse.json({ items: [] }, { status: 200 });

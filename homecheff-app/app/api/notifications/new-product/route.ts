@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       where: { sellerId: sellerId },
       select: {
         followerId: true,
-        follower: {
+        User: {
           select: {
             id: true,
             name: true,
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
           data: {
             id: `new-product-${productId}-${follower.followerId}`,
             userId: follower.followerId,
-            type: 'NEW_PRODUCT',
+            type: 'NEW_LISTING_NEARBY',
             payload: {
               title: 'Nieuwe product van je favoriete verkoper!',
               message: `${product.seller?.User?.name || product.seller?.User?.username || 'Een verkoper'} heeft een nieuw product geplaatst: ${product.title}`,

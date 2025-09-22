@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
-import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Layers, Bell } from "lucide-react";
+import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Layers, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import ImageSlider from "@/components/ui/ImageSlider";
@@ -15,32 +15,25 @@ const CATEGORIES = {
   CHEFF: {
     label: "Chef",
     icon: "🍳",
-    subcategories: [
-      "Hoofdgerecht", "Voorgerecht", "Dessert", "Snack", "Soep", "Salade", "Pasta", "Rijst", 
-      "Vlees", "Vis", "Vegetarisch", "Veganistisch", "Glutenvrij", "Aziatisch", "Mediterraans", 
-      "Italiaans", "Frans", "Spaans", "Surinaams", "Marokkaans", "Indisch", "Thais", "Chinees", 
-      "Japans", "Mexicaans", "Amerikaans", "Nederlands", "Anders"
-    ]
+    subcategories: ["Ontbijt", "Lunch", "Diner", "Snacks", "Desserts"]
   },
   GROWN: {
-    label: "Garden", 
+    label: "Garden",
     icon: "🌱",
-    subcategories: [
-      "Groenten", "Fruit", "Kruiden", "Zaden", "Planten", "Bloemen", "Kamerplanten", "Tuinplanten",
-      "Moestuin", "Biologisch", "Lokaal geteeld", "Seizoensgebonden", "Zeldzame variëteiten", 
-      "Struiken", "Bomen", "Bollen", "Stekken", "Compost", "Meststoffen", "Tuingereedschap", "Anders"
-    ]
+    subcategories: ["Groenten", "Fruit", "Kruiden", "Bloemen", "Planten"]
   },
   DESIGNER: {
     label: "Designer",
-    icon: "🎨", 
-    subcategories: [
-      "Handgemaakt", "Kunst", "Decoratie", "Meubels", "Textiel", "Keramiek", "Houtwerk", "Metaalwerk",
-      "Glaswerk", "Juwelen", "Accessoires", "Kleding", "Schoenen", "Tassen", "Interieur", "Exterieur",
-      "Fotografie", "Illustraties", "Printwerk", "Digitale kunst", "Upcycling", "Vintage", "Modern",
-      "Klassiek", "Minimalistisch", "Eclectisch", "Anders"
-    ]
+    icon: "🎨",
+    subcategories: ["Kleding", "Accessoires", "Woondecoratie", "Kunst", "Handwerk"]
   }
+};
+
+// Map database category values to display values
+const CATEGORY_MAPPING = {
+  'CHEFF': 'CHEFF',
+  'GROWN': 'GROWN', // Keep as GROWN to match database
+  'DESIGNER': 'DESIGNER'
 };
 
 type HomeItem = {
@@ -87,6 +80,8 @@ function HomePageContent() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [showMap, setShowMap] = useState<boolean>(false);
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
+  const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
   
   // New state for advanced filters
   const [filters, setFilters] = useState(defaultFilters);
@@ -108,8 +103,8 @@ function HomePageContent() {
     return Math.round(distance * 10) / 10; // Afronden op 1 decimaal
   };
 
-  // Gebruikerslocatie ophalen
   useEffect(() => {
+    // Haal gebruikerslocatie op
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -122,8 +117,7 @@ function HomePageContent() {
           console.log('Geolocation error:', error);
           // Fallback naar Amsterdam als locatie niet beschikbaar is
           setUserLocation({ lat: 52.3676, lng: 4.9041 });
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        }
       );
     } else {
       // Fallback naar Amsterdam als geolocation niet ondersteund wordt
@@ -132,35 +126,37 @@ function HomePageContent() {
   }, []);
 
   useEffect(() => {
-    // Haal (display)naam op – vervang endpoint indien nodig
-    (async () => {
+    const fetchData = async () => {
       try {
-        const r = await fetch("/api/profile?userId=me", { cache: "no-store" });
-        if (r.ok) {
-          const { user } = await r.json();
-          if (user?.name) setUsername(user.name);
-        }
-      } catch {}
-    })();
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setItems(data.items || []);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
-    // Home laden met caching voor betere performance
-    (async () => {
+    const fetchUsername = async () => {
       try {
-        setIsLoading(true);
-        const r = await fetch("/api/products");
-        if (!r.ok) return;
-        const data = (await r.json()) as { items: HomeItem[] };
-        setItems(data?.items ?? []);
-      } catch {}
-      finally {
-        setIsLoading(false);
+        const response = await fetch('/me');
+        const data = await response.json();
+        if (data.user?.name) {
+          setUsername(data.user.name);
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
       }
-    })();
+    };
+
+    fetchUsername();
   }, []);
 
-  // Client-side filter met uitgebreide zoekfunctionaliteit en afstand berekening
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     let list = items.map((it) => {
@@ -183,35 +179,26 @@ function HomePageContent() {
         }
       };
     }).filter((it) => {
-      // Zoekfilter
-      if (term) {
-        const hay = `${it.title ?? ""} ${it.description ?? ""} ${it.subcategory ?? ""}`.toLowerCase();
-        if (!hay.includes(term)) return false;
+      if (term && !it.title.toLowerCase().includes(term) && !it.description?.toLowerCase().includes(term)) {
+        return false;
+      }
+      if (category !== "all" && it.category?.toLowerCase() !== category.toLowerCase()) {
+        return false;
+      }
+      if (subcategory !== "all" && it.subcategory !== subcategory) {
+        return false;
+      }
+      if (it.priceCents < priceRange.min * 100 || it.priceCents > priceRange.max * 100) {
+        return false;
+      }
+      if (deliveryMode !== "all") {
+        // TODO: Implement delivery mode filtering when available in data
       }
       
-      // Categorie filter
-      if (category !== "all") {
-        const categoryMap: { [key: string]: string } = {
-          "cheff": "CHEFF",
-          "garden": "GROWN", 
-          "designer": "DESIGNER"
-        };
-        if (it.category !== categoryMap[category]) return false;
-      }
+      // Conditie filter verwijderd - alles is nieuw op HomeCheff
       
-      // Subcategorie filter
-      if (subcategory !== "all" && it.subcategory) {
-        if (it.subcategory !== subcategory) return false;
-      }
-      
-      // Prijs filter
-      if (it.priceCents) {
-        const price = it.priceCents / 100;
-        if (price < priceRange.min || price > priceRange.max) return false;
-      }
-
-      // Afstand filter
-      if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined) {
+      // Afstand filter - alleen filteren als afstand is berekend
+      if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && radius < 1000) {
         if (it.location.distanceKm > radius) return false;
       }
       
@@ -223,9 +210,6 @@ function HomePageContent() {
         if (!locationFields.includes(locationTerm)) return false;
       }
       
-      // Delivery mode filter (dit zou in de toekomst toegevoegd moeten worden aan de HomeItem type)
-      // Voor nu slaan we dit over omdat het niet in de huidige data structuur zit
-      
       return true;
     });
     
@@ -233,9 +217,9 @@ function HomePageContent() {
     return list.sort((a, b) => {
       switch (sortBy) {
         case "price-low":
-          return (a.priceCents || 0) - (b.priceCents || 0);
+          return a.priceCents - b.priceCents;
         case "price-high":
-          return (b.priceCents || 0) - (a.priceCents || 0);
+          return b.priceCents - a.priceCents;
         case "distance": 
           if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
           if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
@@ -247,6 +231,8 @@ function HomePageContent() {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
     });
+    
+    return list;
   }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation]);
 
   // New functions for advanced features
@@ -365,6 +351,27 @@ function HomePageContent() {
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto px-4">
             <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
+              {/* Mobile Header */}
+              <div className="md:hidden flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Zoeken</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                    title={viewMode === 'grid' ? 'Lijst weergave' : 'Grid weergave'}
+                  >
+                    {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => setShowMobileFilters(!showMobileFilters)}
+                    className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-colors"
+                    title="Filters"
+                  >
+                    {showMobileFilters ? <X className="w-5 h-5" /> : <Filter className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <div className="flex-1 relative">
                   <Search size={20} className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -375,18 +382,27 @@ function HomePageContent() {
                     placeholder="Zoek naar producten, gerechten of makers..."
                   />
                 </div>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-secondary-brand hover:bg-secondary-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  <Filter className="w-4 h-4 md:w-5 md:h-5" />
-                  <span className="font-medium text-sm md:text-base">
-                    {showFilters ? 'Filters wissen' : 'Filters'}
-                  </span>
-                </button>
                 
-                {/* New Action Buttons */}
-                <div className="flex gap-2">
+                {/* Desktop Controls */}
+                <div className="hidden md:flex items-center gap-2">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-secondary-brand hover:bg-secondary-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <Filter className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="font-medium text-sm md:text-base">
+                      {showFilters ? 'Filters wissen' : 'Filters'}
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    title={viewMode === 'grid' ? 'Lijst weergave' : 'Grid weergave'}
+                  >
+                    {viewMode === 'grid' ? <List className="w-4 h-4 md:w-5 md:h-5" /> : <Grid3X3 className="w-4 h-4 md:w-5 md:h-5" />}
+                  </button>
+                  
                   <button
                     onClick={() => setShowMap(!showMap)}
                     className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -655,7 +671,18 @@ function HomePageContent() {
       {/* Map View */}
       {showMap && (
         <MapView
-          products={filtered}
+          products={filtered.map(item => ({
+            ...item,
+            image: item.image || undefined,
+            location: {
+              ...item.location,
+              distanceKm: item.location.distanceKm || undefined
+            },
+            seller: item.seller ? {
+              name: item.seller.name || undefined,
+              avatar: item.seller.avatar || undefined
+            } : undefined
+          }))}
           userLocation={userLocation}
           onProductClick={handleProductClick}
           isOpen={showMap}
@@ -730,529 +757,5 @@ export default function HomePage() {
     <NotificationProvider>
       <HomePageContent />
     </NotificationProvider>
-  );
-                        <select
-                          value={category}
-                          onChange={(e) => {
-                            setCategory(e.target.value);
-                            setSubcategory("all"); // Reset subcategory when category changes
-                          }}
-                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                        >
-                          <option value="all">Alle categorieën</option>
-                          {Object.entries(CATEGORIES).map(([key, cat]) => (
-                            <option key={key} value={key.toLowerCase()}>
-                              {cat.icon} {cat.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">Subcategorie</label>
-                        <select
-                          value={subcategory}
-                          onChange={(e) => setSubcategory(e.target.value)}
-                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                          disabled={category === "all"}
-                        >
-                          <option value="all">Alle subcategorieën</option>
-                          {category !== "all" && CATEGORIES[category.toUpperCase() as keyof typeof CATEGORIES]?.subcategories.map(sub => (
-                            <option key={sub} value={sub}>{sub}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">Sorteren op</label>
-                        <select
-                          value={sortBy}
-                          onChange={(e) => setSortBy(e.target.value)}
-                          className="w-full p-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                        >
-                          <option value="newest">Nieuwste eerst</option>
-                          <option value="oldest">Oudste eerst</option>
-                          <option value="price-low">Prijs: laag naar hoog</option>
-                          <option value="price-high">Prijs: hoog naar laag</option>
-                          <option value="distance">Afstand: dichtbij eerst</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Second Row - Price and Location */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Prijs: €{priceRange.min} - €{priceRange.max}
-                        </label>
-                        <div className="space-y-2">
-                          <div>
-                            <label className="text-xs text-gray-600 mb-1 block">Vanaf prijs</label>
-                            <input
-                              type="range"
-                              min="0"
-                              max={priceRange.max}
-                              step="5"
-                              value={priceRange.min}
-                              onChange={(e) => {
-                                const newMin = Number(e.target.value);
-                                if (newMin <= priceRange.max) {
-                                  setPriceRange(prev => ({ ...prev, min: newMin }));
-                                }
-                              }}
-                              className="w-full accent-primary-brand"
-                            />
-                            <span className="text-xs text-gray-500">€{priceRange.min}</span>
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 mb-1 block">Tot prijs</label>
-                            <input
-                              type="range"
-                              min={priceRange.min}
-                              max="1000"
-                              step="5"
-                              value={priceRange.max}
-                              onChange={(e) => {
-                                const newMax = Number(e.target.value);
-                                if (newMax >= priceRange.min) {
-                                  setPriceRange(prev => ({ ...prev, max: newMax }));
-                                }
-                              }}
-                              className="w-full accent-primary-brand"
-                            />
-                            <span className="text-xs text-gray-500">€{priceRange.max}</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between text-xs text-neutral-500 mt-1">
-                          <span>€0</span>
-                          <span>€1000+</span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">Locatie</label>
-                        <input
-                          type="text"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                          placeholder="Zoek op plaats of postcode..."
-                          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">Straal: {radius} km</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={50}
-                  value={radius}
-                  onChange={(e) => setRadius(Number(e.target.value))}
-                          className="w-full accent-primary-brand"
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>1 km</span>
-                          <span>50+ km</span>
-                        </div>
-                      </div>
-              </div>
-
-                    {/* Third Row - Delivery Options */}
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-3">Levering</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button
-                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "PICKUP" : "all")}
-                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
-                            deliveryMode === "PICKUP" 
-                              ? "border-primary-500 bg-primary-50 text-primary-700" 
-                              : "border-neutral-200 hover:border-neutral-300"
-                          }`}
-                        >
-                          <Package className="w-4 h-4" />
-                          <span className="text-sm font-medium">Alleen afhalen</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "DELIVERY" : "all")}
-                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
-                            deliveryMode === "DELIVERY" 
-                              ? "border-primary-500 bg-primary-50 text-primary-700" 
-                              : "border-neutral-200 hover:border-neutral-300"
-                          }`}
-                        >
-                          <Truck className="w-4 h-4" />
-                          <span className="text-sm font-medium">Alleen bezorgen</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => setDeliveryMode(deliveryMode === "all" ? "BOTH" : "all")}
-                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors ${
-                            deliveryMode === "BOTH" 
-                              ? "border-primary-500 bg-primary-50 text-primary-700" 
-                              : "border-neutral-200 hover:border-neutral-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-1">
-                            <Package className="w-3 h-3" />
-                            <Truck className="w-3 h-3" />
-                          </div>
-                          <span className="text-sm font-medium">Beide opties</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Reset Button */}
-                    <div className="flex justify-end pt-4 border-t border-neutral-200">
-              <button
-                onClick={() => {
-                          setQ("");
-                          setCategory("all");
-                          setSubcategory("all");
-                          setDeliveryMode("all");
-                          setPriceRange({min: 0, max: 1000});
-                          setRadius(10);
-                          setSortBy("newest");
-                        }}
-                        className="px-4 py-2 text-sm text-secondary-brand hover:text-secondary-700 hover:bg-secondary-50 rounded-lg transition-all duration-200 font-medium"
-                      >
-                        Alle filters resetten
-              </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Home Section */}
-      <section className="py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-neutral-900">
-                {filtered.length} {filtered.length === 1 ? 'item' : 'items'} gevonden
-          </h2>
-              <p className="text-neutral-600 mt-1">
-                {category !== 'all' ? `In categorie: ${category}` : 'Alle categorieën'}
-              </p>
-            </div>
-            {username ? (
-              <Link 
-                href="/profile" 
-                className="flex items-center gap-2 px-4 py-2 text-primary-brand hover:text-primary-700 font-medium transition-colors bg-primary-50 hover:bg-primary-100 rounded-lg"
-              >
-                <span>Mijn profiel</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            ) : (
-              <Link 
-                href="/login" 
-                className="flex items-center gap-2 px-4 py-2 bg-primary-brand text-white rounded-xl hover:bg-primary-700 font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <span>Inloggen</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            )}
-        </div>
-
-          {/* Loading State */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
-                  <div className="h-64 bg-neutral-200"></div>
-                  <div className="p-6">
-                    <div className="h-4 bg-neutral-200 rounded mb-2"></div>
-                    <div className="h-3 bg-neutral-200 rounded w-2/3 mb-4"></div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-neutral-200 rounded-full"></div>
-                      <div className="h-3 bg-neutral-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-12 h-12 text-neutral-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Geen resultaten gevonden</h3>
-              <p className="text-neutral-600 mb-6">Probeer andere zoektermen of filters aan te passen</p>
-              <button
-                onClick={() => {
-                  setQ("");
-                  setCategory("all");
-                  setSubcategory("all");
-                  setDeliveryMode("all");
-                  setPriceRange({min: 0, max: 1000});
-                  setRadius(10);
-                  setSortBy("newest");
-                  setShowFilters(false);
-                }}
-                className="px-6 py-3 bg-primary-brand text-white rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
-              >
-                Reset filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filtered.map((item) => (
-                <div 
-                  key={item.id} 
-                  onClick={() => {
-                    if (!username) {
-                      window.location.href = '/login?message=Je moet ingelogd zijn om producten te bekijken';
-                    } else {
-                      window.location.href = `/product/${item.id}`;
-                    }
-                  }}
-                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
-                >
-                  {/* Image */}
-                  <div className="relative h-64 overflow-hidden">
-                    {item.images && item.images.length > 0 ? (
-                      <ImageSlider 
-                        images={item.images}
-                        alt={item.title}
-                        className="w-full h-full"
-                        showDots={item.images.length > 1}
-                        showArrows={item.images.length > 1}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
-                        <div className="text-neutral-400 text-4xl">
-                          {item.category === 'CHEFF' ? <ChefHat className="w-12 h-12 mx-auto" /> :
-                           item.category === 'GROWN' ? <Sprout className="w-12 h-12 mx-auto" /> :
-                           item.category === 'DESIGNER' ? <Palette className="w-12 h-12 mx-auto" /> :
-                           <ChefHat className="w-12 h-12 mx-auto" />}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Category Badge */}
-                    {item.category && (
-                      <div className="absolute top-4 left-4">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                          item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
-                          item.category === 'GROWN' ? 'bg-primary-100 text-primary-800 border border-primary-200' :
-                          item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800 border border-secondary-200' :
-                          'bg-neutral-100 text-neutral-800 border border-neutral-200'
-                        }`}>
-                          {item.category === 'CHEFF' ? '🍳 Chef' :
-                           item.category === 'GROWN' ? '🌱 Garden' :
-                           item.category === 'DESIGNER' ? '🎨 Designer' : item.category}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Favorite Button */}
-                    <div className="absolute top-4 right-4">
-                      <FavoriteButton 
-                        productId={item.id}
-                        productTitle={item.title}
-                        size="lg"
-                      />
-                    </div>
-
-                    {/* Price */}
-                    <div className="absolute bottom-4 left-4">
-                      <span className="bg-primary-brand text-white px-3 py-1 rounded-full text-lg font-bold shadow-lg">
-                        €{(item.priceCents / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 flex-1">
-                        {item.title}
-                      </h3>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          // TODO: Implement more options functionality
-                        }}
-                        className="p-1 hover:bg-neutral-100 rounded-full transition-colors"
-                      >
-                        <MoreHorizontal className="w-4 h-4 text-neutral-400" />
-                      </button>
-                    </div>
-                    
-                    {item.subcategory && (
-                      <p className="text-sm text-primary-brand font-medium mb-2">{item.subcategory}</p>
-                    )}
-                    
-                    <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
-                    
-                    {/* Seller Info */}
-                    <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
-                      <div className="flex-shrink-0">
-                        {item.seller?.avatar ? (
-                          <img
-                            src={item.seller.avatar}
-                            alt={item.seller?.name ?? "Verkoper"}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-primary-100"
-                        />
-                      ) : (
-                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                            <span className="text-primary-600 font-semibold text-sm">
-                              {(item.seller?.name ?? item.seller?.username ?? "A").charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Link 
-                            href={`/profile/${item.seller?.id}`}
-                            className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
-                          >
-                            {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
-                          </Link>
-                          {item.seller?.followerCount && item.seller?.followerCount > 0 && (
-                            <span className="text-xs text-neutral-500">
-                              ({item.seller?.followerCount} fans)
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-neutral-500 mb-1">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
-                          </div>
-                          {item.favoriteCount && item.favoriteCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span>❤️</span>
-                              <span>{item.favoriteCount}</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Location and Distance Info */}
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            <span>{item.location?.place || 'Locatie onbekend'}</span>
-                          </div>
-                          {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
-                            <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                              <span>📍</span>
-                              <span>{item.location.distanceKm} km</span>
-                            </div>
-                          )}
-                        </div>
-                        {/* Buyer Types */}
-                        {item.seller?.buyerTypes && item.seller.buyerTypes.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {item.seller.buyerTypes.slice(0, 2).map((type, index) => {
-                              const typeInfo = {
-                                chef: { icon: "👨‍🍳", label: "Chef" },
-                                garden: { icon: "🌱", label: "Garden" },
-                                designer: { icon: "🎨", label: "Designer" },
-                                ontdekker: { icon: "🔍", label: "Ontdekker" }
-                              }[type];
-                              
-                              return (
-                                <span
-                                  key={index}
-                                  className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1"
-                                >
-                                  <span className="text-xs">{typeInfo?.icon}</span>
-                                  <span>{typeInfo?.label}</span>
-                                </span>
-                              );
-                            })}
-                            {item.seller.buyerTypes.length > 2 && (
-                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                +{item.seller.buyerTypes.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-warning-400 fill-current" />
-                        <span className="text-sm font-medium text-neutral-700">4.8</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        </div>
-
-        {/* Delivery Signup CTA */}
-        <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <div className="bg-primary-brand/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Package className="w-8 h-8 text-primary-brand" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                Word Jongeren Bezorger
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Verdien geld door bestellingen te bezorgen in je buurt. 
-                Vanaf 15 jaar en perfect voor jongerenwerk.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="bg-green-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <Euro className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Verdien Geld</h3>
-                <p className="text-gray-600 text-sm">
-                  €2-5 per bezorging direct op je rekening
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-blue-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Flexibel Werken</h3>
-                <p className="text-gray-600 text-sm">
-                  Kies zelf wanneer je beschikbaar bent
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-purple-100 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">In Je Buurt</h3>
-                <p className="text-gray-600 text-sm">
-                  Alleen bestellingen binnen 3km van je locatie
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Link href="/delivery/signup">
-                <button className="bg-primary-brand text-white hover:bg-primary-700 px-6 py-3 rounded-xl font-medium text-base transition-all duration-200 shadow-md hover:shadow-lg">
-                  Meld Je Aan als Bezorger
-                </button>
-              </Link>
-              <p className="text-gray-500 text-sm mt-3">
-                Vanaf 15 jaar • Wettelijk toegestaan • Veilig en betrouwbaar
-              </p>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
   );
 }

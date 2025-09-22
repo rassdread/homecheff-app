@@ -1,193 +1,219 @@
-import React from 'react';
+import { Shield, Lock, Eye, Database, Users, FileText } from 'lucide-react';
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Privacy Statement HomeCheff</h1>
-          
-          <div className="prose prose-lg max-w-none">
-            <p className="text-gray-600 mb-6">
-              <strong>Laatst bijgewerkt:</strong> {new Date().toLocaleDateString('nl-NL')}<br/>
-              <strong>Versie:</strong> 1.0
-            </p>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Inleiding</h2>
-              <p className="text-gray-700 mb-4">
-                HomeCheff B.V. (hierna: "HomeCheff", "wij", "ons" of "onze") respecteert uw privacy en is verantwoordelijk voor de verwerking van uw persoonsgegevens in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG) en de Nederlandse privacywetgeving.
-              </p>
-              <p className="text-gray-700">
-                Dit privacy statement verklaart hoe wij uw persoonsgegevens verzamelen, gebruiken, opslaan en beschermen wanneer u gebruik maakt van onze platform en diensten.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Gegevensverantwoordelijke</h2>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>
-                <p className="text-gray-700 mb-2">KvK-nummer: [KvK-nummer]</p>
-                <p className="text-gray-700 mb-2">BTW-nummer: [BTW-nummer]</p>
-                <p className="text-gray-700 mb-2">Adres: [Bedrijfsadres]</p>
-                <p className="text-gray-700 mb-2">E-mail: privacy@homecheff.eu</p>
-                <p className="text-gray-700">Telefoon: [Telefoonnummer]</p>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-12 text-white">
+            <div className="flex items-center space-x-4 mb-4">
+              <Shield className="w-12 h-12" />
+              <div>
+                <h1 className="text-3xl font-bold">Privacybeleid</h1>
+                <p className="text-blue-100 mt-2">
+                  Jouw privacy en veiligheid zijn onze prioriteit
+                </p>
               </div>
-            </section>
+            </div>
+          </div>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Welke persoonsgegevens verwerken wij?</h2>
+          {/* Content */}
+          <div className="px-8 py-12">
+            <div className="prose prose-lg max-w-none">
+              <div className="grid md:grid-cols-2 gap-8 mb-12">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <Lock className="w-8 h-8 text-green-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-green-900 mb-2">
+                    Veilige Data Opslag
+                  </h3>
+                  <p className="text-green-700">
+                    Alle persoonlijke gegevens worden versleuteld opgeslagen en zijn alleen toegankelijk voor jou en onze beveiligde systemen.
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <Eye className="w-8 h-8 text-blue-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-blue-900 mb-2">
+                    Geen Data Delen
+                  </h3>
+                  <p className="text-blue-700">
+                    We delen jouw persoonlijke informatie nooit met derden. Jouw data blijft privé en wordt alleen gebruikt voor de werking van de app.
+                  </p>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <Database className="w-8 h-8 text-purple-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-purple-900 mb-2">
+                    Volledige Controle
+                  </h3>
+                  <p className="text-purple-700">
+                    Je hebt altijd volledige controle over je data. Je kunt je account verwijderen en alle data wordt permanent gewist.
+                  </p>
+                </div>
+
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                  <Users className="w-8 h-8 text-orange-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-orange-900 mb-2">
+                    Transparantie
+                  </h3>
+                  <p className="text-orange-700">
+                    We zijn volledig transparant over hoe we jouw data gebruiken. Geen verborgen tracking of data verzameling.
+                  </p>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Wat We Verzamelen
+              </h2>
               
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">3.1 Gegevens die u direct aan ons verstrekt:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li><strong>Identificatiegegevens:</strong> Naam, e-mailadres, telefoonnummer, gebruikersnaam</li>
-                <li><strong>Accountgegevens:</strong> Wachtwoord (gehashed), profielfoto, biografie</li>
-                <li><strong>Locatiegegevens:</strong> Adres, postcode, plaats, GPS-coördinaten (optioneel)</li>
-                <li><strong>Verkoopgegevens:</strong> Productinformatie, prijzen, voorraad, leveringsopties</li>
-                <li><strong>Communicatiegegevens:</strong> Berichten, reviews, klachten, support tickets</li>
-                <li><strong>Betalingsgegevens:</strong> Bankrekeningnummer, IBAN, rekeninghouder (alleen voor uitbetalingen)</li>
-                <li><strong>Voorkeuren:</strong> Interesses, notificatie-instellingen, taalvoorkeur</li>
-              </ul>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Essentiële Gegevens (Verplicht)
+                </h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li>• <strong>E-mailadres:</strong> Voor account verificatie en communicatie</li>
+                  <li>• <strong>Naam:</strong> Voor persoonlijke herkenning op het platform</li>
+                  <li>• <strong>Wachtwoord:</strong> Versleuteld opgeslagen voor account beveiliging</li>
+                </ul>
+              </div>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">3.2 Gegevens die automatisch worden verzameld:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li><strong>Technische gegevens:</strong> IP-adres, browser type, besturingssysteem, apparaat-ID</li>
-                <li><strong>Gebruiksgegevens:</strong> Paginaweergaven, klikgedrag, sessieduur, zoekopdrachten</li>
-                <li><strong>Cookies en tracking:</strong> Functionele, analytische en marketing cookies</li>
-                <li><strong>Locatiegegevens:</strong> Geschatte locatie op basis van IP-adres</li>
-              </ul>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Optionele Gegevens
+                </h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li>• <strong>Profielfoto:</strong> Voor persoonlijke herkenning</li>
+                  <li>• <strong>Locatie:</strong> Alleen als je dit expliciet toestaat voor lokale producten</li>
+                  <li>• <strong>Telefoonnummer:</strong> Voor bezorging communicatie</li>
+                  <li>• <strong>Adres:</strong> Alleen voor bezorging van bestellingen</li>
+                </ul>
+              </div>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">3.3 Gegevens van derden:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li><strong>Sociale media:</strong> Profielgegevens bij inloggen via Google/Facebook</li>
-                <li><strong>Betalingsproviders:</strong> Stripe transactiegegevens</li>
-                <li><strong>Verificatiediensten:</strong> Telefoonnummer verificatie via SMS</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. Doeleinden van gegevensverwerking</h2>
-              <p className="text-gray-700 mb-4">Wij verwerken uw persoonsgegevens voor de volgende doeleinden:</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Hoe We Je Data Beschermen
+              </h2>
               
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">4.1 Uitvoering van de overeenkomst:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li>Accountbeheer en authenticatie</li>
-                <li>Faciliteren van transacties tussen kopers en verkopers</li>
-                <li>Verwerking van betalingen en uitbetalingen</li>
-                <li>Levering van platformfunctionaliteiten</li>
-                <li>Klantenservice en ondersteuning</li>
-              </ul>
+              <div className="space-y-6 mb-8">
+                <div className="border-l-4 border-green-500 pl-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Versleuteling
+                  </h3>
+                  <p className="text-gray-700">
+                    Alle gevoelige data wordt versleuteld met industry-standard encryptie (AES-256). 
+                    Wachtwoorden worden gehashed met bcrypt.
+                  </p>
+                </div>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">4.2 Wettelijke verplichtingen:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li>Belasting- en boekhoudkundige verplichtingen</li>
-                <li>Fraudepreventie en -detectie</li>
-                <li>Identiteitsverificatie (KYC)</li>
-                <li>Meldplichten aan toezichthouders</li>
-              </ul>
+                <div className="border-l-4 border-blue-500 pl-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Beveiligde Servers
+                  </h3>
+                  <p className="text-gray-700">
+                    Onze servers draaien in beveiligde datacenters met 24/7 monitoring en 
+                    regelmatige security audits.
+                  </p>
+                </div>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">4.3 Gerechtvaardigde belangen:</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li>Platformverbetering en -ontwikkeling</li>
-                <li>Gebruikerservaring optimalisatie</li>
-                <li>Marketing en promotie (met toestemming)</li>
-                <li>Statistieken en analytics</li>
-                <li>Beveiliging en fraudepreventie</li>
-              </ul>
-            </section>
+                <div className="border-l-4 border-purple-500 pl-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Toegangscontrole
+                  </h3>
+                  <p className="text-gray-700">
+                    Alleen geautoriseerd personeel heeft toegang tot systemen, en alle 
+                    toegang wordt gelogd en gemonitord.
+                  </p>
+                </div>
+              </div>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Uw rechten</h2>
-              <p className="text-gray-700 mb-4">U heeft de volgende rechten betreffende uw persoonsgegevens:</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Je Rechten
+              </h2>
               
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Toegang en inzage</h3>
-                  <p className="text-blue-800 text-sm">Overzicht van verwerkte gegevens, doeleinden van verwerking, categorieën van ontvangers</p>
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Recht op Toegang
+                  </h3>
+                  <p className="text-gray-700">
+                    Je kunt altijd vragen om een overzicht van alle data die we van jou hebben opgeslagen.
+                  </p>
                 </div>
-                
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-green-900 mb-2">Rectificatie</h3>
-                  <p className="text-green-800 text-sm">Correctie van onjuiste gegevens, aanvulling van onvolledige gegevens</p>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Recht op Correctie
+                  </h3>
+                  <p className="text-gray-700">
+                    Je kunt altijd je gegevens aanpassen of corrigeren via je profiel instellingen.
+                  </p>
                 </div>
-                
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-red-900 mb-2">Verwijdering</h3>
-                  <p className="text-red-800 text-sm">"Recht om vergeten te worden" onder bepaalde voorwaarden</p>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Recht op Verwijdering
+                  </h3>
+                  <p className="text-gray-700">
+                    Je kunt je account en alle bijbehorende data permanent verwijderen.
+                  </p>
                 </div>
-                
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-yellow-900 mb-2">Beperking</h3>
-                  <p className="text-yellow-800 text-sm">Tijdelijke opschorting van verwerking bij geschillen over gegevens</p>
-                </div>
-                
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-purple-900 mb-2">Overdraagbaarheid</h3>
-                  <p className="text-purple-800 text-sm">Export van uw gegevens, overdracht naar andere dienstverleners</p>
-                </div>
-                
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-orange-900 mb-2">Bezwaar</h3>
-                  <p className="text-orange-800 text-sm">Tegen verwerking op basis van gerechtvaardigd belang, tegen direct marketing</p>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Recht op Portabiliteit
+                  </h3>
+                  <p className="text-gray-700">
+                    Je kunt je data exporteren in een standaard formaat voor gebruik elders.
+                  </p>
                 </div>
               </div>
-            </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Uitoefening van uw rechten</h2>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <p className="text-gray-700 mb-4">Voor het uitoefenen van uw rechten kunt u contact opnemen met:</p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.eu</p>
-                <p className="text-gray-700 mb-2"><strong>Post:</strong> HomeCheff B.V., [Adres], [Postcode] [Plaats]</p>
-                <p className="text-gray-700 mb-4">Wij reageren binnen 1 maand op uw verzoek. In complexe gevallen kan deze termijn met 2 maanden worden verlengd.</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Cookies en Tracking
+              </h2>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-yellow-900 mb-3">
+                  Minimale Cookie Gebruik
+                </h3>
+                <p className="text-yellow-800 mb-4">
+                  We gebruiken alleen essentiële cookies die nodig zijn voor de werking van de app:
+                </p>
+                <ul className="space-y-2 text-yellow-800">
+                  <li>• <strong>Sessie cookies:</strong> Om je ingelogd te houden</li>
+                  <li>• <strong>Voorkeur cookies:</strong> Voor je taal en thema instellingen</li>
+                  <li>• <strong>Beveiliging cookies:</strong> Voor CSRF bescherming</li>
+                </ul>
+                <p className="text-yellow-800 mt-4">
+                  <strong>Geen tracking cookies, advertentie cookies of analytics van derden.</strong>
+                </p>
               </div>
-            </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Belastingverantwoordelijkheid</h2>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <div className="flex items-start space-x-3">
-                  <span className="text-yellow-600 text-2xl">⚠️</span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-yellow-800 mb-2">Belangrijke waarschuwing</h3>
-                    <p className="text-yellow-700 mb-4">
-                      Als verkoper via HomeCheff ben je zelf verantwoordelijk voor het aangeven van je inkomsten bij de belastingdienst. 
-                      HomeCheff is een platform en biedt geen belastingadvies.
-                    </p>
-                    <ul className="list-disc list-inside text-yellow-700 space-y-1">
-                      <li>Alle inkomsten moeten worden opgegeven (geen minimumbedrag)</li>
-                      <li>BTW-plichtig vanaf €20.000 omzet per jaar</li>
-                      <li>KvK-registratie bij structurele verkoop</li>
-                      <li>Consulteer een accountant voor specifieke vragen</li>
-                    </ul>
-                  </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Contact
+              </h2>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <p className="text-gray-700 mb-4">
+                  Heb je vragen over dit privacybeleid of wil je je rechten uitoefenen? 
+                  Neem dan contact met ons op:
+                </p>
+                <div className="space-y-2 text-gray-700">
+                  <p>📧 E-mail: privacy@homecheff.nl</p>
+                  <p>📱 WhatsApp: +31 6 12345678</p>
+                  <p>📍 Adres: Privacy Team, HomeCheff BV, Amsterdam</p>
                 </div>
               </div>
-            </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Contact</h2>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <p className="text-gray-700 mb-4">Voor vragen over dit privacy statement of onze gegevensverwerking:</p>
-                <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>
-                <p className="text-gray-700 mb-2"><strong>Privacy Officer</strong></p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> privacy@homecheff.eu</p>
-                <p className="text-gray-700 mb-2"><strong>Telefoon:</strong> [Telefoonnummer]</p>
-                <p className="text-gray-700"><strong>Adres:</strong> [Bedrijfsadres]</p>
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <p className="text-sm text-gray-500">
+                  Laatst bijgewerkt: {new Date().toLocaleDateString('nl-NL')}
+                </p>
               </div>
-            </section>
-
-            <div className="border-t pt-6 mt-8">
-              <p className="text-sm text-gray-500 text-center">
-                Dit privacy statement is opgesteld in overeenstemming met de Algemene Verordening Gegevensbescherming (AVG) en de Nederlandse privacywetgeving.
-              </p>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
-
-
-

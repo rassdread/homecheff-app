@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.id) {
+    if (!(session as any)?.user?.id) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     // Check if user has already given props to this product
     const existingProps = await prisma.favorite.findFirst({
       where: {
-        userId: session.user.id,
+        userId: (session as any).user.id,
         productId: productId,
       }
     });
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       // Give props
       await prisma.favorite.create({
         data: {
-          userId: session.user.id,
+          userId: (session as any).user.id,
           productId: productId,
         }
       });

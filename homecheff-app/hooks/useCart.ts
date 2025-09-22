@@ -1,74 +1,102 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { getCart, addToCart, updateCartItemQuantity, removeFromCart, clearCart, setCartUserId, type Cart, type CartItem } from '@/lib/cart';
+import { clearAllCartData } from '@/lib/cart';
 
-export function useCart() {
-  const { data: session } = useSession();
-  const [cart, setCart] = useState<Cart>({ items: [], totalItems: 0, totalAmount: 0 });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Set user ID for cart isolation
-    if (session?.user?.email) {
-      setCartUserId(session.user.email);
-    } else {
-      setCartUserId(null);
-    }
-
-    // Load cart from localStorage on mount
-    const loadedCart = getCart();
-    setCart(loadedCart);
-    setIsLoading(false);
-  }, [session]);
-
-  const addItem = (product: {
+export interface CartItem {
+  id: string;
+  title: string;
+  priceCents: number;
+  quantity: number;
+  image?: string;
+  seller?: {
     id: string;
-    title: string;
-    priceCents: number;
-    image?: string;
-    sellerName: string;
-    sellerId: string;
-    deliveryMode: 'PICKUP' | 'DELIVERY' | 'BOTH';
-  }, quantity: number = 1) => {
-    const updatedCart = addToCart(product, quantity);
-    setCart(updatedCart);
-    return updatedCart;
-  };
-
-  const updateQuantity = (itemId: string, quantity: number) => {
-    const updatedCart = updateCartItemQuantity(itemId, quantity);
-    setCart(updatedCart);
-    return updatedCart;
-  };
-
-  const removeItem = (itemId: string) => {
-    const updatedCart = removeFromCart(itemId);
-    setCart(updatedCart);
-    return updatedCart;
-  };
-
-  const clear = () => {
-    const updatedCart = clearCart();
-    setCart(updatedCart);
-    return updatedCart;
-  };
-
-  const refresh = () => {
-    const loadedCart = getCart();
-    setCart(loadedCart);
-    return loadedCart;
-  };
-
-  return {
-    cart,
-    isLoading,
-    addItem,
-    updateQuantity,
-    removeItem,
-    clear,
-    refresh,
+    name: string;
   };
 }
 
+export function useCart() {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = useSession();
 
+  useEffect(() => {
+    // Clear cart when user changes (session isolation)
+    if (!session) {
+      clearAllCartData();
+      setItems([]);
+      return;
+    }
+
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        setItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        clearAllCartData();
+        setItems([]);
+      }
+    }
+  }, [session]);
+
+  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+    setItems(prev => {
+      const existing = prev.find(i => i.id === item.id);
+      if (existing) {
+        const updated = prev.map(i => 
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+        localStorage.setItem('cart', JSON.stringify(updated));
+        return updated;
+      } else {
+        const updated = [...prev, { ...item, quantity: 1 }];
+        localStorage.setItem('cart', JSON.stringify(updated));
+        return updated;
+      }
+    });
+  };
+
+  const removeItem = (id: string) => {
+    setItems(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      localStorage.setItem('cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(id);
+      return;
+    }
+    setItems(prev => {
+      const updated = prev.map(item => 
+        item.id === id ? { ...item, quantity } : item
+      );
+      localStorage.setItem('cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearCart = () => {
+    setItems([]);
+    localStorage.removeItem('cart');
+  };
+
+  const totalPrice = items.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  return {
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    totalPrice,
+    totalItems,
+    isOpen,
+    setIsOpen
+  };
+}

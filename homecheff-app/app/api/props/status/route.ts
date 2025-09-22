@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.id) {
+    if (!(session as any)?.user?.id) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     // Check if user has given props to this product
     const props = await prisma.favorite.findFirst({
       where: {
-        userId: session.user.id,
+        userId: (session as any).user.id,
         productId: productId,
         // We'll use the existing Favorite model but with a special type for props
         // You might want to create a separate Props model later

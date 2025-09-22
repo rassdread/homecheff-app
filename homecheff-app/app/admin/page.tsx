@@ -24,20 +24,30 @@ export default async function AdminPage() {
     redirect('/');
   }
 
-  // Get admin statistics
+  // Get basic admin statistics
   const [
     totalUsers,
     totalProducts,
     totalOrders,
     totalDeliveryProfiles,
+    totalRevenue,
+    activeUsers,
     recentUsers,
-    recentProducts,
-    deliveryProfiles
+    recentProducts
   ] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
     prisma.transaction.count(),
     prisma.deliveryProfile.count(),
+    prisma.transaction.aggregate({
+      _sum: { amountCents: true },
+      where: { status: 'CAPTURED' as any }
+    }).then(result => (result._sum?.amountCents || 0) / 100),
+    prisma.user.count({
+      where: {
+        updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      }
+    }),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -48,9 +58,14 @@ export default async function AdminPage() {
         createdAt: true,
         role: true,
         image: true,
-        profileImage: true
+        profileImage: true,
+        updatedAt: true
       }
-    }),
+    }).then(users => users.map(user => ({
+      ...user,
+      role: user.role.toString(),
+      lastActiveAt: user.updatedAt
+    }))),
     prisma.product.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -66,29 +81,13 @@ export default async function AdminPage() {
               }
             }
           }
-        }
-      }
-    }),
-    prisma.deliveryProfile.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            profileImage: true
-          }
         },
-        deliveryOrders: {
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            deliveryFee: true
-          }
+        Image: {
+          select: { fileUrl: true },
+          take: 1
+        },
+        favorites: {
+          select: { id: true }
         }
       }
     })
@@ -101,9 +100,18 @@ export default async function AdminPage() {
         totalProducts,
         totalOrders,
         totalDeliveryProfiles,
-        recentUsers,
+        totalRevenue,
+        activeUsers,
+        recentUsers: recentUsers.map(user => ({
+          ...user,
+          role: user.role.toString(),
+          lastActiveAt: user.updatedAt
+        })),
         recentProducts,
-        deliveryProfiles
+        deliveryProfiles: [],
+        topSellers: [],
+        recentOrders: [],
+        systemMetrics: []
       }}
     />
   );

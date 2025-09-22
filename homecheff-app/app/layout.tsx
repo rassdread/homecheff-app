@@ -1,6 +1,7 @@
 import './globals.css';
 import NavBar from '@/components/NavBar';
 import Providers from '@/components/Providers';
+import PrivacyNotice from '@/components/PrivacyNotice';
 
 export const metadata = {
   title: 'HomeCheff',
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <NavBar />
           {children}
+          <PrivacyNotice />
         </Providers>
       </body>
     </html>

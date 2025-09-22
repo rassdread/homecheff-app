@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No products or users found' }, { status: 400 });
     }
 
-    const events = [];
+    const events: any[] = [];
     const now = new Date();
 
     // Generate organic events for the specified number of days
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
             source: 'organic',
             day: day,
             productAge: Math.floor((now.getTime() - randomProduct.createdAt.getTime()) / (1000 * 60 * 60 * 24))
-          },
+          } as any,
           createdAt: eventTime
-        });
+        } as any);
       }
     }
 

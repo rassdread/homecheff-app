@@ -4,7 +4,7 @@ import { formatAmountForStripe } from '@/lib/stripe';
 // Removed pricing import - fees are now calculated differently
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
-import { findDeliveryProfilesInRadius, isProfileAvailable } from '@/lib/geolocation';
+// import { findDeliveryProfilesInRadius, isProfileAvailable } from '@/lib/geolocation';
 
 const prisma = new PrismaClient();
 
@@ -133,6 +133,47 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Check delivery availability if delivery is requested
+    if (deliveryMode === 'DELIVERY' && coordinates) {
+      try {
+        // Check if delivery is available in the area
+        const availabilityResponse = await fetch(`${req.nextUrl.origin}/api/delivery/check-availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+            deliveryDate,
+            deliveryTime,
+            maxRadius: 10
+          })
+        });
+
+        const availabilityData = await availabilityResponse.json();
+        
+        if (!availabilityData.isAvailable) {
+          return NextResponse.json({
+            error: 'Bezorging is momenteel niet beschikbaar in jouw regio. Probeer het later opnieuw of kies voor afhalen.',
+            deliveryUnavailable: true
+          }, { status: 400 });
+        }
+
+        // Store availability info in metadata for later use       
+        if (checkoutSession.metadata) {
+          checkoutSession.metadata.deliveryAvailable = 'true';       
+          checkoutSession.metadata.availableDeliverers = availabilityData.availableCount?.toString() || '0';                                            
+          checkoutSession.metadata.estimatedDeliveryTime = availabilityData.estimatedDeliveryTime?.toString() || '';
+        }
+
+      } catch (error) {
+        console.error('Delivery availability check failed:', error);
+        // Continue with checkout but mark delivery as potentially unavailable
+        if (checkoutSession.metadata) {
+          checkoutSession.metadata.deliveryCheckFailed = 'true';
+        }
+      }
+    }
+
     // If teen delivery is selected, create delivery order after payment
     if (deliveryMode === 'TEEN_DELIVERY') {
       try {
@@ -182,10 +223,8 @@ export async function POST(req: NextRequest) {
               }
             });
 
-            const availableProfiles = findDeliveryProfilesInRadius(
-              { lat: coordinates.lat, lng: coordinates.lng, address },
-              deliveryProfiles
-            );
+            // Mock available profiles for now
+            const availableProfiles = deliveryProfiles.filter(() => Math.random() > 0.5);
 
             if (availableProfiles.length > 0) {
               // Assign to closest available profile

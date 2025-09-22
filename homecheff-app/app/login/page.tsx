@@ -4,6 +4,7 @@ import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
+import { clearAllUserData } from "@/lib/session-cleanup";
 
 type LoginState = {
   emailOrUsername: string;
@@ -54,6 +55,9 @@ function LoginForm() {
     setState({ ...state, isLoading: true, error: null });
 
     try {
+      // Clear all user data before login to prevent data leakage
+      clearAllUserData();
+      
       const result = await signIn("credentials", {
         redirect: false,
         emailOrUsername: state.emailOrUsername,

@@ -13,7 +13,7 @@ interface FilterState {
   sortBy: string;
   deliveryMode: string;
   dateRange: { from: string; to: string };
-  condition: string;
+  // condition: string; // Verwijderd - alles is nieuw op HomeCheff
   sellerRating: number;
   hasImages: boolean;
   isActive: boolean;
@@ -33,6 +33,7 @@ interface AdvancedFiltersPanelProps {
   onSaveSearch: (name: string) => void;
   onLoadSearch: (search: SavedSearch) => void;
   onClearFilters: () => void;
+  onApplyFilters?: () => void;
 }
 
 export default function AdvancedFiltersPanel({
@@ -305,24 +306,7 @@ export default function AdvancedFiltersPanel({
                 </div>
               </div>
 
-              {/* Condition */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Tag className="w-4 h-4 inline mr-1" />
-                  Conditie
-                </label>
-                <select
-                  value={filters.condition}
-                  onChange={(e) => updateFilter('condition', e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">Alle condities</option>
-                  <option value="new">Nieuw</option>
-                  <option value="like-new">Zo goed als nieuw</option>
-                  <option value="good">Goed</option>
-                  <option value="fair">Redelijk</option>
-                </select>
-              </div>
+              {/* Conditie filter verwijderd - alles is nieuw op HomeCheff */}
 
               {/* Checkboxes */}
               <div>

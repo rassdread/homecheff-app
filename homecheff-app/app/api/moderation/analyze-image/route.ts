@@ -42,7 +42,7 @@ interface CategoryValidation {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions as any);
   
-  if (!session?.user) {
+  if (!(session as any)?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Log moderation results for admin review
-    await logModerationResult(session.user.id, result);
+    await logModerationResult((session as any).user.id, result);
 
     return NextResponse.json(result);
 

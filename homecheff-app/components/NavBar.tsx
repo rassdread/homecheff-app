@@ -5,11 +5,12 @@ import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
+import ProfessionalMessagesBox from '@/components/messages/ProfessionalMessagesBox';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
-import { clearAllUserData, validateAndCleanSession } from '@/lib/session-cleanup';
+import { clearAllUserData, validateAndCleanSession, setupSessionIsolation } from '@/lib/session-cleanup';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -37,6 +38,9 @@ export default function NavBar() {
 
   // Sync cart with user ID for isolation and validate session
   useEffect(() => {
+    // Setup session isolation to prevent data leakage
+    setupSessionIsolation();
+    
     // Validate session integrity
     validateAndCleanSession();
 
@@ -96,6 +100,9 @@ export default function NavBar() {
               <>
                 <CartIcon />
                 
+                {/* Professional Messages Box - Only for logged in users */}
+                <ProfessionalMessagesBox />
+                
                 {/* Profile Dropdown */}
                 <div className="relative" ref={profileDropdownRef}>
                   <button
@@ -137,13 +144,14 @@ export default function NavBar() {
                         <span>Mijn Profiel</span>
                       </Link>
                       
+                      {/* Berichten - Alleen zichtbaar op mobiel */}
                       <Link 
-                        href="/orders" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        href="/messages" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
-                        <Package className="w-4 h-4" />
-                        <span>Mijn Bestellingen</span>
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Berichten</span>
                       </Link>
                       
                       <Link 
@@ -155,16 +163,29 @@ export default function NavBar() {
                         <span>Mijn Fans</span>
                       </Link>
                       
+                      {/* Privacy Instellingen */}
                       <Link 
-                        href="/verkoper/dashboard" 
+                        href="/profile/privacy" 
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
-                        <Settings className="w-4 h-4" />
-                        <span>Verkoper Dashboard</span>
+                        <Shield className="w-4 h-4" />
+                        <span>Privacy Instellingen</span>
                       </Link>
                       
-                      {/* Admin Dashboard Link - Only for Admins */}
+                      {/* Verkoper Dashboard - Alleen voor verkopers */}
+                      {((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) && (
+                        <Link 
+                          href="/verkoper/dashboard" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>Verkoper Dashboard</span>
+                        </Link>
+                      )}
+                      
+                      {/* Admin Dashboard Link - Alleen voor Admins */}
                       {(user as any)?.role === 'ADMIN' && (
                         <Link 
                           href="/admin" 
@@ -176,8 +197,8 @@ export default function NavBar() {
                         </Link>
                       )}
                       
-                      {/* Delivery Dashboard Link - Only for Delivery Users */}
-                      {((user as any)?.role === 'USER' || (user as any)?.deliveryProfile) && (
+                      {/* Delivery Dashboard Link - Alleen voor bezorgers */}
+                      {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) && (
                         <Link 
                           href="/delivery/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
@@ -255,6 +276,11 @@ export default function NavBar() {
 
               {user && (
                 <>
+                  {/* Professional Messages Box for Mobile */}
+                  <div className="px-3 py-2">
+                    <ProfessionalMessagesBox />
+                  </div>
+                  
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
                     {user.image ? (
                       <Image

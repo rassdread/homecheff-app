@@ -15,7 +15,14 @@ export async function POST(req: NextRequest) {
       maxDistance, 
       availableDays, 
       availableTimeSlots, 
-      bio 
+      bio,
+      acceptTerms,
+      acceptPrivacy,
+      acceptLiability,
+      acceptInsurance,
+      acceptTaxResponsibility,
+      acceptPlatformRules,
+      parentalConsent
     } = await req.json();
 
     // Validate required fields
@@ -47,9 +54,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate age
-    if (age < 15 || age > 25) {
+    if (age < 15 || age > 23) {
       return NextResponse.json({ 
-        error: 'Je moet tussen 15 en 25 jaar oud zijn' 
+        error: 'Je moet tussen 15 en 23 jaar oud zijn' 
+      }, { status: 400 });
+    }
+
+    // Validate legal agreements
+    if (!acceptTerms || !acceptPrivacy || !acceptLiability || !acceptInsurance || !acceptTaxResponsibility || !acceptPlatformRules) {
+      return NextResponse.json({ 
+        error: 'Je moet alle juridische overeenkomsten accepteren' 
+      }, { status: 400 });
+    }
+
+    // Validate parental consent for minors
+    if (age < 18 && !parentalConsent) {
+      return NextResponse.json({ 
+        error: 'Minderjarigen hebben ouderlijke toestemming nodig' 
       }, { status: 400 });
     }
 

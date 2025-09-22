@@ -1,57 +1,128 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Eye, Users, Calendar, Filter, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { 
+  TrendingUp, 
+  Users, 
+  Package, 
+  ShoppingCart, 
+  DollarSign, 
+  MapPin, 
+  Clock, 
+  Star,
+  Eye,
+  Heart,
+  MessageSquare,
+  Truck,
+  Calendar,
+  BarChart3,
+  PieChart,
+  Activity,
+  Target,
+  Zap
+} from 'lucide-react';
 
 interface AnalyticsData {
-  period: string;
-  entityType: string;
+  // Revenue & Financial
+  totalRevenue: number;
+  monthlyRevenue: number;
+  averageOrderValue: number;
+  revenueGrowth: number;
+  platformFees: number;
+  
+  // User Metrics
+  totalUsers: number;
+  activeUsers: number;
+  newUsers: number;
+  userRetention: number;
+  userGrowth: number;
+  
+  // Product Metrics
+  totalProducts: number;
+  activeProducts: number;
+  newProducts: number;
+  averageProductPrice: number;
+  productViews: number;
+  productFavorites: number;
+  
+  // Order Metrics
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  averageDeliveryTime: number;
+  orderGrowth: number;
+  
+  // Delivery Metrics
+  totalDeliveries: number;
+  activeDeliverers: number;
+  averageDeliveryRating: number;
+  deliverySuccessRate: number;
+  
+  // Engagement Metrics
   totalViews: number;
-  uniqueUsers: number;
-  topProducts: Array<{
-    id: string;
-    views: number;
-    title: string;
-    priceCents: number;
-    viewCount: number;
-    seller: string;
+  totalFavorites: number;
+  totalMessages: number;
+  averageSessionTime: number;
+  bounceRate: number;
+  
+  // Geographic Data
+  topCities: Array<{ city: string; count: number; revenue: number }>;
+  deliveryRegions: Array<{ region: string; deliveries: number; avgTime: number }>;
+  
+  // Time-based Data
+  hourlyActivity: Array<{ hour: number; users: number; orders: number }>;
+  dailyActivity: Array<{ date: string; users: number; orders: number; revenue: number }>;
+  weeklyActivity: Array<{ week: string; users: number; orders: number; revenue: number }>;
+  
+  // Category Performance
+  categoryStats: Array<{ 
+    category: string; 
+    products: number; 
+    revenue: number; 
+    avgPrice: number;
+    growth: number;
   }>;
-  viewsByDay: Array<{
-    date: string;
-    views: number;
+  
+  // Top Performers
+  topSellers: Array<{ 
+    id: string; 
+    name: string; 
+    products: number; 
+    revenue: number; 
+    rating: number;
   }>;
-  eventTypes: Array<{
-    type: string;
-    count: number;
+  topDeliverers: Array<{ 
+    id: string; 
+    name: string; 
+    deliveries: number; 
+    rating: number; 
+    earnings: number;
+  }>;
+  topProducts: Array<{ 
+    id: string; 
+    title: string; 
+    views: number; 
+    favorites: number; 
+    revenue: number;
   }>;
 }
 
 export default function AnalyticsDashboard() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('7d');
-  const [entityType, setEntityType] = useState('PRODUCT');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'views' | 'title' | 'price' | 'seller'>('views');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [showFilters, setShowFilters] = useState(false);
+  const [timeRange, setTimeRange] = useState('7d');
+  const [activeMetric, setActiveMetric] = useState('revenue');
 
-  const fetchAnalytics = async () => {
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [timeRange]);
+
+  const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching analytics data...');
-      const response = await fetch(`/api/analytics/dashboard?period=${period}&entityType=${entityType}`);
-      console.log('Analytics response status:', response.status);
-      
-      if (response.ok) {
-        const analyticsData = await response.json();
-        console.log('Analytics data received:', analyticsData);
-        setData(analyticsData);
-      } else {
-        const errorData = await response.json();
-        console.error('Analytics API error:', errorData);
-      }
+      const response = await fetch(`/api/admin/analytics?range=${timeRange}`);
+      const data = await response.json();
+      setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
@@ -59,432 +130,254 @@ export default function AnalyticsDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [period, entityType]);
-
-  // Filter and sort products
-  const filteredAndSortedProducts = data?.topProducts
-    ?.filter(product => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           product.seller.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesPriceRange = (!priceRange.min || product.priceCents >= parseFloat(priceRange.min) * 100) &&
-                               (!priceRange.max || product.priceCents <= parseFloat(priceRange.max) * 100);
-      
-      return matchesSearch && matchesPriceRange;
-    })
-    ?.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortBy) {
-        case 'views':
-          aValue = a.views;
-          bValue = b.views;
-          break;
-        case 'title':
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
-          break;
-        case 'price':
-          aValue = a.priceCents;
-          bValue = b.priceCents;
-          break;
-        case 'seller':
-          aValue = a.seller.toLowerCase();
-          bValue = b.seller.toLowerCase();
-          break;
-        default:
-          aValue = a.views;
-          bValue = b.views;
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    }) || [];
-
-  const handleSort = (field: 'views' | 'title' | 'price' | 'seller') => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('desc');
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
   };
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setPriceRange({ min: '', max: '' });
-    setSortBy('views');
-    setSortOrder('desc');
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('nl-NL').format(num);
   };
 
-  const generateOrganicData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/analytics/generate-organic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          days: 7,
-          eventsPerDay: 15
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Generated organic data:', result);
-        // Refresh analytics data
-        await fetchAnalytics();
-        alert(`Generated ${result.generated} organic events!`);
-      } else {
-        const error = await response.json();
-        console.error('Error generating organic data:', error);
-        alert('Failed to generate organic data');
-      }
-    } catch (error) {
-      console.error('Error generating organic data:', error);
-      alert('Failed to generate organic data');
-    } finally {
-      setLoading(false);
-    }
+  const formatPercentage = (num: number) => {
+    return `${num > 0 ? '+' : ''}${num.toFixed(1)}%`;
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
       </div>
     );
   }
 
-  if (!data) {
+  if (!analyticsData) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-center py-8">
-          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Geen analytics data beschikbaar</h3>
-          <p className="text-gray-500 mb-4">Er zijn nog geen product views getrackt. Analytics data verschijnt zodra gebruikers producten bekijken.</p>
-          <button 
-            onClick={fetchAnalytics}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Opnieuw laden
-          </button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-gray-500">Geen analytics data beschikbaar</p>
       </div>
     );
   }
+
+  const metricCards = [
+    {
+      title: 'Totale Omzet',
+      value: formatCurrency(analyticsData.totalRevenue),
+      change: formatPercentage(analyticsData.revenueGrowth),
+      icon: DollarSign,
+      color: 'green'
+    },
+    {
+      title: 'Actieve Gebruikers',
+      value: formatNumber(analyticsData.activeUsers),
+      change: formatPercentage(analyticsData.userGrowth),
+      icon: Users,
+      color: 'blue'
+    },
+    {
+      title: 'Totale Bestellingen',
+      value: formatNumber(analyticsData.totalOrders),
+      change: formatPercentage(analyticsData.orderGrowth),
+      icon: ShoppingCart,
+      color: 'purple'
+    },
+    {
+      title: 'Gem. Bestelwaarde',
+      value: formatCurrency(analyticsData.averageOrderValue),
+      change: null,
+      icon: Target,
+      color: 'orange'
+    },
+    {
+      title: 'Actieve Producten',
+      value: formatNumber(analyticsData.activeProducts),
+      change: null,
+      icon: Package,
+      color: 'indigo'
+    },
+    {
+      title: 'Bezorgers',
+      value: formatNumber(analyticsData.activeDeliverers),
+      change: null,
+      icon: Truck,
+      color: 'red'
+    }
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-          <p className="text-gray-600">Inzicht in gebruikersgedrag en productprestaties</p>
-        </div>
-        
-        {/* Basic Filters */}
-        <div className="flex flex-wrap gap-2">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="1d">Laatste 24 uur</option>
-            <option value="7d">Laatste 7 dagen</option>
-            <option value="30d">Laatste 30 dagen</option>
-            <option value="90d">Laatste 90 dagen</option>
-            <option value="1y">Laatste jaar</option>
-          </select>
-          
-          <button
-            onClick={generateOrganicData}
-            disabled={loading}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Genereren...' : 'Genereer Organische Data'}
-          </button>
-          
-          <select
-            value={entityType}
-            onChange={(e) => setEntityType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="PRODUCT">Producten</option>
-            <option value="USER">Gebruikers</option>
-            <option value="ORDER">Bestellingen</option>
-          </select>
-
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-          </button>
-        </div>
-      </div>
-
-      {/* Advanced Filters */}
-      {showFilters && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Geavanceerde Filters</h3>
+      {/* Time Range Selector */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+        <div className="flex space-x-2">
+          {['24h', '7d', '30d', '90d'].map((range) => (
             <button
-              onClick={clearFilters}
-              className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                timeRange === range
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
             >
-              <X className="w-4 h-4" />
-              Wis alle filters
+              {range}
             </button>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {metricCards.map((card, index) => {
+          const Icon = card.icon;
+          const colorClasses = {
+            green: 'bg-green-100 text-green-600',
+            blue: 'bg-blue-100 text-blue-600',
+            purple: 'bg-purple-100 text-purple-600',
+            orange: 'bg-orange-100 text-orange-600',
+            indigo: 'bg-indigo-100 text-indigo-600',
+            red: 'bg-red-100 text-red-600'
+          };
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Zoeken</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Product of verkoper..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+          return (
+            <div key={index} className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  {card.change && (
+                    <p className={`text-sm mt-1 ${
+                      card.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {card.change}
+                    </p>
+                  )}
+                </div>
+                <div className={`p-3 rounded-lg ${colorClasses[card.color as keyof typeof colorClasses]}`}>
+                  <Icon className="w-6 h-6" />
+                </div>
               </div>
             </div>
+          );
+        })}
+      </div>
 
-            {/* Price Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Prijs (€)</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  placeholder="Min"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  type="number"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  placeholder="Max"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sorteren op</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'views' | 'title' | 'price' | 'seller')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Omzet Trend</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setActiveMetric('revenue')}
+                className={`px-3 py-1 rounded-lg text-sm ${
+                  activeMetric === 'revenue'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
               >
-                <option value="views">Weergaven</option>
-                <option value="title">Titel</option>
-                <option value="price">Prijs</option>
-                <option value="seller">Verkoper</option>
-              </select>
-            </div>
-
-            {/* Sort Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Volgorde</label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                Omzet
+              </button>
+              <button
+                onClick={() => setActiveMetric('orders')}
+                className={`px-3 py-1 rounded-lg text-sm ${
+                  activeMetric === 'orders'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
               >
-                <option value="desc">Hoog naar laag</option>
-                <option value="asc">Laag naar hoog</option>
-              </select>
+                Bestellingen
+              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Eye className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Totaal Weergaven</p>
-              <p className="text-2xl font-bold text-gray-900">{data.totalViews.toLocaleString()}</p>
+          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="text-center">
+              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">Chart component hier</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Users className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Unieke Gebruikers</p>
-              <p className="text-2xl font-bold text-gray-900">{data.uniqueUsers.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Gemiddeld per Dag</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.round(data.totalViews / (period === '1d' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365))}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Top Producten</p>
-              <p className="text-2xl font-bold text-gray-900">{data.topProducts.length}</p>
+        {/* User Activity Chart */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Gebruikersactiviteit</h3>
+          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="text-center">
+              <Activity className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">Activity chart hier</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top Products */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Meest Bekeken Producten ({filteredAndSortedProducts.length})
-            </h3>
-            <div className="text-sm text-gray-500">
-              {searchQuery && `Gefilterd op: "${searchQuery}"`}
-            </div>
+      {/* Detailed Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Cities */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Steden</h3>
+          <div className="space-y-3">
+            {analyticsData.topCities.slice(0, 5).map((city, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-emerald-600">{index + 1}</span>
+                  </div>
+                  <span className="font-medium text-gray-900">{city.city}</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{formatCurrency(city.revenue)}</p>
+                  <p className="text-xs text-gray-500">{city.count} bestellingen</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        
-        {/* Sortable Header */}
-        <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-            <div className="col-span-1">#</div>
-            <div className="col-span-4">
-              <button
-                onClick={() => handleSort('title')}
-                className="flex items-center gap-1 hover:text-gray-900"
-              >
-                Product
-                {sortBy === 'title' && (
-                  sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                )}
-              </button>
-            </div>
-            <div className="col-span-3">
-              <button
-                onClick={() => handleSort('seller')}
-                className="flex items-center gap-1 hover:text-gray-900"
-              >
-                Verkoper
-                {sortBy === 'seller' && (
-                  sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                )}
-              </button>
-            </div>
-            <div className="col-span-2">
-              <button
-                onClick={() => handleSort('price')}
-                className="flex items-center gap-1 hover:text-gray-900"
-              >
-                Prijs
-                {sortBy === 'price' && (
-                  sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                )}
-              </button>
-            </div>
-            <div className="col-span-2">
-              <button
-                onClick={() => handleSort('views')}
-                className="flex items-center gap-1 hover:text-gray-900"
-              >
-                Weergaven
-                {sortBy === 'views' && (
-                  sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                )}
-              </button>
-            </div>
+
+        {/* Category Performance */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Categorie Prestaties</h3>
+          <div className="space-y-3">
+            {analyticsData.categoryStats.slice(0, 5).map((category, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900">{category.category}</p>
+                  <p className="text-sm text-gray-500">{category.products} producten</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{formatCurrency(category.revenue)}</p>
+                  <p className={`text-xs ${category.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatPercentage(category.growth)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        
-        <div className="p-6">
-          <div className="space-y-2">
-            {filteredAndSortedProducts.length > 0 ? (
-              filteredAndSortedProducts.map((product, index) => (
-                <div key={product.id} className="grid grid-cols-12 gap-4 items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="col-span-1">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-blue-600">#{index + 1}</span>
+
+        {/* Top Sellers */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Verkopers</h3>
+          <div className="space-y-3">
+            {analyticsData.topSellers.slice(0, 5).map((seller, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-emerald-600">{index + 1}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{seller.name}</p>
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                      <span className="text-xs text-gray-500">{seller.rating.toFixed(1)}</span>
                     </div>
                   </div>
-                  <div className="col-span-4">
-                    <h4 className="font-medium text-gray-900 truncate">{product.title}</h4>
-                  </div>
-                  <div className="col-span-3">
-                    <p className="text-sm text-gray-600 truncate">{product.seller}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm font-semibold text-gray-900">€{(product.priceCents / 100).toFixed(2)}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm font-semibold text-gray-900">{product.views.toLocaleString()}</p>
-                  </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Geen producten gevonden met de huidige filters</p>
-                <button
-                  onClick={clearFilters}
-                  className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  Wis alle filters
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Event Types */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Event Types</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.eventTypes.map((event) => (
-              <div key={event.type} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{event.type}</span>
-                  <span className="text-lg font-bold text-gray-900">{event.count}</span>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{formatCurrency(seller.revenue)}</p>
+                  <p className="text-xs text-gray-500">{seller.products} producten</p>
                 </div>
               </div>
             ))}
@@ -492,33 +385,40 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Views by Day Chart */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Weergaven per Dag</h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-2">
-            {data.viewsByDay.map((day) => (
-              <div key={day.date} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  {new Date(day.date).toLocaleDateString('nl-NL')}
-                </span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-32 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ 
-                        width: `${Math.min(100, (day.views / Math.max(...data.viewsByDay.map(d => d.views))) * 100)}%` 
-                      }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 w-12 text-right">
-                    {day.views}
-                  </span>
-                </div>
-              </div>
-            ))}
+      {/* Engagement Metrics */}
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Engagement Metrics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Eye className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(analyticsData.totalViews)}</p>
+            <p className="text-sm text-gray-500">Totaal Weergaven</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Heart className="w-6 h-6 text-red-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(analyticsData.totalFavorites)}</p>
+            <p className="text-sm text-gray-500">Favorieten</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <MessageSquare className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(analyticsData.totalMessages)}</p>
+            <p className="text-sm text-gray-500">Berichten</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Clock className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{analyticsData.averageSessionTime}m</p>
+            <p className="text-sm text-gray-500">Gem. Sessietijd</p>
           </div>
         </div>
       </div>

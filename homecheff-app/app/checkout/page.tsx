@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Clock, Package, Truck, Bike, Users, CreditCard, CheckCircle, Navigation } from 'lucide-react';
+import { MapPin, Clock, Package, Truck, Bike, Users, CreditCard, CheckCircle, Navigation, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import TeenDeliveryInfo from '@/components/delivery/TeenDeliveryInfo';
 import { getCurrentLocation } from '@/lib/geolocation';
+import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 
 type DeliveryOption = {
   id: string;
@@ -20,7 +21,7 @@ type DeliveryOption = {
 };
 
 export default function CheckoutPage() {
-  const { cart, clear } = useCart();
+  const { items: cartItems, clearCart } = useCart();
   const { data: session } = useSession();
   const [selectedDelivery, setSelectedDelivery] = useState<string>('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -30,6 +31,16 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Check delivery availability
+  const { 
+    availability,
+    loading: availabilityLoading 
+  } = useDeliveryAvailability(coordinates);
+  
+  const isDeliveryAvailable = availability.isAvailable;
+  const availableDeliverers = 1; // Mock value
+  const estimatedDeliveryTime = availability.estimatedTime;
 
   // Get current location for delivery
   const getLocation = async () => {
@@ -68,8 +79,8 @@ export default function CheckoutPage() {
       description: 'Jongeren vanaf 15 jaar bezorgen in de buurt (wettelijk toegestaan)',
       icon: <Users className="w-6 h-6" />,
       price: 2,
-      estimatedTime: 'Binnen 3 uur',
-      available: true
+      estimatedTime: estimatedDeliveryTime ? `${estimatedDeliveryTime} min` : 'Binnen 3 uur',
+      available: coordinates ? isDeliveryAvailable : true // Only check if coordinates are available
     },
     {
       id: 'shipping',
@@ -84,7 +95,7 @@ export default function CheckoutPage() {
 
   const availableOptions = deliveryOptions.filter(option => option.available);
   const selectedOption = deliveryOptions.find(option => option.id === selectedDelivery);
-  const totalAmount = cart.totalAmount + (selectedOption?.price || 0) * 100; // Convert to cents
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0) + (selectedOption?.price || 0) * 100; // Convert to cents
 
   const handleCheckout = async () => {
     if (!selectedDelivery) {
@@ -104,7 +115,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart.items,
+          items: cartItems,
           deliveryMode: selectedDelivery.toUpperCase(),
           address: deliveryAddress,
           notes,
@@ -152,7 +163,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (cart.items.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -186,38 +197,62 @@ export default function CheckoutPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  {availableOptions.map((option) => (
-                    <div
-                      key={option.id}
-                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
-                        selectedDelivery === option.id
-                          ? 'border-primary-brand bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedDelivery(option.id)}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-lg ${
-                          selectedDelivery === option.id ? 'bg-primary-brand text-white' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {option.icon}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">{option.name}</h3>
-                            <span className="text-lg font-bold text-primary-brand">
-                              {option.price === 0 ? 'Gratis' : `€${option.price.toFixed(2)}`}
-                            </span>
+                  {availableOptions.map((option) => {
+                    const isTeenDelivery = option.id === 'teen_delivery';
+                    const isUnavailable = isTeenDelivery && coordinates && !isDeliveryAvailable;
+                    const isLoading = isTeenDelivery && availabilityLoading;
+                    
+                    return (
+                      <div
+                        key={option.id}
+                        className={`border-2 rounded-xl p-4 transition-all ${
+                          isUnavailable 
+                            ? 'border-red-200 bg-red-50 cursor-not-allowed opacity-60'
+                            : selectedDelivery === option.id
+                            ? 'border-primary-brand bg-primary-50 cursor-pointer'
+                            : 'border-gray-200 hover:border-gray-300 cursor-pointer'
+                        }`}
+                        onClick={() => !isUnavailable && setSelectedDelivery(option.id)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`p-2 rounded-lg ${
+                            selectedDelivery === option.id ? 'bg-primary-brand text-white' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {option.icon}
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                          <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                            <Clock className="w-3 h-3" />
-                            {option.estimatedTime}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                {option.name}
+                                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {isUnavailable && <AlertCircle className="w-4 h-4 text-red-500" />}
+                              </h3>
+                              <span className="text-lg font-bold text-primary-brand">
+                                {option.price === 0 ? 'Gratis' : `€${option.price.toFixed(2)}`}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{option.description}</p>
+                            <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              {option.estimatedTime}
+                              {isTeenDelivery && coordinates && isDeliveryAvailable && (
+                                <span className="text-green-600 font-medium">
+                                  • {availableDeliverers} bezorger{availableDeliverers !== 1 ? 's' : ''} beschikbaar
+                                </span>
+                              )}
+                            </div>
+                            {isUnavailable && (
+                              <div className="mt-2 p-2 bg-red-100 rounded-lg">
+                                <p className="text-sm text-red-700">
+                                  Momenteel geen bezorgers beschikbaar in jouw regio. Probeer het later opnieuw of kies voor afhalen.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Teen Delivery Info */}
@@ -328,7 +363,7 @@ export default function CheckoutPage() {
                 <div className="bg-gray-50 rounded-xl p-6">
                   {/* Items */}
                   <div className="space-y-4 mb-6">
-                    {cart.items.map((item) => (
+                    {cartItems.map((item) => (
                       <div key={item.id} className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                           {item.image && (
@@ -356,7 +391,7 @@ export default function CheckoutPage() {
                   <div className="space-y-2 border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-sm">
                       <span>Subtotaal:</span>
-                      <span>€{(cart.totalAmount / 100).toFixed(2)}</span>
+                      <span>€{(cartItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0) / 100).toFixed(2)}</span>
                     </div>
                     {selectedOption && selectedOption.price > 0 && (
                       <div className="flex justify-between text-sm">

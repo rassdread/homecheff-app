@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       ...(event.metadata as any),
       manualReview: {
         action,
-        reviewedBy: session.user.id,
+        reviewedBy: (session as any).user?.id || 'unknown',
         reviewedAt: new Date().toISOString(),
         status: action === 'approve' ? 'approved' : 'rejected'
       }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         eventType: 'MANUAL_MODERATION_REVIEW',
         entityType: 'IMAGE',
         entityId: logId,
-        userId: session.user.id,
+        userId: (session as any).user?.id || 'unknown',
         metadata: {
           originalLogId: logId,
           action,

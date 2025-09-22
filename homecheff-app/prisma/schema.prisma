@@ -42,6 +42,14 @@ model User {
   taxResponsibilityAcceptedAt            DateTime?
   termsAccepted                          Boolean                   @default(false)
   termsAcceptedAt                        DateTime?
+  // Privacy instellingen
+  messagePrivacy                         MessagePrivacy            @default(EVERYONE)
+  fanRequestEnabled                      Boolean                   @default(true)
+  showFansList                           Boolean                   @default(true)
+  showProfileToEveryone                  Boolean                   @default(true)
+  showOnlineStatus                       Boolean                   @default(true)
+  allowProfileViews                       Boolean                   @default(true)
+  showActivityStatus                     Boolean                   @default(true)
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
@@ -52,6 +60,8 @@ model User {
   Favorite                               Favorite[]
   followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
   followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
+  fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
+  fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
   Listing                                Listing[]
   Message                                Message[]
   Notification                           Notification[]
@@ -522,6 +532,22 @@ model Follow {
   Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
 }
 
+model FanRequest {
+  id          String            @id @default(uuid())
+  requesterId String
+  targetId    String
+  status      FanRequestStatus  @default(PENDING)
+  message     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  requester   User              @relation("FanRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target      User              @relation("FanRequestTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, targetId])
+  @@index([targetId])
+  @@index([status])
+}
+
 model Dish {
   id           String        @id @default(uuid())
   userId       String
@@ -595,6 +621,22 @@ enum UserRole {
   SELLER
 
   @@map("UserRole")
+}
+
+enum MessagePrivacy {
+  NOBODY
+  FANS_ONLY
+  EVERYONE
+
+  @@map("MessagePrivacy")
+}
+
+enum FanRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("FanRequestStatus")
 }
 
 enum DeliveryMode {
