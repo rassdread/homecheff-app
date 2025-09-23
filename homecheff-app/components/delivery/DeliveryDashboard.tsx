@@ -111,33 +111,48 @@ export default function DeliveryDashboard() {
     }
   };
 
-  const acceptOrder = async (orderId: string) => {
+  const updateOrderStatus = async (orderId: string, status: string, notes?: string) => {
     try {
-      const response = await fetch(`/api/delivery/orders/${orderId}/accept`, {
-        method: 'POST'
+      const response = await fetch(`/api/delivery/orders/${orderId}/update-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, notes })
       });
 
       if (response.ok) {
-        setCurrentOrder(prev => prev ? { ...prev, status: 'ACCEPTED' } : null);
+        const data = await response.json();
+        
+        if (status === 'ACCEPTED') {
+          setCurrentOrder(prev => prev ? { ...prev, status: 'ACCEPTED' } : null);
+        } else if (status === 'PICKED_UP') {
+          setCurrentOrder(prev => prev ? { ...prev, status: 'PICKED_UP' } : null);
+        } else if (status === 'DELIVERED') {
+          setCurrentOrder(null);
+          fetchDeliveryData(); // Refresh stats
+        } else if (status === 'CANCELLED') {
+          setCurrentOrder(null);
+          fetchDeliveryData(); // Refresh stats
+        }
       }
     } catch (error) {
-      console.error('Error accepting order:', error);
+      console.error('Error updating order status:', error);
     }
   };
 
-  const completeOrder = async (orderId: string) => {
-    try {
-      const response = await fetch(`/api/delivery/orders/${orderId}/complete`, {
-        method: 'POST'
-      });
+  const acceptOrder = async (orderId: string) => {
+    await updateOrderStatus(orderId, 'ACCEPTED');
+  };
 
-      if (response.ok) {
-        setCurrentOrder(null);
-        fetchDeliveryData(); // Refresh stats
-      }
-    } catch (error) {
-      console.error('Error completing order:', error);
-    }
+  const pickupOrder = async (orderId: string) => {
+    await updateOrderStatus(orderId, 'PICKED_UP');
+  };
+
+  const deliverOrder = async (orderId: string) => {
+    await updateOrderStatus(orderId, 'DELIVERED');
+  };
+
+  const cancelOrder = async (orderId: string) => {
+    await updateOrderStatus(orderId, 'CANCELLED');
   };
 
   const formatCurrency = (amount: number) => {
@@ -172,6 +187,13 @@ export default function DeliveryDashboard() {
               <p className="text-gray-600">Beheer je bezorgingen en verdiensten</p>
             </div>
             <div className="flex items-center gap-4">
+              <a
+                href="/delivery/settings"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Instellingen
+              </a>
               <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
                 isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
               }`}>

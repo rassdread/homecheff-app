@@ -92,28 +92,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Abonnementen en betalingen</h2>
-              
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">5.1 Verkoopabonnementen</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li><strong>Basic:</strong> €39/maand, 7% transactiekosten</li>
-                <li><strong>Pro:</strong> €99/maand, 4% transactiekosten</li>
-                <li><strong>Premium:</strong> €199/maand, 2% transactiekosten</li>
-                <li>Abonnementen worden maandelijks verlengd</li>
-                <li>Opzegging mogelijk met 30 dagen opzegtermijn</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">5.2 Betalingsvoorwaarden</h3>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li>Betalingen worden automatisch geïncasseerd</li>
-                <li>Bij niet-betaling wordt de dienst opgeschort</li>
-                <li>Geen restitutie bij tussentijdse opzegging</li>
-                <li>Prijsverhogingen worden 30 dagen van tevoren aangekondigd</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Privacy en gegevensbescherming</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Privacy en gegevensbescherming</h2>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Wij verwerken gegevens volgens de AVG/GDPR</li>
                 <li>Gebruikers hebben rechten op toegang, rectificatie en verwijdering</li>
@@ -124,9 +103,9 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Aansprakelijkheid en garanties</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Aansprakelijkheid en garanties</h2>
               
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">7.1 Platform aansprakelijkheid</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">6.1 Platform aansprakelijkheid</h3>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>HomeCheff is een platform, geen partij in transacties</li>
                 <li>Wij zijn niet aansprakelijk voor productkwaliteit</li>
@@ -134,7 +113,7 @@ export default function TermsPage() {
                 <li>Platform wordt geleverd "as is" zonder garanties</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">7.2 Gebruiker aansprakelijkheid</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">6.2 Gebruiker aansprakelijkheid</h3>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Gebruikers zijn verantwoordelijk voor hun eigen handelingen</li>
                 <li>Verkopers zijn aansprakelijk voor hun producten</li>
@@ -144,7 +123,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Geschillen en rechtspraak</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Geschillen en rechtspraak</h2>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Geschillen worden eerst via bemiddeling opgelost</li>
                 <li>Nederlands recht is van toepassing</li>
@@ -154,9 +133,9 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Wijzigingen en opzegging</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Wijzigingen en opzegging</h2>
               
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">9.1 Wijzigingen voorwaarden</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">8.1 Wijzigingen voorwaarden</h3>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Wij kunnen deze voorwaarden wijzigen</li>
                 <li>Wijzigingen worden 30 dagen van tevoren aangekondigd</li>
@@ -164,7 +143,7 @@ export default function TermsPage() {
                 <li>Belangrijke wijzigingen worden per e-mail gecommuniceerd</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">9.2 Opzegging diensten</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">8.2 Opzegging diensten</h3>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Gebruikers kunnen hun account opzeggen</li>
                 <li>Abonnementen kunnen worden opgezegd met 30 dagen opzegtermijn</li>
@@ -174,7 +153,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Contact</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Contact</h2>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-4">Voor vragen over deze voorwaarden:</p>
                 <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>

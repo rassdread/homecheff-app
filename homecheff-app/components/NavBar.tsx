@@ -10,7 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import ProfessionalMessagesBox from '@/components/messages/ProfessionalMessagesBox';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
-import { clearAllUserData, validateAndCleanSession, setupSessionIsolation } from '@/lib/session-cleanup';
+import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, forceSessionReset, clearNextAuthData } from '@/lib/session-cleanup';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -48,14 +48,20 @@ export default function NavBar() {
       // Use email as user identifier for cart isolation
       setCartUserId(session.user.email);
     } else {
+      // No session - clear all user data to prevent data leakage
       setCartUserId(null);
+      clearNextAuthData();
     }
   }, [session]);
 
   const handleLogout = async () => {
-    // Clear all user data for complete session isolation
+    // Clear all user data and NextAuth data for complete session isolation
     clearAllUserData();
-    await signOut({ callbackUrl: '/' });
+    clearNextAuthData();
+    
+    // Sign out and force complete session reset
+    await signOut({ redirect: false });
+    forceSessionReset();
   };
 
   return (
@@ -321,15 +327,18 @@ export default function NavBar() {
                     </Button>
                   </Link>
                   
-                  <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <Settings className="w-4 h-4" />
-                      <span>Verkoper Dashboard</span>
-                    </Button>
-                  </Link>
+                  {/* Verkoper Dashboard - Alleen voor verkopers */}
+                  {((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) && (
+                    <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600">
+                        <Settings className="w-4 h-4" />
+                        <span>Verkoper Dashboard</span>
+                      </Button>
+                    </Link>
+                  )}
                   
                   {/* Delivery Dashboard Link - Only for Delivery Users */}
-                  {((user as any)?.role === 'USER' || (user as any)?.deliveryProfile) && (
+                  {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) && (
                     <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">
                         <Package className="w-4 h-4" />

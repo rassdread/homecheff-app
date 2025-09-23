@@ -69,9 +69,38 @@ export async function POST(req: NextRequest) {
       return sum + (item.priceCents * item.quantity);
     }, 0);
 
-    // Calculate fees - buyers only pay Stripe fee, sellers pay platform fee at payout
-    const stripeFeeCents = Math.round((totalAmount * 0.014) + 25); // 1.4% + €0.25
-    const totalWithStripeFee = totalAmount + stripeFeeCents;
+    // Calculate delivery fee if delivery is selected
+    let deliveryFeeCents = 0;
+    let deliveryFeeBreakdown = null;
+    
+    if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
+      deliveryFeeCents = 200; // €2.00 base delivery fee
+      
+      // Calculate distance-based fee (mock for now)
+      if (coordinates) {
+        // In real app, calculate actual distance
+        const distance = 5; // Mock distance in km
+        if (distance > 3) {
+          deliveryFeeCents += Math.round((distance - 3) * 50); // €0.50 per km after 3km
+        }
+      }
+      
+      deliveryFeeBreakdown = {
+        baseFee: 200,
+        distanceFee: deliveryFeeCents - 200,
+        totalDeliveryFee: deliveryFeeCents,
+        deliveryPersonCut: Math.round(deliveryFeeCents * 0.88), // 88% to delivery person
+        homecheffCut: Math.round(deliveryFeeCents * 0.12) // 12% to HomeCheff (same as platform fee)
+      };
+    }
+
+    const subtotal = totalAmount + deliveryFeeCents;
+
+    // Calculate fees - buyers pay Stripe fee + HomeCheff platform fee (12%)
+    const platformFeeCents = Math.round(totalAmount * 0.12); // 12% platform fee on product sales
+    const finalTotal = subtotal + platformFeeCents; // Add platform fee to subtotal
+    const stripeFeeCents = Math.round((finalTotal * 0.014) + 25); // 1.4% + €0.25 Stripe fee on final total
+    const totalWithStripeFee = finalTotal + stripeFeeCents;
 
     // Check if all sellers have Stripe Connect accounts
     const sellersWithoutConnect = products.filter(product => 
@@ -104,13 +133,43 @@ export async function POST(req: NextRequest) {
           currency: 'eur',
           product_data: {
             name: item.title,
-            description: `Quantity: ${item.quantity}${deliveryMode === 'PICKUP' ? ' (Pickup)' : ' (Delivery)'} - Sold by ${item.sellerName}`,
+            description: `Quantity: ${item.quantity} - Sold by ${item.sellerName}`,
           },
           unit_amount: Math.round(item.priceCents / item.quantity), // Price per unit
         },
         quantity: item.quantity,
       };
     });
+
+    // Add platform fee as separate line item
+    if (platformFeeCents > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: 'HomeCheff Platform Fee',
+            description: 'Platform service fee (12%)',
+          },
+          unit_amount: platformFeeCents,
+        },
+        quantity: 1,
+      });
+    }
+
+    // Add delivery fee as separate line item
+    if (deliveryFeeCents > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: 'Bezorgkosten',
+            description: `Bezorging naar ${address || 'jouw adres'}${deliveryFeeBreakdown ? ` (Basis: €${(deliveryFeeBreakdown.baseFee/100).toFixed(2)}, Afstand: €${(deliveryFeeBreakdown.distanceFee/100).toFixed(2)})` : ''}`,
+          },
+          unit_amount: deliveryFeeCents,
+        },
+        quantity: 1,
+      });
+    }
 
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -128,6 +187,11 @@ export async function POST(req: NextRequest) {
         deliveryDate: deliveryDate || '',
         deliveryTime: deliveryTime || '',
         totalAmount: totalAmount.toString(),
+        platformFeeCents: platformFeeCents.toString(),
+        deliveryFeeCents: deliveryFeeCents.toString(),
+        deliveryFeeBreakdown: deliveryFeeBreakdown ? JSON.stringify(deliveryFeeBreakdown) : '',
+        subtotal: subtotal.toString(),
+        finalTotal: finalTotal.toString(),
         stripeFeeCents: stripeFeeCents.toString(),
         totalWithStripeFee: totalWithStripeFee.toString(),
       },

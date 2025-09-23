@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
 
 interface DeliverySignupData {
   // Account creation
@@ -21,13 +21,15 @@ interface DeliverySignupData {
   availableTimeSlots: string[];
   bio: string;
   
+  // Work area settings
+  deliveryMode: 'FIXED' | 'DYNAMIC';
+  homeLat?: number;
+  homeLng?: number;
+  homeAddress?: string;
+  preferredRadius: number;
+  
   // Legal agreements
-  acceptTerms: boolean;
-  acceptPrivacy: boolean;
-  acceptLiability: boolean;
-  acceptInsurance: boolean;
-  acceptTaxResponsibility: boolean;
-  acceptPlatformRules: boolean;
+  acceptDeliveryAgreement: boolean;
   parentalConsent: boolean;
 }
 
@@ -52,21 +54,20 @@ export default function DeliverySignupPage() {
     availableTimeSlots: [],
     bio: '',
     
+    // Work area settings
+    deliveryMode: 'FIXED',
+    preferredRadius: 5,
+    
     // Legal agreements
-    acceptTerms: false,
-    acceptPrivacy: false,
-    acceptLiability: false,
-    acceptInsurance: false,
-    acceptTaxResponsibility: false,
-    acceptPlatformRules: false,
+    acceptDeliveryAgreement: false,
     parentalConsent: false
   });
 
   const transportationOptions = [
-    { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" /> },
-    { id: 'SCOOTER', label: 'Scooter', icon: <Bike className="w-5 h-5" /> },
-    { id: 'WALKING', label: 'Lopen', icon: <Bike className="w-5 h-5" /> },
-    { id: 'PUBLIC_TRANSPORT', label: 'Openbaar Vervoer', icon: <Bike className="w-5 h-5" /> }
+    { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 5 },
+    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
+    { id: 'SCOOTER', label: 'Scooter', icon: <Bike className="w-5 h-5" />, maxRange: 15 },
+    { id: 'CAR', label: 'Auto', icon: <Bike className="w-5 h-5" />, maxRange: 25 }
   ];
 
   const dayOptions = [
@@ -123,28 +124,41 @@ export default function DeliverySignupPage() {
           maxDistance: formData.maxDistance,
           availableDays: formData.availableDays,
           availableTimeSlots: formData.availableTimeSlots,
-          bio: formData.bio
+          bio: formData.bio,
+          acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
+          parentalConsent: formData.parentalConsent
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Registration API error:', errorData);
         throw new Error(errorData.error || 'Account aanmaken mislukt');
       }
 
+      console.log('Registration successful, attempting auto-login...');
+
       // Auto-login after successful registration
-      const loginResponse = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false
-      });
+      try {
+        const loginResponse = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false
+        });
 
-      if (!loginResponse?.ok) {
-        throw new Error('Automatisch inloggen mislukt. Je kunt nu handmatig inloggen.');
+        if (loginResponse?.ok) {
+          // Successfully logged in, redirect to delivery dashboard
+          router.push('/delivery/dashboard?welcome=true&newSignup=true');
+        } else {
+          // Login failed, but registration was successful
+          console.log('Auto-login failed, but registration successful. Redirecting to login page.');
+          router.push('/login?message=Registratie succesvol! Log nu in met je nieuwe account.');
+        }
+      } catch (loginError) {
+        console.log('Auto-login error:', loginError);
+        // Registration was successful, but login failed
+        router.push('/login?message=Registratie succesvol! Log nu in met je nieuwe account.');
       }
-
-      // Redirect directly to delivery dashboard with welcome message
-      router.push('/delivery/dashboard?welcome=true&newSignup=true');
 
     } catch (error) {
       console.error('Error:', error);
@@ -170,38 +184,45 @@ export default function DeliverySignupPage() {
       case 4: return formData.transportation.length > 0;
       case 5: return formData.availableDays.length > 0;
       case 6: return formData.availableTimeSlots.length > 0;
-      case 7: return true;
-      case 8: {
-        const basicAgreements = formData.acceptTerms && formData.acceptPrivacy && formData.acceptLiability && 
-                               formData.acceptInsurance && formData.acceptTaxResponsibility && 
-                               formData.acceptPlatformRules;
+      case 7: return formData.maxDistance > 0 && formData.deliveryMode;
+      case 8: return true; // Bio is optional
+      case 9: {
         
-        // If user is 18 or older, only basic agreements are needed
+        // If user is 18 or older, only delivery agreement is needed
         if (formData.age >= 18) {
-          return basicAgreements;
+          return formData.acceptDeliveryAgreement;
         }
         
-        // If user is under 18, parental consent is also required
-        return basicAgreements && formData.parentalConsent;
+        // If user is under 18, both delivery agreement and parental consent are required
+        return formData.acceptDeliveryAgreement && formData.parentalConsent;
       }
       default: return false;
     }
   };
 
-  // Debug function to show which agreements are missing
-  const getMissingAgreements = () => {
-    if (currentStep !== 8) return [];
+  // State for showing legal agreement modal
+  const [showLegalModal, setShowLegalModal] = useState(false);
+
+  // Debug function to show validation details
+  const getValidationDetails = () => {
+    if (currentStep !== 8) return '';
     
-    const missing = [];
-    if (!formData.acceptTerms) missing.push('Algemene Voorwaarden');
-    if (!formData.acceptPrivacy) missing.push('Privacy Policy');
-    if (!formData.acceptLiability) missing.push('Aansprakelijkheid');
-    if (!formData.acceptInsurance) missing.push('Verzekeringen');
-    if (!formData.acceptTaxResponsibility) missing.push('Belastingen');
-    if (!formData.acceptPlatformRules) missing.push('Platform Regels');
-    if (formData.age < 18 && !formData.parentalConsent) missing.push('Ouderlijke Toestemming');
+    const is18OrOlder = formData.age >= 18;
+    const hasAgreement = formData.acceptDeliveryAgreement;
+    const hasParentalConsent = formData.parentalConsent;
     
-    return missing;
+    if (is18OrOlder) {
+      return hasAgreement ? '✅ Geldig (18+ met overeenkomst)' : '❌ Mis: Overeenkomst niet geaccepteerd';
+    } else {
+      if (hasAgreement && hasParentalConsent) {
+        return '✅ Geldig (onder 18 met overeenkomst en toestemming)';
+      } else if (!hasAgreement) {
+        return '❌ Mis: Overeenkomst niet geaccepteerd';
+      } else if (!hasParentalConsent) {
+        return '❌ Mis: Ouderlijke toestemming niet gegeven';
+      }
+    }
+    return '❌ Onbekende fout';
   };
 
   // Show loading while session is loading
@@ -474,8 +495,94 @@ export default function DeliverySignupPage() {
               </div>
             )}
 
-            {/* Step 7: Bio */}
+            {/* Step 7: Work Area */}
             {currentStep === 7 && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+                  Jouw Werkgebied
+                </h3>
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                    <h4 className="font-semibold text-blue-900 mb-2">🏠 Veiligheid & Nabijheid</h4>
+                    <p className="text-sm text-blue-800">
+                      Door je werkgebied in te stellen waarborgen we je veiligheid. Je krijgt alleen bestellingen 
+                      uit jouw buurt, zodat je altijd dicht bij huis blijft en je ouders kunnen meevolgen waar je bent.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bezorgmodus
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'FIXED' }))}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          formData.deliveryMode === 'FIXED'
+                            ? 'border-primary-brand bg-primary-50 text-primary-brand'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <MapPin className="w-5 h-5" />
+                          <span className="text-sm font-medium">Vast Gebied</span>
+                          <span className="text-xs text-gray-600">Rondom je huis</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'DYNAMIC' }))}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          formData.deliveryMode === 'DYNAMIC'
+                            ? 'border-primary-brand bg-primary-50 text-primary-brand'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          <span className="text-sm font-medium">Flexibel</span>
+                          <span className="text-xs text-gray-600">Meerdere gebieden</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Maximale afstand van je huis (km)
+                    </label>
+                    <input
+                      type="range"
+                      min="2"
+                      max="15"
+                      value={formData.preferredRadius}
+                      onChange={(e) => setFormData(prev => ({ ...prev, preferredRadius: parseInt(e.target.value) }))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>2 km</span>
+                      <span className="font-medium text-primary-brand">{formData.preferredRadius} km</span>
+                      <span>15 km</span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Je krijgt alleen bestellingen binnen {formData.preferredRadius} km van je huis
+                    </p>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+                    <h4 className="font-semibold text-green-900 mb-2">✅ Veiligheidsvoordelen</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>• Altijd dicht bij huis en bekende omgeving</li>
+                      <li>• Ouders kunnen je route volgen via de app</li>
+                      <li>• Snelle hulp mogelijk bij problemen</li>
+                      <li>• Korte reistijden = minder risico</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 8: Bio */}
+            {currentStep === 8 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                   Vertel iets over jezelf
@@ -499,7 +606,7 @@ export default function DeliverySignupPage() {
                       <li>• Vervoer: {formData.transportation.map(t => 
                         transportationOptions.find(opt => opt.id === t)?.label
                       ).join(', ')}</li>
-                      <li>• Maximaal {formData.maxDistance}km afstand</li>
+                      <li>• Werkgebied: {formData.deliveryMode === 'FIXED' ? 'Vast gebied' : 'Flexibel'} ({formData.preferredRadius}km)</li>
                       <li>• Beschikbaar: {formData.availableDays.join(', ')}</li>
                       <li>• Tijdsloten: {formData.availableTimeSlots.length} geselecteerd</li>
                     </ul>
@@ -509,7 +616,7 @@ export default function DeliverySignupPage() {
             )}
 
             {/* Step 8: Legal Agreements */}
-            {currentStep === 8 && (
+            {currentStep === 9 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                   Juridische Overeenkomsten
@@ -523,104 +630,52 @@ export default function DeliverySignupPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* Main Agreement */}
                     <div className="flex items-start space-x-3">
                       <input
                         type="checkbox"
-                        id="acceptTerms"
-                        checked={formData.acceptTerms}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
+                        id="acceptDeliveryAgreement"
+                        checked={formData.acceptDeliveryAgreement}
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev, 
+                            acceptDeliveryAgreement: e.target.checked
+                          }));
+                        }}
+                        className="mt-1 w-5 h-5 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
                       />
-                      <label htmlFor="acceptTerms" className="text-sm text-gray-700">
-                        <span className="font-semibold">Algemene Voorwaarden:</span> Ik accepteer de 
-                        <a href="/terms" target="_blank" className="text-primary-brand hover:underline ml-1">Algemene Voorwaarden</a> 
-                        van HomeCheff.
-                      </label>
+                      <div className="flex-1">
+                        <label htmlFor="acceptDeliveryAgreement" className="text-sm text-gray-700 cursor-pointer">
+                          <span className="font-semibold">Bezorger Overeenkomst:</span> Ik accepteer de 
+                          <button 
+                            type="button"
+                            onClick={() => setShowLegalModal(true)}
+                            className="text-primary-brand hover:underline ml-1 font-medium"
+                          >
+                            volledige Bezorger Overeenkomst
+                          </button>
+                          {' '}inclusief alle voorwaarden, aansprakelijkheden, verzekeringen en belastingverplichtingen.
+                        </label>
+                      </div>
                     </div>
 
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="acceptPrivacy"
-                        checked={formData.acceptPrivacy}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptPrivacy: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                      />
-                      <label htmlFor="acceptPrivacy" className="text-sm text-gray-700">
-                        <span className="font-semibold">Privacy Policy:</span> Ik accepteer de 
-                        <a href="/privacy" target="_blank" className="text-primary-brand hover:underline ml-1">Privacy Policy</a> 
-                        en geef toestemming voor het verwerken van mijn gegevens.
-                      </label>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="acceptLiability"
-                        checked={formData.acceptLiability}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptLiability: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                      />
-                      <label htmlFor="acceptLiability" className="text-sm text-gray-700">
-                        <span className="font-semibold">Aansprakelijkheid:</span> Ik begrijp dat ik zelf verantwoordelijk ben 
-                        voor schade tijdens bezorging en dat HomeCheff niet aansprakelijk is.
-                      </label>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="acceptInsurance"
-                        checked={formData.acceptInsurance}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptInsurance: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                      />
-                      <label htmlFor="acceptInsurance" className="text-sm text-gray-700">
-                        <span className="font-semibold">Verzekeringen:</span> Ik bevestig dat ik een aansprakelijkheidsverzekering 
-                        (min. €1.000.000) en ongevallenverzekering heb afgesloten.
-                      </label>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="acceptTaxResponsibility"
-                        checked={formData.acceptTaxResponsibility}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptTaxResponsibility: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                      />
-                      <label htmlFor="acceptTaxResponsibility" className="text-sm text-gray-700">
-                        <span className="font-semibold">Belastingen:</span> Ik begrijp dat ik zelf verantwoordelijk ben voor 
-                        het opgeven van mijn inkomsten bij de Belastingdienst en het betalen van belastingen.
-                      </label>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        id="acceptPlatformRules"
-                        checked={formData.acceptPlatformRules}
-                        onChange={(e) => setFormData(prev => ({ ...prev, acceptPlatformRules: e.target.checked }))}
-                        className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                      />
-                      <label htmlFor="acceptPlatformRules" className="text-sm text-gray-700">
-                        <span className="font-semibold">Platform Regels:</span> Ik accepteer de 
-                        <a href="/bezorger-juridische-bescherming" target="_blank" className="text-primary-brand hover:underline ml-1">Bezorger Juridische Bescherming</a> 
-                        en platform regels.
-                      </label>
-                    </div>
-
+                    {/* Parental Consent (only for under 18) */}
                     {formData.age < 18 && (
                       <div className="flex items-start space-x-3">
                         <input
                           type="checkbox"
                           id="parentalConsent"
                           checked={formData.parentalConsent}
-                          onChange={(e) => setFormData(prev => ({ ...prev, parentalConsent: e.target.checked }))}
-                          className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev, 
+                            parentalConsent: e.target.checked
+                          }));
+                        }}
+                          className="mt-1 w-5 h-5 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
                         />
-                        <label htmlFor="parentalConsent" className="text-sm text-gray-700">
+                        <label htmlFor="parentalConsent" className="text-sm text-gray-700 cursor-pointer">
                           <span className="font-semibold">Ouderlijke Toestemming:</span> Ik bevestig dat mijn ouders/voogd 
                           toestemming hebben gegeven voor mijn deelname als bezorger.
                         </label>
@@ -628,18 +683,16 @@ export default function DeliverySignupPage() {
                     )}
                   </div>
 
-                  {/* Debug info for missing agreements */}
-                  {currentStep === 8 && getMissingAgreements().length > 0 && (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
-                      <h4 className="font-semibold text-red-900 mb-2">⚠️ Nog niet alle overeenkomsten zijn geaccepteerd</h4>
-                      <p className="text-sm text-red-800 mb-2">Je moet nog de volgende overeenkomsten accepteren:</p>
-                      <ul className="text-sm text-red-800 space-y-1">
-                        {getMissingAgreements().map((agreement, index) => (
-                          <li key={index}>• {agreement}</li>
-                        ))}
-                      </ul>
+                  {/* Status info */}
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+                    <h4 className="font-semibold text-green-900 mb-2">✅ Status</h4>
+                    <div className="text-sm text-green-800 space-y-1">
+                      <p><strong>Leeftijd:</strong> {formData.age} jaar</p>
+                      <p><strong>Bezorger Overeenkomst:</strong> {formData.acceptDeliveryAgreement ? '✅ Geaccepteerd' : '❌ Nog niet geaccepteerd'}</p>
+                      {formData.age < 18 && <p><strong>Ouderlijke Toestemming:</strong> {formData.parentalConsent ? '✅ Gegeven' : '❌ Nog niet gegeven'}</p>}
+                      <p><strong>Stap geldig:</strong> {isStepValid() ? '✅ Ja, je kunt doorgaan' : '❌ Nee, accepteer alle voorwaarden'}</p>
                     </div>
-                  )}
+                  </div>
 
                   <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
                     <h4 className="font-semibold text-yellow-900 mb-2">📋 Belangrijke Herinnering</h4>
@@ -665,7 +718,7 @@ export default function DeliverySignupPage() {
                 Vorige
               </Button>
               
-              {currentStep < 8 ? (
+              {currentStep < 9 ? (
                 <Button
                   onClick={nextStep}
                   disabled={!isStepValid()}
@@ -681,7 +734,7 @@ export default function DeliverySignupPage() {
                   className="flex items-center gap-2"
                 >
                   {isLoading ? 'Bezig...' : 
-                   !isStepValid() ? 'Alle overeenkomsten moeten geaccepteerd worden' : 
+                   !isStepValid() ? 'Accepteer de Bezorger Overeenkomst om door te gaan' : 
                    'Aanmelden als Bezorger'}
                 </Button>
               )}
@@ -689,6 +742,100 @@ export default function DeliverySignupPage() {
           </div>
         </div>
       </div>
+
+      {/* Legal Agreement Modal */}
+      {showLegalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900">Bezorger Overeenkomst</h2>
+              <button
+                onClick={() => setShowLegalModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6 text-sm text-gray-700">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">1. Algemene Voorwaarden</h3>
+                  <p className="mb-3">
+                    Door je aan te melden als bezorger bij HomeCheff, accepteer je de Algemene Voorwaarden. 
+                    Deze zijn beschikbaar op <a href="/terms" target="_blank" className="text-primary-brand hover:underline">/terms</a>.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">2. Privacy Policy</h3>
+                  <p className="mb-3">
+                    Je gegevens worden verwerkt volgens onze Privacy Policy. 
+                    Deze is beschikbaar op <a href="/privacy" target="_blank" className="text-primary-brand hover:underline">/privacy</a>.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">3. Aansprakelijkheid</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Je bent zelf verantwoordelijk voor alle schade tijdens bezorging</li>
+                    <li>HomeCheff is niet aansprakelijk voor schade aan jouw eigendommen of personen</li>
+                    <li>Je bent verantwoordelijk voor het volgen van alle verkeersregels</li>
+                    <li>Je bent verantwoordelijk voor de veiligheid van de bestellingen</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">4. Verzekeringen</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Je moet een aansprakelijkheidsverzekering hebben (minimaal €1.000.000 dekking)</li>
+                    <li>Je moet een ongevallenverzekering hebben</li>
+                    <li>Je moet je vervoermiddel verzekerd hebben</li>
+                    <li>Je bent zelf verantwoordelijk voor het controleren van je verzekeringsdekking</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">5. Belastingen</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Je bent zelfstandige ondernemer, geen werknemer van HomeCheff</li>
+                    <li>Je bent zelf verantwoordelijk voor het opgeven van je inkomsten bij de Belastingdienst</li>
+                    <li>Je moet je eigen administratie bijhouden</li>
+                    <li>Je bent zelf verantwoordelijk voor het betalen van belastingen</li>
+                    <li>Raadpleeg een belastingadviseur voor specifieke vragen</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">6. Platform Regels</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Je moet je houden aan alle platform regels en richtlijnen</li>
+                    <li>Je moet professioneel gedrag vertonen naar klanten</li>
+                    <li>Je moet bestellingen op tijd en veilig bezorgen</li>
+                    <li>Je mag geen misbruik maken van het platform</li>
+                    <li>HomeCheff behoudt zich het recht voor om je account te deactiveren bij overtredingen</li>
+                  </ul>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                  <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Belangrijke Opmerking</h4>
+                  <p className="text-yellow-800">
+                    Als bezorger ben je een zelfstandige ondernemer. HomeCheff is geen werkgever en 
+                    biedt geen werknemersbescherming. Zorg ervoor dat je alle juridische en praktische 
+                    aspecten van zelfstandig ondernemerschap begrijpt voordat je begint.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end p-6 border-t">
+              <Button onClick={() => setShowLegalModal(false)}>
+                Sluiten
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

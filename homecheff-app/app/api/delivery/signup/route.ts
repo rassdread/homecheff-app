@@ -16,12 +16,9 @@ export async function POST(req: NextRequest) {
       availableDays, 
       availableTimeSlots, 
       bio,
-      acceptTerms,
-      acceptPrivacy,
-      acceptLiability,
-      acceptInsurance,
-      acceptTaxResponsibility,
-      acceptPlatformRules,
+      deliveryMode,
+      preferredRadius,
+      acceptDeliveryAgreement,
       parentalConsent
     } = await req.json();
 
@@ -61,9 +58,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate legal agreements
-    if (!acceptTerms || !acceptPrivacy || !acceptLiability || !acceptInsurance || !acceptTaxResponsibility || !acceptPlatformRules) {
+    if (!acceptDeliveryAgreement) {
       return NextResponse.json({ 
-        error: 'Je moet alle juridische overeenkomsten accepteren' 
+        error: 'Je moet de Bezorger Overeenkomst accepteren' 
       }, { status: 400 });
     }
 
@@ -99,14 +96,14 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user account
+    // Create user account with DELIVERY role
     const user = await prisma.user.create({
       data: {
         name,
         email: email.toLowerCase(),
         username: username.toLowerCase(),
         passwordHash: hashedPassword,
-        role: 'USER',
+        role: 'DELIVERY',
         emailVerified: new Date() // Auto-verify for delivery users
       }
     });
@@ -134,6 +131,8 @@ export async function POST(req: NextRequest) {
         age,
         transportation: validTransportModes,
         maxDistance: maxDistance || 3,
+        preferredRadius: preferredRadius || 5,
+        deliveryMode: deliveryMode || 'FIXED',
         availableDays: availableDays || [],
         availableTimeSlots: availableTimeSlots || [],
         bio: bio || null,

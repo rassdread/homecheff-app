@@ -18,7 +18,8 @@ import {
   BarChart3,
   PieChart,
   Activity,
-  Settings
+  Settings,
+  User
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import Link from 'next/link';

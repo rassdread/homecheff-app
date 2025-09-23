@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearAllUserData, setupSessionIsolation } from '@/lib/session-cleanup';
+import { clearAllUserData, setupSessionIsolation, clearNextAuthData } from '@/lib/session-cleanup';
 
 export function useSessionIsolation() {
   const { data: session, status } = useSession();
@@ -19,6 +19,7 @@ export function useSessionIsolation() {
     // Clear user data when session changes
     if (status === 'unauthenticated') {
       clearAllUserData();
+      clearNextAuthData();
     }
   }, [status]);
 

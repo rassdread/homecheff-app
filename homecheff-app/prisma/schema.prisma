@@ -75,6 +75,7 @@ model User {
   reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
   SellerProfile                          SellerProfile?
   DeliveryProfile                        DeliveryProfile?
+  deliveryReviewsAsReviewer              DeliveryReview[]             @relation("DeliveryReviewReviewer")
   Session                                Session[]
   Transaction                            Transaction[]
 }
@@ -430,6 +431,7 @@ model SellerProfile {
   updatedAt              DateTime      @updatedAt
   
   products               Product[]     @relation("SellerProducts")
+  workplacePhotos        WorkplacePhoto[]
   Subscription           Subscription? @relation(fields: [subscriptionId], references: [id])
   User                   User          @relation(fields: [userId], references: [id])
 }
@@ -491,24 +493,27 @@ model VerificationToken {
 }
 
 model Order {
-  id              String          @id @default(uuid())
-  userId          String
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  orderNumber     String?
-  status          OrderStatus     @default(PENDING)
-  totalAmount     Int
-  deliveryAddress String?
-  deliveryDate    DateTime?
-  deliveryMode    DeliveryMode    @default(PICKUP)
-  notes           String?
-  pickupAddress   String?
-  pickupDate      DateTime?
-  conversations   Conversation[]
-  User            User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
-  items           OrderItem[]
-  reviews         ProductReview[]
-  deliveryOrder   DeliveryOrder?
+  id                     String          @id @default(uuid())
+  userId                 String
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  orderNumber            String?
+  status                 OrderStatus     @default(PENDING)
+  totalAmount            Int
+  deliveryAddress        String?
+  deliveryDate           DateTime?
+  deliveryMode           DeliveryMode    @default(PICKUP)
+  notes                  String?
+  pickupAddress          String?
+  pickupDate             DateTime?
+  stripeSessionId        String?
+  platformFeeCollected  Boolean         @default(false)
+  conversations          Conversation[]
+  User                   User            @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items                  OrderItem[]
+  reviews                ProductReview[]
+  deliveryOrder          DeliveryOrder?
+  deliveryReviews        DeliveryReview[]
 }
 
 model OrderItem {
@@ -619,6 +624,7 @@ enum UserRole {
   ADMIN
   BUYER
   SELLER
+  DELIVERY
 
   @@map("UserRole")
 }
@@ -646,10 +652,10 @@ enum DeliveryMode {
 }
 
 enum TransportationMode {
-  WALKING
   BIKE
-  ELECTRIC_BIKE
+  EBIKE
   SCOOTER
+  CAR
 }
 
 model DeliveryProfile {
@@ -696,6 +702,8 @@ model DeliveryProfile {
   
   // Relations
   deliveryOrders    DeliveryOrder[]
+  vehiclePhotos     VehiclePhoto[]
+  reviews           DeliveryReview[]
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -704,32 +712,92 @@ model DeliveryProfile {
 }
 
 model DeliveryOrder {
-  id              String   @id @default(cuid())
-  orderId         String   @unique
-  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(cuid())
+  orderId              String   @unique
+  order                Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
-  deliveryProfileId String
-  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
+  deliveryProfileId    String
+  deliveryProfile      DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
   
-  status          String   @default("PENDING") // PENDING, ACCEPTED, PICKED_UP, DELIVERED, CANCELLED
-  deliveryFee     Float
-  estimatedTime   Int?     // in minutes
+  status               String   @default("PENDING") // PENDING, ACCEPTED, PICKED_UP, DELIVERED, CANCELLED
+  deliveryFee          Float
+  estimatedTime        Int?     // in minutes
+  deliveryFeeCollected Boolean  @default(false)
   
   // Tracking
-  pickedUpAt      DateTime?
-  deliveredAt     DateTime?
+  pickedUpAt           DateTime?
+  deliveredAt          DateTime?
   
   // Location tracking
-  currentLat      Float?
-  currentLng      Float?
+  currentLat           Float?
+  currentLng           Float?
   
   // Communication
-  notes           String?
+  notes                String?
   
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@map("DeliveryOrder")
+}
+
+model HomeCheffCollection {
+  id                     String   @id @default(cuid())
+  platformFees           Int      // Platform fees collected (12% of product sales)
+  deliveryFeeCuts        Int      // Delivery fee cuts collected (12% of delivery fees)
+  totalAmount            Int      // Total amount collected
+  status                 String   @default("PENDING") // PENDING, PROCESSED, FAILED
+  description            String?
+  processedOrdersCount   Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("HomeCheffCollection")
+}
+
+model VehiclePhoto {
+  id                String   @id @default(cuid())
+  deliveryProfileId String
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  fileUrl           String
+  sortOrder         Int
+  createdAt         DateTime @default(now())
+
+  @@index([deliveryProfileId])
+  @@map("VehiclePhoto")
+}
+
+model DeliveryReview {
+  id               String   @id @default(cuid())
+  deliveryProfileId String
+  deliveryProfile  DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  reviewerId       String
+  reviewer         User     @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  orderId          String?
+  order            Order?   @relation(fields: [orderId], references: [id])
+  rating           Int      // 1-5 stars
+  comment          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([deliveryProfileId, reviewerId, orderId])
+  @@index([deliveryProfileId])
+  @@index([reviewerId])
+  @@map("DeliveryReview")
+}
+
+model WorkplacePhoto {
+  id               String        @id @default(cuid())
+  sellerProfileId  String
+  sellerProfile    SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  role             String        // "CHEF", "GARDEN", "DESIGNER"
+  fileUrl          String
+  sortOrder        Int
+  createdAt        DateTime      @default(now())
+
+  @@index([sellerProfileId])
+  @@index([role])
+  @@map("WorkplacePhoto")
 }
 
 enum ListingCategory {

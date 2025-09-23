@@ -155,9 +155,59 @@ export function forceSessionReset(): void {
   // Clear all user data
   clearAllUserData();
 
+  // Clear NextAuth cookies and session data
+  clearNextAuthData();
+
   // Force reload to clear any cached state
   // This ensures no data leaks between users
   window.location.reload();
+}
+
+// Clear NextAuth specific data
+export function clearNextAuthData(): void {
+  if (typeof window === 'undefined') return;
+
+  // Clear NextAuth cookies
+  const cookiesToClear = [
+    'next-auth.session-token',
+    'next-auth.csrf-token',
+    'next-auth.callback-url',
+    '__Secure-next-auth.session-token',
+    '__Host-next-auth.csrf-token',
+    '__Secure-next-auth.callback-url'
+  ];
+
+  cookiesToClear.forEach(cookieName => {
+    // Clear cookie for current domain
+    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    // Clear cookie for parent domain
+    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+    // Clear cookie for .domain (subdomains)
+    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+  });
+
+  // Clear any remaining localStorage keys that might contain session data
+  const sessionKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (
+      key.includes('next-auth') ||
+      key.includes('auth') ||
+      key.includes('session') ||
+      key.includes('user') ||
+      key.includes('profile') ||
+      key.includes('token')
+    )) {
+      sessionKeys.push(key);
+    }
+  }
+
+  sessionKeys.forEach(key => {
+    localStorage.removeItem(key);
+  });
+
+  // Clear sessionStorage completely
+  sessionStorage.clear();
 }
 
 // Setup automatic session cleanup on page load
