@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per window
+const RATE_LIMIT_MAX_REQUESTS = 1000; // 1000 requests per window (increased for development)
 
 // Store for rate limiting (in production, use Redis or database)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();

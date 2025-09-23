@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   MapPin, 
   Clock, 
@@ -9,7 +9,6 @@ import {
   Camera,
   Upload,
   X,
-  Edit,
   ArrowLeft,
   Shield,
   CheckCircle,
@@ -18,7 +17,11 @@ import {
   Phone,
   Mail,
   Calendar,
-  Navigation
+  Navigation,
+  Heart,
+  Users,
+  Award,
+  Clock3
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -78,9 +81,6 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'photos'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  
-  // Check if user also has seller roles
-  const hasSellerRoles = deliveryProfile.user.sellerRoles && deliveryProfile.user.sellerRoles.length > 0;
 
   const transportationLabels = {
     'BIKE': 'Fiets',
@@ -122,7 +122,6 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
       });
 
       if (response.ok) {
-        // Refresh the page to show new photos
         window.location.reload();
       } else {
         const error = await response.json();
@@ -274,15 +273,17 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Totale Verdiensten</span>
-                  <span className="font-medium text-green-600">
-                    €{deliveryProfile.totalEarnings.toFixed(2)}
-                  </span>
-                </div>
               </div>
 
-              {/* Quick Info */}
+              {/* Bio */}
+              {deliveryProfile.bio && (
+                <div className="border-t pt-4 mb-4">
+                  <h3 className="font-semibold text-gray-900 mb-2">Over mij</h3>
+                  <p className="text-gray-700 text-sm">{deliveryProfile.bio}</p>
+                </div>
+              )}
+
+              {/* Transportation */}
               <div className="border-t pt-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Vervoer</h3>
                 <div className="flex flex-wrap gap-2">
@@ -328,14 +329,6 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
               <div className="p-6">
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
-                    {/* Bio */}
-                    {deliveryProfile.bio && (
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-3">Over mij</h3>
-                        <p className="text-gray-700">{deliveryProfile.bio}</p>
-                      </div>
-                    )}
-
                     {/* Work Area */}
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-3">Werkgebied</h3>
@@ -388,6 +381,39 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                               </span>
                             ))}
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Performance Stats */}
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-3">Prestaties</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <Truck className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-blue-600">{deliveryProfile.totalDeliveries}</p>
+                          <p className="text-sm text-gray-600">Bezorgingen</p>
+                        </div>
+                        <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                          <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-yellow-600">
+                            {deliveryProfile.averageRating?.toFixed(1) || '0.0'}
+                          </p>
+                          <p className="text-sm text-gray-600">Gem. Rating</p>
+                        </div>
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-green-600">
+                            {deliveryProfile.isVerified ? 'Ja' : 'Nee'}
+                          </p>
+                          <p className="text-sm text-gray-600">Geverifieerd</p>
+                        </div>
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                          <Clock3 className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                          <p className="text-2xl font-bold text-purple-600">
+                            {deliveryProfile.availableDays.length}
+                          </p>
+                          <p className="text-sm text-gray-600">Dagen/Week</p>
                         </div>
                       </div>
                     </div>

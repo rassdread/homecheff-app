@@ -141,14 +141,35 @@ export default function NavBar() {
                   {/* Dropdown Menu */}
                   {isProfileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                      <Link 
-                        href="/profile" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <User className="w-4 h-4" />
-                        <span>Mijn Profiel</span>
-                      </Link>
+                      {/* Profile Link - Different for different roles */}
+                      {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) ? (
+                        <Link 
+                          href="/delivery/profile" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Mijn Profiel</span>
+                        </Link>
+                      ) : ((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) ? (
+                        <Link 
+                          href="/seller/profile" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Mijn Profiel</span>
+                        </Link>
+                      ) : (
+                        <Link 
+                          href="/profile" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Mijn Profiel</span>
+                        </Link>
+                      )}
                       
                       {/* Berichten - Alleen zichtbaar op mobiel */}
                       <Link 
@@ -306,12 +327,29 @@ export default function NavBar() {
                     </span>
                   </div>
                   
-                  <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <User className="w-4 h-4" />
-                      <span>Mijn Profiel</span>
-                    </Button>
-                  </Link>
+                  {/* Profile Link - Different for different roles */}
+                  {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) ? (
+                    <Link href="/delivery/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>Mijn Profiel</span>
+                      </Button>
+                    </Link>
+                  ) : ((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) ? (
+                    <Link href="/seller/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>Mijn Profiel</span>
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>Mijn Profiel</span>
+                      </Button>
+                    </Link>
+                  )}
                   
                   <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
