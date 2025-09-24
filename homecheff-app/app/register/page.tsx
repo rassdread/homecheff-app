@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
@@ -173,6 +173,11 @@ export default function RegisterPage() {
     }));
   }
 
+  // Scroll naar boven bij stapwissel
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [state.currentStep]);
+
   function nextStep() {
     if (state.currentStep < steps.length) {
       setState(prev => ({ ...prev, currentStep: prev.currentStep + 1, error: null }));
@@ -213,7 +218,7 @@ export default function RegisterPage() {
   async function handleSocialLogin(provider: string) {
     try {
       const result = await signIn(provider, { 
-        callbackUrl: "/profile",
+        callbackUrl: "/",
         redirect: true 
       });
     } catch (error) {
