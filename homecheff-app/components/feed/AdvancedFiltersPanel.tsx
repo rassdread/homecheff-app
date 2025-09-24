@@ -17,6 +17,7 @@ interface FilterState {
   sellerRating: number;
   hasImages: boolean;
   isActive: boolean;
+  userRole: string; // Nieuwe filter voor gebruikers rollen
 }
 
 interface SavedSearch {
@@ -34,6 +35,7 @@ interface AdvancedFiltersPanelProps {
   onLoadSearch: (search: SavedSearch) => void;
   onClearFilters: () => void;
   onApplyFilters?: () => void;
+  searchType?: 'products' | 'users';
 }
 
 export default function AdvancedFiltersPanel({
@@ -42,7 +44,8 @@ export default function AdvancedFiltersPanel({
   savedSearches,
   onSaveSearch,
   onLoadSearch,
-  onClearFilters
+  onClearFilters,
+  searchType = 'products'
 }: AdvancedFiltersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -148,25 +151,46 @@ export default function AdvancedFiltersPanel({
                 type="text"
                 value={filters.q}
                 onChange={(e) => updateFilter('q', e.target.value)}
-                placeholder="Zoek in producten..."
+                placeholder={searchType === 'products' ? "Zoek in producten..." : "Zoek in gebruikers..."}
                 className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Categorie</label>
-              <select
-                value={filters.category}
-                onChange={(e) => updateFilter('category', e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">Alle categorieën</option>
-                <option value="cheff">🍳 Chef</option>
-                <option value="garden">🌱 Garden</option>
-                <option value="designer">🎨 Designer</option>
-              </select>
-            </div>
+            {/* Category - Only for products */}
+            {searchType === 'products' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Categorie</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => updateFilter('category', e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">Alle categorieën</option>
+                  <option value="cheff">🍳 Chef</option>
+                  <option value="garden">🌱 Garden</option>
+                  <option value="designer">🎨 Designer</option>
+                </select>
+              </div>
+            )}
+
+            {/* User Role - Only for users */}
+            {searchType === 'users' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
+                <select
+                  value={filters.userRole}
+                  onChange={(e) => updateFilter('userRole', e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">Alle rollen</option>
+                  <option value="CHEFF">🍳 Chef</option>
+                  <option value="GROWN">🌱 Garden</option>
+                  <option value="DESIGNER">🎨 Designer</option>
+                  <option value="DELIVERY">🚚 Bezorger</option>
+                  <option value="ADMIN">👑 Admin</option>
+                </select>
+              </div>
+            )}
 
             {/* Sort By */}
             <div>
@@ -176,56 +200,69 @@ export default function AdvancedFiltersPanel({
                 onChange={(e) => updateFilter('sortBy', e.target.value)}
                 className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="newest">Nieuwste eerst</option>
-                <option value="oldest">Oudste eerst</option>
-                <option value="price-low">Prijs: laag naar hoog</option>
-                <option value="price-high">Prijs: hoog naar laag</option>
-                <option value="distance">Afstand: dichtbij eerst</option>
+                {searchType === 'products' ? (
+                  <>
+                    <option value="newest">Nieuwste eerst</option>
+                    <option value="oldest">Oudste eerst</option>
+                    <option value="price-low">Prijs: laag naar hoog</option>
+                    <option value="price-high">Prijs: hoog naar laag</option>
+                    <option value="distance">Afstand: dichtbij eerst</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="name">Naam A-Z</option>
+                    <option value="followers">Meeste volgers</option>
+                    <option value="products">Meeste producten</option>
+                    <option value="distance">Afstand: dichtbij eerst</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
 
           {/* Price and Distance Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Price Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Euro className="w-4 h-4 inline mr-1" />
-                Prijs: €{filters.priceRange.min} - €{filters.priceRange.max}
-              </label>
-              <div className="space-y-3">
-                <div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1000"
-                    step="5"
-                    value={filters.priceRange.min}
-                    onChange={(e) => updateFilter('priceRange', { ...filters.priceRange, min: Number(e.target.value) })}
-                    className="w-full accent-blue-500"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>€{filters.priceRange.min}</span>
-                    <span>Min</span>
+          <div className={`grid grid-cols-1 ${searchType === 'products' ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-4`}>
+            {/* Price Range - Only for products */}
+            {searchType === 'products' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Euro className="w-4 h-4 inline mr-1" />
+                  Prijs: €{filters.priceRange.min} - €{filters.priceRange.max}
+                </label>
+                <div className="space-y-3">
+                  <div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1000"
+                      step="5"
+                      value={filters.priceRange.min}
+                      onChange={(e) => updateFilter('priceRange', { ...filters.priceRange, min: Number(e.target.value) })}
+                      className="w-full accent-blue-500"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>€{filters.priceRange.min}</span>
+                      <span>Min</span>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1000"
-                    step="5"
-                    value={filters.priceRange.max}
-                    onChange={(e) => updateFilter('priceRange', { ...filters.priceRange, max: Number(e.target.value) })}
-                    className="w-full accent-blue-500"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>€{filters.priceRange.max}</span>
-                    <span>Max</span>
+                  <div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1000"
+                      step="5"
+                      value={filters.priceRange.max}
+                      onChange={(e) => updateFilter('priceRange', { ...filters.priceRange, max: Number(e.target.value) })}
+                      className="w-full accent-blue-500"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>€{filters.priceRange.max}</span>
+                      <span>Max</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Distance */}
             <div>

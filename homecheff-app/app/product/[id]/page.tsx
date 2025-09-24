@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, Euro, Shield, CheckCircle, Edit3, Trash2, MessageCircle, Plus, X } from "lucide-react";
 import Link from "next/link";
 import AddToCartButton from "@/components/cart/AddToCartButton";
-import { ShareButton } from "@/components/ui/ShareButton";
+import ShareButton from "@/components/ui/ShareButton";
 // import { auth } from "@/lib/auth"; // Removed - using client-side auth instead
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
@@ -556,9 +556,6 @@ export default function ProductPage() {
                   url={`${baseUrl}/product/${product.id}`}
                   title={product.title}
                   description={product.description || ''}
-                  type="buyer"
-                  productId={product.id}
-                  productTitle={product.title}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors"
                 />
                 <ReportContentButton

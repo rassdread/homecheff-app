@@ -16,6 +16,12 @@ const faqCategories = [
     color: 'green'
   },
   {
+    id: 'handmade',
+    title: 'Handgemaakt',
+    icon: AlertTriangle,
+    color: 'amber'
+  },
+  {
     id: 'selling',
     title: 'Verkopen',
     icon: User,
@@ -46,12 +52,6 @@ const faqCategories = [
     color: 'red'
   },
   {
-    id: 'handmade',
-    title: 'Handgemaakt',
-    icon: AlertTriangle,
-    color: 'amber'
-  },
-  {
     id: 'safety',
     title: 'Veiligheid',
     icon: Shield,
@@ -63,11 +63,11 @@ const faqData = {
   general: [
     {
       question: "Wat is HomeCheff?",
-      answer: "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen. We richten ons op thuisgemaakte gerechten, verse producten uit eigen tuin en handgemaakte creaties. Het platform verbindt lokale makers met consumenten in hun buurt.\n\n🎯 Onze missie: Het tegengaan van voedselverspilling door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit draagt bij aan een duurzamere en socialere gemeenschap."
+      answer: "HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen. We richten ons op thuisgemaakte gerechten, verse producten uit eigen tuin en handgemaakte creaties. Het platform verbindt lokale makers met consumenten in hun buurt.\n\n🎯 Onze missie: Het tegengaan van voedselverspilling door het delen van overtollige maaltijden en producten. Als je voor jezelf kookt en er teveel van hebt, kun je dat delen met anderen in je buurt. Dit draagt bij aan een duurzamere en socialere gemeenschap.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra inkomen voor je hobby bekostigen\n• Uitgaven aftrekken van je omzet\n• Jaarlijks een leuke vakantie (max €2000)\n• Maandelijkse aanvulling op uitkering mogelijk\n• Verbouwing of extraatjes bekostigen"
     },
     {
       question: "Hoe werkt HomeCheff?",
-      answer: "Voor particuliere verkopers is het platform volledig gratis! Je betaalt alleen transactiekosten zodat de app kan blijven bestaan. Bedrijven met een KVK nummer kunnen kiezen voor een abonnement. Kopers kunnen zoeken, filteren en producten kopen."
+      answer: "Voor particuliere verkopers is het platform volledig gratis! Je betaalt alleen transactiekosten zodat de app kan blijven bestaan. Bedrijven met een KVK nummer kunnen kiezen voor een abonnement. Kopers kunnen zoeken, filteren en lokale producten kopen.\n\n🤝 GEMEENSCHAP:\n• Lokale makers en kopers verbinden\n• Verspilling tegengaan door delen\n• Handgemaakte producten ondersteunen\n• Bewuste consumptie stimuleren"
     },
     {
       question: "Is HomeCheff gratis te gebruiken?",
@@ -80,50 +80,62 @@ const faqData = {
     {
       question: "Hoe kan ik contact opnemen met HomeCheff?",
       answer: "Je kunt ons bereiken via support@homecheff.eu, onze helpdesk in de app, of via de contactpagina. We reageren meestal binnen 24 uur."
+    },
+    {
+      question: "Kan ik bijverdienen naast mijn uitkering?",
+      answer: "Ja, je kunt bijverdienen naast je uitkering, maar er zijn wel regels:\n\n💰 UITKERINGEN EN BIJVERDIENEN:\n• Wajong: 70% van je inkomsten wordt verrekend met je uitkering\n• Bijstand: Je mag een deel van je inkomsten houden\n• Alle inkomsten moeten binnen 1 week worden gemeld aan het UWV\n\n💡 PRAKTISCHE TIPS:\n• Houd je uitgaven bij voor aftrek van je omzet\n• Overleg met het UWV over je specifieke situatie\n• Gebruik je hobby om extra inkomen te genereren\n• Maak gebruik van de vrijstellingen die er zijn\n\n⚠️ BELANGRIJK: Neem altijd contact op met het UWV voordat je begint met verkopen! HomeCheff is alleen een platform en biedt geen belasting- of uitkeringsadvies."
+    },
+    {
+      question: "Wat is de aansprakelijkheid van HomeCheff?",
+      answer: "⚠️ BELANGRIJKE JURIDISCHE INFORMATIE:\n\nHomeCheff is alleen een platform dat verkopers en kopers met elkaar verbindt. Wij zijn NIET verantwoordelijk voor:\n• De kwaliteit van producten\n• Geschillen tussen verkopers en kopers\n• Schade door producten\n• Verlies of diefstal tijdens levering\n• Belastingaangifte van gebruikers\n• Uitkeringsregelingen\n\nAlle transacties zijn tussen verkoper en koper. HomeCheff bemiddelt alleen bij geschillen maar is niet aansprakelijk voor de uitkomst.\n\nDoor gebruik te maken van HomeCheff ga je akkoord met deze voorwaarden."
     }
   ],
   selling: [
     {
       question: "Hoe word ik verkoper op HomeCheff?",
-      answer: "Registreer je account, kies een verkopersrol (Chef, Garden, Designer) en vul je bankgegevens in. Voor particulieren is er geen abonnement nodig - je kunt direct beginnen met verkopen! Kleine bedrijven kunnen optioneel een abonnement kiezen voor voordelige tarieven."
+      answer: "Registreer je account, kies een verkopersrol (Chef, Garden, Designer) en vul je bankgegevens in. Voor particulieren is er geen abonnement nodig - je kunt direct beginnen met verkopen! Kleine bedrijven kunnen optioneel een abonnement kiezen voor voordelige tarieven.\n\n🤝 LOKALE GEMEENSCHAP:\n• Focus op het tegengaan van verspilling\n• Hergebruik materialen en ingrediënten\n• Deel je handgemaakte verhaal\n• Inspireer anderen tot bewust consumeren"
     },
     {
       question: "Welke abonnementen zijn er voor verkopers?",
-      answer: "Voor particulieren: Volledig gratis! Je betaalt alleen transactiekosten.\n\nVoor kleine bedrijven zijn er optionele abonnementen beschikbaar met verschillende tarieven. Je kunt altijd upgraden of downgraden naar een ander abonnement.\n\nVoor specifieke prijzen en tarieven kun je inloggen op je account en naar de abonnementssectie gaan."
+      answer: "Voor particulieren: Volledig gratis! Je betaalt alleen transactiekosten.\n\nVoor kleine bedrijven zijn er optionele abonnementen beschikbaar met verschillende tarieven. Je kunt altijd upgraden of downgraden naar een ander abonnement.\n\n🤝 LOKALE GEMEENSCHAP:\n• Geen extra kosten voor handgemaakte producten\n• Ondersteuning voor lokale makers\n• Beloning voor verspilling tegengaan\n\nVoor specifieke prijzen en tarieven kun je inloggen op je account en naar de abonnementssectie gaan."
     },
     {
       question: "Wat mag ik verkopen op HomeCheff?",
-      answer: "Alleen handgemaakte producten van eigen makelij:\n• Chef: Thuisgemaakte gerechten, snacks, desserts (eigen keuken)\n• Garden: Zelf gekweekte groenten, fruit, kruiden, planten (eigen tuin)\n• Designer: Handgemaakte items, kunst, decoratie, kleding (eigen creatie)\n\nGeen handel of doorverkoop van fabrieksproducten. Alle producten moeten voldoen aan Nederlandse wetgeving en veiligheidsvoorschriften."
+      answer: "Alleen handgemaakte producten van eigen makelij die verspilling tegengaan:\n\n🍳 CHEF (Lokaal koken):\n• Thuisgemaakte gerechten van lokale ingrediënten\n• Overtollige maaltijden om verspilling tegen te gaan\n• Seizoensgebonden gerechten\n• Hergebruik van restjes en ingrediënten\n\n🌱 GARDEN (Lokaal tuinieren):\n• Zelf gekweekte groenten, fruit, kruiden\n• Overtollige oogst delen\n• Zaden en stekjes van eigen planten\n• Lokale biodiversiteit ondersteunen\n\n🎨 DESIGNER (Handgemaakt creëren):\n• Upcycled en gerecyclede items\n• Handgemaakte kunst van restmaterialen\n• Herstelde en opgeknapte spullen\n• Lokale materialen gebruiken\n\n🤝 Geen handel of doorverkoop van fabrieksproducten. Alle producten moeten bijdragen aan de lokale gemeenschap."
     },
     {
       question: "Hoe krijg ik mijn geld uitbetaald?",
-      answer: "Uitbetalingen gebeuren automatisch via Stripe Connect naar je opgegeven bankrekening. Voor nieuwe accounts is de uitbetalingstermijn 7 dagen na de betaling. Naarmate je account ouder wordt en een positieve geschiedenis opbouwt, kunnen uitbetalingen sneller worden (2-3 werkdagen). Je ontvangt een email wanneer de uitbetaling is verwerkt."
+      answer: "Uitbetalingen gebeuren automatisch via Stripe Connect naar je opgegeven bankrekening. Voor nieuwe accounts is de uitbetalingstermijn 7 dagen na de betaling. Naarmate je account ouder wordt en een positieve geschiedenis opbouwt, kunnen uitbetalingen sneller worden (2-3 werkdagen).\n\n💰 PRAKTISCHE VOORDELEN:\n• Snellere uitbetaling voor handgemaakte producten\n• Extra beloning voor verspilling tegengaan\n• Transparante kosten voor lokale makers\n• Uitgaven aftrekken van je omzet\n\nJe ontvangt een email wanneer de uitbetaling is verwerkt.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
+    },
+    {
+      question: "Hoe kan ik effectief verkopen op HomeCheff?",
+      answer: "Focus op handgemaakte kwaliteit en verspilling tegengaan:\n\n♻️ TEGEN VERSPILLING:\n• Hergebruik materialen en ingrediënten\n• Repareer en upcycle oude spullen\n• Deel overtollige producten\n• Vermeld hoe je verspilling tegengaat\n\n🌿 LOKALE PRAKTIJKEN:\n• Gebruik lokale en seizoensgebonden ingrediënten\n• Minimaliseer verpakkingsmateriaal\n• Kies voor lokale materialen\n• Inspireer anderen tot bewust leven\n\n🤝 GEMEENSCHAP:\n• Deel je handgemaakte verhaal\n• Leer anderen hoe ze kunnen upcyclen\n• Bouw een bewuste verkoopcultuur op"
     },
     {
       question: "Kan ik mijn producten bewerken of verwijderen?",
-      answer: "Ja, je kunt je producten altijd bewerken, voorraad aanpassen, prijzen wijzigen of producten tijdelijk deactiveren. Verwijderen kan ook, maar dit beïnvloedt je statistieken."
+      answer: "Ja, je kunt je producten altijd bewerken, voorraad aanpassen, prijzen wijzigen of producten tijdelijk deactiveren. Verwijderen kan ook, maar dit beïnvloedt je statistieken.\n\n🤝 LOKALE GEMEENSCHAP:\n• Update handgemaakte productinformatie\n• Voeg nieuwe lokale aspecten toe\n• Pas verpakkingsinformatie aan\n• Deel updates over je verspilling tegengaan initiatieven"
     }
   ],
   buying: [
     {
       question: "Hoe koop ik producten op HomeCheff?",
-      answer: "Zoek naar producten, bekijk details, voeg toe aan winkelwagen en ga naar checkout. Betaling gebeurt via Stripe (veilig en snel). Na betaling ontvang je bevestiging en contactgegevens van de verkoper."
+      answer: "Zoek naar handgemaakte producten, bekijk de productinformatie, voeg toe aan winkelwagen en ga naar checkout. Betaling gebeurt via Stripe (veilig en snel). Na betaling ontvang je bevestiging en contactgegevens van de verkoper.\n\n🤝 LOKALE GEMEENSCHAP:\n• Kies voor lokale en seizoensgebonden producten\n• Ondersteun handgemaakte creaties\n• Voorkom verspilling door lokaal kopen\n• Verbind met makers in je buurt"
     },
     {
       question: "Welke betaalmethoden worden geaccepteerd?",
-      answer: "We accepteren alle belangrijke betaalmethoden via Stripe: iDEAL, creditcards, Bancontact, SEPA en meer. Alle betalingen zijn beveiligd en gecodeerd."
+      answer: "We accepteren alle belangrijke betaalmethoden via Stripe: iDEAL, creditcards, Bancontact, SEPA en meer. Alle betalingen zijn beveiligd en gecodeerd.\n\n🤝 LOKALE GEMEENSCHAP:\n• Elektronische betalingen ondersteunen lokale makers\n• Geen contant geld = veiliger voor community\n• Digitale bonnen zijn praktischer\n• Transparante kosten voor handgemaakte producten"
     },
     {
       question: "Kan ik producten reserveren?",
-      answer: "Ja, veel verkopers bieden reservering aan. Je kunt een product reserveren en later ophalen of laten bezorgen, afhankelijk van wat de verkoper aanbiedt."
+      answer: "Ja, veel verkopers bieden reservering aan. Je kunt een product reserveren en later ophalen of laten bezorgen, afhankelijk van wat de verkoper aanbiedt.\n\n♻️ TEGEN VERSPILLING:\n• Voorkomt verspilling door planning\n• Minder impulsaankopen\n• Betere voorraadbeheer voor verkopers\n• Minder voedselverspilling"
     },
     {
       question: "Wat als ik niet tevreden ben over mijn aankoop?",
-      answer: "Neem eerst contact op met de verkoper. Als dat niet lukt, kunnen wij bemiddelen. We hebben een klachtenprocedure en kunnen in extreme gevallen een terugbetaling regelen."
+      answer: "Neem eerst contact op met de verkoper. Als dat niet lukt, kunnen wij bemiddelen. We hebben een klachtenprocedure en kunnen in extreme gevallen een terugbetaling regelen.\n\n♻️ TEGEN VERSPILLING:\n• Hergebruik van producten waar mogelijk\n• Compostering van organische producten\n• Feedback voor verbetering\n• Leren van handgemaakte praktijken\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
     },
     {
       question: "Kan ik verkopers volgen?",
-      answer: "Ja! Word fan van je favoriete verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe items toevoegen."
+      answer: "Ja! Word fan van je favoriete handgemaakte verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe handgemaakte items toevoegen.\n\n🤝 LOKALE GEMEENSCHAP:\n• Ondersteun lokale makers\n• Leer van handgemaakte technieken\n• Deel tips en ervaringen\n• Bouw een bewuste community op"
     }
   ],
   payments: [
@@ -144,14 +156,14 @@ const faqData = {
       answer: "Transactiekosten variëren per abonnementstype. Deze kosten worden automatisch afgetrokken van je verkoopopbrengst. Voor de exacte tarieven kun je inloggen op je account en naar de abonnementssectie gaan."
     },
     {
-      question: "Hoe werkt de uitbetaling voor verkopers?",
-      answer: "Uitbetalingen gebeuren automatisch via Stripe Connect naar je opgegeven bankrekening. Voor nieuwe accounts is de uitbetalingstermijn 7 dagen na de betaling. Naarmate je account ouder wordt en een positieve geschiedenis opbouwt, kunnen uitbetalingen sneller worden (2-3 werkdagen). Je kunt je uitbetalingen volgen in je verkopersdashboard."
+      question: "Kan ik mijn uitbetalingen volgen?",
+      answer: "Ja, je kunt je uitbetalingen volgen in je verkopersdashboard. Daar zie je alle transacties, uitbetalingen en kosten overzichtelijk bij elkaar.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
     }
   ],
   delivery: [
     {
       question: "Hoe werkt levering op HomeCheff?",
-      answer: "Verkopers kunnen kiezen voor afhalen, bezorgen, of beide. Bij bezorgen regelen verkoper en koper de details onderling. HomeCheff bemiddelt niet in de levering zelf."
+      answer: "Verkopers kunnen kiezen voor afhalen, bezorgen, of beide. Bij bezorgen regelen verkoper en koper de details onderling. HomeCheff bemiddelt niet in de levering zelf.\n\n🤝 LOKALE GEMEENSCHAP:\n• Lokale bezorging ondersteunt de buurt\n• Fietsbezorging is praktischer\n• Afhalen voorkomt extra verpakking\n• Gecombineerde bezorging is efficiënter\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor levering of geschillen tussen verkopers en kopers."
     },
     {
       question: "Wat zijn de leverkosten?",
@@ -171,11 +183,11 @@ const faqData = {
     },
     {
       question: "Hoe word ik bezorger op HomeCheff?",
-      answer: "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig."
+      answer: "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is alleen een platform en niet je werkgever."
     },
     {
       question: "Wat verdien ik als bezorger?",
-      answer: "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen."
+      answer: "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra beloning voor fietsbezorging\n• Bonus voor gecombineerde routes\n• Beloning voor herbruikbare verpakking\n• Incentive voor lokale bezorging\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet je werkgever en bieden geen werkgeversverzekeringen."
     },
     {
       question: "Welke verzekeringen heb ik nodig als bezorger?",
@@ -223,23 +235,23 @@ const faqData = {
   handmade: [
     {
       question: "Wat betekent 'handgemaakt' op HomeCheff?",
-      answer: "Handgemaakt betekent dat je het product zelf hebt gemaakt, gekweekt of bereid. Het moet van jouw eigen creativiteit en werk komen, niet van een fabriek of groothandel. We controleren dit om de authenticiteit te waarborgen."
+      answer: "Handgemaakt betekent dat je het product zelf hebt gemaakt, gekweekt of bereid met duurzaamheid in gedachten. Het gaat om het hergebruiken van materialen, het tegengaan van verspilling en het creëren van unieke, duurzame producten. We moedigen creativiteit aan die bijdraagt aan een circulaire economie."
     },
     {
-      question: "Mag ik fabrieksproducten verkopen?",
-      answer: "Nee, HomeCheff is uitsluitend voor handgemaakte producten. Geen doorverkoop van fabrieksproducten, groothandel of dropshipping. We willen echte makers en hun unieke creaties ondersteunen."
+      question: "Mag ik oude spullen oplappen en verkopen?",
+      answer: "Ja, dat is juist geweldig! Het herstellen en upcyclen van oude spullen is een prachtige vorm van duurzaamheid. Denk aan:\n\n♻️ UPGRADEN VAN SPULLEN:\n• Oude kleding herstellen en personaliseren\n• Meubels opknappen en een nieuwe look geven\n• Elektronica repareren en moderniseren\n• Keukengerei restaureren en verbeteren\n\n🌱 DUURZAAMHEID:\n• Voorkomt verspilling van grondstoffen\n• Verlengt de levensduur van producten\n• Vermindert afval\n• Creëert unieke, persoonlijke items\n\n💡 Tip: Beschrijf duidelijk wat je hebt gedaan en waarom het duurzaam is!"
     },
     {
-      question: "Hoe controleert HomeCheff of iets handgemaakt is?",
-      answer: "We vragen om foto's van het maakproces, ingrediënten of materialen. Bij twijfel kunnen we om bewijs vragen. We hebben een community die elkaar helpt en meldt verdachte activiteit. Handel wordt niet getolereerd."
+      question: "Hoe kan ik duurzaam handgemaakt werk verkopen?",
+      answer: "Focus op duurzaamheid en hergebruik in je producten:\n\n🌿 DUURZAME MATERIALEN:\n• Gebruik restjes en overtollige materialen\n• Kies voor biologische of gerecyclede ingrediënten\n• Hergebruik verpakkingen en containers\n• Maak van oude spullen iets nieuws\n\n♻️ CIRCULAIRE ECONOMIE:\n• Repareer in plaats van weggooien\n• Geef oude items een tweede leven\n• Vermeld de duurzame aspecten in je beschrijving\n• Inspireer anderen tot duurzaam leven\n\n🤝 GEMEENSCHAP:\n• Deel je duurzaamheidsverhaal\n• Leer anderen hoe ze kunnen upcyclen\n• Bouw een bewuste community op"
     },
     {
-      question: "Wat als ik een recept van internet gebruik?",
-      answer: "Dat is prima! Zolang je het zelf maakt in je eigen keuken, is het handgemaakt. We moedigen creativiteit en leren aan. Het gaat om jouw eigen productie, niet om de origine van het recept."
+      question: "Wat als ik producten maak van gerecyclede materialen?",
+      answer: "Dat is fantastisch! Gerecyclede materialen zijn de toekomst van duurzaam handgemaakt werk:\n\n♻️ GEREYCLEDE MATERIALEN:\n• Oude kleding omtoveren tot nieuwe items\n• Glaswerk hergebruiken voor decoratie\n• Hout van oude meubels verwerken\n• Plastic verpakkingen omzetten in kunst\n\n🌱 VOORDELEN:\n• Vermindert afval drastisch\n• Bespaart nieuwe grondstoffen\n• Creëert unieke, verhalende producten\n• Inspireert tot bewuster consumeren\n\n💡 Tip: Vertel het verhaal van je materialen - waar komen ze vandaan en hoe heb je ze getransformeerd?"
     },
     {
-      question: "Kan ik producten verkopen die ik van anderen heb gekregen?",
-      answer: "Alleen als je ze zelf hebt gemaakt. Producten van vrienden, familie of andere makers mogen niet worden doorverkocht. HomeCheff is voor jouw eigen creaties, niet voor handel in andermans werk."
+      question: "Hoe kan ik mijn handgemaakte producten duurzaam verpakken?",
+      answer: "Duurzame verpakking is een belangrijk onderdeel van je duurzame aanpak:\n\n🌿 DUURZAME VERPAKKING:\n• Hergebruik oude dozen en zakken\n• Gebruik biologisch afbreekbare materialen\n• Maak je eigen herbruikbare verpakkingen\n• Kies voor minimalistische, functionele verpakking\n\n♻️ CIRCULAIRE VERPAKKING:\n• Verpakkingen die opnieuw gebruikt kunnen worden\n• Ingebedde zaden in verpakkingsmateriaal\n• Composteerbare verpakkingen\n• Geen plastic, wel natuurlijke materialen\n\n🤝 INSPIREREN:\n• Laat zien hoe je duurzaam verpakt\n• Geef tips voor hergebruik van verpakking\n• Bouw een bewuste verpakkingscultuur op"
     },
     {
       question: "Wat zijn voorbeelden van toegestane producten?",
@@ -249,7 +261,7 @@ const faqData = {
   safety: [
     {
       question: "Hoe weet ik dat verkopers betrouwbaar zijn?",
-      answer: "We hebben een verificatiesysteem, reviews van andere gebruikers, en een klachtenprocedure. Nieuwe verkopers worden extra gecontroleerd. Lees altijd reviews voordat je koopt."
+      answer: "We hebben een verificatiesysteem, reviews van andere gebruikers, en een klachtenprocedure. Nieuwe verkopers worden extra gecontroleerd. Lees altijd reviews voordat je koopt.\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit, veiligheid of geschillen van producten. Alle transacties zijn tussen verkoper en koper."
     },
     {
       question: "Wat als ik problemen heb met een verkoper?",

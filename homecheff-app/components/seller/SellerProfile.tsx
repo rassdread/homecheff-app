@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Clock, 
@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import ShareButton from '@/components/ui/ShareButton';
 import Image from 'next/image';
 
 // Reviews removed for now - can be added later if needed
@@ -48,6 +49,97 @@ interface Product {
   Image: any[];
   isActive: boolean;
   createdAt: Date;
+  description: string;
+  category: string;
+}
+
+interface WorkspaceContent {
+  id: string;
+  type: 'RECIPE' | 'GROWING_PROCESS' | 'DESIGN_ITEM';
+  title: string;
+  description: string | null;
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  photos: WorkspaceContentPhoto[];
+  props: WorkspaceContentProp[];
+  comments: WorkspaceContentComment[];
+  recipe?: Recipe;
+  growingProcess?: GrowingProcess;
+  designItem?: DesignItem;
+}
+
+interface WorkspaceContentPhoto {
+  id: string;
+  fileUrl: string;
+  sortOrder: number;
+  caption: string | null;
+  createdAt: Date;
+}
+
+interface WorkspaceContentProp {
+  id: string;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  createdAt: Date;
+}
+
+interface WorkspaceContentComment {
+  id: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  replies: WorkspaceContentComment[];
+}
+
+interface Recipe {
+  id: string;
+  servings: number | null;
+  prepTime: number | null;
+  cookTime: number | null;
+  difficulty: string | null;
+  ingredients: any[];
+  instructions: any[];
+  tags: string[];
+  source: string | null;
+  notes: string | null;
+}
+
+interface GrowingProcess {
+  id: string;
+  plantName: string;
+  plantType: string | null;
+  variety: string | null;
+  startDate: Date | null;
+  expectedHarvest: Date | null;
+  growingMethod: string | null;
+  soilType: string | null;
+  wateringSchedule: string | null;
+  currentStage: string | null;
+  weeklyUpdates: any[];
+}
+
+interface DesignItem {
+  id: string;
+  category: string | null;
+  materials: string[];
+  techniques: string[];
+  dimensions: string | null;
+  inspiration: string | null;
+  process: any[];
+  challenges: string | null;
+  solutions: string | null;
+  tags: string[];
+  isForSale: boolean;
+  priceCents: number | null;
 }
 
 interface SellerProfile {
@@ -72,6 +164,7 @@ interface SellerProfile {
   };
   workplacePhotos: WorkplacePhoto[];
   products: Product[];
+  workspaceContent?: WorkspaceContent[];
 }
 
 interface SellerProfileProps {
@@ -80,11 +173,25 @@ interface SellerProfileProps {
 }
 
 export default function SellerProfile({ sellerProfile, isOwner = false }: SellerProfileProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products' | 'workspace'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedContentType, setSelectedContentType] = useState<'RECIPE' | 'GROWING_PROCESS' | 'DESIGN_ITEM' | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingContent, setEditingContent] = useState<WorkspaceContent | null>(null);
+  const [showSellModal, setShowSellModal] = useState(false);
+  const [sellingContent, setSellingContent] = useState<WorkspaceContent | null>(null);
+
+  // Load workspace content on mount
+  useEffect(() => {
+    if (activeTab === 'workspace') {
+      fetchWorkspaceContent();
+    }
+  }, [activeTab]);
 
   const roleLabels = {
     'chef': 'Chef',
@@ -93,6 +200,19 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
     'artist': 'Kunstenaar',
     'baker': 'Bakker',
     'craftsman': 'Vakman'
+  };
+
+  const getWorkspaceTabLabel = (role: string) => {
+    switch (role) {
+      case 'chef':
+        return 'Mijn Keuken';
+      case 'garden':
+        return 'Mijn Tuin';
+      case 'designer':
+        return 'Mijn Atelier';
+      default:
+        return 'Mijn Werkruimte';
+    }
   };
 
   const workplaceLabels = {
@@ -187,6 +307,150 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
     } catch (error) {
       console.error('Delete error:', error);
       alert('Er is een fout opgetreden bij het verwijderen');
+    }
+  };
+
+  // Workspace content functions
+  const fetchWorkspaceContent = async () => {
+    try {
+      const response = await fetch(`/api/workspace-content?sellerId=${sellerProfile.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkspaceContent(data.content || []);
+      }
+    } catch (error) {
+      console.error('Error fetching workspace content:', error);
+    }
+  };
+
+  const handleCreateContent = async (contentData: any) => {
+    try {
+      const response = await fetch('/api/workspace-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sellerProfileId: sellerProfile.id,
+          ...contentData
+        })
+      });
+
+      if (response.ok) {
+        await fetchWorkspaceContent();
+        setShowCreateModal(false);
+        setSelectedContentType(null);
+      } else {
+        const error = await response.json();
+        alert(`Fout bij aanmaken: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating content:', error);
+      alert('Er is een fout opgetreden bij het aanmaken');
+    }
+  };
+
+  const handleToggleProp = async (contentId: string) => {
+    try {
+      const response = await fetch('/api/workspace-content/props', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workspaceContentId: contentId })
+      });
+
+      if (response.ok) {
+        await fetchWorkspaceContent();
+      }
+    } catch (error) {
+      console.error('Error toggling prop:', error);
+    }
+  };
+
+  const handleAddComment = async (contentId: string, content: string, parentId?: string) => {
+    try {
+      const response = await fetch('/api/workspace-content/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          workspaceContentId: contentId, 
+          content,
+          parentId 
+        })
+      });
+
+      if (response.ok) {
+        await fetchWorkspaceContent();
+      } else {
+        const error = await response.json();
+        alert(`Fout bij toevoegen commentaar: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Er is een fout opgetreden bij het toevoegen van commentaar');
+    }
+  };
+
+  const handleEditContent = (content: WorkspaceContent) => {
+    setEditingContent(content);
+    setShowEditModal(true);
+  };
+
+  const handleSellContent = (content: WorkspaceContent) => {
+    setSellingContent(content);
+    setShowSellModal(true);
+  };
+
+  const handleDeleteContent = async (contentId: string) => {
+    if (!confirm('Weet je zeker dat je dit item wilt verwijderen?')) return;
+
+    try {
+      const response = await fetch(`/api/workspace-content/${contentId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        await fetchWorkspaceContent();
+        alert('Item succesvol verwijderd');
+      } else {
+        const error = await response.json();
+        alert(`Fout bij verwijderen: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Er is een fout opgetreden bij het verwijderen');
+    }
+  };
+
+  const handleConvertToProduct = async (content: WorkspaceContent, productData: any) => {
+    try {
+      const response = await fetch('/api/products/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...productData,
+          sellerId: sellerProfile.id,
+          fromWorkspaceContent: content.id
+        })
+      });
+
+      if (response.ok) {
+        await fetchWorkspaceContent();
+        setShowSellModal(false);
+        setSellingContent(null);
+        alert('Item succesvol omgezet naar product!');
+      } else {
+        const error = await response.json();
+        alert(`Fout bij omzetten: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error converting to product:', error);
+      alert('Er is een fout opgetreden bij het omzetten');
     }
   };
 
@@ -310,7 +574,7 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                 </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Producten</span>
+                    <span className="text-gray-600">Etalage</span>
                   <span className="font-medium">{totalProducts}</span>
                   </div>
 
@@ -354,7 +618,13 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                   {[
                     { id: 'overview', label: 'Overzicht' },
                     { id: 'photos', label: 'Werkruimte Foto\'s' },
-                    { id: 'products', label: 'Producten' }
+                    ...(sellerProfile.User.sellerRoles.length > 0 ? [
+                      { 
+                        id: 'workspace', 
+                        label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0]) 
+                      }
+                    ] : []),
+                    { id: 'products', label: 'Etalage' }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -508,13 +778,227 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                   </div>
                 )}
 
+                {activeTab === 'workspace' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0])}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {isOwner 
+                            ? 'Deel je werkproces en inspireer anderen'
+                            : 'Bekijk het werkproces en geef feedback'
+                          }
+                        </p>
+                      </div>
+                      {isOwner && (
+                        <Button
+                          onClick={() => setShowCreateModal(true)}
+                          className="flex items-center space-x-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Nieuw Item</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Workspace Content Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {workspaceContent.map((content) => (
+                        <div key={content.id} className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                          {/* Content Header */}
+                          <div className="p-4 border-b">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 mb-1">
+                                  {content.title}
+                                </h4>
+                                {content.description && (
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {content.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 ml-2">
+                                <ShareButton
+                                  url={`${window.location.origin}/seller/${sellerProfile.id}?content=${content.id}`}
+                                  title={content.title}
+                                  description={content.description || ''}
+                                  className="text-xs"
+                                />
+                                <button
+                                  onClick={() => handleToggleProp(content.id)}
+                                  className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                  <Heart className="w-4 h-4" />
+                                  <span className="text-sm">{content.props.length}</span>
+                                </button>
+                                {isOwner && (
+                                  <div className="flex items-center space-x-1">
+                                    <button
+                                      onClick={() => handleEditContent(content)}
+                                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                                      title="Bewerken"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleSellContent(content)}
+                                      className="text-gray-400 hover:text-green-600 transition-colors"
+                                      title="In verkoop zetten"
+                                    >
+                                      <ShoppingBag className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteContent(content.id)}
+                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      title="Verwijderen"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content Photos */}
+                          {content.photos.length > 0 && (
+                            <div className="p-4">
+                              <div className="grid grid-cols-2 gap-2">
+                                {content.photos.slice(0, 4).map((photo, index) => (
+                                  <div key={photo.id} className="relative aspect-square">
+                                    <Image
+                                      src={photo.fileUrl}
+                                      alt={photo.caption || content.title}
+                                      fill
+                                      className="object-cover rounded"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Content Details based on type */}
+                          {content.type === 'RECIPE' && content.recipe && (
+                            <div className="p-4 border-t">
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                {content.recipe.servings && (
+                                  <span>{content.recipe.servings} porties</span>
+                                )}
+                                {content.recipe.prepTime && (
+                                  <span>{content.recipe.prepTime} min</span>
+                                )}
+                                {content.recipe.difficulty && (
+                                  <span className="capitalize">{content.recipe.difficulty.toLowerCase()}</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {content.type === 'GROWING_PROCESS' && content.growingProcess && (
+                            <div className="p-4 border-t">
+                              <div className="text-sm text-gray-600">
+                                <p className="font-medium">{content.growingProcess.plantName}</p>
+                                {content.growingProcess.currentStage && (
+                                  <p className="text-xs text-green-600 capitalize">
+                                    {content.growingProcess.currentStage.toLowerCase()}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {content.type === 'DESIGN_ITEM' && content.designItem && (
+                            <div className="p-4 border-t">
+                              <div className="text-sm text-gray-600">
+                                {content.designItem.category && (
+                                  <p className="font-medium capitalize">{content.designItem.category.toLowerCase()}</p>
+                                )}
+                                {content.designItem.materials.length > 0 && (
+                                  <p className="text-xs">
+                                    {content.designItem.materials.slice(0, 2).join(', ')}
+                                    {content.designItem.materials.length > 2 && '...'}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Comments Section */}
+                          <div className="p-4 border-t bg-gray-50">
+                            <div className="space-y-3">
+                              {content.comments.slice(0, 2).map((comment) => (
+                                <div key={comment.id} className="flex space-x-2">
+                                  <div className="w-6 h-6 rounded-full bg-gray-300 flex-shrink-0">
+                                    {comment.user.image ? (
+                                      <Image
+                                        src={comment.user.image}
+                                        alt={comment.user.name || 'User'}
+                                        width={24}
+                                        height={24}
+                                        className="rounded-full"
+                                      />
+                                    ) : (
+                                      <User className="w-4 h-4 m-1 text-gray-600" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-medium text-gray-900">
+                                      {comment.user.name || 'Anoniem'}
+                                    </p>
+                                    <p className="text-xs text-gray-600">{comment.content}</p>
+                                  </div>
+                                </div>
+                              ))}
+                              {content.comments.length > 2 && (
+                                <p className="text-xs text-gray-500">
+                                  +{content.comments.length - 2} meer commentaren
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {workspaceContent.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Plus className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Nog geen content
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          {isOwner 
+                            ? 'Begin met het delen van je werkproces'
+                            : 'Deze verkoper heeft nog geen content gedeeld'
+                          }
+                        </p>
+                        {isOwner && (
+                          <Button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center space-x-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Eerste Item Toevoegen</span>
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeTab === 'products' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                      <h3 className="font-semibold text-gray-900">Mijn Producten</h3>
+                      <h3 className="font-semibold text-gray-900">Mijn Etalage</h3>
                         <p className="text-sm text-gray-600">
-                          Beheer je producten en bekijk prestaties
+                          Beheer je etalage en bekijk prestaties
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -564,11 +1048,19 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                               }`}>
                                 {product.isActive ? 'Actief' : 'Inactief'}
                                 </span>
-                              {isOwner && (
+                              <div className="flex items-center space-x-2">
+                                <ShareButton
+                                  url={`${window.location.origin}/product/${product.id}`}
+                                  title={product.title}
+                                  description={product.description}
+                                  className="text-xs"
+                                />
+                                {isOwner && (
                                 <button className="text-gray-400 hover:text-gray-600">
                                   <Edit3 className="w-4 h-4" />
                                 </button>
                               )}
+                              </div>
                             </div>
                           </div>
                         ))}

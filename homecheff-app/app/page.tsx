@@ -65,12 +65,34 @@ type HomeItem = {
   } | null;
 };
 
+type HomeUser = {
+  id: string;
+  name: string | null;
+  username: string | null;
+  image: string | null;
+  role: string;
+  sellerRoles?: string[];
+  buyerRoles?: string[];
+  location?: {
+    place?: string;
+    city?: string;
+    lat?: number;
+    lng?: number;
+    distanceKm?: number;
+  };
+  followerCount?: number;
+  productCount?: number;
+};
+
 function HomePageContent() {
   const [username, setUsername] = useState<string>("");
   const [items, setItems] = useState<HomeItem[]>([]);
+  const [users, setUsers] = useState<HomeUser[]>([]);
   const [q, setQ] = useState<string>("");
+  const [searchType, setSearchType] = useState<'products' | 'users'>('products');
   const [radius, setRadius] = useState<number>(10);
   const [category, setCategory] = useState<string>("all");
+  const [userRole, setUserRole] = useState<string>("all");
   const [subcategory, setSubcategory] = useState<string>("all");
   const [deliveryMode, setDeliveryMode] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<{min: number, max: number}>({min: 0, max: 1000});
@@ -129,11 +151,17 @@ function HomePageContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        setItems(data.items || []);
+        // Fetch products
+        const productsResponse = await fetch('/api/products');
+        const productsData = await productsResponse.json();
+        setItems(productsData.items || []);
+        
+        // Fetch users
+        const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
+        const usersData = await usersResponse.json();
+        setUsers(usersData.users || []);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -141,6 +169,32 @@ function HomePageContent() {
 
     fetchData();
   }, []);
+
+  // Reset search when switching between products and users
+  useEffect(() => {
+    setQ('');
+    if (searchType === 'users') {
+      setSortBy('name');
+    } else {
+      setSortBy('newest');
+    }
+  }, [searchType]);
+
+  // Fetch users when userRole changes
+  useEffect(() => {
+    if (searchType === 'users') {
+      const fetchUsers = async () => {
+        try {
+          const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
+          const usersData = await usersResponse.json();
+          setUsers(usersData.users || []);
+        } catch (error) {
+          console.error('Error fetching users:', error);
+        }
+      };
+      fetchUsers();
+    }
+  }, [userRole, searchType]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -159,6 +213,10 @@ function HomePageContent() {
   }, []);
 
   const filtered = useMemo(() => {
+    if (searchType === 'users') {
+      return []; // Will be handled by filteredUsers
+    }
+
     const term = q.trim().toLowerCase();
     let list = items.map((it) => {
       // Bereken afstand als gebruiker locatie en product locatie beschikbaar zijn
@@ -234,7 +292,95 @@ function HomePageContent() {
     });
     
     return list;
-  }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation]);
+  }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation, searchType]);
+
+  const filteredUsers = useMemo(() => {
+    if (searchType !== 'users') {
+      return [];
+    }
+
+    const term = q.trim().toLowerCase();
+    let list = users.map((user) => {
+      // Bereken afstand als gebruiker locatie en user locatie beschikbaar zijn
+      let distanceKm: number | null = null;
+      if (userLocation && user.location?.lat && user.location?.lng) {
+        distanceKm = calculateDistance(
+          userLocation.lat, 
+          userLocation.lng, 
+          user.location.lat, 
+          user.location.lng
+        );
+      }
+
+      return {
+        ...user,
+        location: {
+          ...user.location,
+          distanceKm
+        }
+      };
+    }).filter((user) => {
+      if (term) {
+        const nameMatch = user.name?.toLowerCase().includes(term);
+        const usernameMatch = user.username?.toLowerCase().includes(term);
+        if (!nameMatch && !usernameMatch) {
+          return false;
+        }
+      }
+      
+      // Rol filter
+      if (userRole !== 'all') {
+        if (userRole === 'DELIVERY') {
+          // Voor bezorgers, check of ze een delivery profile hebben
+          if (!user.buyerRoles?.includes('DELIVERY')) {
+            return false;
+          }
+        } else if (userRole === 'ADMIN') {
+          // Voor admins, check de hoofdrol
+          if (user.role !== 'ADMIN') {
+            return false;
+          }
+        } else {
+          // Voor seller rollen, check sellerRoles
+          if (!user.sellerRoles?.includes(userRole)) {
+            return false;
+          }
+        }
+      }
+      
+      // Afstand filter - alleen filteren als afstand is berekend
+      if (user.location?.distanceKm !== null && user.location?.distanceKm !== undefined && radius < 1000) {
+        if (user.location.distanceKm > radius) return false;
+      }
+      
+      // Locatie filter
+      if (location.trim()) {
+        const locationTerm = location.trim().toLowerCase();
+        const locationFields = `${user.name ?? ""} ${user.username ?? ""} ${user.location?.place ?? ""}`.toLowerCase();
+        if (!locationFields.includes(locationTerm)) return false;
+      }
+      
+      return true;
+    });
+    
+    // Sorteer op basis van geselecteerde optie
+    return list.sort((a, b) => {
+      switch (sortBy) {
+        case "distance": 
+          if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
+          if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
+          return a.location.distanceKm - b.location.distanceKm;
+        case "name":
+          return (a.name || '').localeCompare(b.name || '');
+        case "followers":
+          return (b.followerCount || 0) - (a.followerCount || 0);
+        case "products":
+          return (b.productCount || 0) - (a.productCount || 0);
+        default:
+          return (a.name || '').localeCompare(b.name || '');
+      }
+    });
+  }, [users, q, sortBy, location, radius, userLocation, searchType, userRole]);
 
   // New functions for advanced features
   const handleSaveSearch = async (name: string) => {
@@ -244,6 +390,7 @@ function HomePageContent() {
         q,
         category,
         subcategory,
+        userRole,
         priceRange,
         radius,
         location,
@@ -271,6 +418,7 @@ function HomePageContent() {
     setQ(search.filters.q);
     setCategory(search.filters.category);
     setSubcategory(search.filters.subcategory);
+    setUserRole(search.filters.userRole || 'all');
     setPriceRange(search.filters.priceRange);
     setRadius(search.filters.radius);
     setLocation(search.filters.location);
@@ -288,8 +436,10 @@ function HomePageContent() {
 
   const handleClearFilters = () => {
     setQ('');
+    setSearchType('products');
     setCategory('all');
     setSubcategory('all');
+    setUserRole('all');
     setPriceRange({ min: 0, max: 1000 });
     setRadius(10);
     setLocation('');
@@ -383,8 +533,23 @@ function HomePageContent() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                     className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 text-base md:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
-                    placeholder="Zoek naar producten, gerechten of makers..."
+                    placeholder={searchType === 'products' ? "Zoek naar producten, gerechten of makers..." : "Zoek naar gebruikersnaam, voornaam of achternaam..."}
                   />
+                </div>
+                
+                {/* Search Type Selector */}
+                <div className="relative">
+                  <select
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value as 'products' | 'users')}
+                    className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 md:py-4 pr-8 text-base md:text-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none cursor-pointer"
+                  >
+                    <option value="products">Producten</option>
+                    <option value="users">Gebruikers</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <Filter className="w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
                 
                 {/* Desktop Controls */}
@@ -435,6 +600,7 @@ function HomePageContent() {
                     onSaveSearch={handleSaveSearch}
                     onLoadSearch={handleLoadSearch}
                     onClearFilters={handleClearFilters}
+                    searchType={searchType}
                   />
                 </div>
               )}
@@ -504,7 +670,7 @@ function HomePageContent() {
                   </div>
                 ))}
               </div>
-            ) : filtered.length === 0 ? (
+            ) : (searchType === 'products' ? filtered.length === 0 : filteredUsers.length === 0) ? (
               <div className="text-center py-16">
                 <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-12 h-12 text-neutral-400" />
@@ -517,6 +683,76 @@ function HomePageContent() {
                 >
                   Reset filters
                 </button>
+              </div>
+            ) : searchType === 'users' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredUsers.map((user) => (
+                  <div 
+                    key={user.id} 
+                    onClick={() => window.location.href = `/seller/${user.id}`}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                  >
+                    {/* User Avatar */}
+                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100">
+                      {user.image ? (
+                        <img
+                          src={user.image}
+                          alt={user.name || 'Gebruiker'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-24 h-24 bg-primary-200 rounded-full flex items-center justify-center">
+                            <span className="text-2xl font-bold text-primary-600">
+                              {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* User Info */}
+                    <div className="p-6">
+                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
+                        {user.name || 'Naamloze gebruiker'}
+                      </h3>
+                      {user.username && (
+                        <p className="text-sm text-gray-500 mb-2">@{user.username}</p>
+                      )}
+                      
+                      {/* User Roles */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {user.sellerRoles?.map((role) => (
+                          <span key={role} className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded-full">
+                            {role === 'CHEFF' ? 'Chef' : role === 'GROWN' ? 'Garden' : role === 'DESIGNER' ? 'Designer' : role}
+                          </span>
+                        ))}
+                        {user.buyerRoles?.map((role) => (
+                          <span key={role} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* Stats */}
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span>{user.productCount || 0} producten</span>
+                        <span>{user.followerCount || 0} volgers</span>
+                      </div>
+                      
+                      {/* Location */}
+                      {user.location?.place && (
+                        <div className="flex items-center mt-2 text-sm text-gray-500">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          <span>{user.location.place}</span>
+                          {user.location.distanceKm !== undefined && user.location.distanceKm !== null && (
+                            <span className="ml-2">({user.location.distanceKm!.toFixed(1)} km)</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

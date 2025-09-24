@@ -14,6 +14,7 @@ export interface FilterState {
   sellerRating: number;
   hasImages: boolean;
   isActive: boolean;
+  userRole: string; // Nieuwe filter voor gebruikers rollen
 }
 
 export interface SavedSearch {
@@ -38,6 +39,7 @@ export const defaultFilters: FilterState = {
   sellerRating: 0,
   hasImages: false,
   isActive: false,
+  userRole: 'all', // Nieuwe filter voor gebruikers rollen
 };
 
 export function useSavedSearches() {

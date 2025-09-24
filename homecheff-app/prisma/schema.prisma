@@ -78,6 +78,8 @@ model User {
   deliveryReviewsAsReviewer              DeliveryReview[]             @relation("DeliveryReviewReviewer")
   Session                                Session[]
   Transaction                            Transaction[]
+  workspaceContentProps                  WorkspaceContentProp[]
+  workspaceContentComments               WorkspaceContentComment[]
 }
 
 model Business {
@@ -432,6 +434,7 @@ model SellerProfile {
   
   products               Product[]     @relation("SellerProducts")
   workplacePhotos        WorkplacePhoto[]
+  workspaceContent       WorkspaceContent[]
   Subscription           Subscription? @relation(fields: [subscriptionId], references: [id])
   User                   User          @relation(fields: [userId], references: [id])
 }
@@ -800,6 +803,164 @@ model WorkplacePhoto {
   @@map("WorkplacePhoto")
 }
 
+// New models for dynamic workspace content
+model WorkspaceContent {
+  id               String        @id @default(cuid())
+  sellerProfileId  String
+  sellerProfile    SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  type             WorkspaceContentType
+  title            String
+  description      String?
+  isPublic         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relations
+  photos           WorkspaceContentPhoto[]
+  props            WorkspaceContentProp[]
+  comments         WorkspaceContentComment[]
+  
+  // Specific content based on type
+  recipe           Recipe?
+  growingProcess   GrowingProcess?
+  designItem       DesignItem?
+
+  @@index([sellerProfileId])
+  @@index([type])
+  @@index([isPublic])
+  @@map("WorkspaceContent")
+}
+
+model WorkspaceContentPhoto {
+  id                String            @id @default(cuid())
+  workspaceContentId String
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  fileUrl           String
+  sortOrder         Int
+  caption           String?
+  createdAt         DateTime          @default(now())
+
+  @@index([workspaceContentId])
+  @@map("WorkspaceContentPhoto")
+}
+
+model WorkspaceContentProp {
+  id                String            @id @default(cuid())
+  workspaceContentId String
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime          @default(now())
+
+  @@unique([workspaceContentId, userId])
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@map("WorkspaceContentProp")
+}
+
+model WorkspaceContentComment {
+  id                String            @id @default(cuid())
+  workspaceContentId String
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content           String
+  parentId          String?           // For replies
+  parent            WorkspaceContentComment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies           WorkspaceContentComment[] @relation("CommentReplies")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("WorkspaceContentComment")
+}
+
+// Recipe specific content
+model Recipe {
+  id                String            @id @default(cuid())
+  workspaceContentId String           @unique
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  
+  // Recipe details
+  servings          Int?
+  prepTime          Int?              // in minutes
+  cookTime          Int?              // in minutes
+  difficulty        String?           // "EASY", "MEDIUM", "HARD"
+  
+  // Ingredients and instructions
+  ingredients       Json              // Array of {name, amount, unit}
+  instructions      Json              // Array of {step, description}
+  
+  // Additional info
+  tags              String[]          @default([])
+  source            String?           // Where recipe came from
+  notes             String?           // Additional notes
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("Recipe")
+}
+
+// Growing process specific content
+model GrowingProcess {
+  id                String            @id @default(cuid())
+  workspaceContentId String           @unique
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  
+  // Plant details
+  plantName         String
+  plantType         String?           // "VEGETABLE", "HERB", "FLOWER", "FRUIT"
+  variety           String?           // Specific variety
+  
+  // Growing info
+  startDate         DateTime?
+  expectedHarvest   DateTime?
+  growingMethod     String?           // "INDOOR", "OUTDOOR", "GREENHOUSE"
+  soilType          String?
+  wateringSchedule  String?
+  
+  // Progress tracking
+  currentStage      String?           // "SEEDLING", "GROWING", "FLOWERING", "HARVEST"
+  weeklyUpdates     Json              // Array of weekly progress updates
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("GrowingProcess")
+}
+
+// Design item specific content
+model DesignItem {
+  id                String            @id @default(cuid())
+  workspaceContentId String           @unique
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+  
+  // Design details
+  category          String?           // "FURNITURE", "DECOR", "CLOTHING", "JEWELRY", "OTHER"
+  materials         String[]          @default([])
+  techniques        String[]          @default([])
+  dimensions        String?           // "L x W x H"
+  
+  // Process info
+  inspiration       String?           // What inspired this design
+  process           Json              // Array of design process steps
+  challenges        String?           // Challenges faced
+  solutions         String?           // How challenges were solved
+  
+  // Additional info
+  tags              String[]          @default([])
+  isForSale         Boolean           @default(false)
+  priceCents        Int?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("DesignItem")
+}
+
 enum ListingCategory {
   HOMECHEFF
   HOMEGROWN
@@ -886,6 +1047,12 @@ enum Role {
   BUYER
   SELLER
   ADMIN
+}
+
+enum WorkspaceContentType {
+  RECIPE
+  GROWING_PROCESS
+  DESIGN_ITEM
 }
 
 // Analytics and tracking

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShareButton } from "@/components/ui/ShareButton";
+import ShareButton from "@/components/ui/ShareButton";
 import { Eye, Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import PropsButton from "@/components/props/PropsButton";
 
@@ -271,9 +271,6 @@ export default function GeoFeed() {
                     url={`${baseUrl}/listings/${it.id}`}
                     title={it.title ?? "Gerecht"}
                     description={it.description || ''}
-                    type="buyer"
-                    productId={it.id}
-                    productTitle={it.title ?? "Gerecht"}
                     className="ml-2 p-1 text-gray-400 hover:text-blue-600"
                   />
                 </div>
