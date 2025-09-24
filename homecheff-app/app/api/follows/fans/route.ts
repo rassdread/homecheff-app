@@ -31,12 +31,12 @@ export async function GET(req: NextRequest) {
     const fans = await prisma.follow.findMany({
       where: { sellerId: targetUserId },
       include: {
-        Follower: { 
+        User: { 
           select: { 
             id: true, 
             name: true, 
             username: true,
-            avatar: true,
+            image: true,
             role: true 
           } 
         }
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       fans: fans.map(fan => ({
         id: fan.id,
         createdAt: fan.createdAt,
-        user: fan.Follower
+        user: fan.User
       }))
     });
   } catch (error) {

@@ -104,17 +104,9 @@ async function triggerDeliveryPayout(deliveryOrder: any, profile: any) {
     await prisma.payout.create({
       data: {
         id: `payout_${Date.now()}`,
-        userId: profile.userId,
-        amount: deliveryPersonCut,
-        type: 'DELIVERY_FEE',
-        status: 'PENDING',
-        description: `Bezorgkosten voor bestelling ${deliveryOrder.orderId}`,
-        metadata: {
-          deliveryOrderId: deliveryOrder.id,
-          originalDeliveryFee: deliveryOrder.deliveryFee,
-          deliveryPersonCut,
-          homecheffCut
-        }
+        toUserId: profile.userId,
+        amountCents: deliveryPersonCut,
+        transactionId: deliveryOrder.orderId
       }
     });
 

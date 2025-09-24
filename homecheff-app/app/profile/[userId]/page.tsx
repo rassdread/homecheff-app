@@ -310,10 +310,10 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                       key={transport}
                       className="px-2 py-1 bg-secondary-brand/10 text-secondary-brand text-xs rounded-full"
                     >
-                      {transport === 'BIKE' ? 'Fiets' : 
-                        transport === 'SCOOTER' ? 'Scooter' :       
-                        transport === 'WALKING' ? 'Lopen' :
-                        transport === 'ELECTRIC_BIKE' ? 'Elektrische fiets' : transport}
+                      {transport === 'BIKE' ? 'Fiets' :
+                        transport === 'SCOOTER' ? 'Scooter' :      
+                        transport === 'EBIKE' ? 'Elektrische fiets' : 
+                        transport === 'CAR' ? 'Auto' : transport}
                     </span>
                   ))}
                 </div>

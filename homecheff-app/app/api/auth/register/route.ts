@@ -154,6 +154,7 @@ export async function POST(req: NextRequest) {
           bio: bio || null,
           place: location || null,
           interests: interests || [],
+          sellerRoles: userTypes || [], // Store seller roles
           // Privacy en marketing toestemmingen
           privacyPolicyAccepted: acceptPrivacyPolicy || false,
           privacyPolicyAcceptedAt: acceptPrivacyPolicy ? new Date() : null,
@@ -210,6 +211,7 @@ export async function POST(req: NextRequest) {
           bio: bio || null,
           place: location || null,
           interests: interests || [],
+          buyerRoles: selectedBuyerType ? [selectedBuyerType] : [], // Store buyer type
           // Privacy en marketing toestemmingen
           privacyPolicyAccepted: acceptPrivacyPolicy || false,
           privacyPolicyAcceptedAt: acceptPrivacyPolicy ? new Date() : null,

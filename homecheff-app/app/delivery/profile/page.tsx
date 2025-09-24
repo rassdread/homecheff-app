@@ -49,5 +49,15 @@ export default async function DeliveryProfilePage() {
     redirect('/delivery/signup');
   }
 
-  return <DeliveryProfile deliveryProfile={deliveryProfile} />;
+  // Ensure preferredRadius is not null and handle null comments
+  const deliveryProfileWithDefaults = {
+    ...deliveryProfile,
+    preferredRadius: deliveryProfile.preferredRadius || 3.0,
+    reviews: deliveryProfile.reviews.map(review => ({
+      ...review,
+      comment: review.comment || ''
+    }))
+  };
+
+  return <DeliveryProfile deliveryProfile={deliveryProfileWithDefaults} />;
 }

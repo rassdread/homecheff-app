@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const uploadedPhotos = [];
+    const uploadedPhotos: any[] = [];
 
     for (const photo of photos) {
       // Validate file type

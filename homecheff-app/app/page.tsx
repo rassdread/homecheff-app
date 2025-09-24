@@ -10,6 +10,7 @@ import MapView from "@/components/feed/MapView";
 import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
+import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 
 const CATEGORIES = {
   CHEFF: {
@@ -322,6 +323,9 @@ function HomePageContent() {
 
   return (
     <main className="min-h-screen bg-neutral-50">
+      {/* Redirect after login */}
+      <RedirectAfterLogin />
+      
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-12 md:py-24">
         <div className="absolute inset-0 bg-black/10"></div>

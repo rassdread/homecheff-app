@@ -12,11 +12,11 @@ export async function POST(req: NextRequest) {
     // Get all pending platform fees and delivery fee cuts
     const orders = await prisma.order.findMany({
       where: {
-        status: 'PAID',
+        status: 'DELIVERED',
         platformFeeCollected: false
       },
       include: {
-        deliveryOrders: {
+        deliveryOrder: {
           where: {
             status: 'DELIVERED',
             deliveryFeeCollected: false
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     let totalPlatformFees = 0;
     let totalDeliveryFeeCuts = 0;
-    let processedOrders = [];
+    const processedOrders: string[] = [];
 
     for (const order of orders) {
       // Calculate platform fee (12% of product sales)
@@ -35,13 +35,13 @@ export async function POST(req: NextRequest) {
       totalPlatformFees += platformFee;
 
       // Calculate delivery fee cuts (12% of delivery fees)
-      for (const deliveryOrder of order.deliveryOrders) {
-        const deliveryFeeCut = Math.round(deliveryOrder.deliveryFee * 0.12);
+      if (order.deliveryOrder) {
+        const deliveryFeeCut = Math.round(order.deliveryOrder.deliveryFee * 0.12);
         totalDeliveryFeeCuts += deliveryFeeCut;
 
         // Mark delivery fee as collected
         await prisma.deliveryOrder.update({
-          where: { id: deliveryOrder.id },
+          where: { id: order.deliveryOrder.id },
           data: { deliveryFeeCollected: true }
         });
       }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const totalHomeCheffFees = totalPlatformFees + totalDeliveryFeeCuts;
 
     // Create collection record
-    const collection = await prisma.homecheffCollection.create({
+    const collection = await prisma.homeCheffCollection.create({
       data: {
         id: `collection_${Date.now()}`,
         platformFees: totalPlatformFees,
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get collection history
-    const collections = await prisma.homecheffCollection.findMany({
+    const collections = await prisma.homeCheffCollection.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50
     });

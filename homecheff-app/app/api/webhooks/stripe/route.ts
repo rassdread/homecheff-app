@@ -57,7 +57,7 @@ async function createOrderFromSession(session: any) {
         id: `order_${Date.now()}`,
         userId: buyerId,
         totalAmount: parseInt(metadata.totalAmount || '0'),
-        status: 'PAID',
+        status: 'CONFIRMED',
         deliveryMode: deliveryMode || 'PICKUP',
         deliveryAddress: address || null,
         notes: notes || null,

@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     // Calculate delivery fee if delivery is selected
     let deliveryFeeCents = 0;
-    let deliveryFeeBreakdown = null;
+    let deliveryFeeBreakdown: any = null;
     
     if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
       deliveryFeeCents = 200; // €2.00 base delivery fee

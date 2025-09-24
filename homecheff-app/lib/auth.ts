@@ -123,7 +123,9 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       try {
         const u = new URL(url, baseUrl);
-        if (u.pathname === '/login' || u.pathname === '/auth/signin') return baseUrl + '/';
+        if (u.pathname === '/login' || u.pathname === '/auth/signin') {
+          return baseUrl + '/';
+        }
       } catch {}
       return url.startsWith(baseUrl) ? url : baseUrl + '/';
     },

@@ -105,6 +105,34 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
     'evening': 'Avond (17:00-21:00)'
   };
 
+  const handleProfilePhotoUpload = async (file: File) => {
+    if (!file) return;
+    
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      
+      const response = await fetch('/api/delivery/upload-profile-photo', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        alert(`Fout bij uploaden: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Er is een fout opgetreden bij het uploaden');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handlePhotoUpload = async (files: FileList) => {
     if (files.length === 0) return;
     
@@ -174,7 +202,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 py-4">
             <Link href="/delivery/dashboard">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Terug
               </Button>
@@ -208,9 +236,26 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                       <User className="w-8 h-8 text-gray-400" />
                     )}
                   </div>
-                  <button className="absolute -bottom-2 -right-2 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700">
-                    <Camera className="w-4 h-4" />
-                  </button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => e.target.files?.[0] && handleProfilePhotoUpload(e.target.files[0])}
+                      className="hidden"
+                      id="profile-photo"
+                      disabled={uploading}
+                    />
+                    <label
+                      htmlFor="profile-photo"
+                      className="absolute -bottom-2 -right-2 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 cursor-pointer"
+                    >
+                      {uploading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4" />
+                      )}
+                    </label>
+                  </div>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mt-4">
                   {deliveryProfile.user.name}

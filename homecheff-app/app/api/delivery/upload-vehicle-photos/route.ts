@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
       where: { deliveryProfileId: profile.id }
     });
 
+    const uploadedPhotos: any[] = [];
+
     const formData = await req.formData();
     const photos = formData.getAll('photos') as File[];
 
@@ -41,8 +43,6 @@ export async function POST(req: NextRequest) {
         error: 'Maximaal 5 foto\'s toegestaan' 
       }, { status: 400 });
     }
-
-    const uploadedPhotos = [];
 
     for (const photo of photos) {
       // Validate file type

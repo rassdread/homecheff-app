@@ -198,7 +198,7 @@ export function clearNextAuthData(): void {
       key.includes('profile') ||
       key.includes('token')
     )) {
-      sessionKeys.push(key);
+      (sessionKeys as string[]).push(key);
     }
   }
 

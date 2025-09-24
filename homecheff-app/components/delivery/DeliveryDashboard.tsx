@@ -359,7 +359,7 @@ export default function DeliveryDashboard() {
                     )}
                     {currentOrder.status === 'PICKED_UP' && (
                       <button
-                        onClick={() => completeOrder(currentOrder.id)}
+                        onClick={() => deliverOrder(currentOrder.id)}
                         className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 font-medium"
                       >
                         Markeer als Bezorgd

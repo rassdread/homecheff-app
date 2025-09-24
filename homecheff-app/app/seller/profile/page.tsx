@@ -10,11 +10,34 @@ export default async function SellerProfilePage() {
     redirect('/login');
   }
 
+  const userId = (session.user as any).id;
+  
+  // First check if user has seller roles
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { 
+      id: true, 
+      name: true, 
+      email: true, 
+      image: true, 
+      sellerRoles: true 
+    }
+  });
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Check if user has seller roles
+  if (!user.sellerRoles || user.sellerRoles.length === 0) {
+    redirect('/register');
+  }
+
   // Check if user has seller profile
   const sellerProfile = await prisma.sellerProfile.findUnique({
-    where: { userId: (session.user as any).id },
+    where: { userId: userId },
     include: {
-      user: {
+      User: {
         select: {
           id: true,
           name: true,
@@ -24,49 +47,36 @@ export default async function SellerProfilePage() {
         }
       },
       workplacePhotos: {
-        orderBy: [
-          { role: 'asc' },
-          { sortOrder: 'asc' }
-        ]
+        orderBy: {
+          createdAt: 'asc'
+        }
       },
       products: {
+        where: {
+          isActive: true
+        },
         select: {
           id: true,
           title: true,
           priceCents: true,
-          images: true,
-          status: true,
-          createdAt: true
+          Image: true,
+          isActive: true,
+          createdAt: true,
+          description: true,
+          category: true
         },
         orderBy: {
           createdAt: 'desc'
         },
-        take: 6
+        take: 12
       }
     }
   });
 
   if (!sellerProfile) {
-    redirect('/seller/signup');
+    // User has seller roles but no profile - redirect to register to complete setup
+    redirect('/register');
   }
 
-  // Check if user has required photos for their roles
-  const userRoles = sellerProfile.user.sellerRoles || [];
-  const rolePhotoCounts: { [key: string]: number } = {};
-  
-  for (const photo of sellerProfile.workplacePhotos) {
-    rolePhotoCounts[photo.role] = (rolePhotoCounts[photo.role] || 0) + 1;
-  }
-
-  const missingPhotos = userRoles.filter(role => 
-    (rolePhotoCounts[role] || 0) < 2
-  );
-
-  return (
-    <SellerProfile 
-      sellerProfile={sellerProfile} 
-      missingPhotos={missingPhotos}
-      rolePhotoCounts={rolePhotoCounts}
-    />
-  );
+  return <SellerProfile sellerProfile={sellerProfile} isOwner={true} />;
 }

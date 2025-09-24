@@ -128,7 +128,7 @@ async function main() {
         userId: delivery.id,
         age: 25 + Math.floor(Math.random() * 15),
         bio: delivery.bio,
-        transportation: ['BIKE', 'ELECTRIC_BIKE'],
+        transportation: ['BIKE', 'EBIKE'],
         maxDistance: 10 + Math.floor(Math.random() * 10),
         preferredRadius: 5 + Math.floor(Math.random() * 5),
         homeLat: 52.3676 + (Math.random() - 0.5) * 0.1,

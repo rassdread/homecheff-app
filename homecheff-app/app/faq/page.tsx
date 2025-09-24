@@ -10,6 +10,12 @@ const faqCategories = [
     color: 'blue'
   },
   {
+    id: 'sustainability',
+    title: 'Duurzaamheid & Verspilling',
+    icon: HelpCircle,
+    color: 'green'
+  },
+  {
     id: 'selling',
     title: 'Verkopen',
     icon: User,
@@ -50,12 +56,6 @@ const faqCategories = [
     title: 'Veiligheid',
     icon: Shield,
     color: 'indigo'
-  },
-  {
-    id: 'sustainability',
-    title: 'Duurzaamheid & Verspilling',
-    icon: HelpCircle,
-    color: 'green'
   }
 ];
 
