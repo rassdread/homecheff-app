@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
@@ -167,6 +167,11 @@ export default function DeliverySignupPage() {
       setIsLoading(false);
     }
   };
+
+  // Scroll naar boven bij stapwissel
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
 
   const nextStep = () => {
     if (currentStep < 8) setCurrentStep(currentStep + 1);
