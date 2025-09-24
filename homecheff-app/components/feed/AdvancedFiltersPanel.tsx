@@ -187,7 +187,6 @@ export default function AdvancedFiltersPanel({
                   <option value="GROWN">🌱 Garden</option>
                   <option value="DESIGNER">🎨 Designer</option>
                   <option value="DELIVERY">🚚 Bezorger</option>
-                  <option value="ADMIN">👑 Admin</option>
                 </select>
               </div>
             )}

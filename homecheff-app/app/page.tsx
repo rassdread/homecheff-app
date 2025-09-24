@@ -328,16 +328,15 @@ function HomePageContent() {
         }
       }
       
-      // Rol filter
+      // Rol filter (exclude ADMIN users)
+      if (user.role === 'ADMIN') {
+        return false; // Always exclude admin users
+      }
+      
       if (userRole !== 'all') {
         if (userRole === 'DELIVERY') {
           // Voor bezorgers, check of ze een delivery profile hebben
           if (!user.buyerRoles?.includes('DELIVERY')) {
-            return false;
-          }
-        } else if (userRole === 'ADMIN') {
-          // Voor admins, check de hoofdrol
-          if (user.role !== 'ADMIN') {
             return false;
           }
         } else {

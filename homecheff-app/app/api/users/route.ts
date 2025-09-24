@@ -30,11 +30,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Add role filtering
+    // Add role filtering (exclude ADMIN from search results)
     if (userRole !== 'all') {
-      if (userRole === 'ADMIN') {
-        searchConditions.role = 'ADMIN';
-      } else if (userRole === 'DELIVERY') {
+      if (userRole === 'DELIVERY') {
         searchConditions.buyerRoles = {
           has: 'DELIVERY'
         };
@@ -45,6 +43,11 @@ export async function GET(request: NextRequest) {
         };
       }
     }
+    
+    // Always exclude ADMIN users from search results
+    searchConditions.role = {
+      not: 'ADMIN'
+    };
 
     // Get users with their profiles and location data
     const whereClause = searchConditions.OR.length > 0 ? searchConditions : {};
@@ -57,12 +60,17 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       where: whereClause,
       include: {
-        sellerProfile: {
+        SellerProfile: {
           include: {
-            workplacePhotos: true
+            workplacePhotos: true,
+            products: {
+              select: {
+                id: true
+              }
+            }
           }
         },
-        deliveryProfile: true
+        DeliveryProfile: true
       },
       take: 50
     });
@@ -87,7 +95,7 @@ export async function GET(request: NextRequest) {
       sellerRoles: user.sellerRoles,
       buyerRoles: user.buyerRoles,
       followerCount: 0, // TODO: implement follower count
-      productCount: user.sellerProfile?.products?.length || 0,
+      productCount: user.SellerProfile?.products?.length || 0,
       location: {
         place: 'Nederland', // TODO: implement location data
         city: 'Amsterdam',
