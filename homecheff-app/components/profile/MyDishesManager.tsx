@@ -1000,7 +1000,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                                   <label className="flex items-center space-x-2 cursor-pointer">
                                     <input 
                                       type="checkbox" 
-                                      checked={d.priceCents && d.priceCents > 0}
+                                      checked={!!(d.priceCents && d.priceCents > 0)}
                                       onChange={(e) => {
                                         e.stopPropagation();
                                         if (e.target.checked) {
