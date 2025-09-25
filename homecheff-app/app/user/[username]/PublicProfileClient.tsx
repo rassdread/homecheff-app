@@ -327,8 +327,9 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">{tab.label}</h2>
                 
                 {(() => {
-                  const category = tab.role === 'chef' ? 'CHEFF' : 
-                                  tab.role === 'garden' ? 'GROWN' : 'DESIGNER';
+                  const roleTab = tab as {id: string, label: string, icon: any, role: string};
+                  const category = roleTab.role === 'chef' ? 'CHEFF' : 
+                                  roleTab.role === 'garden' ? 'GROWN' : 'DESIGNER';
                   const categoryProducts = getProductsByCategory(category);
                   
                   return categoryProducts.length === 0 ? (
