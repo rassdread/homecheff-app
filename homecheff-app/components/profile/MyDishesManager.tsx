@@ -450,14 +450,14 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">
-                        Nieuw {category === "CHEFF" ? "gerecht" : category === "GROWN" ? "kweek" : "creatie"} toevoegen
+                        Nieuw {category === "CHEFF" ? "recept" : category === "GROWN" ? "kweek" : "creatie"} toevoegen aan je portfolio
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
                         {category === "CHEFF" 
-                          ? "Upload maximaal 10 foto's van je gerecht en kies een hoofdfoto voor de feed"
+                          ? "Bewaar je recepten en gerechten in je persoonlijke keuken portfolio"
                           : category === "GROWN" 
-                          ? "Upload maximaal 10 foto's van je kweek en kies een hoofdfoto voor de feed"
-                          : "Upload maximaal 10 foto's van je creatie en kies een hoofdfoto voor de feed"
+                          ? "Documenteer je kweken en planten in je tuin portfolio"
+                          : "Bewaar je creaties en handwerk in je atelier portfolio"
                         }
                       </p>
                     </div>
@@ -481,80 +481,182 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                 {isFormExpanded && (
                   <div className="px-6 pb-6 space-y-6 border-t border-gray-200">
 
-                {/* Basic Info */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Titel *</label>
-                    <input 
-                      value={title} 
-                      onChange={e => setTitle(e.target.value)} 
-                      className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
-                      placeholder={
-                        category === "CHEFF" 
-                          ? "bv. Surinaamse Roti" 
-                          : category === "GROWN" 
-                          ? "bv. Verse tomaten uit eigen tuin"
-                          : "bv. Handgemaakte keramieken vaas"
-                      }
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Categorie *</label>
-                    {activeRole && activeRole !== 'generic' ? (
-                      // Toon alleen de juiste categorie voor specifieke rollen
-                      <div className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 text-gray-700">
-                        {getFilteredCategories(activeRole)[category]?.label || category}
+                {/* Category-specific Basic Info Layout */}
+                {category === "CHEFF" && (
+                  <div className="space-y-6">
+                    {/* Recipe Header */}
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">👨‍🍳</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-orange-900">Recept & Gerecht</h3>
+                          <p className="text-sm text-orange-700">Documenteer je culinaire creaties</p>
+                        </div>
                       </div>
-                    ) : (
-                      // Toon dropdown voor generieke rol
-                      <select 
-                        value={category} 
-                        onChange={e => {
-                          setCategory(e.target.value as any);
-                          setSubcategory(""); // Reset subcategory when category changes
-                        }}
-                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      >
-                        {Object.entries(getFilteredCategories(activeRole)).map(([key, cat]) => (
-                          <option key={key} value={key}>{cat.label}</option>
-                        ))}
-                      </select>
-                    )}
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-orange-800 mb-2">Recept naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-lg border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500" 
+                            placeholder="bv. Surinaamse Roti met kip"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-orange-800 mb-2">Gerecht type</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-lg border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          >
+                            <option value="">Selecteer type</option>
+                            <option value="Hoofdgerecht">Hoofdgerecht</option>
+                            <option value="Voorgerecht">Voorgerecht</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Snack">Snack</option>
+                            <option value="Soep">Soep</option>
+                            <option value="Salade">Salade</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Subcategory */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subcategorie (optioneel)</label>
-                  <select 
-                    value={subcategory} 
-                    onChange={e => setSubcategory(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">Selecteer een subcategorie</option>
-                    {getFilteredCategories(activeRole)[category]?.subcategories.map(sub => (
-                      <option key={sub} value={sub}>{sub}</option>
-                    ))}
-                  </select>
-                </div>
+                {category === "GROWN" && (
+                  <div className="space-y-6">
+                    {/* Garden Header */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">🌱</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-green-900">Kweek & Plant</h3>
+                          <p className="text-sm text-green-700">Documenteer je tuin en oogst</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-green-800 mb-2">Plant/Kweek naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-lg border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                            placeholder="bv. Cherry tomaten uit eigen tuin"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-green-800 mb-2">Plant categorie</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-lg border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          >
+                            <option value="">Selecteer categorie</option>
+                            <option value="Groenten">Groenten</option>
+                            <option value="Fruit">Fruit</option>
+                            <option value="Kruiden">Kruiden</option>
+                            <option value="Bloemen">Bloemen</option>
+                            <option value="Kamerplanten">Kamerplanten</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Beschrijving *</label>
-                  <textarea 
-                    value={description} 
-                    onChange={e => setDescription(e.target.value)} 
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
-                    rows={4} 
-                    placeholder={
-                      category === "CHEFF" 
-                        ? "Beschrijf je gerecht, ingrediënten, bereidingswijze..."
-                        : category === "GROWN" 
-                        ? "Beschrijf je product, teeltwijze, oogstdatum..."
-                        : "Beschrijf je creatie, materialen, techniek..."
-                    } 
-                  />
+                {category === "DESIGNER" && (
+                  <div className="space-y-6">
+                    {/* Designer Header */}
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">🎨</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-purple-900">Creatie & Handwerk</h3>
+                          <p className="text-sm text-purple-700">Documenteer je artistieke werk</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-purple-800 mb-2">Creatie naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-lg border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                            placeholder="bv. Handgemaakte keramieken vaas"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-800 mb-2">Medium/Techniek</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-lg border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          >
+                            <option value="">Selecteer medium</option>
+                            <option value="Keramiek">Keramiek</option>
+                            <option value="Houtwerk">Houtwerk</option>
+                            <option value="Textiel">Textiel</option>
+                            <option value="Metaalwerk">Metaalwerk</option>
+                            <option value="Glaswerk">Glaswerk</option>
+                            <option value="Schilderen">Schilderen</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
+                {/* Category-specific Description */}
+                <div className="space-y-4">
+                  {category === "CHEFF" && (
+                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                      <label className="block text-sm font-medium text-orange-800 mb-2">Recept beschrijving *</label>
+                      <textarea 
+                        value={description} 
+                        onChange={e => setDescription(e.target.value)} 
+                        className="w-full rounded-lg border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500" 
+                        rows={4} 
+                        placeholder="Beschrijf je recept: ingrediënten, bereidingswijze, tips, verhalen over het gerecht..."
+                      />
+                    </div>
+                  )}
+
+                  {category === "GROWN" && (
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                      <label className="block text-sm font-medium text-green-800 mb-2">Kweek beschrijving *</label>
+                      <textarea 
+                        value={description} 
+                        onChange={e => setDescription(e.target.value)} 
+                        className="w-full rounded-lg border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                        rows={4} 
+                        placeholder="Beschrijf je kweek: teeltwijze, verzorging, oogstdatum, bijzonderheden, tips..."
+                      />
+                    </div>
+                  )}
+
+                  {category === "DESIGNER" && (
+                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                      <label className="block text-sm font-medium text-purple-800 mb-2">Creatie beschrijving *</label>
+                      <textarea 
+                        value={description} 
+                        onChange={e => setDescription(e.target.value)} 
+                        className="w-full rounded-lg border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        rows={4} 
+                        placeholder="Beschrijf je creatie: materialen, techniek, inspiratie, proces, bijzonderheden..."
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Photo Upload */}
