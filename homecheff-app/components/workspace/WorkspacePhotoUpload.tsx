@@ -133,6 +133,20 @@ export default function WorkspacePhotoUpload({
     }
   };
 
+  // Bepaal de instructietekst op basis van gebruikerstype
+  const getWorkspaceInstructionText = (type: string) => {
+    switch (type) {
+      case 'CHEFF':
+        return 'Toon je keuken en werkplek waar je gerechten bereidt';
+      case 'GROWN':
+        return 'Toon je tuin en kweekruimte waar je groenten en kruiden teelt';
+      case 'DESIGNER':
+        return 'Toon je atelier en creatieve ruimte waar je items maakt';
+      default:
+        return 'Toon je werkplek waar je producten maakt';
+    }
+  };
+
   const workspaceInfo = getWorkspaceTerminology(userType);
 
   return (
@@ -230,7 +244,7 @@ export default function WorkspacePhotoUpload({
 
       {/* Instructions */}
       <div className="text-xs text-gray-500 space-y-1">
-        <p>• Toon je werkplek, keuken, tuin of atelier</p>
+        <p>• {getWorkspaceInstructionText(userType)}</p>
         <p>• Foto's helpen kopers vertrouwen te krijgen</p>
         <p>• Maximaal 10MB per foto</p>
         <p>• Alleen afbeeldingen (JPG, PNG, WebP)</p>
