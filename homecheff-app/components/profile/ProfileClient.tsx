@@ -301,10 +301,20 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="text-center">
                 {/* Quote/Motto als titel boven profielfoto */}
                 {user?.quote && (
-                  <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
-                    <blockquote className="text-sm text-gray-700 italic leading-relaxed">
-                      "{user.quote}"
-                    </blockquote>
+                  <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-emerald-800 mb-1">Mijn Motto</h3>
+                        <blockquote className="text-base text-gray-700 italic leading-relaxed">
+                          "{user.quote}"
+                        </blockquote>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
