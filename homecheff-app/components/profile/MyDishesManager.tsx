@@ -481,38 +481,196 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                 {isFormExpanded && (
                   <div className="px-6 pb-6 space-y-6 border-t border-gray-200">
 
-                {/* Basic Info */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Titel *</label>
-                    <input 
-                      value={title} 
-                      onChange={e => setTitle(e.target.value)} 
-                      className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
-                      placeholder={
-                        category === "CHEFF" 
-                          ? "bv. Surinaamse Roti" 
-                          : category === "GROWN" 
-                          ? "bv. Verse tomaten uit eigen tuin"
-                          : "bv. Handgemaakte keramieken vaas"
-                      }
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Categorie *</label>
-                    {activeRole && activeRole !== 'generic' ? (
-                      // Toon alleen de juiste categorie voor specifieke rollen
-                      <div className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 text-gray-700">
-                        {getFilteredCategories(activeRole)[category]?.label || category}
+                {/* Category-Specific Templates */}
+                {category === "CHEFF" && (
+                  <div className="space-y-6">
+                    {/* CHEFF Template - Recipe Style */}
+                    <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <h4 className="text-lg font-semibold text-orange-800">Recept Informatie</h4>
                       </div>
-                    ) : (
-                      // Toon dropdown voor generieke rol
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-orange-700 mb-2">Recept Naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-xl border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white" 
+                            placeholder="bv. Surinaamse Roti met kip"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-orange-700 mb-2">Gerecht Type *</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-xl border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                          >
+                            <option value="">Selecteer type gerecht</option>
+                            <option value="Hoofdgerecht">Hoofdgerecht</option>
+                            <option value="Voorgerecht">Voorgerecht</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Snack">Snack</option>
+                            <option value="Drank">Drank</option>
+                            <option value="Saus">Saus</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-orange-700 mb-2">Recept Beschrijving *</label>
+                        <textarea 
+                          value={description} 
+                          onChange={e => setDescription(e.target.value)} 
+                          className="w-full rounded-xl border border-orange-300 px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white" 
+                          rows={4} 
+                          placeholder="Beschrijf je gerecht, ingrediënten, bereidingswijze, kooktijd, moeilijkheidsgraad..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {category === "GROWN" && (
+                  <div className="space-y-6">
+                    {/* GROWN Template - Garden Style */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        </div>
+                        <h4 className="text-lg font-semibold text-green-800">Kweek Informatie</h4>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-green-700 mb-2">Plant/Kweek Naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-xl border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white" 
+                            placeholder="bv. Cherry tomaten uit eigen tuin"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-green-700 mb-2">Plant Categorie *</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-xl border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                          >
+                            <option value="">Selecteer plant categorie</option>
+                            <option value="Groenten">Groenten</option>
+                            <option value="Fruit">Fruit</option>
+                            <option value="Kruiden">Kruiden</option>
+                            <option value="Bloemen">Bloemen</option>
+                            <option value="Kamerplanten">Kamerplanten</option>
+                            <option value="Zaad">Zaad</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-green-700 mb-2">Kweek Beschrijving *</label>
+                        <textarea 
+                          value={description} 
+                          onChange={e => setDescription(e.target.value)} 
+                          className="w-full rounded-xl border border-green-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white" 
+                          rows={4} 
+                          placeholder="Beschrijf je kweek, teeltwijze, oogstdatum, verzorgingstips, biologische methoden..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {category === "DESIGNER" && (
+                  <div className="space-y-6">
+                    {/* DESIGNER Template - Creative Style */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                          </svg>
+                        </div>
+                        <h4 className="text-lg font-semibold text-purple-800">Creatie Informatie</h4>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-2">Creatie Naam *</label>
+                          <input 
+                            value={title} 
+                            onChange={e => setTitle(e.target.value)} 
+                            className="w-full rounded-xl border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white" 
+                            placeholder="bv. Handgemaakte keramieken vaas"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-2">Medium/Techniek *</label>
+                          <select 
+                            value={subcategory} 
+                            onChange={e => setSubcategory(e.target.value)}
+                            className="w-full rounded-xl border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
+                          >
+                            <option value="">Selecteer medium/techniek</option>
+                            <option value="Keramiek">Keramiek</option>
+                            <option value="Houtwerk">Houtwerk</option>
+                            <option value="Textiel">Textiel</option>
+                            <option value="Metaalwerk">Metaalwerk</option>
+                            <option value="Papier">Papier</option>
+                            <option value="Kunst">Kunst</option>
+                            <option value="Sieraden">Sieraden</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-purple-700 mb-2">Creatie Beschrijving *</label>
+                        <textarea 
+                          value={description} 
+                          onChange={e => setDescription(e.target.value)} 
+                          className="w-full rounded-xl border border-purple-300 px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white" 
+                          rows={4} 
+                          placeholder="Beschrijf je creatie, materialen, techniek, inspiratie, maakproces..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Default template for other categories */}
+                {!["CHEFF", "GROWN", "DESIGNER"].includes(category) && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Titel *</label>
+                      <input 
+                        value={title} 
+                        onChange={e => setTitle(e.target.value)} 
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
+                        placeholder="Item titel"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Categorie *</label>
                       <select 
                         value={category} 
                         onChange={e => {
                           setCategory(e.target.value as any);
-                          setSubcategory(""); // Reset subcategory when category changes
+                          setSubcategory("");
                         }}
                         className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       >
@@ -520,42 +678,23 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                           <option key={key} value={key}>{cat.label}</option>
                         ))}
                       </select>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Subcategory */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subcategorie (optioneel)</label>
-                  <select 
-                    value={subcategory} 
-                    onChange={e => setSubcategory(e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">Selecteer een subcategorie</option>
-                    {getFilteredCategories(activeRole)[category]?.subcategories.map(sub => (
-                      <option key={sub} value={sub}>{sub}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Beschrijving *</label>
-                  <textarea 
-                    value={description} 
-                    onChange={e => setDescription(e.target.value)} 
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
-                    rows={4} 
-                    placeholder={
-                      category === "CHEFF" 
-                        ? "Beschrijf je gerecht, ingrediënten, bereidingswijze..."
-                        : category === "GROWN" 
-                        ? "Beschrijf je product, teeltwijze, oogstdatum..."
-                        : "Beschrijf je creatie, materialen, techniek..."
-                    } 
-                  />
-                </div>
+                {/* Description for default template */}
+                {!["CHEFF", "GROWN", "DESIGNER"].includes(category) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Beschrijving *</label>
+                    <textarea 
+                      value={description} 
+                      onChange={e => setDescription(e.target.value)} 
+                      className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" 
+                      rows={4} 
+                      placeholder="Beschrijf je item..."
+                    />
+                  </div>
+                )}
 
                 {/* Photo Upload */}
                 <div>
@@ -838,53 +977,81 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                               )}
                             </div>
                             
-                            {/* Actions */}
-                            <div className="flex items-center justify-between pt-2 border-t">
-                              <div className="flex items-center space-x-2">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePublish(d.id, d.status !== "PUBLISHED");
-                                  }} 
-                                  className={`text-sm px-3 py-1 rounded-lg transition-colors ${
-                                    d.status === "PUBLISHED"
-                                      ? "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                                      : "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
-                                  }`}
-                                >
-                                  {d.status === "PUBLISHED" ? "Maak privé" : "Publiceer"}
-                                </button>
-                                
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = `/product/${d.id}/edit`;
-                                  }} 
-                                  className="text-sm px-3 py-1 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-                                >
-                                  Bewerken
-                                </button>
-                                
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteProduct(d.id);
-                                  }} 
-                                  className="text-sm px-3 py-1 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-                                >
-                                  Verwijderen
-                                </button>
+                            {/* Portfolio Actions */}
+                            <div className="pt-2 border-t space-y-3">
+                              {/* Portfolio Toggles */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                  {/* Zichtbaar voor anderen */}
+                                  <label className="flex items-center space-x-2 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={d.status === "PUBLISHED"}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        togglePublish(d.id, e.target.checked);
+                                      }}
+                                      className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
+                                    />
+                                    <span className="text-sm text-gray-700">Zichtbaar op profiel</span>
+                                  </label>
+                                  
+                                  {/* Aanbieden voor verkoop */}
+                                  <label className="flex items-center space-x-2 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={d.priceCents && d.priceCents > 0}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        if (e.target.checked) {
+                                          // Navigate to selling form with pre-filled data
+                                          window.location.href = `/sell/new?from=${d.id}`;
+                                        } else {
+                                          // Remove from sale
+                                          togglePublish(d.id, false);
+                                        }
+                                      }}
+                                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                    />
+                                    <span className="text-sm text-gray-700">Aanbieden voor verkoop</span>
+                                  </label>
+                                </div>
                               </div>
                               
-                              <div className="flex items-center space-x-2">
-                                {d.photos && d.photos.length > 1 && (
-                                  <span className="text-xs text-gray-500">
-                                    {d.photos.length} foto's
+                              {/* Management Actions */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.location.href = `/product/${d.id}/edit`;
+                                    }} 
+                                    className="text-sm px-3 py-1 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                                  >
+                                    Bewerken
+                                  </button>
+                                  
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteProduct(d.id);
+                                    }} 
+                                    className="text-sm px-3 py-1 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                                  >
+                                    Verwijderen
+                                  </button>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  {d.photos && d.photos.length > 1 && (
+                                    <span className="text-xs text-gray-500">
+                                      {d.photos.length} foto's
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(d.createdAt).toLocaleDateString('nl-NL')}
                                   </span>
-                                )}
-                                <span className="text-xs text-gray-400">
-                                  {new Date(d.createdAt).toLocaleDateString('nl-NL')}
-                                </span>
+                                </div>
                               </div>
                             </div>
                           </div>
