@@ -481,8 +481,8 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                 {isFormExpanded && (
                   <div className="px-6 pb-6 space-y-6 border-t border-gray-200">
 
-                {/* Category-Specific Templates */}
-                {category === "CHEFF" && (
+                {/* Category-Specific Templates - Only show in matching tabs */}
+                {category === "CHEFF" && activeRole === 'chef' && (
                   <div className="space-y-6">
                     {/* CHEFF Template - Recipe Style */}
                     <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
@@ -538,7 +538,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                   </div>
                 )}
 
-                {category === "GROWN" && (
+                {category === "GROWN" && activeRole === 'garden' && (
                   <div className="space-y-6">
                     {/* GROWN Template - Garden Style */}
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
@@ -594,7 +594,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                   </div>
                 )}
 
-                {category === "DESIGNER" && (
+                {category === "DESIGNER" && activeRole === 'designer' && (
                   <div className="space-y-6">
                     {/* DESIGNER Template - Creative Style */}
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
