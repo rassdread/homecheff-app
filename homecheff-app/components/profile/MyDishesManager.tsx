@@ -166,6 +166,19 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
   const [maxStock, setMaxStock] = useState("");
   const [isFormExpanded, setIsFormExpanded] = useState(false);
 
+  // Stel categorie automatisch in op basis van activeRole
+  useEffect(() => {
+    if (activeRole === 'chef') {
+      setCategory('CHEFF');
+    } else if (activeRole === 'garden') {
+      setCategory('GROWN');
+    } else if (activeRole === 'designer') {
+      setCategory('DESIGNER');
+    } else {
+      setCategory('CHEFF'); // default
+    }
+  }, [activeRole]);
+
   const canAdd = useMemo(() => {
     if (title.trim().length === 0 || uploadedFiles.length === 0) return false;
     if (publish) {
@@ -488,18 +501,26 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Categorie *</label>
-                    <select 
-                      value={category} 
-                      onChange={e => {
-                        setCategory(e.target.value as any);
-                        setSubcategory(""); // Reset subcategory when category changes
-                      }}
-                      className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    >
-                      {Object.entries(getFilteredCategories(activeRole)).map(([key, cat]) => (
-                        <option key={key} value={key}>{cat.label}</option>
-                      ))}
-                    </select>
+                    {activeRole && activeRole !== 'generic' ? (
+                      // Toon alleen de juiste categorie voor specifieke rollen
+                      <div className="w-full rounded-xl border border-gray-300 px-4 py-3 bg-gray-50 text-gray-700">
+                        {getFilteredCategories(activeRole)[category]?.label || category}
+                      </div>
+                    ) : (
+                      // Toon dropdown voor generieke rol
+                      <select 
+                        value={category} 
+                        onChange={e => {
+                          setCategory(e.target.value as any);
+                          setSubcategory(""); // Reset subcategory when category changes
+                        }}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      >
+                        {Object.entries(getFilteredCategories(activeRole)).map(([key, cat]) => (
+                          <option key={key} value={key}>{cat.label}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
 
