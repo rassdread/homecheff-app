@@ -84,8 +84,8 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
     ];
 
     const sellerRoles = user.sellerRoles || [];
-    const roleSpecificTabs = [];
-    const workspaceTab = [];
+    const roleSpecificTabs: Array<{id: string, label: string, icon: any, role: string}> = [];
+    const workspaceTab: Array<{id: string, label: string, icon: any}> = [];
 
     // Voeg aparte tabs toe voor elke verkoperrol
     if (sellerRoles.includes('chef')) {
