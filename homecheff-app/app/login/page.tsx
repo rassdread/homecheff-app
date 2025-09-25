@@ -79,20 +79,37 @@ function LoginForm() {
       // Check if user is authenticated
       const session = await getSession();
       if (session) {
-        // Check if user has delivery profile and redirect accordingly
-        try {
-          const profileResponse = await fetch('/api/delivery/profile');
-          if (profileResponse.ok) {
-            // User has delivery profile, redirect to delivery dashboard
-            router.push('/delivery/dashboard');
-            return;
-          }
-        } catch (error) {
-          // User doesn't have delivery profile, continue with normal redirect
-        }
+        // Redirect based on user role
+        const userRole = (session.user as any)?.role;
         
-        // Default redirect
-        router.push(callbackUrl);
+        switch (userRole) {
+          case 'ADMIN':
+            router.push('/admin');
+            break;
+          case 'SELLER':
+            router.push('/profile');
+            break;
+          case 'BUYER':
+            router.push('/feed');
+            break;
+          case 'DELIVERY':
+            // Check if user has delivery profile
+            try {
+              const profileResponse = await fetch('/api/delivery/profile');
+              if (profileResponse.ok) {
+                router.push('/delivery/dashboard');
+              } else {
+                router.push('/delivery/signup');
+              }
+            } catch (error) {
+              console.error('Error checking delivery profile:', error);
+              router.push('/delivery/signup');
+            }
+            break;
+          default:
+            router.push('/feed');
+            break;
+        }
       }
     } catch (error) {
       setState({ 
@@ -108,9 +125,9 @@ function LoginForm() {
     setState({ ...state, isLoading: true, error: null });
     
     try {
-      // For social login, we'll use a custom callback URL that checks for delivery profile
+      // For social login, use role-based redirect
       await signIn(provider, { 
-        callbackUrl: '/api/auth/callback/delivery-redirect',
+        callbackUrl: '/api/auth/callback/role-redirect',
         redirect: true 
       });
     } catch (error) {

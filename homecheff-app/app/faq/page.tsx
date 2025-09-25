@@ -114,6 +114,10 @@ const faqData = {
     {
       question: "Kan ik mijn producten bewerken of verwijderen?",
       answer: "Ja, je kunt je producten altijd bewerken, voorraad aanpassen, prijzen wijzigen of producten tijdelijk deactiveren. Verwijderen kan ook, maar dit beïnvloedt je statistieken.\n\n🤝 LOKALE GEMEENSCHAP:\n• Update handgemaakte productinformatie\n• Voeg nieuwe lokale aspecten toe\n• Pas verpakkingsinformatie aan\n• Deel updates over je verspilling tegengaan initiatieven"
+    },
+    {
+      question: "Hoe kan ik toekomstige producten aanbieden?",
+      answer: "HomeCheff's reserveringssysteem helpt je verspilling tegen te gaan door vooruit te plannen:\n\n📅 TOEKOMSTIGE BESCHIKBAARHEID:\n• Bied producten maximaal 1 week vooruit aan\n• Perfect voor wanneer je weet dat je teveel gaat maken\n• Laat kopers vooraf reserveren\n• Voorkom verspilling door planning\n\n🎯 VOORBEELDEN:\n• BBQ weekend: 'Extra hamburgers - reserveer vooraf'\n• Feestje: 'Taart te groot voor ons gezin'\n• Kookdag: 'Extra porties pasta - 3 dagen vooruit'\n\n♻️ VOORDELEN:\n• Je weet precies hoeveel te maken\n• Geen voedselverspilling meer\n• Kopers kunnen plannen\n• Betere verdiensten door planning\n\n💡 TIP: Als je weet dat je altijd teveel maakt, bied het vooraf aan!"
     }
   ],
   buying: [
@@ -127,7 +131,7 @@ const faqData = {
     },
     {
       question: "Kan ik producten reserveren?",
-      answer: "Ja, veel verkopers bieden reservering aan. Je kunt een product reserveren en later ophalen of laten bezorgen, afhankelijk van wat de verkoper aanbiedt.\n\n♻️ TEGEN VERSPILLING:\n• Voorkomt verspilling door planning\n• Minder impulsaankopen\n• Betere voorraadbeheer voor verkopers\n• Minder voedselverspilling"
+      answer: "Ja! HomeCheff biedt een uniek reserveringssysteem voor toekomstige producten. Dit is perfect voor bijvoorbeeld BBQ's, feestjes of speciale gelegenheden.\n\n📅 TOEKOMSTIGE BESCHIKBAARHEID:\n• Producten kunnen maximaal 1 week vooruit worden aangeboden\n• Reserveer vooraf om verspilling te voorkomen\n• Verkopers weten precies hoeveel ze moeten maken\n• Ideaal voor overtollige maaltijden\n\n♻️ TEGEN VERSPILLING:\n• Voorkomt verspilling door planning\n• Minder impulsaankopen\n• Betere voorraadbeheer voor verkopers\n• Minder voedselverspilling\n\n💡 VOORBEELD: Planning een BBQ weekend? Bied je overtollige porties vooraf aan en laat mensen reserveren!"
     },
     {
       question: "Wat als ik niet tevreden ben over mijn aankoop?",
@@ -136,6 +140,10 @@ const faqData = {
     {
       question: "Kan ik verkopers volgen?",
       answer: "Ja! Word fan van je favoriete handgemaakte verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe handgemaakte items toevoegen.\n\n🤝 LOKALE GEMEENSCHAP:\n• Ondersteun lokale makers\n• Leer van handgemaakte technieken\n• Deel tips en ervaringen\n• Bouw een bewuste community op"
+    },
+    {
+      question: "Hoe werkt toekomstige beschikbaarheid en reserveringen?",
+      answer: "HomeCheff's unieke reserveringssysteem helpt verspilling tegen te gaan door vooruit plannen:\n\n📅 TOEKOMSTIGE PRODUCTEN:\n• Maximaal 1 week vooruit aanbieden\n• Perfect voor BBQ's, feestjes, speciale gelegenheden\n• Verkopers weten precies hoeveel te maken\n• Kopers kunnen vooraf reserveren\n\n🎯 VOORBEELDEN:\n• 'BBQ weekend - reserveer je portie' (3 dagen vooruit)\n• 'Extra taart voor verjaardag' (1 week vooruit)\n• 'Overtollige pasta vanavond' (vandaag)\n\n♻️ VOORDELEN:\n• Voorkomt voedselverspilling\n• Betere planning voor verkopers\n• Kopers weten wat ze kunnen verwachten\n• Minder impulsaankopen\n\n💡 TIP: Als je weet dat je teveel gaat maken, bied het vooraf aan!"
     }
   ],
   payments: [

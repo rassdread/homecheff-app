@@ -13,6 +13,7 @@ model User {
   email                                  String                    @unique
   createdAt                              DateTime                  @default(now())
   bio                                    String?
+  quote                                  String?
   emailVerified                          DateTime?
   image                                  String?
   lat                                    Float?
@@ -29,6 +30,7 @@ model User {
   bankName                               String?
   buyerRoles                             String[]                  @default([])
   displayFullName                        Boolean                   @default(true)
+  displayNameOption                      String                    @default("full")
   gender                                 String?
   iban                                   String?
   marketingAccepted                      Boolean                   @default(false)
@@ -248,30 +250,34 @@ model Image {
 }
 
 model Listing {
-  id           String          @id
-  ownerId      String
-  title        String
-  description  String
-  priceCents   Int
-  category     ListingCategory
-  status       ListingStatus   @default(DRAFT)
-  place        String?
-  lat          Float?
-  lng          Float?
-  isPublic     Boolean         @default(true)
-  viewCount    Int             @default(0)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime
-  AuditLog     AuditLog[]
-  Favorite     Favorite[]
-  User         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ListingMedia ListingMedia[]
-  ListingTag   ListingTag[]
-  Report       Report[]
-  Reservation  Reservation[]
+  id               String          @id
+  ownerId          String
+  title            String
+  description      String
+  priceCents       Int
+  category         ListingCategory
+  status           ListingStatus   @default(DRAFT)
+  place            String?
+  lat              Float?
+  lng              Float?
+  isPublic         Boolean         @default(true)
+  viewCount        Int             @default(0)
+  // Toekomstige beschikbaarheid
+  availabilityDate DateTime?       // Datum wanneer het product beschikbaar is (max 1 week vooruit)
+  isFutureProduct  Boolean         @default(false) // Of dit een toekomstig product is
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime
+  AuditLog         AuditLog[]
+  Favorite         Favorite[]
+  User             User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ListingMedia     ListingMedia[]
+  ListingTag       ListingTag[]
+  Report           Report[]
+  Reservation      Reservation[]
 
   @@index([lat, lng])
   @@index([status, category, createdAt])
+  @@index([availabilityDate, isFutureProduct])
 }
 
 model ListingMedia {

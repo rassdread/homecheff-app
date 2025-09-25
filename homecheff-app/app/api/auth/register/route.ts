@@ -227,8 +227,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Bepaal redirect URL op basis van rol
+    let redirectUrl = "/"; // Default naar homepage
+    
+    if (userRole === UserRole.SELLER) {
+      redirectUrl = "/profile"; // Verkopers naar profielpagina
+    } else if (userRole === UserRole.BUYER) {
+      redirectUrl = "/feed"; // Kopers naar feed/homepage
+    }
+
     return NextResponse.json({ 
       ok: true, 
+      redirectUrl,
       user: {
         id: user.id,
         email,

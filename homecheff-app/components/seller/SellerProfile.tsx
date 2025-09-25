@@ -8,6 +8,7 @@ import {
   ShoppingBag, 
   Camera,
   Upload,
+  Settings,
   X,
   ArrowLeft,
   Shield,
@@ -160,7 +161,9 @@ interface SellerProfile {
     name: string | null;
     email: string;
     image: string | null;
+    quote?: string | null;
     sellerRoles: string[];
+    buyerRoles?: string[];
   };
   workplacePhotos: WorkplacePhoto[];
   products: Product[];
@@ -508,6 +511,15 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
           {/* Profile Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm border p-6">
+              {/* Quote/Motto als titel boven profielfoto */}
+              {sellerProfile.User.quote && (
+                <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                  <blockquote className="text-sm text-gray-700 italic leading-relaxed text-center">
+                    "{sellerProfile.User.quote}"
+                  </blockquote>
+                </div>
+              )}
+
               {/* Profile Photo */}
               <div className="flex flex-col items-center mb-6">
                 <div className="relative">
@@ -579,10 +591,48 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                   </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Werkruimte Foto's</span>
+                  <span className="text-gray-600">
+                    {(() => {
+                      const sellerRoles = sellerProfile.User.sellerRoles || [];
+                      if (sellerRoles.includes('chef')) return 'De Keuken Foto\'s';
+                      if (sellerRoles.includes('garden')) return 'De Tuin Foto\'s';
+                      if (sellerRoles.includes('designer')) return 'Het Atelier Foto\'s';
+                      return 'Werkruimte Foto\'s';
+                    })()}
+                  </span>
                   <span className="font-medium">{totalWorkplacePhotos}</span>
                 </div>
               </div>
+
+              {/* Koperrollen - Boven de bio */}
+              {sellerProfile.User.buyerRoles && sellerProfile.User.buyerRoles.length > 0 && (
+                <div className="border-t pt-4 mb-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Mijn Koperrollen</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {sellerProfile.User.buyerRoles.map((role, index) => {
+                      const roleInfo = {
+                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800" },
+                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800" },
+                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800" },
+                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800" },
+                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800" },
+                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800" },
+                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800" }
+                      }[role];
+                      
+                      return (
+                        <span
+                          key={index}
+                          className={`inline-flex items-center gap-1 px-3 py-1 ${roleInfo?.color} rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
+                        >
+                          <span className="text-sm">{roleInfo?.icon}</span>
+                          <span>{roleInfo?.label || role}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Bio */}
               {sellerProfile.bio && (
@@ -606,6 +656,20 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                   ))}
                 </div>
               </div>
+
+              {/* Instellingen - Altijd zichtbaar */}
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Instellingen</h3>
+                
+                <button
+                  onClick={() => window.location.href = '/profile'}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Profiel instellingen</span>
+                </button>
+                
+              </div>
             </div>
           </div>
 
@@ -617,7 +681,16 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                 <nav className="flex">
                   {[
                     { id: 'overview', label: 'Overzicht' },
-                    { id: 'photos', label: 'Werkruimte Foto\'s' },
+                    { 
+                      id: 'photos', 
+                      label: (() => {
+                        const sellerRoles = sellerProfile.User.sellerRoles || [];
+                        if (sellerRoles.includes('chef')) return 'De Keuken Foto\'s';
+                        if (sellerRoles.includes('garden')) return 'De Tuin Foto\'s';
+                        if (sellerRoles.includes('designer')) return 'Het Atelier Foto\'s';
+                        return 'Werkruimte Foto\'s';
+                      })()
+                    },
                     ...(sellerProfile.User.sellerRoles.length > 0 ? [
                       { 
                         id: 'workspace', 
@@ -705,7 +778,15 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-gray-900">Werkruimte Foto's</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          {(() => {
+                            const sellerRoles = sellerProfile.User.sellerRoles || [];
+                            if (sellerRoles.includes('chef')) return 'De Keuken Foto\'s';
+                            if (sellerRoles.includes('garden')) return 'De Tuin Foto\'s';
+                            if (sellerRoles.includes('designer')) return 'Het Atelier Foto\'s';
+                            return 'Werkruimte Foto\'s';
+                          })()}
+                        </h3>
                         <p className="text-sm text-gray-600">
                           {isOwner 
                             ? 'Upload foto\'s van je werkruimte per rol (min. 2 per rol)'
@@ -798,7 +879,15 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                           className="flex items-center space-x-2"
                         >
                           <Plus className="w-4 h-4" />
-                          <span>Nieuw Item</span>
+                          <span>
+                            {(() => {
+                              const sellerRoles = sellerProfile.User.sellerRoles || [];
+                              if (sellerRoles.includes('chef')) return 'Nieuw Gerecht';
+                              if (sellerRoles.includes('garden')) return 'Nieuwe Kweek';
+                              if (sellerRoles.includes('designer')) return 'Nieuwe Creatie';
+                              return 'Nieuw Item';
+                            })()}
+                          </span>
                         </Button>
                       )}
                     </div>
@@ -984,7 +1073,15 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                             className="flex items-center space-x-2"
                           >
                             <Plus className="w-4 h-4" />
-                            <span>Eerste Item Toevoegen</span>
+                            <span>
+                              {(() => {
+                                const sellerRoles = sellerProfile.User.sellerRoles || [];
+                                if (sellerRoles.includes('chef')) return 'Eerste Gerecht Toevoegen';
+                                if (sellerRoles.includes('garden')) return 'Eerste Kweek Toevoegen';
+                                if (sellerRoles.includes('designer')) return 'Eerste Creatie Toevoegen';
+                                return 'Eerste Item Toevoegen';
+                              })()}
+                            </span>
                           </Button>
                         )}
                       </div>
@@ -1091,7 +1188,13 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Upload Werkruimte Foto's
+              {(() => {
+                const sellerRoles = sellerProfile.User.sellerRoles || [];
+                if (sellerRoles.includes('chef')) return 'Upload De Keuken Foto\'s';
+                if (sellerRoles.includes('garden')) return 'Upload De Tuin Foto\'s';
+                if (sellerRoles.includes('designer')) return 'Upload Het Atelier Foto\'s';
+                return 'Upload Werkruimte Foto\'s';
+              })()}
             </h3>
             
             {/* Role Selection */}

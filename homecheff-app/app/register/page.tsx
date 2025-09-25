@@ -114,6 +114,12 @@ type RegisterState = {
   acceptMarketing: boolean;
   // Belastingverantwoordelijkheid
   acceptTaxResponsibility: boolean;
+  // Gebruikersnaam validatie
+  usernameValidation: {
+    isValid: boolean | null;
+    message: string;
+    isChecking: boolean;
+  };
 };
 
 export default function RegisterPage() {
@@ -150,6 +156,12 @@ export default function RegisterPage() {
     acceptMarketing: false,
     // Belastingverantwoordelijkheid
     acceptTaxResponsibility: false,
+    // Gebruikersnaam validatie
+    usernameValidation: {
+      isValid: null,
+      message: "",
+      isChecking: false,
+    },
   });
 
   const steps = [
@@ -215,6 +227,81 @@ export default function RegisterPage() {
     }));
   }
 
+  // Gebruikersnaam validatie functie
+  const validateUsername = async (username: string) => {
+    if (!username || username.length < 3) {
+      setState(prev => ({
+        ...prev,
+        usernameValidation: {
+          isValid: false,
+          message: "Gebruikersnaam moet minimaal 3 karakters lang zijn",
+          isChecking: false,
+        }
+      }));
+      return;
+    }
+
+    setState(prev => ({
+      ...prev,
+      usernameValidation: {
+        isValid: null,
+        message: "Controleren...",
+        isChecking: true,
+      }
+    }));
+
+    try {
+      const response = await fetch('/api/auth/validate-username', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const data = await response.json();
+
+      setState(prev => ({
+        ...prev,
+        usernameValidation: {
+          isValid: data.valid,
+          message: data.valid ? data.message : data.error,
+          isChecking: false,
+        }
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        usernameValidation: {
+          isValid: false,
+          message: "Er is een fout opgetreden bij het controleren van de gebruikersnaam",
+          isChecking: false,
+        }
+      }));
+    }
+  };
+
+  // Debounced gebruikersnaam validatie
+  useEffect(() => {
+    if (!state.username) {
+      setState(prev => ({
+        ...prev,
+        usernameValidation: {
+          isValid: null,
+          message: "",
+          isChecking: false,
+        }
+      }));
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      validateUsername(state.username);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [state.username]);
+
   async function handleSocialLogin(provider: string) {
     try {
       const result = await signIn(provider, { 
@@ -234,6 +321,23 @@ export default function RegisterPage() {
       setState(prev => ({ 
         ...prev, 
         error: "Je moet de privacyverklaring en algemene voorwaarden accepteren om door te gaan." 
+      }));
+      return;
+    }
+
+    // Validatie voor gebruikersnaam
+    if (!state.username || state.username.trim().length === 0) {
+      setState(prev => ({ 
+        ...prev, 
+        error: "Gebruikersnaam is verplicht." 
+      }));
+      return;
+    }
+
+    if (state.usernameValidation.isValid !== true) {
+      setState(prev => ({ 
+        ...prev, 
+        error: "Voer een geldige gebruikersnaam in voordat je doorgaat." 
       }));
       return;
     }
@@ -300,7 +404,7 @@ export default function RegisterPage() {
         
         if (signInResult?.ok) {
           // Succesvol ingelogd, redirect naar juiste pagina op basis van rol
-          const redirectUrl = data.redirectUrl || "/";
+          const redirectUrl = data.redirectUrl || "/feed";
           router.push(redirectUrl);
         } else {
           // Inloggen mislukt, redirect naar login pagina
@@ -606,13 +710,60 @@ export default function RegisterPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Gebruikersnaam *</label>
-                    <input
-                      type="text"
-                      value={state.username}
-                      onChange={e => setState(prev => ({ ...prev, username: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="Unieke gebruikersnaam"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={state.username}
+                        onChange={e => setState(prev => ({ ...prev, username: e.target.value }))}
+                        className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:border-transparent transition-colors ${
+                          state.usernameValidation.isValid === true
+                            ? 'border-green-500 bg-green-50 focus:ring-green-500'
+                            : state.usernameValidation.isValid === false
+                            ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                        }`}
+                        placeholder="Unieke gebruikersnaam (3-20 karakters)"
+                      />
+                      {state.usernameValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                        </div>
+                      )}
+                      {state.usernameValidation.isValid === true && !state.usernameValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                      )}
+                      {state.usernameValidation.isValid === false && !state.usernameValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Validatie feedback */}
+                    {state.usernameValidation.message && (
+                      <div className={`mt-2 text-sm ${
+                        state.usernameValidation.isValid === true
+                          ? 'text-green-600'
+                          : state.usernameValidation.isValid === false
+                          ? 'text-red-600'
+                          : 'text-gray-500'
+                      }`}>
+                        {state.usernameValidation.message}
+                      </div>
+                    )}
+                    
+                    {/* Gebruikersnaam regels */}
+                    <div className="mt-2 text-xs text-gray-500">
+                      <p>Gebruikersnaam regels:</p>
+                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
+                        <li>3-20 karakters lang</li>
+                        <li>Alleen letters, cijfers en underscores</li>
+                        <li>Moet uniek zijn</li>
+                        <li>Kan niet worden gewijzigd na registratie</li>
+                      </ul>
+                    </div>
                   </div>
                   
                   {/* Business Checkbox */}
@@ -1048,6 +1199,7 @@ export default function RegisterPage() {
                   onClick={nextStep}
                   disabled={
                     (state.currentStep === 2 && state.userTypes.length === 0 && state.selectedBuyerType === "") ||
+                    (state.currentStep === 3 && (!state.firstName || !state.lastName || !state.username || !state.email || !state.password || state.usernameValidation.isValid !== true)) ||
                     (state.currentStep === 5 && state.userTypes.length > 0 && (!state.bankName || !state.iban || !state.accountHolderName || !state.acceptTaxResponsibility))
                   }
                   className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"

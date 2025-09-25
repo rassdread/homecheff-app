@@ -27,6 +27,10 @@ export default function NewProductForm() {
   const [submitting, setSubmitting] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
   const [displayNameType, setDisplayNameType] = React.useState<'fullname' | 'username'>('fullname');
+  
+  // Toekomstige beschikbaarheid state
+  const [isFutureProduct, setIsFutureProduct] = React.useState(false);
+  const [availabilityDate, setAvailabilityDate] = React.useState('');
 
   // Dynamische voorbeeldtekst op basis van categorie
   const getDynamicExamples = (category: string) => {
@@ -45,6 +49,12 @@ export default function NewProductForm() {
           "Verse pasta met room, spek en Parmezaanse kaas. Traditioneel recept uit Rome.",
           "Zelfgebakken koekjes met pure chocolade. Perfect voor bij de koffie.",
           "Kruidige curry met verse groenten en kokosmelk. Vegetarisch en glutenvrij."
+        ],
+        futureExamples: [
+          "BBQ Weekend - Extra hamburgers (reserveer vooraf)",
+          "Verjaardagstaart - Te groot voor ons gezin",
+          "Pasta avond - Extra porties beschikbaar",
+          "Feestje - Overtollige hapjes"
         ]
       },
       GARDEN: {
@@ -61,6 +71,12 @@ export default function NewProductForm() {
           "Zoete cherry tomaten uit eigen tuin. Geen pesticiden, 100% biologisch.",
           "Verse kruidenmix van basilicum, oregano en tijm. Perfect voor Italiaanse gerechten.",
           "Honing van eigen bijenvolk. Rauw en ongefilterd voor maximale smaak."
+        ],
+        futureExamples: [
+          "Zomer tomaten - Reserveer je portie (oogst volgende week)",
+          "Basilicum oogst - Teveel voor ons gezin",
+          "Aardbeien seizoen - Voorbestellen mogelijk",
+          "Kruidenbundel - Overtollige oogst"
         ]
       },
       DESIGNER: {
@@ -77,6 +93,11 @@ export default function NewProductForm() {
           "Unieke keramiek schaal gemaakt van lokale klei. Elk stuk is handgemaakt en uniek.",
           "Zacht gehaakte deken van 100% katoen. Perfect voor baby's en kinderen.",
           "Snijplank set van duurzaam hardhout. Met natuurlijke olie afgewerkt."
+        ],
+        futureExamples: [
+          "Keramiek workshop - Reserveer je stuk",
+          "Gehaakte deken - Voorbestellen mogelijk",
+          "Houten meubel - Maatwerk beschikbaar"
         ]
       }
     };

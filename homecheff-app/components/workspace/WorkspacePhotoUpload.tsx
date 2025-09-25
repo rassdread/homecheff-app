@@ -1,0 +1,240 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { Upload, X, Camera, AlertCircle, CheckCircle } from 'lucide-react';
+import { uploadFile } from '@/lib/upload';
+
+interface WorkspacePhotoUploadProps {
+  maxPhotos?: number;
+  initialPhotos?: string[];
+  onPhotosChange?: (photos: string[]) => void;
+  className?: string;
+  userType?: 'CHEFF' | 'GROWN' | 'DESIGNER' | 'SELLER';
+}
+
+interface PhotoItem {
+  id: string;
+  url: string;
+  uploading?: boolean;
+  error?: string;
+}
+
+export default function WorkspacePhotoUpload({ 
+  maxPhotos = 10, 
+  initialPhotos = [], 
+  onPhotosChange,
+  className = '',
+  userType = 'SELLER'
+}: WorkspacePhotoUploadProps) {
+  const [photos, setPhotos] = useState<PhotoItem[]>(
+    initialPhotos.map(url => ({ id: crypto.randomUUID(), url }))
+  );
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotosChange = (newPhotos: PhotoItem[]) => {
+    setPhotos(newPhotos);
+    onPhotosChange?.(newPhotos.map(p => p.url).filter(Boolean));
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files) return;
+
+    const remainingSlots = maxPhotos - photos.length;
+    if (remainingSlots <= 0) {
+      alert(`Maximum ${maxPhotos} foto's toegestaan`);
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    
+    for (const file of filesToUpload) {
+      // Client-side validation
+      if (!file.type.startsWith('image/')) {
+        alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
+        continue;
+      }
+      
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
+        continue;
+      }
+
+      const tempId = crypto.randomUUID();
+      const tempPhoto: PhotoItem = {
+        id: tempId,
+        url: '',
+        uploading: true
+      };
+
+      // Add uploading placeholder
+      handlePhotosChange([...photos, tempPhoto]);
+
+      try {
+        const result = await uploadFile(file, '/api/profile/seller/photos');
+        
+        if (result.success) {
+          // Replace uploading placeholder with actual photo
+          handlePhotosChange(photos.map(p => 
+            p.id === tempId 
+              ? { id: tempId, url: result.url }
+              : p
+          ));
+        } else {
+          // Remove failed upload and show error
+          handlePhotosChange(photos.filter(p => p.id !== tempId));
+          alert(`Upload van "${file.name}" mislukt: ${result.error}`);
+        }
+      } catch (error) {
+        // Remove failed upload
+        handlePhotosChange(photos.filter(p => p.id !== tempId));
+        alert(`Upload van "${file.name}" mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    handleFileUpload(e.dataTransfer.files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  const removePhoto = (id: string) => {
+    handlePhotosChange(photos.filter(p => p.id !== id));
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
+
+  const canAddMore = photos.length < maxPhotos;
+
+  // Bepaal de juiste terminologie op basis van gebruikerstype
+  const getWorkspaceTerminology = (type: string) => {
+    switch (type) {
+      case 'CHEFF':
+        return { label: 'De Keuken', description: 'keuken foto\'s' };
+      case 'GROWN':
+        return { label: 'De Tuin', description: 'tuin foto\'s' };
+      case 'DESIGNER':
+        return { label: 'Het Atelier', description: 'atelier foto\'s' };
+      default:
+        return { label: 'Werkruimte', description: 'werkruimte foto\'s' };
+    }
+  };
+
+  const workspaceInfo = getWorkspaceTerminology(userType);
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-gray-700">
+          {workspaceInfo.label}
+        </label>
+        <span className="text-xs text-gray-500">
+          {photos.length}/{maxPhotos} foto's
+        </span>
+      </div>
+
+      {/* Upload Area */}
+      {canAddMore && (
+        <div
+          className={`
+            relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
+            ${dragActive 
+              ? 'border-primary-400 bg-primary-50' 
+              : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+            }
+          `}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={openFileDialog}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileUpload(e.target.files)}
+          />
+          
+          <div className="space-y-2">
+            <Camera className="w-8 h-8 mx-auto text-gray-400" />
+            <div className="text-sm text-gray-600">
+              <p className="font-medium">Sleep foto's hierheen of klik om te uploaden</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Maximaal {maxPhotos - photos.length} foto's meer
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Grid */}
+      {photos.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {photos.map((photo) => (
+            <div key={photo.id} className="relative group">
+              <div className="aspect-square rounded-lg overflow-hidden border border-gray-200">
+                {photo.uploading ? (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                      <p className="text-xs text-gray-500">Uploaden...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    src={photo.url}
+                    alt={`${workspaceInfo.description}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              
+              {/* Remove Button */}
+              {!photo.uploading && (
+                <button
+                  onClick={() => removePhoto(photo.id)}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+              
+              {/* Status Indicator */}
+              {photo.uploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto mb-1"></div>
+                    <p className="text-xs">Uploaden...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Instructions */}
+      <div className="text-xs text-gray-500 space-y-1">
+        <p>• Toon je werkplek, keuken, tuin of atelier</p>
+        <p>• Foto's helpen kopers vertrouwen te krijgen</p>
+        <p>• Maximaal 10MB per foto</p>
+        <p>• Alleen afbeeldingen (JPG, PNG, WebP)</p>
+      </div>
+    </div>
+  );
+}

@@ -1,47 +1,79 @@
-import { put } from '@vercel/blob';
-import { NextRequest } from 'next/server';
+// lib/upload.ts - Uniforme upload service
 
-export async function uploadFile(file: File, filename?: string): Promise<string> {
+export interface UploadResult {
+  url: string;
+  success: boolean;
+  error?: string;
+}
+
+export async function uploadFile(file: File, endpoint: string = '/api/upload'): Promise<UploadResult> {
   try {
-    const blob = await put(filename || file.name, file, {
-      access: 'public',
+    // Client-side validation
+    if (!file.type.startsWith('image/')) {
+      return {
+        url: '',
+        success: false,
+        error: 'Alleen afbeeldingen zijn toegestaan.'
+      };
+    }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      return {
+        url: '',
+        success: false,
+        error: 'Bestand is te groot. Maximum 10MB toegestaan.'
+      };
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      body: formData,
     });
-    return blob.url;
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        url: '',
+        success: false,
+        error: errorData.error || `Upload mislukt (${response.status})`
+      };
+    }
+    
+    const data = await response.json();
+    
+    if (data.url || data.publicUrl) {
+      return {
+        url: data.url || data.publicUrl,
+        success: true
+      };
+    } else {
+      return {
+        url: '',
+        success: false,
+        error: 'Geen URL ontvangen van server'
+      };
+    }
   } catch (error) {
     console.error('Upload error:', error);
-    throw new Error('Failed to upload file');
+    return {
+      url: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Onbekende upload fout'
+    };
   }
 }
 
-export async function uploadMultipleFiles(files: File[]): Promise<string[]> {
-  try {
-    const uploadPromises = files.map(file => uploadFile(file));
-    const urls = await Promise.all(uploadPromises);
-    return urls;
-  } catch (error) {
-    console.error('Multiple upload error:', error);
-    throw new Error('Failed to upload files');
-  }
+export async function uploadProfilePhoto(file: File): Promise<UploadResult> {
+  return uploadFile(file, '/api/profile/photo/upload');
 }
 
-export function validateFileType(file: File, allowedTypes: string[]): boolean {
-  return allowedTypes.includes(file.type);
+export async function uploadProductImages(file: File): Promise<UploadResult> {
+  return uploadFile(file, '/api/upload');
 }
 
-export function validateFileSize(file: File, maxSizeInMB: number): boolean {
-  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-  return file.size <= maxSizeInBytes;
+export async function uploadWorkspacePhoto(file: File): Promise<UploadResult> {
+  return uploadFile(file, '/api/profile/seller/photos');
 }
-
-export function getFileExtension(filename: string): string {
-  return filename.split('.').pop()?.toLowerCase() || '';
-}
-
-export function generateUniqueFilename(originalName: string): string {
-  const timestamp = Date.now();
-  const randomString = Math.random().toString(36).substring(2, 8);
-  const extension = getFileExtension(originalName);
-  return `${timestamp}-${randomString}.${extension}`;
-}
-
-

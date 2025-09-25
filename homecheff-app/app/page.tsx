@@ -199,7 +199,7 @@ function HomePageContent() {
   useEffect(() => {
     const fetchUsername = async () => {
       try {
-        const response = await fetch('/me');
+        const response = await fetch('/api/profile/me');
         const data = await response.json();
         if (data.user?.name) {
           setUsername(data.user.name);
@@ -483,14 +483,13 @@ function HomePageContent() {
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
               {username ? (
                 <span>
-                  Welkom terug,{' '}
+                  Hey {username.split(' ')[0]}, wat gaat het worden vandaag?{' '}
                   <Link 
                     href="/profile" 
                     className="text-white hover:text-primary-100 transition-colors underline decoration-2 underline-offset-4 hover:decoration-primary-200"
                   >
-                    {username}
+                    Ontdek
                   </Link>
-                  !
                 </span>
               ) : (
                 'Ontdek Lokale Delicatessen'

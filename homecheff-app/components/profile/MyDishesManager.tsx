@@ -28,6 +28,8 @@ type UploadedFile = {
 const CATEGORIES = {
   CHEFF: {
     label: "Chef",
+    itemName: "gerecht",
+    addButtonText: "Nieuw Gerecht",
     subcategories: [
       "Hoofdgerecht",
       "Voorgerecht", 
@@ -61,6 +63,8 @@ const CATEGORIES = {
   },
   GROWN: {
     label: "Garden",
+    itemName: "kweek",
+    addButtonText: "Nieuwe Kweek",
     subcategories: [
       "Groenten",
       "Fruit",
@@ -87,6 +91,8 @@ const CATEGORIES = {
   },
   DESIGNER: {
     label: "Designer",
+    itemName: "creatie",
+    addButtonText: "Nieuwe Creatie",
     subcategories: [
       "Handgemaakt",
       "Kunst",
@@ -119,11 +125,26 @@ const CATEGORIES = {
   }
 };
 
+// Functie om categorieën te filteren op basis van activeRole
+const getFilteredCategories = (activeRole: string) => {
+  if (activeRole === 'chef') {
+    return { CHEFF: CATEGORIES.CHEFF };
+  } else if (activeRole === 'garden') {
+    return { GROWN: CATEGORIES.GROWN };
+  } else if (activeRole === 'designer') {
+    return { DESIGNER: CATEGORIES.DESIGNER };
+  } else {
+    // Als geen specifieke rol of generic, toon alle categorieën
+    return CATEGORIES;
+  }
+};
+
 interface MyDishesManagerProps {
   onStatsUpdate?: () => void;
+  activeRole?: string;
 }
 
-export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps) {
+export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' }: MyDishesManagerProps) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Dish[]>([]);
   const [activeTab, setActiveTab] = useState<'dishes' | 'products'>('products');
@@ -416,14 +437,14 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">
-                        Nieuw {category === "CHEFF" ? "gerecht" : category === "GROWN" ? "product" : "item"} toevoegen
+                        Nieuw {category === "CHEFF" ? "gerecht" : category === "GROWN" ? "kweek" : "creatie"} toevoegen
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
                         {category === "CHEFF" 
-                          ? "Upload maximaal 5 foto's van je gerecht en kies een hoofdfoto voor de feed"
+                          ? "Upload maximaal 10 foto's van je gerecht en kies een hoofdfoto voor de feed"
                           : category === "GROWN" 
-                          ? "Upload maximaal 5 foto's van je product en kies een hoofdfoto voor de feed"
-                          : "Upload maximaal 5 foto's van je creatie en kies een hoofdfoto voor de feed"
+                          ? "Upload maximaal 10 foto's van je kweek en kies een hoofdfoto voor de feed"
+                          : "Upload maximaal 10 foto's van je creatie en kies een hoofdfoto voor de feed"
                         }
                       </p>
                     </div>
@@ -475,7 +496,7 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
                       }}
                       className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     >
-                      {Object.entries(CATEGORIES).map(([key, cat]) => (
+                      {Object.entries(getFilteredCategories(activeRole)).map(([key, cat]) => (
                         <option key={key} value={key}>{cat.label}</option>
                       ))}
                     </select>
@@ -491,7 +512,7 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
                     className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Selecteer een subcategorie</option>
-                    {CATEGORIES[category].subcategories.map(sub => (
+                    {getFilteredCategories(activeRole)[category]?.subcategories.map(sub => (
                       <option key={sub} value={sub}>{sub}</option>
                     ))}
                   </select>
@@ -713,12 +734,12 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen gerechten</h3>
-                  <p className="text-sm text-gray-500">Voeg je eerste gerecht toe om te beginnen met verkopen!</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen {category === "CHEFF" ? "gerechten" : category === "GROWN" ? "kweken" : "creaties"}</h3>
+                  <p className="text-sm text-gray-500">Voeg je eerste {category === "CHEFF" ? "gerecht" : category === "GROWN" ? "kweek" : "creatie"} toe om te beginnen met verkopen!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Mijn items ({items.length})</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Mijn {category === "CHEFF" ? "gerechten" : category === "GROWN" ? "kweken" : "creaties"} ({items.length})</h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {items.map(d => {
                       const mainPhoto = d.photos?.find(p => p.isMain) || d.photos?.[0];
@@ -749,7 +770,7 @@ export default function MyDishesManager({ onStatsUpdate }: MyDishesManagerProps)
                             {d.category && (
                               <div className="absolute top-3 left-3">
                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                  {CATEGORIES[d.category]?.label || d.category}
+                                  {getFilteredCategories(activeRole)[d.category]?.label || d.category}
                                 </span>
                               </div>
                             )}

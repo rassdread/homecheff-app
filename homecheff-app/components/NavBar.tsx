@@ -375,6 +375,16 @@ export default function NavBar() {
                     </Link>
                   )}
                   
+                  {/* Admin Dashboard Link - Alleen voor Admins */}
+                  {(user as any)?.role === 'ADMIN' && (
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-red-600">
+                        <Settings className="w-4 h-4" />
+                        <span>Admin Dashboard</span>
+                      </Button>
+                    </Link>
+                  )}
+                  
                   {/* Delivery Dashboard Link - Only for Delivery Users */}
                   {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) && (
                     <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>

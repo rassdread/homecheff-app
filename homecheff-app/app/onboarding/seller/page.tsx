@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import WorkspacePhotoUpload from "@/components/workspace/WorkspacePhotoUpload";
+import { uploadProfilePhoto } from "@/lib/upload";
 
 export default function SellerOnboardingPage() {
   const router = useRouter();
@@ -10,30 +12,25 @@ export default function SellerOnboardingPage() {
   const [image, setImage] = useState<string | null>(null);
   const [workplacePhotos, setWorkplacePhotos] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
   const userId = 'anon'; // TODO: vervang met echte sessie userId
 
-  async function uploadFile(file: File): Promise<string | null> {
-    const form = new FormData();
-    form.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: form });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.url as string;
-  }
-
   async function onPickProfile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (f) {
-      const url = await uploadFile(f);
-      if (url) setImage(url);
-    }
-  }
-
-  async function onPickWorkplace(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    for (const f of files.slice(0, 3 - workplacePhotos.length)) {
-      const url = await uploadFile(f);
-      if (url) setWorkplacePhotos(prev => [...prev, url]);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const result = await uploadProfilePhoto(file);
+      if (result.success) {
+        setImage(result.url);
+      } else {
+        setError(`Profielfoto upload mislukt: ${result.error}`);
+      }
+    } catch (error) {
+      setError(`Profielfoto upload mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -43,15 +40,25 @@ export default function SellerOnboardingPage() {
       setError("Upload minstens één foto van je werkplek.");
       return;
     }
-    const res = await fetch("/api/profile/seller", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, bio, image, workplacePhotos })
-    });
-    if (res.ok) router.push("/");
-    else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Opslaan mislukt");
+    
+    setUploading(true);
+    try {
+      const res = await fetch("/api/profile/seller", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, bio, image, workplacePhotos })
+      });
+      
+      if (res.ok) {
+        router.push("/");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Opslaan mislukt");
+      }
+    } catch (error) {
+      setError("Er is een fout opgetreden bij het opslaan");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -71,28 +78,58 @@ export default function SellerOnboardingPage() {
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block font-medium mb-1">Profielfoto</label>
-              <input type="file" accept="image/*" onChange={onPickProfile} />
-              {image && <img src={image} alt="profielfoto" className="mt-2 w-32 h-32 object-cover rounded-full border" />}
+              <label className="block font-medium mb-2">Profielfoto</label>
+              <div className="flex flex-col items-center space-y-3">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={onPickProfile}
+                  className="hidden"
+                  id="profile-photo"
+                  disabled={uploading}
+                />
+                <label 
+                  htmlFor="profile-photo"
+                  className={`cursor-pointer px-4 py-2 rounded-lg border-2 border-dashed transition-colors ${
+                    uploading 
+                      ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                      : 'border-primary-300 hover:border-primary-400 hover:bg-primary-50'
+                  }`}
+                >
+                  {uploading ? 'Uploaden...' : 'Kies profielfoto'}
+                </label>
+                {image && (
+                  <img 
+                    src={image} 
+                    alt="Profielfoto" 
+                    className="w-32 h-32 object-cover rounded-full border-2 border-primary-200" 
+                  />
+                )}
+              </div>
             </div>
 
             <div>
-              <label className="block font-medium mb-1">Werkplek foto's (max 3, min 1)</label>
-              <input type="file" multiple accept="image/*" onChange={onPickWorkplace} />
-              <div className="flex gap-2 mt-2 flex-wrap">
-                {workplacePhotos.map((url, i) => (
-                  <img key={i} src={url} alt={"workplek" + i} className="w-32 h-20 object-cover rounded border" />
-                ))}
-              </div>
+              <WorkspacePhotoUpload
+                maxPhotos={10}
+                initialPhotos={workplacePhotos}
+                onPhotosChange={setWorkplacePhotos}
+                userType="SELLER"
+              />
             </div>
           </div>
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <div className="flex justify-end">
-            <Button onClick={save}>Opslaan en afronden</Button>
+            <Button 
+              onClick={save}
+              disabled={uploading}
+              className={uploading ? 'opacity-50 cursor-not-allowed' : ''}
+            >
+              {uploading ? 'Opslaan...' : 'Opslaan en afronden'}
+            </Button>
           </div>
         </div>
       </section>

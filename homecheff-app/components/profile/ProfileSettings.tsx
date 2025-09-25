@@ -78,6 +78,7 @@ interface ProfileSettingsProps {
     name: string;
     username: string;
     bio?: string;
+    quote?: string;
     place?: string;
     gender?: string;
     interests?: string[];
@@ -85,6 +86,7 @@ interface ProfileSettingsProps {
     sellerRoles?: string[];
     buyerRoles?: string[];
     displayFullName?: boolean;
+    displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
     bankName?: string;
     iban?: string;
     accountHolderName?: string;
@@ -98,12 +100,14 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     name: user?.name || '',
     username: user?.username || '',
     bio: user?.bio || '',
+    quote: user?.quote || '',
     place: user?.place || '',
     gender: user?.gender || '',
     interests: user?.interests || [],
     sellerRoles: user?.sellerRoles || [],
     buyerRoles: user?.buyerRoles || [],
     displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
+    displayNameOption: user?.displayNameOption || 'full',
     // Bank details
     bankName: user?.bankName || '',
     iban: user?.iban || '',
@@ -134,12 +138,14 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       name: user?.name || '',
       username: user?.username || '',
       bio: user?.bio || '',
+      quote: user?.quote || '',
       place: user?.place || '',
       gender: user?.gender || '',
       interests: user?.interests || [],
       sellerRoles: user?.sellerRoles || [],
       buyerRoles: user?.buyerRoles || [],
       displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
+      displayNameOption: user?.displayNameOption || 'full',
       bankName: user?.bankName || '',
       iban: user?.iban || '',
       accountHolderName: user?.accountHolderName || ''
@@ -293,6 +299,30 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             placeholder="Vertel iets over jezelf..."
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
+        </div>
+
+        {/* Quote/Motto */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Levensmotto / Quote
+          </label>
+          <textarea
+            value={formData.quote}
+            onChange={(e) => setFormData(prev => ({ ...prev, quote: e.target.value }))}
+            disabled={!isEditing}
+            rows={2}
+            placeholder="Je levensmotto of favoriete quote..."
+            maxLength={150}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
+          />
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs text-gray-500">
+              💭 Een korte, inspirerende boodschap die anderen kunnen zien op je profiel
+            </p>
+            <span className="text-xs text-gray-400">
+              {formData.quote.length}/150
+            </span>
+          </div>
         </div>
 
         {/* Location */}
@@ -531,9 +561,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
         {/* Display Settings */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Weergave-instellingen</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Naam weergave</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Kies hoe je naam wordt weergegeven bij het posten van items
+            Kies welke naam zichtbaar is op je profiel voor andere gebruikers
           </p>
           
           <div className="space-y-2 sm:space-y-3">
@@ -541,14 +571,14 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <input
                 type="radio"
                 name="displayName"
-                checked={formData.displayFullName}
-                onChange={() => setFormData(prev => ({ ...prev, displayFullName: true }))}
+                checked={formData.displayNameOption === 'full'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'full' }))}
                 disabled={!isEditing}
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-medium text-gray-900">Volledige naam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon je volledige naam bij items (bijv. "Jan de Vries")</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon je volledige naam op je profiel (bijv. "Jan de Vries")</div>
               </div>
             </label>
             
@@ -556,14 +586,59 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <input
                 type="radio"
                 name="displayName"
-                checked={!formData.displayFullName}
-                onChange={() => setFormData(prev => ({ ...prev, displayFullName: false }))}
+                checked={formData.displayNameOption === 'first'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'first' }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">Alleen voornaam</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je voornaam op je profiel (bijv. "Jan")</div>
+              </div>
+            </label>
+            
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={formData.displayNameOption === 'last'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'last' }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">Alleen achternaam</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je achternaam op je profiel (bijv. "de Vries")</div>
+              </div>
+            </label>
+            
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={formData.displayNameOption === 'username'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'username' }))}
                 disabled={!isEditing}
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-medium text-gray-900">Gebruikersnaam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon je gebruikersnaam bij items (bijv. "@jandevries")</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je gebruikersnaam op je profiel (bijv. "@jandevries")</div>
+              </div>
+            </label>
+            
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={formData.displayNameOption === 'none'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'none' }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">Geen naam</div>
+                <div className="text-xs sm:text-sm text-gray-600">Toon geen naam op je profiel, alleen gebruikersnaam</div>
               </div>
             </label>
           </div>

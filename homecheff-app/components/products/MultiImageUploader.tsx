@@ -3,6 +3,7 @@
 import * as React from 'react';
 import ImageModeration from '../moderation/ImageModeration';
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { uploadProductImages } from '@/lib/upload';
 
 type Uploaded = { 
   url: string; 
@@ -19,7 +20,7 @@ type Props = {
   productTitle?: string;
 };
 
-export default function MultiImageUploader({ max = 5, value = [], onChange, category = 'CHEFF', productTitle }: Props) {
+export default function MultiImageUploader({ max = 10, value = [], onChange, category = 'CHEFF', productTitle }: Props) {
   const [items, setItems] = React.useState<Uploaded[]>(value);
   const [moderatingFiles, setModeratingFiles] = React.useState<Map<string, File>>(new Map());
 
@@ -53,28 +54,19 @@ export default function MultiImageUploader({ max = 5, value = [], onChange, cate
   const handleModerationComplete = async (file: File, result: any) => {
     // Upload file only after successful moderation
     if (result.isAppropriate && result.isValidForCategory) {
-      const fd = new FormData();
-      fd.append('file', file);
-      
       try {
-        const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          const errorMessage = errorData.error || 'Upload mislukt';
-          alert(`Upload van "${file.name}" mislukt: ${errorMessage}`);
-          return;
-        }
-        const data = await res.json();
-        if (data?.url) {
+        const uploadResult = await uploadProductImages(file);
+        
+        if (uploadResult.success) {
           const newItem: Uploaded = {
-            url: data.url,
+            url: uploadResult.url,
             moderationResult: result,
             isModerated: true,
             isApproved: true
           };
           setItems(prev => [...prev, newItem]);
         } else {
-          alert(`Upload van "${file.name}" mislukt: Geen URL ontvangen`);
+          alert(`Upload van "${file.name}" mislukt: ${uploadResult.error}`);
         }
       } catch (error) {
         console.error('Upload error:', error);
