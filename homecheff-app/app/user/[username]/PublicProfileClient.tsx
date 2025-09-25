@@ -337,7 +337,8 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
                       );
                     })}
                   </div>
-                )}
+                );
+                })()}
               </div>
             </div>
           )}
