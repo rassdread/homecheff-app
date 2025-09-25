@@ -31,7 +31,7 @@ interface User {
   displayFullName: boolean;
   displayNameOption: string;
   createdAt: string;
-  products: any[];
+  Dish: any[];
 }
 
 interface PublicProfileClientProps {
@@ -40,7 +40,8 @@ interface PublicProfileClientProps {
 
 export default function PublicProfileClient({ user }: PublicProfileClientProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [products, setProducts] = useState(user.products || []);
+  const [products, setProducts] = useState(user.Dish || []);
+  const [filter, setFilter] = useState<'both' | 'gedeeld' | 'show'>('both');
 
   // Groepeer producten per categorie
   const getFilteredCategories = (role: string) => {
@@ -137,8 +138,21 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
     }
   };
 
+  const getFilteredProducts = () => {
+    switch (filter) {
+      case 'gedeeld':
+        return products.filter(p => p.priceCents && p.priceCents > 0);
+      case 'show':
+        return products.filter(p => !p.priceCents || p.priceCents === 0);
+      case 'both':
+      default:
+        return products;
+    }
+  };
+
   const getProductsByCategory = (category: string) => {
-    return products.filter(p => p.category === category);
+    const filteredProducts = getFilteredProducts();
+    return filteredProducts.filter(p => p.category === category);
   };
 
   const formatPrice = (priceCents: number) => {
@@ -235,25 +249,41 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-sm border">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-emerald-500 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+          <div className="flex items-center justify-between px-6">
+            <nav className="flex space-x-8">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            
+            {/* Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Filter:</span>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as 'both' | 'gedeeld' | 'show')}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="both">Beide</option>
+                <option value="gedeeld">Gedeeld (te koop)</option>
+                <option value="show">Show (niet te koop)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="p-6">
@@ -264,14 +294,16 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
               {/* Recente Items */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recente Items</h3>
-                {products.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>Nog geen items gedeeld</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.slice(0, 6).map((product) => {
+                {(() => {
+                  const filteredProducts = getFilteredProducts();
+                  return filteredProducts.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nog geen items gedeeld</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredProducts.slice(0, 6).map((product) => {
                       const mainPhoto = product.photos?.[0];
                       return (
                         <div

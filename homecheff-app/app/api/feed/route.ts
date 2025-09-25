@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Get Products from both new and old models
-  const [newProducts, oldListings] = await Promise.all([
+  const [newProducts, oldListings, publishedDishes] = await Promise.all([
     prisma.product.findMany({
       where: {
         isActive: true,
@@ -129,8 +129,59 @@ export async function GET(req: NextRequest) {
           orderBy: { order: 'asc' }
         }
       }
+    }),
+    // Haal gepubliceerde dishes op
+    prisma.dish.findMany({
+      where: {
+        status: "PUBLISHED",
+        ...(q ? {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } }
+          ]
+        } : {}),
+        ...(lat && lng ? {
+          lat: { gte: Number(lat) - (radius / 111.32), lte: Number(lat) + (radius / 111.32) },
+          lng: { gte: Number(lng) - (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
+        } : {})
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 15,
+      include: {
+        user: { select: { id: true, name: true, username: true, profileImage: true } },
+        photos: { 
+          select: { url: true, idx: true },
+          orderBy: { idx: 'asc' }
+        }
+      }
     })
   ]);
+
+  // Transform dishes to match new product format
+  const transformedDishes = publishedDishes.map(dish => ({
+    id: dish.id,
+    title: dish.title || "",
+    description: dish.description || "",
+    priceCents: dish.priceCents || 0,
+    delivery: dish.deliveryMode || "PICKUP",
+    category: "CHEFF", // Default category for dishes
+    createdAt: dish.createdAt,
+    User: {
+      id: dish.user.id,
+      name: dish.user.name,
+      username: dish.user.username,
+      profileImage: dish.user.profileImage
+    },
+    images: dish.photos.map(photo => photo.url),
+    image: dish.photos[0]?.url || null,
+    location: {
+      place: dish.place,
+      lat: dish.lat,
+      lng: dish.lng
+    },
+    stock: dish.stock || 0,
+    maxStock: dish.maxStock
+  }));
 
   // Transform old listings to match new product format
   const transformedListings = oldListings.map(listing => ({
@@ -184,7 +235,7 @@ export async function GET(req: NextRequest) {
   }));
 
   // Combine and sort all items
-  const allItems = [...transformedProducts, ...transformedListings].sort(
+  const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   ).slice(0, 30);
 

@@ -33,7 +33,7 @@ export default async function PublicProfilePage({
       displayNameOption: true,
       createdAt: true,
       // Publieke producten (alleen gepubliceerde)
-      products: {
+      Dish: {
         where: {
           status: "PUBLISHED"
         },
@@ -41,8 +41,6 @@ export default async function PublicProfilePage({
           id: true,
           title: true,
           description: true,
-          category: true,
-          subcategory: true,
           priceCents: true,
           stock: true,
           maxStock: true,
@@ -50,8 +48,7 @@ export default async function PublicProfilePage({
           status: true,
           createdAt: true,
           photos: {
-            where: { isMain: true },
-            select: { url: true }
+            select: { url: true, idx: true }
           }
         },
         orderBy: { createdAt: 'desc' }
