@@ -1,8 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
-type Follow = { id: string; seller?: { id: string; name?: string | null; image?: string | null } };
+type Follow = { 
+  id: string; 
+  seller?: { 
+    id: string; 
+    name?: string | null; 
+    username?: string | null;
+    profileImage?: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
+  } 
+};
 
 export default function FollowsList() {
   const [items, setItems] = useState<Follow[]>([]);
@@ -34,9 +46,28 @@ export default function FollowsList() {
     <ul className="rounded-xl border bg-white divide-y">
       {items.map(f => (
         <li key={f.id} className="p-3 flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={f.seller?.image ?? "/avatar-placeholder.png"} alt="" className="w-8 h-8 rounded-full object-cover border" />
-          <span className="font-medium">{f.seller?.name ?? "Verkoper"}</span>
+          {/* Avatar */}
+          <div className="w-8 h-8 rounded-full overflow-hidden border bg-gray-200 flex-shrink-0">
+            {f.seller?.profileImage ? (
+              <img 
+                src={f.seller.profileImage} 
+                alt={getDisplayName(f.seller)} 
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-primary-brand text-white text-sm font-bold">
+                {getDisplayName(f.seller).charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          
+          {/* Name with link */}
+          <ClickableName
+            user={f.seller}
+            className="font-medium hover:text-primary-600 transition-colors"
+            fallbackText="Verkoper"
+            linkTo="seller"
+          />
         </li>
       ))}
     </ul>

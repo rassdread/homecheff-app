@@ -28,7 +28,18 @@ export async function GET() {
     const items = await anyPrisma.follow.findMany({
       where: { followerId: me.id },
       orderBy: { createdAt: "desc" },
-  include: { Seller: { select: { id: true, name: true, image: true } } }
+      include: { 
+        seller: { 
+          select: { 
+            id: true, 
+            name: true, 
+            username: true,
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true
+          } 
+        } 
+      }
     });
     return NextResponse.json({ items });
   } catch (e) {
