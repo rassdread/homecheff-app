@@ -126,18 +126,20 @@ export default function FollowButton({
       disabled={loading}
       className={`
         ${sizeClasses[size]}
-        flex items-center gap-2 rounded-lg font-medium transition-colors
+        flex items-center gap-2 rounded-xl font-semibold transition-all duration-200
+        transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
         ${following 
-          ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-          : 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200' 
+          : 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-700 hover:from-emerald-200 hover:to-emerald-300 border border-emerald-300'
         }
-        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+        ${following ? 'animate-pulse' : ''}
         ${className}
       `}
     >
       {following ? (
         <>
-          <UserCheck className={iconSize[size]} />
+          <UserCheck className={`${iconSize[size]} ${following ? 'animate-bounce' : ''}`} />
           <span>Fan</span>
         </>
       ) : (

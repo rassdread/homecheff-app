@@ -52,26 +52,31 @@ export default function ShareButton({ url, title, description, className }: Shar
 
   return (
     <div className="relative">
-      <Button
+      <button
         onClick={() => setShowShareMenu(!showShareMenu)}
-        variant="outline"
-        className={`flex items-center space-x-2 ${className}`}
+        className={`
+          flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
+          transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
+          bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white
+          ${className}
+        `}
       >
         <Share2 className="w-4 h-4" />
         <span>Delen</span>
-      </Button>
+      </button>
 
       {showShareMenu && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
-          <div className="p-2">
+        <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+          <div className="p-3">
+            <div className="text-sm font-semibold text-gray-800 mb-2 px-2">Delen via</div>
             <button
               onClick={handleCopyLink}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+              className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
             >
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-green-600" />
-                  <span>Gekopieerd!</span>
+                  <span className="font-medium">Gekopieerd!</span>
                 </>
               ) : (
                 <>
@@ -83,7 +88,7 @@ export default function ShareButton({ url, title, description, className }: Shar
 
             <button
               onClick={() => handleSocialShare('facebook')}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+              className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
             >
               <Facebook className="w-4 h-4 text-blue-600" />
               <span>Facebook</span>
@@ -91,7 +96,7 @@ export default function ShareButton({ url, title, description, className }: Shar
 
             <button
               onClick={() => handleSocialShare('twitter')}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+              className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
             >
               <Twitter className="w-4 h-4 text-blue-400" />
               <span>Twitter</span>
@@ -99,7 +104,7 @@ export default function ShareButton({ url, title, description, className }: Shar
 
             <button
               onClick={() => handleSocialShare('instagram')}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+              className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-700 rounded-xl transition-colors"
             >
               <Instagram className="w-4 h-4 text-pink-600" />
               <span>Instagram (link gekopieerd)</span>

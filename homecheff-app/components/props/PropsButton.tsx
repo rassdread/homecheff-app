@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { ThumbsUp, Heart } from 'lucide-react';
+import { ThumbsUp, Heart, Star, Zap } from 'lucide-react';
 
 interface PropsButtonProps {
   productId: string;
   productTitle?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
-  variant?: 'thumbs' | 'heart';
+  variant?: 'thumbs' | 'heart' | 'star' | 'zap';
 }
 
 export default function PropsButton({ 
@@ -113,7 +113,17 @@ export default function PropsButton({
     lg: 'w-5 h-5'
   };
 
-  const Icon = variant === 'thumbs' ? ThumbsUp : Heart;
+  const getIcon = () => {
+    switch (variant) {
+      case 'thumbs': return ThumbsUp;
+      case 'heart': return Heart;
+      case 'star': return Star;
+      case 'zap': return Zap;
+      default: return ThumbsUp;
+    }
+  };
+
+  const Icon = getIcon();
 
   // If className is provided, use it (for custom styling like in product page)
   if (className) {
@@ -121,11 +131,16 @@ export default function PropsButton({
       <button
         onClick={handleToggleProps}
         disabled={loading}
-        className={`${className} disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`
+          ${className} 
+          disabled:opacity-50 disabled:cursor-not-allowed
+          transition-all duration-200 transform hover:scale-105 active:scale-95
+          ${propsGiven ? 'animate-pulse' : ''}
+        `}
         title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
       >
-        <Icon className="w-4 h-4" />
-        <span>{propsGiven ? 'Props!' : 'Props'}</span>
+        <Icon className={`w-4 h-4 ${propsGiven ? 'text-yellow-500' : ''}`} />
+        <span className="font-semibold">{propsGiven ? 'Props!' : 'Props'}</span>
       </button>
     );
   }
@@ -137,16 +152,18 @@ export default function PropsButton({
       disabled={loading}
       className={`
         ${sizeClasses[size]}
-        flex items-center gap-2 rounded-lg font-medium transition-colors
+        flex items-center gap-2 rounded-xl font-semibold transition-all duration-200
+        transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
         ${propsGiven 
-          ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 shadow-yellow-200' 
+          : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 border border-gray-300'
         }
-        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+        ${propsGiven ? 'animate-pulse' : ''}
       `}
       title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
     >
-      <Icon className={iconSize[size]} />
+      <Icon className={`${iconSize[size]} ${propsGiven ? 'animate-bounce' : ''}`} />
       <span>{propsGiven ? 'Props!' : 'Props'}</span>
     </button>
   );

@@ -91,7 +91,13 @@ export default function StartChatButton({
       <button
         onClick={() => setShowModal(true)}
         disabled={isLoading}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`
+          flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
+          transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
+          bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+          ${className}
+        `}
       >
         <MessageCircle className="w-4 h-4" />
         <span>{isLoading ? 'Laden...' : 'Stuur bericht'}</span>
@@ -100,7 +106,7 @@ export default function StartChatButton({
       {/* Chat Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl">
             {/* Header */}
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
@@ -129,7 +135,7 @@ export default function StartChatButton({
                       key={index}
                       onClick={() => handleQuickMessage(message)}
                       disabled={isLoading}
-                      className="w-full text-left p-2 text-sm bg-gray-50 hover:bg-gray-100 rounded border disabled:opacity-50"
+                      className="w-full text-left p-3 text-sm bg-gray-50 hover:bg-blue-50 hover:text-blue-700 rounded-xl border border-gray-200 hover:border-blue-300 disabled:opacity-50 transition-all duration-200 font-medium"
                     >
                       {message}
                     </button>
@@ -146,24 +152,24 @@ export default function StartChatButton({
                   value={initialMessage}
                   onChange={(e) => setInitialMessage(e.target.value)}
                   placeholder="Typ je bericht hier..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 font-medium"
                   rows={3}
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t flex space-x-3">
+            <div className="p-6 border-t bg-gray-50 flex space-x-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition-colors"
               >
                 Annuleren
               </button>
               <button
                 onClick={handleStartChat}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none"
               >
                 {isLoading ? 'Laden...' : 'Verstuur'}
               </button>

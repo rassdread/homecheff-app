@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
+        Image: {
+          select: {
+            fileUrl: true,
+            sortOrder: true
+          },
+          orderBy: { sortOrder: 'asc' }
+        },
         seller: {
           include: {
             User: {
@@ -168,7 +175,12 @@ export async function POST(req: NextRequest) {
       conversation: {
         id: conversation.id,
         title: conversation.title,
-        product: null, // Product relation not included in query
+        product: {
+          id: product.id,
+          title: product.title,
+          priceCents: product.priceCents,
+          Image: product.Image || []
+        },
         otherParticipant,
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,

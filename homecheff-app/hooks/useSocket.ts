@@ -8,7 +8,7 @@ export const useSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || '', {
+    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin, {
       path: '/api/socket',
       transports: ['websocket', 'polling']
     });

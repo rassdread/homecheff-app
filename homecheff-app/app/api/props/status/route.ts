@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
-    if (!(session as any)?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
@@ -18,13 +19,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Check if user has given props to this product
     const props = await prisma.favorite.findFirst({
       where: {
-        userId: (session as any).user.id,
+        userId: user.id,
         productId: productId,
-        // We'll use the existing Favorite model but with a special type for props
-        // You might want to create a separate Props model later
       }
     });
 
@@ -36,5 +45,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error checking props status:', error);
     return NextResponse.json({ error: 'Failed to check props status' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

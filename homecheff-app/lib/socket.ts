@@ -52,7 +52,7 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
       }) => {
         try {
           // Save message to database
-          const { PrismaClient } = require('@prisma/client');
+          const { PrismaClient } = await import('@prisma/client');
           const prisma = new PrismaClient();
 
           const message = await prisma.message.create({
@@ -103,19 +103,23 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
             }
           });
 
-          participants.forEach(participant => {
-            socket.to(participant.userId).emit('message-notification', {
-              conversationId: data.conversationId,
-              senderName: message.User.name || message.User.username,
-              messageText: data.text,
-              messageType: data.messageType
-            });
+          // Send notification to all participants in the conversation
+          io.to(data.conversationId).emit('message-notification', {
+            conversationId: data.conversationId,
+            senderName: message.User.name || message.User.username,
+            messageText: data.text,
+            messageType: data.messageType
           });
 
           await prisma.$disconnect();
         } catch (error) {
           console.error('Error sending message:', error);
           socket.emit('message-error', { error: 'Failed to send message' });
+          try {
+            await prisma.$disconnect();
+          } catch (disconnectError) {
+            console.error('Error disconnecting prisma:', disconnectError);
+          }
         }
       });
 
@@ -137,7 +141,7 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
       // Handle message read status
       socket.on('mark-message-read', async (data: { messageId: string; userId: string }) => {
         try {
-          const { PrismaClient } = require('@prisma/client');
+          const { PrismaClient } = await import('@prisma/client');
           const prisma = new PrismaClient();
 
           await prisma.message.update({
@@ -148,6 +152,11 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
           await prisma.$disconnect();
         } catch (error) {
           console.error('Error marking message as read:', error);
+          try {
+            await prisma.$disconnect();
+          } catch (disconnectError) {
+            console.error('Error disconnecting prisma:', disconnectError);
+          }
         }
       });
 

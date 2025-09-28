@@ -213,7 +213,13 @@ export async function POST(req: NextRequest) {
       conversation: {
         id: conversation.id,
         title: conversation.title,
-        order: null, // Order relation not included in query
+        order: {
+          id: order.id,
+          orderNumber: orderNumber,
+          status: order.status,
+          totalAmount: order.totalAmount,
+          createdAt: order.createdAt
+        },
         otherParticipant,
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,

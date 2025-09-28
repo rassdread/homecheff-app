@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Package, Clock, CheckCircle, XCircle, Truck, MapPin, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
+import OrderMessageButton from '@/components/chat/OrderMessageButton';
 
 interface OrderItem {
   id: string;
@@ -302,16 +303,11 @@ export default function OrdersPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                  <Link
-                    href={`/messages/order_${order.id}`}
+                  <OrderMessageButton 
+                    orderId={order.id}
+                    orderNumber={order.orderNumber}
                     className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Berichten
-                    {order.hasUnreadMessages && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    )}
-                  </Link>
+                  />
                   {order.status === 'DELIVERED' && (
                     <Link
                       href={`/product/${order.items[0].product.id}`}

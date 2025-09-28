@@ -144,23 +144,22 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     attachmentName?: string;
     attachmentType?: string;
   }) => {
+    if (!socket) {
+      console.error('Socket not connected');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messageData),
+      // Send message via socket
+      socket.emit('send-message', {
+        conversationId: conversation.id,
+        senderId: currentUserId,
+        text: messageData.text,
+        messageType: messageData.messageType,
+        attachmentUrl: messageData.attachmentUrl,
+        attachmentName: messageData.attachmentName,
+        attachmentType: messageData.attachmentType,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
-      const { message } = await response.json();
-      
-      // Message will be added via socket event, but we can add it optimistically
-      setMessages(prev => [...prev, message]);
     } catch (error) {
       console.error('Error sending message:', error);
       // You can show a toast notification here

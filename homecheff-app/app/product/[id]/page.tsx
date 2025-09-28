@@ -550,35 +550,35 @@ export default function ProductPage() {
 
             {/* Action Buttons - Under the image */}
             {!isOwner && (
-              <div className="flex items-center justify-center gap-3 pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-6 border-t border-gray-200">
                 <StartChatButton
                   productId={product.id}
                   sellerId={product.seller?.User.id || ''}
                   sellerName={getDisplayName(product)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
                 <FollowButton 
                   sellerId={product.seller?.User.id || ''}
                   sellerName={getDisplayName(product)}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors"
+                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
                 <PropsButton 
                   productId={product.id}
                   productTitle={product.title}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg transition-colors"
-                  variant="thumbs"
+                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
+                  variant="star"
                 />
                 <ShareButton
                   url={`${baseUrl}/product/${product.id}`}
                   title={product.title}
                   description={product.description || ''}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors"
+                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
                 <ReportContentButton
                   entityId={product.id}
                   entityType="PRODUCT"
                   entityTitle={product.title}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
               </div>
             )}

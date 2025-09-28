@@ -60,15 +60,19 @@ export async function DELETE(request: NextRequest) {
         where: { senderId: user.id }
       });
 
-      // 3. Delete conversations
-      await tx.conversation.deleteMany({
-        where: {
-          OR: [
-            { user1Id: user.id },
-            { user2Id: user.id }
-          ]
-        }
+      // 3. Delete conversations where user is a participant
+      const userConversations = await tx.conversationParticipant.findMany({
+        where: { userId: user.id },
+        select: { conversationId: true }
       });
+      
+      const conversationIds = userConversations.map(cp => cp.conversationId);
+      
+      if (conversationIds.length > 0) {
+        await tx.conversation.deleteMany({
+          where: { id: { in: conversationIds } }
+        });
+      }
 
       // 4. Delete favorites
       await tx.favorite.deleteMany({
@@ -113,7 +117,7 @@ export async function DELETE(request: NextRequest) {
       });
 
       for (const product of userProducts) {
-        await tx.productImage.deleteMany({
+        await tx.image.deleteMany({
           where: { productId: product.id }
         });
       }
@@ -139,23 +143,11 @@ export async function DELETE(request: NextRequest) {
       });
 
       // 10. Delete workspace content and photos
-      const userWorkspaceContent = await tx.workspaceContent.findMany({
-        where: { sellerProfileId: user.id },
-        select: { id: true }
-      });
-
-      for (const content of userWorkspaceContent) {
-        await tx.workspacePhoto.deleteMany({
-          where: { workspaceContentId: content.id }
-        });
-      }
-
-      await tx.workspaceContent.deleteMany({
+      await tx.workplacePhoto.deleteMany({
         where: { sellerProfileId: user.id }
       });
 
-      // 11. Delete workplace photos
-      await tx.workplacePhoto.deleteMany({
+      await tx.workspaceContent.deleteMany({
         where: { sellerProfileId: user.id }
       });
 

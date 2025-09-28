@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { messageId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions as any);
+    const session = await auth();
     
-    if (!(session as any)?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const messageId = params.messageId;
@@ -64,18 +73,23 @@ export async function PUT(
     });
 
     // Create analytics event for message read
-    await prisma.analyticsEvent.create({
-      data: {
-        eventType: 'MESSAGE_READ',
-        entityType: 'MESSAGE',
-        entityId: messageId,
-        userId: (session as any).user.id,
-        metadata: {
-          senderId: message.senderId,
-          readAt: new Date().toISOString(),
+    try {
+      await prisma.analyticsEvent.create({
+        data: {
+          eventType: 'MESSAGE_READ',
+          entityType: 'MESSAGE',
+          entityId: messageId,
+          userId: user.id,
+          metadata: {
+            senderId: message.senderId,
+            readAt: new Date().toISOString(),
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      // Analytics event creation is optional, don't fail the request
+      console.warn('Failed to create analytics event:', error);
+    }
 
     return NextResponse.json({
       success: true,
@@ -89,5 +103,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error marking message as read:', error);
     return NextResponse.json({ error: 'Failed to mark message as read' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
