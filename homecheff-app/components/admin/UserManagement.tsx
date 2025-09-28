@@ -51,7 +51,7 @@ export default function UserManagement() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Weet je zeker dat je deze gebruiker wilt verwijderen?')) return;
+    if (!confirm('Weet je zeker dat je deze gebruiker wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) return;
 
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
@@ -60,14 +60,19 @@ export default function UserManagement() {
 
       if (response.ok) {
         setUsers(users.filter(user => user.id !== userId));
+        alert('Gebruiker succesvol verwijderd');
+      } else {
+        const errorData = await response.json();
+        alert(`Fout bij verwijderen: ${errorData.error || 'Onbekende fout'}`);
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+      alert('Er is een fout opgetreden bij het verwijderen van de gebruiker');
     }
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Weet je zeker dat je ${selectedUsers.length} gebruikers wilt verwijderen?`)) return;
+    if (!confirm(`Weet je zeker dat je ${selectedUsers.length} gebruikers wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) return;
 
     try {
       const response = await fetch('/api/admin/users/bulk-delete', {
@@ -81,9 +86,14 @@ export default function UserManagement() {
       if (response.ok) {
         setUsers(users.filter(user => !selectedUsers.includes(user.id)));
         setSelectedUsers([]);
+        alert(`${selectedUsers.length} gebruikers succesvol verwijderd`);
+      } else {
+        const errorData = await response.json();
+        alert(`Fout bij bulk verwijderen: ${errorData.error || 'Onbekende fout'}`);
       }
     } catch (error) {
       console.error('Error bulk deleting users:', error);
+      alert('Er is een fout opgetreden bij het verwijderen van de gebruikers');
     }
   };
 

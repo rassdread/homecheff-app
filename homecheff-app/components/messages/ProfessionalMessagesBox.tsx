@@ -214,6 +214,12 @@ export default function ProfessionalMessagesBox({ className = '', onMessagesRead
     return () => clearTimeout(timer);
   }, [messages, session]);
 
+  // Update unread count when conversations change
+  useEffect(() => {
+    const totalUnread = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
+    setUnreadCount(totalUnread);
+  }, [conversations]);
+
   const fetchAllMessages = useCallback(async () => {
     try {
       setLoading(true);
@@ -233,6 +239,28 @@ export default function ProfessionalMessagesBox({ className = '', onMessagesRead
       setLoading(false);
     }
   }, [(session as any)?.user?.id]);
+
+  // Listen for messages read events to refresh data
+  useEffect(() => {
+    const handleMessagesRead = () => {
+      fetchAllMessages();
+    };
+    
+    const handleUnreadCountUpdate = (event: CustomEvent) => {
+      const { unreadCount } = event.detail;
+      if (typeof unreadCount === 'number') {
+        setUnreadCount(unreadCount);
+      }
+    };
+    
+    window.addEventListener('messagesRead', handleMessagesRead);
+    window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('messagesRead', handleMessagesRead);
+      window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
+    };
+  }, [fetchAllMessages]);
 
   // Process messages into conversations and notifications
   const processMessages = (messages: Message[]): Conversation[] => {

@@ -73,14 +73,36 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
           )
         );
         
-        // Check if all requests were successful
-        const allSuccessful = results.every(response => response.ok);
+        // Check if all requests were successful and get unread counts
+        const responses = await Promise.all(
+          results.map(async response => {
+            if (response.ok) {
+              const data = await response.json();
+              return { success: true, unreadCount: data.unreadCount };
+            }
+            return { success: false, unreadCount: null };
+          })
+        );
+        
+        const allSuccessful = responses.every(r => r.success);
         
         if (allSuccessful) {
+          // Get the latest unread count from the last response
+          const lastResponse = responses[responses.length - 1];
+          if (lastResponse.unreadCount !== null) {
+            // Dispatch event with unread count update
+            window.dispatchEvent(new CustomEvent('unreadCountUpdate', { 
+              detail: { unreadCount: lastResponse.unreadCount } 
+            }));
+          }
+          
           // Trigger a refresh of the conversation list to update unread counts
           if (onMessagesRead) {
             onMessagesRead();
           }
+          
+          // Dispatch custom event to refresh other components
+          window.dispatchEvent(new CustomEvent('messagesRead'));
         }
       } catch (error) {
         console.error('Error marking messages as read:', error);

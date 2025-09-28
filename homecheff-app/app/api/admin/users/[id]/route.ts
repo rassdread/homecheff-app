@@ -176,9 +176,109 @@ export async function DELETE(
       }, { status: 404 });
     }
 
-    // Delete user (cascade will handle related records)
-    await prisma.user.delete({
-      where: { id }
+    // Delete user with proper cascade handling
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete analytics events
+      await tx.analyticsEvent.deleteMany({
+        where: { userId: id }
+      });
+
+      // 2. Delete product reviews
+      await tx.productReview.deleteMany({
+        where: { buyerId: id }
+      });
+
+      // 3. Delete order items and orders
+      const orders = await tx.order.findMany({
+        where: { userId: id },
+        select: { id: true }
+      });
+      
+      for (const order of orders) {
+        await tx.orderItem.deleteMany({
+          where: { orderId: order.id }
+        });
+      }
+      
+      await tx.order.deleteMany({
+        where: { userId: id }
+      });
+
+      // 4. Delete messages and conversations
+      const conversations = await tx.conversationParticipant.findMany({
+        where: { userId: id },
+        select: { conversationId: true }
+      });
+      
+      for (const conv of conversations) {
+        await tx.message.deleteMany({
+          where: { conversationId: conv.conversationId }
+        });
+      }
+      
+      await tx.conversationParticipant.deleteMany({
+        where: { userId: id }
+      });
+      
+      await tx.conversation.deleteMany({
+        where: {
+          ConversationParticipant: {
+            some: { userId: id }
+          }
+        }
+      });
+
+      // 5. Delete follows and favorites
+      await tx.follow.deleteMany({
+        where: { OR: [{ followerId: id }, { sellerId: id }] }
+      });
+      
+      await tx.favorite.deleteMany({
+        where: { userId: id }
+      });
+
+      // 6. Delete seller profile and related data
+      const sellerProfiles = await tx.sellerProfile.findMany({
+        where: { userId: id },
+        select: { id: true }
+      });
+      
+      for (const profile of sellerProfiles) {
+        // Delete workplace photos
+        await tx.workplacePhoto.deleteMany({
+          where: { sellerProfileId: profile.id }
+        });
+        
+        // Delete products and their images
+        const products = await tx.product.findMany({
+          where: { sellerId: profile.id },
+          select: { id: true }
+        });
+        
+        for (const product of products) {
+          await tx.image.deleteMany({
+            where: { productId: product.id }
+          });
+        }
+        
+        await tx.product.deleteMany({
+          where: { sellerId: profile.id }
+        });
+      }
+      
+      await tx.sellerProfile.deleteMany({
+        where: { userId: id }
+      });
+
+      // 7. Delete delivery profile
+      await tx.deliveryProfile.deleteMany({
+        where: { userId: id }
+      });
+
+      // 8. Finally, delete the user
+      await tx.user.delete({
+        where: { id }
+      });
     });
 
     return NextResponse.json({

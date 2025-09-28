@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function PUT(
   req: NextRequest,
@@ -61,14 +59,19 @@ export async function PUT(
       data: {
         readAt: new Date()
       },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            profileImage: true,
-          }
-        }
+      select: {
+        id: true,
+        conversationId: true,
+        readAt: true
+      }
+    });
+
+    // Recalculate unread count for the conversation
+    const unreadCount = await prisma.message.count({
+      where: {
+        conversationId: message.conversationId,
+        readAt: null,
+        NOT: { senderId: user.id } // Exclude messages sent by the current user
       }
     });
 
@@ -81,7 +84,6 @@ export async function PUT(
           entityId: messageId,
           userId: user.id,
           metadata: {
-            senderId: message.senderId,
             readAt: new Date().toISOString(),
           },
         },
@@ -97,13 +99,12 @@ export async function PUT(
         id: message.id,
         isRead: !!message.readAt,
         readAt: message.readAt
-      }
+      },
+      unreadCount: unreadCount
     });
 
   } catch (error) {
     console.error('Error marking message as read:', error);
     return NextResponse.json({ error: 'Failed to mark message as read' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

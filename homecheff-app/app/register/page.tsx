@@ -120,6 +120,12 @@ type RegisterState = {
     message: string;
     isChecking: boolean;
   };
+  // Email validatie
+  emailValidation: {
+    isValid: boolean | null;
+    message: string;
+    isChecking: boolean;
+  };
 };
 
 export default function RegisterPage() {
@@ -182,6 +188,12 @@ export default function RegisterPage() {
     acceptTaxResponsibility: false,
     // Gebruikersnaam validatie
     usernameValidation: {
+      isValid: null,
+      message: "",
+      isChecking: false,
+    },
+    // Email validatie
+    emailValidation: {
       isValid: null,
       message: "",
       isChecking: false,
@@ -305,6 +317,74 @@ export default function RegisterPage() {
     }
   };
 
+  // Email validatie functie
+  const validateEmail = async (email: string) => {
+    if (!email) {
+      setState(prev => ({
+        ...prev,
+        emailValidation: {
+          isValid: null,
+          message: "",
+          isChecking: false,
+        }
+      }));
+      return;
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setState(prev => ({
+        ...prev,
+        emailValidation: {
+          isValid: false,
+          message: "Voer een geldig e-mailadres in",
+          isChecking: false,
+        }
+      }));
+      return;
+    }
+
+    setState(prev => ({
+      ...prev,
+      emailValidation: {
+        isValid: null,
+        message: "Controleren...",
+        isChecking: true,
+      }
+    }));
+
+    try {
+      const response = await fetch('/api/auth/validate-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      setState(prev => ({
+        ...prev,
+        emailValidation: {
+          isValid: data.valid,
+          message: data.valid ? data.message : data.error,
+          isChecking: false,
+        }
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        emailValidation: {
+          isValid: false,
+          message: "Er is een fout opgetreden bij het controleren van het e-mailadres",
+          isChecking: false,
+        }
+      }));
+    }
+  };
+
   // Debounced gebruikersnaam validatie
   useEffect(() => {
     if (!state.username) {
@@ -325,6 +405,27 @@ export default function RegisterPage() {
 
     return () => clearTimeout(timeoutId);
   }, [state.username]);
+
+  // Debounced email validatie
+  useEffect(() => {
+    if (!state.email) {
+      setState(prev => ({
+        ...prev,
+        emailValidation: {
+          isValid: null,
+          message: "",
+          isChecking: false,
+        }
+      }));
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      validateEmail(state.email);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [state.email]);
 
   async function handleSocialLogin(provider: string) {
     try {
@@ -809,13 +910,38 @@ export default function RegisterPage() {
                       type="email"
                       value={state.email}
                       onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                        state.emailValidation.isValid === true 
+                          ? 'border-green-300 bg-green-50' 
+                          : state.emailValidation.isValid === false 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      }`}
                       placeholder="je@email.com"
                       autoComplete="off"
                       autoCapitalize="off"
                       autoCorrect="off"
                       spellCheck="false"
                     />
+                    {state.emailValidation.message && (
+                      <p className={`mt-2 text-sm ${
+                        state.emailValidation.isValid === true 
+                          ? 'text-green-600' 
+                          : state.emailValidation.isValid === false 
+                          ? 'text-red-600' 
+                          : 'text-gray-500'
+                      }`}>
+                        {state.emailValidation.isChecking && (
+                          <span className="inline-flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </span>
+                        )}
+                        {state.emailValidation.message}
+                      </p>
+                    )}
                   </div>
                   
                   <div>

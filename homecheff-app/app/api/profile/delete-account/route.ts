@@ -151,17 +151,48 @@ export async function DELETE(request: NextRequest) {
         where: { sellerProfileId: user.id }
       });
 
-      // 12. Delete seller profile
+      // 12. Delete all products first (to avoid foreign key constraint)
+      const sellerProfiles = await tx.sellerProfile.findMany({
+        where: { userId: user.id },
+        select: { id: true }
+      });
+      
+      for (const profile of sellerProfiles) {
+        // Delete workplace photos first
+        await tx.workplacePhoto.deleteMany({
+          where: { sellerProfileId: profile.id }
+        });
+        
+        // First get all products to delete their images
+        const products = await tx.product.findMany({
+          where: { sellerId: profile.id },
+          select: { id: true }
+        });
+        
+        // Delete all product images first
+        for (const product of products) {
+          await tx.image.deleteMany({
+            where: { productId: product.id }
+          });
+        }
+        
+        // Then delete all products associated with this seller profile
+        await tx.product.deleteMany({
+          where: { sellerId: profile.id }
+        });
+      }
+
+      // 13. Delete seller profile
       await tx.sellerProfile.deleteMany({
         where: { userId: user.id }
       });
 
-      // 13. Delete delivery profile
+      // 14. Delete delivery profile
       await tx.deliveryProfile.deleteMany({
         where: { userId: user.id }
       });
 
-      // 14. Finally, delete the user
+      // 15. Finally, delete the user
       await tx.user.delete({
         where: { id: user.id }
       });
@@ -186,9 +217,16 @@ export async function DELETE(request: NextRequest) {
       console.warn('Could not create analytics event for account deletion:', error);
     }
 
+    // Clear session and redirect to home
     return NextResponse.json({
       success: true,
-      message: 'Account succesvol verwijderd'
+      message: 'Account succesvol verwijderd',
+      redirect: '/'
+    }, {
+      status: 200,
+      headers: {
+        'Set-Cookie': 'next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax'
+      }
     });
 
   } catch (error) {

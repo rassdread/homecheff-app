@@ -82,6 +82,28 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     }
   };
 
+  // Refresh conversations when messages are read
+  useEffect(() => {
+    if (onMessagesRead) {
+      const handleRefresh = () => {
+        loadConversations();
+      };
+
+      const handleUnreadCountUpdate = () => {
+        loadConversations();
+      };
+
+      // Listen for custom events to refresh conversations
+      window.addEventListener('messagesRead', handleRefresh);
+      window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate);
+      
+      return () => {
+        window.removeEventListener('messagesRead', handleRefresh);
+        window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate);
+      };
+    }
+  }, [onMessagesRead]);
+
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
     

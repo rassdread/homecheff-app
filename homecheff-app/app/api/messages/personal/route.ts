@@ -580,17 +580,21 @@ async function getCategorySpecificMessages(userId: string, role: string | null) 
     }
   });
 
-  // Get top 3 categories
+  // Get top 3 categories - filter out invalid categories
+  const validCategories = ['CHEFF', 'GROWN', 'DESIGNER'] as const;
   const topCategories = Array.from(categoryMap.entries())
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3)
-    .map(([category]) => category);
+    .map(([category]) => category)
+    .filter((category): category is 'CHEFF' | 'GROWN' | 'DESIGNER' => 
+      validCategories.includes(category as any)
+    );
 
   // Get new products in user's favorite categories
   if (topCategories.length > 0) {
     const newProductsInCategories = await prisma.product.findMany({
       where: {
-        category: { in: topCategories.map(([cat]) => cat as any) },
+        category: { in: topCategories },
         createdAt: {
           gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
         }

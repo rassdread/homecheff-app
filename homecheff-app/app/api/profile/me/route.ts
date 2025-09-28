@@ -13,6 +13,11 @@ export async function GET() {
           where: { email },
           select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
         });
+        
+        if (!user) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        
         return NextResponse.json({ user });
       }
     } catch {}
@@ -28,6 +33,11 @@ export async function GET() {
           where: { email },
           select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
         });
+        
+        if (!user) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        
         return NextResponse.json({ user });
       }
     } catch {}

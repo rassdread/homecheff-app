@@ -57,11 +57,31 @@ export default function DeleteAccount({ user, onAccountDeleted }: DeleteAccountP
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Account succesvol verwijderd. Je wordt doorgestuurd naar de homepage.' });
-        setTimeout(() => {
-          onAccountDeleted();
-          window.location.href = '/';
-        }, 2000);
+        setMessage({ type: 'success', text: 'Account succesvol verwijderd. Je wordt uitgelogd en doorgestuurd naar de homepage.' });
+        
+        // Clear all local storage and session data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear all cookies
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        // Sign out from NextAuth
+        setTimeout(async () => {
+          try {
+            const { signOut } = await import('next-auth/react');
+            await signOut({ 
+              callbackUrl: '/',
+              redirect: true 
+            });
+          } catch (error) {
+            console.error('Error signing out:', error);
+            // Force redirect even if signOut fails
+            window.location.href = '/';
+          }
+        }, 1500);
       } else {
         setMessage({ type: 'error', text: data.error || 'Er is een fout opgetreden bij het verwijderen van je account' });
       }
