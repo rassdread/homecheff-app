@@ -148,7 +148,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     const baseTabs = [
       { id: 'overview', label: 'Overzicht', icon: Grid },
       { id: 'orders', label: 'Bestellingen', icon: ShoppingBag },
-      { id: 'follows', label: 'Fans', icon: Heart }
+      { id: 'follows', label: 'Fan van', icon: Heart }
     ];
 
     const sellerRoles = user?.sellerRoles || [];
@@ -433,7 +433,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.followers}
                   </div>
-                  <div className="text-xs text-gray-500">Fans</div>
+                  <div className="text-xs text-gray-500">Fan van</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
@@ -843,7 +843,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Fans</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Fan van</h2>
                         <p className="text-sm text-gray-500">Verkopers die je volgt</p>
                       </div>
                     </div>
