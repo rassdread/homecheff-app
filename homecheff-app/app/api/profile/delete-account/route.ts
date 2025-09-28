@@ -37,6 +37,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify password
+    if (!user.passwordHash) {
+      return NextResponse.json({ error: 'Geen wachtwoord ingesteld' }, { status: 400 });
+    }
+    
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json({ error: 'Ongeldig wachtwoord' }, { status: 401 });
