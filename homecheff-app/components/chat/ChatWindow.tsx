@@ -5,6 +5,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { useSession } from 'next-auth/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import MessageEncryption from './MessageEncryption';
 import { ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
@@ -175,6 +176,47 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     return getDisplayName(user);
   };
 
+  // Encryption functions
+  const handleEncryptMessage = async (messageId: string, key: string) => {
+    try {
+      const response = await fetch('/api/messages/encrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, encryptionKey: key })
+      });
+
+      if (!response.ok) {
+        throw new Error('Encryption failed');
+      }
+
+      // Reload messages to show encrypted state
+      loadMessages();
+    } catch (error) {
+      console.error('Encryption error:', error);
+      throw error;
+    }
+  };
+
+  const handleDecryptMessage = async (messageId: string, key: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/messages/decrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, encryptionKey: key })
+      });
+
+      if (!response.ok) {
+        throw new Error('Decryption failed');
+      }
+
+      const data = await response.json();
+      return data.decryptedText;
+    } catch (error) {
+      console.error('Decryption error:', error);
+      throw error;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
@@ -274,6 +316,8 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
           currentUserId={currentUserId}
           isLoading={isLoading}
           onMessagesRead={onMessagesRead}
+          onEncryptMessage={handleEncryptMessage}
+          onDecryptMessage={handleDecryptMessage}
         />
       </div>
 

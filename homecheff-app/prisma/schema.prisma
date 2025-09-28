@@ -48,6 +48,9 @@ model User {
   messagePrivacy                         MessagePrivacy            @default(EVERYONE)
   fanRequestEnabled                      Boolean                   @default(true)
   showFansList                           Boolean                   @default(true)
+  // Encryption settings
+  hasEncryptionKey                       Boolean                   @default(false)
+  encryptionEnabled                      Boolean                   @default(false)
   showProfileToEveryone                  Boolean                   @default(true)
   showOnlineStatus                       Boolean                   @default(true)
   allowProfileViews                       Boolean                   @default(true)
@@ -63,6 +66,7 @@ model User {
   followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
   followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
   fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
+  encryptionKeys                         EncryptionKey[]
   fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
   Listing                                Listing[]
   Message                                Message[]
@@ -309,6 +313,9 @@ model Message {
   conversationId String
   senderId       String
   text           String?
+  encryptedText  String?      // New: Encrypted message content
+  encryptionKey  String?      // New: Key identifier for decryption
+  isEncrypted    Boolean      @default(false) // New: Encryption status
   createdAt      DateTime     @default(now())
   readAt         DateTime?
   attachmentName String?
@@ -324,6 +331,7 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@index([orderNumber])
+  @@index([isEncrypted])
 }
 
 model Notification {
@@ -1100,4 +1108,19 @@ model AnalyticsEvent {
   @@index([entityId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// Encryption key management
+model EncryptionKey {
+  id          String   @id @default(uuid())
+  userId      String
+  keyHash     String   // Hashed version of the encryption key
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@index([isActive])
 }

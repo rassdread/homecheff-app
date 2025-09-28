@@ -5,10 +5,13 @@ import { MessageCircle, User, Package, MapPin, Clock, CheckCircle } from 'lucide
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
+import MessageEncryption from './MessageEncryption';
 
 interface MessageType {
   id: string;
   text: string | null;
+  encryptedText?: string | null;
+  isEncrypted?: boolean;
   messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'PRODUCT_SHARE' | 'SYSTEM' | 'ORDER_STATUS_UPDATE' | 'ORDER_PICKUP_INFO' | 'ORDER_DELIVERY_INFO' | 'ORDER_ADDRESS_UPDATE';
   attachmentUrl?: string | null;
   attachmentName?: string | null;
@@ -29,9 +32,11 @@ interface MessageListProps {
   currentUserId: string;
   isLoading?: boolean;
   onMessagesRead?: () => void;
+  onEncryptMessage?: (messageId: string, key: string) => Promise<void>;
+  onDecryptMessage?: (messageId: string, key: string) => Promise<string>;
 }
 
-export default function MessageList({ messages, currentUserId, isLoading, onMessagesRead }: MessageListProps) {
+export default function MessageList({ messages, currentUserId, isLoading, onMessagesRead, onEncryptMessage, onDecryptMessage }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState<{ [userId: string]: boolean }>({});
 
@@ -255,6 +260,18 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                     </div>
                   )}
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                </div>
+              )}
+              
+              {/* Encryption component for TEXT messages */}
+              {message.messageType === 'TEXT' && onEncryptMessage && onDecryptMessage && (
+                <div className="mt-2">
+                  <MessageEncryption
+                    messageId={message.id}
+                    isEncrypted={message.isEncrypted || false}
+                    onEncrypt={onEncryptMessage}
+                    onDecrypt={onDecryptMessage}
+                  />
                 </div>
               )}
               
