@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
       taxResponsibilityAccepted: true,
       taxResponsibilityAcceptedAt: new Date(),
       marketingAccepted: false,
-      displayFullName: true,
-      displayNameOption: 'full',
+      displayFullName: false,
+      displayNameOption: 'username',
       interests: role === 'ADMIN' ? ['Beheer', 'Moderatie', 'Ondersteuning'] : []
     };
 

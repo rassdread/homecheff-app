@@ -1,18 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle } from 'lucide-react';
+import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle, Trash2 } from 'lucide-react';
+import DeleteAccount from './DeleteAccount';
 
 interface AccountSettingsProps {
   user: {
     id: string;
     email: string;
+    name?: string | null;
   };
   onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onUpdateEmail: (newEmail: string) => Promise<void>;
+  onAccountDeleted?: () => void;
 }
 
-export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail }: AccountSettingsProps) {
+export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail, onAccountDeleted }: AccountSettingsProps) {
   const [activeTab, setActiveTab] = useState('password');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -79,7 +82,8 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail 
 
   const tabs = [
     { id: 'password', label: 'Wachtwoord', icon: Key },
-    { id: 'email', label: 'Email', icon: Mail }
+    { id: 'email', label: 'Email', icon: Mail },
+    { id: 'delete', label: 'Account Verwijderen', icon: Trash2 }
   ];
 
   return (
@@ -106,7 +110,9 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail 
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-emerald-500 text-emerald-600'
+                    ? tab.id === 'delete' 
+                      ? 'border-red-500 text-red-600'
+                      : 'border-emerald-500 text-emerald-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -265,6 +271,14 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail 
             <span>{isLoading ? 'Opslaan...' : 'Email bijwerken'}</span>
           </button>
         </form>
+      )}
+
+      {/* Delete Account Tab */}
+      {activeTab === 'delete' && (
+        <DeleteAccount 
+          user={user} 
+          onAccountDeleted={onAccountDeleted || (() => {})} 
+        />
       )}
     </div>
   );

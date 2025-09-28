@@ -245,7 +245,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       case 'profile':
         return <ProfileSettings user={user} onSave={handleProfileSave} />;
       case 'account':
-        return <AccountSettings user={user} onUpdatePassword={handlePasswordUpdate} onUpdateEmail={handleEmailUpdate} />;
+        return <AccountSettings user={user} onUpdatePassword={handlePasswordUpdate} onUpdateEmail={handleEmailUpdate} onAccountDeleted={() => window.location.href = '/'} />;
       case 'notifications':
         return <NotificationSettings onUpdateSettings={handleNotificationSettingsUpdate} />;
       default:
