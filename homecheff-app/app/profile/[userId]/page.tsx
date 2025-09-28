@@ -17,6 +17,7 @@ async function getPublicProfile(userId: string) {
       name: true,
       username: true,
       bio: true,
+      quote: true,
       place: true,
       profileImage: true,
       image: true,
@@ -361,6 +362,26 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
               {user.bio && (
                 <div className="mt-4">
                   <p className="text-gray-700">{user.bio}</p>
+                </div>
+              )}
+
+              {/* Quote */}
+              {user.quote && (
+                <div className="mt-4">
+                  <div className="bg-gradient-to-r from-primary-brand/10 to-secondary-brand/10 rounded-xl p-4 border-l-4 border-primary-brand">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <svg className="w-6 h-6 text-primary-brand" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <blockquote className="text-gray-800 italic text-lg leading-relaxed">
+                          "{user.quote}"
+                        </blockquote>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
