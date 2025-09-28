@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { id: string; seller?: { id: string; name?: string | null; image?: string | null } };
 
@@ -37,12 +39,12 @@ export default function FollowsList() {
         <li key={f.id} className="p-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={f.seller?.image ?? "/avatar-placeholder.png"} alt="" className="w-8 h-8 rounded-full object-cover border" />
-          <Link 
-            href={`/seller/${f.seller?.id}`}
+          <ClickableName 
+            user={f.seller}
             className="font-medium hover:text-primary-600 transition-colors"
-          >
-            {f.seller?.name ?? "Verkoper"}
-          </Link>
+            fallbackText="Verkoper"
+            linkTo="seller"
+          />
         </li>
       ))}
     </ul>

@@ -16,6 +16,34 @@ export async function PUT(
 
     const messageId = params.messageId;
 
+    // First check if message exists
+    const existingMessage = await prisma.message.findUnique({
+      where: {
+        id: messageId,
+      },
+      select: {
+        id: true,
+        senderId: true,
+        readAt: true
+      }
+    });
+
+    if (!existingMessage) {
+      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    }
+
+    // If already read, return success
+    if (existingMessage.readAt) {
+      return NextResponse.json({
+        success: true,
+        message: {
+          id: existingMessage.id,
+          isRead: true,
+          readAt: existingMessage.readAt
+        }
+      });
+    }
+
     // Update message as read
     const message = await prisma.message.update({
       where: {
@@ -34,10 +62,6 @@ export async function PUT(
         }
       }
     });
-
-    if (!message) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
-    }
 
     // Create analytics event for message read
     await prisma.analyticsEvent.create({

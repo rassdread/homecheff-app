@@ -14,7 +14,10 @@ export async function POST(req: Request) {
 
   await prisma.user.update({
     where: { email: session.user.email },
-    data: { image: image },
+    data: { 
+      image: image,
+      profileImage: image 
+    },
   });
 
   return Response.json({ ok: true });

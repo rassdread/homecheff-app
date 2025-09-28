@@ -10,6 +10,8 @@ export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUr
   const [url, setUrl] = useState<string | null>(initialUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [hasNoPhoto, setHasNoPhoto] = useState(false);
+  const [pendingSave, setPendingSave] = useState(false);
+  const [saving, setSaving] = useState(false);
   const src = hasNoPhoto ? null : (preview ?? url ?? "/avatar-placeholder.png");
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -24,16 +26,22 @@ export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUr
     reader.onload = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
 
-    // Upload file to server
-    const result = await uploadProfilePhoto(file);
-    
-    if (result.success) {
-      setUrl(result.url);
-      setPreview(null); // Clear preview since we now have the actual URL
-      onPhotoChange?.(result.url);
-    } else {
-      alert(`Foto upload mislukt: ${result.error}`);
-      setPreview(null); // Clear preview on error
+    try {
+      // Upload file directly
+      const result = await uploadProfilePhoto(file);
+      
+      if (result.success) {
+        setUrl(result.url);
+        setPreview(null); // Clear preview since we now have the actual URL
+        onPhotoChange?.(result.url);
+      } else {
+        alert(`Foto upload mislukt: ${result.error}`);
+        setPreview(null); // Clear preview on error
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(`Upload van profielfoto mislukt: ${error}`);
+      setPreview(null);
     }
     
     setUploading(false);

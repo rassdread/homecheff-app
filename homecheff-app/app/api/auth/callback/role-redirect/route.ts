@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       case 'SELLER':
         return NextResponse.redirect(new URL('/profile', req.url));
       case 'BUYER':
-        return NextResponse.redirect(new URL('/feed', req.url));
+        return NextResponse.redirect(new URL('/', req.url));
       case 'DELIVERY':
         // Check if user has delivery profile
         try {
@@ -39,10 +39,10 @@ export async function GET(req: NextRequest) {
           return NextResponse.redirect(new URL('/delivery/signup', req.url));
         }
       default:
-        return NextResponse.redirect(new URL('/feed', req.url));
+        return NextResponse.redirect(new URL('/', req.url));
     }
   } catch (error) {
     console.error('Role redirect error:', error);
-    return NextResponse.redirect(new URL('/feed', req.url));
+    return NextResponse.redirect(new URL('/', req.url));
   }
 }

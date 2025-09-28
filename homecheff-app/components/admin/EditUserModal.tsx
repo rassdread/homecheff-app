@@ -263,6 +263,7 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
               >
                 <option value="BUYER">Koper</option>
                 <option value="SELLER">Verkoper</option>
+                <option value="DELIVERY">Bezorger</option>
                 <option value="ADMIN">Admin</option>
               </select>
             </div>

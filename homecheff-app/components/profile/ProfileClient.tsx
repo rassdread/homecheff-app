@@ -300,18 +300,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {/* Profile Header */}
               <div className="text-center">
                 {/* Quote/Motto als titel boven profielfoto */}
-                {user?.quote && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                {user?.quote && user.quote.trim() && (
+                  <div className="mb-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl border border-emerald-200 shadow-sm">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-sm">
+                        <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-emerald-800 mb-1">Mijn Motto</h3>
-                        <blockquote className="text-base text-gray-700 italic leading-relaxed">
-                          "{user.quote}"
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-emerald-800 mb-2 tracking-wide">Mijn Levensmotto</h3>
+                        <blockquote className="text-lg text-gray-800 italic leading-relaxed font-medium">
+                          "{user.quote.trim()}"
                         </blockquote>
                       </div>
                     </div>
@@ -803,6 +803,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           );
                         })()}
                       </div>
+                      
+                      {/* Nieuw Product Toevoegen Knop */}
+                      <div className="flex gap-3">
+                        <Link 
+                          href="/sell/new"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="hidden sm:inline">Nieuw Product</span>
+                          <span className="sm:hidden">+</span>
+                        </Link>
+                      </div>
                     </div>
                     <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>
                       <MyDishesManager 
@@ -864,9 +876,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
                             userType="CHEFF"
-                            onPhotosChange={(photos) => {
-                              console.log('Keuken photos updated:', photos);
-                            }}
                           />
                         </div>
                       )}
@@ -882,9 +891,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
                             userType="GROWN"
-                            onPhotosChange={(photos) => {
-                              console.log('Tuin photos updated:', photos);
-                            }}
                           />
                         </div>
                       )}
@@ -900,9 +906,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
                             userType="DESIGNER"
-                            onPhotosChange={(photos) => {
-                              console.log('Atelier photos updated:', photos);
-                            }}
                           />
                         </div>
                       )}

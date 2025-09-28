@@ -199,6 +199,7 @@ export default function CreateUserModal({ isOpen, onClose, onUserCreated }: Crea
             >
               <option value="BUYER">Koper</option>
               <option value="SELLER">Verkoper</option>
+              <option value="DELIVERY">Bezorger</option>
               <option value="ADMIN">Admin</option>
             </select>
           </div>
@@ -228,6 +229,7 @@ export default function CreateUserModal({ isOpen, onClose, onUserCreated }: Crea
     </div>
   );
 }
+
 
 
 

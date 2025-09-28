@@ -87,7 +87,7 @@ export default function NavBar() {
               </Button>
             </Link>
 
-            {status !== 'loading' && !user && (
+            {status === 'unauthenticated' && (
               <>
                 <Link href="/login">
                   <Button variant="ghost" className="text-gray-700 hover:text-primary-brand">
@@ -142,7 +142,16 @@ export default function NavBar() {
                   {isProfileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
                       {/* Profile Link - Different for different roles */}
-                      {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) ? (
+                      {(user as any)?.role === 'ADMIN' ? (
+                        <Link 
+                          href="/admin" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Admin Profiel</span>
+                        </Link>
+                      ) : (user as any)?.role === 'DELIVERY' ? (
                         <Link 
                           href="/delivery/profile" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -151,9 +160,9 @@ export default function NavBar() {
                           <User className="w-4 h-4" />
                           <span>Mijn Profiel</span>
                         </Link>
-                      ) : ((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) ? (
+                      ) : (user as any)?.role === 'SELLER' ? (
                         <Link 
-                          href="/seller/profile" 
+                          href="/profile" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           onClick={() => setIsProfileDropdownOpen(false)}
                         >
@@ -201,7 +210,7 @@ export default function NavBar() {
                       </Link>
                       
                       {/* Verkoper Dashboard - Alleen voor verkopers */}
-                      {((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) && (
+                      {(user as any)?.role === 'SELLER' && (
                         <Link 
                           href="/verkoper/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
@@ -225,7 +234,7 @@ export default function NavBar() {
                       )}
                       
                       {/* Delivery Dashboard Link - Alleen voor bezorgers */}
-                      {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) && (
+                      {(user as any)?.role === 'DELIVERY' && (
                         <Link 
                           href="/delivery/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
@@ -328,15 +337,22 @@ export default function NavBar() {
                   </div>
                   
                   {/* Profile Link - Different for different roles */}
-                  {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) ? (
+                  {(user as any)?.role === 'ADMIN' ? (
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-red-600">
+                        <User className="w-4 h-4" />
+                        <span>Admin Profiel</span>
+                      </Button>
+                    </Link>
+                  ) : (user as any)?.role === 'DELIVERY' ? (
                     <Link href="/delivery/profile" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                         <User className="w-4 h-4" />
                         <span>Mijn Profiel</span>
                       </Button>
                     </Link>
-                  ) : ((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) ? (
-                    <Link href="/seller/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                  ) : (user as any)?.role === 'SELLER' ? (
+                    <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                         <User className="w-4 h-4" />
                         <span>Mijn Profiel</span>
@@ -366,7 +382,7 @@ export default function NavBar() {
                   </Link>
                   
                   {/* Verkoper Dashboard - Alleen voor verkopers */}
-                  {((user as any)?.role === 'SELLER' || (user as any)?.sellerProfile) && (
+                  {(user as any)?.role === 'SELLER' && (
                     <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600">
                         <Settings className="w-4 h-4" />
@@ -386,7 +402,7 @@ export default function NavBar() {
                   )}
                   
                   {/* Delivery Dashboard Link - Only for Delivery Users */}
-                  {((user as any)?.role === 'DELIVERY' || (user as any)?.deliveryProfile) && (
+                  {(user as any)?.role === 'DELIVERY' && (
                     <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">
                         <Package className="w-4 h-4" />
@@ -401,8 +417,7 @@ export default function NavBar() {
                     variant="ghost" 
                     onClick={async () => {
                       setIsMobileMenuOpen(false);
-                      await signOut({ callbackUrl: '/' });
-                      window.location.href = '/';
+                      await handleLogout();
                     }}
                     className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                   >

@@ -11,7 +11,7 @@ export default function FollowsPage() {
     <main className="min-h-screen" style={{ background: "var(--background)", color: "var(--foreground)" }}>
       <header className="w-full border-b" style={{ borderColor: "#e5e7eb", background: "#fff" }}>
         <div className="mx-auto max-w-5xl px-6 py-6 flex items-center justify-between">
-          <span className="text-2xl font-bold" style={{ color: "var(--primary)" }}>Fans & Volgt</span>
+          <span className="text-2xl font-bold" style={{ color: "var(--primary)" }}>Fans & Fan van</span>
         </div>
       </header>
       <section className="mx-auto max-w-5xl px-6 py-8">

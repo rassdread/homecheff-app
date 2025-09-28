@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { notFound, redirect } from 'next/navigation';
-import SellerProfile from '@/components/seller/SellerProfile';
+import { notFound } from 'next/navigation';
+import PublicSellerProfile from '@/components/seller/PublicSellerProfileNew';
 
 interface PublicSellerProfilePageProps {
   params: {
@@ -12,11 +12,8 @@ interface PublicSellerProfilePageProps {
 export default async function PublicSellerProfilePage({ params }: PublicSellerProfilePageProps) {
   const { sellerId } = params;
   
-  // Check if user is logged in
+  // Get session if user is logged in (optional for public profiles)
   const session = await auth();
-  if (!session?.user) {
-    redirect('/login');
-  }
 
   // Get seller profile with all necessary data
   const sellerProfile = await prisma.sellerProfile.findUnique({
@@ -26,10 +23,19 @@ export default async function PublicSellerProfilePage({ params }: PublicSellerPr
         select: {
           id: true,
           name: true,
+          username: true,
           email: true,
           image: true,
+          profileImage: true,
           sellerRoles: true,
-          bio: true
+          buyerRoles: true,
+          bio: true,
+          quote: true,
+          place: true,
+          interests: true,
+          displayFullName: true,
+          displayNameOption: true,
+          createdAt: true
         }
       },
       workplacePhotos: {
@@ -54,7 +60,7 @@ export default async function PublicSellerProfilePage({ params }: PublicSellerPr
         orderBy: {
           createdAt: 'desc'
         },
-        take: 12
+        take: 20
       }
     }
   });
@@ -63,8 +69,38 @@ export default async function PublicSellerProfilePage({ params }: PublicSellerPr
     notFound();
   }
 
-  // Check if this is the owner's own profile
-  const isOwner = (session.user as any).id === sellerProfile.User.id;
+  // Get recipes for this seller
+  const recipes = await prisma.dish.findMany({
+    where: {
+      userId: sellerProfile.User.id,
+      status: 'PUBLISHED' // Only show published recipes
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      photos: true,
+      prepTime: true,
+      servings: true,
+      difficulty: true,
+      category: true,
+      tags: true,
+      createdAt: true
+    },
+    orderBy: {
+      createdAt: 'desc'
+    },
+    take: 20
+  });
 
-  return <SellerProfile sellerProfile={sellerProfile} isOwner={isOwner} />;
+  // Combine seller profile with recipes
+  const sellerProfileWithRecipes = {
+    ...sellerProfile,
+    recipes
+  };
+
+  // Check if this is the owner's own profile (only if user is logged in)
+  const isOwner = session?.user ? (session.user as any).id === sellerProfile.User.id : false;
+
+  return <PublicSellerProfile sellerProfile={sellerProfileWithRecipes} isOwner={isOwner} />;
 }

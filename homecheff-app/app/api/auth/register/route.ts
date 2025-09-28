@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
     if (userRole === UserRole.SELLER) {
       redirectUrl = "/profile"; // Verkopers naar profielpagina
     } else if (userRole === UserRole.BUYER) {
-      redirectUrl = "/feed"; // Kopers naar feed/homepage
+      redirectUrl = "/"; // Kopers naar homepage
     }
 
     return NextResponse.json({ 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Camera, AlertCircle, CheckCircle } from 'lucide-react';
 import { uploadFile } from '@/lib/upload';
 
@@ -30,11 +30,39 @@ export default function WorkspacePhotoUpload({
     initialPhotos.map(url => ({ id: crypto.randomUUID(), url }))
   );
   const [dragActive, setDragActive] = useState(false);
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load existing photos on mount
+  useEffect(() => {
+    loadExistingPhotos();
+  }, [userType]);
+
+  const loadExistingPhotos = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/seller/workplace-photos');
+      if (response.ok) {
+        const data = await response.json();
+        const rolePhotos = data.photos[userType] || [];
+        const photoItems = rolePhotos.map((photo: any) => ({
+          id: photo.id,
+          url: photo.url
+        }));
+        setPhotos(photoItems);
+        // Don't call onPhotosChange when loading existing photos
+        // onPhotosChange?.(photoItems.map(p => p.url));
+      }
+    } catch (error) {
+      console.error('Failed to load existing photos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePhotosChange = (newPhotos: PhotoItem[]) => {
     setPhotos(newPhotos);
-    onPhotosChange?.(newPhotos.map(p => p.url).filter(Boolean));
+    // No need to call onPhotosChange since we upload directly
   };
 
   const handleFileUpload = async (files: FileList | null) => {
@@ -68,26 +96,50 @@ export default function WorkspacePhotoUpload({
       };
 
       // Add uploading placeholder
-      handlePhotosChange([...photos, tempPhoto]);
+      setPhotos(prevPhotos => {
+        const updatedPhotos = [...prevPhotos, tempPhoto];
+        return updatedPhotos;
+      });
 
       try {
-        const result = await uploadFile(file, '/api/profile/seller/photos');
+        // Upload file directly to database
+        const formData = new FormData();
+        formData.append('photos', file);
+        formData.append('role', userType);
         
-        if (result.success) {
-          // Replace uploading placeholder with actual photo
-          handlePhotosChange(photos.map(p => 
-            p.id === tempId 
-              ? { id: tempId, url: result.url }
-              : p
-          ));
+        const response = await fetch('/api/seller/upload-workplace-photos', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log(`Upload successful for ${file.name}:`, result);
+          
+          // Replace uploading placeholder with uploaded photo
+          setPhotos(prevPhotos => {
+            const updatedPhotos = prevPhotos.map(p => 
+              p.id === tempId 
+                ? { id: result.photos[0]?.id || tempId, url: result.photos[0]?.fileUrl || '' }
+                : p
+            );
+            return updatedPhotos;
+          });
         } else {
-          // Remove failed upload and show error
-          handlePhotosChange(photos.filter(p => p.id !== tempId));
-          alert(`Upload van "${file.name}" mislukt: ${result.error}`);
+          // Remove failed upload
+          setPhotos(prevPhotos => {
+            const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
+            return updatedPhotos;
+          });
+          alert(`Upload van "${file.name}" mislukt`);
         }
+        
       } catch (error) {
         // Remove failed upload
-        handlePhotosChange(photos.filter(p => p.id !== tempId));
+        setPhotos(prevPhotos => {
+          const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
+          return updatedPhotos;
+        });
         alert(`Upload van "${file.name}" mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
       }
     }
@@ -109,8 +161,29 @@ export default function WorkspacePhotoUpload({
     setDragActive(false);
   };
 
-  const removePhoto = (id: string) => {
-    handlePhotosChange(photos.filter(p => p.id !== id));
+  const removePhoto = async (id: string) => {
+    // If it's an existing photo (has a real ID), delete from database
+    if (id.length > 20) { // Real UUID, not temp ID
+      try {
+        const response = await fetch(`/api/seller/workplace-photos/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to delete photo from database');
+          return;
+        }
+      } catch (error) {
+        console.error('Error deleting photo:', error);
+        return;
+      }
+    }
+    
+    // Remove from local state
+    setPhotos(prevPhotos => {
+      const updatedPhotos = prevPhotos.filter(p => p.id !== id);
+      return updatedPhotos;
+    });
   };
 
   const openFileDialog = () => {

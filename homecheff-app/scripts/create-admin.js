@@ -48,7 +48,17 @@ async function createAdmin() {
           username: email.split('@')[0],
           role: 'ADMIN',
           bio: 'HomeCheff Administrator',
-          interests: ['Beheer', 'Moderatie', 'Ondersteuning']
+          interests: ['Beheer', 'Moderatie', 'Ondersteuning'],
+          emailVerified: new Date(), // Auto-verify admin accounts
+          termsAccepted: true,
+          termsAcceptedAt: new Date(),
+          privacyPolicyAccepted: true,
+          privacyPolicyAcceptedAt: new Date(),
+          taxResponsibilityAccepted: true,
+          taxResponsibilityAcceptedAt: new Date(),
+          marketingAccepted: false, // Admin doesn't need marketing
+          displayFullName: true,
+          displayNameOption: 'full'
         }
       });
       console.log('✅ Admin account aangemaakt!');

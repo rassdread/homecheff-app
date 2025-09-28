@@ -78,7 +78,7 @@ export default function MessagesBox({ className = '' }: MessagesBoxProps) {
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/messages');
+      const response = await fetch('/api/messages/personal');
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages || []);
@@ -142,7 +142,7 @@ export default function MessagesBox({ className = '' }: MessagesBoxProps) {
 
     try {
       setSendingMessage(true);
-      const response = await fetch('/api/messages', {
+      const response = await fetch('/api/messages/personal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

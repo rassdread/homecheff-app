@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Get seller info
     const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: sellerId },
+      where: { id: sellerId },
       include: {
         User: {
           select: {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Don't allow sellers to start conversations with themselves
-    if (user.id === sellerId) {
+    if (user.id === sellerProfile.User.id) {
       return NextResponse.json(
         { error: 'Cannot start conversation with yourself' },
         { status: 400 }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         productId: null,
         ConversationParticipant: {
           some: {
-            userId: { in: [user.id, sellerId] }
+            userId: { in: [user.id, sellerProfile.User.id] }
           }
         }
       },
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
       await prisma.conversationParticipant.createMany({
         data: [
           { id: crypto.randomUUID(), conversationId: newConversation.id, userId: user.id },
-          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: sellerId }
+          { id: crypto.randomUUID(), conversationId: newConversation.id, userId: sellerProfile.User.id }
         ]
       });
 

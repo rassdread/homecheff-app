@@ -214,17 +214,17 @@ export function clearNextAuthData(): void {
 export function setupSessionIsolation(): void {
   if (typeof window === 'undefined') return;
 
-  // Clear any existing session data on page load
-  // This prevents data leakage between users
+  // Only clear data if we detect a different user (not on initial load)
   const lastUserId = sessionStorage.getItem('last_user_id');
   const currentUserId = localStorage.getItem('current_user_id');
   
-  if (lastUserId && lastUserId !== currentUserId) {
-    // Different user detected, clear everything
+  // Only clear if we have a previous user and it's different from current
+  if (lastUserId && currentUserId && lastUserId !== currentUserId) {
+    console.log('Different user detected, clearing session data');
     clearAllUserData();
   }
   
-  // Store current user ID for next session
+  // Store current user ID for next session (only if we have one)
   if (currentUserId) {
     sessionStorage.setItem('last_user_id', currentUserId);
   }

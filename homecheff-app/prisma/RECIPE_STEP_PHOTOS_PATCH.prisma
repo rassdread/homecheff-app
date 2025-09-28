@@ -1,0 +1,49 @@
+// Add RecipeStepPhoto model for step-by-step photos
+model RecipeStepPhoto {
+  id          String  @id @default(uuid())
+  dishId      String
+  stepNumber  Int
+  url         String
+  idx         Int     @default(0)
+  description String?
+  dish        Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@index([dishId])
+  @@index([dishId, stepNumber])
+}
+
+// Update Dish model to include step photos relation
+model Dish {
+  id           String        @id @default(uuid())
+  userId       String
+  title        String?
+  description  String?
+  status       DishStatus    @default(PRIVATE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  priceCents   Int?
+  deliveryMode DeliveryMode?
+  lat          Float?
+  lng          Float?
+  place        String?
+  maxStock     Int?
+  stock        Int?          @default(0)
+  category     String?       // "CHEFF", "GROWN", "DESIGNER"
+  subcategory  String?       // Specific subcategory
+  
+  // Recipe-specific fields
+  ingredients  String[]      @default([])
+  instructions String[]      @default([])
+  prepTime     Int?          // in minutes
+  servings     Int?
+  difficulty   String?       // "EASY", "MEDIUM", "HARD"
+  tags         String[]      @default([])
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos       DishPhoto[]
+  stepPhotos   RecipeStepPhoto[]  // Add step photos relation
+
+  @@index([userId])
+}
+
+

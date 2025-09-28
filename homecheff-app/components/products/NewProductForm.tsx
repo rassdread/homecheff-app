@@ -1,9 +1,14 @@
 
 'use client';
 import * as React from 'react';
-import MultiImageUploader from './MultiImageUploader';
+import { useSession } from 'next-auth/react';
+import SimpleImageUploader from './SimpleImageUploader';
 
-type Uploaded = { url: string };
+type Uploaded = { 
+  url: string; 
+  uploading?: boolean;
+  error?: string;
+};
 
 const VERTICALS = [
   { label: '🍳 Chef', value: 'CHEFF' },
@@ -18,6 +23,7 @@ const DELIVERY = [
 ];
 
 export default function NewProductForm() {
+  const { data: session } = useSession();
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [price, setPrice] = React.useState(''); // euros as string
@@ -27,10 +33,112 @@ export default function NewProductForm() {
   const [submitting, setSubmitting] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
   const [displayNameType, setDisplayNameType] = React.useState<'fullname' | 'username'>('fullname');
+  const [isFromRecipe, setIsFromRecipe] = React.useState(false);
   
   // Toekomstige beschikbaarheid state
   const [isFutureProduct, setIsFutureProduct] = React.useState(false);
   const [availabilityDate, setAvailabilityDate] = React.useState('');
+
+  // Function to process recipe data
+  const processRecipeData = (data: any) => {
+    console.log('Processing recipe data:', data);
+    
+    // Prefill form with recipe data
+    if (data.title) {
+      setTitle(data.title);
+      console.log('Set title:', data.title);
+    }
+    
+    // Build enhanced description from recipe data
+    let enhancedDescription = '';
+    if (data.description) {
+      enhancedDescription = data.description;
+    }
+    
+    // Add recipe details to description (simplified for product listing)
+    if (data.ingredients && data.ingredients.length > 0) {
+      // Extract main ingredients without quantities for cleaner look
+      const mainIngredients = data.ingredients.map((ing: string) => {
+        // Remove quantities (numbers with or without units) - improved regex
+        return ing.replace(/^\d+\s*(g|kg|ml|cl|dl|l|stuks?|eetlepels?|theelepels?|tl|el|gram|kilo|liter|milliliter|st\.|stuk|stuks|eieren?|eier|stuks?)\s*/i, '').trim();
+      }).filter(ing => ing.length > 0).slice(0, 4); // Limit to 4 main ingredients and filter empty
+      
+      if (mainIngredients.length > 0) {
+        enhancedDescription += '\n\nIngrediënten:\n• ' + mainIngredients.join('\n• ');
+      }
+    }
+    
+    if (data.tags && data.tags.length > 0) {
+      enhancedDescription += `\n\nTags: ${data.tags.join(', ')}`;
+    }
+    
+    setDescription(enhancedDescription);
+    console.log('Set enhanced description:', enhancedDescription);
+    
+    // Mark that this form was populated from a recipe
+    setIsFromRecipe(true);
+    console.log('Set isFromRecipe to true');
+    
+    // Auto-set category to CHEFF for recipes (recipes are always CHEFF)
+    setVertical('CHEFF');
+    
+    // Pre-populate images from recipe photos
+    if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
+      const recipeImages = data.photos.map((photo: any) => ({
+        url: photo.url,
+        uploading: false
+      }));
+      setImages(recipeImages);
+      console.log('Set recipe images:', recipeImages);
+    }
+    
+    console.log('Recipe data processed successfully');
+  };
+
+  // Load recipe data and auto-set category based on user role
+  React.useEffect(() => {
+    // Check if we're coming from a recipe
+    let recipeData = sessionStorage.getItem('recipeToProductData');
+    console.log('Checking for recipe data in sessionStorage:', recipeData);
+    
+    // If not found in sessionStorage, try localStorage as backup
+    if (!recipeData) {
+      recipeData = localStorage.getItem('recipeToProductData');
+      console.log('Checking for recipe data in localStorage:', recipeData);
+    }
+    
+    // Also check URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromRecipe = urlParams.get('fromRecipe');
+    console.log('URL parameter fromRecipe:', fromRecipe);
+    
+    // If we have URL parameter but no data, log the issue
+    if (fromRecipe === 'true' && !recipeData) {
+      console.log('fromRecipe=true but no data found in sessionStorage or localStorage');
+      console.log('This indicates an issue with the RecipeManager not storing data correctly');
+      console.log('Check if the handleSellRecipe function is working properly');
+      // Don't load any test data - let the user see the empty form
+    }
+    
+    if (recipeData) {
+      try {
+        const data = JSON.parse(recipeData);
+        console.log('Successfully parsed recipe data:', data);
+        processRecipeData(data);
+        
+        // Don't clear the session storage immediately - let user see the data first
+        // sessionStorage.removeItem('recipeToProductData');
+        console.log('Recipe data loaded successfully - keeping in sessionStorage for now');
+      } catch (error) {
+        console.error('Error parsing recipe data:', error);
+        console.error('Raw recipe data:', recipeData);
+      }
+    } else {
+      console.log('No recipe data found in sessionStorage');
+      // Default to CHEFF if not from recipe
+      setVertical('CHEFF');
+    }
+  }, [session]);
 
   // Dynamische voorbeeldtekst op basis van categorie
   const getDynamicExamples = (category: string) => {
@@ -152,7 +260,142 @@ export default function NewProductForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="hc-tight max-w-2xl">
+    <div className="hc-tight max-w-2xl">
+      {/* Debug and Recipe Indicator */}
+      <div className="mb-6 space-y-4">
+        {/* Debug Panel */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-800">Debug Informatie</h3>
+              <p className="text-sm text-blue-700">Controleer of receptdata correct wordt geladen</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const sessionData = sessionStorage.getItem('recipeToProductData');
+                  const localData = localStorage.getItem('recipeToProductData');
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const fromRecipe = urlParams.get('fromRecipe');
+                  
+                  console.log('Manual check - sessionStorage data:', sessionData);
+                  console.log('Manual check - localStorage data:', localData);
+                  console.log('URL parameter fromRecipe:', fromRecipe);
+                  
+                  alert(`SessionStorage: ${sessionData || 'Geen data'}\nLocalStorage: ${localData || 'Geen data'}\nURL fromRecipe: ${fromRecipe || 'Geen parameter'}`);
+                }}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              >
+                Check Data
+              </button>
+              <button
+                onClick={() => {
+                  // Load test recipe data
+                  const testRecipeData = {
+                    title: "Pasta Carbonara",
+                    description: "Klassieke Italiaanse pasta met spek en ei",
+                    ingredients: [
+                      "400g spaghetti",
+                      "200g pancetta",
+                      "4 eieren",
+                      "100g Parmezaanse kaas"
+                    ],
+                    instructions: [
+                      "Kook de spaghetti",
+                      "Bak de pancetta",
+                      "Meng alles door elkaar"
+                    ],
+                    photos: [
+                      { url: "https://via.placeholder.com/400x300/10b981/ffffff?text=Test+Pasta", isMain: true }
+                    ],
+                    prepTime: 20,
+                    servings: 4,
+                    difficulty: "MEDIUM",
+                    category: "Hoofdgerecht",
+                    tags: ["Test", "Pasta", "Italiano"]
+                  };
+                  
+                  sessionStorage.setItem('recipeToProductData', JSON.stringify(testRecipeData));
+                  console.log('Test recipe data loaded:', testRecipeData);
+                  alert('Test receptdata geladen! Herlaad de pagina om te zien of het werkt.');
+                }}
+                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+              >
+                Load Test Data
+              </button>
+              <button
+                onClick={() => {
+                  // Simulate coming from a recipe with URL parameter
+                  const testRecipeData = {
+                    title: "Pasta Carbonara",
+                    description: "Klassieke Italiaanse pasta met spek en ei",
+                    ingredients: [
+                      "400g spaghetti",
+                      "200g pancetta",
+                      "4 eieren",
+                      "100g Parmezaanse kaas"
+                    ],
+                    instructions: [
+                      "Kook de spaghetti",
+                      "Bak de pancetta",
+                      "Meng alles door elkaar"
+                    ],
+                    photos: [
+                      { url: "https://via.placeholder.com/400x300/10b981/ffffff?text=Test+Pasta", isMain: true }
+                    ],
+                    prepTime: 20,
+                    servings: 4,
+                    difficulty: "MEDIUM",
+                    category: "Hoofdgerecht",
+                    tags: ["Test", "Pasta", "Italiano"]
+                  };
+                  
+                  // Store data first
+                  sessionStorage.setItem('recipeToProductData', JSON.stringify(testRecipeData));
+                  console.log('Test data stored:', testRecipeData);
+                  
+                  // Wait a moment then navigate
+                  setTimeout(() => {
+                    window.location.href = '/sell/new?fromRecipe=true';
+                  }, 100);
+                }}
+                className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+              >
+                Test Full Flow
+              </button>
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem('recipeToProductData');
+                  console.log('SessionStorage cleared');
+                  alert('SessionStorage gecleared. Herlaad de pagina.');
+                }}
+                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+              >
+                Clear Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Recipe to Product Indicator */}
+        {isFromRecipe && (
+          <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-emerald-800">Recept omgezet naar Product</h3>
+                <p className="text-sm text-emerald-700">Je receptinformatie is automatisch ingevuld. Pas de details aan zoals gewenst.</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+    <form onSubmit={onSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="hc-tight">
           <label className="hc-label">Titel</label>
@@ -244,9 +487,9 @@ export default function NewProductForm() {
         </div>
       </div>
 
-      <MultiImageUploader 
+      <SimpleImageUploader 
         value={images} 
-        onChange={setImages} 
+        onChange={(newImages) => setImages(newImages)} 
         category={vertical}
         productTitle={title}
       />
@@ -286,5 +529,6 @@ export default function NewProductForm() {
         )}
       </div>
     </form>
+    </div>
   );
 }

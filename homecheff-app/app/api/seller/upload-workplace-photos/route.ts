@@ -1,104 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
-    }
-
-    // Get user's seller profile
-    const profile = await prisma.sellerProfile.findUnique({
-      where: { userId: (session.user as any).id }
-    });
-
-    if (!profile) {
-      return NextResponse.json({ 
-        error: 'Geen verkoper profiel gevonden' 
-      }, { status: 404 });
-    }
-
     const formData = await req.formData();
-    const photos = formData.getAll('photos') as File[];
-    const role = formData.get('role') as string;
+    const files = formData.getAll("photos") as File[];
+    const role = formData.get("role") as string;
 
-    if (photos.length === 0 || !role) {
-      return NextResponse.json({ 
-        error: 'Geen foto\'s of rol geüpload' 
-      }, { status: 400 });
+    if (!files || files.length === 0) {
+      return NextResponse.json({ error: "Geen bestanden ontvangen" }, { status: 400 });
     }
 
-    // Check current photo count for this role
-    const currentPhotos = await prisma.workplacePhoto.count({
-      where: { 
-        sellerProfileId: profile.id,
-        role: role
-      }
+    if (!role) {
+      return NextResponse.json({ error: "Rol is vereist" }, { status: 400 });
+    }
+
+    // Get user and seller profile
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { SellerProfile: true }
     });
 
-    if (currentPhotos + photos.length > 5) {
-      return NextResponse.json({ 
-        error: 'Maximaal 5 foto\'s per rol toegestaan' 
-      }, { status: 400 });
+    if (!user || !user.SellerProfile) {
+      return NextResponse.json({ error: "Seller profile not found" }, { status: 404 });
     }
 
+    console.log(`Uploading ${files.length} workplace photos for role: ${role}`);
+
+    // Upload files and save to database
     const uploadedPhotos: any[] = [];
-
-    for (const photo of photos) {
-      // Validate file type
-      if (!photo.type.startsWith('image/')) {
-        return NextResponse.json({ 
-          error: 'Alleen afbeeldingen zijn toegestaan' 
-        }, { status: 400 });
-      }
-
-      // Validate file size (max 5MB)
-      if (photo.size > 5 * 1024 * 1024) {
-        return NextResponse.json({ 
-          error: 'Foto\'s mogen maximaal 5MB zijn' 
-        }, { status: 400 });
-      }
-
-      const bytes = await photo.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const extension = photo.name.split('.').pop() || 'jpg';
-      const filename = `workplace-${role.toLowerCase()}-${timestamp}-${randomString}.${extension}`;
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       
-      // Save file to public/uploads directory
-      const path = join(process.cwd(), 'public', 'uploads', 'workplace', filename);
-      await writeFile(path, buffer);
+      if (!file || !(file instanceof File)) {
+        continue;
+      }
 
-      // Save photo record to database
-      const savedPhoto = await prisma.workplacePhoto.create({
-        data: {
-          sellerProfileId: profile.id,
-          role: role,
-          fileUrl: `/uploads/workplace/${filename}`,
-          sortOrder: currentPhotos + uploadedPhotos.length + 1
+      console.log(`Uploading file ${i + 1}/${files.length}: ${file.name}`);
+
+      // Convert file to buffer
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Try Vercel Blob first
+      const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+      let publicUrl: string | null = null;
+
+      if (token) {
+        try {
+          const { put } = await import("@vercel/blob");
+          const key = `workplace-photos/${crypto.randomUUID()}-${file.name}`;
+          const blob = await put(key, buffer, {
+            access: "public",
+            token: token,
+            addRandomSuffix: true,
+          });
+          publicUrl = blob.url;
+          console.log(`Blob upload successful for ${file.name}:`, blob.url);
+        } catch (error) {
+          console.error(`Blob upload failed for ${file.name}:`, error);
         }
-      });
+      }
 
-      uploadedPhotos.push(savedPhoto);
+      // Fallback: use base64 data URL for development
+      if (!publicUrl) {
+        try {
+          const base64 = buffer.toString('base64');
+          const mimeType = file.type || 'image/jpeg';
+          publicUrl = `data:${mimeType};base64,${base64}`;
+          console.log(`Using base64 fallback for ${file.name}`);
+        } catch (e: any) {
+          console.error(`Base64 conversion failed for ${file.name}:`, e);
+          continue;
+        }
+      }
+
+      if (publicUrl) {
+        // Save to database
+        const workplacePhoto = await prisma.workplacePhoto.create({
+          data: {
+            sellerProfileId: user.SellerProfile.id,
+            role: role,
+            fileUrl: publicUrl,
+            sortOrder: i,
+          }
+        });
+
+        uploadedPhotos.push(workplacePhoto);
+      }
     }
 
     return NextResponse.json({ 
       success: true, 
-      photos: uploadedPhotos,
-      message: `${uploadedPhotos.length} foto(s) succesvol geüpload voor ${role}`
+      uploaded: uploadedPhotos.length,
+      photos: uploadedPhotos 
     });
 
   } catch (error) {
-    console.error('Workplace photo upload error:', error);
-    return NextResponse.json({ 
-      error: 'Er is een fout opgetreden bij het uploaden van de foto\'s' 
-    }, { status: 500 });
+    console.error("Workplace photo upload error:", error);
+    return NextResponse.json({ error: "Upload mislukt" }, { status: 500 });
   }
 }

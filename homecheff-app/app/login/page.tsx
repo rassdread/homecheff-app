@@ -76,41 +76,8 @@ function LoginForm() {
 
       setState({ ...state, error: null, success: true, isLoading: false });
       
-      // Check if user is authenticated
-      const session = await getSession();
-      if (session) {
-        // Redirect based on user role
-        const userRole = (session.user as any)?.role;
-        
-        switch (userRole) {
-          case 'ADMIN':
-            router.push('/admin');
-            break;
-          case 'SELLER':
-            router.push('/profile');
-            break;
-          case 'BUYER':
-            router.push('/feed');
-            break;
-          case 'DELIVERY':
-            // Check if user has delivery profile
-            try {
-              const profileResponse = await fetch('/api/delivery/profile');
-              if (profileResponse.ok) {
-                router.push('/delivery/dashboard');
-              } else {
-                router.push('/delivery/signup');
-              }
-            } catch (error) {
-              console.error('Error checking delivery profile:', error);
-              router.push('/delivery/signup');
-            }
-            break;
-          default:
-            router.push('/feed');
-            break;
-        }
-      }
+      // Redirect to homepage with welcome parameter to trigger RedirectAfterLogin
+      router.push('/?welcome=true');
     } catch (error) {
       setState({ 
         ...state, 
@@ -125,9 +92,9 @@ function LoginForm() {
     setState({ ...state, isLoading: true, error: null });
     
     try {
-      // For social login, use role-based redirect
+      // For social login, redirect to homepage with welcome parameter
       await signIn(provider, { 
-        callbackUrl: '/api/auth/callback/role-redirect',
+        callbackUrl: '/?welcome=true',
         redirect: true 
       });
     } catch (error) {

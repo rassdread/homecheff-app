@@ -7,6 +7,8 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
 import Image from 'next/image';
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 interface Conversation {
   id: string;
@@ -51,9 +53,10 @@ interface Message {
 interface ChatWindowProps {
   conversation: Conversation;
   onBack: () => void;
+  onMessagesRead?: () => void;
 }
 
-export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
+export default function ChatWindow({ conversation, onBack, onMessagesRead }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -168,9 +171,9 @@ export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
     return `€${(priceCents / 100).toFixed(2)}`;
   };
 
-  const getDisplayName = (user: Conversation['otherParticipant']) => {
+  const getDisplayNameForConversation = (user: Conversation['otherParticipant']) => {
     if (!user) return 'Onbekend';
-    return user.name || user.username || 'Onbekend';
+    return getDisplayName(user);
   };
 
   return (
@@ -189,7 +192,7 @@ export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
             {conversation.otherParticipant?.profileImage ? (
               <Image
                 src={conversation.otherParticipant.profileImage}
-                alt={getDisplayName(conversation.otherParticipant)}
+                alt={getDisplayNameForConversation(conversation.otherParticipant)}
                 width={40}
                 height={40}
                 className="rounded-full"
@@ -197,14 +200,17 @@ export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
             ) : (
               <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-gray-600 font-medium">
-                  {getDisplayName(conversation.otherParticipant)?.charAt(0)}
+                  {getDisplayNameForConversation(conversation.otherParticipant)?.charAt(0)}
                 </span>
               </div>
             )}
 
             <div>
               <h2 className="font-semibold text-gray-900">
-                {getDisplayName(conversation.otherParticipant)}
+                <ClickableName 
+                  user={conversation.otherParticipant}
+                  className="hover:text-primary-600 transition-colors"
+                />
               </h2>
               {conversation.product && (
                 <p className="text-sm text-gray-500">
@@ -268,6 +274,7 @@ export default function ChatWindow({ conversation, onBack }: ChatWindowProps) {
           messages={messages}
           currentUserId={currentUserId}
           isLoading={isLoading}
+          onMessagesRead={onMessagesRead}
         />
       </div>
 

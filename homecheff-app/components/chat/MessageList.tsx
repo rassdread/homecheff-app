@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, User, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 interface MessageType {
   id: string;
@@ -26,9 +28,10 @@ interface MessageListProps {
   messages: MessageType[];
   currentUserId: string;
   isLoading?: boolean;
+  onMessagesRead?: () => void;
 }
 
-export default function MessageList({ messages, currentUserId, isLoading }: MessageListProps) {
+export default function MessageList({ messages, currentUserId, isLoading, onMessagesRead }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState<{ [userId: string]: boolean }>({});
 
@@ -39,6 +42,104 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Mark messages as read when user scrolls to bottom or after a delay
+  useEffect(() => {
+    const markMessagesAsRead = async () => {
+      if (!messages.length || !currentUserId) return;
+      
+      // Get unread messages that are not from current user
+      const unreadMessages = messages.filter(
+        message => !message.readAt && message.User.id !== currentUserId
+      );
+      
+      if (unreadMessages.length === 0) return;
+      
+      try {
+        // Mark all unread messages as read
+        const results = await Promise.all(
+          unreadMessages.map(message =>
+            fetch(`/api/messages/${message.id}/read`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+          )
+        );
+        
+        // Check if all requests were successful
+        const allSuccessful = results.every(response => response.ok);
+        
+        if (allSuccessful) {
+          // Trigger a refresh of the conversation list to update unread counts
+          if (onMessagesRead) {
+            onMessagesRead();
+          }
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    };
+    
+    // Mark messages as read after a short delay to ensure user is actually viewing them
+    const timer = setTimeout(() => {
+      markMessagesAsRead();
+    }, 2000); // Increased delay to 2 seconds
+    
+    return () => clearTimeout(timer);
+  }, [messages, currentUserId, onMessagesRead]);
+
+  // Also mark as read when user scrolls to bottom
+  useEffect(() => {
+    const handleScroll = () => {
+      if (messagesEndRef.current) {
+        const rect = messagesEndRef.current.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        if (isVisible) {
+          // Mark messages as read when user scrolls to bottom
+          const markAsRead = async () => {
+            if (!messages.length || !currentUserId) return;
+            
+            const unreadMessages = messages.filter(
+              message => !message.readAt && message.User.id !== currentUserId
+            );
+            
+            if (unreadMessages.length === 0) return;
+            
+            try {
+              const results = await Promise.all(
+                unreadMessages.map(message =>
+                  fetch(`/api/messages/${message.id}/read`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  })
+                )
+              );
+              
+              const allSuccessful = results.every(response => response.ok);
+              
+              if (allSuccessful && onMessagesRead) {
+                onMessagesRead();
+              }
+            } catch (error) {
+              console.error('Error marking messages as read:', error);
+            }
+          };
+          
+          markAsRead();
+        }
+      }
+    };
+    
+    // Use a more specific scroll container if available
+    const scrollContainer = document.querySelector('.overflow-y-auto') || window;
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [messages, currentUserId, onMessagesRead]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -59,7 +160,6 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
 
   const renderMessage = (message: MessageType) => {
     const isOwn = message.User.id === currentUserId;
-    const senderName = message.User.name || message.User.username || 'Onbekend';
     const isSystemMessage = ['SYSTEM', 'ORDER_STATUS_UPDATE', 'ORDER_PICKUP_INFO', 'ORDER_DELIVERY_INFO', 'ORDER_ADDRESS_UPDATE'].includes(message.messageType);
 
     // Special styling for system/order messages
@@ -116,7 +216,7 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
               {message.User.profileImage ? (
                 <Image
                   src={message.User.profileImage}
-                  alt={senderName}
+                  alt={getDisplayName(message.User)}
                   width={32}
                   height={32}
                   className="rounded-full"
@@ -132,7 +232,10 @@ export default function MessageList({ messages, currentUserId, isLoading }: Mess
           {/* Message content */}
           <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
             {!isOwn && (
-              <span className="text-xs text-gray-500 mb-1">{senderName}</span>
+              <ClickableName 
+                user={message.User}
+                className="text-xs text-gray-500 mb-1"
+              />
             )}
             
             <div

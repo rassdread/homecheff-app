@@ -26,12 +26,23 @@ export async function GET() {
       include: {
         photos: {
           orderBy: { idx: 'asc' }
+        },
+        stepPhotos: {
+          orderBy: [{ stepNumber: 'asc' }, { idx: 'asc' }]
         }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     // Transform to match expected format
+    console.log('API: Raw dishes from database:', dishes.map(d => ({
+      id: d.id,
+      title: d.title,
+      prepTime: d.prepTime,
+      servings: d.servings,
+      difficulty: d.difficulty
+    })));
+    
     const transformedDishes = dishes.map(dish => ({
       id: dish.id,
       title: dish.title,
@@ -43,12 +54,30 @@ export async function GET() {
       place: dish.place,
       stock: dish.stock,
       maxStock: dish.maxStock,
-      photos: dish.photos.map(photo => ({
-        id: photo.id,
-        url: photo.url,
-        idx: photo.idx,
-        isMain: photo.isMain
-      }))
+      category: dish.category,
+      subcategory: dish.subcategory,
+      // Recipe-specific fields
+      ingredients: dish.ingredients,
+      instructions: dish.instructions,
+      prepTime: dish.prepTime,
+      servings: dish.servings,
+      difficulty: dish.difficulty,
+      tags: dish.tags,
+      photos: [
+        ...dish.photos.map(photo => ({
+          id: photo.id,
+          url: photo.url,
+          idx: photo.idx,
+          isMain: photo.isMain
+        })),
+        ...dish.stepPhotos.map(stepPhoto => ({
+          id: stepPhoto.id,
+          url: stepPhoto.url,
+          idx: stepPhoto.idx,
+          stepNumber: stepPhoto.stepNumber,
+          description: stepPhoto.description
+        }))
+      ]
     }));
 
     return NextResponse.json({ items: transformedDishes });
@@ -83,6 +112,7 @@ export async function POST(req: NextRequest) {
       description, 
       status, 
       photos, 
+      stepPhotos,
       category, 
       subcategory, 
       priceCents, 
@@ -91,7 +121,14 @@ export async function POST(req: NextRequest) {
       lat, 
       lng,
       stock,
-      maxStock
+      maxStock,
+      // Recipe-specific fields
+      ingredients,
+      instructions,
+      prepTime,
+      servings,
+      difficulty,
+      tags
     } = body;
 
     if (!title || !description) {
@@ -112,10 +149,19 @@ export async function POST(req: NextRequest) {
         lng: lng || null,
         stock: stock || 0,
         maxStock: maxStock || null,
+        category: category || null,
+        subcategory: subcategory || null,
+        // Recipe-specific fields
+        ingredients: ingredients || [],
+        instructions: instructions || [],
+        prepTime: prepTime || null,
+        servings: servings || null,
+        difficulty: difficulty || null,
+        tags: tags || [],
       },
     });
 
-    // Handle photos if provided
+    // Handle main photos if provided
     if (photos && photos.length > 0) {
       for (let i = 0; i < photos.length; i++) {
         const photo = photos[i];
@@ -125,6 +171,22 @@ export async function POST(req: NextRequest) {
             url: photo.url,
             idx: i,
             isMain: photo.isMain || false,
+          },
+        });
+      }
+    }
+
+    // Handle step photos if provided
+    if (stepPhotos && stepPhotos.length > 0) {
+      for (let i = 0; i < stepPhotos.length; i++) {
+        const stepPhoto = stepPhotos[i];
+        await prisma.recipeStepPhoto.create({
+          data: {
+            dishId: dish.id,
+            url: stepPhoto.url,
+            stepNumber: stepPhoto.stepNumber,
+            idx: stepPhoto.idx || i,
+            description: stepPhoto.description || null,
           },
         });
       }

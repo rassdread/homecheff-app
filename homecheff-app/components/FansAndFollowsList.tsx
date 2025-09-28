@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UserPlus, Users } from "lucide-react";
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { 
   id: string; 
@@ -74,7 +76,7 @@ export default function FansAndFollowsList() {
           }`}
         >
           <UserPlus className="w-4 h-4" />
-          Volgt ({follows.length})
+          Fan van ({follows.length})
         </button>
         <button
           onClick={() => setActiveTab('fans')}
@@ -113,7 +115,6 @@ export default function FansAndFollowsList() {
         <ul className="rounded-xl border bg-white divide-y">
           {currentItems.map((item) => {
             const user = item.seller || item.user;
-            const displayName = user?.name || user?.username || "Gebruiker";
             const avatar = user?.avatar || "/avatar-placeholder.png";
             const href = activeTab === 'follows' 
               ? `/seller/${user?.id}` 
@@ -123,16 +124,15 @@ export default function FansAndFollowsList() {
               <li key={item.id} className="p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors">
                 <img 
                   src={avatar} 
-                  alt={displayName}
+                  alt={getDisplayName(user)}
                   className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" 
                 />
                 <div className="flex-1">
-                  <Link 
-                    href={href}
+                  <ClickableName 
+                    user={user}
                     className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                  >
-                    {displayName}
-                  </Link>
+                    fallbackText="Gebruiker"
+                  />
                   <p className="text-sm text-gray-500">
                     {activeTab === 'follows' 
                       ? `Sinds ${new Date(item.createdAt).toLocaleDateString('nl-NL')}`

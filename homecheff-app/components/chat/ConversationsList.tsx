@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MessageCircle, Clock, CheckCheck, Package } from 'lucide-react';
 import Image from 'next/image';
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 interface Conversation {
   id: string;
@@ -50,9 +52,10 @@ interface Conversation {
 
 interface ConversationsListProps {
   onSelectConversation: (conversation: Conversation) => void;
+  onMessagesRead?: () => void;
 }
 
-export default function ConversationsList({ onSelectConversation }: ConversationsListProps) {
+export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
@@ -100,10 +103,10 @@ export default function ConversationsList({ onSelectConversation }: Conversation
     return `€${(priceCents / 100).toFixed(2)}`;
   };
 
-  const getDisplayName = (participants: Conversation['participants']) => {
+  const getDisplayNameForParticipants = (participants: Conversation['participants']) => {
     if (participants.length === 0) return 'Onbekend';
     const participant = participants[0];
-    return participant.name || participant.username || 'Onbekend';
+    return getDisplayName(participant);
   };
 
   const getLastMessagePreview = (lastMessage: Conversation['lastMessage']) => {
@@ -124,9 +127,21 @@ export default function ConversationsList({ onSelectConversation }: Conversation
     if (!lastMessage) return '';
     
     const isOwn = lastMessage.User.id === currentUserId;
-    const senderName = lastMessage.User.name || lastMessage.User.username || 'Onbekend';
+    const senderName = getDisplayName(lastMessage.User);
     
     return isOwn ? 'Jij: ' : `${senderName}: `;
+  };
+
+  const markConversationAsRead = async (conversationId: string) => {
+    try {
+      // For now, just trigger a refresh since we don't have messages in the conversation object
+      // This will be handled by the individual message components
+      if (onMessagesRead) {
+        onMessagesRead();
+      }
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+    }
   };
 
   if (isLoading) {
@@ -152,7 +167,10 @@ export default function ConversationsList({ onSelectConversation }: Conversation
       {conversations.map((conversation) => (
         <div
           key={conversation.id}
-          onClick={() => onSelectConversation(conversation)}
+          onClick={() => {
+            onSelectConversation(conversation);
+            markConversationAsRead(conversation.id);
+          }}
           className="p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
         >
           <div className="flex items-start space-x-3">
@@ -228,7 +246,10 @@ export default function ConversationsList({ onSelectConversation }: Conversation
 
               <div className="flex items-center justify-between mt-2">
                 <p className="text-xs text-gray-400">
-                  Met: {getDisplayName(conversation.participants)}
+                  Met: <ClickableName 
+                    user={conversation.participants[0]}
+                    className="hover:text-primary-600 transition-colors"
+                  />
                 </p>
                 
                 {conversation.lastMessageAt && (

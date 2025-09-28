@@ -81,6 +81,11 @@ export default function StartChatButton({
     'Hoi! Ik heb interesse in dit product.'
   ];
 
+  // Don't show chat button if not logged in
+  if (!session?.user) {
+    return null;
+  }
+
   return (
     <>
       <button

@@ -180,7 +180,15 @@ export async function GET(req: NextRequest) {
       lng: dish.lng
     },
     stock: dish.stock || 0,
-    maxStock: dish.maxStock
+    maxStock: dish.maxStock,
+    seller: {
+      id: dish.user.id,
+      name: dish.user.name,
+      username: dish.user.username,
+      avatar: dish.user.profileImage,
+      displayFullName: (dish.user as any).displayFullName,
+      displayNameOption: (dish.user as any).displayNameOption
+    }
   }));
 
   // Transform old listings to match new product format
@@ -205,7 +213,15 @@ export async function GET(req: NextRequest) {
       url: media.url,
       order: media.order,
       isMain: media.order === 0
-    }))
+    })),
+    seller: listing.User ? {
+      id: listing.User.id || undefined,
+      name: listing.User.name || undefined,
+      username: listing.User.username || undefined,
+      avatar: listing.User.profileImage || undefined,
+      displayFullName: (listing.User as any).displayFullName || undefined,
+      displayNameOption: (listing.User as any).displayNameOption || undefined
+    } : undefined
   }));
 
   // Transform new products to match listing format
@@ -231,7 +247,15 @@ export async function GET(req: NextRequest) {
       url: img.fileUrl,
       order: img.sortOrder,
       isMain: img.sortOrder === 0
-    }))
+    })),
+    seller: product.seller ? {
+      id: product.seller.User?.id || undefined,
+      name: product.seller.User?.name || undefined,
+      username: product.seller.User?.username || undefined,
+      avatar: product.seller.User?.profileImage || undefined,
+      displayFullName: (product.seller.User as any)?.displayFullName || undefined,
+      displayNameOption: (product.seller.User as any)?.displayNameOption || undefined
+    } : undefined
   }));
 
   // Combine and sort all items

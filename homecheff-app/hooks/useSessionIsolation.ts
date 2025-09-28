@@ -16,7 +16,7 @@ export function useSessionIsolation() {
   }, []);
 
   useEffect(() => {
-    // Clear user data when session changes
+    // Only clear user data when definitely unauthenticated (not loading)
     if (status === 'unauthenticated') {
       clearAllUserData();
       clearNextAuthData();

@@ -34,6 +34,17 @@ async function createAdmin() {
         passwordHash: hashedPassword,
         role: 'ADMIN',
         emailVerified: new Date(),
+        bio: 'HomeCheff Platform Administrator',
+        interests: ['Beheer', 'Moderatie', 'Ondersteuning', 'Platform Management'],
+        termsAccepted: true,
+        termsAcceptedAt: new Date(),
+        privacyPolicyAccepted: true,
+        privacyPolicyAcceptedAt: new Date(),
+        taxResponsibilityAccepted: true,
+        taxResponsibilityAcceptedAt: new Date(),
+        marketingAccepted: false,
+        displayFullName: true,
+        displayNameOption: 'full'
       }
     });
 

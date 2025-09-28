@@ -4,28 +4,31 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    let file: File | undefined;
-    try {
-      const formData = await req.formData();
-      file = formData.get("file") as File;
-    } catch {
-      return NextResponse.json({ error: "Body moet FormData zijn met een 'file' veld." }, { status: 400 });
-    }
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    
     if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: "Geen geldig bestand ontvangen in FormData." }, { status: 400 });
+      return NextResponse.json({ error: "Geen geldig bestand ontvangen" }, { status: 400 });
     }
     
-    console.log("Uploaden bestand:", file.name);
+    console.log("Uploaden bestand:", file.name, "Grootte:", Math.round(file.size / 1024), "KB");
     
-    // Try Vercel Blob first if token is available
+    // Convert file to buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Try Vercel Blob first
     const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
     let publicUrl: string | null = null;
+    
+    console.log("Token available:", !!token);
     
     if (token) {
       try {
         const { put } = await import("@vercel/blob");
-        const key = `products/${crypto.randomUUID()}-${file.name}`;
-        const blob = await put(key, file, {
+        const key = `uploads/${crypto.randomUUID()}-${file.name}`;
+        console.log("Uploading to Vercel Blob with key:", key);
+        const blob = await put(key, buffer, {
           access: "public",
           token: token,
           addRandomSuffix: true,
@@ -34,18 +37,29 @@ export async function POST(req: Request) {
         console.log("Blob upload successful:", blob.url);
       } catch (error) {
         console.error("Blob upload failed:", error);
-        return NextResponse.json({ error: "Upload naar Vercel Blob mislukt" }, { status: 500 });
       }
     } else {
-      console.error("No Vercel Blob token found");
-      return NextResponse.json({ error: "Upload service niet geconfigureerd" }, { status: 500 });
+      console.log("No Vercel Blob token found, using fallback");
+    }
+    
+    // Fallback: use base64 data URL for development
+    if (!publicUrl) {
+      try {
+        const base64 = buffer.toString('base64');
+        const mimeType = file.type || 'image/jpeg';
+        publicUrl = `data:${mimeType};base64,${base64}`;
+        console.log("Using base64 fallback for:", file.name);
+      } catch (e: any) {
+        console.error("Base64 conversion failed:", e);
+        return NextResponse.json({ error: "File processing failed" }, { status: 500 });
+      }
     }
     
     if (!publicUrl) {
-      return NextResponse.json({ error: "Upload mislukt - geen URL gegenereerd" }, { status: 500 });
+      return NextResponse.json({ error: "Upload mislukt" }, { status: 500 });
     }
     
-    return Response.json({ url: publicUrl });
+    return NextResponse.json({ url: publicUrl });
   } catch (e) {
     console.error("Upload error:", e);
     return NextResponse.json({ error: "Upload mislukt" }, { status: 500 });

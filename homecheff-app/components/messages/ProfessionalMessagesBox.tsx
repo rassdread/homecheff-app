@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import ClickableName from '@/components/ui/ClickableName';
+import { getDisplayName } from '@/lib/displayName';
 
 interface Message {
   id: string;
@@ -80,9 +82,10 @@ interface FanRequest {
 
 interface MessagesBoxProps {
   className?: string;
+  onMessagesRead?: () => void;
 }
 
-export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxProps) {
+export default function ProfessionalMessagesBox({ className = '', onMessagesRead }: MessagesBoxProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -136,6 +139,80 @@ export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxP
       return () => clearInterval(interval);
     }
   }, [session]);
+
+  // Auto-mark messages as read when they become visible
+  useEffect(() => {
+    const markVisibleMessagesAsRead = async () => {
+      if (!messages.length || !(session as any)?.user?.id) return;
+      
+      // Get unread messages that are not from current user
+      const unreadMessages = messages.filter(
+        message => !message.isRead && message.senderId !== (session as any)?.user?.id
+      );
+      
+      if (unreadMessages.length === 0) return;
+      
+      try {
+        // Mark all unread messages as read, but handle errors gracefully
+        const results = await Promise.allSettled(
+          unreadMessages.map(message =>
+            fetch(`/api/messages/${message.id}/read`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+          )
+        );
+        
+        // Get successful results
+        const successfulResults = results
+          .map((result, index) => ({ result, index }))
+          .filter(({ result }) => result.status === 'fulfilled' && result.value.ok);
+        
+        if (successfulResults.length > 0) {
+          // Update local state only for successful updates
+          const successfulMessageIds = successfulResults.map(({ index }) => unreadMessages[index].id);
+          
+          setMessages(prevMessages => 
+            prevMessages.map(msg => 
+              successfulMessageIds.includes(msg.id)
+                ? { ...msg, isRead: true, readAt: new Date().toISOString() }
+                : msg
+            )
+          );
+          
+          // Update conversations
+          setConversations(prevConversations =>
+            prevConversations.map(conv => ({
+              ...conv,
+              messages: conv.messages.map(msg =>
+                successfulMessageIds.includes(msg.id)
+                  ? { ...msg, isRead: true, readAt: new Date().toISOString() }
+                  : msg
+              ),
+              unreadCount: conv.messages.filter(msg => !msg.isRead && msg.senderId !== (session as any)?.user?.id).length
+            }))
+          );
+          
+          // Recalculate total unread count
+          const remainingUnread = messages.filter(
+            msg => !successfulMessageIds.includes(msg.id) && !msg.isRead && msg.senderId !== (session as any)?.user?.id
+          ).length;
+          setUnreadCount(remainingUnread);
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    };
+    
+    // Mark messages as read after a short delay
+    const timer = setTimeout(() => {
+      markVisibleMessagesAsRead();
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }, [messages, session]);
 
   const fetchAllMessages = useCallback(async () => {
     try {
@@ -234,7 +311,7 @@ export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxP
 
     try {
       setSendingMessage(true);
-      const response = await fetch('/api/messages', {
+      const response = await fetch('/api/messages/personal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,9 +335,48 @@ export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxP
 
   const markAsRead = async (messageId: string) => {
     try {
-      await fetch(`/api/messages/${messageId}/read`, {
+      const response = await fetch(`/api/messages/${messageId}/read`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      
+      if (response.ok) {
+        // Update the message in the local state immediately
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, isRead: true, readAt: new Date().toISOString() }
+              : msg
+          )
+        );
+        
+        // Also update conversations
+        setConversations(prevConversations =>
+          prevConversations.map(conv => ({
+            ...conv,
+            messages: conv.messages.map(msg =>
+              msg.id === messageId
+                ? { ...msg, isRead: true, readAt: new Date().toISOString() }
+                : msg
+            ),
+            unreadCount: conv.messages.filter(msg => !msg.isRead && msg.senderId !== (session as any)?.user?.id).length
+          }))
+        );
+        
+        // Recalculate total unread count
+        const newUnreadCount = messages
+          .filter(msg => !msg.isRead && msg.senderId !== (session as any)?.user?.id)
+          .length;
+        setUnreadCount(newUnreadCount);
+      } else if (response.status === 404) {
+        // Message not found, remove it from local state
+        setMessages(prevMessages => 
+          prevMessages.filter(msg => msg.id !== messageId)
+        );
+        console.warn(`Message ${messageId} not found, removing from local state`);
+      }
     } catch (error) {
       console.error('Error marking message as read:', error);
     }
@@ -407,7 +523,10 @@ export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxP
                       )}
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{currentConversation.otherUser.name}</span>
+                          <ClickableName 
+                            user={currentConversation.otherUser}
+                            className="font-medium text-sm hover:text-primary-600 transition-colors"
+                          />
                           {currentConversation.otherUser.role === 'ADMIN' && (
                             <Badge className="w-3 h-3 text-red-500" />
                           )}
@@ -553,9 +672,10 @@ export default function ProfessionalMessagesBox({ className = '' }: MessagesBoxP
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {conversation.otherUser.name}
-                          </h4>
+                          <ClickableName 
+                            user={conversation.otherUser}
+                            className="text-sm font-medium text-gray-900 truncate hover:text-primary-600 transition-colors"
+                          />
                           {conversation.otherUser.role === 'ADMIN' && (
                             <span className="w-3 h-3 text-red-500 text-xs font-bold">A</span>
                           )}

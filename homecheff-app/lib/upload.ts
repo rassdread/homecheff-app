@@ -75,5 +75,5 @@ export async function uploadProductImages(file: File): Promise<UploadResult> {
 }
 
 export async function uploadWorkspacePhoto(file: File): Promise<UploadResult> {
-  return uploadFile(file, '/api/profile/seller/photos');
+  return uploadFile(file, '/api/upload');
 }

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { MoreHorizontal, Star, Clock, Truck, Package } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 
 type HomeItem = {
@@ -43,6 +45,8 @@ interface ItemCardProps {
 
 export default function ItemCard({ item }: ItemCardProps) {
   const [hasProps, setHasProps] = useState(false);
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -58,6 +62,13 @@ export default function ItemCard({ item }: ItemCardProps) {
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d geleden`;
     return date.toLocaleDateString('nl-NL');
+  };
+
+  const handleSellerNameClick = (e: React.MouseEvent) => {
+    if (!session) {
+      e.preventDefault();
+      router.push('/login?callbackUrl=' + encodeURIComponent(`/seller/${item.seller?.id}`));
+    }
   };
 
   return (
@@ -154,6 +165,7 @@ export default function ItemCard({ item }: ItemCardProps) {
               <div className="flex items-center gap-2">
                 <Link 
                   href={`/seller/${item.seller?.id}`}
+                  onClick={handleSellerNameClick}
                   className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors"
                 >
                   {item.seller?.name || 'Onbekend'}

@@ -124,6 +124,30 @@ type RegisterState = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  
+  // Clear any existing user data to prevent privacy leaks
+  useEffect(() => {
+    clearAllUserData();
+    
+    // Also clear browser autofill data by resetting form fields
+    const resetFormFields = () => {
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+      const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+      
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.setAttribute('autocomplete', 'off');
+      }
+      if (passwordInput) {
+        passwordInput.value = '';
+        passwordInput.setAttribute('autocomplete', 'new-password');
+      }
+    };
+    
+    // Reset form fields after a short delay to ensure DOM is ready
+    setTimeout(resetFormFields, 100);
+  }, []);
+
   const [state, setState] = useState<RegisterState>({
     firstName: "",
     lastName: "",
@@ -397,15 +421,14 @@ export default function RegisterPage() {
       // Probeer automatisch in te loggen
       try {
         const signInResult = await signIn("credentials", {
-          email: state.email,
+          emailOrUsername: state.email,
           password: state.password,
           redirect: false,
         });
         
         if (signInResult?.ok) {
-          // Succesvol ingelogd, redirect naar juiste pagina op basis van rol
-          const redirectUrl = data.redirectUrl || "/feed";
-          router.push(redirectUrl);
+          // Succesvol ingelogd, redirect naar profiel pagina
+          router.push("/profile");
         } else {
           // Inloggen mislukt, redirect naar login pagina
           router.push("/login?message=Registratie succesvol! Log in om verder te gaan.");
@@ -788,6 +811,10 @@ export default function RegisterPage() {
                       onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       placeholder="je@email.com"
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck="false"
                     />
                   </div>
                   
@@ -800,6 +827,10 @@ export default function RegisterPage() {
                         onChange={e => setState(prev => ({ ...prev, password: e.target.value }))}
                         className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         placeholder="Minimaal 8 karakters"
+                        autoComplete="new-password"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
                       />
                       <button
                         type="button"

@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 enum UserRole {
   ADMIN = "ADMIN",
   BUYER = "BUYER",
-  SELLER = "SELLER"
+  SELLER = "SELLER",
+  DELIVERY = "DELIVERY"
 }
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
@@ -18,12 +19,12 @@ export async function POST(req: Request) {
       hasBankData: !!(body.bankName || body.iban || body.accountHolderName)
     });
     
-  const { email, password, firstName, lastName, username, gender, userTypes, selectedBuyerType, interests, location, bio, isBusiness, kvk, btw, company, subscription, bankName, iban, accountHolderName } = body;
+  const { email, password, firstName, lastName, username, gender, userTypes, selectedBuyerType, interests, location, bio, isBusiness, kvk, btw, company, subscription, bankName, iban, accountHolderName, isDelivery } = body;
   if (!email || !password)
       return NextResponse.json({ error: "Email en wachtwoord vereist" }, { status: 400 });
 
   // Check if user has at least one role or buyer type
-  if ((!userTypes || userTypes.length === 0) && !selectedBuyerType) {
+  if ((!userTypes || userTypes.length === 0) && !selectedBuyerType && !isDelivery) {
     return NextResponse.json({ error: "Selecteer tenminste één rol of koper type" }, { status: 400 });
   }
 
@@ -38,7 +39,9 @@ export async function POST(req: Request) {
   
   // Determine user role based on selections
   let roleValue = UserRole.BUYER; // Default to buyer
-  if (isBusiness) {
+  if (isDelivery) {
+    roleValue = UserRole.DELIVERY;
+  } else if (isBusiness) {
     roleValue = UserRole.SELLER;
   } else if (userTypes && userTypes.length > 0) {
     roleValue = UserRole.SELLER; // Has selling roles
@@ -78,6 +81,30 @@ export async function POST(req: Request) {
         },
         select: { id: true, email: true, username: true, name: true },
       });
+    } else if (isDelivery) {
+      // Create delivery user with DeliveryProfile
+      user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          name: `${firstName} ${lastName}`.trim(),
+          username,
+          gender,
+          interests: interests || [],
+          place: location,
+          bio,
+          role: roleValue,
+          DeliveryProfile: {
+            create: {
+              age: 25, // Default age, should be updated by user
+              bio: bio || `Bezorger uit ${location || 'Nederland'}`,
+              transportation: ['BIKE'], // Default to bike
+              maxDistance: 5.0,
+            }
+          }
+        },
+        select: { id: true, email: true, username: true, name: true },
+      });
     } else {
   // roleValue is already determined above
       user = await prisma.user.create({
@@ -99,6 +126,8 @@ export async function POST(req: Request) {
     let redirectUrl = "/";
     if (roleValue === UserRole.SELLER) {
       redirectUrl = "/verkoper/dashboard?welcome=true&newUser=true";
+    } else if (roleValue === UserRole.DELIVERY) {
+      redirectUrl = "/delivery/dashboard?welcome=true&newUser=true";
     } else if (roleValue === UserRole.BUYER) {
       redirectUrl = "/?welcome=true&newUser=true";
     }

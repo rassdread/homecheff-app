@@ -16,10 +16,10 @@ export default function RedirectAfterLogin() {
     if (session?.user) {
       const user = session.user as any;
       
-      // Only redirect if user just logged in (not on every page load)
-      // Check if we're coming from a login redirect
+      // Only redirect if we have specific URL parameters indicating a fresh login
       const isFromLogin = window.location.search.includes('callbackUrl') || 
                          window.location.search.includes('error') ||
+                         window.location.search.includes('welcome') ||
                          document.referrer.includes('/login') ||
                          document.referrer.includes('/auth/signin');
       
@@ -30,7 +30,7 @@ export default function RedirectAfterLogin() {
         if (user.role === 'ADMIN') {
           router.push('/admin');
         } else if (user.role === 'SELLER') {
-          router.push('/seller/profile');
+          router.push('/profile');
         } else if (user.role === 'DELIVERY') {
           router.push('/delivery/dashboard');
         }

@@ -577,8 +577,20 @@ model Dish {
   place        String?
   maxStock     Int?
   stock        Int?          @default(0)
+  category     String?       // "CHEFF", "GROWN", "DESIGNER"
+  subcategory  String?       // Specific subcategory
+  
+  // Recipe-specific fields
+  ingredients  String[]      @default([])
+  instructions String[]      @default([])
+  prepTime     Int?          // in minutes
+  servings     Int?
+  difficulty   String?       // "EASY", "MEDIUM", "HARD"
+  tags         String[]      @default([])
+  
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   photos       DishPhoto[]
+  stepPhotos   RecipeStepPhoto[]  // Add step photos relation
 
   @@index([userId])
 }
@@ -592,6 +604,19 @@ model DishPhoto {
   dish   Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
 
   @@index([dishId])
+}
+
+model RecipeStepPhoto {
+  id          String  @id @default(uuid())
+  dishId      String
+  stepNumber  Int
+  url         String
+  idx         Int     @default(0)
+  description String?
+  dish        Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@index([dishId])
+  @@index([dishId, stepNumber])
 }
 
 model ReviewImage {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getDisplayName } from '@/lib/displayName';
 
 export async function GET(req: NextRequest) {
   try {
@@ -112,7 +113,7 @@ export async function GET(req: NextRequest) {
         priority: 'medium' as const,
         sender: {
           id: msg.User.id,
-          name: msg.User.name || 'Onbekende gebruiker',
+          name: getDisplayName(msg.User),
           username: msg.User.username,
           image: msg.User.profileImage,
           role: msg.User.role
@@ -210,6 +211,48 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error fetching personal messages:', error);
     return NextResponse.json({ error: 'Failed to fetch personal messages' }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions as any);
+    
+    if (!(session as any)?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { receiverId, content } = body;
+
+    if (!receiverId || !content) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Create a new message
+    const message = await prisma.message.create({
+      data: {
+        senderId: (session as any).user.id,
+        text: content,
+        conversationId: 'temp-conversation', // Temporary - will be handled by conversation logic
+      },
+      include: {
+        User: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profileImage: true,
+            role: true,
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({ message });
+  } catch (error) {
+    console.error('Error creating message:', error);
+    return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
   }
 }
 
@@ -364,7 +407,7 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       priority: 'high' as const,
       sender: {
         id: order.User.id,
-        name: order.User.name || 'Onbekende klant',
+        name: getDisplayName(order.User),
         username: order.User.username,
         image: order.User.profileImage,
         role: 'USER'
@@ -396,7 +439,7 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       priority: 'medium' as const,
       sender: {
         id: review.buyer.id,
-        name: review.buyer.name || 'Onbekende klant',
+        name: getDisplayName(review.buyer),
         username: review.buyer.username,
         image: review.buyer.profileImage,
         role: 'USER'
@@ -422,13 +465,13 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       category: 'role',
       senderId: follow.followerId,
       receiverId: userId,
-      content: `${follow.User.name || 'Iemand'} volgt je nu!`,
+      content: `${getDisplayName(follow.User)} volgt je nu!`,
       timestamp: follow.createdAt,
       isRead: false,
       priority: 'low' as const,
       sender: {
         id: follow.User.id,
-        name: follow.User.name || 'Nieuwe fan',
+        name: getDisplayName(follow.User),
         username: follow.User.username,
         image: follow.User.profileImage,
         role: 'USER'
@@ -480,7 +523,7 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       priority: 'high' as const,
       sender: {
         id: delivery.order.User.id,
-        name: delivery.order.User.name || 'Klant',
+        name: getDisplayName(delivery.order.User),
         username: delivery.order.User.username,
         image: delivery.order.User.profileImage,
         role: 'USER'

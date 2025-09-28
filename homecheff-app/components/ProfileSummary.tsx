@@ -28,12 +28,8 @@ async function getMe() {
     return user;
   } catch {}
 
-  // Dev fallback (geen sessie)
-  const user = await prisma.user.findFirst({
-    select: { id: true, name: true, email: true, image: true },
-    orderBy: { createdAt: "desc" }
-  });
-  return user;
+  // No fallback for privacy - only return data for authenticated users
+  return null;
 }
 
 export default async function ProfileSummary() {

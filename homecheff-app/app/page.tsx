@@ -1,6 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Layers, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
@@ -11,6 +12,7 @@ import SmartRecommendations from "@/components/recommendations/SmartRecommendati
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
 import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
+import ClickableName from "@/components/ui/ClickableName";
 
 const CATEGORIES = {
   CHEFF: {
@@ -85,6 +87,7 @@ type HomeUser = {
 };
 
 function HomePageContent() {
+  const { data: session } = useSession();
   const [username, setUsername] = useState<string>("");
   const [items, setItems] = useState<HomeItem[]>([]);
   const [users, setUsers] = useState<HomeUser[]>([]);
@@ -153,13 +156,24 @@ function HomePageContent() {
       try {
         // Fetch products
         const productsResponse = await fetch('/api/products');
-        const productsData = await productsResponse.json();
-        setItems(productsData.items || []);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          setItems(productsData.items || []);
+        }
         
-        // Fetch users
-        const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
-        const usersData = await usersResponse.json();
-        setUsers(usersData.users || []);
+        // Only fetch users if user is logged in (privacy protection)
+        const profileResponse = await fetch('/api/profile/me');
+        if (profileResponse.ok) {
+          // User is logged in, safe to fetch users
+          const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            setUsers(usersData.users || []);
+          }
+        } else {
+          // User not logged in, don't fetch users for privacy
+          setUsers([]);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -175,19 +189,45 @@ function HomePageContent() {
     setQ('');
     if (searchType === 'users') {
       setSortBy('name');
+      // Check if user is logged in before allowing user search
+      const checkAuth = async () => {
+        try {
+          const profileResponse = await fetch('/api/profile/me');
+          if (!profileResponse.ok) {
+            // User not logged in, switch back to products for privacy
+            setSearchType('products');
+            setSortBy('newest');
+          }
+        } catch (error) {
+          console.error('Error checking auth:', error);
+          setSearchType('products');
+          setSortBy('newest');
+        }
+      };
+      checkAuth();
     } else {
       setSortBy('newest');
     }
   }, [searchType]);
 
-  // Fetch users when userRole changes
+  // Fetch users when userRole changes (only if logged in)
   useEffect(() => {
     if (searchType === 'users') {
       const fetchUsers = async () => {
         try {
-          const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
-          const usersData = await usersResponse.json();
-          setUsers(usersData.users || []);
+          // Check if user is logged in first
+          const profileResponse = await fetch('/api/profile/me');
+          if (profileResponse.ok) {
+            // User is logged in, safe to fetch users
+            const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
+            if (usersResponse.ok) {
+              const usersData = await usersResponse.json();
+              setUsers(usersData.users || []);
+            }
+          } else {
+            // User not logged in, don't fetch users for privacy
+            setUsers([]);
+          }
         } catch (error) {
           console.error('Error fetching users:', error);
         }
@@ -200,12 +240,15 @@ function HomePageContent() {
     const fetchUsername = async () => {
       try {
         const response = await fetch('/api/profile/me');
-        const data = await response.json();
-        if (data.user?.name) {
-          setUsername(data.user.name);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user?.name) {
+            setUsername(data.user.name);
+          }
         }
       } catch (error) {
-        console.error('Error fetching username:', error);
+        // Silently handle error - user might not be logged in
+        console.log('No active session or user not logged in');
       }
     };
 
@@ -448,6 +491,14 @@ function HomePageContent() {
   };
 
   const handleProductClick = (product: any) => {
+    // Check if user is logged in
+    if (!session?.user) {
+      // Redirect to login with callback URL
+      window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(`/product/${product.id}`)}`;
+      return;
+    }
+    
+    // User is logged in, proceed to product page
     window.location.href = `/product/${product.id}`;
   };
 
@@ -482,19 +533,11 @@ function HomePageContent() {
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
               {username ? (
-                <span>
-                  Hey {username.split(' ')[0]}, wat gaat het worden vandaag?{' '}
-                  <Link 
-                    href="/profile" 
-                    className="text-white hover:text-primary-100 transition-colors underline decoration-2 underline-offset-4 hover:decoration-primary-200"
-                  >
-                    Ontdek
-                  </Link>
-                </span>
+                `Hey ${username.split(' ')[0]}, wat gaat het worden vandaag?`
               ) : (
                 'Ontdek Lokale Delicatessen'
               )}
-          </h1>
+            </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-primary-100 mb-6 md:mb-8 max-w-3xl mx-auto px-4">
               Vind verse producten, heerlijke gerechten en unieke creaties van lokale makers in jouw buurt
             </p>
@@ -588,9 +631,9 @@ function HomePageContent() {
                 </div>
               </div>
 
-              {/* Advanced Filters Panel */}
+              {/* Advanced Filters Panel - Desktop */}
               {showFilters && (
-                <div className="mt-6 pt-6 border-t border-neutral-200">
+                <div className="hidden md:block mt-6 pt-6 border-t border-neutral-200">
                   <AdvancedFiltersPanel
                     filters={filters}
                     onFiltersChange={setFilters}
@@ -600,6 +643,46 @@ function HomePageContent() {
                     onClearFilters={handleClearFilters}
                     searchType={searchType}
                   />
+                </div>
+              )}
+
+              {/* Mobile Filters Panel */}
+              {showMobileFilters && (
+                <div className="md:hidden mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+                    <button
+                      onClick={() => setShowMobileFilters(false)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                  
+                  <AdvancedFiltersPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    savedSearches={savedSearches}
+                    onSaveSearch={handleSaveSearch}
+                    onLoadSearch={handleLoadSearch}
+                    onClearFilters={handleClearFilters}
+                    searchType={searchType}
+                  />
+                  
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={handleClearFilters}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => setShowMobileFilters(false)}
+                      className="flex-1 px-4 py-2 bg-primary-brand text-white hover:bg-primary-700 rounded-lg transition-colors font-medium"
+                    >
+                      Toepassen
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -857,12 +940,12 @@ function HomePageContent() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Link 
-                              href={`/profile/${item.seller?.id}`}
+                            <ClickableName
+                              user={item.seller}
                               className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
-                            >
-                              {item.seller?.name ?? item.seller?.username ?? "Anoniem"}
-                            </Link>
+                              fallbackText="Anoniem"
+                              linkTo="profile"
+                            />
                             {item.seller?.followerCount && item.seller?.followerCount > 0 && (
                               <span className="text-xs text-neutral-500">
                                 ({item.seller?.followerCount} fans)

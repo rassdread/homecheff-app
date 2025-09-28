@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit3, Trash2, Package, Euro, AlertCircle } from 'lucide-react';
+import { Edit3, Trash2, Package, Euro, AlertCircle, Clock, Users } from 'lucide-react';
 
 type Product = {
   id: string;
@@ -10,12 +10,19 @@ type Product = {
   priceCents: number;
   stock: number;
   maxStock?: number | null;
-  unit: string;
-  delivery: string;
-  category: string;
+  unit?: string | null;
+  delivery?: string | null;
+  category?: string | null;
   isActive: boolean;
   createdAt: string;
   Image: { id: string; fileUrl: string; sortOrder: number }[];
+  // Recipe-specific fields
+  prepTime?: number | null;
+  servings?: number | null;
+  difficulty?: string | null;
+  ingredients?: string[];
+  instructions?: string[];
+  tags?: string[];
 };
 
 interface ProductManagementProps {
@@ -48,6 +55,7 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
       const response = await fetch('/api/seller/products');
       if (response.ok) {
         const data = await response.json();
+        console.log('ProductManagement: Loaded products:', data.products);
         setProducts(data.products || []);
       }
     } catch (error) {
@@ -225,7 +233,7 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
                 <div className="p-4 space-y-3">
                   <div>
                     <h4 className="font-semibold text-gray-900 truncate">{product.title}</h4>
-                    <p className="text-sm text-gray-600 capitalize">{product.category.toLowerCase()}</p>
+                    <p className="text-sm text-gray-600 capitalize">{product.category?.toLowerCase() || 'Onbekend'}</p>
                   </div>
                   
                   <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
@@ -237,7 +245,7 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
                         € {(product.priceCents / 100).toFixed(2)}
                       </span>
                       <span className="text-sm text-gray-500">
-                        {product.unit.toLowerCase()}
+                        {product.unit?.toLowerCase() || 'stuk'}
                       </span>
                     </div>
                     
@@ -248,7 +256,7 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
                         product.stock <= 5 ? 'text-orange-600' : 
                         'text-green-600'
                       }`}>
-                        {product.stock} {product.unit.toLowerCase()}
+                        {product.stock} {product.unit?.toLowerCase() || 'stuk'}
                         {product.maxStock && ` / ${product.maxStock}`}
                       </span>
                     </div>
@@ -256,9 +264,44 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Levering:</span>
                       <span className="text-gray-900 capitalize">
-                        {product.delivery.toLowerCase().replace('_', ' ')}
+                        {product.delivery?.toLowerCase().replace('_', ' ') || 'Niet gespecificeerd'}
                       </span>
                     </div>
+                    
+                    {/* Recipe-specific info */}
+                    {(() => {
+                      console.log('ProductManagement: Rendering product:', product.title, {
+                        prepTime: product.prepTime,
+                        servings: product.servings,
+                        difficulty: product.difficulty
+                      });
+                      return (product.prepTime || product.servings || product.difficulty);
+                    })() && (
+                      <div className="flex items-center gap-3 text-sm text-gray-500 pt-2 border-t">
+                        {product.prepTime && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{product.prepTime} min</span>
+                          </div>
+                        )}
+                        {product.servings && (
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            <span>{product.servings} pers.</span>
+                          </div>
+                        )}
+                        {product.difficulty && (
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            product.difficulty === 'EASY' ? 'text-green-600 bg-green-100' :
+                            product.difficulty === 'MEDIUM' ? 'text-yellow-600 bg-yellow-100' :
+                            'text-red-600 bg-red-100'
+                          }`}>
+                            {product.difficulty === 'EASY' ? 'Makkelijk' :
+                             product.difficulty === 'MEDIUM' ? 'Gemiddeld' : 'Moeilijk'}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   
                   {/* Actions */}
@@ -428,6 +471,10 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
     </div>
   );
 }
+
+
+
+
 
 
 

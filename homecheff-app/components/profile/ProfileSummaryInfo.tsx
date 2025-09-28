@@ -15,12 +15,7 @@ export default async function ProfileSummaryInfo({ type }: { type: "name" | "sta
       });
     }
   } catch {}
-  if (!me) {
-    me = await prisma.user.findFirst({
-      select: { id: true, username: true, name: true },
-      orderBy: { createdAt: "desc" }
-    });
-  }
+  // Don't fallback to random user for privacy - only show data for logged in user
   if (!me) return null;
   if (type === "name") {
     return <span className="text-2xl font-bold text-emerald-700 font-sans drop-shadow-sm">{me.username ?? me.name ?? "Gebruiker"}</span>;

@@ -56,6 +56,13 @@ export default function ProductPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
+  const handleSellerNameClick = (e: React.MouseEvent) => {
+    if (!session && product?.seller?.User?.id) {
+      e.preventDefault();
+      router.push('/login?callbackUrl=' + encodeURIComponent(`/seller/${product.seller.User.id}`));
+    }
+  };
+
   if (!params?.id || typeof params.id !== 'string') {
     return (
       <main className="min-h-screen bg-neutral-50">
@@ -131,10 +138,13 @@ export default function ProductPage() {
           category: data.category,
           subcategory: data.subcategory,
           displayNameType: data.displayNameType || 'fullname',
-          Image: data.Image?.map((img: any) => ({
+          Image: data.photos?.map((photo: any) => ({
+            id: photo.id,
+            fileUrl: photo.url
+          })) || data.Image?.map((img: any) => ({
             id: img.id,
             fileUrl: img.fileUrl
-          })),
+          })) || [],
           seller: {
             User: {
               id: data.User?.id,
@@ -420,6 +430,12 @@ export default function ProductPage() {
                   alt={product.title} 
                   className="w-full h-full object-cover" 
                 />
+              ) : product.photos && product.photos.length > 0 ? (
+                <img 
+                  src={product.photos[selectedImageIndex]?.url} 
+                  alt={product.title} 
+                  className="w-full h-full object-cover" 
+                />
               ) : product.image ? (
                 <img 
                   src={product.image} 
@@ -489,7 +505,7 @@ export default function ProductPage() {
               )}
 
               {/* Image Navigation */}
-              {product.Image && product.Image.length > 1 && (
+              {((product.Image && product.Image.length > 1) || (product.photos && product.photos.length > 1)) && (
                 <>
                   <button
                     onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
@@ -499,8 +515,8 @@ export default function ProductPage() {
                     <ArrowLeft className="w-5 h-5 text-neutral-600" />
                   </button>
                   <button
-                    onClick={() => setSelectedImageIndex(Math.min((product.Image?.length || 1) - 1, selectedImageIndex + 1))}
-                    disabled={selectedImageIndex === (product.Image?.length || 1) - 1}
+                    onClick={() => setSelectedImageIndex(Math.min(((product.Image?.length || product.photos?.length) || 1) - 1, selectedImageIndex + 1))}
+                    disabled={selectedImageIndex === ((product.Image?.length || product.photos?.length) || 1) - 1}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ArrowLeft className="w-5 h-5 text-neutral-600 rotate-180" />
@@ -510,9 +526,9 @@ export default function ProductPage() {
             </div>
 
             {/* Thumbnail Gallery */}
-            {product.Image && product.Image.length > 1 && (
+            {((product.Image && product.Image.length > 1) || (product.photos && product.photos.length > 1)) && (
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {product.Image?.map((photo, index) => (
+                {(product.Image || product.photos)?.map((photo, index) => (
                   <button
                     key={photo.id}
                     onClick={() => setSelectedImageIndex(index)}
@@ -523,7 +539,7 @@ export default function ProductPage() {
                     }`}
                   >
                     <img 
-                      src={photo.fileUrl} 
+                      src={photo.fileUrl || photo.url} 
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover" 
                     />
@@ -716,7 +732,7 @@ export default function ProductPage() {
                     id: product.id,
                     title: product.title,
                     priceCents: product.priceCents,
-                    image: product.Image?.[0]?.fileUrl,
+                    image: product.Image?.[0]?.fileUrl || product.photos?.[0]?.url || product.image || undefined,
                     sellerName: getDisplayName(product),
                     sellerId: product.seller?.User.id || '',
                     deliveryMode: (product.delivery as 'PICKUP' | 'DELIVERY' | 'BOTH') || 'PICKUP',
@@ -757,6 +773,7 @@ export default function ProductPage() {
                 <div className="flex-1">
                   <Link 
                     href={`/seller/${product.seller?.User.id || ''}`}
+                    onClick={handleSellerNameClick}
                     className="text-lg font-semibold text-neutral-900 hover:text-emerald-600 transition-colors"
                   >
                     {getDisplayName(product)}

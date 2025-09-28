@@ -12,7 +12,7 @@ export default function SessionGuard() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    // If we're not authenticated, clear all data
+    // Only clear data if we're definitely unauthenticated (not loading)
     if (status === 'unauthenticated') {
       console.log('SessionGuard: No valid session, clearing all user data');
       clearAllUserData();

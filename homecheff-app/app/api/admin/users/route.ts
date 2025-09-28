@@ -117,17 +117,56 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create user with proper profile data based on role
+    const userData: any = {
+      email,
+      name,
+      username,
+      passwordHash: hashedPassword,
+      role: role as UserRole,
+      emailVerified: new Date(), // Auto-verify admin created users
+      bio: `Account aangemaakt door admin op ${new Date().toLocaleDateString('nl-NL')}`,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
+      privacyPolicyAccepted: true,
+      privacyPolicyAcceptedAt: new Date(),
+      taxResponsibilityAccepted: true,
+      taxResponsibilityAcceptedAt: new Date(),
+      marketingAccepted: false,
+      displayFullName: true,
+      displayNameOption: 'full',
+      interests: role === 'ADMIN' ? ['Beheer', 'Moderatie', 'Ondersteuning'] : []
+    };
+
+    // Add role-specific profile creation
+    if (role === 'SELLER') {
+      userData.SellerProfile = {
+        create: {
+          id: require('crypto').randomUUID(),
+          displayName: username,
+          companyName: name,
+          bio: `Verkoper account aangemaakt door admin`,
+          // Add required fields for SellerProfile
+          kvk: '00000000', // Placeholder, should be updated by user
+          btw: 'NL000000000B01', // Placeholder, should be updated by user
+          deliveryMode: 'FIXED',
+          deliveryRadius: 5.0,
+          deliveryRegions: []
+        }
+      };
+    } else if (role === 'DELIVERY') {
+      userData.DeliveryProfile = {
+        create: {
+          age: 25, // Default age, should be updated by user
+          bio: `Bezorger account aangemaakt door admin`,
+          transportation: ['BIKE'], // Default to bike
+          maxDistance: 5.0,
+        }
+      };
+    }
+
     const newUser = await prisma.user.create({
-      data: {
-        email,
-        name,
-        username,
-        passwordHash: hashedPassword,
-        role: role as UserRole,
-        emailVerified: new Date(), // Auto-verify admin created users
-        bio: `Account aangemaakt door admin op ${new Date().toLocaleDateString('nl-NL')}`,
-      },
+      data: userData,
       select: {
         id: true,
         email: true,
