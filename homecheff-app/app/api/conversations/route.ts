@@ -13,11 +13,17 @@ export async function GET(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: {
+      select: {
+        id: true,
         ConversationParticipant: {
-          include: {
+          select: {
             Conversation: {
-              include: {
+              select: {
+                id: true,
+                title: true,
+                lastMessageAt: true,
+                isActive: true,
+                createdAt: true,
                 Product: {
                   select: {
                     id: true,
@@ -36,7 +42,11 @@ export async function GET(req: NextRequest) {
                 Message: {
                   take: 1,
                   orderBy: { createdAt: 'desc' },
-                  include: {
+                  select: {
+                    id: true,
+                    text: true,
+                    createdAt: true,
+                    readAt: true,
                     User: {
                       select: {
                         id: true,
@@ -48,7 +58,8 @@ export async function GET(req: NextRequest) {
                   }
                 },
                 ConversationParticipant: {
-                  include: {
+                  select: {
+                    userId: true,
                     User: {
                       select: {
                         id: true,

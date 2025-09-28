@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Camera, X, Upload, Image as ImageIcon, Plus } from "lucide-react";
 import { uploadFile } from "@/lib/upload";
-import { compressImage, getCompressionPreset, formatFileSize } from "@/lib/image-compression";
+// Image compression removed - using simple file size check instead
 
 interface StepPhoto {
   id: string;

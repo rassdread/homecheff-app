@@ -10,15 +10,27 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const page = Math.max(Number(searchParams.get("page") ?? 0), 0);
     const take = Math.min(Math.max(Number(searchParams.get("take") ?? 24), 1), 100); // Limit max results
+    const skip = page * take;
 
     const products = await prisma.product.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "desc" },
-      take: Math.min(Math.max(take, 1), 100),
-      include: {
+      skip: skip,
+      take: take,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priceCents: true,
+        createdAt: true,
+        category: true,
         seller: {
-          include: {
+          select: {
+            id: true,
+            lat: true,
+            lng: true,
             User: {
               select: { 
                 id: true, 
@@ -31,6 +43,10 @@ export async function GET(req: Request) {
           }
         },
         Image: {
+          select: {
+            fileUrl: true,
+            sortOrder: true
+          },
           orderBy: { sortOrder: 'asc' },
         },
       },
@@ -92,8 +108,23 @@ export async function GET(req: Request) {
       favoriteCount: favoriteCountMap.get(p.id) ?? 0,
     }));
 
-    // Return items directly without sanitization for now
-    return NextResponse.json({ items: items });
+    // Get total count for pagination
+    const totalCount = await prisma.product.count({
+      where: { isActive: true }
+    });
+
+    // Return items with pagination info
+    return NextResponse.json({ 
+      items: items,
+      pagination: {
+        page: page,
+        take: take,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / take),
+        hasNext: (page + 1) * take < totalCount,
+        hasPrev: page > 0
+      }
+    });
   } catch (err) {
     console.error("[GET /api/products]", err);
     return NextResponse.json({ items: [] }, { status: 200 });

@@ -6,6 +6,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const type = formData.get("type") as string || "general";
     
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "Geen geldig bestand ontvangen" }, { status: 400 });
@@ -15,7 +16,19 @@ export async function POST(req: Request) {
     
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    let buffer = Buffer.from(arrayBuffer);
+    
+    // Simple file size check for images (no compression)
+    const isImage = file.type.startsWith('image/');
+    if (isImage) {
+      const maxSize = 5 * 1024 * 1024; // 5MB limit
+      if (buffer.length > maxSize) {
+        return NextResponse.json({ 
+          error: "Afbeelding is te groot. Maximum grootte is 5MB." 
+        }, { status: 400 });
+      }
+      console.log(`Image upload: ${file.name}, ${Math.round(buffer.length / 1024)}KB`);
+    }
     
     // Try Vercel Blob first
     const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
