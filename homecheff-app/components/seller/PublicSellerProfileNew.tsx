@@ -41,6 +41,7 @@ import ShareButton from '@/components/ui/ShareButton';
 import Image from 'next/image';
 import StartChatButton from '@/components/chat/StartChatButton';
 import FollowButton from '@/components/follow/FollowButton';
+import RecipeModal from '@/components/recipes/RecipeModal';
 
 interface WorkplacePhoto {
   id: string;
@@ -108,18 +109,6 @@ interface WorkspaceContentComment {
   replies: WorkspaceContentComment[];
 }
 
-interface Recipe {
-  id: string;
-  servings: number | null;
-  prepTime: number | null;
-  cookTime: number | null;
-  difficulty: string | null;
-  ingredients: any[];
-  instructions: any[];
-  tags: string[];
-  source: string | null;
-  notes: string | null;
-}
 
 interface GrowingProcess {
   id: string;
@@ -150,6 +139,32 @@ interface DesignItem {
   priceCents: number | null;
 }
 
+interface Recipe {
+  id: string;
+  title: string | null;
+  description: string | null;
+  prepTime: number | null;
+  servings: number | null;
+  difficulty: string | null;
+  category: string | null;
+  tags: string[];
+  ingredients: string[];
+  instructions: string[];
+  photos: {
+    id: string;
+    url: string;
+    idx: number;
+    isMain: boolean;
+    stepNumber?: number;
+    description?: string;
+  }[];
+  createdAt: Date;
+  // Optional fields that might not be present in database
+  cookTime?: number | null;
+  source?: string | null;
+  notes?: string | null;
+}
+
 interface SellerProfile {
   id: string;
   displayName: string | null;
@@ -178,6 +193,7 @@ interface SellerProfile {
   workplacePhotos: WorkplacePhoto[];
   products: Product[];
   workspaceContent?: WorkspaceContent[];
+  recipes?: Recipe[];
 }
 
 interface PublicSellerProfileProps {
@@ -186,8 +202,11 @@ interface PublicSellerProfileProps {
 }
 
 export default function PublicSellerProfile({ sellerProfile, isOwner = false }: PublicSellerProfileProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows'>('overview');
   const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [stats, setStats] = useState({
     totalViews: 0,
     totalLikes: 0,
@@ -200,12 +219,31 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
   // Load workspace content and stats on mount
   useEffect(() => {
     fetchStats();
+    // Use server-side recipes if available, otherwise fetch from API
+    if (sellerProfile.recipes) {
+      setRecipes(sellerProfile.recipes);
+    } else {
+      fetchRecipes();
+    }
     // Only load workspace content if user is logged in
     if (typeof window !== 'undefined') {
       // Check if user is logged in by checking for session
       fetchWorkspaceContent();
     }
-  }, []);
+  }, [sellerProfile.recipes]);
+
+  const fetchRecipes = async () => {
+    try {
+      const response = await fetch(`/api/seller/${sellerProfile.id}/recipes`);
+      if (response.ok) {
+        const data = await response.json();
+        setRecipes(data.recipes || []);
+      }
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
+      setRecipes([]);
+    }
+  };
 
   const fetchWorkspaceContent = async () => {
     try {
@@ -272,6 +310,16 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
       default:
         return 'Mijn Werkruimte';
     }
+  };
+
+  const openRecipeModal = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setIsRecipeModalOpen(true);
+  };
+
+  const closeRecipeModal = () => {
+    setSelectedRecipe(null);
+    setIsRecipeModalOpen(false);
   };
 
   const deliveryModeLabels = {
@@ -583,7 +631,10 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                       label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0] || 'generic'),
                       icon: Camera
                     },
-                    { id: 'reviews', label: 'Reviews', icon: Star }
+                    { id: 'recipes', label: 'Recepten', icon: ChefHat },
+                    { id: 'reviews', label: 'Reviews', icon: Star },
+                    { id: 'orders', label: 'Bestellingen', icon: Calendar },
+                    { id: 'follows', label: 'Fan van', icon: Heart }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     return (
@@ -862,6 +913,104 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   </div>
                 )}
 
+                {/* Recipes Tab */}
+                {activeTab === 'recipes' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-gray-900">Recepten</h3>
+                      <span className="text-sm text-gray-600">
+                        {recipes.length} recepten
+                      </span>
+                    </div>
+
+                    {recipes.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {recipes.map((recipe) => {
+                          const mainPhoto = recipe.photos.find(photo => photo.isMain) || recipe.photos[0];
+                          return (
+                            <div 
+                              key={recipe.id} 
+                              onClick={() => openRecipeModal(recipe)}
+                              className="group bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                            >
+                              {mainPhoto && (
+                                <div className="aspect-square overflow-hidden">
+                                  <Image
+                                    src={mainPhoto.url}
+                                    alt={recipe.title || 'Recept foto'}
+                                    width={300}
+                                    height={300}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                </div>
+                              )}
+                              <div className="p-4">
+                                <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                                  {recipe.title || 'Recept zonder titel'}
+                                </h4>
+                                {recipe.description && (
+                                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                    {recipe.description}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between text-sm text-gray-500">
+                                  <div className="flex items-center gap-4">
+                                    {recipe.prepTime && (
+                                      <div className="flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        <span>{recipe.prepTime} min</span>
+                                      </div>
+                                    )}
+                                    {recipe.servings && (
+                                      <div className="flex items-center gap-1">
+                                        <Users className="w-4 h-4" />
+                                        <span>{recipe.servings}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {recipe.difficulty && (
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                      recipe.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                                      recipe.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {recipe.difficulty === 'EASY' ? 'Makkelijk' :
+                                       recipe.difficulty === 'MEDIUM' ? 'Gemiddeld' : 'Moeilijk'}
+                                    </span>
+                                  )}
+                                </div>
+                                {recipe.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-3">
+                                    {recipe.tags.slice(0, 3).map((tag, index) => (
+                                      <span
+                                        key={index}
+                                        className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full"
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))}
+                                    {recipe.tags.length > 3 && (
+                                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                        +{recipe.tags.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <ChefHat className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen recepten</h3>
+                        <p className="text-gray-500">Deze verkoper heeft nog geen recepten gedeeld</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Reviews Tab */}
                 {activeTab === 'reviews' && (
                   <div className="space-y-6">
@@ -880,11 +1029,48 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     </div>
                   </div>
                 )}
+
+                {/* Orders Tab */}
+                {activeTab === 'orders' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-gray-900">Bestellingen</h3>
+                    </div>
+
+                    <div className="text-center py-12">
+                      <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Bestellingen niet zichtbaar</h3>
+                      <p className="text-gray-500">Bestellingen zijn alleen zichtbaar voor de verkoper zelf</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Follows Tab */}
+                {activeTab === 'follows' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-gray-900">Fan van</h3>
+                    </div>
+
+                    <div className="text-center py-12">
+                      <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Volgers niet zichtbaar</h3>
+                      <p className="text-gray-500">Volgers zijn alleen zichtbaar voor de verkoper zelf</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Recipe Modal */}
+      <RecipeModal
+        recipe={selectedRecipe}
+        isOpen={isRecipeModalOpen}
+        onClose={closeRecipeModal}
+      />
     </div>
   );
 }

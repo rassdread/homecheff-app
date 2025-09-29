@@ -85,6 +85,8 @@ export default async function PublicSellerProfilePage({ params }: PublicSellerPr
       difficulty: true,
       category: true,
       tags: true,
+      ingredients: true,
+      instructions: true,
       createdAt: true
     },
     orderBy: {

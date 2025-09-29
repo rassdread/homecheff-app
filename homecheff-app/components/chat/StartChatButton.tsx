@@ -34,19 +34,23 @@ export default function StartChatButton({
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/conversations/start', {
+      // Use different endpoint based on whether we have a productId or sellerId
+      const endpoint = productId ? '/api/conversations/start' : '/api/conversations/start-seller';
+      const requestBody = productId 
+        ? { productId, initialMessage: initialMessage.trim() || null }
+        : { sellerId, initialMessage: initialMessage.trim() || null };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          productId,
-          initialMessage: initialMessage.trim() || null
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to start conversation');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start conversation');
       }
 
       const { conversation } = await response.json();
@@ -62,7 +66,7 @@ export default function StartChatButton({
       setInitialMessage('');
     } catch (error) {
       console.error('Error starting conversation:', error);
-      alert('Fout bij starten van gesprek. Probeer het opnieuw.');
+      alert(`Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     } finally {
       setIsLoading(false);
     }
@@ -73,17 +77,36 @@ export default function StartChatButton({
     handleStartChat();
   };
 
-  const quickMessages = [
+  const quickMessages = productId ? [
     'Hoi! Is dit product nog beschikbaar?',
     'Kun je meer foto\'s sturen?',
     'Wat zijn de bezorgmogelijkheden?',
     'Is onderhandeling mogelijk?',
     'Hoi! Ik heb interesse in dit product.'
+  ] : [
+    'Hoi! Ik heb interesse in je producten.',
+    'Kun je meer informatie geven over je werk?',
+    'Wat zijn je bezorgmogelijkheden?',
+    'Heb je nog andere producten beschikbaar?',
+    'Hoi! Ik zou graag meer willen weten over je creaties.'
   ];
 
-  // Don't show chat button if not logged in
+  // Show login prompt for non-logged in users
   if (!session?.user) {
-    return null;
+    return (
+      <button
+        onClick={() => window.location.href = '/api/auth/signin'}
+        className={`
+          flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
+          transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
+          bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white
+          ${className}
+        `}
+      >
+        <MessageCircle className="w-4 h-4" />
+        <span>Inloggen om te chatten</span>
+      </button>
+    );
   }
 
   return (
@@ -123,7 +146,10 @@ export default function StartChatButton({
             {/* Content */}
             <div className="p-4 space-y-4">
               <p className="text-sm text-gray-600">
-                Start een gesprek over dit product. Je kunt een eerste bericht sturen of later beginnen.
+                {productId 
+                  ? 'Start een gesprek over dit product. Je kunt een eerste bericht sturen of later beginnen.'
+                  : 'Start een gesprek met deze verkoper. Je kunt een eerste bericht sturen of later beginnen.'
+                }
               </p>
 
               {/* Quick messages */}
