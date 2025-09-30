@@ -1,19 +1,13 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { 
-  Plus, 
-  Grid, 
-  Heart, 
-  ShoppingBag, 
-  Clock, 
-  MapPin,
-  Star,
-  Users,
-  Eye
-} from "lucide-react";
+import { useState, Suspense, useEffect } from 'react';
+import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
+
+import MyDishesManager from '@/components/profile/MyDishesManager';
+import FollowsList from '@/components/profile/FollowsList';
+import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
 
 interface User {
   id: string;
@@ -32,15 +26,66 @@ interface User {
   displayNameOption: string;
   createdAt: string;
   Dish: any[];
+  SellerProfile?: {
+    id: string;
+    products: any[];
+  };
+}
+
+interface ProfileStats {
+  items: number;
+  dishes: number;
+  products: number;
+  followers: number;
+  following: number;
+  favorites: number;
+  orders: number;
+}
+
+interface Tab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<any>;
+  role?: string;
 }
 
 interface PublicProfileClientProps {
   user: User;
+  openNewProducts: boolean;
+  isOwnProfile?: boolean;
 }
 
-export default function PublicProfileClient({ user }: PublicProfileClientProps) {
+export default function PublicProfileClient({ user, openNewProducts, isOwnProfile = false }: PublicProfileClientProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [products, setProducts] = useState(user.Dish || []);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [profileImage, setProfileImage] = useState(user?.profileImage ?? user?.image ?? null);
+  const [stats, setStats] = useState<ProfileStats>({
+    items: 0,
+    dishes: 0,
+    products: 0,
+    followers: 0,
+    following: 0,
+    favorites: 0,
+    orders: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Combineer Dish en Product data
+  const allProducts = [
+    ...(user.Dish || []).map(dish => ({
+      ...dish,
+      type: 'dish',
+      photos: dish.photos || []
+    })),
+    ...(user.SellerProfile?.products || []).map(product => ({
+      ...product,
+      type: 'product',
+      photos: product.Image?.map(img => ({ url: img.fileUrl, idx: 0 })) || []
+    }))
+  ];
+  
+  const [products, setProducts] = useState(allProducts);
   const [filter, setFilter] = useState<'both' | 'gedeeld' | 'show'>('both');
 
   // Groepeer producten per categorie
@@ -88,15 +133,15 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
     const roleSpecificTabs: Array<{id: string, label: string, icon: any, role: string}> = [];
     const workspaceTab: Array<{id: string, label: string, icon: any}> = [];
 
-    // Voeg aparte tabs toe voor elke verkoperrol
+    // Voeg aparte tabs toe voor elke verkoperrol (Mijn...)
     if (sellerRoles.includes('chef')) {
-      roleSpecificTabs.push({ id: 'dishes-chef', label: 'De Keuken', icon: Plus, role: 'chef' });
+      roleSpecificTabs.push({ id: 'dishes-chef', label: 'Mijn Keuken', icon: Plus, role: 'chef' });
     }
     if (sellerRoles.includes('garden')) {
-      roleSpecificTabs.push({ id: 'dishes-garden', label: 'De Tuin', icon: Plus, role: 'garden' });
+      roleSpecificTabs.push({ id: 'dishes-garden', label: 'Mijn Tuin', icon: Plus, role: 'garden' });
     }
     if (sellerRoles.includes('designer')) {
-      roleSpecificTabs.push({ id: 'dishes-designer', label: 'Het Atelier', icon: Plus, role: 'designer' });
+      roleSpecificTabs.push({ id: 'dishes-designer', label: 'Mijn Atelier', icon: Plus, role: 'designer' });
     }
 
     // Voeg Werkruimte tab toe als er verkoper rollen zijn
@@ -148,6 +193,11 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
       default:
         return products;
     }
+  };
+
+  // Voor het overzicht tab: alleen betaalde producten
+  const getOverviewProducts = () => {
+    return products.filter(p => p.priceCents && p.priceCents > 0);
   };
 
   const getProductsByCategory = (category: string) => {
@@ -291,11 +341,11 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Overzicht</h2>
               
-              {/* Recente Items */}
+              {/* Recente Items - Alleen betaalde producten */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recente Items</h3>
                 {(() => {
-                  const filteredProducts = getFilteredProducts();
+                  const filteredProducts = getOverviewProducts();
                   return filteredProducts.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -354,65 +404,99 @@ export default function PublicProfileClient({ user }: PublicProfileClientProps) 
           )}
 
           {/* Category-specific tabs */}
-          {tabs.slice(2).map((tab) => (
-            activeTab === tab.id && (
-              <div key={tab.id} className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">{tab.label}</h2>
-                
-                {(() => {
-                  const roleTab = tab as {id: string, label: string, icon: any, role: string};
-                  const category = roleTab.role === 'chef' ? 'CHEFF' : 
-                                  roleTab.role === 'garden' ? 'GROWN' : 'DESIGNER';
-                  const categoryProducts = getProductsByCategory(category);
-                  
-                  return categoryProducts.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <Plus className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>Nog geen items in {tab.label.toLowerCase()}</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {categoryProducts.map((product) => {
-                        const mainPhoto = product.photos?.[0];
-                        return (
-                          <div
-                            key={product.id}
-                            className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
-                          >
-                            {mainPhoto && (
-                              <div className="relative h-48">
-                                <Image
-                                  src={mainPhoto.url}
-                                  alt={product.title}
-                                  fill
-                                  className="object-cover"
-                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                              </div>
-                            )}
-                            <div className="p-4">
-                              <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
-                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-emerald-600">
-                                  {formatPrice(product.priceCents)}
-                                </span>
-                                {product.stock && (
-                                  <span className="text-xs text-gray-500">
-                                    {product.stock} op voorraad
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+          {(activeTab.startsWith('dishes-') || activeTab === 'dishes') && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  {(() => {
+                    let title = "Mijn Items";
+                    let description = "Beheer je items en producten";
+                    
+                    if (activeTab === 'dishes-chef') {
+                      title = "Mijn Keuken";
+                      description = "Beheer je gerechten en culinaire creaties";
+                    } else if (activeTab === 'dishes-garden') {
+                      title = "Mijn Tuin";
+                      description = "Beheer je kweken en tuinproducten";
+                    } else if (activeTab === 'dishes-designer') {
+                      title = "Mijn Atelier";
+                      description = "Beheer je creaties en handgemaakte items";
+                    }
+                    
+                    return (
+                      <>
+                        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                        <p className="text-sm text-gray-500">{description}</p>
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
-            )
-          ))}
+              <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>
+                <MyDishesManager 
+                  onStatsUpdate={() => {}} 
+                  activeRole={activeTab.replace('dishes-', '')} 
+                />
+              </Suspense>
+            </div>
+          )}
+
+          {/* Werkruimte tab content */}
+          {activeTab === 'workspace' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Werkruimte</h2>
+                  <p className="text-sm text-gray-500">Upload foto's van je werkplekken per rol</p>
+                </div>
+              </div>
+              
+              {/* Werkruimte secties onder elkaar */}
+              <div className="space-y-8">
+                {user?.sellerRoles?.includes('chef') && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        👨‍🍳 De Keuken
+                      </h3>
+                      <p className="text-sm text-gray-500">Upload foto's van je keuken en werkplek</p>
+                    </div>
+                    <WorkspacePhotosDisplay 
+                      userType="CHEFF"
+                    />
+                  </div>
+                )}
+                
+                {user?.sellerRoles?.includes('garden') && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        🌱 De Tuin
+                      </h3>
+                      <p className="text-sm text-gray-500">Upload foto's van je tuin en kweekruimte</p>
+                    </div>
+                    <WorkspacePhotosDisplay 
+                      userType="GROWN"
+                    />
+                  </div>
+                )}
+                
+                {user?.sellerRoles?.includes('designer') && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        🎨 Het Atelier
+                      </h3>
+                      <p className="text-sm text-gray-500">Upload foto's van je atelier en creatieve ruimte</p>
+                    </div>
+                    <WorkspacePhotosDisplay 
+                      userType="DESIGNER"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

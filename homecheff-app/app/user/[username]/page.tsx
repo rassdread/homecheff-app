@@ -42,16 +42,39 @@ export default async function PublicProfilePage({
           title: true,
           description: true,
           priceCents: true,
-          stock: true,
-          maxStock: true,
-          place: true,
           status: true,
           createdAt: true,
+          category: true,
+          subcategory: true,
           photos: {
             select: { url: true, idx: true }
           }
         },
         orderBy: { createdAt: 'desc' }
+      },
+      // Ook Producten ophalen via SellerProfile
+      SellerProfile: {
+        select: {
+          id: true,
+          products: {
+            where: {
+              isActive: true
+            },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              priceCents: true,
+              category: true,
+              subcategory: true,
+              createdAt: true,
+              Image: {
+                select: { fileUrl: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          }
+        }
       }
     }
   });
@@ -91,16 +114,39 @@ export default async function PublicProfilePage({
               title: true,
               description: true,
               priceCents: true,
-              stock: true,
-              maxStock: true,
-              place: true,
               status: true,
               createdAt: true,
+              category: true,
+              subcategory: true,
               photos: {
                 select: { url: true, idx: true }
               }
             },
             orderBy: { createdAt: 'desc' }
+          },
+          // Ook Producten ophalen via SellerProfile
+          SellerProfile: {
+            select: {
+              id: true,
+              products: {
+                where: {
+                  isActive: true
+                },
+                select: {
+                  id: true,
+                  title: true,
+                  description: true,
+                  priceCents: true,
+                  category: true,
+                  subcategory: true,
+                  createdAt: true,
+                  Image: {
+                    select: { fileUrl: true }
+                  }
+                },
+                orderBy: { createdAt: 'desc' }
+              }
+            }
           }
         }
       });
