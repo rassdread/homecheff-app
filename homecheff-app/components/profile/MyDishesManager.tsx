@@ -587,8 +587,8 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                         alt={item.title || 'Item'}
                         className="w-full h-full object-cover"
                       />
-                      {/* Recipe indicator */}
-                      {!item.priceCents && (item as any).ingredients && (
+                      {/* Recipe indicator - only show for chef role */}
+                      {!item.priceCents && (item as any).ingredients && currentRole === 'chef' && (
                         <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                           Recept
                         </div>
@@ -605,7 +605,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                         <span className="font-semibold text-emerald-600">
                           €{(item.priceCents / 100).toFixed(2)}
                         </span>
-                      ) : (item as any).ingredients ? (
+                      ) : (item as any).ingredients && currentRole === 'chef' ? (
                         <span className="text-sm text-emerald-600 font-medium">
                           Bekijk recept
                         </span>

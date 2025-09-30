@@ -321,19 +321,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
               })}
             </nav>
             
-            {/* Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Filter:</span>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as 'both' | 'gedeeld' | 'show')}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="both">Beide</option>
-                <option value="gedeeld">Gedeeld (te koop)</option>
-                <option value="show">Show (niet te koop)</option>
-              </select>
-            </div>
           </div>
         </div>
 
