@@ -466,7 +466,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <p className="text-sm text-gray-500">Upload foto's van je keuken en werkplek</p>
                     </div>
                     <WorkspacePhotosDisplay 
-                      userType="CHEFF"
+                      userId={user.id}
+                      userRoles={['CHEFF']}
                     />
                   </div>
                 )}
@@ -480,7 +481,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <p className="text-sm text-gray-500">Upload foto's van je tuin en kweekruimte</p>
                     </div>
                     <WorkspacePhotosDisplay 
-                      userType="GROWN"
+                      userId={user.id}
+                      userRoles={['GROWN']}
                     />
                   </div>
                 )}
@@ -494,7 +496,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <p className="text-sm text-gray-500">Upload foto's van je atelier en creatieve ruimte</p>
                     </div>
                     <WorkspacePhotosDisplay 
-                      userType="DESIGNER"
+                      userId={user.id}
+                      userRoles={['DESIGNER']}
                     />
                   </div>
                 )}

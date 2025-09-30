@@ -542,7 +542,11 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
             )}
 
           {activeTab === 'recipes' && currentRole === 'chef' && (
-            <RecipeManager isActive={activeTab === 'recipes'} />
+            <RecipeManager 
+              isActive={activeTab === 'recipes'} 
+              userId={userId}
+              isPublic={isPublic}
+            />
           )}
           </div>
         </div>

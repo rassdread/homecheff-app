@@ -74,9 +74,11 @@ const COMMON_TAGS = [
 
 interface RecipeManagerProps {
   isActive?: boolean;
+  userId?: string;
+  isPublic?: boolean;
 }
 
-export default function RecipeManager({ isActive = true }: RecipeManagerProps) {
+export default function RecipeManager({ isActive = true, userId, isPublic = false }: RecipeManagerProps) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -128,35 +130,44 @@ export default function RecipeManager({ isActive = true }: RecipeManagerProps) {
   const loadRecipes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/profile/dishes');
+      const apiUrl = userId ? `/api/profile/dishes?userId=${userId}` : '/api/profile/dishes';
+      const response = await fetch(apiUrl);
       if (response.ok) {
         const data = await response.json();
         const dishes = data.items || [];
         
         
         // Transform dishes to recipes
-        const recipes: Recipe[] = dishes.map((dish: any) => ({
-          id: dish.id,
-          title: dish.title || '',
-          description: dish.description || '',
-          ingredients: dish.ingredients || [],
-          instructions: dish.instructions || [],
-          prepTime: dish.prepTime ?? null,
-          servings: dish.servings ?? null,
-          difficulty: dish.difficulty || 'EASY',
-          category: dish.category || '',
-          tags: dish.tags || [],
-          photos: dish.photos?.map((photo: any) => ({
-            id: photo.id,
-            url: photo.url,
-            isMain: photo.isMain || false,
-            stepNumber: photo.stepNumber,
-            description: photo.description
-          })) || [],
-          isPrivate: dish.status === 'PRIVATE',
-          createdAt: dish.createdAt,
-          updatedAt: dish.updatedAt
-        }));
+        const recipes: Recipe[] = dishes
+          .filter((dish: any) => {
+            // In public mode, only show published recipes
+            if (isPublic) {
+              return dish.status === 'PUBLISHED' && dish.ingredients && dish.instructions;
+            }
+            return true;
+          })
+          .map((dish: any) => ({
+            id: dish.id,
+            title: dish.title || '',
+            description: dish.description || '',
+            ingredients: dish.ingredients || [],
+            instructions: dish.instructions || [],
+            prepTime: dish.prepTime ?? null,
+            servings: dish.servings ?? null,
+            difficulty: dish.difficulty || 'EASY',
+            category: dish.category || '',
+            tags: dish.tags || [],
+            photos: dish.photos?.map((photo: any) => ({
+              id: photo.id,
+              url: photo.url,
+              isMain: photo.isMain || false,
+              stepNumber: photo.stepNumber,
+              description: photo.description
+            })) || [],
+            isPrivate: dish.status === 'PRIVATE',
+            createdAt: dish.createdAt,
+            updatedAt: dish.updatedAt
+          }));
         
         setRecipes(recipes);
       } else {
@@ -399,13 +410,15 @@ export default function RecipeManager({ isActive = true }: RecipeManagerProps) {
           <h3 className="text-lg font-semibold text-gray-900">Mijn Recepten</h3>
           <p className="text-sm text-gray-500">Bewaar je favoriete recepten met foto's</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nieuw Recept
-        </button>
+        {!isPublic && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nieuw Recept
+          </button>
+        )}
       </div>
 
       {/* Search and Filters */}
