@@ -585,8 +585,11 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                       className="relative h-48 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Open image in modal or new tab
-                        window.open(item.photos[0].url, '_blank');
+                        // Open image in modal
+                        const event = new CustomEvent('openImageModal', { 
+                          detail: { imageUrl: item.photos[0].url } 
+                        });
+                        window.dispatchEvent(event);
                       }}
                     >
                       <img

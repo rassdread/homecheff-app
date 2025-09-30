@@ -137,13 +137,13 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
 
     // Voeg aparte tabs toe voor elke verkoperrol (Mijn...)
     if (sellerRoles.includes('chef')) {
-      roleSpecificTabs.push({ id: 'dishes-chef', label: 'Mijn Keuken', icon: Plus, role: 'chef' });
+      roleSpecificTabs.push({ id: 'dishes-chef', label: 'De Keuken', icon: Plus, role: 'chef' });
     }
     if (sellerRoles.includes('garden')) {
-      roleSpecificTabs.push({ id: 'dishes-garden', label: 'Mijn Tuin', icon: Plus, role: 'garden' });
+      roleSpecificTabs.push({ id: 'dishes-garden', label: 'De Tuin', icon: Plus, role: 'garden' });
     }
     if (sellerRoles.includes('designer')) {
-      roleSpecificTabs.push({ id: 'dishes-designer', label: 'Mijn Atelier', icon: Plus, role: 'designer' });
+      roleSpecificTabs.push({ id: 'dishes-designer', label: 'Het Atelier', icon: Plus, role: 'designer' });
     }
 
     // Voeg Werkruimte tab toe als er verkoper rollen zijn
@@ -405,14 +405,14 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                     let description = "Beheer je items en producten";
                     
                     if (activeTab === 'dishes-chef') {
-                      title = "Mijn Keuken";
-                      description = "Beheer je gerechten en culinaire creaties";
+                      title = "De Keuken";
+                      description = "Gerechten en culinaire creaties";
                     } else if (activeTab === 'dishes-garden') {
-                      title = "Mijn Tuin";
-                      description = "Beheer je kweken en tuinproducten";
+                      title = "De Tuin";
+                      description = "Kweken en tuinproducten";
                     } else if (activeTab === 'dishes-designer') {
-                      title = "Mijn Atelier";
-                      description = "Beheer je creaties en handgemaakte items";
+                      title = "Het Atelier";
+                      description = "Creaties en handgemaakte items";
                     }
                     
                     return (
@@ -451,9 +451,9 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                     <WorkspacePhotosDisplay 
                       userId={user.id}
                       userRoles={['CHEFF']}
-                    />
-                  </div>
-                )}
+                                />
+                              </div>
+                            )}
                 
                 {user?.sellerRoles?.includes('garden') && (
                   <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -461,12 +461,12 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                         🌱 De Tuin
                       </h3>
-                    </div>
+                              </div>
                     <WorkspacePhotosDisplay 
                       userId={user.id}
                       userRoles={['GROWN']}
                     />
-                  </div>
+                            </div>
                 )}
                 
                 {user?.sellerRoles?.includes('designer') && (
