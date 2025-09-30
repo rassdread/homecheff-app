@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 async function getEmail() {
@@ -16,17 +16,29 @@ async function getEmail() {
   return "test@homecheff.local";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const email = await getEmail();
-    const me = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-    if (!me) return NextResponse.json({ items: [] });
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    
+    let targetUserId: string;
+    
+    if (userId) {
+      // For public profile - get follows for specific user
+      targetUserId = userId;
+    } else {
+      // For private profile - get follows for current user
+      const email = await getEmail();
+      const me = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+      if (!me) return NextResponse.json({ items: [] });
+      targetUserId = me.id;
+    }
 
     const anyPrisma: any = prisma as any;
     if (!anyPrisma.follow?.findMany) return NextResponse.json({ items: [] });
 
     const items = await anyPrisma.follow.findMany({
-      where: { followerId: me.id },
+      where: { followerId: targetUserId },
       orderBy: { createdAt: "desc" },
       include: { 
         seller: { 
@@ -44,6 +56,6 @@ export async function GET() {
     return NextResponse.json({ items });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ items: [] });
+    return NextResponse.json({ error: "Kon fan-lijst niet laden" }, { status: 500 });
   }
 }

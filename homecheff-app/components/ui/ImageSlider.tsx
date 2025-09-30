@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageSliderProps {
@@ -25,7 +25,7 @@ export default function ImageSlider({
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-play functionality
-  useState(() => {
+  useEffect(() => {
     if (autoPlay && images.length > 1) {
       const interval = setInterval(() => {
         setCurrentIndex((prevIndex) => 
@@ -35,7 +35,7 @@ export default function ImageSlider({
 
       return () => clearInterval(interval);
     }
-  });
+  }, [autoPlay, images.length, autoPlayInterval]);
 
   const goToPrevious = () => {
     setCurrentIndex(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
@@ -66,6 +66,7 @@ export default function ImageSlider({
           src={images[0]}
           alt={alt}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
     );
@@ -79,6 +80,7 @@ export default function ImageSlider({
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
         />
 
         {/* Navigation Arrows */}

@@ -32,6 +32,7 @@ interface Conversation {
     messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'PRODUCT_SHARE' | 'SYSTEM';
     orderNumber?: string | null;
     createdAt: string;
+    readAt?: string | null;
     User: {
       id: string;
       name: string | null;
@@ -230,6 +231,12 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                   )}
                   {!conversation.isActive && (
                     <div className="w-2 h-2 bg-red-500 rounded-full" />
+                  )}
+                  {/* Unread indicator */}
+                  {conversation.lastMessage && 
+                   conversation.lastMessage.User.id !== session?.user?.email && 
+                   !conversation.lastMessage.readAt && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   )}
                 </div>
               </div>

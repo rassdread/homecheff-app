@@ -19,38 +19,33 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  useSecureCookies: false,
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.session-token' 
-        : 'next-auth.session-token',
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.callback-url' 
-        : 'next-auth.callback-url',
+      name: `next-auth.callback-url`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Host-next-auth.csrf-token' 
-        : 'next-auth.csrf-token',
+      name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     }
   },
@@ -70,24 +65,48 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Wachtwoord", type: "password" },
       },
       async authorize(credentials): Promise<AppUser | null> {
-        if (!credentials?.emailOrUsername || !credentials?.password) return null;
-        
-        // Check if input is email or username
-        const isEmail = credentials.emailOrUsername.includes('@');
-        const user = isEmail 
-          ? await prisma.user.findUnique({ where: { email: credentials.emailOrUsername } })
-          : await prisma.user.findUnique({ where: { username: credentials.emailOrUsername } });
+        try {
+          if (!credentials?.emailOrUsername || !credentials?.password) {
+            console.log('Missing credentials');
+            return null;
+          }
           
-        if (!user || !user.passwordHash) return null;
-        const ok = await bcrypt.compare(credentials.password, user.passwordHash);
-        if (!ok) return null;
-        return { 
-          id: user.id, 
-          email: user.email, 
-          role: user.role as Role,
-          name: user.name,
-          image: user.image
-        };
+          // Check if input is email or username
+          const isEmail = credentials.emailOrUsername.includes('@');
+          console.log(`Looking for user with ${isEmail ? 'email' : 'username'}: ${credentials.emailOrUsername}`);
+          
+          const user = isEmail 
+            ? await prisma.user.findUnique({ where: { email: credentials.emailOrUsername } })
+            : await prisma.user.findUnique({ where: { username: credentials.emailOrUsername } });
+            
+          if (!user) {
+            console.log('User not found');
+            return null;
+          }
+          
+          if (!user.passwordHash) {
+            console.log('User has no password hash');
+            return null;
+          }
+          
+          console.log('User found, checking password...');
+          const ok = await bcrypt.compare(credentials.password, user.passwordHash);
+          console.log('Password check result:', ok);
+          
+          if (!ok) return null;
+          
+          console.log('Login successful for user:', user.email);
+          return { 
+            id: user.id, 
+            email: user.email, 
+            role: user.role as Role,
+            name: user.name,
+            image: user.image
+          };
+        } catch (error) {
+          console.error('Error in authorize function:', error);
+          return null;
+        }
       },
     }),
   ],

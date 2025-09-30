@@ -81,20 +81,38 @@ export default function HomePageOptimized() {
 
   // Home laden met caching voor betere performance
   useEffect(() => {
-    (async () => {
+    let isMounted = true;
+    
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const r = await fetch("/api/products", { 
-          next: { revalidate: 300 } // 5 minuten cache
+        
+        // Fetch products data
+        const productsResponse = await fetch("/api/products", { 
+          cache: 'force-cache', // Browser cache
+          next: { revalidate: 300 } // 5 minuten revalidation
         });
-        if (!r.ok) return;
-        const data = (await r.json()) as { items: HomeItem[] };
-        setItems(data?.items ?? []);
-      } catch {}
-      finally {
-        setIsLoading(false);
+        
+        if (!isMounted) return;
+        
+        if (productsResponse.ok) {
+          const data = (await productsResponse.json()) as { items: HomeItem[] };
+          setItems(data?.items ?? []);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    })();
+    };
+    
+    fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Geoptimaliseerde filtering
@@ -107,7 +125,9 @@ export default function HomePageOptimized() {
     // Zoekfilter
     if (term) {
       list = list.filter((it) => {
-        const hay = `${it.title ?? ""} ${it.description ?? ""} ${it.subcategory ?? ""}`.toLowerCase();
+        const sellerName = it.seller?.name ?? "";
+        const sellerUsername = it.seller?.username ?? "";
+        const hay = `${it.title ?? ""} ${it.description ?? ""} ${it.subcategory ?? ""} ${sellerName} ${sellerUsername}`.toLowerCase();
         return hay.includes(term);
       });
     }
@@ -143,6 +163,10 @@ export default function HomePageOptimized() {
           return (b.priceCents || 0) - (a.priceCents || 0);
         case "oldest":
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "name":
+          const aName = (a.seller?.name || a.title || "").toLowerCase();
+          const bName = (b.seller?.name || b.title || "").toLowerCase();
+          return aName.localeCompare(bName);
         case "newest":
         default:
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -166,8 +190,8 @@ export default function HomePageOptimized() {
           </div>
 
           {/* Search Bar */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl p-6">
+          <div className="max-w-4xl mx-auto relative z-20">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 relative z-20">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -175,12 +199,18 @@ export default function HomePageOptimized() {
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
-                    placeholder="Zoek naar gerechten, producten of makers..."
+                    placeholder="Zoek naar gerechten, producten, makers of verkopers..."
                   />
                 </div>
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-colors flex items-center gap-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Filters button clicked, current showFilters:', showFilters);
+                    setShowFilters(!showFilters);
+                  }}
+                  className="px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] active:bg-neutral-300"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <Filter className="w-5 h-5" />
                   <span className="hidden sm:inline">Filters</span>
@@ -190,6 +220,132 @@ export default function HomePageOptimized() {
           </div>
         </div>
       </section>
+
+      {/* Filters Section */}
+      {showFilters && (
+        <section className="py-6 bg-white border-b border-neutral-200">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Categorie
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                >
+                  <option value="all">Alle categorieën</option>
+                  <option value="CHEFF">Chef</option>
+                  <option value="GROWN">Gekweekt</option>
+                  <option value="DESIGNER">Designer</option>
+                </select>
+              </div>
+
+              {/* Subcategory Filter */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Subcategorie
+                </label>
+                <select
+                  value={subcategory}
+                  onChange={(e) => setSubcategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                >
+                  <option value="all">Alle subcategorieën</option>
+                  {category === "CHEFF" && (
+                    <>
+                      <option value="Gerechten">Gerechten</option>
+                      <option value="Desserts">Desserts</option>
+                      <option value="Dranken">Dranken</option>
+                      <option value="Snacks">Snacks</option>
+                    </>
+                  )}
+                  {category === "GROWN" && (
+                    <>
+                      <option value="Groenten">Groenten</option>
+                      <option value="Fruit">Fruit</option>
+                      <option value="Kruiden">Kruiden</option>
+                      <option value="Zaden">Zaden</option>
+                    </>
+                  )}
+                  {category === "DESIGNER" && (
+                    <>
+                      <option value="Kleding">Kleding</option>
+                      <option value="Accessoires">Accessoires</option>
+                      <option value="Kunst">Kunst</option>
+                      <option value="Handwerk">Handwerk</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Prijs (€)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={priceRange.min || ''}
+                    onChange={(e) => setPriceRange({...priceRange, min: parseFloat(e.target.value) || 0})}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={priceRange.max || ''}
+                    onChange={(e) => setPriceRange({...priceRange, max: parseFloat(e.target.value) || 1000})}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                  />
+                </div>
+              </div>
+
+              {/* Sort Filter */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Sorteren op
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                >
+                  <option value="newest">Nieuwste eerst</option>
+                  <option value="oldest">Oudste eerst</option>
+                  <option value="price-low">Prijs laag-hoog</option>
+                  <option value="price-high">Prijs hoog-laag</option>
+                  <option value="name">Verkoper A-Z</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Filter Actions */}
+            <div className="flex justify-between items-center mt-6 pt-6 border-t border-neutral-200">
+              <button
+                onClick={() => {
+                  setCategory('all');
+                  setSubcategory('all');
+                  setPriceRange({ min: 0, max: 1000 });
+                  setSortBy('newest');
+                }}
+                className="text-neutral-600 hover:text-neutral-800 font-medium"
+              >
+                Alle filters wissen
+              </button>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="px-6 py-2 bg-primary-brand text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Filters toepassen
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Home Section */}
       <section className="py-12">
@@ -208,12 +364,16 @@ export default function HomePageOptimized() {
           {/* Items Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden animate-pulse">
-                  <div className="h-48 bg-neutral-200"></div>
-                  <div className="p-4">
-                    <div className="h-4 bg-neutral-200 rounded mb-2"></div>
-                    <div className="h-3 bg-neutral-200 rounded w-2/3"></div>
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+                  <div className="h-48 bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 animate-pulse"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 rounded w-2/3 animate-pulse"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 rounded w-16 animate-pulse"></div>
+                      <div className="h-4 bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 rounded w-12 animate-pulse"></div>
+                    </div>
                   </div>
                 </div>
               ))}

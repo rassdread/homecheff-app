@@ -13,6 +13,7 @@ import StartChatButton from "@/components/chat/StartChatButton";
 import FollowButton from "@/components/follow/FollowButton";
 import PropsButton from "@/components/props/PropsButton";
 import ReportContentButton from "@/components/reporting/ReportContentButton";
+import ClickableName from "@/components/ui/ClickableName";
 
 type Product = {
   id: string;
@@ -36,6 +37,8 @@ type Product = {
       name?: string | null; 
       username?: string | null;
       avatar?: string | null;
+      displayFullName?: boolean | null;
+      displayNameOption?: string | null;
     };
   } | null;
 };
@@ -55,13 +58,6 @@ export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-
-  const handleSellerNameClick = (e: React.MouseEvent) => {
-    if (!session && product?.seller?.User?.id) {
-      e.preventDefault();
-      router.push('/login?callbackUrl=' + encodeURIComponent(`/seller/${product.seller.User.id}`));
-    }
-  };
 
   if (!params?.id || typeof params.id !== 'string') {
     return (
@@ -771,13 +767,18 @@ export default function ProductPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <Link 
-                    href={`/seller/${product.seller?.User.id || ''}`}
-                    onClick={handleSellerNameClick}
+                  <ClickableName 
+                    user={{
+                      id: product.seller?.User?.id,
+                      name: product.seller?.User?.name,
+                      username: product.seller?.User?.username,
+                      displayFullName: product.seller?.User?.displayFullName,
+                      displayNameOption: product.seller?.User?.displayNameOption
+                    }}
                     className="text-lg font-semibold text-neutral-900 hover:text-emerald-600 transition-colors"
-                  >
-                    {getDisplayName(product)}
-                  </Link>
+                    fallbackText="Verkoper"
+                    linkTo="profile"
+                  />
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-warning-400 fill-current" />

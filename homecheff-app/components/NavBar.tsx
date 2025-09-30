@@ -16,6 +16,7 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const user =
     session && 'user' in session
@@ -47,12 +48,30 @@ export default function NavBar() {
     if (session?.user?.email) {
       // Use email as user identifier for cart isolation
       setCartUserId(session.user.email);
+      // Fetch unread count
+      fetchUnreadCount();
     } else {
       // No session - clear all user data to prevent data leakage
       setCartUserId(null);
       clearNextAuthData();
+      setUnreadCount(0);
     }
   }, [session]);
+
+  // Fetch unread messages count
+  const fetchUnreadCount = async () => {
+    if (!session?.user?.email) return;
+    
+    try {
+      const response = await fetch('/api/messages/unread-count');
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
 
   const handleLogout = async () => {
     // Clear all user data and NextAuth data for complete session isolation
@@ -180,14 +199,19 @@ export default function NavBar() {
                         </Link>
                       )}
                       
-                      {/* Berichten - Alleen zichtbaar op mobiel */}
+                      {/* Berichten - Altijd zichtbaar */}
                       <Link 
                         href="/messages" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors relative"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <MessageCircle className="w-4 h-4" />
                         <span>Berichten</span>
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Link>
                       
                       <Link 
@@ -294,6 +318,20 @@ export default function NavBar() {
                   <span>FAQ</span>
                 </Button>
               </Link>
+
+              {user && (
+                <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Berichten</span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              )}
 
               {status !== 'loading' && !user && (
                 <>

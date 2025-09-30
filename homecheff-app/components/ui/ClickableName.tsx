@@ -29,7 +29,13 @@ export default function ClickableName({
     );
   }
   
-  const href = user?.id ? `/${linkTo}/${user.id}` : '#';
+  const href = user?.id 
+    ? linkTo === 'seller' 
+      ? `/seller/${user.sellerProfileId || user.id}` 
+      : user?.username 
+        ? `/user/${user.username}`
+        : `/profile/${user.id}`
+    : '#';
   
   return (
     <Link 

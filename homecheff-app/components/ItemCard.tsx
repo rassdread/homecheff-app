@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
+import ClickableName from '@/components/ui/ClickableName';
 
 type HomeItem = {
   id: string;
@@ -64,12 +65,7 @@ export default function ItemCard({ item }: ItemCardProps) {
     return date.toLocaleDateString('nl-NL');
   };
 
-  const handleSellerNameClick = (e: React.MouseEvent) => {
-    if (!session) {
-      e.preventDefault();
-      router.push('/login?callbackUrl=' + encodeURIComponent(`/seller/${item.seller?.id}`));
-    }
-  };
+  // Seller name will be handled by ClickableName component
 
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group">
@@ -82,6 +78,9 @@ export default function ItemCard({ item }: ItemCardProps) {
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-200"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
@@ -163,13 +162,12 @@ export default function ItemCard({ item }: ItemCardProps) {
             )}
             <div>
               <div className="flex items-center gap-2">
-                <Link 
-                  href={`/seller/${item.seller?.id}`}
-                  onClick={handleSellerNameClick}
+                <ClickableName 
+                  user={item.seller}
                   className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors"
-                >
-                  {item.seller?.name || 'Onbekend'}
-                </Link>
+                  fallbackText="Onbekend"
+                  linkTo="profile"
+                />
                 {item.seller?.followerCount && item.seller.followerCount > 0 && (
                   <span className="text-xs text-neutral-500">
                     ({item.seller.followerCount})

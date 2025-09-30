@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSafeFetch } from '@/hooks/useSafeFetch';
 import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit, MessageSquare, Phone, X } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
 import Link from 'next/link';
@@ -21,6 +22,7 @@ interface User {
 }
 
 export default function UserManagement() {
+  const safeFetch = useSafeFetch();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,10 +42,14 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await safeFetch('/api/admin/users');
       const data = await response.json();
       setUsers(data.users || []);
     } catch (error) {
+      if (error instanceof Error && error.message === 'Request was aborted') {
+        // Component unmounted, ignore error
+        return;
+      }
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
@@ -54,7 +60,7 @@ export default function UserManagement() {
     if (!confirm('Weet je zeker dat je deze gebruiker wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) return;
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await safeFetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
       });
 
@@ -75,7 +81,7 @@ export default function UserManagement() {
     if (!confirm(`Weet je zeker dat je ${selectedUsers.length} gebruikers wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) return;
 
     try {
-      const response = await fetch('/api/admin/users/bulk-delete', {
+      const response = await safeFetch('/api/admin/users/bulk-delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -319,7 +325,7 @@ export default function UserManagement() {
                       </div>
                       <div className="ml-4">
                         <Link 
-                          href={`/profile/${user.id}`}
+                          href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
                           className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                         >
                           {user.name || 'Geen naam'}
@@ -346,7 +352,7 @@ export default function UserManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-1 sm:space-x-2">
                       <Link
-                        href={`/profile/${user.id}`}
+                        href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
                         target="_blank"
                         className="p-3 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors duration-200 touch-manipulation"
                         title="Bekijk profiel"

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSafeFetch } from "@/hooks/useSafeFetch";
+import { Plus } from "lucide-react";
 import ProductManagement from "./ProductManagement";
 import RecipeManager from "./RecipeManager";
+import RecipeViewer from "./RecipeViewer";
 
 type Dish = {
   id: string;
@@ -143,12 +146,19 @@ const getFilteredCategories = (activeRole: string) => {
 interface MyDishesManagerProps {
   onStatsUpdate?: () => void;
   activeRole?: string;
+  userId?: string;
+  isPublic?: boolean;
+  role?: string;
+  showOnlyActive?: boolean;
 }
 
-export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' }: MyDishesManagerProps) {
+export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic', userId, isPublic = false, role, showOnlyActive = false }: MyDishesManagerProps) {
+  const safeFetch = useSafeFetch();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Dish[]>([]);
   const [activeTab, setActiveTab] = useState<'dishes' | 'products' | 'recipes'>('products');
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [showRecipeViewer, setShowRecipeViewer] = useState(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -194,45 +204,98 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
   async function load() {
     setLoading(true);
     
-    // Try to load dishes first (for kitchen photos)
-    const dishesRes = await fetch("/api/profile/dishes");
-    if (dishesRes.ok) {
-      const dishesData = await dishesRes.json();
-      if (dishesData.items && dishesData.items.length > 0) {
-        setItems(dishesData.items);
-        setLoading(false);
+    try {
+      if (showOnlyActive) {
+        // For overview tab: only show active products (for sale)
+        const productsUrl = userId ? `/api/seller/products?userId=${userId}` : "/api/seller/products";
+        const res = await safeFetch(productsUrl);
+        if (res.ok) {
+          const data = await res.json();
+          // Only show active products
+          const activeProducts = data.products?.filter((product: any) => product.isActive) || [];
+          const transformedItems = activeProducts.map((product: any) => ({
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            status: "PUBLISHED",
+            createdAt: product.createdAt,
+            priceCents: product.priceCents,
+            deliveryMode: product.delivery === "PICKUP" ? "PICKUP" : product.delivery === "DELIVERY" ? "DELIVERY" : "BOTH",
+            place: "Nederland",
+            category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
+            subcategory: product.subcategory,
+            stock: product.stock,
+            maxStock: product.maxStock,
+            photos: product.Image?.map((img: any, index: number) => ({
+              id: img.id,
+              url: img.fileUrl,
+              idx: img.sortOrder || index,
+              isMain: img.sortOrder === 0
+            })) || []
+          }));
+          setItems(transformedItems);
+        }
+      } else if (role && role !== 'overview') {
+        // For "Mijn" tabs: show recipes and storage items (not for sale)
+        const apiUrl = userId ? `/api/profile/dishes?userId=${userId}` : "/api/profile/dishes";
+        const dishesRes = await safeFetch(apiUrl);
+        if (dishesRes.ok) {
+          const dishesData = await dishesRes.json();
+          if (dishesData.items && dishesData.items.length > 0) {
+            setItems(dishesData.items);
+          }
+        }
+      } else {
+        // Default behavior: try dishes first, then products
+        const apiUrl = userId ? `/api/profile/dishes?userId=${userId}` : "/api/profile/dishes";
+        
+        const dishesRes = await safeFetch(apiUrl);
+        if (dishesRes.ok) {
+          const dishesData = await dishesRes.json();
+          if (dishesData.items && dishesData.items.length > 0) {
+            setItems(dishesData.items);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Fallback to products if no dishes found
+        const productsUrl = userId ? `/api/seller/products?userId=${userId}` : "/api/seller/products";
+        const res = await safeFetch(productsUrl);
+        if (res.ok) {
+          const data = await res.json();
+          const transformedItems = data.products?.map((product: any) => ({
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            status: product.isActive ? "PUBLISHED" : "PRIVATE",
+            createdAt: product.createdAt,
+            priceCents: product.priceCents,
+            deliveryMode: product.delivery === "PICKUP" ? "PICKUP" : product.delivery === "DELIVERY" ? "DELIVERY" : "BOTH",
+            place: "Nederland",
+            category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
+            subcategory: product.subcategory,
+            stock: product.stock,
+            maxStock: product.maxStock,
+            photos: product.Image?.map((img: any, index: number) => ({
+              id: img.id,
+              url: img.fileUrl,
+              idx: img.sortOrder || index,
+              isMain: img.sortOrder === 0
+            })) || []
+          })) || [];
+          setItems(transformedItems);
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Request was aborted') {
+        // Component unmounted, ignore error
         return;
       }
+      console.error('Error loading dishes:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    // Fallback to products if no dishes found
-    const res = await fetch("/api/seller/products");
-    if (res.ok) {
-      const data = await res.json();
-      // Transform Product data to match Dish format for compatibility
-      const transformedItems = data.products?.map((product: any) => ({
-        id: product.id,
-        title: product.title,
-        description: product.description,
-        status: product.isActive ? "PUBLISHED" : "PRIVATE",
-        createdAt: product.createdAt,
-        priceCents: product.priceCents,
-        deliveryMode: product.delivery === "PICKUP" ? "PICKUP" : product.delivery === "DELIVERY" ? "DELIVERY" : "BOTH",
-        place: "Nederland", // Default place
-        category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
-        subcategory: product.subcategory,
-        stock: product.stock,
-        maxStock: product.maxStock,
-        photos: product.Image?.map((img: any, index: number) => ({
-          id: img.id,
-          url: img.fileUrl,
-          idx: img.sortOrder || index,
-          isMain: img.sortOrder === 0
-        })) || []
-      })) || [];
-      setItems(transformedItems);
-    }
-    setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
@@ -302,7 +365,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
         const formData = new FormData();
         formData.append('file', uploadedFile.file);
         
-        const res = await fetch('/api/upload', { 
+        const res = await safeFetch('/api/upload', { 
           method: 'POST', 
           body: formData 
         });
@@ -348,7 +411,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
         payload.place = place;
       }
 
-      const res = await fetch("/api/profile/dishes", {
+      const res = await safeFetch("/api/profile/dishes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -383,7 +446,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
   }
 
   async function togglePublish(id: string, next: boolean) {
-    const res = await fetch(`/api/products/${id}`, {
+    const res = await safeFetch(`/api/products/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: next })
@@ -399,7 +462,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
       return;
     }
     
-    const res = await fetch(`/api/products/${id}`, {
+    const res = await safeFetch(`/api/products/${id}`, {
       method: "DELETE"
     });
     if (res.ok) {
@@ -412,10 +475,26 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
     }
   }
 
+  // Filter items to only show published ones when in public mode
+  const filteredItems = isPublic ? items.filter(item => item.status === 'PUBLISHED') : items;
+  
+  // Use role parameter if provided, otherwise use activeRole
+  const currentRole = role || activeRole;
+
+  const handleRecipeClick = (recipeId: string) => {
+    setSelectedRecipeId(recipeId);
+    setShowRecipeViewer(true);
+  };
+
+  const handleCloseRecipeViewer = () => {
+    setShowRecipeViewer(false);
+    setSelectedRecipeId(null);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Message Display */}
-      {message && (
+      {/* Message Display - only show in private mode */}
+      {!isPublic && message && (
         <div className={`p-4 rounded-xl border ${
           message.type === 'success' 
             ? 'bg-green-50 border-green-200 text-green-800' 
@@ -425,21 +504,22 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl border">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'products'
-                  ? 'border-primary-brand text-primary-brand'
-                  : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
-              }`}
-            >
-              <span>Live</span>
-            </button>
-            {activeRole === 'chef' && (
+      {/* Tabs - only show in private mode */}
+      {!isPublic && (
+        <div className="bg-white rounded-2xl border">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'products'
+                    ? 'border-primary-brand text-primary-brand'
+                    : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
+                }`}
+              >
+                <span>Live</span>
+              </button>
+            {currentRole === 'chef' && (
               <button
                 onClick={() => setActiveTab('recipes')}
                 className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
@@ -451,21 +531,105 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic' 
                 <span>Mijn Recepten</span>
               </button>
             )}
-          </nav>
-        </div>
+            </nav>
+          </div>
 
-        <div className="p-6">
-          {activeTab === 'products' && (
-            <ProductManagement onUpdate={() => {
-              onStatsUpdate?.();
-            }} />
-          )}
+          <div className="p-6">
+            {activeTab === 'products' && (
+              <ProductManagement onUpdate={() => {
+                onStatsUpdate?.();
+              }} />
+            )}
 
-          {activeTab === 'recipes' && activeRole === 'chef' && (
+          {activeTab === 'recipes' && currentRole === 'chef' && (
             <RecipeManager isActive={activeTab === 'recipes'} />
           )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Public view - show published items */}
+      {isPublic && (
+        <div className="space-y-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand mx-auto"></div>
+              <p className="mt-2 text-gray-600">Laden...</p>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
+                <Plus className="w-full h-full" />
+              </div>
+              <p>Nog geen items gedeeld</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    // Check if this is a recipe (has ingredients/instructions but no price)
+                    if (!item.priceCents && (item as any).ingredients && (item as any).instructions) {
+                      handleRecipeClick(item.id);
+                    }
+                  }}
+                >
+                  {item.photos && item.photos.length > 0 && (
+                    <div className="relative h-48">
+                      <img
+                        src={item.photos[0].url}
+                        alt={item.title || 'Item'}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Recipe indicator */}
+                      {!item.priceCents && (item as any).ingredients && (
+                        <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Recept
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      {item.priceCents ? (
+                        <span className="font-semibold text-emerald-600">
+                          €{(item.priceCents / 100).toFixed(2)}
+                        </span>
+                      ) : (item as any).ingredients ? (
+                        <span className="text-sm text-emerald-600 font-medium">
+                          Bekijk recept
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {CATEGORIES[item.category || 'CHEFF']?.label || item.category}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {new Date(item.createdAt).toLocaleDateString('nl-NL')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recipe Viewer Modal */}
+      {selectedRecipeId && (
+        <RecipeViewer
+          recipeId={selectedRecipeId}
+          isOpen={showRecipeViewer}
+          onClose={handleCloseRecipeViewer}
+        />
+      )}
     </div>
   );
 }

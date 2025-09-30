@@ -14,11 +14,21 @@ export async function GET(req: Request) {
     const take = Math.min(Math.max(Number(searchParams.get("take") ?? 24), 1), 100); // Limit max results
     const skip = page * take;
 
+    // Optimized query with better indexing
     const products = await prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "desc" },
+      where: { 
+        isActive: true,
+        // Only get products with images for better UX
+        Image: {
+          some: {}
+        }
+      },
+      orderBy: [
+        { createdAt: "desc" },
+        { id: "desc" } // Secondary sort for consistent pagination
+      ],
       skip: skip,
-      take: take,
+      take: Math.min(take, 24), // Limit to 24 items max for performance
       select: {
         id: true,
         title: true,
@@ -26,6 +36,7 @@ export async function GET(req: Request) {
         priceCents: true,
         createdAt: true,
         category: true,
+        delivery: true,
         seller: {
           select: {
             id: true,
@@ -48,38 +59,39 @@ export async function GET(req: Request) {
             sortOrder: true
           },
           orderBy: { sortOrder: 'asc' },
+          take: 3, // Limit images per product for performance
         },
       },
     });
 
-    // Get follow and favorite counts for each product
+    // Get follow and favorite counts for each product - optimized
     const productIds = products.map((p: any) => p.id);
     const sellerIds = products.map((p: any) => p.seller?.User?.id).filter(Boolean);
     
-    // Get follow counts for sellers
-    const followCounts = await prisma.follow.groupBy({
-      by: ['sellerId'],
-      where: {
-        sellerId: { in: sellerIds }
-      },
-      _count: {
-        sellerId: true
-      }
-    });
+    // Execute follow and favorite counts in parallel - only if we have data
+    const [followCounts, favoriteCounts] = await Promise.all([
+      sellerIds.length > 0 ? prisma.follow.groupBy({
+        by: ['sellerId'],
+        where: {
+          sellerId: { in: sellerIds }
+        },
+        _count: {
+          sellerId: true
+        }
+      }) : [],
+      productIds.length > 0 ? prisma.favorite.groupBy({
+        by: ['productId'],
+        where: {
+          productId: { in: productIds }
+        },
+        _count: {
+          productId: true
+        }
+      }) : []
+    ]);
     
-    // Get favorite counts for products
-    const favoriteCounts = await prisma.favorite.groupBy({
-      by: ['productId'],
-      where: {
-        productId: { in: productIds }
-      },
-      _count: {
-        productId: true
-      }
-    });
-    
-    const followCountMap = new Map(followCounts.map(fc => [fc.sellerId, fc._count.sellerId]));
-    const favoriteCountMap = new Map(favoriteCounts.map(fc => [fc.productId, fc._count.productId]));
+    const followCountMap = new Map(followCounts.map((fc: any) => [fc.sellerId, fc._count.sellerId] as [string, number]));
+    const favoriteCountMap = new Map(favoriteCounts.map((fc: any) => [fc.productId, fc._count.productId] as [string, number]));
 
     const items = products.map((p: any) => ({
       id: p.id,
@@ -90,7 +102,8 @@ export async function GET(req: Request) {
       images: p.Image?.map((img: any) => img.fileUrl) ?? [], // All images for slider
       createdAt: p.createdAt,
       category: p.category,
-      subcategory: null, // Could be added to Product schema if needed
+      subcategory: null, // No subcategory field in Product model
+      delivery: p.delivery,
       location: {
         place: p.seller?.User?.name ? `${p.seller.User.name}'s locatie` : 'Onbekende locatie',
         city: 'Nederland', // Default city, could be enhanced with actual location data
@@ -108,10 +121,15 @@ export async function GET(req: Request) {
       favoriteCount: favoriteCountMap.get(p.id) ?? 0,
     }));
 
-    // Get total count for pagination
-    const totalCount = await prisma.product.count({
-      where: { isActive: true }
-    });
+    // Get total count for pagination - only on first page
+    const totalCount = page === 0 ? await prisma.product.count({
+      where: { 
+        isActive: true,
+        Image: {
+          some: {}
+        }
+      }
+    }) : 0;
 
     // Return items with pagination info
     return NextResponse.json({ 

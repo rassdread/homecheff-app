@@ -202,7 +202,7 @@ interface PublicSellerProfileProps {
 }
 
 export default function PublicSellerProfile({ sellerProfile, isOwner = false }: PublicSellerProfileProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows' | 'dishes-chef' | 'dishes-garden' | 'dishes-designer' | 'dishes'>('overview');
   const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -312,6 +312,26 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
     }
   };
 
+  // Helper function to get role-specific tab label
+  const getRoleTabLabel = (role: string) => {
+    switch (role) {
+      case 'chef': return 'Mijn Keuken';
+      case 'garden': return 'Mijn Tuin';
+      case 'designer': return 'Mijn Atelier';
+      default: return 'Mijn Items';
+    }
+  };
+
+  // Helper function to get role icon
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'chef': return ChefHat;
+      case 'garden': return Sprout;
+      case 'designer': return Palette;
+      default: return Plus;
+    }
+  };
+
   const openRecipeModal = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setIsRecipeModalOpen(true);
@@ -412,12 +432,12 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+                <div className="flex flex-col gap-3 mt-4 md:mt-0">
                   <ShareButton
                     url={`${window.location.origin}/seller/${sellerProfile.id}`}
                     title={`${sellerProfile.User.name}'s Profiel`}
                     description={sellerProfile.bio || ''}
-                    className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all backdrop-blur-sm"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all backdrop-blur-sm"
                   />
                   {/* Only show follow/chat buttons if user is logged in */}
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -451,7 +471,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   <span className="font-semibold">{stats.totalFollowers}</span>
-                  <span className="text-emerald-100">Volgers</span>
+                  <span className="text-emerald-100">Fans</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5" />
@@ -564,7 +584,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     <span className="font-semibold text-green-600">{activeProducts}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Volgers</span>
+                    <span className="text-gray-600">Fans</span>
                     <span className="font-semibold">{stats.totalFollowers}</span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -623,19 +643,66 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
             <div className="bg-white rounded-xl shadow-sm border mb-6">
               <div className="border-b">
                 <nav className="flex overflow-x-auto">
-                  {[
-                    { id: 'overview', label: 'Overzicht', icon: Grid },
-                    { id: 'products', label: 'Producten', icon: ShoppingBag },
-                    { 
-                      id: 'workspace', 
-                      label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0] || 'generic'),
-                      icon: Camera
-                    },
-                    { id: 'recipes', label: 'Recepten', icon: ChefHat },
-                    { id: 'reviews', label: 'Reviews', icon: Star },
-                    { id: 'orders', label: 'Bestellingen', icon: Calendar },
-                    { id: 'follows', label: 'Fan van', icon: Heart }
-                  ].map((tab) => {
+                  {(() => {
+                    const baseTabs = [
+                      { id: 'overview', label: 'Overzicht', icon: Grid },
+                      { id: 'products', label: 'Producten', icon: ShoppingBag },
+                      { 
+                        id: 'workspace', 
+                        label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0] || 'generic'),
+                        icon: Camera
+                      },
+                      { id: 'recipes', label: 'Recepten', icon: ChefHat },
+                      { id: 'reviews', label: 'Reviews', icon: Star },
+                      { id: 'orders', label: 'Bestellingen', icon: Calendar },
+                      { id: 'follows', label: 'Fan van', icon: Heart }
+                    ];
+
+                    // Add role-specific tabs
+                    const sellerRoles = sellerProfile.User.sellerRoles || [];
+                    const roleSpecificTabs: Array<{id: string; label: string; icon: any}> = [];
+
+                    if (sellerRoles.includes('chef')) {
+                      roleSpecificTabs.push({ 
+                        id: 'dishes-chef', 
+                        label: 'Mijn Keuken', 
+                        icon: ChefHat 
+                      });
+                    }
+                    if (sellerRoles.includes('garden')) {
+                      roleSpecificTabs.push({ 
+                        id: 'dishes-garden', 
+                        label: 'Mijn Tuin', 
+                        icon: Sprout 
+                      });
+                    }
+                    if (sellerRoles.includes('designer')) {
+                      roleSpecificTabs.push({ 
+                        id: 'dishes-designer', 
+                        label: 'Mijn Atelier', 
+                        icon: Palette 
+                      });
+                    }
+
+                    // If no specific roles, add generic tab
+                    if (roleSpecificTabs.length === 0 && sellerRoles.length > 0) {
+                      roleSpecificTabs.push({ 
+                        id: 'dishes', 
+                        label: 'Mijn Items', 
+                        icon: Plus 
+                      });
+                    }
+
+                    // Insert role-specific tabs after workspace tab
+                    const workspaceIndex = baseTabs.findIndex(tab => tab.id === 'workspace');
+                    const allTabs = [
+                      ...baseTabs.slice(0, workspaceIndex + 1),
+                      ...roleSpecificTabs,
+                      ...baseTabs.slice(workspaceIndex + 1)
+                    ];
+
+                    return allTabs;
+                  })().map((tab) => {
                     const Icon = tab.icon;
                     return (
                       <button
@@ -1054,8 +1121,72 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
 
                     <div className="text-center py-12">
                       <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Volgers niet zichtbaar</h3>
-                      <p className="text-gray-500">Volgers zijn alleen zichtbaar voor de verkoper zelf</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Fans niet zichtbaar</h3>
+                      <p className="text-gray-500">Fans zijn alleen zichtbaar voor de verkoper zelf</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Role-specific tabs content */}
+                {(activeTab.startsWith('dishes-') || activeTab === 'dishes') && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {(() => {
+                          let title = "Mijn Items";
+                          let description = "Beheer je items en producten";
+                          
+                          if (activeTab === 'dishes-chef') {
+                            title = "Mijn Keuken";
+                            description = "Culinaire creaties en gerechten";
+                          } else if (activeTab === 'dishes-garden') {
+                            title = "Mijn Tuin";
+                            description = "Kweken en tuinproducten";
+                          } else if (activeTab === 'dishes-designer') {
+                            title = "Mijn Atelier";
+                            description = "Creaties en handgemaakte items";
+                          }
+                          
+                          return (
+                            <>
+                              <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                              <p className="text-sm text-gray-500">{description}</p>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 text-gray-300 flex items-center justify-center">
+                        {activeTab === 'dishes-chef' && <ChefHat className="w-16 h-16" />}
+                        {activeTab === 'dishes-garden' && <Sprout className="w-16 h-16" />}
+                        {activeTab === 'dishes-designer' && <Palette className="w-16 h-16" />}
+                        {activeTab === 'dishes' && <Plus className="w-16 h-16" />}
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {activeTab === 'dishes-chef' && 'Mijn Keuken'}
+                        {activeTab === 'dishes-garden' && 'Mijn Tuin'}
+                        {activeTab === 'dishes-designer' && 'Mijn Atelier'}
+                        {activeTab === 'dishes' && 'Mijn Items'}
+                      </h3>
+                      <p className="text-gray-500">
+                        {isOwner 
+                          ? 'Beheer je items in je privé profiel'
+                          : 'Deze sectie is alleen zichtbaar voor de verkoper zelf'
+                        }
+                      </p>
+                      {isOwner && (
+                        <div className="mt-4">
+                          <Link 
+                            href="/profile"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Beheer items
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -8,6 +8,7 @@ export interface User {
   username?: string | null;
   displayFullName?: boolean | null;
   displayNameOption?: string | null;
+  sellerProfileId?: string | null;
 }
 
 /**

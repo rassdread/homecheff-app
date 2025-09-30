@@ -16,6 +16,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ following });
   } catch (e) {
     console.error("follows GET error", e);
-    return NextResponse.json({ error: "Kon volgen-lijst niet laden" }, { status: 500 });
+    return NextResponse.json({ error: "Kon fan-lijst niet laden" }, { status: 500 });
   }
 }

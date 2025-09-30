@@ -59,6 +59,9 @@ export default function SmartRecommendations({
     setError(null);
     
     try {
+      // Delay API call to not block homepage loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const params = new URLSearchParams();
       if (userId) params.append('userId', userId);
       if (userLocation) {

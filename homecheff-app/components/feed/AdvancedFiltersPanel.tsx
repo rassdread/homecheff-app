@@ -101,14 +101,14 @@ export default function AdvancedFiltersPanel({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSaveDialog(true)}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
           >
             <Save className="w-4 h-4" />
-            Opslaan
+            <span className="hidden sm:inline">Opslaan</span>
           </button>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
           >
             {isOpen ? <X className="w-5 h-5" /> : <Filter className="w-5 h-5" />}
           </button>
@@ -127,10 +127,10 @@ export default function AdvancedFiltersPanel({
               <button
                 key={search.id}
                 onClick={() => onLoadSearch(search)}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-colors touch-manipulation"
               >
                 <span>{search.name}</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 hidden sm:inline">
                   ({new Date(search.createdAt).toLocaleDateString('nl-NL')})
                 </span>
               </button>

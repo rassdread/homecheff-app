@@ -66,7 +66,7 @@ export default function FollowsList() {
             user={f.seller}
             className="font-medium hover:text-primary-600 transition-colors"
             fallbackText="Verkoper"
-            linkTo="seller"
+            linkTo="profile"
           />
         </li>
       ))}

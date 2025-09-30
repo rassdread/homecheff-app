@@ -2,17 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    
+    let user;
+    
+    if (userId) {
+      // Get user by ID for public profile
+      user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+    } else {
+      // Get current user for private profile
+      const session = await auth();
+      if (!session?.user?.email) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
     }
-
-    // Get user by email first
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

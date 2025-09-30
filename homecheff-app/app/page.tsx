@@ -49,6 +49,7 @@ type HomeItem = {
   createdAt: string | Date;
   category?: string;
   subcategory?: string;
+  delivery?: string;
   favoriteCount?: number;
   location?: {
     place?: string;
@@ -154,106 +155,65 @@ function HomePageContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch products
-        const productsResponse = await fetch('/api/products');
+        setIsLoading(true);
+        
+        // Fetch products first with aggressive caching for better performance
+        const productsResponse = await fetch('/api/products', {
+          cache: 'force-cache',
+          next: { revalidate: 600 } // 10 minutes cache
+        });
         if (productsResponse.ok) {
           const productsData = await productsResponse.json();
           setItems(productsData.items || []);
+          setIsLoading(false); // Show content immediately after products load
         }
         
-        // Only fetch users if user is logged in (privacy protection)
-        const profileResponse = await fetch('/api/profile/me');
+        // Fetch profile and users in parallel (background) with caching
+        const [profileResponse, usersResponse] = await Promise.all([
+          fetch('/api/profile/me', {
+            cache: 'force-cache',
+            next: { revalidate: 300 } // 5 minutes cache
+          }),
+          userRole ? fetch(`/api/users?userRole=${userRole}`, {
+            cache: 'force-cache',
+            next: { revalidate: 300 } // 5 minutes cache
+          }) : Promise.resolve({ ok: false })
+        ]);
+
+        // Set username if user is logged in
         if (profileResponse.ok) {
-          // User is logged in, safe to fetch users
-          const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
-          if (usersResponse.ok) {
-            const usersData = await usersResponse.json();
-            setUsers(usersData.users || []);
+          const profileData = await profileResponse.json();
+          if (profileData.user?.name) {
+            setUsername(profileData.user.name);
           }
+        }
+        
+        // Fetch users if logged in
+        if (usersResponse.ok && 'json' in usersResponse) {
+          const usersData = await usersResponse.json();
+          setUsers(usersData.users || []);
         } else {
-          // User not logged in, don't fetch users for privacy
           setUsers([]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-      } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [userRole]);
 
   // Reset search when switching between products and users
   useEffect(() => {
     setQ('');
     if (searchType === 'users') {
       setSortBy('name');
-      // Check if user is logged in before allowing user search
-      const checkAuth = async () => {
-        try {
-          const profileResponse = await fetch('/api/profile/me');
-          if (!profileResponse.ok) {
-            // User not logged in, switch back to products for privacy
-            setSearchType('products');
-            setSortBy('newest');
-          }
-        } catch (error) {
-          console.error('Error checking auth:', error);
-          setSearchType('products');
-          setSortBy('newest');
-        }
-      };
-      checkAuth();
     } else {
       setSortBy('newest');
     }
   }, [searchType]);
 
-  // Fetch users when userRole changes (only if logged in)
-  useEffect(() => {
-    if (searchType === 'users') {
-      const fetchUsers = async () => {
-        try {
-          // Check if user is logged in first
-          const profileResponse = await fetch('/api/profile/me');
-          if (profileResponse.ok) {
-            // User is logged in, safe to fetch users
-            const usersResponse = await fetch(`/api/users?userRole=${userRole}`);
-            if (usersResponse.ok) {
-              const usersData = await usersResponse.json();
-              setUsers(usersData.users || []);
-            }
-          } else {
-            // User not logged in, don't fetch users for privacy
-            setUsers([]);
-          }
-        } catch (error) {
-          console.error('Error fetching users:', error);
-        }
-      };
-      fetchUsers();
-    }
-  }, [userRole, searchType]);
-
-  useEffect(() => {
-    const fetchUsername = async () => {
-      try {
-        const response = await fetch('/api/profile/me');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user?.name) {
-            setUsername(data.user.name);
-          }
-        }
-      } catch (error) {
-        // Silently handle error - user might not be logged in
-        console.log('No active session or user not logged in');
-      }
-    };
-
-    fetchUsername();
-  }, []);
 
   const filtered = useMemo(() => {
     if (searchType === 'users') {
@@ -552,17 +512,21 @@ function HomePageContent() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                    className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl transition-colors touch-manipulation"
                     title={viewMode === 'grid' ? 'Lijst weergave' : 'Grid weergave'}
                   >
-                    {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
+                    {viewMode === 'grid' ? <List className="w-6 h-6" /> : <Grid3X3 className="w-6 h-6" />}
                   </button>
                   <button
                     onClick={() => setShowMobileFilters(!showMobileFilters)}
-                    className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-colors"
-                    title="Filters"
+                    className={`p-3 rounded-xl transition-colors touch-manipulation ${
+                      showMobileFilters 
+                        ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                        : 'bg-blue-100 hover:bg-blue-200 text-blue-600'
+                    }`}
+                    title={showMobileFilters ? 'Filters sluiten' : 'Filters openen'}
                   >
-                    {showMobileFilters ? <X className="w-5 h-5" /> : <Filter className="w-5 h-5" />}
+                    {showMobileFilters ? <X className="w-6 h-6" /> : <Filter className="w-6 h-6" />}
                   </button>
                 </div>
               </div>
@@ -648,37 +612,39 @@ function HomePageContent() {
 
               {/* Mobile Filters Panel */}
               {showMobileFilters && (
-                <div className="md:hidden mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div className="md:hidden mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
                     <button
                       onClick={() => setShowMobileFilters(false)}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
                     >
-                      <X className="w-5 h-5 text-gray-500" />
+                      <X className="w-6 h-6 text-gray-500" />
                     </button>
                   </div>
                   
-                  <AdvancedFiltersPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    savedSearches={savedSearches}
-                    onSaveSearch={handleSaveSearch}
-                    onLoadSearch={handleLoadSearch}
-                    onClearFilters={handleClearFilters}
-                    searchType={searchType}
-                  />
+                  <div className="max-h-96 overflow-y-auto">
+                    <AdvancedFiltersPanel
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      savedSearches={savedSearches}
+                      onSaveSearch={handleSaveSearch}
+                      onLoadSearch={handleLoadSearch}
+                      onClearFilters={handleClearFilters}
+                      searchType={searchType}
+                    />
+                  </div>
                   
                   <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
                     <button
                       onClick={handleClearFilters}
-                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium touch-manipulation"
                     >
                       Reset
                     </button>
                     <button
                       onClick={() => setShowMobileFilters(false)}
-                      className="flex-1 px-4 py-2 bg-primary-brand text-white hover:bg-primary-700 rounded-lg transition-colors font-medium"
+                      className="flex-1 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 rounded-xl transition-colors font-medium touch-manipulation"
                     >
                       Toepassen
                     </button>
@@ -742,14 +708,9 @@ function HomePageContent() {
 
             {/* Products Grid or Empty State */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-gray-200 rounded-2xl h-64 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                ))}
+              <div className="text-center py-16">
+                <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Laden...</p>
               </div>
             ) : (searchType === 'products' ? filtered.length === 0 : filteredUsers.length === 0) ? (
               <div className="text-center py-16">
@@ -818,7 +779,7 @@ function HomePageContent() {
                       {/* Stats */}
                       <div className="flex items-center justify-between text-sm text-gray-500">
                         <span>{user.productCount || 0} producten</span>
-                        <span>{user.followerCount || 0} volgers</span>
+                        <span>{user.followerCount || 0} fans</span>
                       </div>
                       
                       {/* Location */}
@@ -941,7 +902,13 @@ function HomePageContent() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <ClickableName
-                              user={item.seller}
+                              user={{
+                                id: item.seller?.id || null,
+                                name: item.seller?.name || null,
+                                username: item.seller?.username || null,
+                                displayFullName: true,
+                                displayNameOption: 'full'
+                              }}
                               className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
                               fallbackText="Anoniem"
                               linkTo="profile"
@@ -965,7 +932,7 @@ function HomePageContent() {
                             )}
                           </div>
                           
-                          {/* Location and Distance Info */}
+                          {/* Location and Delivery Info */}
                           <div className="flex items-center gap-2 text-xs text-neutral-500">
                             <div className="flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
@@ -978,6 +945,28 @@ function HomePageContent() {
                               </div>
                             )}
                           </div>
+                          
+                          {/* Delivery Mode */}
+                          {item.delivery && (
+                            <div className="flex items-center gap-1 text-xs text-neutral-500 mt-1">
+                              {item.delivery === 'PICKUP' ? (
+                                <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                  <Package className="w-3 h-3" />
+                                  <span>Ophalen</span>
+                                </div>
+                              ) : item.delivery === 'DELIVERY' ? (
+                                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                  <Truck className="w-3 h-3" />
+                                  <span>Bezorgen</span>
+                                </div>
+                              ) : item.delivery === 'BOTH' ? (
+                                <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                  <Truck className="w-3 h-3" />
+                                  <span>Ophalen & Bezorgen</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

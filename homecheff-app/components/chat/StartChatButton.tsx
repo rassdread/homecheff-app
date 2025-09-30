@@ -115,10 +115,11 @@ export default function StartChatButton({
         onClick={() => setShowModal(true)}
         disabled={isLoading}
         className={`
-          flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
+          flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200
           transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
           bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white
           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+          w-full sm:w-auto text-sm sm:text-base
           ${className}
         `}
       >
@@ -185,7 +186,7 @@ export default function StartChatButton({
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t bg-gray-50 flex space-x-3">
+            <div className="p-6 border-t bg-gray-50 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setShowModal(false)}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition-colors"
@@ -195,7 +196,7 @@ export default function StartChatButton({
               <button
                 onClick={handleStartChat}
                 disabled={isLoading}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none"
               >
                 {isLoading ? 'Laden...' : 'Verstuur'}
               </button>

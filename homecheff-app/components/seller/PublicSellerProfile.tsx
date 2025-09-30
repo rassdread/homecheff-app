@@ -397,7 +397,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   <span className="font-semibold">{stats.totalFollowers}</span>
-                  <span className="text-emerald-100">Volgers</span>
+                  <span className="text-emerald-100">Fans</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5" />
@@ -510,7 +510,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     <span className="font-semibold text-green-600">{activeProducts}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Volgers</span>
+                    <span className="text-gray-600">Fans</span>
                     <span className="font-semibold">{stats.totalFollowers}</span>
                   </div>
                   <div className="flex justify-between items-center">

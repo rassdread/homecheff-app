@@ -9,12 +9,24 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   eslint: { ignoreDuringBuilds: true },
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+  // Enable compression
+  compress: true,
+  // Powerpack optimizations
+  poweredByHeader: false,
   // Simplified webpack config to handle LightningCSS issues
   webpack: (config, { isServer }) => {
     // Handle module resolution issues
