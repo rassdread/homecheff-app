@@ -157,7 +157,7 @@ export default async function PublicProfilePage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PublicProfileClient user={user as any} />
+      <PublicProfileClient user={user as any} openNewProducts={false} />
     </div>
   );
 }
