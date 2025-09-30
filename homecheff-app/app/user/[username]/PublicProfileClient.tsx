@@ -448,13 +448,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
           {/* Werkruimte tab content */}
           {activeTab === 'workspace' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Werkruimte</h2>
-                  <p className="text-sm text-gray-500">Upload foto's van je werkplekken per rol</p>
-                </div>
-              </div>
-              
               {/* Werkruimte secties onder elkaar */}
               <div className="space-y-8">
                 {user?.sellerRoles?.includes('chef') && (
@@ -463,7 +456,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                         👨‍🍳 De Keuken
                       </h3>
-                      <p className="text-sm text-gray-500">Upload foto's van je keuken en werkplek</p>
                     </div>
                     <WorkspacePhotosDisplay 
                       userId={user.id}
@@ -478,7 +470,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                         🌱 De Tuin
                       </h3>
-                      <p className="text-sm text-gray-500">Upload foto's van je tuin en kweekruimte</p>
                     </div>
                     <WorkspacePhotosDisplay 
                       userId={user.id}
@@ -493,7 +484,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                         🎨 Het Atelier
                       </h3>
-                      <p className="text-sm text-gray-500">Upload foto's van je atelier en creatieve ruimte</p>
                     </div>
                     <WorkspacePhotosDisplay 
                       userId={user.id}
