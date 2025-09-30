@@ -81,6 +81,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     ...(user.SellerProfile?.products || []).map(product => ({
       ...product,
       type: 'product',
+      subcategory: null, // Product heeft geen subcategory
       photos: product.Image?.map(img => ({ url: img.fileUrl, idx: 0 })) || []
     }))
   ];

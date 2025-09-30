@@ -52,30 +52,29 @@ export default async function PublicProfilePage({
         },
         orderBy: { createdAt: 'desc' }
       },
-      // Ook Producten ophalen via SellerProfile
-      SellerProfile: {
-        select: {
-          id: true,
-          products: {
-            where: {
-              isActive: true
-            },
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              priceCents: true,
-              category: true,
-              subcategory: true,
-              createdAt: true,
-              Image: {
-                select: { fileUrl: true }
+              // Ook Producten ophalen via SellerProfile
+              SellerProfile: {
+                select: {
+                  id: true,
+                  products: {
+                    where: {
+                      isActive: true
+                    },
+                    select: {
+                      id: true,
+                      title: true,
+                      description: true,
+                      priceCents: true,
+                      category: true,
+                      createdAt: true,
+                      Image: {
+                        select: { fileUrl: true }
+                      }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                  }
+                }
               }
-            },
-            orderBy: { createdAt: 'desc' }
-          }
-        }
-      }
     }
   });
 
@@ -138,7 +137,6 @@ export default async function PublicProfilePage({
                   description: true,
                   priceCents: true,
                   category: true,
-                  subcategory: true,
                   createdAt: true,
                   Image: {
                     select: { fileUrl: true }
