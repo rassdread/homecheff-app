@@ -436,6 +436,9 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                 <MyDishesManager 
                   onStatsUpdate={() => {}} 
                   activeRole={activeTab.replace('dishes-', '')} 
+                  userId={user.id}
+                  isPublic={true}
+                  role={activeTab.replace('dishes-', '')}
                 />
               </Suspense>
             </div>
