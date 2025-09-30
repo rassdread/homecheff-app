@@ -12,8 +12,8 @@ export default async function PublicProfilePage({
 }) {
   const { username } = params;
 
-  // Haal gebruiker op via username
-  const user = await prisma.user.findUnique({
+  // Probeer eerst via username, dan via id als username een UUID is
+  let user = await prisma.user.findUnique({
     where: { username },
     select: {
       id: true,
@@ -55,6 +55,57 @@ export default async function PublicProfilePage({
       }
     }
   });
+
+  // Als geen user gevonden via username, probeer via id (voor bestaande accounts)
+  if (!user) {
+    // Check if the username parameter is actually a UUID (for existing accounts)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(username);
+    
+    if (isUUID) {
+      user = await prisma.user.findUnique({
+        where: { id: username },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          bio: true,
+          quote: true,
+          place: true,
+          gender: true,
+          interests: true,
+          profileImage: true,
+          role: true,
+          sellerRoles: true,
+          buyerRoles: true,
+          displayFullName: true,
+          displayNameOption: true,
+          createdAt: true,
+          // Publieke producten (alleen gepubliceerde)
+          Dish: {
+            where: {
+              status: "PUBLISHED"
+            },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              priceCents: true,
+              stock: true,
+              maxStock: true,
+              place: true,
+              status: true,
+              createdAt: true,
+              photos: {
+                select: { url: true, idx: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          }
+        }
+      });
+    }
+  }
 
   if (!user) {
     notFound();

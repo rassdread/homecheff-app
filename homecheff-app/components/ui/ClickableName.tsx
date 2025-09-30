@@ -32,9 +32,11 @@ export default function ClickableName({
   const href = user?.id 
     ? linkTo === 'seller' 
       ? `/seller/${user.sellerProfileId || user.id}` 
-      : user?.username 
-        ? `/user/${user.username}`
-        : `/profile/${user.id}`
+      : linkTo === 'profile'
+        ? user?.username 
+          ? `/user/${user.username}`
+          : `/user/${user.id}` // Gebruik userId als fallback voor bestaande accounts
+        : `/user/${user.id}` // Altijd naar publieke profielpagina
     : '#';
   
   return (
