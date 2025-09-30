@@ -59,7 +59,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   const [activeTab, setActiveTab] = useState('overview');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [profileImage, setProfileImage] = useState(user?.profileImage ?? user?.image ?? null);
+  const [profileImage, setProfileImage] = useState(user?.profileImage ?? null);
   const [stats, setStats] = useState<ProfileStats>({
     items: 0,
     dishes: 0,
@@ -70,6 +70,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     orders: 0
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Combineer Dish en Product data
   const allProducts = [
@@ -349,12 +350,15 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                           className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
                         >
                           {mainPhoto && (
-                            <div className="relative h-48">
+                            <div 
+                              className="relative h-48 cursor-pointer"
+                              onClick={() => setSelectedImage(mainPhoto.url)}
+                            >
                               <Image
                                 src={mainPhoto.url}
                                 alt={product.title}
                                 fill
-                                className="object-cover"
+                                className="object-cover hover:opacity-90 transition-opacity"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               />
                             </div>
@@ -483,6 +487,28 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl max-h-[90vh] p-4">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={selectedImage}
+              alt="Uitvergrote foto"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

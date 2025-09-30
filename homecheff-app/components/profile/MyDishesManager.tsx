@@ -581,14 +581,21 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                   }}
                 >
                   {item.photos && item.photos.length > 0 && (
-                    <div className="relative h-48">
+                    <div 
+                      className="relative h-48 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Open image in modal or new tab
+                        window.open(item.photos[0].url, '_blank');
+                      }}
+                    >
                       <img
                         src={item.photos[0].url}
                         alt={item.title || 'Item'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                       />
-                      {/* Recipe indicator - only show for chef role */}
-                      {!item.priceCents && (item as any).ingredients && currentRole === 'chef' && (
+                      {/* Recipe indicator - show for all users if it's a recipe */}
+                      {!item.priceCents && (item as any).ingredients && (
                         <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                           Recept
                         </div>
@@ -605,7 +612,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                         <span className="font-semibold text-emerald-600">
                           €{(item.priceCents / 100).toFixed(2)}
                         </span>
-                      ) : (item as any).ingredients && currentRole === 'chef' ? (
+                      ) : (item as any).ingredients ? (
                         <span className="text-sm text-emerald-600 font-medium">
                           Bekijk recept
                         </span>
