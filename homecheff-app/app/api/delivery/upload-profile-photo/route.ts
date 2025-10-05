@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,42 +28,69 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate file size (max 5MB)
-    if (photo.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB)
+    if (photo.size > 10 * 1024 * 1024) {
       return NextResponse.json({ 
-        error: 'Foto mag maximaal 5MB zijn' 
+        error: 'Foto mag maximaal 10MB zijn' 
       }, { status: 400 });
     }
 
     const bytes = await photo.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const extension = photo.name.split('.').pop() || 'jpg';
-    const filename = `profile-${timestamp}-${randomString}.${extension}`;
-    
-    // Save file to public/uploads directory
-    const path = join(process.cwd(), 'public', 'uploads', 'profile', filename);
-    await writeFile(path, buffer);
+    // Try Vercel Blob first
+    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    let publicUrl: string | null = null;
+
+    if (token) {
+      try {
+        const { put } = await import("@vercel/blob");
+        const key = `delivery-profile-photos/${crypto.randomUUID()}-${photo.name}`;
+        const blob = await put(key, buffer, {
+          access: "public",
+          token: token,
+          addRandomSuffix: true,
+        });
+        publicUrl = blob.url;
+        console.log("Delivery profile photo upload successful:", blob.url);
+      } catch (error) {
+        console.error("Delivery profile photo upload failed:", error);
+      }
+    }
+
+    // Fallback: use base64 data URL for development
+    if (!publicUrl) {
+      try {
+        const base64 = buffer.toString('base64');
+        const mimeType = photo.type || 'image/jpeg';
+        publicUrl = `data:${mimeType};base64,${base64}`;
+        console.log("Using base64 fallback for delivery profile photo");
+      } catch (e: any) {
+        console.error("Base64 conversion failed:", e);
+        return NextResponse.json({ error: "File processing failed" }, { status: 500 });
+      }
+    }
+
+    if (!publicUrl) {
+      return NextResponse.json({ error: "Upload mislukt" }, { status: 500 });
+    }
 
     // Update user profile photo
     await prisma.user.update({
       where: { id: (session.user as any).id },
       data: {
-        image: `/uploads/profile/${filename}`
+        image: publicUrl
       }
     });
 
     return NextResponse.json({ 
       success: true, 
-      imageUrl: `/uploads/profile/${filename}`,
+      url: publicUrl,
       message: 'Profielfoto succesvol geüpload'
     });
 
   } catch (error) {
-    console.error('Profile photo upload error:', error);
+    console.error('Delivery profile photo upload error:', error);
     return NextResponse.json({ 
       error: 'Er is een fout opgetreden bij het uploaden van de profielfoto' 
     }, { status: 500 });

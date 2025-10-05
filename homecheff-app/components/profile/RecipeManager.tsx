@@ -11,6 +11,7 @@ type RecipePhoto = {
   isMain: boolean;
   stepNumber?: number;
   description?: string;
+  idx?: number;
 };
 
 type StepPhoto = {
@@ -18,6 +19,7 @@ type StepPhoto = {
   url: string;
   stepNumber: number;
   description?: string;
+  idx?: number;
 };
 
 type RecipePhotoUnion = RecipePhoto | StepPhoto;
@@ -120,6 +122,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
     photos: []
   });
 
+  const [stepPhotos, setStepPhotos] = useState<StepPhoto[]>([]);
+
   const mainPhotos = formData.photos.filter(photo => !photo.stepNumber);
 
   // Load recipes on component mount
@@ -157,13 +161,22 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
             difficulty: dish.difficulty || 'EASY',
             category: dish.category || '',
             tags: dish.tags || [],
-            photos: dish.photos?.map((photo: any) => ({
-              id: photo.id,
-              url: photo.url,
-              isMain: photo.isMain || false,
-              stepNumber: photo.stepNumber,
-              description: photo.description
-            })) || [],
+            photos: [
+              ...(dish.photos?.map((photo: any) => ({
+                id: photo.id,
+                url: photo.url,
+                isMain: photo.isMain || false,
+                stepNumber: undefined,
+                description: undefined
+              })) || []),
+              ...(dish.stepPhotos?.map((stepPhoto: any) => ({
+                id: stepPhoto.id,
+                url: stepPhoto.url,
+                isMain: false,
+                stepNumber: stepPhoto.stepNumber,
+                description: stepPhoto.description
+              })) || [])
+            ],
             isPrivate: dish.status === 'PRIVATE',
             createdAt: dish.createdAt,
             updatedAt: dish.updatedAt
@@ -193,9 +206,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
         photos: formData.photos
       };
 
-      // Separate main photos from step photos
+      // Use main photos from formData and step photos from state
       const mainPhotos = recipeData.photos.filter(photo => !photo.stepNumber);
-      const stepPhotos = recipeData.photos.filter(photo => photo.stepNumber !== undefined);
 
       const payload = {
         title: recipeData.title,
@@ -206,10 +218,10 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
           idx: index,
             isMain: ('isMain' in photo ? photo.isMain : false) || index === 0
         })),
-        stepPhotos: stepPhotos.map((photo, index) => ({
+        stepPhotos: stepPhotos.map((photo) => ({
           url: photo.url,
           stepNumber: photo.stepNumber,
-          idx: index,
+          idx: photo.idx || 0,
           description: photo.description || ''
         })),
         category: 'CHEFF', // Default category for recipes
@@ -691,19 +703,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
               <div>
                 <RecipeStepPhotos
                   steps={formData.instructions.filter(inst => inst.trim() !== '')}
-                  photos={formData.photos.filter(photo => photo.stepNumber !== undefined) as any}
-                  onPhotosChange={(newStepPhotos: any) => {
-                    setFormData(prev => {
-                      const mainPhotos = prev.photos.filter(photo => !photo.stepNumber);
-                      const photosArray = Array.isArray(newStepPhotos) 
-                        ? newStepPhotos
-                        : newStepPhotos(prev.photos.filter(photo => photo.stepNumber !== undefined));
-                      return { 
-                        ...prev, 
-                        photos: [...mainPhotos, ...photosArray]
-                      };
-                    });
-                  }}
+                  photos={stepPhotos}
+                  onPhotosChange={setStepPhotos}
                   maxPhotosPerStep={2}
                   maxTotalPhotos={10}
                 />
@@ -874,49 +875,54 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                       onClick={async () => {
                         // Load full recipe data including step photos
                         try {
-                          const response = await fetch(`/api/profile/dishes/${recipe.id}`);
+                          // Try the new public recipes endpoint first
+                          let response = await fetch(`/api/recipes/${recipe.id}`);
+                          let fullRecipe;
+                          
                           if (response.ok) {
                             const data = await response.json();
-                            const fullRecipe = data.item;
-                            
-                            setEditingRecipe(fullRecipe);
-                            setFormData({
-                              title: fullRecipe.title,
-                              description: fullRecipe.description || '',
-                              ingredients: fullRecipe.ingredients || [],
-                              instructions: fullRecipe.instructions || [],
-                              prepTime: fullRecipe.prepTime ? fullRecipe.prepTime.toString() : '',
-                              servings: fullRecipe.servings ? fullRecipe.servings.toString() : '',
-                              difficulty: fullRecipe.difficulty || 'EASY',
-                              category: fullRecipe.category || '',
-                              tags: fullRecipe.tags || [],
-                              isPrivate: fullRecipe.status === 'PRIVATE',
-                              photos: fullRecipe.photos || []
-                            });
-                            setShowForm(true);
+                            fullRecipe = data.recipe;
                           } else {
-                            console.error('Failed to load recipe details');
-                            // Fallback to basic recipe data
-                            setEditingRecipe(recipe);
-                            setFormData({
-                              title: recipe.title,
-                              description: recipe.description || '',
-                              ingredients: recipe.ingredients,
-                              instructions: recipe.instructions,
-                              prepTime: recipe.prepTime ? recipe.prepTime.toString() : '',
-                              servings: recipe.servings ? recipe.servings.toString() : '',
-                              difficulty: recipe.difficulty || 'EASY',
-                              category: recipe.category || '',
-                              tags: recipe.tags || [],
-                              isPrivate: recipe.isPrivate,
-                              photos: recipe.photos
-                            });
-                            setShowForm(true);
+                            // Fallback to the old endpoint for private recipes
+                            response = await fetch(`/api/profile/dishes/${recipe.id}`);
+                            if (response.ok) {
+                              const data = await response.json();
+                              fullRecipe = data.item;
+                            } else {
+                              console.error('Failed to load recipe details');
+                              return;
+                            }
                           }
+                          
+                          setEditingRecipe(fullRecipe);
+                          // Separate main photos and step photos
+                          const mainPhotos = (fullRecipe.photos || []).filter(photo => !photo.stepNumber);
+                          const stepPhotos = (fullRecipe.photos || []).filter(photo => photo.stepNumber);
+                          
+                          setFormData({
+                            title: fullRecipe.title,
+                            description: fullRecipe.description || '',
+                            ingredients: fullRecipe.ingredients || [],
+                            instructions: fullRecipe.instructions || [],
+                            prepTime: fullRecipe.prepTime ? fullRecipe.prepTime.toString() : '',
+                            servings: fullRecipe.servings ? fullRecipe.servings.toString() : '',
+                            difficulty: fullRecipe.difficulty || 'EASY',
+                            category: fullRecipe.category || '',
+                            tags: fullRecipe.tags || [],
+                            isPrivate: fullRecipe.status === 'PRIVATE',
+                            photos: mainPhotos
+                          });
+                          
+                          setStepPhotos(stepPhotos as StepPhoto[]);
+                          setShowForm(true);
                         } catch (error) {
                           console.error('Error loading recipe:', error);
                           // Fallback to basic recipe data
                           setEditingRecipe(recipe);
+                          // Separate main photos and step photos
+                          const mainPhotos = (recipe.photos || []).filter(photo => !photo.stepNumber);
+                          const stepPhotos = (recipe.photos || []).filter(photo => photo.stepNumber);
+                          
                           setFormData({
                             title: recipe.title,
                             description: recipe.description || '',
@@ -928,8 +934,10 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                             category: recipe.category || '',
                             tags: recipe.tags || [],
                             isPrivate: recipe.isPrivate,
-                            photos: recipe.photos
+                            photos: mainPhotos
                           });
+                          
+                          setStepPhotos(stepPhotos as StepPhoto[]);
                           setShowForm(true);
                         }
                       }}

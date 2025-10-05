@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Try Vercel Blob first
+    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+
     for (const photo of photos) {
       // Validate file type
       if (!photo.type.startsWith('image/')) {
@@ -52,31 +56,56 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      // Validate file size (max 5MB)
-      if (photo.size > 5 * 1024 * 1024) {
+      // Validate file size (max 10MB)
+      if (photo.size > 10 * 1024 * 1024) {
         return NextResponse.json({ 
-          error: 'Foto\'s mogen maximaal 5MB zijn' 
+          error: 'Foto\'s mogen maximaal 10MB zijn' 
         }, { status: 400 });
       }
 
       const bytes = await photo.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const extension = photo.name.split('.').pop() || 'jpg';
-      const filename = `vehicle-${timestamp}-${randomString}.${extension}`;
-      
-      // Save file to public/uploads directory
-      const path = join(process.cwd(), 'public', 'uploads', 'vehicles', filename);
-      await writeFile(path, buffer);
+      let publicUrl: string | null = null;
+
+      if (token) {
+        try {
+          const { put } = await import("@vercel/blob");
+          const key = `delivery-vehicle-photos/${crypto.randomUUID()}-${photo.name}`;
+          const blob = await put(key, buffer, {
+            access: "public",
+            token: token,
+            addRandomSuffix: true,
+          });
+          publicUrl = blob.url;
+          console.log("Delivery vehicle photo upload successful:", blob.url);
+        } catch (error) {
+          console.error("Delivery vehicle photo upload failed:", error);
+        }
+      }
+
+      // Fallback: use base64 data URL for development
+      if (!publicUrl) {
+        try {
+          const base64 = buffer.toString('base64');
+          const mimeType = photo.type || 'image/jpeg';
+          publicUrl = `data:${mimeType};base64,${base64}`;
+          console.log("Using base64 fallback for delivery vehicle photo");
+        } catch (e: any) {
+          console.error("Base64 conversion failed:", e);
+          return NextResponse.json({ error: "File processing failed" }, { status: 500 });
+        }
+      }
+
+      if (!publicUrl) {
+        return NextResponse.json({ error: "Upload mislukt" }, { status: 500 });
+      }
 
       // Save photo record to database
       const savedPhoto = await prisma.vehiclePhoto.create({
         data: {
           deliveryProfileId: profile.id,
-          fileUrl: `/uploads/vehicles/${filename}`,
+          fileUrl: publicUrl,
           sortOrder: currentPhotos + uploadedPhotos.length + 1
         }
       });

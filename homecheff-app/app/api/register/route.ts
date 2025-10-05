@@ -1,4 +1,7 @@
 import bcrypt from "bcryptjs";
+
+export const dynamic = 'force-dynamic';
+
 import { prisma } from "@/lib/prisma";
 // Define UserRole enum manually
 enum UserRole {

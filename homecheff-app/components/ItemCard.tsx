@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal, Star, Clock, Truck, Package } from 'lucide-react';
+import { MoreHorizontal, Star, Clock, Truck, Package, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -19,12 +19,18 @@ type HomeItem = {
   category?: string | null;
   subcategory?: string | null;
   favoriteCount?: number;
+  distanceKm?: number; // Afstand in kilometers
+  lat?: number | null; // Product locatie latitude
+  lng?: number | null; // Product locatie longitude
+  place?: string | null; // Product locatie plaatsnaam
   seller?: { 
     id?: string | null; 
     name?: string | null; 
     username?: string | null; 
     avatar?: string | null;
     followerCount?: number;
+    lat?: number | null;
+    lng?: number | null;
   } | null;
 };
 
@@ -63,6 +69,13 @@ export default function ItemCard({ item }: ItemCardProps) {
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d geleden`;
     return date.toLocaleDateString('nl-NL');
+  };
+
+  const formatDistance = (distanceKm: number) => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
   };
 
   // Seller name will be handled by ClickableName component
@@ -181,6 +194,22 @@ export default function ItemCard({ item }: ItemCardProps) {
                     {formatTimeAgo(item.createdAt)}
                   </span>
                 </div>
+                {item.distanceKm && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-neutral-500" />
+                    <span className="text-xs text-neutral-500">
+                      {formatDistance(item.distanceKm)}
+                    </span>
+                  </div>
+                )}
+                {item.place && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-neutral-500" />
+                    <span className="text-xs text-neutral-500">
+                      {item.place}
+                    </span>
+                  </div>
+                )}
                 {item.favoriteCount && item.favoriteCount > 0 && (
                   <div className="flex items-center gap-1">
                     <span className="text-xs">❤️</span>

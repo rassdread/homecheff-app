@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { calculateDistance } from "@/lib/geography";
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -234,8 +238,8 @@ export async function GET(req: NextRequest) {
     category: product.category || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: "Nederland",
-    lat: product.seller?.lat || 52.3676,
-    lng: product.seller?.lng || 4.9041,
+    lat: product.seller?.lat || null, // Don't use fallback - only real locations
+    lng: product.seller?.lng || null, // Don't use fallback - only real locations
     isPublic: true,
     viewCount: 0,
     createdAt: product.createdAt,
@@ -254,18 +258,40 @@ export async function GET(req: NextRequest) {
       username: product.seller.User?.username || undefined,
       avatar: product.seller.User?.profileImage || undefined,
       displayFullName: (product.seller.User as any)?.displayFullName || undefined,
-      displayNameOption: (product.seller.User as any)?.displayNameOption || undefined
+      displayNameOption: (product.seller.User as any)?.displayNameOption || undefined,
+      lat: product.seller.lat || null, // Include seller location for distance calculation
+      lng: product.seller.lng || null
     } : undefined
   }));
 
-  // Combine and sort all items
-  const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes].sort(
+  // Combine all items
+  const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
+  
+  // Calculate distances if location is available
+  if (lat && lng) {
+    const userLat = Number(lat);
+    const userLng = Number(lng);
+    
+    allItems.forEach(item => {
+      // Only calculate distance for items with real location data (not null)
+      if ((item as any).lat !== null && (item as any).lng !== null && 
+          !isNaN((item as any).lat) && !isNaN((item as any).lng)) {
+        (item as any).distanceKm = calculateDistance(
+          { lat: userLat, lng: userLng },
+          { lat: (item as any).lat, lng: (item as any).lng }
+        );
+      }
+    });
+  }
+  
+  // Sort by creation date
+  const sortedItems = allItems.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   ).slice(0, 30);
 
   return NextResponse.json({
     filters: { q, vertical, subfilters, radius, lat: lat ? Number(lat) : null, lng: lng ? Number(lng) : null },
-    count: allItems.length,
-    items: allItems,
+    count: sortedItems.length,
+    items: sortedItems,
   });
 }

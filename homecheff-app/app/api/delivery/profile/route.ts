@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
 import { validateApiSession } from '@/lib/api-auth';
 import { PrismaClient } from '@prisma/client';
 import { TransportationMode } from '@prisma/client';

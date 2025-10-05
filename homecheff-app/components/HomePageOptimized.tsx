@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, MapPin, Star, Heart, MoreHorizontal, Clock, Truck, Package } from 'lucide-react';
+import { Search, Filter, MapPin, Star, Heart, MoreHorizontal, Clock, Truck, Package, Navigation, Map } from 'lucide-react';
+import MapView from './feed/MapView';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
+import { getCurrentLocation } from '@/lib/geolocation';
 
 import dynamic from 'next/dynamic';
 
@@ -19,7 +21,18 @@ type HomeItem = {
   createdAt: string;
   category?: string | null;
   subcategory?: string | null;
-  seller?: { id?: string | null; name?: string | null; username?: string | null; avatar?: string | null } | null;
+  distanceKm?: number; // Afstand in kilometers
+  lat?: number | null; // Product locatie latitude
+  lng?: number | null; // Product locatie longitude
+  place?: string | null; // Product locatie plaatsnaam
+  seller?: { 
+    id?: string | null; 
+    name?: string | null; 
+    username?: string | null; 
+    avatar?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  } | null;
 };
 
 const CATEGORIES = {
@@ -66,6 +79,13 @@ export default function HomePageOptimized() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // Geolocatie state
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationError, setLocationError] = useState<string>("");
+  const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
+  const [manualLocation, setManualLocation] = useState<string>("");
+  const [showMapView, setShowMapView] = useState<boolean>(false);
 
   // Gebruikersnaam ophalen
   useEffect(() => {
@@ -79,6 +99,50 @@ export default function HomePageOptimized() {
     })();
   }, []);
 
+  // Geolocatie ophalen
+  const handleGetCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    setLocationError("");
+    
+    try {
+      const location = await getCurrentLocation();
+      setUserLocation({ lat: location.lat, lng: location.lng });
+      setLocationError("");
+    } catch (error) {
+      console.error('Geolocation error:', error);
+      setLocationError(error instanceof Error ? error.message : 'Kon locatie niet ophalen');
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  // Transform items for MapView
+  const mapViewProducts = useMemo(() => {
+    const filteredItems = filtered;
+    return filteredItems.map(item => ({
+      id: item.id,
+      title: item.title,
+      priceCents: item.priceCents,
+      image: item.image || undefined, // Convert null to undefined
+      location: {
+        lat: item.lat || undefined,
+        lng: item.lng || undefined,
+        place: item.place || undefined,
+        distanceKm: item.distanceKm
+      },
+      seller: {
+        name: item.seller?.name || undefined,
+        avatar: item.seller?.avatar || undefined
+      }
+    }));
+  }, [items, q, category, subcategory, priceRange, sortBy]);
+
+  // Automatisch locatie ophalen bij eerste load (niet blokkerend)
+  useEffect(() => {
+    // Don't await this - let it run in background
+    handleGetCurrentLocation().catch(console.error);
+  }, []);
+
   // Home laden met caching voor betere performance
   useEffect(() => {
     let isMounted = true;
@@ -87,20 +151,78 @@ export default function HomePageOptimized() {
       try {
         setIsLoading(true);
         
+        // Build API URL with location parameters
+        let apiUrl = "/api/products"; // Default to products endpoint
+        const params = new URLSearchParams();
+        
+        // Use feed endpoint when location is available for location filtering
+        if (userLocation || manualLocation.trim()) {
+          apiUrl = "/api/feed";
+          
+          // Add location parameters if available
+          if (userLocation) {
+            params.set("lat", userLocation.lat.toString());
+            params.set("lng", userLocation.lng.toString());
+            params.set("radius", radius.toString());
+          } else if (manualLocation.trim()) {
+            params.set("place", manualLocation.trim());
+          }
+        }
+        
+        // Add search query if available
+        if (q.trim()) {
+          params.set("q", q.trim());
+        }
+        
+        // Add category filter if not "all"
+        if (category !== "all") {
+          params.set("vertical", category);
+        }
+        
+        if (params.toString()) {
+          apiUrl += `?${params.toString()}`;
+        }
+        
+        console.log('Fetching from:', apiUrl);
+        
         // Fetch products data
-        const productsResponse = await fetch("/api/products", { 
-          cache: 'force-cache', // Browser cache
-          next: { revalidate: 300 } // 5 minuten revalidation
+        const productsResponse = await fetch(apiUrl, { 
+          cache: 'no-cache' // Disable cache for debugging
         });
         
         if (!isMounted) return;
         
+        console.log('Response status:', productsResponse.status);
+        
         if (productsResponse.ok) {
           const data = (await productsResponse.json()) as { items: HomeItem[] };
+          console.log('Received items:', data?.items?.length || 0);
           setItems(data?.items ?? []);
+        } else {
+          console.error('API Error:', productsResponse.status, await productsResponse.text());
+          // Fallback to products endpoint if feed fails
+          if (apiUrl.includes('/api/feed')) {
+            console.log('Falling back to /api/products');
+            const fallbackResponse = await fetch('/api/products', { cache: 'no-cache' });
+            if (fallbackResponse.ok) {
+              const fallbackData = (await fallbackResponse.json()) as { items: HomeItem[] };
+              setItems(fallbackData?.items ?? []);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Final fallback - try products endpoint
+        try {
+          console.log('Final fallback to /api/products');
+          const fallbackResponse = await fetch('/api/products', { cache: 'no-cache' });
+          if (fallbackResponse.ok) {
+            const fallbackData = (await fallbackResponse.json()) as { items: HomeItem[] };
+            setItems(fallbackData?.items ?? []);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -113,7 +235,7 @@ export default function HomePageOptimized() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [userLocation, manualLocation, radius, q, category]);
 
   // Geoptimaliseerde filtering
   const filtered = useMemo(() => {
@@ -192,29 +314,119 @@ export default function HomePageOptimized() {
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto relative z-20">
             <div className="bg-white rounded-2xl shadow-2xl p-6 relative z-20">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
-                    placeholder="Zoek naar gerechten, producten, makers of verkopers..."
-                  />
+              <div className="flex flex-col gap-4">
+                {/* Location and Search Row */}
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Location Input */}
+                  <div className="flex-1 relative">
+                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      value={manualLocation}
+                      onChange={(e) => setManualLocation(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                      placeholder="Stad of postcode (bijv. Amsterdam, 1012AB)"
+                    />
+                  </div>
+                  
+                  {/* Location Button */}
+                  <button
+                    onClick={handleGetCurrentLocation}
+                    disabled={isGettingLocation}
+                    className="px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl transition-colors flex items-center gap-2 min-h-[48px] min-w-[48px]"
+                  >
+                    {isGettingLocation ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span className="hidden sm:inline">Laden...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Navigation className="w-5 h-5" />
+                        <span className="hidden sm:inline">Mijn Locatie</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Filters button clicked, current showFilters:', showFilters);
-                    setShowFilters(!showFilters);
-                  }}
-                  className="px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] active:bg-neutral-300"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  <Filter className="w-5 h-5" />
-                  <span className="hidden sm:inline">Filters</span>
-                </button>
+                
+                {/* Search and Filters Row */}
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                      placeholder="Zoek naar gerechten, producten, makers of verkopers..."
+                    />
+                  </div>
+                  
+                  {/* Radius Selector */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                      Straal:
+                    </label>
+                    <select
+                      value={radius}
+                      onChange={(e) => setRadius(Number(e.target.value))}
+                      className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                    >
+                      <option value={5}>5 km</option>
+                      <option value={10}>10 km</option>
+                      <option value={25}>25 km</option>
+                      <option value={50}>50 km</option>
+                      <option value={100}>100 km</option>
+                    </select>
+                  </div>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Filters button clicked, current showFilters:', showFilters);
+                      setShowFilters(!showFilters);
+                    }}
+                    className="px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] active:bg-neutral-300"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <Filter className="w-5 h-5" />
+                    <span className="hidden sm:inline">Filters</span>
+                  </button>
+                  
+                  {/* Kaart Weergave Knop */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowMapView(!showMapView);
+                    }}
+                    className={`px-6 py-4 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] ${
+                      showMapView 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
+                    }`}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <Map className="w-5 h-5" />
+                    <span className="hidden sm:inline">Kaart</span>
+                  </button>
+                </div>
+                
+                {/* Location Status */}
+                {(userLocation || locationError) && (
+                  <div className="text-sm">
+                    {userLocation ? (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>Locatie gevonden: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</span>
+                      </div>
+                    ) : locationError ? (
+                      <div className="flex items-center gap-2 text-red-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>Locatie fout: {locationError}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -410,6 +622,18 @@ export default function HomePageOptimized() {
           )}
         </div>
       </section>
+      
+      {/* Map View Modal */}
+      <MapView
+        products={mapViewProducts}
+        userLocation={userLocation}
+        onProductClick={(product) => {
+          // Navigate to product page
+          window.location.href = `/product/${product.id}`;
+        }}
+        isOpen={showMapView}
+        onClose={() => setShowMapView(false)}
+      />
     </main>
   );
 }

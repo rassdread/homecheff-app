@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(req: NextRequest) {
   try {
     const { name, kvkNumber, vatNumber, country = "NL" } = await req.json();

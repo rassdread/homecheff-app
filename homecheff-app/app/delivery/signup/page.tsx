@@ -33,12 +33,23 @@ interface DeliverySignupData {
   parentalConsent: boolean;
 }
 
+interface ValidationState {
+  isValid: boolean | null;
+  message: string;
+  isChecking: boolean;
+}
+
 export default function DeliverySignupPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailValidation, setEmailValidation] = useState<ValidationState>({
+    isValid: null,
+    message: "",
+    isChecking: false,
+  });
   const [formData, setFormData] = useState<DeliverySignupData>({
     // Account creation
     name: '',
@@ -107,6 +118,59 @@ export default function DeliverySignupPage() {
     }));
   };
 
+  // Email validatie functie
+  const validateEmail = async (email: string) => {
+    if (!email) {
+      setEmailValidation({
+        isValid: null,
+        message: "",
+        isChecking: false,
+      });
+      return;
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailValidation({
+        isValid: false,
+        message: "Voer een geldig e-mailadres in",
+        isChecking: false,
+      });
+      return;
+    }
+
+    setEmailValidation({
+      isValid: null,
+      message: "Controleren...",
+      isChecking: true,
+    });
+
+    try {
+      const response = await fetch('/api/auth/validate-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      setEmailValidation({
+        isValid: data.valid,
+        message: data.valid ? data.message : data.error,
+        isChecking: false,
+      });
+    } catch (error) {
+      setEmailValidation({
+        isValid: false,
+        message: "Er is een fout opgetreden bij het controleren van het e-mailadres",
+        isChecking: false,
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
@@ -173,8 +237,26 @@ export default function DeliverySignupPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
+  // Debounced email validatie
+  useEffect(() => {
+    if (!formData.email) {
+      setEmailValidation({
+        isValid: null,
+        message: "",
+        isChecking: false,
+      });
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      validateEmail(formData.email);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.email]);
+
   const nextStep = () => {
-    if (currentStep < 8) setCurrentStep(currentStep + 1);
+    if (currentStep < 9) setCurrentStep(currentStep + 1);
   };
 
   const prevStep = () => {
@@ -183,7 +265,7 @@ export default function DeliverySignupPage() {
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 1: return formData.name.trim() && formData.email.trim() && formData.email.includes('@');
+      case 1: return formData.name.trim() && formData.email.trim() && formData.email.includes('@') && emailValidation.isValid === true;
       case 2: return formData.password.length >= 6 && formData.username.trim().length >= 3;
       case 3: return formData.age >= 15 && formData.age <= 23;
       case 4: return formData.transportation.length > 0;
@@ -268,7 +350,7 @@ export default function DeliverySignupPage() {
         {/* Progress Bar */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((step) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step <= currentStep 
@@ -277,7 +359,7 @@ export default function DeliverySignupPage() {
                 }`}>
                   {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
                 </div>
-                {step < 8 && (
+                {step < 9 && (
                   <div className={`w-12 h-1 mx-1 ${
                     step < currentStep ? 'bg-primary-brand' : 'bg-gray-200'
                   }`} />
@@ -286,7 +368,7 @@ export default function DeliverySignupPage() {
             ))}
           </div>
           <div className="text-center text-sm text-gray-500">
-            Stap {currentStep} van 8
+            Stap {currentStep} van 9
           </div>
         </div>
 
@@ -328,9 +410,43 @@ export default function DeliverySignupPage() {
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="je@email.nl"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-transparent"
+                        className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-colors ${
+                          emailValidation.isValid === true
+                            ? 'border-green-500 bg-green-50 focus:ring-green-500'
+                            : emailValidation.isValid === false
+                            ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-primary-brand focus:border-primary-brand'
+                        }`}
                       />
+                      {emailValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-brand"></div>
+                        </div>
+                      )}
+                      {emailValidation.isValid === true && !emailValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                      )}
+                      {emailValidation.isValid === false && !emailValidation.isChecking && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <X className="h-4 w-4 text-red-600" />
+                        </div>
+                      )}
                     </div>
+                    
+                    {/* Validatie feedback */}
+                    {emailValidation.message && (
+                      <div className={`mt-2 text-sm ${
+                        emailValidation.isValid === true
+                          ? 'text-green-600'
+                          : emailValidation.isValid === false
+                          ? 'text-red-600'
+                          : 'text-gray-500'
+                      }`}>
+                        {emailValidation.message}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

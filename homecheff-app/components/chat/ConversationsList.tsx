@@ -157,10 +157,22 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const markConversationAsRead = async (conversationId: string) => {
     try {
-      // For now, just trigger a refresh since we don't have messages in the conversation object
-      // This will be handled by the individual message components
-      if (onMessagesRead) {
-        onMessagesRead();
+      // Mark all unread messages in this conversation as read
+      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        // Trigger refresh of conversation list
+        if (onMessagesRead) {
+          onMessagesRead();
+        }
+        
+        // Dispatch custom event to refresh other components
+        window.dispatchEvent(new CustomEvent('messagesRead'));
       }
     } catch (error) {
       console.error('Error marking conversation as read:', error);
@@ -194,7 +206,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
             onSelectConversation(conversation);
             markConversationAsRead(conversation.id);
           }}
-          className="p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+          className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
         >
           <div className="flex items-start space-x-3">
             {/* Product image, order icon, or participant avatar */}
@@ -220,10 +232,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-gray-900 truncate">
+                <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base">
                   {conversation.title}
                 </h3>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   {conversation.lastMessage && (
                     <span className="text-xs text-gray-500">
                       {formatTime(conversation.lastMessageAt)}
@@ -244,22 +256,22 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               <div className="flex items-center justify-between mt-1">
                 <div className="flex-1 min-w-0">
                   {conversation.product && (
-                    <p className="text-sm text-gray-600 truncate">
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">
                       {conversation.product.title} • {formatPrice(conversation.product.priceCents)}
                     </p>
                   )}
                   
                   {conversation.order && (
                     <div className="flex items-center space-x-2">
-                      <Package className="w-3 h-3 text-blue-500" />
-                      <p className="text-sm text-blue-600 font-medium truncate">
+                      <Package className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                      <p className="text-xs sm:text-sm text-blue-600 font-medium truncate">
                         {conversation.order.orderNumber || `Bestelling ${conversation.order.id.slice(-6)}`}
                       </p>
                     </div>
                   )}
                   
                   {conversation.lastMessage && (
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
                       {getLastMessageSender(conversation.lastMessage, session?.user?.email || '')}
                       {getLastMessagePreview(conversation.lastMessage)}
                     </p>
@@ -274,7 +286,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               </div>
 
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 truncate">
                   Met: <ClickableName 
                     user={conversation.participants[0]}
                     className="hover:text-primary-600 transition-colors"
@@ -282,7 +294,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                 </p>
                 
                 {conversation.lastMessageAt && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-400">
+                  <div className="flex items-center space-x-1 text-xs text-gray-400 flex-shrink-0">
                     <Clock className="w-3 h-3" />
                     <span>
                       {formatTime(conversation.lastMessageAt)}

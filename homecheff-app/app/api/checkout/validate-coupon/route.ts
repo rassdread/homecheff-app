@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
+
 import Stripe from "stripe";
 
 // Laat de SDK zelf de juiste (gepinde) API-versie kiezen.

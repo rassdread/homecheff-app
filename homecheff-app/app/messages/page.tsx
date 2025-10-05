@@ -44,6 +44,10 @@ export default function MessagesPage() {
         <ChatWindow
           conversation={selectedConversation}
           onBack={handleBackToList}
+          onMessagesRead={() => {
+            // Refresh conversations when messages are read
+            window.dispatchEvent(new CustomEvent('messagesRead'));
+          }}
         />
       </div>
     );
@@ -52,15 +56,15 @@ export default function MessagesPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="w-full border-b bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Berichten</h1>
-          <p className="text-gray-600 mt-1">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 sm:py-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Berichten</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
             Je gesprekken met kopers en verkopers
           </p>
         </div>
       </header>
       
-      <section className="mx-auto max-w-5xl px-6 py-8">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
         <ConversationsList onSelectConversation={handleSelectConversation} />
       </section>
     </main>

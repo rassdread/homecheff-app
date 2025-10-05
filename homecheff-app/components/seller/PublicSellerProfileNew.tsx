@@ -205,6 +205,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows' | 'dishes-chef' | 'dishes-garden' | 'dishes-designer' | 'dishes'>('overview');
   const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [stats, setStats] = useState({
@@ -234,14 +235,26 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
 
   const fetchRecipes = async () => {
     try {
+      setIsLoadingRecipes(true);
+      console.log('Fetching recipes for seller:', sellerProfile.id);
       const response = await fetch(`/api/seller/${sellerProfile.id}/recipes`);
+      console.log('Recipes API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Recipes data:', data);
         setRecipes(data.recipes || []);
+      } else {
+        console.error('Failed to fetch recipes:', response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error details:', errorData);
+        setRecipes([]);
       }
     } catch (error) {
       console.error('Error fetching recipes:', error);
       setRecipes([]);
+    } finally {
+      setIsLoadingRecipes(false);
     }
   };
 
@@ -726,21 +739,21 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                   <div className="space-y-8">
-                    {/* Featured Products */}
-                    <div>
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-semibold text-gray-900">Uitgelichte Producten</h3>
-                        <Link 
-                          href="#products"
-                          onClick={() => setActiveTab('products')}
-                          className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium"
-                        >
-                          <span>Alle producten bekijken</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </Link>
-                      </div>
-                      
-                      {sellerProfile.products.length > 0 ? (
+                    {/* Featured Products - Only show if there are products */}
+                    {sellerProfile.products.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-xl font-semibold text-gray-900">Uitgelichte Producten</h3>
+                          <Link 
+                            href="#products"
+                            onClick={() => setActiveTab('products')}
+                            className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            <span>Alle producten bekijken</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </Link>
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {sellerProfile.products.slice(0, 6).map((product) => (
                             <Link key={product.id} href={`/product/${product.id}`}>
@@ -768,14 +781,8 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                             </Link>
                           ))}
                         </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen producten</h3>
-                          <p className="text-gray-500">Deze verkoper heeft nog geen producten toegevoegd</p>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Workspace Highlights */}
                     {totalWorkspaceContent > 0 && (
@@ -838,7 +845,6 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     {/* Workplace Photos Preview */}
                     {totalWorkplacePhotos > 0 && (
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-6">Werkruimte Foto's</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {sellerProfile.workplacePhotos.slice(0, 8).map((photo) => (
                             <div key={photo.id} className="aspect-square rounded-xl overflow-hidden">
@@ -920,15 +926,6 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {/* Workspace Tab */}
                 {activeTab === 'workspace' && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0] || 'generic')}
-                      </h3>
-                      <span className="text-sm text-gray-600">
-                        {totalWorkspaceContent} items
-                      </span>
-                    </div>
-
                     {workspaceContent.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {workspaceContent.map((content) => (
@@ -970,13 +967,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Camera className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen content</h3>
-                        <p className="text-gray-500">Deze verkoper heeft nog geen werkruimte content gedeeld</p>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
 
@@ -990,7 +981,12 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                       </span>
                     </div>
 
-                    {recipes.length > 0 ? (
+                    {isLoadingRecipes ? (
+                      <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                        <p className="text-gray-500">Recepten laden...</p>
+                      </div>
+                    ) : recipes.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {recipes.map((recipe) => {
                           const mainPhoto = recipe.photos.find(photo => photo.isMain) || recipe.photos[0];

@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
 import { stripe, createConnectPaymentIntent, calculatePayout } from '@/lib/stripe';
 import { formatAmountForStripe } from '@/lib/stripe';
 // Removed pricing import - fees are now calculated differently

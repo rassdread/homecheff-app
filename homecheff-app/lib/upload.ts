@@ -75,5 +75,13 @@ export async function uploadProductImages(file: File): Promise<UploadResult> {
 }
 
 export async function uploadWorkspacePhoto(file: File): Promise<UploadResult> {
-  return uploadFile(file, '/api/upload');
+  return uploadFile(file, '/api/seller/upload-workplace-photos');
+}
+
+export async function uploadDeliveryProfilePhoto(file: File): Promise<UploadResult> {
+  return uploadFile(file, '/api/delivery/upload-profile-photo');
+}
+
+export async function uploadVehiclePhotos(file: File): Promise<UploadResult> {
+  return uploadFile(file, '/api/delivery/upload-vehicle-photos');
 }

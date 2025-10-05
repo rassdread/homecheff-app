@@ -98,6 +98,43 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     loadMessages();
   }, [conversation.id]);
 
+  // Mark messages as read when conversation is opened
+  useEffect(() => {
+    const markConversationAsRead = async () => {
+      if (!conversation.id || !currentUserId) return;
+      
+      try {
+        // Mark all unread messages in this conversation as read
+        const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          // The API already marks messages as read when fetching them
+          // Trigger refresh of conversation list
+          if (onMessagesRead) {
+            onMessagesRead();
+          }
+          
+          // Dispatch custom event to refresh other components
+          window.dispatchEvent(new CustomEvent('messagesRead'));
+        }
+      } catch (error) {
+        console.error('Error marking conversation as read:', error);
+      }
+    };
+    
+    // Mark as read after a short delay to ensure messages are loaded
+    const timer = setTimeout(() => {
+      markConversationAsRead();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [conversation.id, currentUserId, onMessagesRead]);
+
   const loadMessages = async (pageNum = 1, append = false) => {
     try {
       if (pageNum === 1) {
@@ -220,41 +257,41 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-white">
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-white">
+        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full"
+            className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
             {conversation.otherParticipant?.profileImage ? (
               <Image
                 src={conversation.otherParticipant.profileImage}
                 alt={getDisplayNameForConversation(conversation.otherParticipant)}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="rounded-full flex-shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-gray-600 font-medium">
                   {getDisplayNameForConversation(conversation.otherParticipant)?.charAt(0)}
                 </span>
               </div>
             )}
 
-            <div>
-              <h2 className="font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold text-gray-900 truncate">
                 <ClickableName 
                   user={conversation.otherParticipant}
                   className="hover:text-primary-600 transition-colors"
                 />
               </h2>
               {conversation.product && (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 truncate">
                   Over: {conversation.product.title}
                 </p>
               )}
@@ -262,11 +299,11 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full">
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+          <button className="p-2 hover:bg-gray-100 rounded-full hidden sm:block">
             <Phone className="w-5 h-5 text-gray-600" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
+          <button className="p-2 hover:bg-gray-100 rounded-full hidden sm:block">
             <Video className="w-5 h-5 text-gray-600" />
           </button>
           <button className="p-2 hover:bg-gray-100 rounded-full">
@@ -285,11 +322,11 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
                 alt={conversation.product.title}
                 width={48}
                 height={48}
-                className="rounded-lg object-cover"
+                className="rounded-lg object-cover flex-shrink-0"
               />
             )}
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900">{conversation.product.title}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-gray-900 truncate">{conversation.product.title}</h3>
               <p className="text-sm text-blue-600 font-medium">
                 {formatPrice(conversation.product.priceCents)}
               </p>
@@ -301,11 +338,11 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
       {/* Messages */}
       <div className="flex-1 overflow-hidden" ref={messagesContainerRef}>
         {hasMoreMessages && (
-          <div className="p-4 text-center">
+          <div className="p-3 sm:p-4 text-center">
             <button
               onClick={loadMoreMessages}
               disabled={isLoadingMore}
-              className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+              className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
             >
               {isLoadingMore ? 'Laden...' : 'Meer berichten laden'}
             </button>

@@ -109,63 +109,80 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
       }
     };
     
-    // Mark messages as read after a short delay to ensure user is actually viewing them
+    // Mark messages as read after a shorter delay for better UX
     const timer = setTimeout(() => {
       markMessagesAsRead();
-    }, 2000); // Increased delay to 2 seconds
+    }, 1000); // Reduced delay to 1 second for better responsiveness
     
     return () => clearTimeout(timer);
   }, [messages, currentUserId, onMessagesRead]);
 
   // Also mark as read when user scrolls to bottom
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
-      if (messagesEndRef.current) {
-        const rect = messagesEndRef.current.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        
-        if (isVisible) {
-          // Mark messages as read when user scrolls to bottom
-          const markAsRead = async () => {
-            if (!messages.length || !currentUserId) return;
-            
-            const unreadMessages = messages.filter(
-              message => !message.readAt && message.User.id !== currentUserId
-            );
-            
-            if (unreadMessages.length === 0) return;
-            
-            try {
-              const results = await Promise.all(
-                unreadMessages.map(message =>
-                  fetch(`/api/messages/${message.id}/read`, {
-                    method: 'PUT',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                  })
-                )
+      // Clear existing timeout
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      
+      // Set a new timeout to debounce scroll events
+      scrollTimeout = setTimeout(() => {
+        if (messagesEndRef.current) {
+          const rect = messagesEndRef.current.getBoundingClientRect();
+          const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+          
+          if (isVisible) {
+            // Mark messages as read when user scrolls to bottom
+            const markAsRead = async () => {
+              if (!messages.length || !currentUserId) return;
+              
+              const unreadMessages = messages.filter(
+                message => !message.readAt && message.User.id !== currentUserId
               );
               
-              const allSuccessful = results.every(response => response.ok);
+              if (unreadMessages.length === 0) return;
               
-              if (allSuccessful && onMessagesRead) {
-                onMessagesRead();
+              try {
+                const results = await Promise.all(
+                  unreadMessages.map(message =>
+                    fetch(`/api/messages/${message.id}/read`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    })
+                  )
+                );
+                
+                const allSuccessful = results.every(response => response.ok);
+                
+                if (allSuccessful && onMessagesRead) {
+                  onMessagesRead();
+                  // Dispatch custom event to refresh other components
+                  window.dispatchEvent(new CustomEvent('messagesRead'));
+                }
+              } catch (error) {
+                console.error('Error marking messages as read:', error);
               }
-            } catch (error) {
-              console.error('Error marking messages as read:', error);
-            }
-          };
-          
-          markAsRead();
+            };
+            
+            markAsRead();
+          }
         }
-      }
+      }, 300); // Debounce scroll events by 300ms
     };
     
     // Use a more specific scroll container if available
     const scrollContainer = document.querySelector('.overflow-y-auto') || window;
     scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
   }, [messages, currentUserId, onMessagesRead]);
 
   const formatTime = (dateString: string) => {
@@ -234,9 +251,9 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
     return (
       <div
         key={message.id}
-        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}
+        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0`}
       >
-        <div className={`flex max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`flex max-w-[85%] sm:max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
           {/* Avatar */}
           {!isOwn && (
             <div className="flex-shrink-0 mr-2">
@@ -257,7 +274,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
           )}
 
           {/* Message content */}
-          <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+          <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} min-w-0`}>
             {!isOwn && (
               <ClickableName 
                 user={message.User}
@@ -266,7 +283,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
             )}
             
             <div
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-3 sm:px-4 py-2 rounded-lg break-words ${
                 isOwn
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 text-gray-800'
@@ -352,13 +369,13 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
             <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>Nog geen berichten</p>
-            <p className="text-sm">Start het gesprek!</p>
+            <p className="text-sm sm:text-base">Nog geen berichten</p>
+            <p className="text-xs sm:text-sm">Start het gesprek!</p>
           </div>
         </div>
       ) : (

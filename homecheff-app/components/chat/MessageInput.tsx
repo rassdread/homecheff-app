@@ -169,21 +169,21 @@ export default function MessageInput({
   };
 
   return (
-    <div className="border-t bg-white p-4">
+    <div className="border-t bg-white p-3 sm:p-4">
       {/* Attachment preview */}
       {attachment && (
         <div className="mb-3 p-3 bg-gray-100 rounded-lg flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 min-w-0 flex-1">
             {attachment.type.startsWith('image/') ? (
-              <ImageIcon className="w-4 h-4 text-blue-500" />
+              <ImageIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
             ) : (
-              <Paperclip className="w-4 h-4 text-blue-500" />
+              <Paperclip className="w-4 h-4 text-blue-500 flex-shrink-0" />
             )}
-            <span className="text-sm text-gray-700">{attachment.name}</span>
+            <span className="text-sm text-gray-700 truncate">{attachment.name}</span>
           </div>
           <button
             onClick={removeAttachment}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
           >
             <X className="w-4 h-4" />
           </button>
@@ -195,19 +195,19 @@ export default function MessageInput({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isUploading}
-          className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 flex-shrink-0"
         >
           <Paperclip className="w-5 h-5" />
         </button>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0">
           <textarea
             value={message}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Typ je bericht..."
             disabled={disabled}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             rows={1}
             style={{
               minHeight: '40px',
@@ -219,7 +219,7 @@ export default function MessageInput({
         <button
           onClick={handleSendMessage}
           disabled={disabled || (!message.trim() && !attachment) || isUploading}
-          className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 sm:p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
         >
           {isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
