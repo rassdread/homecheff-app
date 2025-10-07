@@ -10,7 +10,6 @@ import ShareButton from "@/components/ui/ShareButton";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import StartChatButton from "@/components/chat/StartChatButton";
-import FollowButton from "@/components/follow/FollowButton";
 import PropsButton from "@/components/props/PropsButton";
 import ReportContentButton from "@/components/reporting/ReportContentButton";
 import ClickableName from "@/components/ui/ClickableName";
@@ -551,11 +550,6 @@ export default function ProductPage() {
                   sellerId={product.seller?.User?.id || ''}
                   sellerName={getDisplayName(product)}
                   className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
-                />
-                <FollowButton 
-                  sellerId={product.seller?.User?.id || ''}
-                  sellerName={getDisplayName(product)}
-                  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
                 <PropsButton 
                   productId={product.id}

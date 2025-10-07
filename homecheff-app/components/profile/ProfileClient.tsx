@@ -8,6 +8,7 @@ import PhotoUploader from './PhotoUploader';
 import MyDishesManager from './MyDishesManager';
 import OrderList from './OrderList';
 import FollowsList from './FollowsList';
+import FansList from './FansList';
 import SettingsMenu from './SettingsMenu';
 import ProfileSettings from './ProfileSettings';
 import AccountSettings from './AccountSettings';
@@ -148,7 +149,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     const baseTabs = [
       { id: 'overview', label: 'Overzicht', icon: Grid },
       { id: 'orders', label: 'Bestellingen', icon: ShoppingBag },
-      { id: 'follows', label: 'Fan van', icon: Heart }
+      { id: 'follows', label: 'Fan van', icon: Heart },
+      { id: 'fans', label: 'Fans', icon: Users }
     ];
 
     const sellerRoles = user?.sellerRoles || [];
@@ -844,11 +846,25 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     <div className="flex items-center justify-between">
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900">Fan van</h2>
-                        <p className="text-sm text-gray-500">Verkopers die je volgt</p>
+                        <p className="text-sm text-gray-500">Verkopers waarvan je fan bent</p>
                       </div>
                     </div>
                     <Suspense fallback={<div className="h-32 rounded-xl bg-gray-100 animate-pulse" />}>
                       <FollowsList />
+                    </Suspense>
+                  </div>
+                )}
+
+                {activeTab === 'fans' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900">Fans</h2>
+                        <p className="text-sm text-gray-500">Mensen die jouw fan zijn</p>
+                      </div>
+                    </div>
+                    <Suspense fallback={<div className="h-32 rounded-xl bg-gray-100 animate-pulse" />}>
+                      <FansList />
                     </Suspense>
                   </div>
                 )}

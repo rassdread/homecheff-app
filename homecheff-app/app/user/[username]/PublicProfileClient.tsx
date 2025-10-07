@@ -8,6 +8,8 @@ import Image from 'next/image';
 import MyDishesManager from '@/components/profile/MyDishesManager';
 import FollowsList from '@/components/profile/FollowsList';
 import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
+import FollowButton from '@/components/follow/FollowButton';
+import StartChatButton from '@/components/chat/StartChatButton';
 
 interface User {
   id: string;
@@ -71,6 +73,11 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [userStats, setUserStats] = useState({
+    reviews: 0,
+    followers: 0,
+    props: 0
+  });
 
   // Combineer Dish en Product data
   const allProducts = [
@@ -159,6 +166,40 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   };
 
   const tabs = getTabs();
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const [followersResponse, propsResponse] = await Promise.all([
+          fetch(`/api/follows/fans?userId=${user.id}`),
+          fetch(`/api/props/count?userId=${user.id}`)
+        ]);
+        
+        let followersCount = 0;
+        let propsCount = 0;
+        
+        if (followersResponse.ok) {
+          const followersData = await followersResponse.json();
+          followersCount = followersData.fans?.length || 0;
+        }
+        
+        if (propsResponse.ok) {
+          const propsData = await propsResponse.json();
+          propsCount = propsData.propsCount || 0;
+        }
+        
+        setUserStats({
+          reviews: 0, // TODO: Implement reviews count
+          followers: followersCount,
+          props: propsCount
+        });
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+      }
+    };
+
+    fetchUserStats();
+  }, [user.id]);
 
   const getDisplayName = () => {
     if (!user.displayFullName) return user.username || 'Gebruiker';
@@ -279,19 +320,39 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
               ))}
             </div>
 
-            {/* Stats */}
-            <div className="flex gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <ShoppingBag className="w-4 h-4" />
-                <span>{products.length} items</span>
+            {/* Stats & Actions */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>{products.length} items</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4" />
+                  <span>{userStats.reviews} beoordelingen</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span>{userStats.followers} fans</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="w-4 h-4" />
+                  <span>{userStats.props} props</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4" />
-                <span>0 beoordelingen</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>0 volgers</span>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <FollowButton 
+                  sellerId={user.id}
+                  sellerName={getDisplayName()}
+                  className="px-4 py-2"
+                />
+                <StartChatButton
+                  sellerId={user.id}
+                  sellerName={getDisplayName()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                />
               </div>
             </div>
           </div>
@@ -381,16 +442,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                   </div>
                 );
                 })()}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'workspace' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Werkruimte</h2>
-              <div className="text-center py-12 text-gray-500">
-                <Grid className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>Werkruimte foto's zijn niet publiek zichtbaar</p>
               </div>
             </div>
           )}

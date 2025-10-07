@@ -61,7 +61,7 @@ export default function FansAndFollowsList() {
   }
 
   const currentItems = activeTab === 'follows' ? follows : fans;
-  const currentLabel = activeTab === 'follows' ? 'verkopers die je volgt' : 'je fans';
+  const currentLabel = activeTab === 'follows' ? 'verkopers waarvan je fan bent' : 'je fans';
 
   return (
     <div className="space-y-4">
@@ -106,7 +106,7 @@ export default function FansAndFollowsList() {
           </h3>
           <p className="text-gray-600 text-sm">
             {activeTab === 'follows' 
-              ? 'Zodra je iemand volgt, verschijnt het hier.'
+              ? 'Zodra je iemands fan wordt, verschijnt het hier.'
               : 'Zodra iemand fan van je wordt, verschijnt het hier.'
             }
           </p>

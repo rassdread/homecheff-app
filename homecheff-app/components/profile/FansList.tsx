@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
 
-type Follow = { 
+type Fan = { 
   id: string; 
-  Seller?: { 
+  user?: { 
     id: string; 
     name?: string | null; 
     username?: string | null;
@@ -17,56 +17,61 @@ type Follow = {
   } 
 };
 
-export default function FollowsList() {
-  const [items, setItems] = useState<Follow[]>([]);
+interface FansListProps {
+  userId?: string;
+}
+
+export default function FansList({ userId }: FansListProps) {
+  const [items, setItems] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const res = await fetch("/api/profile/follows");
+      const url = userId ? `/api/follows/fans?userId=${userId}` : "/api/follows/fans";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        setItems(data.items || []);
+        setItems(data.fans || []);
       }
       setLoading(false);
     })();
-  }, []);
+  }, [userId]);
 
   if (loading) return <div className="rounded-xl border p-4 bg-white animate-pulse h-24" />;
 
   if (!items.length) {
     return (
       <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">
-        Nog niemand waarvan je fan bent. Zodra de fan-relatie in je database staat, verschijnt het hier.
+        Nog geen fans. Zodra mensen jouw fan worden, verschijnen ze hier.
       </div>
     );
   }
 
   return (
     <ul className="rounded-xl border bg-white divide-y">
-      {items.map(f => (
-        <li key={f.id} className="p-3 flex items-center gap-3">
+      {items.map(fan => (
+        <li key={fan.id} className="p-3 flex items-center gap-3">
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full overflow-hidden border bg-gray-200 flex-shrink-0">
-            {(f.Seller?.profileImage || f.Seller?.image) ? (
+            {(fan.user?.profileImage || fan.user?.image) ? (
               <img 
-                src={f.Seller.profileImage || f.Seller.image || ""} 
-                alt={getDisplayName(f.Seller)} 
+                src={fan.user.profileImage || fan.user.image || ""} 
+                alt={getDisplayName(fan.user)} 
                 className="w-full h-full object-cover" 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary-brand text-white text-sm font-bold">
-                {getDisplayName(f.Seller).charAt(0).toUpperCase()}
+                {getDisplayName(fan.user).charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           
           {/* Name with link */}
           <ClickableName
-            user={f.Seller}
+            user={fan.user}
             className="font-medium hover:text-primary-600 transition-colors"
-            fallbackText="Verkoper"
+            fallbackText="Fan"
             linkTo="profile"
           />
         </li>

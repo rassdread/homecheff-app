@@ -138,7 +138,7 @@ const faqData = {
       answer: "Neem eerst contact op met de verkoper. Als dat niet lukt, kunnen wij bemiddelen. We hebben een klachtenprocedure en kunnen in extreme gevallen een terugbetaling regelen.\n\n♻️ TEGEN VERSPILLING:\n• Hergebruik van producten waar mogelijk\n• Compostering van organische producten\n• Feedback voor verbetering\n• Leren van handgemaakte praktijken\n\n⚠️ BELANGRIJK: HomeCheff is alleen een platform. Wij zijn niet verantwoordelijk voor de kwaliteit van producten of geschillen tussen verkopers en kopers."
     },
     {
-      question: "Kan ik verkopers volgen?",
+      question: "Kan ik verkopers fan worden?",
       answer: "Ja! Word fan van je favoriete handgemaakte verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe handgemaakte items toevoegen.\n\n🤝 LOKALE GEMEENSCHAP:\n• Ondersteun lokale makers\n• Leer van handgemaakte technieken\n• Deel tips en ervaringen\n• Bouw een bewuste community op"
     },
     {

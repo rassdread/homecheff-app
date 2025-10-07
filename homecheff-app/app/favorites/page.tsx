@@ -16,7 +16,7 @@ export default function FollowsPage() {
       </header>
       <section className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-4 text-sm text-gray-600 bg-blue-50 border-l-4 p-3 rounded" style={{ borderColor: "var(--accent)" }}>
-          Hier zie je alle verkopers die je volgt en je fans. Je krijgt notificaties wanneer verkopers die je volgt nieuwe producten plaatsen!
+          Hier zie je alle verkopers waarvan je fan bent en je eigen fans. Je krijgt notificaties wanneer verkopers waarvan je fan bent nieuwe producten plaatsen!
         </div>
         {loading && <div>Bezig met laden...</div>}
         <FansAndFollowsList />

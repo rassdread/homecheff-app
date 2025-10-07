@@ -28,7 +28,7 @@ export default function FollowsList() {
   if (!items.length) {
     return (
       <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">
-        Nog geen fans. Zodra je iemand volgt, verschijnt het hier.
+        Nog geen fans. Zodra je iemands fan wordt, verschijnt het hier.
       </div>
     );
   }

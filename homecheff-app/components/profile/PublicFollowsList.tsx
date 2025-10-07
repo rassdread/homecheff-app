@@ -69,7 +69,7 @@ export default function PublicFollowsList({ userId }: PublicFollowsListProps) {
     return (
       <div className="text-center py-12 text-gray-500">
         <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-        <p>Deze gebruiker volgt nog niemand</p>
+        <p>Deze gebruiker is nog fan van niemand</p>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export default function PublicFollowsList({ userId }: PublicFollowsListProps) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-gray-600 mb-4">
-        {items.length} {items.length === 1 ? 'persoon' : 'personen'} gevolgd
+        {items.length} {items.length === 1 ? 'persoon' : 'personen'} waarvan fan
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

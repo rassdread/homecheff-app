@@ -235,7 +235,7 @@ export async function GET(req: NextRequest) {
         type: 'follow' as const,
         senderId: follow.followerId,
         receiverId: follow.sellerId,
-        content: `${follow.User.name || 'Iemand'} volgt je nu!`,
+        content: `${follow.User.name || 'Iemand'} is nu jouw fan!`,
         timestamp: follow.createdAt,
         isRead: false, // Will be marked as read when viewed
         sender: {

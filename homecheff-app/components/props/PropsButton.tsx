@@ -21,6 +21,7 @@ export default function PropsButton({
 }: PropsButtonProps) {
   const { data: session } = useSession();
   const [propsGiven, setPropsGiven] = useState(false);
+  const [propsCount, setPropsCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
@@ -33,10 +34,19 @@ export default function PropsButton({
 
     const checkPropsStatus = async () => {
       try {
-        const response = await fetch(`/api/props/status?productId=${productId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPropsGiven(data.propsGiven);
+        const [statusResponse, countResponse] = await Promise.all([
+          fetch(`/api/props/status?productId=${productId}`),
+          fetch(`/api/props/count?productId=${productId}`)
+        ]);
+        
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          setPropsGiven(statusData.propsGiven);
+        }
+        
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          setPropsCount(countData.propsCount);
         }
       } catch (error) {
         console.error('Error checking props status:', error);
@@ -67,6 +77,13 @@ export default function PropsButton({
       if (response.ok) {
         const data = await response.json();
         setPropsGiven(data.propsGiven);
+        
+        // Update props count
+        const countResponse = await fetch(`/api/props/count?productId=${productId}`);
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          setPropsCount(countData.propsCount);
+        }
         
         // Show feedback
         if (data.propsGiven) {
@@ -140,7 +157,10 @@ export default function PropsButton({
         title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
       >
         <Icon className={`w-4 h-4 ${propsGiven ? 'text-yellow-500' : ''}`} />
-        <span className="font-semibold">{propsGiven ? 'Props!' : 'Props'}</span>
+        <span className="font-semibold">
+          {propsGiven ? 'Props!' : 'Props'}
+          {propsCount > 0 && ` (${propsCount})`}
+        </span>
       </button>
     );
   }
@@ -164,7 +184,10 @@ export default function PropsButton({
       title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
     >
       <Icon className={`${iconSize[size]} ${propsGiven ? 'animate-bounce' : ''}`} />
-      <span>{propsGiven ? 'Props!' : 'Props'}</span>
+      <span>
+        {propsGiven ? 'Props!' : 'Props'}
+        {propsCount > 0 && ` (${propsCount})`}
+      </span>
     </button>
   );
 }

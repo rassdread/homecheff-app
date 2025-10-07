@@ -37,6 +37,9 @@ export async function GET(req: NextRequest) {
             name: true, 
             username: true,
             image: true,
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true,
             role: true 
           } 
         }

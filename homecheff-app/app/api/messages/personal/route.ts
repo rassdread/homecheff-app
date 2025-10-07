@@ -468,7 +468,7 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       category: 'role',
       senderId: follow.followerId,
       receiverId: userId,
-      content: `${getDisplayName(follow.User)} volgt je nu!`,
+      content: `${getDisplayName(follow.User)} is nu jouw fan!`,
       timestamp: follow.createdAt,
       isRead: false,
       priority: 'low' as const,

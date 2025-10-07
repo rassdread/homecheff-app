@@ -50,7 +50,7 @@ export default function FollowButton({
 
   const handleToggleFollow = async () => {
     if (!session?.user) {
-      alert('Je moet ingelogd zijn om verkopers te volgen');
+      alert('Je moet ingelogd zijn om verkopers fan te worden');
       return;
     }
 
@@ -87,7 +87,7 @@ export default function FollowButton({
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-      alert('Er is een fout opgetreden bij het volgen');
+      alert('Er is een fout opgetreden bij het fan worden');
     } finally {
       setLoading(false);
     }
