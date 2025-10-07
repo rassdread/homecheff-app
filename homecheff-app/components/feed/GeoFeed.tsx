@@ -5,6 +5,7 @@ import ShareButton from "@/components/ui/ShareButton";
 import { Eye, Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import PropsButton from "@/components/props/PropsButton";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import LocationInput from "@/components/location/LocationInput";
 
 type FeedItem = {
   id: string;
@@ -28,12 +29,19 @@ export default function GeoFeed() {
   const [q, setQ] = useState("");
   const [place, setPlace] = useState("");
   const [baseUrl, setBaseUrl] = useState('');
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationSource, setLocationSource] = useState<'gps' | 'manual' | 'profile' | null>(null);
   
-  // Use the geolocation hook
+  // Use the geolocation hook with fallback
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
     enableHighAccuracy: true,
     timeout: 15000,
-    maximumAge: 300000
+    maximumAge: 300000,
+    fallbackToManual: true,
+    onFallback: (reason) => {
+      console.log('GPS fallback triggered:', reason);
+      // Will be handled by fetching user profile location
+    }
   });
   
   // Filter and sort states
@@ -113,18 +121,77 @@ export default function GeoFeed() {
     }
   }, [locationSupported, coords, locationLoading, getCurrentPosition]);
 
+  // Handle GPS location success
+  useEffect(() => {
+    if (coords) {
+      setUserLocation(coords);
+      setLocationSource('gps');
+      console.log('📍 GPS location obtained:', coords);
+    }
+  }, [coords]);
+
+  // Handle GPS failure - fallback to user profile location
+  useEffect(() => {
+    const fetchUserProfileLocation = async () => {
+      if (locationError && !userLocation) {
+        console.log('🔄 GPS failed, trying user profile location...');
+        try {
+          const response = await fetch('/api/profile/me');
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.user?.lat && userData.user?.lng) {
+              const profileLocation = {
+                lat: userData.user.lat,
+                lng: userData.user.lng
+              };
+              setUserLocation(profileLocation);
+              setLocationSource('profile');
+              console.log('📍 Using profile location:', profileLocation);
+              console.log('📍 Profile address:', {
+                address: userData.user.address,
+                postalCode: userData.user.postalCode,
+                city: userData.user.city
+              });
+            }
+          }
+        } catch (error) {
+          console.log('❌ Failed to fetch user profile location:', error);
+        }
+      }
+    };
+
+    fetchUserProfileLocation();
+  }, [locationError, userLocation]);
+
+  // Handle manual place input
+  const handlePlaceInput = async (inputPlace: string) => {
+    if (!inputPlace.trim()) {
+      setPlace('');
+      return;
+    }
+
+    setPlace(inputPlace);
+    // If manual place is entered, we'll use it in the API call instead of coordinates
+    setLocationSource('manual');
+  };
+
   useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
       
       const params = new URLSearchParams();
+      
+      // Priority: manual place input > GPS coordinates > profile coordinates
       if (place.trim()) {
         params.set("place", place.trim());
-      } else if (coords) {
-        params.set("lat", String(coords.lat));
-        params.set("lng", String(coords.lng));
+        console.log('📍 Using manual place input:', place.trim());
+      } else if (userLocation) {
+        params.set("lat", String(userLocation.lat));
+        params.set("lng", String(userLocation.lng));
         params.set("radius", String(radius));
+        console.log('📍 Using location coordinates:', userLocation, 'Source:', locationSource);
       }
+      
       if (q.trim()) params.set("q", q.trim());
       
       try {
@@ -141,14 +208,19 @@ export default function GeoFeed() {
     };
 
     fetchItems();
-  }, [radius, q, place, coords]);
+  }, [radius, q, place, userLocation, locationSource]);
 
   return (
     <div className="space-y-4">
   <div className="flex flex-wrap gap-3 items-end bg-white/60 rounded-xl p-4 border border-gray-200">
         <div className="flex-1 min-w-[180px]">
           <label className="block text-base font-semibold mb-1">Plaats</label>
-          <input value={place} onChange={e => setPlace(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" placeholder="Typ een woonplaats, bv. Amsterdam" />
+          <input 
+            value={place} 
+            onChange={e => handlePlaceInput(e.target.value)} 
+            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" 
+            placeholder="Typ een woonplaats of postcode, bv. Amsterdam of 1012AB" 
+          />
         </div>
         <div className="min-w-[120px]">
           <label className="block text-base font-semibold mb-1">Straal (km)</label>
@@ -170,18 +242,27 @@ export default function GeoFeed() {
           </button>
         </div>
         <div className="w-full">
-          {locationError && (
+          {locationError && locationSource !== 'profile' && (
             <p className="text-xs text-red-600 mb-2">
-              ⚠️ Locatie fout: {locationError}
+              ⚠️ GPS fout: {locationError}
             </p>
           )}
-          {coords ? (
-            <p className="text-xs text-green-600">
-              ✅ Jouw locatie: {coords.lat.toFixed(3)}, {coords.lng.toFixed(3)}
+          {userLocation && (
+            <p className="text-xs text-green-600 mb-2">
+              {locationSource === 'gps' && '✅ GPS locatie gebruikt'}
+              {locationSource === 'profile' && '📍 Profiel locatie gebruikt (postcode/adres)'}
+              {locationSource === 'manual' && '📍 Handmatige locatie gebruikt'}
+              {userLocation && ` • ${userLocation.lat.toFixed(3)}, ${userLocation.lng.toFixed(3)}`}
             </p>
-          ) : (
+          )}
+          {!userLocation && !place && (
             <p className="text-xs text-gray-500">
-              {locationSupported ? 'Geen locatie: sorteren op nieuwste' : 'GPS niet ondersteund: gebruik plaats filter'}
+              {locationSupported ? 'Locatie ophalen...' : 'GPS niet ondersteund: typ een plaats of postcode'}
+            </p>
+          )}
+          {place && (
+            <p className="text-xs text-blue-600">
+              📍 Zoeken in: {place}
             </p>
           )}
         </div>

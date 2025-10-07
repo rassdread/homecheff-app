@@ -86,11 +86,18 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
   // Location states - using geolocation hook
-  const { coords: userLocation, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
+  const { coords: gpsLocation, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
     enableHighAccuracy: true,
     timeout: 15000,
-    maximumAge: 300000
+    maximumAge: 300000,
+    fallbackToManual: true,
+    onFallback: (reason) => {
+      console.log('GPS fallback triggered on homepage:', reason);
+    }
   });
+
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationSource, setLocationSource] = useState<'gps' | 'profile' | null>(null);
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
@@ -313,69 +320,56 @@ function HomePageContent() {
     }
   }, [locationError, addNotification]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log('Starting data fetch...');
-        setIsLoading(true);
-        
-        // Fetch products first with aggressive caching for better performance
-        console.log('Fetching products from /api/products...');
-        const productsResponse = await fetch('/api/products', {
-          cache: 'force-cache',
-          next: { revalidate: 600 } // 10 minutes cache
-        });
-        console.log('Products response status:', productsResponse.status);
-        
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json();
-          console.log('Products data received:', productsData);
-          console.log('Number of products:', productsData.items?.length || 0);
-          console.log('First product:', productsData.items?.[0]);
-          console.log('First product location:', productsData.items?.[0]?.location);
-          setItems(productsData.items || []);
-          setIsLoading(false); // Show content immediately after products load
-        } else {
-          console.error('Failed to fetch products:', productsResponse.status, productsResponse.statusText);
-          setIsLoading(false);
-        }
-        
-        // Fetch profile and users in parallel (background) with caching
-        const [profileResponse, usersResponse] = await Promise.all([
-          fetch('/api/profile/me', {
-            cache: 'force-cache',
-            next: { revalidate: 300 } // 5 minutes cache
-          }),
-          userRole ? fetch(`/api/users?userRole=${userRole}`, {
-            cache: 'force-cache',
-            next: { revalidate: 300 } // 5 minutes cache
-          }) : Promise.resolve({ ok: false })
-        ]);
-
-        // Set username and country if user is logged in
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          if (profileData.user?.name) {
-            setUsername(profileData.user.name);
-          }
-          if (profileData.user?.country) {
-            setUserCountry(profileData.user.country);
-          }
-        }
-        
-        // Fetch users if logged in
-        if (usersResponse.ok && 'json' in usersResponse) {
-          const usersData = await usersResponse.json();
-          setUsers(usersData.users || []);
-        } else {
-          setUsers([]);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchData = async () => {
+    try {
+      console.log('Starting data fetch...');
+      setIsLoading(true);
+      
+      // Fetch products first with aggressive caching for better performance
+      console.log('Fetching products from /api/products...');
+      const productsResponse = await fetch('/api/products', {
+        cache: 'force-cache',
+        next: { revalidate: 600 } // 10 minutes cache
+      });
+      console.log('Products response status:', productsResponse.status);
+      
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json();
+        console.log('Products data received:', productsData);
+        console.log('Number of products:', productsData.items?.length || 0);
+        console.log('First product:', productsData.items?.[0]);
+        console.log('First product location:', productsData.items?.[0]?.location);
+        setItems(productsData.items || []);
+        setIsLoading(false); // Show content immediately after products load
+      } else {
+        console.error('Failed to fetch products:', productsResponse.status, productsResponse.statusText);
         setIsLoading(false);
       }
-    };
+      
+      // Fetch users with aggressive caching for better performance
+      console.log('Fetching users from /api/users...');
+      const usersResponse = await fetch('/api/users', {
+        cache: 'force-cache',
+        next: { revalidate: 600 } // 10 minutes cache
+      });
+      console.log('Users response status:', usersResponse.status);
+      
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        console.log('Users data received:', usersData);
+        console.log('Number of users:', usersData.users?.length || 0);
+        setUsers(usersData.users || []);
+      } else {
+        console.error('Failed to fetch users:', usersResponse.status, usersResponse.statusText);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, [userRole]);
 
@@ -649,6 +643,11 @@ function HomePageContent() {
     });
   };
 
+  const handleApplyFilters = () => {
+    // Trigger data fetch with current filters
+    fetchData();
+  };
+
   const handleClearFilters = () => {
     setQ('');
     setSearchType('products');
@@ -820,6 +819,7 @@ function HomePageContent() {
                     onSaveSearch={handleSaveSearch}
                     onLoadSearch={handleLoadSearch}
                     onClearFilters={handleClearFilters}
+                    onApplyFilters={handleApplyFilters}
                     searchType={searchType}
                   />
                 </div>

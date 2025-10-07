@@ -13,6 +13,8 @@ interface GeolocationOptions {
   timeout?: number;
   maximumAge?: number;
   watch?: boolean;
+  fallbackToManual?: boolean; // New option to enable fallback
+  onFallback?: (reason: string) => void; // Callback when falling back to manual
 }
 
 export function useGeolocation(options: GeolocationOptions = {}) {
@@ -28,8 +30,12 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     enableHighAccuracy = true,
     timeout = 15000,
     maximumAge = 300000,
-    watch = false
+    watch = false,
+    fallbackToManual = true,
+    onFallback
   } = options;
+
+  const [retryCount, setRetryCount] = useState(0);
 
   // Check if geolocation is supported and get permission status
   const checkSupportAndPermission = useCallback(async () => {
@@ -81,11 +87,92 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       return;
     }
 
-    console.log('🔍 Requesting location with options:', {
+    // Detect browser (desktop and mobile)
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    const isChrome = /chrome/.test(userAgent) && /google inc/.test(navigator.vendor?.toLowerCase() || '');
+    const isEdge = /edg/.test(userAgent);
+    const isFirefox = /firefox/.test(userAgent);
+    const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+    const isSamsungInternet = /samsungbrowser/.test(userAgent);
+    const isAndroid = /android/.test(userAgent);
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+    
+    console.log('🔍 Browser detection:', {
+      isChrome,
+      isEdge, 
+      isFirefox,
+      isSafari,
+      isSamsungInternet,
+      isAndroid,
+      isIOS,
+      isMobile,
+      userAgent: navigator.userAgent
+    });
+
+    // Browser-specific options
+    let options = {
       enableHighAccuracy,
       timeout,
       maximumAge
-    });
+    };
+
+    // Samsung Internet specific adjustments
+    if (isSamsungInternet) {
+      console.log('🔧 Applying Samsung Internet specific settings');
+      options = {
+        enableHighAccuracy: false, // Samsung Internet often fails with high accuracy
+        timeout: 25000, // Very long timeout for Samsung Internet
+        maximumAge: 30000 // Short cache for Samsung Internet
+      };
+    }
+    // Chrome/Edge specific adjustments
+    else if (isChrome || isEdge) {
+      console.log('🔧 Applying Chrome/Edge specific settings');
+      options = {
+        enableHighAccuracy: isMobile ? false : false, // Always false for Chrome/Edge
+        timeout: isMobile ? 25000 : 20000, // Longer timeout on mobile
+        maximumAge: isMobile ? 30000 : 60000 // Shorter cache on mobile
+      };
+    }
+    // Firefox specific adjustments  
+    else if (isFirefox) {
+      console.log('🔧 Applying Firefox specific settings');
+      options = {
+        enableHighAccuracy: true,
+        timeout: isMobile ? 15000 : 10000, // Longer timeout on mobile Firefox
+        maximumAge: isMobile ? 60000 : 300000 // Shorter cache on mobile
+      };
+    }
+    // iOS Safari specific adjustments
+    else if (isIOS && isSafari) {
+      console.log('🔧 Applying iOS Safari specific settings');
+      options = {
+        enableHighAccuracy: false, // iOS Safari often fails with high accuracy
+        timeout: 20000,
+        maximumAge: 60000
+      };
+    }
+    // Android Chrome specific adjustments
+    else if (isAndroid && isChrome) {
+      console.log('🔧 Applying Android Chrome specific settings');
+      options = {
+        enableHighAccuracy: false, // Android Chrome often fails with high accuracy
+        timeout: 25000, // Very long timeout for Android
+        maximumAge: 30000 // Short cache for Android
+      };
+    }
+    // Default mobile adjustments
+    else if (isMobile) {
+      console.log('🔧 Applying default mobile settings');
+      options = {
+        enableHighAccuracy: false, // Most mobile browsers work better with low accuracy
+        timeout: 20000, // Longer timeout for mobile
+        maximumAge: 60000 // Shorter cache for mobile
+      };
+    }
+
+    console.log('🔍 Requesting location with browser-specific options:', options);
 
     setState(prev => ({ ...prev, loading: true, error: null }));
 
@@ -114,21 +201,73 @@ export function useGeolocation(options: GeolocationOptions = {}) {
         let errorMessage = 'Unknown error';
         let errorCode = 'UNKNOWN';
         
+        // Browser-specific error messages
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+        const isChrome = /chrome/.test(userAgent) && /google inc/.test(navigator.vendor?.toLowerCase() || '');
+        const isEdge = /edg/.test(userAgent);
+        const isFirefox = /firefox/.test(userAgent);
+        const isSamsungInternet = /samsungbrowser/.test(userAgent);
+        const isAndroid = /android/.test(userAgent);
+        const isIOS = /iphone|ipad|ipod/.test(userAgent);
+        
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Location access denied by user';
             errorCode = 'PERMISSION_DENIED';
+            if (isSamsungInternet) {
+              errorMessage = 'Samsung Internet: Locatie toegang geweigerd. Ga naar Instellingen > Apps > Samsung Internet > Machtigingen > Locatie';
+            } else if (isAndroid && isChrome) {
+              errorMessage = 'Android Chrome: Locatie toegang geweigerd. Klik op het slotje in de adresbalk en zet locatie op "Toestaan"';
+            } else if (isIOS && isChrome) {
+              errorMessage = 'iOS Chrome: Locatie toegang geweigerd. Ga naar Instellingen > Chrome > Locatie';
+            } else if (isChrome || isEdge) {
+              errorMessage = 'Chrome/Edge: Locatie toegang geweigerd. Klik op het slotje in de adresbalk en zet locatie op "Toestaan"';
+            } else if (isFirefox) {
+              errorMessage = 'Firefox: Locatie toegang geweigerd. Ga naar Firefox instellingen > Privacy & Beveiliging > Locatie';
+            } else if (isMobile) {
+              errorMessage = 'Mobiele browser: Locatie toegang geweigerd. Controleer browser instellingen voor locatie permissies';
+            } else {
+              errorMessage = 'Locatie toegang geweigerd door gebruiker';
+            }
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Location information unavailable';
             errorCode = 'POSITION_UNAVAILABLE';
+            if (isSamsungInternet) {
+              errorMessage = 'Samsung Internet: GPS niet beschikbaar. Controleer of locatieservices aan staan op je Samsung apparaat';
+            } else if (isAndroid && isChrome) {
+              errorMessage = 'Android Chrome: GPS niet beschikbaar. Controleer of locatieservices aan staan in Android instellingen';
+            } else if (isIOS && isChrome) {
+              errorMessage = 'iOS Chrome: GPS niet beschikbaar. Controleer of locatieservices aan staan in iOS instellingen';
+            } else if (isChrome || isEdge) {
+              errorMessage = 'Chrome/Edge: GPS niet beschikbaar. Controleer of locatieservices aan staan op je apparaat';
+            } else if (isFirefox) {
+              errorMessage = 'Firefox: Locatie informatie niet beschikbaar';
+            } else if (isMobile) {
+              errorMessage = 'Mobiele browser: GPS niet beschikbaar. Controleer of locatieservices aan staan op je apparaat';
+            } else {
+              errorMessage = 'Locatie informatie niet beschikbaar';
+            }
             break;
           case error.TIMEOUT:
-            errorMessage = 'Location request timed out';
             errorCode = 'TIMEOUT';
+            if (isSamsungInternet) {
+              errorMessage = 'Samsung Internet: Locatie aanvraag verlopen. Probeer opnieuw of controleer internetverbinding';
+            } else if (isAndroid && isChrome) {
+              errorMessage = 'Android Chrome: Locatie aanvraag verlopen. Probeer opnieuw of controleer internetverbinding';
+            } else if (isIOS && isChrome) {
+              errorMessage = 'iOS Chrome: Locatie aanvraag verlopen. Probeer opnieuw of controleer internetverbinding';
+            } else if (isChrome || isEdge) {
+              errorMessage = 'Chrome/Edge: Locatie aanvraag verlopen. Probeer opnieuw of controleer internetverbinding';
+            } else if (isFirefox) {
+              errorMessage = 'Firefox: Locatie aanvraag verlopen';
+            } else if (isMobile) {
+              errorMessage = 'Mobiele browser: Locatie aanvraag verlopen. Probeer opnieuw';
+            } else {
+              errorMessage = 'Locatie aanvraag verlopen';
+            }
             break;
           default:
-            errorMessage = error.message || 'Unknown error';
+            errorMessage = error.message || 'Onbekende fout';
             errorCode = 'UNKNOWN';
         }
         
@@ -137,10 +276,12 @@ export function useGeolocation(options: GeolocationOptions = {}) {
           errorCode,
           message: error.message,
           errorMessage,
+          browser: { isChrome, isEdge, isFirefox },
           timestamp: new Date().toLocaleString(),
           userAgent: navigator.userAgent,
           isSecureContext: window.isSecureContext,
-          protocol: window.location.protocol
+          protocol: window.location.protocol,
+          hostname: window.location.hostname
         });
         
         setState(prev => ({
@@ -148,14 +289,60 @@ export function useGeolocation(options: GeolocationOptions = {}) {
           loading: false,
           error: errorMessage
         }));
+
+        // Fallback to manual location input for certain errors
+        if (fallbackToManual && onFallback) {
+          if (error.code === error.PERMISSION_DENIED || 
+              error.code === error.POSITION_UNAVAILABLE ||
+              (error.code === error.TIMEOUT && retryCount >= 1)) {
+            console.log('🔄 Falling back to manual location input');
+            onFallback(errorMessage);
+          }
+        }
+
+        // Retry logic for certain errors
+        if (error.code === error.TIMEOUT && retryCount < 2) {
+          console.log(`🔄 Retrying geolocation request (attempt ${retryCount + 1})`);
+          setRetryCount(prev => prev + 1);
+          
+          // Retry with different settings
+          setTimeout(() => {
+            const retryOptions = {
+              enableHighAccuracy: false, // Try with low accuracy
+              timeout: 30000, // Longer timeout
+              maximumAge: 0 // No cache
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const coords = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                console.log('✅ Retry successful:', coords);
+                setState(prev => ({
+                  ...prev,
+                  coords,
+                  loading: false,
+                  error: null
+                }));
+              },
+              (retryError) => {
+                console.log('❌ Retry also failed:', retryError);
+                setState(prev => ({
+                  ...prev,
+                  loading: false,
+                  error: `Retry failed: ${retryError.message}`
+                }));
+              },
+              retryOptions
+            );
+          }, 1000);
+        }
       },
-      {
-        enableHighAccuracy,
-        timeout,
-        maximumAge
-      }
+      options
     );
-  }, [enableHighAccuracy, timeout, maximumAge]);
+  }, [enableHighAccuracy, timeout, maximumAge, retryCount]);
 
   // Watch position if requested
   useEffect(() => {

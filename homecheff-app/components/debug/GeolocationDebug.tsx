@@ -19,11 +19,27 @@ export default function GeolocationDebug() {
 
   const testGeolocation = async () => {
     addLog('Starting geolocation test...');
+    
+    // Browser detection
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    const isChrome = /chrome/.test(userAgent) && /google inc/.test(navigator.vendor?.toLowerCase() || '');
+    const isEdge = /edg/.test(userAgent);
+    const isFirefox = /firefox/.test(userAgent);
+    const isSamsungInternet = /samsungbrowser/.test(userAgent);
+    const isAndroid = /android/.test(userAgent);
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+    
+    addLog(`Browser: ${isSamsungInternet ? 'Samsung Internet' : isChrome ? 'Chrome' : isEdge ? 'Edge' : isFirefox ? 'Firefox' : 'Other'}`);
+    addLog(`Mobile: ${isMobile ? 'Yes' : 'No'}`);
+    addLog(`Platform: ${isAndroid ? 'Android' : isIOS ? 'iOS' : 'Desktop'}`);
     addLog(`Supported: ${supported}`);
     addLog(`Permission: ${permission}`);
     addLog(`Current coords: ${coords ? `${coords.lat}, ${coords.lng}` : 'None'}`);
     addLog(`Loading: ${loading}`);
     addLog(`Error: ${error || 'None'}`);
+    addLog(`HTTPS: ${window.location.protocol === 'https:' ? 'Yes' : 'No'}`);
+    addLog(`Secure Context: ${window.isSecureContext ? 'Yes' : 'No'}`);
     
     // Test basic geolocation
     if (navigator.geolocation) {
@@ -37,8 +53,8 @@ export default function GeolocationDebug() {
           addLog(`❌ Basic geolocation error: ${err.code} - ${err.message}`);
         },
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
+          enableHighAccuracy: false, // Use low accuracy for testing
+          timeout: 15000,
           maximumAge: 0
         }
       );

@@ -46,6 +46,7 @@ export default function AdvancedFiltersPanel({
   onSaveSearch,
   onLoadSearch,
   onClearFilters,
+  onApplyFilters,
   searchType = 'products'
 }: AdvancedFiltersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -426,8 +427,19 @@ export default function AdvancedFiltersPanel({
             >
               Alle filters wissen
             </button>
-            <div className="text-sm text-gray-500">
-              {activeFiltersCount} filter(s) actief
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-500">
+                {activeFiltersCount} filter(s) actief
+              </div>
+              <button
+                onClick={() => {
+                  onApplyFilters?.();
+                  setIsOpen(false); // Close panel after applying
+                }}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Filters toepassen
+              </button>
             </div>
           </div>
         </div>
