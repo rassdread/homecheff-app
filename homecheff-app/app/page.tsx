@@ -9,6 +9,7 @@ import FavoriteButton from "@/components/favorite/FavoriteButton";
 import ImageSlider from "@/components/ui/ImageSlider";
 import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
 import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
+import GeolocationDebug from "@/components/debug/GeolocationDebug";
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
 import ItemCard from "@/components/ItemCard";
@@ -1588,6 +1589,7 @@ export default function HomePage() {
   return (
     <NotificationProvider>
       <HomePageContent />
+      <GeolocationDebug />
     </NotificationProvider>
   );
 }
