@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { geocodeAddress } from "@/lib/geocoding";
+import { geocodeAddress } from "@/lib/global-geocoding";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       company, 
       username, 
       gender,
+      phoneNumber,
       userTypes,
       selectedBuyerType,
       interests,
@@ -136,12 +137,12 @@ export async function POST(req: NextRequest) {
     let lat: number | null = null;
     let lng: number | null = null;
     
-    if (address && city && postalCode) {
-      console.log('Geocoding address during registration:', { address, city, postalCode });
-      const geocodeResult = await geocodeAddress(address, city, postalCode);
+    if (address && city) {
+      console.log('Geocoding address during registration:', { address, city, country });
+      const geocodeResult = await geocodeAddress(address, city, country || 'NL');
       
-      if ('error' in geocodeResult) {
-        console.warn('Geocoding failed during registration:', geocodeResult.message);
+      if (geocodeResult.error) {
+        console.warn('Geocoding failed during registration:', geocodeResult.error);
         // Continue without coordinates - user can still register
       } else {
         lat = geocodeResult.lat;

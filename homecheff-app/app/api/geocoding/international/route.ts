@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { geocodeInternationalAddress, validatePostalCode } from "@/lib/international-geocoding";
+import { geocodeAddress, isValidPostcode } from "@/lib/global-geocoding";
 
 export const dynamic = "force-dynamic";
 
@@ -18,16 +18,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Validate postal code format
-    if (!validatePostalCode(postalCode, country)) {
+    if (!isValidPostcode(postalCode, country)) {
       return NextResponse.json({ 
         error: `Ongeldig postcode formaat voor ${country}. Gebruik het juiste formaat.` 
       }, { status: 400 });
     }
 
-    const result = await geocodeInternationalAddress(address, city, postalCode, country);
+    const result = await geocodeAddress(address, city, country);
 
-    if ('error' in result) {
-      return NextResponse.json({ error: result.message }, { status: 404 });
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 404 });
     }
 
     return NextResponse.json(result);

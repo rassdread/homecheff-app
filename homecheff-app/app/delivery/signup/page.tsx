@@ -28,6 +28,20 @@ interface DeliverySignupData {
   homeAddress?: string;
   preferredRadius: number;
   
+  // Address details
+  postalCode: string;
+  address: string;
+  city: string;
+  country: string;
+  
+  // Address lookup
+  addressLookup: {
+    isLookingUp: boolean;
+    error: string | null;
+    success: boolean;
+    foundAddress: any | null;
+  };
+  
   // Legal agreements
   acceptDeliveryAgreement: boolean;
   parentalConsent: boolean;
@@ -68,6 +82,20 @@ export default function DeliverySignupPage() {
     // Work area settings
     deliveryMode: 'FIXED',
     preferredRadius: 5,
+    
+    // Address details
+    postalCode: '',
+    address: '',
+    city: '',
+    country: 'NL',
+    
+    // Address lookup
+    addressLookup: {
+      isLookingUp: false,
+      error: null,
+      success: false,
+      foundAddress: null,
+    },
     
     // Legal agreements
     acceptDeliveryAgreement: false,
@@ -170,6 +198,106 @@ export default function DeliverySignupPage() {
       });
     }
   };
+
+  // Nederlandse postcode lookup functie
+  const lookupDutchAddress = async () => {
+    if (!formData.postalCode || !formData.address) {
+      setFormData(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: 'Voer postcode en huisnummer in',
+          success: false,
+          foundAddress: null
+        }
+      }));
+      return;
+    }
+
+    // Extract huisnummer from address (nu alleen het nummer, geen straatnaam)
+    const huisnummerMatch = formData.address.match(/(\d+)/);
+    if (!huisnummerMatch) {
+      setFormData(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: 'Voer een geldig huisnummer in (bijv. 123)',
+          success: false,
+          foundAddress: null
+        }
+      }));
+      return;
+    }
+
+    const huisnummer = huisnummerMatch[1];
+    const postcode = formData.postalCode.replace(/\s/g, '').toUpperCase();
+
+    setFormData(prev => ({
+      ...prev,
+      addressLookup: {
+        isLookingUp: true,
+        error: null,
+        success: false,
+        foundAddress: null
+      }
+    }));
+
+    try {
+      const response = await fetch(
+        `/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Adres lookup mislukt');
+      }
+
+      const addressData = await response.json();
+
+      // Store the found address for display
+      setFormData(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: null,
+          success: true,
+          foundAddress: addressData
+        }
+      }));
+
+    } catch (error) {
+      console.error('Address lookup error:', error);
+      setFormData(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: error instanceof Error ? error.message : 'Adres lookup mislukt',
+          success: false,
+          foundAddress: null
+        }
+      }));
+    }
+  };
+
+  // Automatische adres lookup wanneer postcode en huisnummer zijn ingevoerd
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.postalCode && formData.address && !formData.addressLookup.isLookingUp && !formData.addressLookup.success) {
+        // Check if postcode format is valid (1234AB)
+        const cleanPostcode = formData.postalCode.replace(/\s/g, '').toUpperCase();
+        if (/^\d{4}[A-Z]{2}$/.test(cleanPostcode)) {
+          // Check if address contains only a number (huisnummer)
+          const huisnummerMatch = formData.address.match(/^(\d+)$/);
+          if (huisnummerMatch) {
+            console.log('Auto-triggering address lookup in delivery signup...');
+            lookupDutchAddress();
+          }
+        }
+      }
+    }, 1000); // 1 second delay after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.postalCode, formData.address]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -687,6 +815,118 @@ export default function DeliverySignupPage() {
                     <p className="text-xs text-gray-500">
                       Je krijgt alleen bestellingen binnen {formData.preferredRadius} km van je huis
                     </p>
+                  </div>
+
+                  {/* Address Details (Private) */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Adresgegevens (privé - voor afstand berekening)
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">
+                      🔒 Deze gegevens zijn privé en worden alleen gebruikt voor het berekenen van afstanden tot bestellingen
+                    </p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Postcode
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.postalCode}
+                          onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+                          placeholder="Bijv. 1012AB"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Huisnummer
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.address}
+                          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                          placeholder="Bijv. 123"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={lookupDutchAddress}
+                        disabled={formData.addressLookup.isLookingUp || !formData.postalCode || !formData.address}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                      >
+                        {formData.addressLookup.isLookingUp ? (
+                          <div className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Zoeken...
+                          </div>
+                        ) : (
+                          'Adres opzoeken'
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Address Lookup Status */}
+                    {formData.addressLookup.error && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-sm text-red-700">{formData.addressLookup.error}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {formData.addressLookup.success && formData.addressLookup.foundAddress && (
+                      <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-start">
+                          <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-green-800 mb-2">Adres gevonden!</h4>
+                            <div className="text-sm text-green-700 space-y-1">
+                              <div className="font-medium">{formData.addressLookup.foundAddress.straatnaam} {formData.addressLookup.foundAddress.huisnummer}</div>
+                              <div>{formData.addressLookup.foundAddress.postcode} {formData.addressLookup.foundAddress.plaats}</div>
+                              <div className="text-xs text-green-600 mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      address: formData.addressLookup.foundAddress.straatnaam + ' ' + formData.addressLookup.foundAddress.huisnummer,
+                                      city: formData.addressLookup.foundAddress.plaats,
+                                      homeAddress: formData.addressLookup.foundAddress.straatnaam + ' ' + formData.addressLookup.foundAddress.huisnummer + ', ' + formData.addressLookup.foundAddress.postcode + ' ' + formData.addressLookup.foundAddress.plaats,
+                                      homeLat: formData.addressLookup.foundAddress.lat,
+                                      homeLng: formData.addressLookup.foundAddress.lng,
+                                      addressLookup: {
+                                        ...prev.addressLookup,
+                                        success: false,
+                                        foundAddress: null
+                                      }
+                                    }));
+                                  }}
+                                  className="text-green-600 hover:text-green-800 underline"
+                                >
+                                  Dit adres gebruiken
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-green-50 border border-green-200 p-4 rounded-xl">

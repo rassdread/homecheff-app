@@ -98,10 +98,12 @@ type RegisterState = {
   city: string;
   postalCode: string;
   country: string;
+  phoneNumber: string;
   addressLookup: {
     isLookingUp: boolean;
     error: string | null;
     success: boolean;
+    foundAddress: any | null;
   };
   bio: string;
   isBusiness: boolean;
@@ -179,10 +181,12 @@ export default function RegisterPage() {
     city: "",
     postalCode: "",
     country: "NL",
+    phoneNumber: "",
     addressLookup: {
       isLookingUp: false,
       error: null,
       success: false,
+      foundAddress: null,
     },
     bio: "",
     isBusiness: false,
@@ -290,21 +294,23 @@ export default function RegisterPage() {
         addressLookup: {
           isLookingUp: false,
           error: 'Voer postcode en huisnummer in',
-          success: false
+          success: false,
+          foundAddress: null
         }
       }));
       return;
     }
 
-    // Extract huisnummer from address
+    // Extract huisnummer from address (nu alleen het nummer, geen straatnaam)
     const huisnummerMatch = state.address.match(/(\d+)/);
     if (!huisnummerMatch) {
       setState(prev => ({
         ...prev,
         addressLookup: {
           isLookingUp: false,
-          error: 'Voer een geldig huisnummer in (bijv. Kerkstraat 123)',
-          success: false
+          error: 'Voer een geldig huisnummer in (bijv. 123)',
+          success: false,
+          foundAddress: null
         }
       }));
       return;
@@ -318,7 +324,8 @@ export default function RegisterPage() {
       addressLookup: {
         isLookingUp: true,
         error: null,
-        success: false
+        success: false,
+        foundAddress: null
       }
     }));
 
@@ -334,16 +341,14 @@ export default function RegisterPage() {
 
       const addressData = await response.json();
 
-      // Update the form with the found address
+      // Store the found address for display
       setState(prev => ({
         ...prev,
-        address: addressData.straatnaam + ' ' + addressData.huisnummer,
-        city: addressData.plaats,
-        location: addressData.plaats, // Also update public location
         addressLookup: {
           isLookingUp: false,
           error: null,
-          success: true
+          success: true,
+          foundAddress: addressData
         }
       }));
 
@@ -354,31 +359,197 @@ export default function RegisterPage() {
         addressLookup: {
           isLookingUp: false,
           error: error instanceof Error ? error.message : 'Adres lookup mislukt',
-          success: false
+          success: false,
+          foundAddress: null
         }
       }));
     }
   }
 
-  // Automatische adres lookup wanneer postcode en huisnummer zijn ingevoerd
+  // Globale adres lookup functie voor alle landen
+  async function lookupGlobalAddress() {
+    if (!state.address || !state.city) {
+      setState(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: 'Voer straatnaam en stad in',
+          success: false,
+          foundAddress: null
+        }
+      }));
+      return;
+    }
+
+    setState(prev => ({
+      ...prev,
+      addressLookup: {
+        isLookingUp: true,
+        error: null,
+        success: false,
+        foundAddress: null
+      }
+    }));
+
+    try {
+      const response = await fetch('/api/geocoding/global', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: state.address,
+          city: state.city,
+          country: state.country
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Adres lookup mislukt');
+      }
+
+      const addressData = await response.json();
+
+      if (addressData.error) {
+        throw new Error(addressData.message || 'Adres niet gevonden');
+      }
+
+      // Store the found address for display
+      setState(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: null,
+          success: true,
+          foundAddress: addressData
+        }
+      }));
+
+    } catch (error) {
+      console.error('Global address lookup error:', error);
+      setState(prev => ({
+        ...prev,
+        addressLookup: {
+          isLookingUp: false,
+          error: error instanceof Error ? error.message : 'Adres lookup mislukt',
+          success: false,
+          foundAddress: null
+        }
+      }));
+    }
+  }
+
+  // Bepaal welke lookup functie te gebruiken op basis van land
+  const getAddressLookupFunction = () => {
+    return state.country === 'NL' ? lookupDutchAddress : lookupGlobalAddress;
+  };
+
+  // Bepaal of we Nederlandse postcode+huisnummer velden moeten tonen
+  const isDutchAddressFormat = state.country === 'NL';
+
+  // Dynamische placeholders op basis van land
+  const getPlaceholders = () => {
+    switch (state.country) {
+      case 'NL':
+        return {
+          address: 'Bijv. 123',
+          postalCode: 'Bijv. 1012 AB',
+          city: 'Bijv. Amsterdam'
+        };
+      case 'US':
+        return {
+          address: 'Bijv. Main Street 123',
+          city: 'Bijv. New York',
+          postalCode: 'Bijv. 10001'
+        };
+      case 'GB':
+        return {
+          address: 'Bijv. Oxford Street 123',
+          city: 'Bijv. London',
+          postalCode: 'Bijv. SW1A 1AA'
+        };
+      case 'DE':
+        return {
+          address: 'Bijv. Hauptstraße 123',
+          city: 'Bijv. Berlin',
+          postalCode: 'Bijv. 10115'
+        };
+      case 'FR':
+        return {
+          address: 'Bijv. Rue de la Paix 123',
+          city: 'Bijv. Paris',
+          postalCode: 'Bijv. 75001'
+        };
+      case 'ES':
+        return {
+          address: 'Bijv. Calle Mayor 123',
+          city: 'Bijv. Madrid',
+          postalCode: 'Bijv. 28001'
+        };
+      case 'IT':
+        return {
+          address: 'Bijv. Via Roma 123',
+          city: 'Bijv. Rome',
+          postalCode: 'Bijv. 00100'
+        };
+      case 'CW':
+        return {
+          address: 'Bijv. Kaya Grandi 123',
+          city: 'Bijv. Willemstad',
+          postalCode: 'Bijv. 12345'
+        };
+      case 'AW':
+        return {
+          address: 'Bijv. L.G. Smith Boulevard 123',
+          city: 'Bijv. Oranjestad',
+          postalCode: 'Bijv. 12345'
+        };
+      case 'SR':
+        return {
+          address: 'Bijv. Waterkant 123',
+          city: 'Bijv. Paramaribo',
+          postalCode: 'Bijv. 12345'
+        };
+      default:
+        return {
+          address: 'Bijv. Main Street 123',
+          city: 'Bijv. City',
+          postalCode: 'Bijv. 12345'
+        };
+    }
+  };
+
+  const placeholders = getPlaceholders();
+
+  // Automatische adres lookup wanneer adresgegevens zijn ingevoerd
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (state.postalCode && state.address && !state.addressLookup.isLookingUp && !state.addressLookup.success) {
-        // Check if postcode format is valid (1234AB)
-        const cleanPostcode = state.postalCode.replace(/\s/g, '').toUpperCase();
-        if (/^\d{4}[A-Z]{2}$/.test(cleanPostcode)) {
-          // Check if address contains a number
-          const huisnummerMatch = state.address.match(/(\d+)/);
-          if (huisnummerMatch) {
-            console.log('Auto-triggering address lookup...');
-            lookupDutchAddress();
+      if (!state.addressLookup.isLookingUp && !state.addressLookup.success) {
+        if (isDutchAddressFormat) {
+          // Nederlandse postcode + huisnummer lookup
+          if (state.postalCode && state.address) {
+            const cleanPostcode = state.postalCode.replace(/\s/g, '').toUpperCase();
+            if (/^\d{4}[A-Z]{2}$/.test(cleanPostcode)) {
+              const huisnummerMatch = state.address.match(/^(\d+)$/);
+              if (huisnummerMatch) {
+                console.log('Auto-triggering Dutch address lookup...');
+                lookupDutchAddress();
+              }
+            }
+          }
+        } else {
+          // Internationale straat + stad lookup
+          if (state.address && state.city && state.address.length > 3 && state.city.length > 2) {
+            console.log('Auto-triggering global address lookup...');
+            lookupGlobalAddress();
           }
         }
       }
-    }, 1000); // 1 second delay after user stops typing
+    }, 1500); // 1.5 second delay after user stops typing
 
     return () => clearTimeout(timeoutId);
-  }, [state.postalCode, state.address]);
+  }, [state.postalCode, state.address, state.city, state.country, isDutchAddressFormat]);
 
   // Gebruikersnaam validatie functie
   const validateUsername = async (username: string) => {
@@ -1102,6 +1273,22 @@ export default function RegisterPage() {
                       <option value="vrouw">Vrouw</option>
                     </select>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Telefoonnummer
+                    </label>
+                    <input
+                      type="tel"
+                      value={state.phoneNumber}
+                      onChange={e => setState(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="Bijv. +31 6 12345678"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      📞 Optioneel - voor contact bij bestellingen
+                    </p>
+                  </div>
                 </div>
                 
                 {/* Business Fields - Collapsible section when business is selected */}
@@ -1200,22 +1387,7 @@ export default function RegisterPage() {
                 <p className="text-gray-600 mb-8">Help anderen je te vinden en fan te worden</p>
                 
                 <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <MapPin className="w-4 h-4 inline mr-1" />
-                      Locatie (zichtbaar voor anderen)
-                    </label>
-                    <input
-                      type="text"
-                      value={state.location}
-                      onChange={e => setState(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="Stad, provincie"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      🌍 Deze locatie is zichtbaar voor andere gebruikers
-                    </p>
-                  </div>
+                  {/* Locatie wordt automatisch ingevuld via geolocatie in de adres sectie hieronder */}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1242,53 +1414,106 @@ export default function RegisterPage() {
                       🔒 Deze gegevens zijn privé en worden alleen gebruikt voor het berekenen van afstanden tot producten
                     </p>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Straat en huisnummer
-                        </label>
-                        <input
-                          type="text"
-                          value={state.address}
-                          onChange={e => setState(prev => ({ ...prev, address: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                          placeholder="Bijv. Kerkstraat 123"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Postcode
-                        </label>
-                        <div className="flex gap-2">
+                    {/* Dynamische adres velden op basis van land */}
+                    {isDutchAddressFormat ? (
+                      // Nederlandse postcode + huisnummer format
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Huisnummer
+                          </label>
                           <input
                             type="text"
-                            value={state.postalCode}
-                            onChange={e => setState(prev => ({ ...prev, postalCode: e.target.value }))}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                            placeholder="Bijv. 1012 AB"
+                            value={state.address}
+                            onChange={e => setState(prev => ({ ...prev, address: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            placeholder={placeholders.address}
                           />
-                          <button
-                            type="button"
-                            onClick={lookupDutchAddress}
-                            disabled={state.addressLookup.isLookingUp || !state.postalCode || !state.address}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                          >
-                            {state.addressLookup.isLookingUp ? (
-                              <div className="flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Zoeken...
-                              </div>
-                            ) : (
-                              'Zoek'
-                            )}
-                          </button>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Postcode
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={state.postalCode}
+                              onChange={e => setState(prev => ({ ...prev, postalCode: e.target.value }))}
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              placeholder={placeholders.postalCode}
+                            />
+                            <button
+                              type="button"
+                              onClick={getAddressLookupFunction()}
+                              disabled={state.addressLookup.isLookingUp || !state.postalCode || !state.address}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                            >
+                              {state.addressLookup.isLookingUp ? (
+                                <div className="flex items-center">
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Zoeken...
+                                </div>
+                              ) : (
+                                'Zoek'
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      // Internationale straat + stad format
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Straatnaam en huisnummer
+                          </label>
+                          <input
+                            type="text"
+                            value={state.address}
+                            onChange={e => setState(prev => ({ ...prev, address: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            placeholder={placeholders.address}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Stad
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={state.city}
+                              onChange={e => setState(prev => ({ ...prev, city: e.target.value }))}
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              placeholder={placeholders.city}
+                            />
+                            <button
+                              type="button"
+                              onClick={getAddressLookupFunction()}
+                              disabled={state.addressLookup.isLookingUp || !state.address || !state.city}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                            >
+                              {state.addressLookup.isLookingUp ? (
+                                <div className="flex items-center">
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Zoeken...
+                                </div>
+                              ) : (
+                                'Zoek'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Address Lookup Status */}
                     {state.addressLookup.error && (
@@ -1302,28 +1527,93 @@ export default function RegisterPage() {
                       </div>
                     )}
 
-                    {state.addressLookup.success && (
-                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    {state.addressLookup.success && state.addressLookup.foundAddress && (
+                      <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-start">
+                          <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-sm text-green-700">Adres gevonden en automatisch ingevuld!</span>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-green-800 mb-2">Adres gevonden!</h4>
+                            <div className="text-sm text-green-700 space-y-1">
+                              {isDutchAddressFormat ? (
+                                // Nederlandse adres format
+                                <>
+                                  <div className="font-medium">{state.addressLookup.foundAddress.straatnaam} {state.addressLookup.foundAddress.huisnummer}</div>
+                                  <div>{state.addressLookup.foundAddress.postcode} {state.addressLookup.foundAddress.plaats}</div>
+                                </>
+                              ) : (
+                                // Internationale adres format
+                                <>
+                                  <div className="font-medium">{state.addressLookup.foundAddress.formatted_address}</div>
+                                  <div className="text-xs text-green-600">
+                                    Coördinaten: {state.addressLookup.foundAddress.lat?.toFixed(6)}, {state.addressLookup.foundAddress.lng?.toFixed(6)}
+                                  </div>
+                                </>
+                              )}
+                              <div className="text-xs text-green-600 mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (isDutchAddressFormat) {
+                                      // Nederlandse adres data
+                                      setState(prev => ({
+                                        ...prev,
+                                        address: state.addressLookup.foundAddress.straatnaam + ' ' + state.addressLookup.foundAddress.huisnummer,
+                                        city: state.addressLookup.foundAddress.plaats,
+                                        location: state.addressLookup.foundAddress.plaats, // Zichtbare locatie
+                                        place: state.addressLookup.foundAddress.plaats, // Voor afstandsberekening
+                                        addressLookup: {
+                                          ...prev.addressLookup,
+                                          success: false,
+                                          foundAddress: null
+                                        }
+                                      }));
+                                    } else {
+                                      // Internationale adres data
+                                      setState(prev => ({
+                                        ...prev,
+                                        address: state.addressLookup.foundAddress.formatted_address,
+                                        city: state.addressLookup.foundAddress.city,
+                                        location: state.addressLookup.foundAddress.city, // Zichtbare locatie
+                                        place: state.addressLookup.foundAddress.city, // Voor afstandsberekening
+                                        addressLookup: {
+                                          ...prev.addressLookup,
+                                          success: false,
+                                          foundAddress: null
+                                        }
+                                      }));
+                                    }
+                                  }}
+                                  className="text-green-600 hover:text-green-800 underline"
+                                >
+                                  Dit adres gebruiken
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
                     
+                    {/* Optioneel postcode veld voor alle landen */}
                     <div className="mt-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Stad
+                        Postcode {isDutchAddressFormat ? '(verplicht)' : '(optioneel)'}
                       </label>
                       <input
                         type="text"
-                        value={state.city}
-                        onChange={e => setState(prev => ({ ...prev, city: e.target.value }))}
+                        value={state.postalCode}
+                        onChange={e => setState(prev => ({ ...prev, postalCode: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="Bijv. Amsterdam"
+                        placeholder={isDutchAddressFormat ? placeholders.postalCode : 'Bijv. 12345'}
+                        required={isDutchAddressFormat}
                       />
+                      {!isDutchAddressFormat && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          📮 Niet alle landen gebruiken postcodes
+                        </p>
+                      )}
                     </div>
                   </div>
                   

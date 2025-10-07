@@ -116,37 +116,36 @@ export default function ProductPage() {
         
         // Transform the data to match the expected structure
         const transformedProduct: Product = {
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          priceCents: data.priceCents,
-          image: data.photos?.[0]?.url || data.ListingMedia?.[0]?.url || null,
-          photos: data.photos || data.ListingMedia?.map((media: any) => ({
+          id: data.product.id,
+          title: data.product.title,
+          description: data.product.description,
+          priceCents: data.product.priceCents,
+          image: data.product.photos?.[0]?.url || data.product.ListingMedia?.[0]?.url || data.product.Image?.[0]?.fileUrl || null,
+          photos: data.product.photos || data.product.ListingMedia?.map((media: any) => ({
             id: media.id,
             url: media.url,
             idx: media.order || media.idx
           })) || [],
-          stock: data.stock,
-          maxStock: data.maxStock,
-          deliveryMode: data.deliveryMode,
-          delivery: data.delivery || 'PICKUP',
-          createdAt: data.createdAt,
-          category: data.category,
-          subcategory: data.subcategory,
-          displayNameType: data.displayNameType || 'fullname',
-          Image: data.photos?.map((photo: any) => ({
-            id: photo.id,
-            fileUrl: photo.url
-          })) || data.Image?.map((img: any) => ({
+          stock: data.product.stock,
+          maxStock: data.product.maxStock,
+          deliveryMode: data.product.deliveryMode,
+          delivery: data.product.delivery || 'PICKUP',
+          createdAt: data.product.createdAt,
+          category: data.product.category,
+          subcategory: data.product.subcategory,
+          displayNameType: data.product.displayNameType || 'fullname',
+          Image: data.product.Image?.map((img: any) => ({
             id: img.id,
             fileUrl: img.fileUrl
           })) || [],
           seller: {
             User: {
-              id: data.User?.id,
-              name: data.User?.name,
-              username: data.User?.username,
-              avatar: data.User?.image || data.User?.profileImage
+              id: data.product.seller?.User?.id || data.product.User?.id,
+              name: data.product.seller?.User?.name || data.product.User?.name,
+              username: data.product.seller?.User?.username || data.product.User?.username,
+              avatar: data.product.seller?.User?.image || data.product.seller?.User?.profileImage || data.product.User?.image || data.product.User?.profileImage,
+              displayFullName: data.product.seller?.User?.displayFullName || data.product.User?.displayFullName,
+              displayNameOption: data.product.seller?.User?.displayNameOption || data.product.User?.displayNameOption
             }
           }
         };
@@ -160,15 +159,15 @@ export default function ProductPage() {
             if (userResponse.ok) {
               const userData = await userResponse.json();
               setCurrentUser(userData);
-              setIsOwner(userData.id === data.User?.id);
+              setIsOwner(userData.id === (data.product.seller?.User?.id || data.product.User?.id));
               
               // Set edit data
               setEditData({
-                title: data.title || '',
-                description: data.description || '',
-                priceCents: data.priceCents || 0,
-                stock: data.stock || 0,
-                maxStock: data.maxStock || 0
+                title: data.product.title || '',
+                description: data.product.description || '',
+                priceCents: data.product.priceCents || 0,
+                stock: data.product.stock || 0,
+                maxStock: data.product.maxStock || 0
               });
             }
           } catch (authError) {
@@ -179,7 +178,7 @@ export default function ProductPage() {
 
         // Load reviews
         try {
-          await loadReviews(data.id);
+          await loadReviews(data.product.id);
         } catch (reviewError) {
           console.error('Error loading reviews:', reviewError);
           // Don't redirect for review errors, just log them
@@ -549,12 +548,12 @@ export default function ProductPage() {
               <div className="flex flex-wrap items-center justify-center gap-3 pt-6 border-t border-gray-200">
                 <StartChatButton
                   productId={product.id}
-                  sellerId={product.seller?.User.id || ''}
+                  sellerId={product.seller?.User?.id || ''}
                   sellerName={getDisplayName(product)}
                   className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
                 <FollowButton 
-                  sellerId={product.seller?.User.id || ''}
+                  sellerId={product.seller?.User?.id || ''}
                   sellerName={getDisplayName(product)}
                   className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
                 />
@@ -730,7 +729,7 @@ export default function ProductPage() {
                     priceCents: product.priceCents,
                     image: product.Image?.[0]?.fileUrl || product.photos?.[0]?.url || product.image || undefined,
                     sellerName: getDisplayName(product),
-                    sellerId: product.seller?.User.id || '',
+                    sellerId: product.seller?.User?.id || '',
                     deliveryMode: (product.delivery as 'PICKUP' | 'DELIVERY' | 'BOTH') || 'PICKUP',
                   }}
                   className="w-full"

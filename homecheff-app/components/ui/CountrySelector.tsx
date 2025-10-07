@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, Globe, MapPin } from 'lucide-react';
-import { getCountryList, getCountryListFlat } from '@/lib/international-geocoding';
+import { getCountriesByRegion, COUNTRY_CONFIGS } from '@/lib/global-geocoding';
 
 interface CountrySelectorProps {
   value: string;
@@ -22,8 +22,8 @@ export default function CountrySelector({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const countriesByRegion = getCountryList();
-  const countriesFlat = getCountryListFlat();
+  const countriesByRegion = getCountriesByRegion();
+  const countriesFlat = COUNTRY_CONFIGS;
   
   // Get current country info
   const currentCountry = countriesFlat.find(c => c.code === value);
@@ -93,9 +93,9 @@ export default function CountrySelector({
                     <MapPin className="w-4 h-4 text-gray-400" />
                     <div>
                       <div className="font-medium">{country.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {country.postcodeExample} • {country.region}
-                      </div>
+                        <div className="text-sm text-gray-500">
+                          {country.addressFormat} • {country.region}
+                        </div>
                     </div>
                   </button>
                 ))}
@@ -124,7 +124,7 @@ export default function CountrySelector({
                       <div>
                         <div className="font-medium">{country.name}</div>
                         <div className="text-sm text-gray-500">
-                          {country.postcodeExample}
+                          {country.addressFormat}
                         </div>
                       </div>
                     </button>

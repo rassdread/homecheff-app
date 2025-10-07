@@ -94,6 +94,11 @@ function HomePageContent() {
   const [postcodeLocation, setPostcodeLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
   
+  // Start location for distance calculation
+  const [startLocation, setStartLocation] = useState<string>('');
+  const [startLocationCoords, setStartLocationCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [isStartLocationGeocoding, setIsStartLocationGeocoding] = useState<boolean>(false);
+  
   // Category-specific radius settings
   const [categoryRadius, setCategoryRadius] = useState<{[key: string]: number}>({
     'CHEFF': 25,    // Chef products: local only
@@ -172,8 +177,92 @@ function HomePageContent() {
     }
   };
 
+  // Geocoding function for start location
+  const geocodeStartLocation = async (location: string) => {
+    if (!location.trim()) return;
+    
+    setIsStartLocationGeocoding(true);
+    try {
+      const response = await fetch('/api/geocoding/international', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: location })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.lat && data.lng) {
+          setStartLocationCoords({ lat: data.lat, lng: data.lng });
+          addNotification({
+            type: 'success',
+            title: 'Startlocatie gevonden',
+            message: 'Afstanden worden nu berekend vanaf deze locatie',
+            duration: 3000,
+          });
+        } else {
+          addNotification({
+            type: 'error',
+            title: 'Startlocatie niet gevonden',
+            message: 'Probeer een andere locatie',
+            duration: 5000,
+          });
+        }
+      } else {
+        addNotification({
+          type: 'error',
+          title: 'Fout bij zoeken',
+          message: 'Er is een fout opgetreden bij het zoeken van startlocatie',
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Start location geocoding error:', error);
+      addNotification({
+        type: 'error',
+        title: 'Fout bij zoeken',
+        message: 'Er is een fout opgetreden bij het zoeken van startlocatie',
+        duration: 5000,
+      });
+    } finally {
+      setIsStartLocationGeocoding(false);
+    }
+  };
+
+  // Debug function to check location status
+  const checkLocationStatus = async () => {
+    console.log('🔍 Checking location status...');
+    
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+      console.log('❌ Geolocation not supported');
+      return { supported: false, reason: 'Geolocation not supported' };
+    }
+    
+    // Check permission status if available
+    if (navigator.permissions) {
+      try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+        console.log('📍 Permission status:', permission.state);
+        return { 
+          supported: true, 
+          permission: permission.state,
+          reason: permission.state === 'denied' ? 'Permission denied' : 'Permission available'
+        };
+      } catch (err) {
+        console.log('⚠️ Could not check permission:', err);
+        return { supported: true, reason: 'Permission check failed' };
+      }
+    }
+    
+    return { supported: true, reason: 'Geolocation supported, permission unknown' };
+  };
 
   useEffect(() => {
+    // Check location status first
+    checkLocationStatus().then(status => {
+      console.log('🌍 Location status:', status);
+    });
+    
     // Haal gebruikerslocatie op
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -183,38 +272,80 @@ function HomePageContent() {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
+          addNotification({
+            type: 'success',
+            title: 'Locatie opgehaald',
+            message: 'Afstanden worden nu berekend',
+            duration: 3000,
+          });
         },
         (error) => {
-          console.log('Geolocation error:', error);
-          if (error.code === error.PERMISSION_DENIED) {
-            console.log('Location permission denied by user');
-            // Don't set fallback location if user denied permission
-            // This way distance calculation will be skipped
-            setUserLocation(null);
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            console.log('Position unavailable');
-            setUserLocation(null);
-          } else if (error.code === error.TIMEOUT) {
-            console.log('Geolocation timeout');
-            setUserLocation(null);
-          } else {
-            console.log('Other geolocation error, using fallback');
-            // Fallback naar Amsterdam als locatie niet beschikbaar is
-            setUserLocation({ lat: 52.3676, lng: 4.9041 });
+          console.log('❌ Geolocation error details:', {
+            code: error.code,
+            message: error.message,
+            timestamp: new Date().toLocaleString(),
+            userAgent: navigator.userAgent
+          });
+          
+          let errorTitle = 'Locatie fout';
+          let errorMessage = 'Er is een onbekende fout opgetreden';
+          let errorDuration = 5000;
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              console.log('🚫 PERMISSION_DENIED - User denied location access');
+              errorTitle = 'Locatie toegang geweigerd';
+              errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
+              errorDuration = 8000;
+              break;
+              
+            case error.POSITION_UNAVAILABLE:
+              console.log('📡 POSITION_UNAVAILABLE - GPS/Network location unavailable');
+              errorTitle = 'Locatie niet beschikbaar';
+              errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
+              errorDuration = 6000;
+              break;
+              
+            case error.TIMEOUT:
+              console.log('⏰ TIMEOUT - Location request timed out');
+              errorTitle = 'Locatie aanvraag verlopen';
+              errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
+              errorDuration = 6000;
+              break;
+              
+            default:
+              console.log('❓ Unknown geolocation error:', error);
+              errorTitle = 'Onbekende locatie fout';
+              errorMessage = `Fout: ${error.message || 'Onbekende fout'}`;
+              errorDuration = 5000;
           }
+          
+          addNotification({
+            type: 'error',
+            title: errorTitle,
+            message: errorMessage,
+            duration: errorDuration,
+          });
+          
+          setUserLocation(null);
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000, // Verhoogd naar 15 seconden
           maximumAge: 300000 // 5 minutes
         }
       );
     } else {
       console.log('Geolocation not supported');
-      // Fallback naar Amsterdam als geolocation niet ondersteund wordt
-      setUserLocation({ lat: 52.3676, lng: 4.9041 });
+      addNotification({
+        type: 'error',
+        title: 'Geolocatie niet ondersteund',
+        message: 'Je browser ondersteunt geen locatie functionaliteit',
+        duration: 5000,
+      });
+      setUserLocation(null);
     }
-  }, []);
+  }, [addNotification]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -319,7 +450,7 @@ function HomePageContent() {
     let list = items.map((it) => {
       // Bereken afstand op basis van gekozen locatie mode
       let distanceKm: number | null = null;
-      const searchLocation = locationMode === 'current' ? userLocation : postcodeLocation;
+      const searchLocation = startLocationCoords || (locationMode === 'current' ? userLocation : postcodeLocation);
       
       if (searchLocation && it.location?.lat && it.location?.lng) {
         distanceKm = calculateDistance(
@@ -359,8 +490,23 @@ function HomePageContent() {
     // Afstand filter - gebruik speciale radius voor Caribisch gebied en Suriname
     // Use userCountry state instead of session
     const currentRadius = getSpecialRadius(userCountry, category);
-    if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && currentRadius > 0) {
-      if (it.location.distanceKm > currentRadius) return false;
+    
+    // Gebruik startlocatie als beschikbaar, anders gebruiker locatie
+    const referenceLocation = startLocationCoords || userLocation;
+    
+    if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && currentRadius > 0 && referenceLocation) {
+      // Herbereken afstand vanaf startlocatie als die is ingesteld
+      if (startLocationCoords && it.location?.lat && it.location?.lng) {
+        const distance = calculateDistance(
+          startLocationCoords.lat,
+          startLocationCoords.lng,
+          it.location.lat,
+          it.location.lng
+        );
+        if (distance > currentRadius) return false;
+      } else if (it.location.distanceKm > currentRadius) {
+        return false;
+      }
     }
       
       // Locatie filter
@@ -395,7 +541,7 @@ function HomePageContent() {
     
     console.log('Filtered products count:', list.length);
     return list;
-  }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation, searchType]);
+  }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation, searchType, startLocationCoords, locationMode, postcodeLocation]);
 
   const filteredUsers = useMemo(() => {
     if (searchType !== 'users') {
@@ -406,10 +552,11 @@ function HomePageContent() {
     let list = users.map((user) => {
       // Bereken afstand als gebruiker locatie en user locatie beschikbaar zijn
       let distanceKm: number | null = null;
-      if (userLocation && user.location?.lat && user.location?.lng) {
+      const referenceLocation = startLocationCoords || userLocation;
+      if (referenceLocation && user.location?.lat && user.location?.lng) {
         distanceKm = calculateDistance(
-          userLocation.lat, 
-          userLocation.lng, 
+          referenceLocation.lat, 
+          referenceLocation.lng, 
           user.location.lat, 
           user.location.lng
         );
@@ -482,7 +629,7 @@ function HomePageContent() {
           return (a.name || '').localeCompare(b.name || '');
       }
     });
-  }, [users, q, sortBy, location, radius, userLocation, searchType, userRole]);
+  }, [users, q, sortBy, location, radius, userLocation, searchType, userRole, startLocationCoords]);
 
   // New functions for advanced features
   const handleSaveSearch = async (name: string) => {
@@ -834,6 +981,34 @@ function HomePageContent() {
                       </div>
                     </div>
 
+                    {/* Startlocatie Filter */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Startlocatie (optioneel)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={startLocation}
+                          onChange={(e) => setStartLocation(e.target.value)}
+                          placeholder="Plaats, postcode of adres..."
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                        />
+                        <button
+                          onClick={() => geocodeStartLocation(startLocation)}
+                          disabled={!startLocation.trim() || isStartLocationGeocoding}
+                          className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {isStartLocationGeocoding ? 'Zoeken...' : 'Zoek'}
+                        </button>
+                      </div>
+                      {startLocationCoords && (
+                        <div className="text-xs text-green-600">
+                          ✓ Startlocatie ingesteld: {startLocation}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Afstand Filter - Categorie-specifiek */}
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700">
@@ -1023,16 +1198,17 @@ function HomePageContent() {
                       Locatie niet beschikbaar - Geen afstandsberekening
                     </span>
                     <span className="text-xs text-gray-500">
-                      Klik op "Locatie toestaan" om afstanden te zien
+                      Klik op "Locatie toestaan" om afstanden te zien, of gebruik de postcode filter hieronder
                     </span>
                   </div>
                 </>
               )}
             </div>
             {!userLocation && (
-              <button
-                onClick={() => {
-                  if (navigator.geolocation) {
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                       (position) => {
                         console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
@@ -1048,22 +1224,51 @@ function HomePageContent() {
                         });
                       },
                       (error) => {
-                        console.log('Geolocation error:', error);
-                        let errorMessage = 'Locatie kon niet worden opgehaald';
+                        console.log('❌ Manual geolocation error details:', {
+                          code: error.code,
+                          message: error.message,
+                          timestamp: new Date().toLocaleString(),
+                          userAgent: navigator.userAgent
+                        });
                         
-                        if (error.code === error.PERMISSION_DENIED) {
-                          errorMessage = 'Locatie toegang geweigerd. Ga naar je browser instellingen om locatie toe te staan.';
-                        } else if (error.code === error.POSITION_UNAVAILABLE) {
-                          errorMessage = 'Locatie niet beschikbaar. Controleer je GPS instellingen.';
-                        } else if (error.code === error.TIMEOUT) {
-                          errorMessage = 'Locatie opzoeken duurde te lang. Probeer opnieuw.';
+                        let errorTitle = 'Locatie fout';
+                        let errorMessage = 'Er is een onbekende fout opgetreden';
+                        let errorDuration = 5000;
+                        
+                        switch (error.code) {
+                          case error.PERMISSION_DENIED:
+                            console.log('🚫 PERMISSION_DENIED - User denied location access');
+                            errorTitle = 'Locatie toegang geweigerd';
+                            errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
+                            errorDuration = 8000;
+                            break;
+                            
+                          case error.POSITION_UNAVAILABLE:
+                            console.log('📡 POSITION_UNAVAILABLE - GPS/Network location unavailable');
+                            errorTitle = 'Locatie niet beschikbaar';
+                            errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
+                            errorDuration = 6000;
+                            break;
+                            
+                          case error.TIMEOUT:
+                            console.log('⏰ TIMEOUT - Location request timed out');
+                            errorTitle = 'Locatie aanvraag verlopen';
+                            errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
+                            errorDuration = 6000;
+                            break;
+                            
+                          default:
+                            console.log('❓ Unknown geolocation error:', error);
+                            errorTitle = 'Onbekende locatie fout';
+                            errorMessage = `Fout: ${error.message || 'Onbekende fout'}`;
+                            errorDuration = 5000;
                         }
                         
                         addNotification({
                           type: 'error',
-                          title: 'Locatie fout',
+                          title: errorTitle,
                           message: errorMessage,
-                          duration: 5000,
+                          duration: errorDuration,
                         });
                       },
                       {
@@ -1081,10 +1286,27 @@ function HomePageContent() {
                     });
                   }
                 }}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Locatie toestaan
-              </button>
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:bg-blue-800"
+                >
+                  Locatie toestaan
+                </button>
+                
+                <button
+                  onClick={async () => {
+                    const status = await checkLocationStatus();
+                    console.log('🔍 Debug location status:', status);
+                    addNotification({
+                      type: 'info',
+                      title: 'Locatie Debug Info',
+                      message: `Status: ${status.supported ? 'Ondersteund' : 'Niet ondersteund'} - ${status.reason}`,
+                      duration: 8000,
+                    });
+                  }}
+                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:bg-gray-800"
+                >
+                  Debug
+                </button>
+              </div>
             )}
           </div>
         </div>

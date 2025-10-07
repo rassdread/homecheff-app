@@ -22,15 +22,18 @@ export async function GET(
                 name: true,
                 username: true,
                 profileImage: true,
+                image: true,
                 place: true,
                 lat: true,
-                lng: true
+                lng: true,
+                displayFullName: true,
+                displayNameOption: true
               }
             }
           }
         },
         Image: {
-          select: { fileUrl: true, sortOrder: true },
+          select: { id: true, fileUrl: true, sortOrder: true },
           orderBy: { sortOrder: 'asc' }
         },
         reviews: {
@@ -59,9 +62,12 @@ export async function GET(
               name: true,
               username: true,
               profileImage: true,
+              image: true,
               place: true,
               lat: true,
-              lng: true
+              lng: true,
+              displayFullName: true,
+              displayNameOption: true
             }
           },
           ListingMedia: {

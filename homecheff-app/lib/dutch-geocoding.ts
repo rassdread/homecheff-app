@@ -44,9 +44,12 @@ export async function geocodeDutchAddress(
 
     console.log(`Geocoding Dutch address: ${cleanPostcode} ${cleanHuisnummer}`);
 
-    // Use PDOK API for Dutch addresses
+    // Use PDOK API with correct query format
+    // Format: "postcode huisnummer" (with space between)
+    const query = `${cleanPostcode} ${cleanHuisnummer}`;
+    
     const response = await fetch(
-      `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?fq=postcode:${cleanPostcode}&fq=huisnummer:${cleanHuisnummer}&fl=*&rows=1`,
+      `https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest?q=${encodeURIComponent(query)}&fq=type:adres&fl=weergavenaam,straatnaam,woonplaatsnaam,postcode,huisnummer,huisletter,huisnummertoevoeging,adresseerbaarobject_id,centroide_ll&rows=1`,
       {
         headers: {
           'User-Agent': 'HomeCheff-App/1.0'
@@ -73,10 +76,18 @@ export async function geocodeDutchAddress(
 
     const result = data.response.docs[0];
     
-    // Extract coordinates
-    const coordinates = result.centroide_ll?.split(' ') || [];
-    const lat = parseFloat(coordinates[1]);
+    // Extract coordinates from centroide_ll (format: "POINT(lng lat)")
+    const pointMatch = result.centroide_ll?.match(/POINT\(([^)]+)\)/);
+    if (!pointMatch) {
+      return {
+        error: true,
+        message: 'Coördinaten niet beschikbaar voor dit adres.'
+      };
+    }
+    
+    const coordinates = pointMatch[1].split(' ');
     const lng = parseFloat(coordinates[0]);
+    const lat = parseFloat(coordinates[1]);
 
     if (isNaN(lat) || isNaN(lng)) {
       return {
@@ -85,15 +96,18 @@ export async function geocodeDutchAddress(
       };
     }
 
+    // Format postcode with space
+    const formattedPostcode = cleanPostcode.replace(/(\d{4})([A-Z]{2})/, '$1 $2');
+    
     // Build formatted address
-    const formattedAddress = `${result.straatnaam} ${result.huisnummer}, ${result.postcode} ${result.woonplaats}`;
+    const formattedAddress = `${result.straatnaam} ${result.huisnummer}, ${formattedPostcode} ${result.woonplaatsnaam}`;
 
     return {
-      postcode: result.postcode,
+      postcode: formattedPostcode,
       huisnummer: result.huisnummer,
       straatnaam: result.straatnaam,
-      plaats: result.woonplaats,
-      provincie: result.provincie,
+      plaats: result.woonplaatsnaam,
+      provincie: 'Nederland', // PDOK doesn't provide province in this response
       lat: lat,
       lng: lng,
       formatted_address: formattedAddress
@@ -120,7 +134,7 @@ export async function geocodeDutchAddressFallback(
     const query = `${cleanHuisnummer}, ${cleanPostcode}, Nederland`;
     
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=nl&limit=1&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=nl&limit=1&addressdetails=1&extratags=1`,
       {
         headers: {
           'User-Agent': 'HomeCheff-App/1.0'
@@ -145,16 +159,25 @@ export async function geocodeDutchAddressFallback(
     }
 
     const result = data[0];
+    const address = result.address || {};
+    
+    // Format postcode with space
+    const formattedPostcode = cleanPostcode.replace(/(\d{4})([A-Z]{2})/, '$1 $2');
+    
+    // Build formatted address
+    const straatnaam = address.road || address.street || 'Onbekend';
+    const plaats = address.city || address.town || address.village || 'Onbekend';
+    const formattedAddress = `${straatnaam} ${cleanHuisnummer}, ${formattedPostcode} ${plaats}`;
     
     return {
-      postcode: cleanPostcode,
+      postcode: formattedPostcode,
       huisnummer: cleanHuisnummer,
-      straatnaam: result.address?.road || 'Onbekend',
-      plaats: result.address?.city || result.address?.town || 'Onbekend',
-      provincie: result.address?.state || 'Onbekend',
+      straatnaam: straatnaam,
+      plaats: plaats,
+      provincie: address.state || 'Onbekend',
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
-      formatted_address: result.display_name
+      formatted_address: formattedAddress
     };
 
   } catch (error) {
@@ -166,20 +189,11 @@ export async function geocodeDutchAddressFallback(
   }
 }
 
-// Main function that tries PDOK first, then fallback
+// Main function that uses OpenStreetMap Nominatim for Dutch addresses
 export async function geocodeDutchAddressWithFallback(
   postcode: string,
   huisnummer: string
 ): Promise<DutchAddress | DutchGeocodingError> {
-  // Try PDOK first (most accurate for Dutch addresses)
-  const pdokResult = await geocodeDutchAddress(postcode, huisnummer);
-  
-  if (!('error' in pdokResult)) {
-    return pdokResult;
-  }
-
-  console.log('PDOK failed, trying fallback...');
-  
-  // Try OpenStreetMap as fallback
-  return await geocodeDutchAddressFallback(postcode, huisnummer);
+  // Use OpenStreetMap Nominatim for Dutch addresses (more reliable than PDOK)
+  return await geocodeDutchAddress(postcode, huisnummer);
 }
