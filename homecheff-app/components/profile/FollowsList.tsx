@@ -6,10 +6,11 @@ import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { 
   id: string; 
-  seller?: { 
+  Seller?: { 
     id: string; 
     name?: string | null; 
     username?: string | null;
+    image?: string | null;
     profileImage?: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
@@ -48,22 +49,22 @@ export default function FollowsList() {
         <li key={f.id} className="p-3 flex items-center gap-3">
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full overflow-hidden border bg-gray-200 flex-shrink-0">
-            {f.seller?.profileImage ? (
+            {(f.Seller?.profileImage || f.Seller?.image) ? (
               <img 
-                src={f.seller.profileImage} 
-                alt={getDisplayName(f.seller)} 
+                src={f.Seller.profileImage || f.Seller.image || ""} 
+                alt={getDisplayName(f.Seller)} 
                 className="w-full h-full object-cover" 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary-brand text-white text-sm font-bold">
-                {getDisplayName(f.seller).charAt(0).toUpperCase()}
+                {getDisplayName(f.Seller).charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           
           {/* Name with link */}
           <ClickableName
-            user={f.seller}
+            user={f.Seller}
             className="font-medium hover:text-primary-600 transition-colors"
             fallbackText="Verkoper"
             linkTo="profile"

@@ -5,7 +5,7 @@ import Link from "next/link";
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
 
-type Follow = { id: string; seller?: { id: string; name?: string | null; image?: string | null } };
+type Follow = { id: string; Seller?: { id: string; name?: string | null; image?: string | null; profileImage?: string | null } };
 
 export default function FollowsList() {
   const [items, setItems] = useState<Follow[]>([]);
@@ -38,9 +38,9 @@ export default function FollowsList() {
       {items.map(f => (
         <li key={f.id} className="p-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={f.seller?.image ?? "/avatar-placeholder.png"} alt="" className="w-8 h-8 rounded-full object-cover border" />
+          <img src={f.Seller?.profileImage || f.Seller?.image || "/avatar-placeholder.png"} alt="" className="w-8 h-8 rounded-full object-cover border" />
           <ClickableName 
-            user={f.seller}
+            user={f.Seller}
             className="font-medium hover:text-primary-600 transition-colors"
             fallbackText="Verkoper"
             linkTo="profile"

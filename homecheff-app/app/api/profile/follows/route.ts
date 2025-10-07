@@ -43,11 +43,12 @@ export async function GET(request: NextRequest) {
       where: { followerId: targetUserId },
       orderBy: { createdAt: "desc" },
       include: { 
-        seller: { 
+        Seller: { 
           select: { 
             id: true, 
             name: true, 
             username: true,
+            image: true,
             profileImage: true,
             displayFullName: true,
             displayNameOption: true

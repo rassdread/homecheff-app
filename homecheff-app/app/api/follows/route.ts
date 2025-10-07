@@ -9,7 +9,16 @@ export async function GET(req: NextRequest) {
     const following = await prisma.follow.findMany({
       where: { followerId: userId },
       include: {
-        Seller: { select: { id: true, name: true, image: true, role: true } }
+        Seller: { 
+          select: { 
+            id: true, 
+            name: true, 
+            image: true, 
+            profileImage: true,
+            username: true,
+            role: true 
+          } 
+        }
       },
       orderBy: { createdAt: "desc" },
     });
