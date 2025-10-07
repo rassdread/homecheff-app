@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ShareButton from "@/components/ui/ShareButton";
 import { Eye, Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import PropsButton from "@/components/props/PropsButton";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 type FeedItem = {
   id: string;
@@ -23,11 +24,17 @@ type FeedItem = {
 export default function GeoFeed() {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [coords, setCoords] = useState<{lat:number,lng:number} | null>(null);
   const [radius, setRadius] = useState(25);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState("");
   const [baseUrl, setBaseUrl] = useState('');
+  
+  // Use the geolocation hook
+  const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 300000
+  });
   
   // Filter and sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,37 +107,41 @@ export default function GeoFeed() {
     // Set base URL for sharing
     setBaseUrl(window.location.origin);
     
-    (async () => {
+    // Get location on component mount
+    if (locationSupported && !coords && !locationLoading) {
+      getCurrentPosition();
+    }
+  }, [locationSupported, coords, locationLoading, getCurrentPosition]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
       setLoading(true);
-      let lat: number | null = null;
-      let lng: number | null = null;
-      try {
-        await new Promise<void>((resolve) => {
-          if (!navigator.geolocation) return resolve();
-          navigator.geolocation.getCurrentPosition(
-            (pos) => { lat = pos.coords.latitude; lng = pos.coords.longitude; setCoords({lat, lng}); resolve(); },
-            () => resolve(),
-            { enableHighAccuracy: true, maximumAge: 60000, timeout: 6000 }
-          );
-        });
-      } catch {}
+      
       const params = new URLSearchParams();
       if (place.trim()) {
         params.set("place", place.trim());
-      } else if (lat != null && lng != null) {
-        params.set("lat", String(lat));
-        params.set("lng", String(lng));
+      } else if (coords) {
+        params.set("lat", String(coords.lat));
+        params.set("lng", String(coords.lng));
         params.set("radius", String(radius));
       }
       if (q.trim()) params.set("q", q.trim());
-      const res = await fetch(`/api/feed?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setItems(data.items || []);
+      
+      try {
+        const res = await fetch(`/api/feed?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setItems(data.items || []);
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    })();
-  }, [radius, q]);
+    };
+
+    fetchItems();
+  }, [radius, q, place, coords]);
 
   return (
     <div className="space-y-4">
@@ -147,7 +158,33 @@ export default function GeoFeed() {
           <label className="block text-base font-semibold mb-1">Zoeken</label>
           <input value={q} onChange={e => setQ(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" placeholder="bv. pasta, soep, bagels" />
         </div>
-        {coords ? <p className="text-xs text-muted-foreground ml-auto">Jouw locatie: {coords.lat.toFixed(3)}, {coords.lng.toFixed(3)}</p> : <p className="text-xs text-muted-foreground ml-auto">Geen locatie: sorteren op nieuwste</p>}
+        <div className="min-w-[120px]">
+          <label className="block text-base font-semibold mb-1">Locatie</label>
+          <button
+            onClick={getCurrentPosition}
+            disabled={locationLoading || !locationSupported}
+            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {locationLoading ? '⏳' : coords ? '📍' : '🌍'} 
+            {locationLoading ? 'Laden...' : coords ? 'GPS' : 'Locatie'}
+          </button>
+        </div>
+        <div className="w-full">
+          {locationError && (
+            <p className="text-xs text-red-600 mb-2">
+              ⚠️ Locatie fout: {locationError}
+            </p>
+          )}
+          {coords ? (
+            <p className="text-xs text-green-600">
+              ✅ Jouw locatie: {coords.lat.toFixed(3)}, {coords.lng.toFixed(3)}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500">
+              {locationSupported ? 'Geen locatie: sorteren op nieuwste' : 'GPS niet ondersteund: gebruik plaats filter'}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Filter and Sort Controls */}

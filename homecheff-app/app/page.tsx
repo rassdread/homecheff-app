@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
@@ -83,7 +84,12 @@ function HomePageContent() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  // Location states - using geolocation hook
+  const { coords: userLocation, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 300000
+  });
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
@@ -258,94 +264,53 @@ function HomePageContent() {
   };
 
   useEffect(() => {
-    // Check location status first
-    checkLocationStatus().then(status => {
-      console.log('🌍 Location status:', status);
-    });
-    
-    // Haal gebruikerslocatie op
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          addNotification({
-            type: 'success',
-            title: 'Locatie opgehaald',
-            message: 'Afstanden worden nu berekend',
-            duration: 3000,
-          });
-        },
-        (error) => {
-          console.log('❌ Geolocation error details:', {
-            code: error.code,
-            message: error.message,
-            timestamp: new Date().toLocaleString(),
-            userAgent: navigator.userAgent
-          });
-          
-          let errorTitle = 'Locatie fout';
-          let errorMessage = 'Er is een onbekende fout opgetreden';
-          let errorDuration = 5000;
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              console.log('🚫 PERMISSION_DENIED - User denied location access');
-              errorTitle = 'Locatie toegang geweigerd';
-              errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
-              errorDuration = 8000;
-              break;
-              
-            case error.POSITION_UNAVAILABLE:
-              console.log('📡 POSITION_UNAVAILABLE - GPS/Network location unavailable');
-              errorTitle = 'Locatie niet beschikbaar';
-              errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
-              errorDuration = 6000;
-              break;
-              
-            case error.TIMEOUT:
-              console.log('⏰ TIMEOUT - Location request timed out');
-              errorTitle = 'Locatie aanvraag verlopen';
-              errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
-              errorDuration = 6000;
-              break;
-              
-            default:
-              console.log('❓ Unknown geolocation error:', error);
-              errorTitle = 'Onbekende locatie fout';
-              errorMessage = `Fout: ${error.message || 'Onbekende fout'}`;
-              errorDuration = 5000;
-          }
-          
-          addNotification({
-            type: 'error',
-            title: errorTitle,
-            message: errorMessage,
-            duration: errorDuration,
-          });
-          
-          setUserLocation(null);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000, // Verhoogd naar 15 seconden
-          maximumAge: 300000 // 5 minutes
-        }
-      );
-    } else {
-      console.log('Geolocation not supported');
+    // Get location on component mount if supported
+    if (locationSupported && !userLocation && !locationLoading) {
+      getCurrentPosition();
+    }
+  }, [locationSupported, userLocation, locationLoading, getCurrentPosition]);
+
+  // Handle location success
+  useEffect(() => {
+    if (userLocation) {
+      addNotification({
+        type: 'success',
+        title: 'Locatie opgehaald',
+        message: 'Afstanden worden nu berekend',
+        duration: 3000,
+      });
+    }
+  }, [userLocation, addNotification]);
+
+  // Handle location errors
+  useEffect(() => {
+    if (locationError) {
+      let errorTitle = 'Locatie fout';
+      let errorMessage = locationError;
+      let errorDuration = 5000;
+      
+      if (locationError.includes('denied')) {
+        errorTitle = 'Locatie toegang geweigerd';
+        errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
+        errorDuration = 8000;
+      } else if (locationError.includes('unavailable')) {
+        errorTitle = 'Locatie niet beschikbaar';
+        errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
+        errorDuration = 6000;
+      } else if (locationError.includes('timeout')) {
+        errorTitle = 'Locatie aanvraag verlopen';
+        errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
+        errorDuration = 6000;
+      }
+      
       addNotification({
         type: 'error',
-        title: 'Geolocatie niet ondersteund',
-        message: 'Je browser ondersteunt geen locatie functionaliteit',
-        duration: 5000,
+        title: errorTitle,
+        message: errorMessage,
+        duration: errorDuration,
       });
-      setUserLocation(null);
     }
-  }, [addNotification]);
+  }, [locationError, addNotification]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1207,85 +1172,7 @@ function HomePageContent() {
             {!userLocation && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
-                        setUserLocation({
-                          lat: position.coords.latitude,
-                          lng: position.coords.longitude
-                        });
-                        addNotification({
-                          type: 'success',
-                          title: 'Locatie toegestaan',
-                          message: 'Afstanden worden nu berekend',
-                          duration: 3000,
-                        });
-                      },
-                      (error) => {
-                        console.log('❌ Manual geolocation error details:', {
-                          code: error.code,
-                          message: error.message,
-                          timestamp: new Date().toLocaleString(),
-                          userAgent: navigator.userAgent
-                        });
-                        
-                        let errorTitle = 'Locatie fout';
-                        let errorMessage = 'Er is een onbekende fout opgetreden';
-                        let errorDuration = 5000;
-                        
-                        switch (error.code) {
-                          case error.PERMISSION_DENIED:
-                            console.log('🚫 PERMISSION_DENIED - User denied location access');
-                            errorTitle = 'Locatie toegang geweigerd';
-                            errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
-                            errorDuration = 8000;
-                            break;
-                            
-                          case error.POSITION_UNAVAILABLE:
-                            console.log('📡 POSITION_UNAVAILABLE - GPS/Network location unavailable');
-                            errorTitle = 'Locatie niet beschikbaar';
-                            errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
-                            errorDuration = 6000;
-                            break;
-                            
-                          case error.TIMEOUT:
-                            console.log('⏰ TIMEOUT - Location request timed out');
-                            errorTitle = 'Locatie aanvraag verlopen';
-                            errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
-                            errorDuration = 6000;
-                            break;
-                            
-                          default:
-                            console.log('❓ Unknown geolocation error:', error);
-                            errorTitle = 'Onbekende locatie fout';
-                            errorMessage = `Fout: ${error.message || 'Onbekende fout'}`;
-                            errorDuration = 5000;
-                        }
-                        
-                        addNotification({
-                          type: 'error',
-                          title: errorTitle,
-                          message: errorMessage,
-                          duration: errorDuration,
-                        });
-                      },
-                      {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 300000 // 5 minutes
-                      }
-                    );
-                  } else {
-                    addNotification({
-                      type: 'error',
-                      title: 'Geolocation niet ondersteund',
-                      message: 'Je browser ondersteunt geen locatie functionaliteit',
-                      duration: 5000,
-                    });
-                  }
-                }}
+                  onClick={getCurrentPosition}
                   className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:bg-blue-800"
                 >
                   Locatie toestaan
