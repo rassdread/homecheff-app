@@ -87,6 +87,9 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       return;
     }
 
+    // Reset retry count for new request
+    setRetryCount(0);
+
     // Detect browser (desktop and mobile)
     const userAgent = navigator.userAgent.toLowerCase();
     const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
@@ -122,26 +125,26 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       console.log('🔧 Applying Samsung Internet specific settings');
       options = {
         enableHighAccuracy: false, // Samsung Internet often fails with high accuracy
-        timeout: 25000, // Very long timeout for Samsung Internet
-        maximumAge: 30000 // Short cache for Samsung Internet
+        timeout: 30000, // Very long timeout for Samsung Internet
+        maximumAge: 0 // No cache for Samsung Internet
       };
     }
     // Chrome/Edge specific adjustments
     else if (isChrome || isEdge) {
       console.log('🔧 Applying Chrome/Edge specific settings');
       options = {
-        enableHighAccuracy: isMobile ? false : false, // Always false for Chrome/Edge
-        timeout: isMobile ? 25000 : 20000, // Longer timeout on mobile
-        maximumAge: isMobile ? 30000 : 60000 // Shorter cache on mobile
+        enableHighAccuracy: false, // Always false for Chrome/Edge - they often fail with high accuracy
+        timeout: isMobile ? 30000 : 25000, // Very long timeout for Chrome/Edge
+        maximumAge: 0 // No cache for Chrome/Edge - always get fresh location
       };
     }
     // Firefox specific adjustments  
     else if (isFirefox) {
       console.log('🔧 Applying Firefox specific settings');
       options = {
-        enableHighAccuracy: true,
-        timeout: isMobile ? 15000 : 10000, // Longer timeout on mobile Firefox
-        maximumAge: isMobile ? 60000 : 300000 // Shorter cache on mobile
+        enableHighAccuracy: false, // Firefox also works better with low accuracy
+        timeout: isMobile ? 20000 : 15000, // Longer timeout for Firefox
+        maximumAge: 0 // No cache for Firefox
       };
     }
     // iOS Safari specific adjustments
@@ -149,8 +152,8 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       console.log('🔧 Applying iOS Safari specific settings');
       options = {
         enableHighAccuracy: false, // iOS Safari often fails with high accuracy
-        timeout: 20000,
-        maximumAge: 60000
+        timeout: 25000,
+        maximumAge: 0 // No cache for iOS Safari
       };
     }
     // Android Chrome specific adjustments
@@ -158,8 +161,8 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       console.log('🔧 Applying Android Chrome specific settings');
       options = {
         enableHighAccuracy: false, // Android Chrome often fails with high accuracy
-        timeout: 25000, // Very long timeout for Android
-        maximumAge: 30000 // Short cache for Android
+        timeout: 30000, // Very long timeout for Android
+        maximumAge: 0 // No cache for Android Chrome
       };
     }
     // Default mobile adjustments
@@ -167,8 +170,17 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       console.log('🔧 Applying default mobile settings');
       options = {
         enableHighAccuracy: false, // Most mobile browsers work better with low accuracy
-        timeout: 20000, // Longer timeout for mobile
-        maximumAge: 60000 // Shorter cache for mobile
+        timeout: 25000, // Longer timeout for mobile
+        maximumAge: 0 // No cache for mobile
+      };
+    }
+    // Default desktop adjustments
+    else {
+      console.log('🔧 Applying default desktop settings');
+      options = {
+        enableHighAccuracy: false, // Even desktop browsers work better with low accuracy
+        timeout: 20000,
+        maximumAge: 0 // No cache
       };
     }
 
@@ -301,17 +313,19 @@ export function useGeolocation(options: GeolocationOptions = {}) {
         }
 
         // Retry logic for certain errors
-        if (error.code === error.TIMEOUT && retryCount < 2) {
+        if ((error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) && retryCount < 3) {
           console.log(`🔄 Retrying geolocation request (attempt ${retryCount + 1})`);
           setRetryCount(prev => prev + 1);
           
-          // Retry with different settings
+          // Retry with different settings - progressively more aggressive
           setTimeout(() => {
             const retryOptions = {
-              enableHighAccuracy: false, // Try with low accuracy
-              timeout: 30000, // Longer timeout
+              enableHighAccuracy: false, // Always low accuracy for retries
+              timeout: 40000, // Even longer timeout for retries
               maximumAge: 0 // No cache
             };
+            
+            console.log('🔄 Retry options:', retryOptions);
             
             navigator.geolocation.getCurrentPosition(
               (position) => {
@@ -329,15 +343,51 @@ export function useGeolocation(options: GeolocationOptions = {}) {
               },
               (retryError) => {
                 console.log('❌ Retry also failed:', retryError);
-                setState(prev => ({
-                  ...prev,
-                  loading: false,
-                  error: `Retry failed: ${retryError.message}`
-                }));
+                
+                // Try one more time with even more aggressive settings
+                if (retryCount < 2) {
+                  console.log('🔄 Final retry attempt...');
+                  setTimeout(() => {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const coords = {
+                          lat: position.coords.latitude,
+                          lng: position.coords.longitude
+                        };
+                        console.log('✅ Final retry successful:', coords);
+                        setState(prev => ({
+                          ...prev,
+                          coords,
+                          loading: false,
+                          error: null
+                        }));
+                      },
+                      (finalError) => {
+                        console.log('❌ Final retry failed:', finalError);
+                        setState(prev => ({
+                          ...prev,
+                          loading: false,
+                          error: `All retries failed: ${finalError.message}`
+                        }));
+                      },
+                      {
+                        enableHighAccuracy: false,
+                        timeout: 60000, // 1 minute timeout for final attempt
+                        maximumAge: 0
+                      }
+                    );
+                  }, 2000);
+                } else {
+                  setState(prev => ({
+                    ...prev,
+                    loading: false,
+                    error: `Retry failed: ${retryError.message}`
+                  }));
+                }
               },
               retryOptions
             );
-          }, 1000);
+          }, 2000);
         }
       },
       options
