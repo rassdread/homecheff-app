@@ -9,6 +9,7 @@ interface FilterState {
   subcategory: string;
   priceRange: { min: number; max: number };
   radius: number;
+  categoryRadius: {[key: string]: number}; // Nieuwe: categorie-specifieke radius
   location: string;
   sortBy: string;
   deliveryMode: string;
@@ -263,23 +264,69 @@ export default function AdvancedFiltersPanel({
               </div>
             )}
 
-            {/* Distance */}
+            {/* Distance - Categorie-specifiek */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <MapPin className="w-4 h-4 inline mr-1" />
-                Afstand: {filters.radius} km
+                Afstand: {(() => {
+                  const currentCategory = filters.category === 'all' ? 'all' : filters.category;
+                  const currentRadius = filters.categoryRadius?.[currentCategory] || filters.radius;
+                  return currentRadius === 0 ? '🌍 Wereldwijd' : `${currentRadius} km`;
+                })()}
+                {filters.category !== 'all' && (
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({filters.category === 'cheff' ? 'Lokaal' : 
+                      filters.category === 'garden' ? 'Regionaal' : 
+                      filters.category === 'designer' ? 'Wereldwijd' : 'Standaard'})
+                  </span>
+                )}
               </label>
-              <input
-                type="range"
-                min="1"
-                max="50"
-                value={filters.radius}
-                onChange={(e) => updateFilter('radius', Number(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>1 km</span>
-                <span>50+ km</span>
+              
+              {/* Dynamische radius opties op basis van categorie */}
+              <div className="grid grid-cols-5 gap-2 mb-2">
+                {(() => {
+                  const currentCategory = filters.category === 'all' ? 'all' : filters.category;
+                  const radiusOptions = currentCategory === 'designer' 
+                    ? [5, 10, 25, 50, 0] // 0 = onbeperkt voor designer
+                    : currentCategory === 'garden'
+                    ? [5, 10, 25, 50, 100]
+                    : [5, 10, 25, 50, 100]; // cheff en default
+                  
+                  return radiusOptions.map((km) => (
+                    <button
+                      key={km}
+                      onClick={() => {
+                        const newCategoryRadius = {
+                          ...filters.categoryRadius,
+                          [currentCategory]: km
+                        };
+                        updateFilter('categoryRadius', newCategoryRadius);
+                        updateFilter('radius', km); // Voor backward compatibility
+                      }}
+                      className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        (filters.categoryRadius?.[currentCategory] || filters.radius) === km
+                          ? 'bg-blue-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {km === 0 ? '🌍' : `${km} km`}
+                    </button>
+                  ));
+                })()}
+              </div>
+              
+              <div className="text-xs text-gray-500 text-center">
+                {(() => {
+                  const currentCategory = filters.category === 'all' ? 'all' : filters.category;
+                  const currentRadius = filters.categoryRadius?.[currentCategory] || filters.radius;
+                  if (currentRadius === 0) {
+                    return '🌍 Wereldwijd - Alle producten';
+                  } else if (currentRadius >= 100) {
+                    return 'Alle producten';
+                  } else {
+                    return `Producten binnen ${currentRadius} km`;
+                  }
+                })()}
               </div>
             </div>
           </div>

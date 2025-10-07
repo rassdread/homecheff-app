@@ -64,8 +64,14 @@ export default function ProductManagement() {
       });
 
       if (response.ok) {
+        // Remove from local state
         setProducts(products.filter(product => product.id !== productId));
         setSelectedProducts(selectedProducts.filter(id => id !== productId));
+        
+        // Also refresh the full list to ensure consistency
+        await fetchProducts();
+        
+        alert('Product succesvol verwijderd');
       } else {
         const errorData = await response.json();
         alert(`Fout bij verwijderen: ${errorData.error || 'Onbekende fout'}`);
@@ -84,17 +90,28 @@ export default function ProductManagement() {
     if (!confirm(`Weet je zeker dat je ${selectedProducts.length} producten wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) return;
 
     try {
-      const deletePromises = selectedProducts.map(id => 
-        fetch(`/api/products/${id}`, { method: 'DELETE' })
-      );
+      const deletePromises = selectedProducts.map(async id => {
+        const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Failed to delete product ${id}: ${errorData.error || 'Unknown error'}`);
+        }
+        return response;
+      });
       
       await Promise.all(deletePromises);
       
+      // Remove from local state
       setProducts(products.filter(product => !selectedProducts.includes(product.id)));
       setSelectedProducts([]);
+      
+      // Also refresh the full list to ensure consistency
+      await fetchProducts();
+      
+      alert(`${selectedProducts.length} producten succesvol verwijderd`);
     } catch (error) {
       console.error('Error bulk deleting products:', error);
-      alert('Er is een fout opgetreden bij het verwijderen van de producten');
+      alert(`Er is een fout opgetreden bij het verwijderen van de producten: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 

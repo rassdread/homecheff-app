@@ -24,6 +24,10 @@ export async function GET() {
     // Get all products (both new Product model and old Listing model)
     const [newProducts, oldListings] = await Promise.all([
       prisma.product.findMany({
+        where: {
+          // Only get active products, not soft-deleted ones
+          isActive: true
+        },
         orderBy: { createdAt: 'desc' },
         include: {
           seller: {
@@ -46,6 +50,10 @@ export async function GET() {
         }
       }),
       prisma.listing.findMany({
+        where: {
+          // Only get active listings, not soft-deleted ones
+          status: 'ACTIVE'
+        },
         orderBy: { createdAt: 'desc' },
         include: {
           User: {

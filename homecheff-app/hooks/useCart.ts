@@ -6,6 +6,7 @@ import { clearAllCartData } from '@/lib/cart';
 
 export interface CartItem {
   id: string;
+  productId: string;
   title: string;
   priceCents: number;
   quantity: number;

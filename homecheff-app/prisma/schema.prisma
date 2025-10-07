@@ -19,6 +19,12 @@ model User {
   lat                                    Float?
   lng                                    Float?
   place                                  String?
+  address                                String?
+  city                                   String?
+  postalCode                             String?
+  country                                String?                   @default("NL")
+  state                                  String?                   // Province/state for international users
+  timezone                               String?                   @default("Europe/Amsterdam")
   updatedAt                              DateTime                  @updatedAt
   role                                   UserRole                  @default(USER)
   name                                   String?
@@ -123,6 +129,7 @@ model Product {
   favorites       Favorite[]
   Image           Image[]
   orderItems      OrderItem[]
+  deliveryOrders  DeliveryOrder[]
   seller          SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
   reviews         ProductReview[]
 
@@ -761,10 +768,19 @@ model DeliveryOrder {
   deliveryProfileId    String
   deliveryProfile      DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
   
+  // Link to specific product (optional for product-specific delivery)
+  productId            String?
+  product              Product? @relation(fields: [productId], references: [id])
+  
   status               String   @default("PENDING") // PENDING, ACCEPTED, PICKED_UP, DELIVERED, CANCELLED
   deliveryFee          Float
   estimatedTime        Int?     // in minutes
   deliveryFeeCollected Boolean  @default(false)
+  
+  // Delivery details
+  deliveryAddress      String?
+  deliveryDate         DateTime?
+  deliveryTime         String?
   
   // Tracking
   pickedUpAt           DateTime?

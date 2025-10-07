@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { geocodeAddress } from '@/lib/geocoding';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -19,6 +20,9 @@ export async function PUT(request: NextRequest) {
       bio, 
       quote,
       place, 
+      address,
+      city,
+      postalCode,
       gender, 
       interests, 
       sellerRoles, 
@@ -49,6 +53,24 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Geocode address if provided
+    let lat: number | null = null;
+    let lng: number | null = null;
+    
+    if (address && city && postalCode) {
+      console.log('Geocoding address:', { address, city, postalCode });
+      const geocodeResult = await geocodeAddress(address, city, postalCode);
+      
+      if ('error' in geocodeResult) {
+        console.warn('Geocoding failed:', geocodeResult.message);
+        // Continue without coordinates - user can still save profile
+      } else {
+        lat = geocodeResult.lat;
+        lng = geocodeResult.lng;
+        console.log('Geocoding successful:', { lat, lng });
+      }
+    }
+
     // Update user
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
@@ -58,6 +80,11 @@ export async function PUT(request: NextRequest) {
         bio: bio || null,
         quote: quote || null,
         place: place || null,
+        address: address || null,
+        city: city || null,
+        postalCode: postalCode || null,
+        lat: lat,
+        lng: lng,
         gender: gender || null,
         interests: interests || [],
         sellerRoles: sellerRoles || [],
@@ -75,6 +102,11 @@ export async function PUT(request: NextRequest) {
         bio: true,
         quote: true,
         place: true,
+        address: true,
+        city: true,
+        postalCode: true,
+        lat: true,
+        lng: true,
         gender: true,
         interests: true,
         sellerRoles: true,

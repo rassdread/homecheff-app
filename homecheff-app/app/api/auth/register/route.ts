@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
+import { geocodeAddress } from "@/lib/geocoding";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +25,10 @@ export async function POST(req: NextRequest) {
       selectedBuyerType,
       interests,
       location,
+      country,
+      address,
+      city,
+      postalCode,
       bio,
       bankName,
       iban,
@@ -127,6 +132,24 @@ export async function POST(req: NextRequest) {
 
     const hashed = await bcrypt.hash(password, 10);
 
+    // Geocode address if provided
+    let lat: number | null = null;
+    let lng: number | null = null;
+    
+    if (address && city && postalCode) {
+      console.log('Geocoding address during registration:', { address, city, postalCode });
+      const geocodeResult = await geocodeAddress(address, city, postalCode);
+      
+      if ('error' in geocodeResult) {
+        console.warn('Geocoding failed during registration:', geocodeResult.message);
+        // Continue without coordinates - user can still register
+      } else {
+        lat = geocodeResult.lat;
+        lng = geocodeResult.lng;
+        console.log('Geocoding successful during registration:', { lat, lng });
+      }
+    }
+
     // Determine user role based on userTypes
     const hasSellerRole = userTypes && userTypes.length > 0;
     const userRole = hasSellerRole ? UserRole.SELLER : UserRole.BUYER;
@@ -156,6 +179,12 @@ export async function POST(req: NextRequest) {
           gender,
           bio: bio || null,
           place: location || null,
+          country: country || "NL",
+          address: address || null,
+          city: city || null,
+          postalCode: postalCode || null,
+          lat: lat,
+          lng: lng,
           interests: interests || [],
           sellerRoles: userTypes || [], // Store seller roles
           // Privacy en marketing toestemmingen
@@ -213,6 +242,12 @@ export async function POST(req: NextRequest) {
           gender,
           bio: bio || null,
           place: location || null,
+          country: country || "NL",
+          address: address || null,
+          city: city || null,
+          postalCode: postalCode || null,
+          lat: lat,
+          lng: lng,
           interests: interests || [],
           buyerRoles: selectedBuyerType ? [selectedBuyerType] : [], // Store buyer type
           // Privacy en marketing toestemmingen

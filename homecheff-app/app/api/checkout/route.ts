@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
       pickupDate,
       deliveryDate,
       deliveryTime,
-      coordinates // { lat, lng } for delivery location
+      coordinates, // { lat, lng } for delivery location
+      selectedDeliverers // { productId: deliverer } mapping
     } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -269,46 +270,32 @@ export async function POST(req: NextRequest) {
           })
         ));
 
-        // Create delivery order with geolocation
-        if (deliveryMode === 'DELIVERY' && coordinates) {
+        // Create delivery orders for each product with selected deliverers
+        if (deliveryMode === 'TEEN_DELIVERY' && selectedDeliverers && Object.keys(selectedDeliverers).length > 0) {
           try {
-            // Find available delivery profiles within radius
-            const deliveryProfiles = await prisma.deliveryProfile.findMany({
-              where: { isActive: true },
-              select: {
-                id: true,
-                homeLat: true,
-                homeLng: true,
-                currentLat: true,
-                currentLng: true,
-                maxDistance: true,
-                isActive: true,
-                deliveryMode: true,
-                deliveryRegions: true,
-                availableDays: true,
-                availableTimeSlots: true
+            // Create delivery orders for each product with selected deliverer
+            for (const [productId, deliverer] of Object.entries(selectedDeliverers)) {
+              if (deliverer && typeof deliverer === 'object' && 'id' in deliverer) {
+                const delivererData = deliverer as any;
+                await prisma.deliveryOrder.create({
+                  data: {
+                    orderId: order.id,
+                    deliveryProfileId: delivererData.id,
+                    productId: productId, // Link to specific product
+                    deliveryFee: Math.round(delivererData.totalDeliveryDistance * 50), // €0.50 per km
+                    status: 'PENDING',
+                    notes: notes || null,
+                    deliveryAddress: address,
+                    deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+                    deliveryTime: deliveryTime || null
+                  }
+                });
+                
+                console.log(`Created delivery order for product ${productId} with deliverer ${delivererData.name}`);
               }
-            });
-
-            // Mock available profiles for now
-            const availableProfiles = deliveryProfiles.filter(() => Math.random() > 0.5);
-
-            if (availableProfiles.length > 0) {
-              // Assign to closest available profile
-              const assignedProfile = availableProfiles[0];
-              
-              await prisma.deliveryOrder.create({
-                data: {
-                  orderId: order.id,
-                  deliveryProfileId: assignedProfile.id,
-                  deliveryFee: 200, // €2.00 in cents
-                  status: 'PENDING',
-                  notes: notes || null
-                }
-              });
             }
           } catch (error) {
-            console.error('Error creating delivery order:', error);
+            console.error('Error creating delivery orders:', error);
             // Continue with checkout even if delivery order creation fails
           }
         }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { MapPin, Clock, Package, Truck, Bike, Users, CreditCard, CheckCircle, Navigation, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import TeenDeliveryInfo from '@/components/delivery/TeenDeliveryInfo';
+import DelivererSelector from '@/components/checkout/DelivererSelector';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 
@@ -31,6 +32,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [selectedDeliverers, setSelectedDeliverers] = useState<{[productId: string]: any}>({});
 
   // Check delivery availability
   const { 
@@ -52,6 +54,13 @@ export default function CheckoutPage() {
       console.error('Location error:', error);
       setLocationError('Locatie kon niet worden opgehaald. Voer handmatig een adres in.');
     }
+  };
+
+  const handleSelectDeliverer = (productId: string, deliverer: any) => {
+    setSelectedDeliverers(prev => ({
+      ...prev,
+      [productId]: deliverer
+    }));
   };
 
   const deliveryOptions: DeliveryOption[] = [
@@ -122,7 +131,8 @@ export default function CheckoutPage() {
           pickupDate: selectedDelivery === 'pickup' ? deliveryDate : null,
           deliveryDate: selectedDelivery !== 'pickup' ? deliveryDate : null,
           deliveryTime,
-          coordinates: coordinates
+          coordinates: coordinates,
+          selectedDeliverers: selectedDeliverers
         })
       });
 
@@ -259,6 +269,44 @@ export default function CheckoutPage() {
                 {selectedDelivery === 'teen_delivery' && (
                   <div className="mt-6">
                     <TeenDeliveryInfo />
+                  </div>
+                )}
+
+                {/* Deliverer Selection for Teen Delivery */}
+                {selectedDelivery === 'teen_delivery' && coordinates && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Kies bezorgers per product
+                    </h3>
+                    <div className="space-y-6">
+                      {cartItems.map((item) => (
+                        <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                              {item.image && (
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">{item.title}</h4>
+                              <p className="text-sm text-gray-600">Aantal: {item.quantity}</p>
+                            </div>
+                          </div>
+                          
+                          <DelivererSelector
+                            productId={item.productId}
+                            buyerLat={coordinates.lat}
+                            buyerLng={coordinates.lng}
+                            onSelectDeliverer={(deliverer) => handleSelectDeliverer(item.productId, deliverer)}
+                            selectedDelivererId={selectedDeliverers[item.productId]?.id}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

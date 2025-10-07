@@ -1,40 +1,60 @@
-// Geocoding service using OpenStreetMap Nominatim (free)
+// Geocoding service to convert addresses to coordinates
+// Uses OpenStreetMap Nominatim API (free, no API key required)
+
 export interface GeocodingResult {
   lat: number;
   lng: number;
   display_name: string;
   address?: {
+    house_number?: string;
+    road?: string;
     city?: string;
-    town?: string;
-    village?: string;
-    state?: string;
-    country?: string;
     postcode?: string;
+    country?: string;
   };
 }
 
-export async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
+export interface GeocodingError {
+  error: string;
+  message: string;
+}
+
+export async function geocodeAddress(
+  address: string,
+  city: string,
+  postalCode: string
+): Promise<GeocodingResult | GeocodingError> {
   try {
+    // Construct the full address
+    const fullAddress = `${address}, ${postalCode} ${city}, Nederland`;
+    
+    console.log('Geocoding address:', fullAddress);
+    
+    // Use OpenStreetMap Nominatim API
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=nl&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&countrycodes=nl&limit=1&addressdetails=1`,
       {
         headers: {
           'User-Agent': 'HomeCheff-App/1.0'
         }
       }
     );
-    
+
     if (!response.ok) {
-      throw new Error('Geocoding failed');
+      throw new Error(`Geocoding API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     
-    if (data.length === 0) {
-      return null;
+    if (!data || data.length === 0) {
+      return {
+        error: 'NO_RESULTS',
+        message: 'Geen resultaten gevonden voor dit adres'
+      };
     }
-    
+
     const result = data[0];
+    
     return {
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
@@ -43,11 +63,17 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult |
     };
   } catch (error) {
     console.error('Geocoding error:', error);
-    return null;
+    return {
+      error: 'GEOCODING_ERROR',
+      message: error instanceof Error ? error.message : 'Onbekende fout bij geocoding'
+    };
   }
 }
 
-export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+export async function reverseGeocode(
+  lat: number,
+  lng: number
+): Promise<GeocodingResult | GeocodingError> {
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
@@ -57,34 +83,55 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
         }
       }
     );
-    
+
     if (!response.ok) {
-      throw new Error('Reverse geocoding failed');
+      throw new Error(`Reverse geocoding API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    return data.display_name || null;
+    
+    if (!data || !data.lat || !data.lon) {
+      return {
+        error: 'NO_RESULTS',
+        message: 'Geen resultaten gevonden voor deze coördinaten'
+      };
+    }
+
+    return {
+      lat: parseFloat(data.lat),
+      lng: parseFloat(data.lon),
+      display_name: data.display_name,
+      address: data.address
+    };
   } catch (error) {
     console.error('Reverse geocoding error:', error);
-    return null;
+    return {
+      error: 'REVERSE_GEOCODING_ERROR',
+      message: error instanceof Error ? error.message : 'Onbekende fout bij reverse geocoding'
+    };
   }
 }
 
+// Helper function to calculate distance between two coordinates
+export function calculateDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  // Check for null, undefined, or invalid coordinates
+  if (!lat1 || !lng1 || !lat2 || !lng2 || 
+      isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
+    return 0; // Return 0 if coordinates are invalid
+  }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in kilometers
+}

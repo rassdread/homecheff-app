@@ -6,6 +6,7 @@ export interface FilterState {
   subcategory: string;
   priceRange: { min: number; max: number };
   radius: number;
+  categoryRadius: {[key: string]: number}; // Nieuwe: categorie-specifieke radius
   location: string;
   sortBy: string;
   deliveryMode: string;
@@ -31,6 +32,12 @@ export const defaultFilters: FilterState = {
   subcategory: 'all',
   priceRange: { min: 0, max: 1000 },
   radius: 10,
+  categoryRadius: {
+    'CHEFF': 25,    // Chef products: local only
+    'GROWN': 50,    // Garden products: regional
+    'DESIGNER': 0,  // Designer products: unlimited (0 = unlimited)
+    'all': 10       // Default radius
+  },
   location: '',
   sortBy: 'newest',
   deliveryMode: 'all',

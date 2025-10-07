@@ -2,17 +2,18 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Layers, Bell, Grid3X3, List, Menu, X } from "lucide-react";
+import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import ImageSlider from "@/components/ui/ImageSlider";
 import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
-import MapView from "@/components/feed/MapView";
 import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
+import ItemCard from "@/components/ItemCard";
 import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 import ClickableName from "@/components/ui/ClickableName";
+import { calculateDistance } from "@/lib/geocoding";
 
 const CATEGORIES = {
   CHEFF: {
@@ -90,6 +91,7 @@ type HomeUser = {
 function HomePageContent() {
   const { data: session } = useSession();
   const [username, setUsername] = useState<string>("");
+  const [userCountry, setUserCountry] = useState<string>("NL");
   const [items, setItems] = useState<HomeItem[]>([]);
   const [users, setUsers] = useState<HomeUser[]>([]);
   const [q, setQ] = useState<string>("");
@@ -105,10 +107,47 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [showMap, setShowMap] = useState<boolean>(false);
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+  
+  // Location filtering states
+  const [locationMode, setLocationMode] = useState<'current' | 'postcode'>('current');
+  const [postcode, setPostcode] = useState<string>('');
+  const [postcodeLocation, setPostcodeLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
+  
+  // Category-specific radius settings
+  const [categoryRadius, setCategoryRadius] = useState<{[key: string]: number}>({
+    'CHEFF': 25,    // Chef products: local only
+    'GROWN': 50,    // Garden products: regional
+    'DESIGNER': 0,  // Designer products: unlimited (0 = unlimited)
+    'all': 10       // Default radius
+  });
+  
+  // Special radius settings for Caribbean and Suriname
+  const getSpecialRadius = (userCountry: string, category: string) => {
+    const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
+    const suriname = ['SR'];
+    
+    if (caribbeanCountries.includes(userCountry) || suriname.includes(userCountry)) {
+      // In Caribbean and Suriname, allow unlimited radius for all categories
+      // since these are small regions where people can easily travel between islands
+      return 0; // 0 = unlimited
+    }
+    
+    // Default radius for other countries
+    return categoryRadius[category] || categoryRadius['all'];
+  };
+  
+  // Radius labels for better UX
+  const getRadiusLabel = (radius: number) => {
+    if (radius === 0) return 'Wereldwijd';
+    if (radius <= 10) return 'Lokaal';
+    if (radius <= 50) return 'Regionaal';
+    if (radius <= 200) return 'Nationaal';
+    return 'Wereldwijd';
+  };
   
   // New state for advanced filters
   const [filters, setFilters] = useState(defaultFilters);
@@ -117,24 +156,52 @@ function HomePageContent() {
   const { savedSearches, saveSearch, loading: searchesLoading } = useSavedSearches();
   const { addNotification, requestPermission } = useNotifications();
 
-  // Functie om afstand te berekenen tussen twee GPS punten (Haversine formule)
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Straal van de aarde in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return Math.round(distance * 10) / 10; // Afronden op 1 decimaal
+  // Geocoding function for postcode lookup
+  const geocodePostcode = async (postcode: string) => {
+    if (!postcode || postcode.length < 6) return;
+    
+    setIsGeocoding(true);
+    try {
+      const response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=1`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.lat && data.lng) {
+          setPostcodeLocation({ lat: data.lat, lng: data.lng });
+          addNotification({
+            type: 'success',
+            title: 'Locatie gevonden',
+            message: `Zoekradius ingesteld op ${postcode}`,
+            duration: 3000,
+          });
+        }
+      } else {
+        addNotification({
+          type: 'error',
+          title: 'Locatie niet gevonden',
+          message: 'Controleer de postcode en probeer opnieuw',
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      addNotification({
+        type: 'error',
+        title: 'Fout bij locatie opzoeken',
+        message: 'Er is een fout opgetreden bij het opzoeken van de locatie',
+        duration: 5000,
+      });
+    } finally {
+      setIsGeocoding(false);
+    }
   };
+
 
   useEffect(() => {
     // Haal gebruikerslocatie op
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude
@@ -142,11 +209,31 @@ function HomePageContent() {
         },
         (error) => {
           console.log('Geolocation error:', error);
-          // Fallback naar Amsterdam als locatie niet beschikbaar is
-          setUserLocation({ lat: 52.3676, lng: 4.9041 });
+          if (error.code === error.PERMISSION_DENIED) {
+            console.log('Location permission denied by user');
+            // Don't set fallback location if user denied permission
+            // This way distance calculation will be skipped
+            setUserLocation(null);
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            console.log('Position unavailable');
+            setUserLocation(null);
+          } else if (error.code === error.TIMEOUT) {
+            console.log('Geolocation timeout');
+            setUserLocation(null);
+          } else {
+            console.log('Other geolocation error, using fallback');
+            // Fallback naar Amsterdam als locatie niet beschikbaar is
+            setUserLocation({ lat: 52.3676, lng: 4.9041 });
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
         }
       );
     } else {
+      console.log('Geolocation not supported');
       // Fallback naar Amsterdam als geolocation niet ondersteund wordt
       setUserLocation({ lat: 52.3676, lng: 4.9041 });
     }
@@ -155,17 +242,28 @@ function HomePageContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Starting data fetch...');
         setIsLoading(true);
         
         // Fetch products first with aggressive caching for better performance
+        console.log('Fetching products from /api/products...');
         const productsResponse = await fetch('/api/products', {
           cache: 'force-cache',
           next: { revalidate: 600 } // 10 minutes cache
         });
+        console.log('Products response status:', productsResponse.status);
+        
         if (productsResponse.ok) {
           const productsData = await productsResponse.json();
+          console.log('Products data received:', productsData);
+          console.log('Number of products:', productsData.items?.length || 0);
+          console.log('First product:', productsData.items?.[0]);
+          console.log('First product location:', productsData.items?.[0]?.location);
           setItems(productsData.items || []);
           setIsLoading(false); // Show content immediately after products load
+        } else {
+          console.error('Failed to fetch products:', productsResponse.status, productsResponse.statusText);
+          setIsLoading(false);
         }
         
         // Fetch profile and users in parallel (background) with caching
@@ -180,11 +278,14 @@ function HomePageContent() {
           }) : Promise.resolve({ ok: false })
         ]);
 
-        // Set username if user is logged in
+        // Set username and country if user is logged in
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           if (profileData.user?.name) {
             setUsername(profileData.user.name);
+          }
+          if (profileData.user?.country) {
+            setUserCountry(profileData.user.country);
           }
         }
         
@@ -216,18 +317,37 @@ function HomePageContent() {
 
 
   const filtered = useMemo(() => {
+    console.log('Filtering products...', {
+      searchType,
+      itemsCount: items.length,
+      q,
+      category,
+      subcategory,
+      priceRange,
+      radius,
+      userLocation
+    });
+    
+    if (items.length === 0) {
+      console.log('No items to filter');
+      return [];
+    }
+
     if (searchType === 'users') {
+      console.log('Not showing products, searchType is:', searchType);
       return []; // Will be handled by filteredUsers
     }
 
     const term = q.trim().toLowerCase();
     let list = items.map((it) => {
-      // Bereken afstand als gebruiker locatie en product locatie beschikbaar zijn
+      // Bereken afstand op basis van gekozen locatie mode
       let distanceKm: number | null = null;
-      if (userLocation && it.location?.lat && it.location?.lng) {
+      const searchLocation = locationMode === 'current' ? userLocation : postcodeLocation;
+      
+      if (searchLocation && it.location?.lat && it.location?.lng) {
         distanceKm = calculateDistance(
-          userLocation.lat, 
-          userLocation.lng, 
+          searchLocation.lat, 
+          searchLocation.lng, 
           it.location.lat, 
           it.location.lng
         );
@@ -259,10 +379,12 @@ function HomePageContent() {
       
       // Conditie filter verwijderd - alles is nieuw op HomeCheff
       
-      // Afstand filter - alleen filteren als afstand is berekend
-      if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && radius < 1000) {
-        if (it.location.distanceKm > radius) return false;
-      }
+    // Afstand filter - gebruik speciale radius voor Caribisch gebied en Suriname
+    // Use userCountry state instead of session
+    const currentRadius = getSpecialRadius(userCountry, category);
+    if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && currentRadius > 0) {
+      if (it.location.distanceKm > currentRadius) return false;
+    }
       
       // Locatie filter
       if (location.trim()) {
@@ -294,6 +416,7 @@ function HomePageContent() {
       }
     });
     
+    console.log('Filtered products count:', list.length);
     return list;
   }, [items, q, category, subcategory, priceRange, sortBy, location, radius, userLocation, searchType]);
 
@@ -519,15 +642,24 @@ function HomePageContent() {
                   </button>
                   <button
                     onClick={() => setShowMobileFilters(!showMobileFilters)}
-                    className={`p-3 rounded-xl transition-colors touch-manipulation ${
+                    className={`p-3 rounded-xl transition-all duration-200 touch-manipulation relative ${
                       showMobileFilters 
-                        ? 'bg-red-100 hover:bg-red-200 text-red-600' 
+                        ? 'bg-red-100 hover:bg-red-200 text-red-600 scale-105' 
+                        : (category !== 'all' || subcategory !== 'all' || priceRange.min > 0 || priceRange.max < 1000 || sortBy !== 'newest' || radius !== 10)
+                        ? 'bg-primary-brand hover:bg-primary-700 text-white shadow-lg'
                         : 'bg-blue-100 hover:bg-blue-200 text-blue-600'
                     }`}
                     title={showMobileFilters ? 'Filters sluiten' : 'Filters openen'}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     {showMobileFilters ? <X className="w-6 h-6" /> : <Filter className="w-6 h-6" />}
+                    {!showMobileFilters && (category !== 'all' || subcategory !== 'all' || priceRange.min > 0 || priceRange.max < 1000 || sortBy !== 'newest' || radius !== 10) && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-white font-bold">!</span>
+                      </div>
+                    )}
                   </button>
+                  
                 </div>
               </div>
 
@@ -577,13 +709,6 @@ function HomePageContent() {
                     {viewMode === 'grid' ? <List className="w-4 h-4 md:w-5 md:h-5" /> : <Grid3X3 className="w-4 h-4 md:w-5 md:h-5" />}
                   </button>
                   
-                  <button
-                    onClick={() => setShowMap(!showMap)}
-                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                    title="Kaart weergave"
-                  >
-                    <Layers className="w-4 h-4 md:w-5 md:h-5" />
-                  </button>
                   
                   <button
                     onClick={handleRequestNotificationPermission}
@@ -610,7 +735,7 @@ function HomePageContent() {
                 </div>
               )}
 
-              {/* Mobile Filters Panel */}
+              {/* Mobile Filters Panel - Nieuwe Mobiele Implementatie */}
               {showMobileFilters && (
                 <div className="md:hidden mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
@@ -618,33 +743,278 @@ function HomePageContent() {
                     <button
                       onClick={() => setShowMobileFilters(false)}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       <X className="w-6 h-6 text-gray-500" />
                     </button>
                   </div>
                   
-                  <div className="max-h-96 overflow-y-auto">
-                    <AdvancedFiltersPanel
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      savedSearches={savedSearches}
-                      onSaveSearch={handleSaveSearch}
-                      onLoadSearch={handleLoadSearch}
-                      onClearFilters={handleClearFilters}
-                      searchType={searchType}
-                    />
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {/* Categorie Filter - Mobiel geoptimaliseerd */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Categorie
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: "all", label: "Alle", icon: "🔍" },
+                          { value: "CHEFF", label: "Chef", icon: "👨‍🍳" },
+                          { value: "GROWN", label: "Garden", icon: "🌱" },
+                          { value: "DESIGNER", label: "Designer", icon: "🎨" }
+                        ].map((cat) => (
+                          <button
+                            key={cat.value}
+                            onClick={() => {
+                              setCategory(cat.value);
+                              setSubcategory("all");
+                            }}
+                            className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
+                              category === cat.value
+                                ? 'bg-primary-brand text-white shadow-lg scale-105'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
+                            }`}
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
+                          >
+                            <div className="text-lg mb-1">{cat.icon}</div>
+                            <div>{cat.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Subcategorie Filter */}
+                    {category !== "all" && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Subcategorie
+                        </label>
+                        <select
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                          className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                          style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          <option value="all">Alle subcategorieën</option>
+                          {category === "CHEFF" && (
+                            <>
+                              <option value="Ontbijt">Ontbijt</option>
+                              <option value="Lunch">Lunch</option>
+                              <option value="Diner">Diner</option>
+                              <option value="Snacks">Snacks</option>
+                              <option value="Desserts">Desserts</option>
+                            </>
+                          )}
+                          {category === "GROWN" && (
+                            <>
+                              <option value="Groenten">Groenten</option>
+                              <option value="Fruit">Fruit</option>
+                              <option value="Kruiden">Kruiden</option>
+                              <option value="Bloemen">Bloemen</option>
+                              <option value="Planten">Planten</option>
+                            </>
+                          )}
+                          {category === "DESIGNER" && (
+                            <>
+                              <option value="Kleding">Kleding</option>
+                              <option value="Accessoires">Accessoires</option>
+                              <option value="Woondecoratie">Woondecoratie</option>
+                              <option value="Kunst">Kunst</option>
+                              <option value="Handwerk">Handwerk</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Prijs Range Filter */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Prijs (€)
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Van</label>
+                          <input
+                            type="number"
+                            placeholder="0"
+                            value={priceRange.min || ''}
+                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseFloat(e.target.value) || 0 }))}
+                            className="w-full px-3 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Tot</label>
+                          <input
+                            type="number"
+                            placeholder="1000"
+                            value={priceRange.max || ''}
+                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseFloat(e.target.value) || 1000 }))}
+                            className="w-full px-3 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Afstand Filter - Categorie-specifiek */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Zoekradius
+                        {category !== 'all' && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            {(() => {
+                              // Use userCountry state
+                              const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
+                              const suriname = ['SR'];
+                              
+                              if (caribbeanCountries.includes(userCountry)) {
+                                return 'Caribisch - Onbeperkt';
+                              } else if (suriname.includes(userCountry)) {
+                                return 'Suriname - Onbeperkt';
+                              } else {
+                                return category === 'CHEFF' ? 'Lokaal' : 
+                                       category === 'GROWN' ? 'Regionaal' : 
+                                       category === 'DESIGNER' ? 'Wereldwijd' : 'Standaard';
+                              }
+                            })()}
+                          </span>
+                        )}
+                      </label>
+                      
+                      {/* Dynamische radius opties op basis van categorie */}
+                      <div className="grid grid-cols-6 gap-2">
+                        {(() => {
+                          const currentCategory = category === 'all' ? 'all' : category;
+                          // Use userCountry state
+                          const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
+                          const suriname = ['SR'];
+                          
+                          // Special options for Caribbean and Suriname
+                          if (caribbeanCountries.includes(userCountry) || suriname.includes(userCountry)) {
+                            return [5, 10, 25, 50, 100, 0].map((km) => (
+                              <button
+                                key={km}
+                                onClick={() => {
+                                  setCategoryRadius(prev => ({
+                                    ...prev,
+                                    [currentCategory]: km
+                                  }));
+                                  setRadius(km); // Voor backward compatibility
+                                }}
+                                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
+                                  (categoryRadius[currentCategory] || categoryRadius['all']) === km
+                                    ? 'bg-primary-brand text-white shadow-lg scale-105'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
+                                }`}
+                                style={{ WebkitTapHighlightColor: 'transparent' }}
+                              >
+                                {km === 0 ? '🌍' : 
+                                 km === 100 ? '🏝️' : 
+                                 `${km} km`}
+                              </button>
+                            ));
+                          }
+                          
+                          // Default options for other countries
+                          const radiusOptions = currentCategory === 'DESIGNER' 
+                            ? [5, 10, 25, 50, 200, 0] // 0 = onbeperkt voor designer
+                            : currentCategory === 'GROWN'
+                            ? [5, 10, 25, 50, 200, 0] // Garden kan ook nationaal/wereldwijd
+                            : [5, 10, 25, 50, 200]; // CHEFF: lokaal tot nationaal
+                          
+                          return radiusOptions.map((km) => (
+                            <button
+                              key={km}
+                              onClick={() => {
+                                setCategoryRadius(prev => ({
+                                  ...prev,
+                                  [currentCategory]: km
+                                }));
+                                setRadius(km); // Voor backward compatibility
+                              }}
+                              className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
+                                (categoryRadius[currentCategory] || categoryRadius['all']) === km
+                                  ? 'bg-primary-brand text-white shadow-lg scale-105'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
+                              }`}
+                              style={{ WebkitTapHighlightColor: 'transparent' }}
+                            >
+                              {km === 0 ? '🌍' : 
+                               km === 200 ? '🇳🇱' : 
+                               `${km} km`}
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 text-center">
+                        {(() => {
+                          // Use userCountry state
+                          const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
+                          const suriname = ['SR'];
+                          const currentRadius = getSpecialRadius(userCountry, category);
+                          
+                          if (caribbeanCountries.includes(userCountry)) {
+                            if (currentRadius === 0) {
+                              return '🏝️ Caribisch - Alle eilanden';
+                            } else if (currentRadius >= 100) {
+                              return '🏝️ Meerdere eilanden';
+                            } else {
+                              return `🏝️ Binnen ${currentRadius} km`;
+                            }
+                          } else if (suriname.includes(userCountry)) {
+                            if (currentRadius === 0) {
+                              return '🇸🇷 Suriname - Onbeperkt';
+                            } else {
+                              return `🇸🇷 Binnen ${currentRadius} km`;
+                            }
+                          } else {
+                            if (currentRadius === 0) {
+                              return '🌍 Wereldwijd - Alle producten';
+                            } else if (currentRadius >= 100) {
+                              return 'Alle producten';
+                            } else {
+                              return `Producten binnen ${currentRadius} km`;
+                            }
+                          }
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Sorteer Filter */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Sorteren op
+                      </label>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                        style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        <option value="newest">Nieuwste eerst</option>
+                        <option value="oldest">Oudste eerst</option>
+                        <option value="price-low">Prijs laag-hoog</option>
+                        <option value="price-high">Prijs hoog-laag</option>
+                        <option value="distance">Afstand</option>
+                        <option value="name">Naam A-Z</option>
+                      </select>
+                    </div>
                   </div>
                   
                   <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
                     <button
                       onClick={handleClearFilters}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium touch-manipulation"
+                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium touch-manipulation active:scale-95"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       Reset
                     </button>
                     <button
                       onClick={() => setShowMobileFilters(false)}
-                      className="flex-1 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 rounded-xl transition-colors font-medium touch-manipulation"
+                      className="flex-1 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 rounded-xl transition-colors font-medium touch-manipulation active:scale-95"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       Toepassen
                     </button>
@@ -652,6 +1022,93 @@ function HomePageContent() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Location Status */}
+      <section className="py-4 bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {userLocation ? (
+                <>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">
+                    Locatie gedetecteerd - Afstanden worden berekend
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-700">
+                      Locatie niet beschikbaar - Geen afstandsberekening
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Klik op "Locatie toestaan" om afstanden te zien
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+            {!userLocation && (
+              <button
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
+                        setUserLocation({
+                          lat: position.coords.latitude,
+                          lng: position.coords.longitude
+                        });
+                        addNotification({
+                          type: 'success',
+                          title: 'Locatie toegestaan',
+                          message: 'Afstanden worden nu berekend',
+                          duration: 3000,
+                        });
+                      },
+                      (error) => {
+                        console.log('Geolocation error:', error);
+                        let errorMessage = 'Locatie kon niet worden opgehaald';
+                        
+                        if (error.code === error.PERMISSION_DENIED) {
+                          errorMessage = 'Locatie toegang geweigerd. Ga naar je browser instellingen om locatie toe te staan.';
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                          errorMessage = 'Locatie niet beschikbaar. Controleer je GPS instellingen.';
+                        } else if (error.code === error.TIMEOUT) {
+                          errorMessage = 'Locatie opzoeken duurde te lang. Probeer opnieuw.';
+                        }
+                        
+                        addNotification({
+                          type: 'error',
+                          title: 'Locatie fout',
+                          message: errorMessage,
+                          duration: 5000,
+                        });
+                      },
+                      {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 300000 // 5 minutes
+                      }
+                    );
+                  } else {
+                    addNotification({
+                      type: 'error',
+                      title: 'Geolocation niet ondersteund',
+                      message: 'Je browser ondersteunt geen locatie functionaliteit',
+                      duration: 5000,
+                    });
+                  }
+                }}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Locatie toestaan
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -978,27 +1435,6 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* Map View */}
-      {showMap && (
-        <MapView
-          products={filtered.map(item => ({
-            ...item,
-            image: item.image || undefined,
-            location: {
-              ...item.location,
-              distanceKm: item.location.distanceKm || undefined
-            },
-            seller: item.seller ? {
-              name: item.seller.name || undefined,
-              avatar: item.seller.avatar || undefined
-            } : undefined
-          }))}
-          userLocation={userLocation}
-          onProductClick={handleProductClick}
-          isOpen={showMap}
-          onClose={() => setShowMap(false)}
-        />
-      )}
 
       {/* Delivery Section */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-secondary-50 to-secondary-100">

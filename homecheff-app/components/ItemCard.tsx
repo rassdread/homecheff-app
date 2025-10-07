@@ -187,29 +187,27 @@ export default function ItemCard({ item }: ItemCardProps) {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3 text-neutral-500" />
                   <span className="text-xs text-neutral-500">
                     {formatTimeAgo(item.createdAt)}
                   </span>
                 </div>
-                {item.distanceKm && (
+                
+                {/* Locatie en afstand gecombineerd */}
+                {(item.place || item.distanceKm) && (
                   <div className="flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-neutral-500" />
                     <span className="text-xs text-neutral-500">
-                      {formatDistance(item.distanceKm)}
+                      {item.place && item.distanceKm 
+                        ? `${item.place} (${formatDistance(item.distanceKm)})`
+                        : item.place || formatDistance(item.distanceKm!)
+                      }
                     </span>
                   </div>
                 )}
-                {item.place && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-neutral-500" />
-                    <span className="text-xs text-neutral-500">
-                      {item.place}
-                    </span>
-                  </div>
-                )}
+                
                 {item.favoriteCount && item.favoriteCount > 0 && (
                   <div className="flex items-center gap-1">
                     <span className="text-xs">❤️</span>

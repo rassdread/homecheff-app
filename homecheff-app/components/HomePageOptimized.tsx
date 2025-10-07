@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, MapPin, Star, Heart, MoreHorizontal, Clock, Truck, Package, Navigation, Map } from 'lucide-react';
-import MapView from './feed/MapView';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 import { getCurrentLocation } from '@/lib/geolocation';
@@ -72,12 +71,17 @@ export default function HomePageOptimized() {
   const [items, setItems] = useState<HomeItem[]>([]);
   const [q, setQ] = useState<string>("");
   const [radius, setRadius] = useState<number>(10);
-  const [category, setCategory] = useState<string>("all");
-  const [subcategory, setSubcategory] = useState<string>("all");
-  const [deliveryMode, setDeliveryMode] = useState<string>("all");
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
-  const [sortBy, setSortBy] = useState<string>("newest");
+  // Nieuwe filter state voor mobiele optimalisatie
+  const [filters, setFilters] = useState({
+    category: "all",
+    subcategory: "all", 
+    priceMin: 0,
+    priceMax: 1000,
+    sortBy: "newest",
+    deliveryMode: "all"
+  });
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   // Geolocatie state
@@ -85,7 +89,6 @@ export default function HomePageOptimized() {
   const [locationError, setLocationError] = useState<string>("");
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
   const [manualLocation, setManualLocation] = useState<string>("");
-  const [showMapView, setShowMapView] = useState<boolean>(false);
 
   // Gebruikersnaam ophalen
   useEffect(() => {
@@ -116,26 +119,6 @@ export default function HomePageOptimized() {
     }
   };
 
-  // Transform items for MapView
-  const mapViewProducts = useMemo(() => {
-    const filteredItems = filtered;
-    return filteredItems.map(item => ({
-      id: item.id,
-      title: item.title,
-      priceCents: item.priceCents,
-      image: item.image || undefined, // Convert null to undefined
-      location: {
-        lat: item.lat || undefined,
-        lng: item.lng || undefined,
-        place: item.place || undefined,
-        distanceKm: item.distanceKm
-      },
-      seller: {
-        name: item.seller?.name || undefined,
-        avatar: item.seller?.avatar || undefined
-      }
-    }));
-  }, [items, q, category, subcategory, priceRange, sortBy]);
 
   // Automatisch locatie ophalen bij eerste load (niet blokkerend)
   useEffect(() => {
@@ -175,8 +158,8 @@ export default function HomePageOptimized() {
         }
         
         // Add category filter if not "all"
-        if (category !== "all") {
-          params.set("vertical", category);
+        if (filters.category !== "all") {
+          params.set("vertical", filters.category);
         }
         
         if (params.toString()) {
@@ -235,9 +218,9 @@ export default function HomePageOptimized() {
     return () => {
       isMounted = false;
     };
-  }, [userLocation, manualLocation, radius, q, category]);
+  }, [userLocation, manualLocation, radius, q, filters.category]);
 
-  // Geoptimaliseerde filtering
+  // Nieuwe mobiel-geoptimaliseerde filtering
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     let list = items;
@@ -255,30 +238,31 @@ export default function HomePageOptimized() {
     }
     
     // Categorie filter
-    if (category !== "all") {
+    if (filters.category !== "all") {
       const categoryMap: { [key: string]: string } = {
         "cheff": "CHEFF",
         "garden": "GROWN", 
         "designer": "DESIGNER"
       };
-      list = list.filter((it) => it.category === categoryMap[category]);
+      const mappedCategory = categoryMap[filters.category];
+      list = list.filter((it) => it.category === mappedCategory);
     }
     
     // Subcategorie filter
-    if (subcategory !== "all" && subcategory) {
-      list = list.filter((it) => it.subcategory === subcategory);
+    if (filters.subcategory !== "all" && filters.subcategory) {
+      list = list.filter((it) => it.subcategory === filters.subcategory);
     }
     
     // Prijs filter
     list = list.filter((it) => {
       if (!it.priceCents) return true;
       const price = it.priceCents / 100;
-      return price >= priceRange.min && price <= priceRange.max;
+      return price >= filters.priceMin && price <= filters.priceMax;
     });
     
     // Sorteer
     return list.sort((a, b) => {
-      switch (sortBy) {
+      switch (filters.sortBy) {
         case "price-low":
           return (a.priceCents || 0) - (b.priceCents || 0);
         case "price-high":
@@ -294,7 +278,17 @@ export default function HomePageOptimized() {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
     });
-  }, [items, q, category, subcategory, priceRange, sortBy]);
+  }, [items, q, filters]);
+
+  // Bereken actieve filter count
+  useEffect(() => {
+    let count = 0;
+    if (filters.category !== "all") count++;
+    if (filters.subcategory !== "all") count++;
+    if (filters.priceMin > 0 || filters.priceMax < 1000) count++;
+    if (filters.sortBy !== "newest") count++;
+    setActiveFilterCount(count);
+  }, [filters]);
 
   return (
     <main className="min-h-screen bg-neutral-50">
@@ -323,8 +317,9 @@ export default function HomePageOptimized() {
                     <input
                       value={manualLocation}
                       onChange={(e) => setManualLocation(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                      className="w-full pl-12 pr-4 py-4 text-base sm:text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none touch-manipulation"
                       placeholder="Stad of postcode (bijv. Amsterdam, 1012AB)"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     />
                   </div>
                   
@@ -332,17 +327,20 @@ export default function HomePageOptimized() {
                   <button
                     onClick={handleGetCurrentLocation}
                     disabled={isGettingLocation}
-                    className="px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl transition-colors flex items-center gap-2 min-h-[48px] min-w-[48px]"
+                    className="px-4 sm:px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl transition-colors flex items-center gap-2 min-h-[48px] min-w-[48px] touch-manipulation active:bg-blue-800"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     {isGettingLocation ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         <span className="hidden sm:inline">Laden...</span>
+                        <span className="sm:hidden text-sm font-medium">...</span>
                       </>
                     ) : (
                       <>
                         <Navigation className="w-5 h-5" />
                         <span className="hidden sm:inline">Mijn Locatie</span>
+                        <span className="sm:hidden text-sm font-medium">Locatie</span>
                       </>
                     )}
                   </button>
@@ -355,8 +353,9 @@ export default function HomePageOptimized() {
                     <input
                       value={q}
                       onChange={(e) => setQ(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
+                      className="w-full pl-12 pr-4 py-4 text-base sm:text-lg border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none touch-manipulation"
                       placeholder="Zoek naar gerechten, producten, makers of verkopers..."
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     />
                   </div>
                   
@@ -368,7 +367,8 @@ export default function HomePageOptimized() {
                     <select
                       value={radius}
                       onChange={(e) => setRadius(Number(e.target.value))}
-                      className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                      className="px-3 py-3 text-base border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                      style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
                     >
                       <option value={5}>5 km</option>
                       <option value={10}>10 km</option>
@@ -382,33 +382,29 @@ export default function HomePageOptimized() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('Filters button clicked, current showFilters:', showFilters);
                       setShowFilters(!showFilters);
                     }}
-                    className="px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] active:bg-neutral-300"
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    <Filter className="w-5 h-5" />
-                    <span className="hidden sm:inline">Filters</span>
-                  </button>
-                  
-                  {/* Kaart Weergave Knop */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setShowMapView(!showMapView);
-                    }}
-                    className={`px-6 py-4 rounded-xl transition-colors flex items-center gap-2 relative z-10 touch-manipulation min-h-[48px] min-w-[48px] ${
-                      showMapView 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
+                    className={`px-3 sm:px-4 py-3 sm:py-4 rounded-xl transition-all duration-200 flex items-center gap-2 relative z-10 touch-manipulation min-h-[44px] sm:min-h-[48px] ${
+                      showFilters || activeFilterCount > 0
+                        ? 'bg-primary-brand hover:bg-primary-700 text-white shadow-lg scale-105'
+                        : 'bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 shadow-sm'
                     }`}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
-                    <Map className="w-5 h-5" />
-                    <span className="hidden sm:inline">Kaart</span>
+                    <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline text-sm font-medium">
+                      {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
+                    </span>
+                    <span className="sm:hidden text-xs font-medium">
+                      {activeFilterCount > 0 ? `${activeFilterCount}` : 'Filter'}
+                    </span>
+                    {activeFilterCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-white font-bold">{activeFilterCount}</span>
+                      </div>
+                    )}
                   </button>
+                  
                 </div>
                 
                 {/* Location Status */}
@@ -433,98 +429,135 @@ export default function HomePageOptimized() {
         </div>
       </section>
 
-      {/* Filters Section */}
+      {/* Nieuwe Mobiele Filter Section */}
       {showFilters && (
-        <section className="py-6 bg-white border-b border-neutral-200">
+        <section className="py-4 bg-white border-b border-neutral-200 shadow-lg">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+            {/* Filter Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900">Filters</h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <span className="text-2xl">×</span>
+              </button>
+            </div>
+
+            {/* Filter Grid - Mobiel geoptimaliseerd */}
+            <div className="space-y-4">
+              {/* Categorie Filter */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-neutral-700">
                   Categorie
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                >
-                  <option value="all">Alle categorieën</option>
-                  <option value="CHEFF">Chef</option>
-                  <option value="GROWN">Gekweekt</option>
-                  <option value="DESIGNER">Designer</option>
-                </select>
-              </div>
-
-              {/* Subcategory Filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Subcategorie
-                </label>
-                <select
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                >
-                  <option value="all">Alle subcategorieën</option>
-                  {category === "CHEFF" && (
-                    <>
-                      <option value="Gerechten">Gerechten</option>
-                      <option value="Desserts">Desserts</option>
-                      <option value="Dranken">Dranken</option>
-                      <option value="Snacks">Snacks</option>
-                    </>
-                  )}
-                  {category === "GROWN" && (
-                    <>
-                      <option value="Groenten">Groenten</option>
-                      <option value="Fruit">Fruit</option>
-                      <option value="Kruiden">Kruiden</option>
-                      <option value="Zaden">Zaden</option>
-                    </>
-                  )}
-                  {category === "DESIGNER" && (
-                    <>
-                      <option value="Kleding">Kleding</option>
-                      <option value="Accessoires">Accessoires</option>
-                      <option value="Kunst">Kunst</option>
-                      <option value="Handwerk">Handwerk</option>
-                    </>
-                  )}
-                </select>
-              </div>
-
-              {/* Price Range Filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Prijs (€)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={priceRange.min || ''}
-                    onChange={(e) => setPriceRange({...priceRange, min: parseFloat(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={priceRange.max || ''}
-                    onChange={(e) => setPriceRange({...priceRange, max: parseFloat(e.target.value) || 1000})}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                  />
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "all", label: "Alle", icon: "🔍" },
+                    { value: "cheff", label: "Chef", icon: "👨‍🍳" },
+                    { value: "garden", label: "Gekweekt", icon: "🌱" },
+                    { value: "designer", label: "Designer", icon: "🎨" }
+                  ].map((cat) => (
+                    <button
+                      key={cat.value}
+                      onClick={() => setFilters(prev => ({ ...prev, category: cat.value, subcategory: "all" }))}
+                      className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
+                        filters.category === cat.value
+                          ? 'bg-primary-brand text-white shadow-lg scale-105'
+                          : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 active:scale-95'
+                      }`}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                      <div className="text-lg mb-1">{cat.icon}</div>
+                      <div>{cat.label}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Sort Filter */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+              {/* Subcategorie Filter */}
+              {filters.category !== "all" && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-neutral-700">
+                    Subcategorie
+                  </label>
+                  <select
+                    value={filters.subcategory}
+                    onChange={(e) => setFilters(prev => ({ ...prev, subcategory: e.target.value }))}
+                    className="w-full px-4 py-3 text-base border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                    style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <option value="all">Alle subcategorieën</option>
+                    {filters.category === "cheff" && (
+                      <>
+                        <option value="Gerechten">Gerechten</option>
+                        <option value="Desserts">Desserts</option>
+                        <option value="Dranken">Dranken</option>
+                        <option value="Snacks">Snacks</option>
+                      </>
+                    )}
+                    {filters.category === "garden" && (
+                      <>
+                        <option value="Groenten">Groenten</option>
+                        <option value="Fruit">Fruit</option>
+                        <option value="Kruiden">Kruiden</option>
+                        <option value="Zaden">Zaden</option>
+                      </>
+                    )}
+                    {filters.category === "designer" && (
+                      <>
+                        <option value="Kleding">Kleding</option>
+                        <option value="Accessoires">Accessoires</option>
+                        <option value="Kunst">Kunst</option>
+                        <option value="Handwerk">Handwerk</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              )}
+
+              {/* Prijs Range Filter */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-neutral-700">
+                  Prijs (€)
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-neutral-500 mb-1">Van</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={filters.priceMin || ''}
+                      onChange={(e) => setFilters(prev => ({ ...prev, priceMin: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-3 py-3 text-base border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-neutral-500 mb-1">Tot</label>
+                    <input
+                      type="number"
+                      placeholder="1000"
+                      value={filters.priceMax || ''}
+                      onChange={(e) => setFilters(prev => ({ ...prev, priceMax: parseFloat(e.target.value) || 1000 }))}
+                      className="w-full px-3 py-3 text-base border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sorteer Filter */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-neutral-700">
                   Sorteren op
                 </label>
                 <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                  style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
                 >
                   <option value="newest">Nieuwste eerst</option>
                   <option value="oldest">Oudste eerst</option>
@@ -536,23 +569,29 @@ export default function HomePageOptimized() {
             </div>
 
             {/* Filter Actions */}
-            <div className="flex justify-between items-center mt-6 pt-6 border-t border-neutral-200">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-neutral-200">
               <button
                 onClick={() => {
-                  setCategory('all');
-                  setSubcategory('all');
-                  setPriceRange({ min: 0, max: 1000 });
-                  setSortBy('newest');
+                  setFilters({
+                    category: "all",
+                    subcategory: "all",
+                    priceMin: 0,
+                    priceMax: 1000,
+                    sortBy: "newest",
+                    deliveryMode: "all"
+                  });
                 }}
-                className="text-neutral-600 hover:text-neutral-800 font-medium"
+                className="flex-1 px-4 py-3 text-neutral-600 font-medium border-2 border-neutral-300 rounded-xl hover:bg-neutral-50 transition-colors touch-manipulation active:scale-95"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                Alle filters wissen
+                Wissen
               </button>
               <button
                 onClick={() => setShowFilters(false)}
-                className="px-6 py-2 bg-primary-brand text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex-1 px-4 py-3 bg-primary-brand text-white font-medium rounded-xl hover:bg-primary-700 transition-colors touch-manipulation active:scale-95"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                Filters toepassen
+                Toepassen
               </button>
             </div>
           </div>
@@ -603,9 +642,14 @@ export default function HomePageOptimized() {
                 <button
                   onClick={() => {
                     setQ('');
-                    setCategory('all');
-                    setSubcategory('all');
-                    setPriceRange({ min: 0, max: 1000 });
+                    setFilters({
+                      category: "all",
+                      subcategory: "all",
+                      priceMin: 0,
+                      priceMax: 1000,
+                      sortBy: "newest",
+                      deliveryMode: "all"
+                    });
                   }}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
@@ -623,17 +667,6 @@ export default function HomePageOptimized() {
         </div>
       </section>
       
-      {/* Map View Modal */}
-      <MapView
-        products={mapViewProducts}
-        userLocation={userLocation}
-        onProductClick={(product) => {
-          // Navigate to product page
-          window.location.href = `/product/${product.id}`;
-        }}
-        isOpen={showMapView}
-        onClose={() => setShowMapView(false)}
-      />
     </main>
   );
 }

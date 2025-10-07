@@ -35,7 +35,10 @@ export default function AddToCartButton({
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    addItem(product);
+    addItem({
+      ...product,
+      productId: product.id
+    });
     setIsAdding(false);
     setIsAdded(true);
     

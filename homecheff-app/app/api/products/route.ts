@@ -48,7 +48,8 @@ export async function GET(req: Request) {
                 name: true, 
                 profileImage: true, 
                 username: true,
-                buyerRoles: true
+                buyerRoles: true,
+                place: true
               },
             }
           }
@@ -105,7 +106,7 @@ export async function GET(req: Request) {
       subcategory: null, // No subcategory field in Product model
       delivery: p.delivery,
       location: {
-        place: p.seller?.User?.name ? `${p.seller.User.name}'s locatie` : 'Onbekende locatie',
+        place: p.seller?.User?.place || 'Locatie onbekend',
         city: 'Nederland', // Default city, could be enhanced with actual location data
         lat: p.seller?.lat ?? null,
         lng: p.seller?.lng ?? null,
