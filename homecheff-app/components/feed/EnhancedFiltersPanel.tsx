@@ -57,10 +57,12 @@ interface EnhancedFiltersPanelProps {
   onLocationUpdate: (location: { lat: number; lng: number }) => void;
 }
 
+import { CATEGORIES as BASE_CATEGORIES } from "@/lib/categories";
+
 const CATEGORIES = {
-  CHEFF: { label: "Chef", icon: "🍳", color: "bg-orange-100 text-orange-800" },
-  GROWN: { label: "Garden", icon: "🌱", color: "bg-green-100 text-green-800" },
-  DESIGNER: { label: "Designer", icon: "🎨", color: "bg-purple-100 text-purple-800" }
+  CHEFF: { ...BASE_CATEGORIES.CHEFF, color: "bg-orange-100 text-orange-800" },
+  GROWN: { ...BASE_CATEGORIES.GROWN, color: "bg-green-100 text-green-800" },
+  DESIGNER: { ...BASE_CATEGORIES.DESIGNER, color: "bg-purple-100 text-purple-800" }
 };
 
 const CUISINES = [

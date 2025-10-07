@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { calculateDistance } from "@/lib/geography";
+import { calculateDistance } from "@/lib/geocoding";
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -277,8 +277,10 @@ export async function GET(req: NextRequest) {
       if ((item as any).lat !== null && (item as any).lng !== null && 
           !isNaN((item as any).lat) && !isNaN((item as any).lng)) {
         (item as any).distanceKm = calculateDistance(
-          { lat: userLat, lng: userLng },
-          { lat: (item as any).lat, lng: (item as any).lng }
+          userLat,
+          userLng,
+          (item as any).lat,
+          (item as any).lng
         );
       }
     });

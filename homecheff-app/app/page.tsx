@@ -15,30 +15,7 @@ import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 import ClickableName from "@/components/ui/ClickableName";
 import { calculateDistance } from "@/lib/geocoding";
 
-const CATEGORIES = {
-  CHEFF: {
-    label: "Chef",
-    icon: "🍳",
-    subcategories: ["Ontbijt", "Lunch", "Diner", "Snacks", "Desserts"]
-  },
-  GROWN: {
-    label: "Garden",
-    icon: "🌱",
-    subcategories: ["Groenten", "Fruit", "Kruiden", "Bloemen", "Planten"]
-  },
-  DESIGNER: {
-    label: "Designer",
-    icon: "🎨",
-    subcategories: ["Kleding", "Accessoires", "Woondecoratie", "Kunst", "Handwerk"]
-  }
-};
-
-// Map database category values to display values
-const CATEGORY_MAPPING = {
-  'CHEFF': 'CHEFF',
-  'GROWN': 'GROWN', // Keep as GROWN to match database
-  'DESIGNER': 'DESIGNER'
-};
+import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
 
 type HomeItem = {
   id: string;

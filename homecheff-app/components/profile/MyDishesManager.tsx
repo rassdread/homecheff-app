@@ -29,9 +29,12 @@ type UploadedFile = {
   isMain: boolean;
 };
 
+import { CATEGORIES as BASE_CATEGORIES } from "@/lib/categories";
+
+// Extended categories for MyDishesManager with more detailed subcategories
 const CATEGORIES = {
   CHEFF: {
-    label: "Chef",
+    ...BASE_CATEGORIES.CHEFF,
     itemName: "gerecht",
     addButtonText: "Nieuw Gerecht",
     subcategories: [
@@ -66,7 +69,7 @@ const CATEGORIES = {
     ]
   },
   GROWN: {
-    label: "Garden",
+    ...BASE_CATEGORIES.GROWN,
     itemName: "kweek",
     addButtonText: "Nieuwe Kweek",
     subcategories: [
@@ -94,7 +97,7 @@ const CATEGORIES = {
     ]
   },
   DESIGNER: {
-    label: "Designer",
+    ...BASE_CATEGORIES.DESIGNER,
     itemName: "creatie",
     addButtonText: "Nieuwe Creatie",
     subcategories: [
