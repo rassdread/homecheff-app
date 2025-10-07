@@ -84,12 +84,12 @@ export async function GET(req: NextRequest) {
         }
 
         // Calculate distance from delivery user to seller
-        const distance = calculateDistance(
+        const distance = Math.round(calculateDistance(
           deliveryUser.lat!,
           deliveryUser.lng!,
           product.seller.lat!,
           product.seller.lng!
-        );
+        ) * 10) / 10;
 
         return {
           ...deliveryOrder,

@@ -419,12 +419,12 @@ function HomePageContent() {
       const searchLocation = startLocationCoords || (locationMode === 'current' ? userLocation : postcodeLocation);
       
       if (searchLocation && it.location?.lat && it.location?.lng) {
-        distanceKm = calculateDistance(
+        distanceKm = Math.round(calculateDistance(
           searchLocation.lat, 
           searchLocation.lng, 
           it.location.lat, 
           it.location.lng
-        );
+        ) * 10) / 10;
       }
 
       return {
@@ -463,12 +463,12 @@ function HomePageContent() {
     if (it.location?.distanceKm !== null && it.location?.distanceKm !== undefined && currentRadius > 0 && referenceLocation) {
       // Herbereken afstand vanaf startlocatie als die is ingesteld
       if (startLocationCoords && it.location?.lat && it.location?.lng) {
-        const distance = calculateDistance(
+        const distance = Math.round(calculateDistance(
           startLocationCoords.lat,
           startLocationCoords.lng,
           it.location.lat,
           it.location.lng
-        );
+        ) * 10) / 10;
         if (distance > currentRadius) return false;
       } else if (it.location.distanceKm > currentRadius) {
         return false;
@@ -520,12 +520,12 @@ function HomePageContent() {
       let distanceKm: number | null = null;
       const referenceLocation = startLocationCoords || userLocation;
       if (referenceLocation && user.location?.lat && user.location?.lng) {
-        distanceKm = calculateDistance(
+        distanceKm = Math.round(calculateDistance(
           referenceLocation.lat, 
           referenceLocation.lng, 
           user.location.lat, 
           user.location.lng
-        );
+        ) * 10) / 10;
       }
 
       return {
@@ -1485,7 +1485,7 @@ function HomePageContent() {
                             {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
                               <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
                                 <span>📍</span>
-                                <span>{item.location.distanceKm} km</span>
+                                <span>{item.location.distanceKm.toFixed(1)} km</span>
                               </div>
                             )}
                           </div>

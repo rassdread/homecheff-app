@@ -279,7 +279,7 @@ export default function SmartRecommendations({
                     </p>
                     {product.location?.distanceKm && (
                       <p className="text-xs text-gray-500">
-                        {product.location.distanceKm}km
+                        {product.location.distanceKm.toFixed(1)}km
                       </p>
                     )}
                   </div>

@@ -276,12 +276,12 @@ export async function GET(req: NextRequest) {
       // Only calculate distance for items with real location data (not null)
       if ((item as any).lat !== null && (item as any).lng !== null && 
           !isNaN((item as any).lat) && !isNaN((item as any).lng)) {
-        (item as any).distanceKm = calculateDistance(
+        (item as any).distanceKm = Math.round(calculateDistance(
           userLat,
           userLng,
           (item as any).lat,
           (item as any).lng
-        );
+        ) * 10) / 10;
       }
     });
   }

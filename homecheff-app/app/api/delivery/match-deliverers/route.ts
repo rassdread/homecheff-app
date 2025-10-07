@@ -84,22 +84,22 @@ export async function GET(req: NextRequest) {
     const matchedDeliverers = deliveryProfiles
       .map(delivery => {
         // Calculate distance from delivery person to seller
-        const distanceToSeller = calculateDistance(
+        const distanceToSeller = Math.round(calculateDistance(
           delivery.user.lat!,
           delivery.user.lng!,
           product.seller.lat!,
           product.seller.lng!
-        );
+        ) * 10) / 10;
 
         // Calculate distance from seller to buyer (if buyer location provided)
         let distanceToBuyer = 0;
         if (buyerLat && buyerLng) {
-          distanceToBuyer = calculateDistance(
+          distanceToBuyer = Math.round(calculateDistance(
             product.seller.lat!,
             product.seller.lng!,
             buyerLat,
             buyerLng
-          );
+          ) * 10) / 10;
         }
 
         // Total delivery distance

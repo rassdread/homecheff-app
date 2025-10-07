@@ -318,7 +318,7 @@ export default function DeliveryDashboard() {
                       <p className="text-lg font-bold text-emerald-600">
                         {formatCurrency(currentOrder.deliveryFee)}
                       </p>
-                      <p className="text-sm text-gray-500">{currentOrder.distance}km</p>
+                      <p className="text-sm text-gray-500">{currentOrder.distance.toFixed(1)}km</p>
                     </div>
                   </div>
 
