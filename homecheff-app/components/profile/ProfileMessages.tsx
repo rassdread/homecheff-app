@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import ChatWindow from '@/components/chat/ChatWindow';
+import CompleteChat from '@/components/chat/CompleteChat';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface Conversation {
@@ -117,11 +117,13 @@ export default function ProfileMessages({ onUnreadCountChange }: ProfileMessages
             bottom: 0
           }}
         >
-          <ChatWindow
-            conversation={selectedConversation}
-            onBack={handleBackToList}
-            onMessagesRead={handleMessagesRead}
-          />
+          {selectedConversation.otherParticipant && (
+            <CompleteChat
+              conversationId={selectedConversation.id}
+              otherParticipant={selectedConversation.otherParticipant}
+              onBack={handleBackToList}
+            />
+          )}
         </div>
       );
     }
@@ -134,11 +136,13 @@ export default function ProfileMessages({ onUnreadCountChange }: ProfileMessages
              minHeight: '500px',
              maxHeight: 'calc(100vh - 200px)' 
            }}>
-        <ChatWindow
-          conversation={selectedConversation}
-          onBack={handleBackToList}
-          onMessagesRead={handleMessagesRead}
-        />
+        {selectedConversation.otherParticipant && (
+          <CompleteChat
+            conversationId={selectedConversation.id}
+            otherParticipant={selectedConversation.otherParticipant}
+            onBack={handleBackToList}
+          />
+        )}
       </div>
     );
   }

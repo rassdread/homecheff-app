@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, ArrowLeft } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import ChatWindow from '@/components/chat/ChatWindow';
+import CompleteChat from '@/components/chat/CompleteChat';
 
 interface Conversation {
   id: string;
@@ -122,11 +122,13 @@ export default function MobileMessagesView({ onUnreadCountChange, initialConvers
           maxHeight: '100vh'
         }}
       >
-        <ChatWindow
-          conversation={selectedConversation}
-          onBack={handleBackToList}
-          onMessagesRead={handleMessagesRead}
-        />
+        {selectedConversation.otherParticipant && (
+          <CompleteChat
+            conversationId={selectedConversation.id}
+            otherParticipant={selectedConversation.otherParticipant}
+            onBack={handleBackToList}
+          />
+        )}
       </div>
     );
   }

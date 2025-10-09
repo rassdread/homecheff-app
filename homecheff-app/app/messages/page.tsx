@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MessageCircle, Bell, Heart, Users, Package, UserPlus, Star } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import FreeRealtimeChat from '@/components/chat/FreeRealtimeChat';
+import CompleteChat from '@/components/chat/CompleteChat';
 
 interface Conversation {
   id: string;
@@ -154,7 +154,7 @@ function MessagesPageContent() {
             {/* Chat Window - Right Side */}
                    {selectedConversation && selectedConversation.otherParticipant && (
                      <div className="flex-1 flex flex-col bg-white">
-                       <FreeRealtimeChat
+                       <CompleteChat
                          conversationId={selectedConversation.id}
                          otherParticipant={selectedConversation.otherParticipant}
                          onBack={handleBackToList}

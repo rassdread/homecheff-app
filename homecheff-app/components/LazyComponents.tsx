@@ -3,7 +3,7 @@
 import { lazy, Suspense } from 'react';
 
 // Lazy load zware components
-export const LazyChatWindow = lazy(() => import('./chat/ChatWindow'));
+export const LazyCompleteChat = lazy(() => import('./chat/CompleteChat'));
 export const LazyConversationsList = lazy(() => import('./chat/ConversationsList'));
 export const LazyUserManagement = lazy(() => import('./admin/UserManagement'));
 export const LazyProductManagement = lazy(() => import('./profile/ProductManagement'));
@@ -35,7 +35,7 @@ export const FeedLoadingFallback = () => (
 // Wrapper components met Suspense
 export const SuspenseChatWindow = (props: any) => (
   <Suspense fallback={<ChatLoadingFallback />}>
-    <LazyChatWindow {...props} />
+    <LazyCompleteChat {...props} />
   </Suspense>
 );
 
