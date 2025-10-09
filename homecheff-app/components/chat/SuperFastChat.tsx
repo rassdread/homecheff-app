@@ -93,14 +93,13 @@ export default function SuperFastChat({ conversationId, currentUserId }: SuperFa
     if (!newMessage.trim() || !socket) return;
 
     const tempId = `temp-${++messageIdCounter.current}`;
-    const optimisticMessage: Message = {
+    const optimisticMessage: any = {
       id: tempId,
       text: newMessage,
       conversationId,
       senderId: currentUserId,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      messageType: 'TEXT' as any,
+      messageType: 'TEXT',
       readAt: null,
       attachmentUrl: null,
       attachmentName: null,
@@ -112,7 +111,7 @@ export default function SuperFastChat({ conversationId, currentUserId }: SuperFa
         profileImage: null,
         displayFullName: null,
         displayNameOption: null
-      } as any
+      }
     };
 
     // Add optimistic message immediately

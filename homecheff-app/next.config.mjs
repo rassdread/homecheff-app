@@ -31,8 +31,7 @@ const nextConfig = {
         },
       },
     },
-    // Enable Edge Runtime for faster API routes
-    runtime: 'edge',
+    // Edge Runtime is configured per API route
   },
   
   // Enable static optimization
