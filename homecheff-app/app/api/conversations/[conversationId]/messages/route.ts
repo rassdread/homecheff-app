@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from '@/lib/encryption';
+import { pusherServer } from '@/lib/pusher';
 
 const prisma = new PrismaClient();
 
@@ -235,6 +236,19 @@ export async function POST(
       where: { id: conversationId },
       data: { lastMessageAt: new Date() }
     });
+
+    // Trigger Pusher event for real-time delivery
+    try {
+      await pusherServer.trigger(
+        `conversation-${conversationId}`,
+        'new-message',
+        messageToReturn
+      );
+      console.log(`[Pusher] ✅ Message sent to conversation-${conversationId}`);
+    } catch (pusherError) {
+      console.error('[Pusher] ❌ Error sending message:', pusherError);
+      // Don't fail the request if Pusher fails
+    }
 
     return NextResponse.json({ message: messageToReturn });
 
