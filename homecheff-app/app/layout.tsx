@@ -6,6 +6,7 @@ import UserValidation from '@/components/UserValidation';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import VercelAnalytics from '@/components/VercelAnalytics';
 import Preloader from '@/components/Preloader';
+import ToastNotification from '@/components/notifications/ToastNotification';
 
 export const metadata = {
   title: 'HomeCheff',
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PerformanceMonitor />
           <VercelAnalytics />
           <Preloader />
+          <ToastNotification />
           <UserValidation />
           <NavBar />
           {children}

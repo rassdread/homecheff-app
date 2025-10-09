@@ -187,46 +187,44 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     };
   }, [socket, conversation.id, currentUserId, conversation.otherParticipant?.id]);
 
-  // Enhanced fallback polling for localhost and when socket is not connected
+  // Aggressive polling for Vercel - always poll as backup
   useEffect(() => {
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const shouldPoll = !isConnected || isLocalhost; // Always poll on localhost for reliability
+    if (!conversation.id) return;
     
-    if (shouldPoll && conversation.id) {
-      console.log('[ChatWindow] Starting polling (localhost or socket disconnected)...');
-      
-      const pollInterval = setInterval(async () => {
-        try {
-          const response = await fetch(
-            `/api/conversations/${conversation.id}/messages-fast?page=1&limit=50`,
-            {
-              cache: 'no-store',
-              headers: {
-                'Cache-Control': 'no-cache'
-              }
-            }
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            const latestMessages = data.messages || [];
-            
-            if (latestMessages.length !== messages.length) {
-              console.log('[ChatWindow] Polling found message count change:', latestMessages.length, 'vs', messages.length);
-              loadMessages(); // Reload all messages
+    console.log('[ChatWindow] Starting aggressive polling for Vercel reliability...');
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(
+          `/api/conversations/${conversation.id}/messages-fast?page=1&limit=50`,
+          {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
             }
           }
-        } catch (error) {
-          console.error('[ChatWindow] Polling error:', error);
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const latestMessages = data.messages || [];
+          
+          if (latestMessages.length !== messages.length) {
+            console.log('[ChatWindow] Polling found message count change:', latestMessages.length, 'vs', messages.length);
+            loadMessages(); // Reload all messages
+          }
         }
-      }, isLocalhost ? 1000 : 2000); // Faster polling on localhost
-      
-      return () => {
-        console.log('[ChatWindow] Stopping polling');
-        clearInterval(pollInterval);
-      };
-    }
-  }, [isConnected, conversation.id, messages.length]);
+      } catch (error) {
+        console.error('[ChatWindow] Polling error:', error);
+      }
+    }, 1500); // Poll every 1.5 seconds for reliability
+    
+    return () => {
+      console.log('[ChatWindow] Stopping polling');
+      clearInterval(pollInterval);
+    };
+  }, [conversation.id, messages.length]);
 
   useEffect(() => {
     loadMessages();
@@ -368,12 +366,6 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     attachmentName?: string;
     attachmentType?: string;
   }) => {
-    if (!socket) {
-      console.error('[ChatWindow] Socket not connected');
-      alert('Geen verbinding met de server. Probeer de pagina te vernieuwen.');
-      return;
-    }
-
     if (!currentUserId) {
       console.error('[ChatWindow] No current user ID available');
       alert('Gebruiker niet gevonden. Probeer opnieuw in te loggen.');
@@ -381,36 +373,54 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     }
 
     try {
-      console.log('[ChatWindow] Sending message:', {
+      console.log('[ChatWindow] Sending message via API (Vercel reliable method):', {
         conversationId: conversation.id,
         senderId: currentUserId,
         textLength: messageData.text.length,
         messageType: messageData.messageType
       });
 
-      // Send message via socket
-      socket.emit('send-message', {
-        conversationId: conversation.id,
-        senderId: currentUserId,
-        text: messageData.text,
-        messageType: messageData.messageType,
-        attachmentUrl: messageData.attachmentUrl,
-        attachmentName: messageData.attachmentName,
-        attachmentType: messageData.attachmentType,
+      // Send message via API first (more reliable on Vercel)
+      const response = await fetch(`/api/conversations/${conversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: messageData.text,
+          messageType: messageData.messageType,
+          attachmentUrl: messageData.attachmentUrl,
+          attachmentName: messageData.attachmentName,
+          attachmentType: messageData.attachmentType,
+        }),
       });
 
-      console.log('[ChatWindow] Message sent via socket');
+      if (response.ok) {
+        console.log('[ChatWindow] Message sent via API successfully');
+        
+        // Reload messages immediately for both sender and receiver
+        setTimeout(() => {
+          console.log('[ChatWindow] Reloading messages after API send');
+          loadMessages();
+        }, 300);
+      } else {
+        throw new Error(`API send failed: ${response.status}`);
+      }
+
+      // Also try socket as backup (but don't rely on it)
+      if (socket) {
+        socket.emit('send-message', {
+          conversationId: conversation.id,
+          senderId: currentUserId,
+          text: messageData.text,
+          messageType: messageData.messageType,
+          attachmentUrl: messageData.attachmentUrl,
+          attachmentName: messageData.attachmentName,
+          attachmentType: messageData.attachmentType,
+        });
+        console.log('[ChatWindow] Message also sent via socket as backup');
+      }
       
-      // Dispatch event to trigger message reload
-      window.dispatchEvent(new CustomEvent('messageSent', {
-        detail: { conversationId: conversation.id }
-      }));
-      
-      // Also reload messages after a short delay to ensure database is updated
-      setTimeout(() => {
-        console.log('[ChatWindow] Reloading messages after send');
-        loadMessages();
-      }, 1000);
     } catch (error) {
       console.error('[ChatWindow] Error sending message:', error);
       alert('Fout bij verzenden van bericht. Probeer het opnieuw.');

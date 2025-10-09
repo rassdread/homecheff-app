@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import ChatWindow from '@/components/chat/ChatWindow';
+import RealTimeChat from '@/components/chat/RealTimeChat';
 import { useSession } from 'next-auth/react';
 
 interface Conversation {
@@ -94,9 +94,14 @@ export default function ConversationPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <ChatWindow
-        conversation={conversation}
-        onBack={handleBackToList}
+      <RealTimeChat
+        conversationId={conversation.id}
+        otherParticipant={conversation.otherParticipant || {
+          id: 'unknown',
+          name: 'Onbekend',
+          username: 'unknown',
+          profileImage: null
+        }}
       />
     </div>
   );
