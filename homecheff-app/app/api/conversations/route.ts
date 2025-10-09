@@ -19,8 +19,14 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         ConversationParticipant: {
+          where: {
+            isActive: true // Only show active participants
+          },
           select: {
             Conversation: {
+              where: {
+                isActive: true // Only show active conversations
+              },
               select: {
                 id: true,
                 title: true,

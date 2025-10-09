@@ -71,6 +71,29 @@ export default function RealTimeChat({ conversationId, otherParticipant }: RealT
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!confirm('Weet je zeker dat je dit gesprek wilt wissen? Deze actie kan niet ongedaan worden gemaakt.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/delete`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('Gesprek succesvol gewist');
+        // Redirect back to messages list
+        window.location.href = '/messages';
+      } else {
+        throw new Error('Failed to delete conversation');
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Fout bij wissen van gesprek. Probeer het opnieuw.');
+    }
+  };
+
   const getConnectionStatusColor = () => {
     switch (connectionStatus) {
       case 'connected': return 'text-green-600 bg-green-100';
@@ -139,6 +162,15 @@ export default function RealTimeChat({ conversationId, otherParticipant }: RealT
             title="Herlaad berichten"
           >
             🔄
+          </button>
+          
+          {/* Delete conversation button */}
+          <button
+            onClick={handleDeleteConversation}
+            className="px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+            title="Gesprek wissen"
+          >
+            🗑️
           </button>
           
           {/* Connection status indicator */}
