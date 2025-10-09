@@ -3,6 +3,9 @@ import NavBar from '@/components/NavBar';
 import Providers from '@/components/Providers';
 import PrivacyNotice from '@/components/PrivacyNotice';
 import UserValidation from '@/components/UserValidation';
+import PerformanceMonitor from '@/components/PerformanceMonitor';
+import VercelAnalytics from '@/components/VercelAnalytics';
+import Preloader from '@/components/Preloader';
 
 export const metadata = {
   title: 'HomeCheff',
@@ -21,6 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="nl">
       <body className="min-h-screen bg-gray-50 font-sans antialiased">
         <Providers>
+          <PerformanceMonitor />
+          <VercelAnalytics />
+          <Preloader />
           <UserValidation />
           <NavBar />
           {children}

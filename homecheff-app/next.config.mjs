@@ -22,6 +22,25 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Enable modern bundling
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+    // Enable Edge Runtime for faster API routes
+    runtime: 'edge',
+  },
+  
+  // Enable static optimization
+  swcMinify: true,
+  
+  // Bundle optimization
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   // Enable compression
   compress: true,

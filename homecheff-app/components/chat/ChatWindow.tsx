@@ -191,7 +191,7 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
       const pollInterval = setInterval(async () => {
         try {
           const response = await fetch(
-            `/api/conversations/${conversation.id}/messages?page=1&limit=50`,
+            `/api/conversations/${conversation.id}/messages-fast?page=1&limit=50`,
             {
               cache: 'no-store',
               headers: {
@@ -302,8 +302,9 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
         setIsLoadingMore(true);
       }
 
+      // Use fast API endpoint for better performance
       const response = await fetch(
-        `/api/conversations/${conversation.id}/messages?page=${pageNum}&limit=50`,
+        `/api/conversations/${conversation.id}/messages-fast?page=${pageNum}&limit=50`,
         {
           cache: 'no-store',
           headers: {
