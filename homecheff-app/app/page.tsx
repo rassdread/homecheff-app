@@ -1,10 +1,10 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import ImageSlider from "@/components/ui/ImageSlider";
 import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
@@ -357,49 +357,50 @@ function HomePageContent() {
 
   const fetchData = async () => {
     try {
-      console.log('Starting data fetch...');
+      const startTime = performance.now(); // Start timer
+      console.log('🚀 Starting data fetch...');
       setIsLoading(true);
       
       // Fetch products first with aggressive caching for better performance
-      console.log('Fetching products from /api/products...');
+      const productsStartTime = performance.now();
+      console.log('📦 Fetching products from /api/products...');
       const productsResponse = await fetch('/api/products', {
         cache: 'force-cache',
         next: { revalidate: 600 } // 10 minutes cache
       });
-      console.log('Products response status:', productsResponse.status);
+      const productsEndTime = performance.now();
+      console.log(`⏱️ Products API took: ${(productsEndTime - productsStartTime).toFixed(0)}ms`);
       
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
-        console.log('Products data received:', productsData);
-        console.log('Number of products:', productsData.items?.length || 0);
-        console.log('First product:', productsData.items?.[0]);
-        console.log('First product location:', productsData.items?.[0]?.location);
+        console.log(`✅ Loaded ${productsData.items?.length || 0} products`);
         setItems(productsData.items || []);
         setIsLoading(false); // Show content immediately after products load
       } else {
-        console.error('Failed to fetch products:', productsResponse.status, productsResponse.statusText);
+        console.error('❌ Failed to fetch products:', productsResponse.status);
         setIsLoading(false);
       }
       
-      // Fetch users
-      console.log('Fetching users from /api/users...');
+      // Fetch users in background (don't block UI)
+      const usersStartTime = performance.now();
+      console.log('👥 Fetching users from /api/users...');
       const usersResponse = await fetch('/api/users', {
-        cache: 'no-store', // Don't cache to always get fresh data
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
+        cache: 'force-cache',
+        next: { revalidate: 300 } // 5 minutes cache
       });
-      console.log('Users response status:', usersResponse.status);
-      console.log('Users response URL:', usersResponse.url);
+      const usersEndTime = performance.now();
+      console.log(`⏱️ Users API took: ${(usersEndTime - usersStartTime).toFixed(0)}ms`);
       
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
-        console.log('Users data received:', usersData);
-        console.log('Number of users:', usersData.users?.length || 0);
+        console.log(`✅ Loaded ${usersData.users?.length || 0} users`);
         setUsers(usersData.users || []);
       } else {
-        console.error('Failed to fetch users:', usersResponse.status, usersResponse.statusText);
+        console.error('❌ Failed to fetch users:', usersResponse.status);
       }
+      
+      const totalTime = performance.now() - startTime;
+      console.log(`🏁 TOTAL LOAD TIME: ${totalTime.toFixed(0)}ms (${(totalTime / 1000).toFixed(2)}s)`);
       
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -1489,10 +1490,14 @@ function HomePageContent() {
                     {/* User Avatar */}
                     <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100">
                       {user.image ? (
-                        <img
+                        <Image
                           src={user.image}
                           alt={user.name || 'Gebruiker'}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          loading="lazy"
+                          quality={75}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -1637,12 +1642,16 @@ function HomePageContent() {
                       
                       {/* Seller Info */}
                       <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 relative w-10 h-10">
                           {item.seller?.avatar ? (
-                            <img
+                            <Image
                               src={item.seller.avatar}
                               alt={item.seller?.name ?? "Verkoper"}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-primary-100"
+                              width={40}
+                              height={40}
+                              className="rounded-full object-cover border-2 border-primary-100"
+                              loading="lazy"
+                              quality={60}
                             />
                           ) : (
                             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">

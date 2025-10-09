@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageSliderProps {
   images: string[];
@@ -61,12 +62,15 @@ export default function ImageSlider({
 
   if (images.length === 1) {
     return (
-      <div className={`w-full h-full overflow-hidden ${className}`}>
-        <img
+      <div className={`relative w-full h-full overflow-hidden ${className}`}>
+        <Image
           src={images[0]}
           alt={alt}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           loading="lazy"
+          quality={80}
         />
       </div>
     );
@@ -76,11 +80,15 @@ export default function ImageSlider({
     <div className={`relative w-full h-full overflow-hidden group ${className}`}>
       {/* Main Image */}
       <div className="relative w-full h-full">
-        <img
+        <Image
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           loading="lazy"
+          quality={80}
+          priority={currentIndex === 0}
         />
 
         {/* Navigation Arrows */}
