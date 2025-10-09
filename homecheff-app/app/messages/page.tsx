@@ -152,7 +152,7 @@ function MessagesPageContent() {
             </div>
             
             {/* Chat Window - Right Side */}
-                   {selectedConversation && (
+                   {selectedConversation && selectedConversation.otherParticipant && (
                      <div className="flex-1 flex flex-col bg-white">
                        <RealTimeChat
                          conversationId={selectedConversation.id}

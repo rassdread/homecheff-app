@@ -8,13 +8,23 @@ interface RealTimeChatProps {
   conversationId: string;
   otherParticipant: {
     id: string;
-    name?: string;
-    username?: string;
-    profileImage?: string;
+    name?: string | null;
+    username?: string | null;
+    profileImage?: string | null;
   };
+  product?: {
+    id: string;
+    title: string;
+    priceCents: number;
+    Image: Array<{
+      fileUrl: string;
+      sortOrder: number;
+    }>;
+  };
+  onBack?: () => void;
 }
 
-export default function RealTimeChat({ conversationId, otherParticipant }: RealTimeChatProps) {
+export default function RealTimeChat({ conversationId, otherParticipant, product, onBack }: RealTimeChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);

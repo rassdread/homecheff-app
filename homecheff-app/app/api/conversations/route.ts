@@ -19,14 +19,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         ConversationParticipant: {
-          where: {
-            leftAt: null // Only show participants who haven't left
-          },
           select: {
             Conversation: {
-              where: {
-                isActive: true // Only show active conversations
-              },
               select: {
                 id: true,
                 title: true,
@@ -90,8 +84,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Transform conversations
-    const conversations = user.ConversationParticipant.map(participant => {
+    // Transform conversations and filter out inactive ones
+    const conversations = user.ConversationParticipant
+    .filter(participant => participant.Conversation.isActive) // Only show active conversations
+    .map(participant => {
       const conversation = participant.Conversation;
       const otherParticipants = conversation.ConversationParticipant
         .filter(p => p.userId !== user.id)

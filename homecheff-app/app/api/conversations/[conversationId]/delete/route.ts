@@ -38,28 +38,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Soft delete conversation for this user (mark as inactive)
-    await prisma.conversationParticipant.update({
-      where: {
-        id: participant.id
-      },
-      data: {
-        leftAt: new Date()
-      }
+    // Mark conversation as inactive for this user
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { isActive: false }
     });
 
-    // Also mark all messages as deleted for this user
+    // Mark all messages in this conversation as deleted
     await prisma.message.updateMany({
       where: {
-        conversationId,
-        senderId: user.id
+        conversationId
       },
       data: {
         deletedAt: new Date()
       }
     });
 
-    console.log(`[DeleteConversation] Conversation ${conversationId} deleted for user ${user.id}`);
+    console.log(`[DeleteConversation] Conversation ${conversationId} marked as inactive`);
 
     return NextResponse.json({ 
       success: true, 
