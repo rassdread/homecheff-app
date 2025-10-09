@@ -27,9 +27,9 @@ export default function ToastNotification() {
       if (now - notificationTime < 5000) { // 5 seconds
         const newToast: Toast = {
           id: `toast-${latestNotification.id}`,
-          title: latestNotification.title,
-          message: latestNotification.message,
-          type: latestNotification.type === 'MESSAGE' ? 'message' : 'notification',
+          title: latestNotification.payload.title,
+          message: latestNotification.payload.message,
+          type: latestNotification.type === 'MESSAGE_RECEIVED' ? 'message' : 'notification',
           timestamp: now,
         };
 

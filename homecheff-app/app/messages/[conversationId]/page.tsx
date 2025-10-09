@@ -96,11 +96,11 @@ export default function ConversationPage() {
     <div className="h-screen flex flex-col">
       <RealTimeChat
         conversationId={conversation.id}
-        otherParticipant={conversation.otherParticipant || {
-          id: 'unknown',
-          name: 'Onbekend',
-          username: 'unknown',
-          profileImage: null
+        otherParticipant={{
+          id: conversation.otherParticipant?.id || 'unknown',
+          name: conversation.otherParticipant?.name || undefined,
+          username: conversation.otherParticipant?.username || undefined,
+          profileImage: conversation.otherParticipant?.profileImage || undefined
         }}
       />
     </div>

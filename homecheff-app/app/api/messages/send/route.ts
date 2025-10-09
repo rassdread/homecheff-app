@@ -88,17 +88,17 @@ export async function POST(request: NextRequest) {
     for (const participant of otherParticipants) {
       await prisma.notification.create({
         data: {
+          id: `notif-${Date.now()}-${participant.userId}`,
           userId: participant.userId,
-          type: 'MESSAGE',
-          title: 'Nieuw bericht',
-          message: `${user.name || user.username || 'Iemand'} heeft je een bericht gestuurd`,
-          data: JSON.stringify({
+          type: 'MESSAGE_RECEIVED',
+          payload: {
+            title: 'Nieuw bericht',
+            message: `${user.name || user.username || 'Iemand'} heeft je een bericht gestuurd`,
             conversationId,
             messageId: message.id,
             senderName: user.name || user.username,
             messageText: text.trim(),
-          }),
-          isRead: false,
+          },
         }
       });
     }

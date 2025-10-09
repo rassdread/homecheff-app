@@ -6,10 +6,12 @@ import { useSession } from 'next-auth/react';
 interface Notification {
   id: string;
   type: string;
-  title: string;
-  message: string;
-  data?: any;
-  isRead: boolean;
+  payload: {
+    title: string;
+    message: string;
+    [key: string]: any;
+  };
+  readAt?: string;
   createdAt: string;
 }
 
@@ -50,7 +52,7 @@ export function useNotifications() {
       if (response.ok) {
         setNotifications(prev => 
           prev.map(notif => 
-            notif.id === notificationId ? { ...notif, isRead: true } : notif
+            notif.id === notificationId ? { ...notif, readAt: new Date().toISOString() } : notif
           )
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
