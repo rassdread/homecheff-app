@@ -23,18 +23,22 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
           process.env.NEXTAUTH_URL || 'http://localhost:3000',
           'http://localhost:3000',
           'http://127.0.0.1:3000',
-          'https://homecheff-app.vercel.app'
+          'https://homecheff-app.vercel.app',
+          'https://homecheff-app-git-main-rassdread.vercel.app',
+          'https://homecheff-app-*.vercel.app' // Allow all Vercel preview deployments
         ],
         methods: ['GET', 'POST'],
-        credentials: false // Disable credentials for localhost compatibility
+        credentials: true // Enable credentials for Vercel PRO
       },
-      transports: ['polling', 'websocket'], // Polling first for localhost compatibility
-      pingTimeout: 30000, // Shorter timeout for localhost
-      pingInterval: 15000, // More frequent pings
-      upgradeTimeout: 5000, // Shorter upgrade timeout
+      transports: ['websocket', 'polling'], // Websockets first for Vercel PRO
+      pingTimeout: 60000, // Longer timeout for Vercel PRO
+      pingInterval: 25000, // Standard ping interval
+      upgradeTimeout: 10000, // Longer upgrade timeout for Vercel PRO
       allowEIO3: true,
       allowUpgrades: true,
-      perMessageDeflate: false // Disable compression for localhost
+      perMessageDeflate: true, // Enable compression for Vercel PRO
+      maxHttpBufferSize: 1e6, // 1MB buffer for larger messages
+      connectTimeout: 45000 // 45 second connection timeout
     });
     res.socket.server.io = io;
 
@@ -105,20 +109,28 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
             data: { lastMessageAt: new Date() }
           });
 
-          console.log('[Socket] Broadcasting message to room:', data.conversationId);
-          
-          // Get room members count for debugging
-          const room = io.sockets.adapter.rooms.get(data.conversationId);
-          const roomSize = room ? room.size : 0;
-          console.log(`[Socket] Room ${data.conversationId} has ${roomSize} members`);
+                  console.log('[Socket] Broadcasting message to room:', data.conversationId);
+                  
+                  // Get room members count for debugging
+                  const room = io.sockets.adapter.rooms.get(data.conversationId);
+                  const roomSize = room ? room.size : 0;
+                  console.log(`[Socket] Room ${data.conversationId} has ${roomSize} members`);
 
-          // Broadcast message to all users in the conversation (including sender)
-          io.to(data.conversationId).emit('new-message', message);
-          console.log(`[Socket] Broadcasted to room ${data.conversationId}`);
+                  // Broadcast message to all users in the conversation (including sender)
+                  const broadcastResult = io.to(data.conversationId).emit('new-message', message);
+                  console.log(`[Socket] Broadcasted to room ${data.conversationId}, result:`, broadcastResult);
 
-          // Also send to the sender's socket directly to ensure they see it
-          socket.emit('new-message', message);
-          console.log(`[Socket] Sent directly to sender ${socket.id}`);
+                  // Also send to the sender's socket directly to ensure they see it immediately
+                  socket.emit('new-message', message);
+                  console.log(`[Socket] Sent directly to sender ${socket.id}`);
+
+                  // Send acknowledgment to sender
+                  socket.emit('message-sent', { 
+                    messageId: message.id, 
+                    conversationId: data.conversationId,
+                    timestamp: new Date().toISOString()
+                  });
+                  console.log(`[Socket] Sent acknowledgment to sender`);
 
           console.log('[Socket] ✅ Message broadcasted successfully');
 

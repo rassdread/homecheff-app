@@ -145,6 +145,12 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
 
     socket.on('new-message', handleNewMessage);
 
+    // Listen for message sent acknowledgment
+    socket.on('message-sent', (data: { messageId: string; conversationId: string; timestamp: string }) => {
+      console.log('[ChatWindow] Message sent acknowledgment:', data);
+      // You can use this to update UI or remove loading states
+    });
+
     // Listen for typing indicators - WhatsApp/Telegram style
     socket.on('user-typing', (data: { userId: string; isTyping: boolean }) => {
       console.log('[ChatWindow] User typing event:', data);
@@ -174,6 +180,7 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
       console.log('[ChatWindow] Cleaning up socket listeners for conversation:', conversation.id);
       socket.emit('leave-conversation', conversation.id);
       socket.off('new-message', handleNewMessage);
+      socket.off('message-sent');
       socket.off('user-typing');
       socket.off('user-online');
       socket.off('message-error');
@@ -505,6 +512,8 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
                 <div className="flex items-center gap-1">
                   {(() => {
                     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const isVercelPro = !isLocalhost && window.location.hostname.includes('vercel.app');
+                    
                     if (isLocalhost) {
                       return (
                         <>
@@ -513,6 +522,18 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
                         </>
                       );
                     }
+                    
+                    if (isVercelPro) {
+                      return (
+                        <>
+                          <Circle className={`w-2 h-2 ${isConnected ? 'fill-green-500 text-green-500' : 'fill-yellow-500 text-yellow-500'}`} />
+                          <p className="text-xs text-gray-500">
+                            {isConnected ? 'PRO Live' : 'PRO Connecting...'}
+                          </p>
+                        </>
+                      );
+                    }
+                    
                     return (
                       <>
                         <Circle className={`w-2 h-2 ${isConnected ? 'fill-green-500 text-green-500' : 'fill-red-500 text-red-500'}`} />
@@ -592,16 +613,19 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
       {/* Messages - Mobile scroll optimized */}
       <div className="flex-1 overflow-hidden -webkit-overflow-scrolling-touch" ref={messagesContainerRef}>
         {/* Debug reload button - always visible */}
-        <div className="p-2 text-center bg-gray-50 border-b">
+        <div className="p-2 text-center bg-blue-50 border-b border-blue-200">
           <button
             onClick={() => {
               console.log('[ChatWindow] Debug reload triggered');
               loadMessages();
             }}
-            className="text-xs text-gray-600 hover:text-blue-600 px-2 py-1 rounded border border-gray-300 hover:border-blue-300 transition-colors"
+            className="text-sm font-medium text-blue-700 hover:text-blue-900 px-4 py-2 rounded-lg border-2 border-blue-300 hover:border-blue-500 bg-white hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            🔄 Herlaad ({messages.length} berichten)
+            🔄 Herlaad Berichten ({messages.length})
           </button>
+          <p className="text-xs text-blue-600 mt-1">
+            Klik om berichten handmatig te herladen
+          </p>
         </div>
         
         {hasMoreMessages && (
