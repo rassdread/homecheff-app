@@ -44,7 +44,6 @@ export async function DELETE(
         id: participant.id
       },
       data: {
-        isActive: false,
         leftAt: new Date()
       }
     });

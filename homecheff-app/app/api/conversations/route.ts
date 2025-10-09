@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
         id: true,
         ConversationParticipant: {
           where: {
-            isActive: true // Only show active participants
+            leftAt: null // Only show participants who haven't left
           },
           select: {
             Conversation: {
