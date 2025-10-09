@@ -35,7 +35,20 @@ export async function POST(req: Request) {
       images = [],
       isPublic = true,
       displayNameType = 'fullname',
+      subcategory,
+      availabilityDate,
+      isFutureProduct = false,
     } = body || {};
+
+    console.log('Product create API - received data:', {
+      title,
+      category,
+      imagesCount: images.length,
+      images: images.slice(0, 2), // Log first 2 images
+      subcategory,
+      isFutureProduct,
+      availabilityDate
+    });
 
     if (!title || !description || !priceCents || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: 'Ontbrekende velden' }, { status: 400 });
@@ -54,6 +67,8 @@ export async function POST(req: Request) {
     const cat = CATEGORY_MAP[category] ?? 'CHEFF';
     const delivery = DELIVERY_MAP[deliveryMode] ?? 'PICKUP';
 
+    console.log('Creating product with category:', cat, 'from', category);
+
     // Create Product (not Listing)
     const result = await prisma.product.create({
       data: {
@@ -66,6 +81,9 @@ export async function POST(req: Request) {
         delivery: delivery as any,
         isActive: Boolean(isPublic),
         displayNameType,
+        subcategory: subcategory || null,
+        availabilityDate: availabilityDate ? new Date(availabilityDate) : null,
+        isFutureProduct: Boolean(isFutureProduct),
         sellerId: user.SellerProfile.id,
         Image: {
           create: images.map((url: string, i: number) => ({
@@ -89,6 +107,12 @@ export async function POST(req: Request) {
           }
         }
       },
+    });
+
+    console.log('Product created:', {
+      id: result.id,
+      imagesCount: result.Image?.length,
+      firstImage: result.Image?.[0]?.fileUrl?.substring(0, 60)
     });
 
     // Send notifications to followers

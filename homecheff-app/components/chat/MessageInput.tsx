@@ -169,10 +169,10 @@ export default function MessageInput({
   };
 
   return (
-    <div className="border-t bg-white p-3 sm:p-4">
-      {/* Attachment preview */}
+    <div className="border-t bg-white p-3 sm:p-4 sticky bottom-0 z-10">
+      {/* Attachment preview - Like WhatsApp */}
       {attachment && (
-        <div className="mb-3 p-3 bg-gray-100 rounded-lg flex items-center justify-between">
+        <div className="mb-3 p-3 bg-gray-100 rounded-lg flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
           <div className="flex items-center space-x-2 min-w-0 flex-1">
             {attachment.type.startsWith('image/') ? (
               <ImageIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
@@ -183,19 +183,20 @@ export default function MessageInput({
           </div>
           <button
             onClick={removeAttachment}
-            className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
+            className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2 active:scale-95 transition-transform"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Message input */}
+      {/* Message input - WhatsApp/iMessage style */}
       <div className="flex items-end space-x-2">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isUploading}
-          className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 flex-shrink-0"
+          className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 flex-shrink-0 active:scale-95 transition-all rounded-full hover:bg-gray-100"
+          aria-label="Bijlage toevoegen"
         >
           <Paperclip className="w-5 h-5" />
         </button>
@@ -207,7 +208,7 @@ export default function MessageInput({
             onKeyPress={handleKeyPress}
             placeholder="Typ je bericht..."
             disabled={disabled}
-            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base transition-all"
             rows={1}
             style={{
               minHeight: '40px',
@@ -219,7 +220,8 @@ export default function MessageInput({
         <button
           onClick={handleSendMessage}
           disabled={disabled || (!message.trim() && !attachment) || isUploading}
-          className="p-2 sm:p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="p-2 sm:p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 transition-all shadow-lg hover:shadow-xl"
+          aria-label="Verstuur bericht"
         >
           {isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -236,6 +238,7 @@ export default function MessageInput({
         onChange={handleFileUpload}
         accept="image/*,.pdf,.txt,.doc,.docx"
         className="hidden"
+        aria-label="Bestand uploaden"
       />
     </div>
   );

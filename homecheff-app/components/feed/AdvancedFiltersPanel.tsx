@@ -37,6 +37,14 @@ interface AdvancedFiltersPanelProps {
   onClearFilters: () => void;
   onApplyFilters?: () => void;
   searchType?: 'products' | 'users';
+  // New props for location management
+  userLocation?: {lat: number, lng: number} | null;
+  locationSource?: 'profile' | 'manual' | 'gps' | null;
+  profileLocation?: {place?: string, postcode?: string, lat?: number, lng?: number} | null;
+  onUseGPS?: () => void;
+  onUseProfile?: () => void;
+  onManualLocation?: (location: string) => void;
+  isGeocodingManual?: boolean;
 }
 
 export default function AdvancedFiltersPanel({
@@ -47,7 +55,14 @@ export default function AdvancedFiltersPanel({
   onLoadSearch,
   onClearFilters,
   onApplyFilters,
-  searchType = 'products'
+  searchType = 'products',
+  userLocation,
+  locationSource,
+  profileLocation,
+  onUseGPS,
+  onUseProfile,
+  onManualLocation,
+  isGeocodingManual
 }: AdvancedFiltersPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -144,6 +159,65 @@ export default function AdvancedFiltersPanel({
       {/* Filters Content */}
       {isOpen && (
         <div className="p-4 space-y-6">
+          {/* START LOCATION SECTION - PROMINENTLY DISPLAYED */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              <h4 className="text-base font-semibold text-gray-900">Startlocatie voor afstandsberekening</h4>
+            </div>
+            
+            {/* Current location status */}
+            <div className="mb-3 p-3 bg-white rounded-lg border border-blue-100">
+              <div className="text-sm text-gray-700">
+                <strong>Huidige startlocatie:</strong> {locationSource === 'profile' && profileLocation ? (
+                  <span className="text-blue-600">
+                    📍 {profileLocation.place || profileLocation.postcode || 'Profiel locatie'} 
+                    <span className="text-xs text-gray-500 ml-1">(uit je profiel)</span>
+                  </span>
+                ) : locationSource === 'gps' && userLocation ? (
+                  <span className="text-green-600">
+                    📍 Jouw locatie
+                  </span>
+                ) : locationSource === 'manual' && userLocation ? (
+                  <span className="text-purple-600">
+                    📌 Handmatig ingestelde locatie
+                  </span>
+                ) : (
+                  <span className="text-gray-500">
+                    ⚠️ Geen locatie ingesteld - afstanden kunnen niet worden berekend
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick action buttons */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {profileLocation?.lat && profileLocation?.lng && onUseProfile && (
+                  <button
+                    onClick={onUseProfile}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+                  >
+                    📍 Gebruik profiel locatie
+                    {profileLocation.place && <span className="text-xs">({profileLocation.place})</span>}
+                  </button>
+                )}
+                {onUseGPS && (
+                  <button
+                    onClick={onUseGPS}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-sm font-medium"
+                  >
+                    📍 Gebruik mijn locatie
+                  </button>
+                )}
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-2">
+                💡 Tip: Je profiel locatie wordt automatisch gebruikt voor afstandsberekening.
+              </p>
+            </div>
+          </div>
+
           {/* Basic Filters Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
@@ -207,14 +281,14 @@ export default function AdvancedFiltersPanel({
                     <option value="oldest">Oudste eerst</option>
                     <option value="price-low">Prijs: laag naar hoog</option>
                     <option value="price-high">Prijs: hoog naar laag</option>
-                    <option value="distance">Afstand: dichtbij eerst</option>
+                    <option value="distance">Afstand: dichtbij eerst{!userLocation ? ' (locatie nodig)' : ''}</option>
                   </>
                 ) : (
                   <>
                     <option value="name">Naam A-Z</option>
                     <option value="followers">Meeste volgers</option>
                     <option value="products">Meeste producten</option>
-                    <option value="distance">Afstand: dichtbij eerst</option>
+                    <option value="distance">Afstand: dichtbij eerst{!userLocation ? ' (locatie nodig)' : ''}</option>
                   </>
                 )}
               </select>
@@ -284,11 +358,13 @@ export default function AdvancedFiltersPanel({
               </label>
               
               {/* Dynamische radius opties op basis van categorie */}
-              <div className="grid grid-cols-5 gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {(() => {
                   const currentCategory = filters.category === 'all' ? 'all' : filters.category;
                   const radiusOptions = currentCategory === 'designer' 
                     ? [5, 10, 25, 50, 0] // 0 = onbeperkt voor designer
+                    : currentCategory === 'all'
+                    ? [5, 10, 25, 50, 100, 0] // 0 = onbeperkt voor alle categorieën
                     : currentCategory === 'garden'
                     ? [5, 10, 25, 50, 100]
                     : [5, 10, 25, 50, 100]; // cheff en default
@@ -304,13 +380,13 @@ export default function AdvancedFiltersPanel({
                         updateFilter('categoryRadius', newCategoryRadius);
                         updateFilter('radius', km); // Voor backward compatibility
                       }}
-                      className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      className={`flex-1 min-w-[50px] sm:min-w-[60px] p-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                         (filters.categoryRadius?.[currentCategory] || filters.radius) === km
                           ? 'bg-blue-500 text-white shadow-lg'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      {km === 0 ? '🌍' : `${km} km`}
+                      {km === 0 ? '🌍 Onbeperkt' : `${km} km`}
                     </button>
                   ));
                 })()}
@@ -333,19 +409,7 @@ export default function AdvancedFiltersPanel({
           </div>
 
           {/* Additional Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Locatie</label>
-              <input
-                type="text"
-                value={filters.location}
-                onChange={(e) => updateFilter('location', e.target.value)}
-                placeholder="Plaats of postcode..."
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {/* Delivery Mode */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Bezorging</label>

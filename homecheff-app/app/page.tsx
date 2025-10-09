@@ -9,7 +9,6 @@ import FavoriteButton from "@/components/favorite/FavoriteButton";
 import ImageSlider from "@/components/ui/ImageSlider";
 import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
 import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
-import GeolocationDebug from "@/components/debug/GeolocationDebug";
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
 import ItemCard from "@/components/ItemCard";
@@ -18,6 +17,7 @@ import ClickableName from "@/components/ui/ClickableName";
 import { calculateDistance } from "@/lib/geocoding";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
+import { getDisplayName } from "@/lib/displayName";
 
 type HomeItem = {
   id: string;
@@ -45,6 +45,8 @@ type HomeItem = {
     avatar?: string | null; 
     buyerTypes?: string[];
     followerCount?: number;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   } | null;
 };
 
@@ -53,9 +55,12 @@ type HomeUser = {
   name: string | null;
   username: string | null;
   image: string | null;
+  bio?: string | null;
   role: string;
   sellerRoles?: string[];
   buyerRoles?: string[];
+  displayFullName?: boolean | null;
+  displayNameOption?: string | null;
   location?: {
     place?: string;
     city?: string;
@@ -85,22 +90,22 @@ function HomePageContent() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
-  // Location states - using geolocation hook
-  const { coords: gpsLocation, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } = useGeolocation({
-    enableHighAccuracy: true,
-    timeout: 15000,
-    maximumAge: 300000,
-    fallbackToManual: true,
-    onFallback: (reason) => {
-      console.log('GPS fallback triggered on homepage:', reason);
-    }
-  });
-
+  // Location states - NEW STRATEGY: Profile location first, GPS optional
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [locationSource, setLocationSource] = useState<'gps' | 'profile' | null>(null);
+  const [locationSource, setLocationSource] = useState<'profile' | 'manual' | 'gps' | null>(null);
+  const [profileLocation, setProfileLocation] = useState<{place?: string, postcode?: string, lat?: number, lng?: number} | null>(null);
+  
+  // GPS is now OPTIONAL - only used when user explicitly clicks "Use GPS"
+  const { coords: gpsLocation, loading: locationLoading, getCurrentPosition } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 30000,
+    maximumAge: 0,
+    fallbackToManual: false // No automatic fallback
+  });
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+  const [manualLocationInput, setManualLocationInput] = useState<string>('');
   
   // Location filtering states
   const [locationMode, setLocationMode] = useState<'current' | 'postcode'>('current');
@@ -191,54 +196,85 @@ function HomePageContent() {
     }
   };
 
-  // Geocoding function for start location
-  const geocodeStartLocation = async (location: string) => {
+  // NEW: Handler for manual location input from filters
+  const handleManualLocation = async (location: string) => {
     if (!location.trim()) return;
     
     setIsStartLocationGeocoding(true);
     try {
-      const response = await fetch('/api/geocoding/international', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: location })
-      });
+      // Try Dutch postcode first if it looks like one
+      const isDutchPostcode = /^\d{4}\s?[A-Z]{2}$/i.test(location.trim());
+      
+      let response;
+      if (isDutchPostcode) {
+        response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(location.trim())}&huisnummer=1`);
+      } else {
+        response = await fetch('/api/geocoding/international', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: location })
+        });
+      }
       
       if (response.ok) {
         const data = await response.json();
         if (data.lat && data.lng) {
-          setStartLocationCoords({ lat: data.lat, lng: data.lng });
+          setUserLocation({ lat: data.lat, lng: data.lng });
+          setLocationSource('manual');
+          console.log('✅ Manual location set:', { location, lat: data.lat, lng: data.lng });
           addNotification({
             type: 'success',
-            title: 'Startlocatie gevonden',
-            message: 'Afstanden worden nu berekend vanaf deze locatie',
+            title: 'Startlocatie ingesteld',
+            message: `Afstanden worden berekend vanaf ${location}`,
             duration: 3000,
           });
         } else {
           addNotification({
             type: 'error',
-            title: 'Startlocatie niet gevonden',
-            message: 'Probeer een andere locatie',
+            title: 'Locatie niet gevonden',
+            message: 'Probeer een andere plaats of postcode',
             duration: 5000,
           });
         }
       } else {
         addNotification({
           type: 'error',
-          title: 'Fout bij zoeken',
-          message: 'Er is een fout opgetreden bij het zoeken van startlocatie',
+          title: 'Locatie niet gevonden',
+          message: 'Controleer de spelling en probeer opnieuw',
           duration: 5000,
         });
       }
     } catch (error) {
-      console.error('Start location geocoding error:', error);
+      console.error('Manual location geocoding error:', error);
       addNotification({
         type: 'error',
         title: 'Fout bij zoeken',
-        message: 'Er is een fout opgetreden bij het zoeken van startlocatie',
+        message: 'Er is een fout opgetreden bij het zoeken van de locatie',
         duration: 5000,
       });
     } finally {
       setIsStartLocationGeocoding(false);
+    }
+  };
+
+  // NEW: Handler to use GPS location
+  const handleUseGPS = () => {
+    console.log('🛰️ User requested GPS location');
+    getCurrentPosition();
+  };
+
+  // NEW: Handler to use profile location
+  const handleUseProfile = () => {
+    if (profileLocation?.lat && profileLocation?.lng) {
+      setUserLocation({ lat: profileLocation.lat, lng: profileLocation.lng });
+      setLocationSource('profile');
+      console.log('📍 Using profile location:', profileLocation);
+      addNotification({
+        type: 'success',
+        title: 'Profiel locatie actief',
+        message: `Afstanden worden berekend vanaf ${profileLocation.place || profileLocation.postcode || 'je profiel locatie'}`,
+        duration: 3000,
+      });
     }
   };
 
@@ -271,54 +307,53 @@ function HomePageContent() {
     return { supported: true, reason: 'Geolocation supported, permission unknown' };
   };
 
+  // NEW: Load user's profile location automatically on mount
   useEffect(() => {
-    // Get location on component mount if supported
-    if (locationSupported && !userLocation && !locationLoading) {
-      getCurrentPosition();
-    }
-  }, [locationSupported, userLocation, locationLoading, getCurrentPosition]);
+    const loadProfileLocation = async () => {
+      if (!session?.user) return;
+      
+      try {
+        const response = await fetch('/api/profile/me');
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.user) {
+            const { lat, lng, place, postcode } = userData.user;
+            
+            // Save profile location
+            setProfileLocation({ place, postcode, lat, lng });
+            
+            // Automatically use profile location if available
+            if (lat && lng) {
+              setUserLocation({ lat, lng });
+              setLocationSource('profile');
+              console.log('✅ Using profile location:', { place, postcode, lat, lng });
+            } else {
+              console.log('⚠️ No coordinates in profile, user needs to set location manually');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load profile location:', error);
+      }
+    };
+    
+    loadProfileLocation();
+  }, [session?.user]);
 
-  // Handle location success
+  // Handle GPS location when user explicitly requests it
   useEffect(() => {
-    if (userLocation) {
+    if (gpsLocation) {
+      setUserLocation(gpsLocation);
+      setLocationSource('gps');
+      console.log('✅ Using GPS location:', gpsLocation);
       addNotification({
         type: 'success',
-        title: 'Locatie opgehaald',
-        message: 'Afstanden worden nu berekend',
+        title: 'GPS locatie actief',
+        message: 'Afstanden worden berekend vanaf je huidige GPS positie',
         duration: 3000,
       });
     }
-  }, [userLocation, addNotification]);
-
-  // Handle location errors
-  useEffect(() => {
-    if (locationError) {
-      let errorTitle = 'Locatie fout';
-      let errorMessage = locationError;
-      let errorDuration = 5000;
-      
-      if (locationError.includes('denied')) {
-        errorTitle = 'Locatie toegang geweigerd';
-        errorMessage = 'Je hebt locatie toegang geweigerd. Klik op het slotje in je adresbalk om locatie toe te staan, of ga naar je browser instellingen.';
-        errorDuration = 8000;
-      } else if (locationError.includes('unavailable')) {
-        errorTitle = 'Locatie niet beschikbaar';
-        errorMessage = 'GPS of netwerk locatie is niet beschikbaar. Controleer je internetverbinding en GPS instellingen.';
-        errorDuration = 6000;
-      } else if (locationError.includes('timeout')) {
-        errorTitle = 'Locatie aanvraag verlopen';
-        errorMessage = 'Het ophalen van je locatie duurde te lang. Probeer opnieuw of controleer je internetverbinding.';
-        errorDuration = 6000;
-      }
-      
-      addNotification({
-        type: 'error',
-        title: errorTitle,
-        message: errorMessage,
-        duration: errorDuration,
-      });
-    }
-  }, [locationError, addNotification]);
+  }, [gpsLocation, addNotification]);
 
   const fetchData = async () => {
     try {
@@ -346,13 +381,16 @@ function HomePageContent() {
         setIsLoading(false);
       }
       
-      // Fetch users with aggressive caching for better performance
+      // Fetch users
       console.log('Fetching users from /api/users...');
       const usersResponse = await fetch('/api/users', {
-        cache: 'force-cache',
-        next: { revalidate: 600 } // 10 minutes cache
+        cache: 'no-store', // Don't cache to always get fresh data
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       });
       console.log('Users response status:', usersResponse.status);
+      console.log('Users response URL:', usersResponse.url);
       
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
@@ -429,8 +467,23 @@ function HomePageContent() {
         }
       };
     }).filter((it) => {
-      if (term && !it.title.toLowerCase().includes(term) && !it.description?.toLowerCase().includes(term)) {
-        return false;
+      if (term) {
+        // Zoek in product titel, beschrijving EN verkoper informatie
+        const titleMatch = it.title.toLowerCase().includes(term);
+        const descriptionMatch = it.description?.toLowerCase().includes(term);
+        const sellerNameMatch = it.seller?.name?.toLowerCase().includes(term);
+        const sellerUsernameMatch = it.seller?.username?.toLowerCase().includes(term);
+        const placeMatch = it.location?.place?.toLowerCase().includes(term);
+        const cityMatch = it.location?.city?.toLowerCase().includes(term);
+        
+        // Zoek ook in individuele woorden van verkoper naam
+        const sellerNameParts = it.seller?.name?.toLowerCase().split(' ') || [];
+        const sellerNamePartMatch = sellerNameParts.some(part => part.includes(term) || term.includes(part));
+        
+        if (!titleMatch && !descriptionMatch && !sellerNameMatch && !sellerUsernameMatch && 
+            !placeMatch && !cityMatch && !sellerNamePartMatch) {
+          return false;
+        }
       }
       if (category !== "all" && it.category?.toLowerCase() !== category.toLowerCase()) {
         return false;
@@ -488,6 +541,17 @@ function HomePageContent() {
         case "price-high":
           return b.priceCents - a.priceCents;
         case "distance": 
+          // If no user location is set, show items without distance first, then by newest
+          if (!userLocation) {
+            if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) {
+              if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) {
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // newest first
+              }
+              return -1;
+            }
+            if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return 1;
+          }
+          // Normal distance sorting when location is available
           if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
           if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
           return a.location.distanceKm - b.location.distanceKm;
@@ -531,11 +595,34 @@ function HomePageContent() {
       };
     }).filter((user) => {
       if (term) {
-        const nameMatch = user.name?.toLowerCase().includes(term);
-        const usernameMatch = user.username?.toLowerCase().includes(term);
-        if (!nameMatch && !usernameMatch) {
-          return false;
+        // Check username
+        if (user.username?.toLowerCase().includes(term)) return true;
+        
+        // Check full name
+        if (user.name?.toLowerCase().includes(term)) return true;
+        
+        // Check first name, middle name(s), and last name separately
+        if (user.name) {
+          const nameParts = user.name.toLowerCase().split(' ').filter(part => part.length > 0);
+          
+          // Check if query matches any part of the name (first name, middle name, last name)
+          if (nameParts.some(part => part.includes(term))) {
+            return true;
+          }
+          
+          // Check if query matches the start of any name part (for partial matches)
+          if (nameParts.some(part => part.startsWith(term))) {
+            return true;
+          }
         }
+        
+        // Check bio, place, and city
+        if (user.bio?.toLowerCase().includes(term)) return true;
+        if (user.location?.place?.toLowerCase().includes(term)) return true;
+        if (user.location?.city?.toLowerCase().includes(term)) return true;
+        
+        // If no matches found, exclude this user
+        return false;
       }
       
       // Rol filter (exclude ADMIN users)
@@ -576,6 +663,17 @@ function HomePageContent() {
     return list.sort((a, b) => {
       switch (sortBy) {
         case "distance": 
+          // If no user location is set, show users without distance first, then by name
+          if (!userLocation) {
+            if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) {
+              if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) {
+                return (a.name || '').localeCompare(b.name || ''); // alphabetical
+              }
+              return -1;
+            }
+            if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return 1;
+          }
+          // Normal distance sorting when location is available
           if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
           if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
           return a.location.distanceKm - b.location.distanceKm;
@@ -821,11 +919,18 @@ function HomePageContent() {
                     onClearFilters={handleClearFilters}
                     onApplyFilters={handleApplyFilters}
                     searchType={searchType}
+                    userLocation={userLocation}
+                    locationSource={locationSource}
+                    profileLocation={profileLocation}
+                    onUseGPS={handleUseGPS}
+                    onUseProfile={handleUseProfile}
+                    onManualLocation={handleManualLocation}
+                    isGeocodingManual={isStartLocationGeocoding}
                   />
                 </div>
               )}
 
-              {/* Mobile Filters Panel - Nieuwe Mobiele Implementatie */}
+              {/* Mobile Filters Panel - Nieuwe Mobiele Implementatie v2 */}
               {showMobileFilters && (
                 <div className="md:hidden mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
@@ -840,6 +945,78 @@ function HomePageContent() {
                   </div>
                   
                   <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {/* STARTLOCATIE SECTIE - MOBILE */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="w-4 h-4 text-blue-600" />
+                        <h4 className="text-sm font-semibold text-gray-900">Startlocatie</h4>
+                      </div>
+                      
+                      {/* Current location status */}
+                      <div className="mb-2 p-2 bg-white rounded-lg border border-blue-100">
+                        <div className="text-xs text-gray-700">
+                          <strong>Huidige:</strong> {locationSource === 'profile' && profileLocation ? (
+                            <span className="text-blue-600">
+                              📍 {profileLocation.place || profileLocation.postcode || 'Profiel'}
+                            </span>
+                          ) : locationSource === 'gps' && userLocation ? (
+                            <span className="text-green-600">🛰️ GPS</span>
+                          ) : locationSource === 'manual' && userLocation ? (
+                            <span className="text-purple-600">📌 Handmatig</span>
+                          ) : (
+                            <span className="text-gray-500">⚠️ Geen locatie</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Manual location input - Mobile optimized */}
+                      <div className="space-y-2">
+                        <div>
+                          <input
+                            type="text"
+                            value={manualLocationInput}
+                            onChange={(e) => setManualLocationInput(e.target.value)}
+                            placeholder="Plaats of postcode..."
+                            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && manualLocationInput.trim() && handleManualLocation) {
+                                handleManualLocation(manualLocationInput.trim());
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              if (manualLocationInput.trim() && handleManualLocation) {
+                                handleManualLocation(manualLocationInput.trim());
+                              }
+                            }}
+                            disabled={!manualLocationInput.trim() || isStartLocationGeocoding}
+                            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                          >
+                            {isStartLocationGeocoding ? 'Zoeken...' : 'Instellen'}
+                          </button>
+                          {profileLocation?.lat && profileLocation?.lng && handleUseProfile && (
+                            <button
+                              onClick={handleUseProfile}
+                              className="px-3 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+                            >
+                              📍 Profiel
+                            </button>
+                          )}
+                          {handleUseGPS && (
+                            <button
+                              onClick={handleUseGPS}
+                              className="px-3 py-2 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-sm"
+                            >
+                              🛰️ GPS
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Categorie Filter - Mobiel geoptimaliseerd */}
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700">
@@ -961,7 +1138,7 @@ function HomePageContent() {
                           className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
                         />
                         <button
-                          onClick={() => geocodeStartLocation(startLocation)}
+                          onClick={() => handleManualLocation(startLocation)}
                           disabled={!startLocation.trim() || isStartLocationGeocoding}
                           className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                         >
@@ -1100,6 +1277,38 @@ function HomePageContent() {
                       </div>
                     </div>
 
+                    {/* Bezorging Filter */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Bezorging
+                      </label>
+                      <select
+                        value={deliveryMode}
+                        onChange={(e) => setDeliveryMode(e.target.value)}
+                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                        style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        <option value="all">Alle opties</option>
+                        <option value="PICKUP">Alleen afhalen</option>
+                        <option value="DELIVERY">Alleen bezorgen</option>
+                        <option value="BOTH">Afhalen en bezorgen</option>
+                      </select>
+                    </div>
+
+                    {/* Locatie Filter */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Zoek in locatie
+                      </label>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="Plaats of postcode..."
+                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
+                      />
+                    </div>
+
                     {/* Sorteer Filter */}
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700">
@@ -1115,7 +1324,7 @@ function HomePageContent() {
                         <option value="oldest">Oudste eerst</option>
                         <option value="price-low">Prijs laag-hoog</option>
                         <option value="price-high">Prijs hoog-laag</option>
-                        <option value="distance">Afstand</option>
+                        <option value="distance">Afstand{!userLocation ? ' (locatie nodig)' : ''}</option>
                         <option value="name">Naam A-Z</option>
                       </select>
                     </div>
@@ -1130,7 +1339,10 @@ function HomePageContent() {
                       Reset
                     </button>
                     <button
-                      onClick={() => setShowMobileFilters(false)}
+                      onClick={() => {
+                        handleApplyFilters();
+                        setShowMobileFilters(false);
+                      }}
                       className="flex-1 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 rounded-xl transition-colors font-medium touch-manipulation active:scale-95"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
@@ -1144,7 +1356,7 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* Location Status */}
+      {/* NEW: Smart Location Status */}
       <section className="py-4 bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -1152,50 +1364,44 @@ function HomePageContent() {
               {userLocation ? (
                 <>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700">
-                    Locatie gedetecteerd - Afstanden worden berekend
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-700">
+                      Startlocatie actief - Afstanden worden berekend
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {locationSource === 'profile' && profileLocation ? 
+                        `📍 ${profileLocation.place || profileLocation.postcode || 'Profiel locatie'}` :
+                        locationSource === 'gps' ? 
+                        '🛰️ GPS locatie' :
+                        locationSource === 'manual' ? 
+                        '📌 Handmatig ingesteld' :
+                        'Locatie ingesteld'
+                      }
+                    </span>
+                  </div>
                 </>
               ) : (
                 <>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                   <div className="flex flex-col">
                     <span className="text-sm text-gray-700">
-                      Locatie niet beschikbaar - Geen afstandsberekening
+                      Stel je startlocatie in voor afstandsberekening
                     </span>
                     <span className="text-xs text-gray-500">
-                      Klik op "Locatie toestaan" om afstanden te zien, of gebruik de postcode filter hieronder
+                      Open de filters hieronder om je locatie in te stellen
                     </span>
                   </div>
                 </>
               )}
             </div>
-            {!userLocation && (
-              <div className="flex gap-2">
-                <button
-                  onClick={getCurrentPosition}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:bg-blue-800"
-                >
-                  Locatie toestaan
-                </button>
-                
-                <button
-                  onClick={async () => {
-                    const status = await checkLocationStatus();
-                    console.log('🔍 Debug location status:', status);
-                    addNotification({
-                      type: 'info',
-                      title: 'Locatie Debug Info',
-                      message: `Status: ${status.supported ? 'Ondersteund' : 'Niet ondersteund'} - ${status.reason}`,
-                      duration: 8000,
-                    });
-                  }}
-                  className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors active:bg-gray-800"
-                >
-                  Debug
-                </button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:bg-blue-800"
+              >
+                {showFilters ? 'Filters sluiten' : 'Filters openen'}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1273,11 +1479,13 @@ function HomePageContent() {
             ) : searchType === 'users' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredUsers.map((user) => (
-                  <div 
-                    key={user.id} 
-                    onClick={() => window.location.href = `/seller/${user.id}`}
-                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                  <Link
+                    href={`/user/${user.username || user.id}`}
+                    key={user.id}
                   >
+                    <div 
+                      className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                    >
                     {/* User Avatar */}
                     <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100">
                       {user.image ? (
@@ -1290,7 +1498,7 @@ function HomePageContent() {
                         <div className="w-full h-full flex items-center justify-center">
                           <div className="w-24 h-24 bg-primary-200 rounded-full flex items-center justify-center">
                             <span className="text-2xl font-bold text-primary-600">
-                              {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                              {getDisplayName(user).charAt(0).toUpperCase()}
                             </span>
                           </div>
                         </div>
@@ -1300,9 +1508,9 @@ function HomePageContent() {
                     {/* User Info */}
                     <div className="p-6">
                       <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
-                        {user.name || 'Naamloze gebruiker'}
+                        {getDisplayName(user)}
                       </h3>
-                      {user.username && (
+                      {user.displayFullName !== false && user.displayNameOption !== 'none' && user.username && (
                         <p className="text-sm text-gray-500 mb-2">@{user.username}</p>
                       )}
                       
@@ -1337,7 +1545,8 @@ function HomePageContent() {
                         </div>
                       )}
                     </div>
-                  </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -1438,7 +1647,7 @@ function HomePageContent() {
                           ) : (
                             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                               <span className="text-primary-600 font-semibold text-sm">
-                                {(item.seller?.name ?? item.seller?.username ?? "A").charAt(0).toUpperCase()}
+                                {getDisplayName(item.seller || undefined).charAt(0).toUpperCase()}
                               </span>
                             </div>
                           )}
@@ -1450,8 +1659,8 @@ function HomePageContent() {
                                 id: item.seller?.id || null,
                                 name: item.seller?.name || null,
                                 username: item.seller?.username || null,
-                                displayFullName: true,
-                                displayNameOption: 'full'
+                                displayFullName: item.seller?.displayFullName,
+                                displayNameOption: item.seller?.displayNameOption
                               }}
                               className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors truncate"
                               fallbackText="Anoniem"
@@ -1589,7 +1798,6 @@ export default function HomePage() {
   return (
     <NotificationProvider>
       <HomePageContent />
-      <GeolocationDebug />
     </NotificationProvider>
   );
 }

@@ -13,31 +13,46 @@ export type NextApiResponseServerIO = NextApiResponse & {
 
 export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
   if (res.socket.server.io) {
-    console.log('Socket is already running');
+    console.log('[Socket] Server already running');
   } else {
-    console.log('Socket is initializing');
+    console.log('[Socket] Initializing Socket.IO server...');
     const io = new SocketIOServer(res.socket.server, {
       path: '/api/socket',
       cors: {
-        origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+        origin: [
+          process.env.NEXTAUTH_URL || 'http://localhost:3000',
+          'http://localhost:3000',
+          'http://127.0.0.1:3000',
+          'https://homecheff-app.vercel.app'
+        ],
         methods: ['GET', 'POST'],
+        credentials: false // Disable credentials for localhost compatibility
       },
+      transports: ['polling', 'websocket'], // Polling first for localhost compatibility
+      pingTimeout: 30000, // Shorter timeout for localhost
+      pingInterval: 15000, // More frequent pings
+      upgradeTimeout: 5000, // Shorter upgrade timeout
+      allowEIO3: true,
+      allowUpgrades: true,
+      perMessageDeflate: false // Disable compression for localhost
     });
     res.socket.server.io = io;
 
     io.on('connection', (socket) => {
-      console.log('New client connected:', socket.id);
+      console.log('[Socket] ✅ New client connected:', socket.id);
+      console.log('[Socket] Total connected clients:', io.engine.clientsCount);
 
       // Join conversation room
       socket.on('join-conversation', (conversationId: string) => {
         socket.join(conversationId);
-        console.log(`User ${socket.id} joined conversation ${conversationId}`);
+        console.log(`[Socket] User ${socket.id} joined conversation ${conversationId}`);
+        console.log(`[Socket] Room ${conversationId} now has ${io.sockets.adapter.rooms.get(conversationId)?.size || 0} members`);
       });
 
       // Leave conversation room
       socket.on('leave-conversation', (conversationId: string) => {
         socket.leave(conversationId);
-        console.log(`User ${socket.id} left conversation ${conversationId}`);
+        console.log(`[Socket] User ${socket.id} left conversation ${conversationId}`);
       });
 
       // Handle new message
@@ -50,10 +65,13 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
         attachmentName?: string;
         attachmentType?: string;
       }) => {
+        let prisma: any;
         try {
           // Save message to database
           const { PrismaClient } = await import('@prisma/client');
-          const prisma = new PrismaClient();
+          prisma = new PrismaClient();
+
+          console.log('[Socket] Creating message for conversation:', data.conversationId);
 
           const message = await prisma.message.create({
             data: {
@@ -72,10 +90,14 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
                   name: true,
                   username: true,
                   profileImage: true,
+                  displayFullName: true,
+                  displayNameOption: true,
                 }
               }
             }
           });
+
+          console.log('[Socket] Message created:', message.id);
 
           // Update conversation last message time
           await prisma.conversation.update({
@@ -83,8 +105,22 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
             data: { lastMessageAt: new Date() }
           });
 
-          // Broadcast message to all users in the conversation
+          console.log('[Socket] Broadcasting message to room:', data.conversationId);
+          
+          // Get room members count for debugging
+          const room = io.sockets.adapter.rooms.get(data.conversationId);
+          const roomSize = room ? room.size : 0;
+          console.log(`[Socket] Room ${data.conversationId} has ${roomSize} members`);
+
+          // Broadcast message to all users in the conversation (including sender)
           io.to(data.conversationId).emit('new-message', message);
+          console.log(`[Socket] Broadcasted to room ${data.conversationId}`);
+
+          // Also send to the sender's socket directly to ensure they see it
+          socket.emit('new-message', message);
+          console.log(`[Socket] Sent directly to sender ${socket.id}`);
+
+          console.log('[Socket] ✅ Message broadcasted successfully');
 
           // Send notification to other participants
           const participants = await prisma.conversationParticipant.findMany({
@@ -103,6 +139,8 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
             }
           });
 
+          console.log('[Socket] Sending notifications to', participants.length, 'participants');
+
           // Send notification to all participants in the conversation
           io.to(data.conversationId).emit('message-notification', {
             conversationId: data.conversationId,
@@ -113,12 +151,15 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
 
           await prisma.$disconnect();
         } catch (error) {
-          console.error('Error sending message:', error);
-          socket.emit('message-error', { error: 'Failed to send message' });
-          try {
-            await prisma.$disconnect();
-          } catch (disconnectError) {
-            console.error('Error disconnecting prisma:', disconnectError);
+          console.error('[Socket] Error sending message:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          socket.emit('message-error', { error: 'Failed to send message', details: errorMessage });
+          if (prisma) {
+            try {
+              await prisma.$disconnect();
+            } catch (disconnectError) {
+              console.error('[Socket] Error disconnecting prisma:', disconnectError);
+            }
           }
         }
       });
@@ -160,8 +201,9 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
         }
       });
 
-      socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
+      socket.on('disconnect', (reason) => {
+        console.log(`[Socket] ❌ Client disconnected: ${socket.id}, reason: ${reason}`);
+        console.log('[Socket] Remaining connected clients:', io.engine.clientsCount);
       });
     });
   }

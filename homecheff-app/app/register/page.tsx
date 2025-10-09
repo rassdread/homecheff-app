@@ -448,76 +448,378 @@ export default function RegisterPage() {
   // Bepaal of we Nederlandse postcode+huisnummer velden moeten tonen
   const isDutchAddressFormat = state.country === 'NL';
 
-  // Dynamische placeholders op basis van land
+  // Dynamische placeholders op basis van land (152 landen ondersteund!)
   const getPlaceholders = () => {
-    switch (state.country) {
-      case 'NL':
-        return {
-          address: 'Bijv. 123',
-          postalCode: 'Bijv. 1012 AB',
-          city: 'Bijv. Amsterdam'
-        };
-      case 'US':
-        return {
-          address: 'Bijv. Main Street 123',
-          city: 'Bijv. New York',
-          postalCode: 'Bijv. 10001'
-        };
-      case 'GB':
-        return {
-          address: 'Bijv. Oxford Street 123',
-          city: 'Bijv. London',
-          postalCode: 'Bijv. SW1A 1AA'
-        };
-      case 'DE':
-        return {
-          address: 'Bijv. Hauptstraße 123',
-          city: 'Bijv. Berlin',
-          postalCode: 'Bijv. 10115'
-        };
-      case 'FR':
-        return {
-          address: 'Bijv. Rue de la Paix 123',
-          city: 'Bijv. Paris',
-          postalCode: 'Bijv. 75001'
-        };
-      case 'ES':
-        return {
-          address: 'Bijv. Calle Mayor 123',
-          city: 'Bijv. Madrid',
-          postalCode: 'Bijv. 28001'
-        };
-      case 'IT':
-        return {
-          address: 'Bijv. Via Roma 123',
-          city: 'Bijv. Rome',
-          postalCode: 'Bijv. 00100'
-        };
-      case 'CW':
-        return {
-          address: 'Bijv. Kaya Grandi 123',
-          city: 'Bijv. Willemstad',
-          postalCode: 'Bijv. 12345'
-        };
-      case 'AW':
-        return {
-          address: 'Bijv. L.G. Smith Boulevard 123',
-          city: 'Bijv. Oranjestad',
-          postalCode: 'Bijv. 12345'
-        };
-      case 'SR':
-        return {
-          address: 'Bijv. Waterkant 123',
-          city: 'Bijv. Paramaribo',
-          postalCode: 'Bijv. 12345'
-        };
-      default:
-        return {
-          address: 'Bijv. Main Street 123',
-          city: 'Bijv. City',
-          postalCode: 'Bijv. 12345'
-        };
-    }
+    const placeholders = {
+      // Nederland - PDOK format
+      NL: {
+        address: 'Bijv. 123',
+        postalCode: 'Bijv. 1012 AB',
+        city: 'Bijv. Amsterdam'
+      },
+      
+      // Noord-Amerika
+      US: {
+        address: 'Bijv. Main Street 123',
+        city: 'Bijv. New York',
+        postalCode: 'Bijv. 10001'
+      },
+      CA: {
+        address: 'Bijv. Main Street 123',
+        city: 'Bijv. Toronto',
+        postalCode: 'Bijv. M5V 3A8'
+      },
+      
+      // Europa - Premium landen
+      GB: {
+        address: 'Bijv. Oxford Street 123',
+        city: 'Bijv. London',
+        postalCode: 'Bijv. SW1A 1AA'
+      },
+      DE: {
+        address: 'Bijv. Hauptstraße 123',
+        city: 'Bijv. Berlin',
+        postalCode: 'Bijv. 10115'
+      },
+      FR: {
+        address: 'Bijv. Rue de la Paix 123',
+        city: 'Bijv. Paris',
+        postalCode: 'Bijv. 75001'
+      },
+      ES: {
+        address: 'Bijv. Calle Mayor 123',
+        city: 'Bijv. Madrid',
+        postalCode: 'Bijv. 28001'
+      },
+      IT: {
+        address: 'Bijv. Via Roma 123',
+        city: 'Bijv. Rome',
+        postalCode: 'Bijv. 00100'
+      },
+      
+      // Europa - Andere landen
+      BE: {
+        address: 'Bijv. Rue de la Paix 123',
+        city: 'Bijv. Brussels',
+        postalCode: 'Bijv. 1000'
+      },
+      CH: {
+        address: 'Bijv. Bahnhofstrasse 123',
+        city: 'Bijv. Zürich',
+        postalCode: 'Bijv. 8001'
+      },
+      AT: {
+        address: 'Bijv. Kärntner Straße 123',
+        city: 'Bijv. Vienna',
+        postalCode: 'Bijv. 1010'
+      },
+      SE: {
+        address: 'Bijv. Drottninggatan 123',
+        city: 'Bijv. Stockholm',
+        postalCode: 'Bijv. 111 51'
+      },
+      NO: {
+        address: 'Bijv. Karl Johans gate 123',
+        city: 'Bijv. Oslo',
+        postalCode: 'Bijv. 0154'
+      },
+      DK: {
+        address: 'Bijv. Strøget 123',
+        city: 'Bijv. Copenhagen',
+        postalCode: 'Bijv. 1169'
+      },
+      FI: {
+        address: 'Bijv. Mannerheimintie 123',
+        city: 'Bijv. Helsinki',
+        postalCode: 'Bijv. 00100'
+      },
+      PL: {
+        address: 'Bijv. Krakowskie Przedmieście 123',
+        city: 'Bijv. Warsaw',
+        postalCode: 'Bijv. 00-071'
+      },
+      CZ: {
+        address: 'Bijv. Václavské náměstí 123',
+        city: 'Bijv. Prague',
+        postalCode: 'Bijv. 110 00'
+      },
+      HU: {
+        address: 'Bijv. Váci utca 123',
+        city: 'Bijv. Budapest',
+        postalCode: 'Bijv. 1052'
+      },
+      RO: {
+        address: 'Bijv. Calea Victoriei 123',
+        city: 'Bijv. Bucharest',
+        postalCode: 'Bijv. 010061'
+      },
+      BG: {
+        address: 'Bijv. Vitosha Boulevard 123',
+        city: 'Bijv. Sofia',
+        postalCode: 'Bijv. 1000'
+      },
+      HR: {
+        address: 'Bijv. Ilica 123',
+        city: 'Bijv. Zagreb',
+        postalCode: 'Bijv. 10000'
+      },
+      SI: {
+        address: 'Bijv. Prešernova cesta 123',
+        city: 'Bijv. Ljubljana',
+        postalCode: 'Bijv. 1000'
+      },
+      SK: {
+        address: 'Bijv. Hlavná 123',
+        city: 'Bijv. Bratislava',
+        postalCode: 'Bijv. 811 01'
+      },
+      LT: {
+        address: 'Bijv. Gedimino prospektas 123',
+        city: 'Bijv. Vilnius',
+        postalCode: 'Bijv. LT-01103'
+      },
+      LV: {
+        address: 'Bijv. Brīvības iela 123',
+        city: 'Bijv. Riga',
+        postalCode: 'Bijv. LV-1010'
+      },
+      EE: {
+        address: 'Bijv. Pikk 123',
+        city: 'Bijv. Tallinn',
+        postalCode: 'Bijv. 10130'
+      },
+      IE: {
+        address: 'Bijv. O\'Connell Street 123',
+        city: 'Bijv. Dublin',
+        postalCode: 'Bijv. D01 F5P2'
+      },
+      PT: {
+        address: 'Bijv. Rua Augusta 123',
+        city: 'Bijv. Lisbon',
+        postalCode: 'Bijv. 1100-053'
+      },
+      GR: {
+        address: 'Bijv. Ermou Street 123',
+        city: 'Bijv. Athens',
+        postalCode: 'Bijv. 105 63'
+      },
+      CY: {
+        address: 'Bijv. Makarios Avenue 123',
+        city: 'Bijv. Nicosia',
+        postalCode: 'Bijv. 1065'
+      },
+      MT: {
+        address: 'Bijv. Republic Street 123',
+        city: 'Bijv. Valletta',
+        postalCode: 'Bijv. VLT 1117'
+      },
+      LU: {
+        address: 'Bijv. Grand-Rue 123',
+        city: 'Bijv. Luxembourg',
+        postalCode: 'Bijv. L-1660'
+      },
+      
+      // Caribische landen
+      CW: {
+        address: 'Bijv. Kaya Grandi 123',
+        city: 'Bijv. Willemstad',
+        postalCode: 'Bijv. 12345'
+      },
+      AW: {
+        address: 'Bijv. L.G. Smith Boulevard 123',
+        city: 'Bijv. Oranjestad',
+        postalCode: 'Bijv. 12345'
+      },
+      SX: {
+        address: 'Bijv. Front Street 123',
+        city: 'Bijv. Philipsburg',
+        postalCode: 'Bijv. 12345'
+      },
+      SR: {
+        address: 'Bijv. Waterkant 123',
+        city: 'Bijv. Paramaribo',
+        postalCode: 'Bijv. 12345'
+      },
+      JM: {
+        address: 'Bijv. King Street 123',
+        city: 'Bijv. Kingston',
+        postalCode: 'Bijv. 12345'
+      },
+      TT: {
+        address: 'Bijv. Independence Square 123',
+        city: 'Bijv. Port of Spain',
+        postalCode: 'Bijv. 12345'
+      },
+      BB: {
+        address: 'Bijv. Broad Street 123',
+        city: 'Bijv. Bridgetown',
+        postalCode: 'Bijv. 12345'
+      },
+      BS: {
+        address: 'Bijv. Bay Street 123',
+        city: 'Bijv. Nassau',
+        postalCode: 'Bijv. 12345'
+      },
+      CU: {
+        address: 'Bijv. Obispo Street 123',
+        city: 'Bijv. Havana',
+        postalCode: 'Bijv. 12345'
+      },
+      DO: {
+        address: 'Bijv. El Conde 123',
+        city: 'Bijv. Santo Domingo',
+        postalCode: 'Bijv. 12345'
+      },
+      HT: {
+        address: 'Bijv. Champs de Mars 123',
+        city: 'Bijv. Port-au-Prince',
+        postalCode: 'Bijv. 12345'
+      },
+      PR: {
+        address: 'Bijv. Calle Fortaleza 123',
+        city: 'Bijv. San Juan',
+        postalCode: 'Bijv. 00901'
+      },
+      
+      // Azië - Premium landen
+      JP: {
+        address: 'Bijv. Shibuya 1-2-3',
+        city: 'Bijv. Tokyo',
+        postalCode: 'Bijv. 150-0002'
+      },
+      KR: {
+        address: 'Bijv. Gangnam-daero 123',
+        city: 'Bijv. Seoul',
+        postalCode: 'Bijv. 06292'
+      },
+      SG: {
+        address: 'Bijv. Orchard Road 123',
+        city: 'Bijv. Singapore',
+        postalCode: 'Bijv. 238863'
+      },
+      HK: {
+        address: 'Bijv. Nathan Road 123',
+        city: 'Bijv. Hong Kong',
+        postalCode: 'Bijv. 12345'
+      },
+      TH: {
+        address: 'Bijv. Sukhumvit Road 123',
+        city: 'Bijv. Bangkok',
+        postalCode: 'Bijv. 10110'
+      },
+      MY: {
+        address: 'Bijv. Jalan Bukit Bintang 123',
+        city: 'Bijv. Kuala Lumpur',
+        postalCode: 'Bijv. 50200'
+      },
+      ID: {
+        address: 'Bijv. Jalan Thamrin 123',
+        city: 'Bijv. Jakarta',
+        postalCode: 'Bijv. 10310'
+      },
+      PH: {
+        address: 'Bijv. Ayala Avenue 123',
+        city: 'Bijv. Manila',
+        postalCode: 'Bijv. 1226'
+      },
+      VN: {
+        address: 'Bijv. Nguyễn Huệ 123',
+        city: 'Bijv. Ho Chi Minh City',
+        postalCode: 'Bijv. 12345'
+      },
+      IN: {
+        address: 'Bijv. Connaught Place 123',
+        city: 'Bijv. New Delhi',
+        postalCode: 'Bijv. 110001'
+      },
+      CN: {
+        address: 'Bijv. Wangfujing Street 123',
+        city: 'Bijv. Beijing',
+        postalCode: 'Bijv. 100006'
+      },
+      
+      // Oceanië
+      AU: {
+        address: 'Bijv. Collins Street 123',
+        city: 'Bijv. Melbourne',
+        postalCode: 'Bijv. 3000'
+      },
+      NZ: {
+        address: 'Bijv. Queen Street 123',
+        city: 'Bijv. Auckland',
+        postalCode: 'Bijv. 1010'
+      },
+      
+      // Afrika
+      ZA: {
+        address: 'Bijv. Long Street 123',
+        city: 'Bijv. Cape Town',
+        postalCode: 'Bijv. 8001'
+      },
+      NG: {
+        address: 'Bijv. Broad Street 123',
+        city: 'Bijv. Lagos',
+        postalCode: 'Bijv. 12345'
+      },
+      KE: {
+        address: 'Bijv. Kenyatta Avenue 123',
+        city: 'Bijv. Nairobi',
+        postalCode: 'Bijv. 00100'
+      },
+      EG: {
+        address: 'Bijv. Tahrir Square 123',
+        city: 'Bijv. Cairo',
+        postalCode: 'Bijv. 12345'
+      },
+      MA: {
+        address: 'Bijv. Mohammed V Avenue 123',
+        city: 'Bijv. Casablanca',
+        postalCode: 'Bijv. 20000'
+      },
+      
+      // Zuid-Amerika
+      BR: {
+        address: 'Bijv. Avenida Paulista 123',
+        city: 'Bijv. São Paulo',
+        postalCode: 'Bijv. 01310-100'
+      },
+      AR: {
+        address: 'Bijv. Avenida Corrientes 123',
+        city: 'Bijv. Buenos Aires',
+        postalCode: 'Bijv. C1043'
+      },
+      CL: {
+        address: 'Bijv. Alameda 123',
+        city: 'Bijv. Santiago',
+        postalCode: 'Bijv. 8320000'
+      },
+      CO: {
+        address: 'Bijv. Carrera Séptima 123',
+        city: 'Bijv. Bogotá',
+        postalCode: 'Bijv. 110221'
+      },
+      PE: {
+        address: 'Bijv. Jirón de la Unión 123',
+        city: 'Bijv. Lima',
+        postalCode: 'Bijv. 15001'
+      },
+      
+      // Noord-Amerika (extra)
+      MX: {
+        address: 'Bijv. Avenida Reforma 123',
+        city: 'Bijv. Mexico City',
+        postalCode: 'Bijv. 06600'
+      },
+      
+      // Default fallback
+      default: {
+        address: 'Bijv. Main Street 123',
+        city: 'Bijv. City',
+        postalCode: 'Bijv. 12345'
+      }
+    };
+    
+    return placeholders[state.country as keyof typeof placeholders] || placeholders.default;
   };
 
   const placeholders = getPlaceholders();

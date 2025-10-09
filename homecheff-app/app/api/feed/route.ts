@@ -26,6 +26,64 @@ export async function GET(req: NextRequest) {
   let lng = searchParams.get("lng");
   const place = searchParams.get("place")?.trim() || "";
 
+  // Handle international place geocoding
+  if (place && (!lat || !lng)) {
+    try {
+      // Try multiple geocoding strategies
+      let geocodingSuccess = false;
+      
+      // Strategy 1: Try as Dutch address first
+      const nlResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/geocoding/dutch?address=${encodeURIComponent(place)}`);
+      if (nlResponse.ok) {
+        const nlData = await nlResponse.json();
+        if (nlData.lat && nlData.lng) {
+          lat = String(nlData.lat);
+          lng = String(nlData.lng);
+          geocodingSuccess = true;
+          console.log('🇳🇱 Dutch geocoding successful for:', place, '→', lat, lng);
+        }
+      }
+      
+      // Strategy 2: If Dutch fails, try international geocoding
+      if (!geocodingSuccess) {
+        const intlResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/geocoding/global?address=${encodeURIComponent(place)}&city=&countryCode=NL`);
+        if (intlResponse.ok) {
+          const intlData = await intlResponse.json();
+          if (intlData.lat && intlData.lng) {
+            lat = String(intlData.lat);
+            lng = String(intlData.lng);
+            geocodingSuccess = true;
+            console.log('🌍 International geocoding successful for:', place, '→', lat, lng);
+          }
+        }
+      }
+      
+      // Strategy 3: Fallback to OpenStreetMap Nominatim
+      if (!geocodingSuccess) {
+        const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1&addressdetails=1`, {
+          headers: { 'User-Agent': 'HomeCheff-App/1.0' }
+        });
+        if (nominatimResponse.ok) {
+          const nominatimData = await nominatimResponse.json();
+          if (nominatimData && nominatimData.length > 0) {
+            lat = String(nominatimData[0].lat);
+            lng = String(nominatimData[0].lon);
+            geocodingSuccess = true;
+            console.log('🗺️ Nominatim geocoding successful for:', place, '→', lat, lng);
+          }
+        }
+      }
+      
+      if (!geocodingSuccess) {
+        console.log('❌ All geocoding strategies failed for:', place);
+      }
+      
+    } catch (error) {
+      console.log('⚠️ Geocoding error:', error);
+    }
+  }
+
+  // Fallback to user profile location if no coordinates found
   if ((!lat || !lng) && userId) {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { lat: true, lng: true } });
     if (u?.lat != null && u?.lng != null) {
@@ -47,10 +105,11 @@ export async function GET(req: NextRequest) {
     ];
   }
 
-  // Category filter
+  // Category filter - when "all" is selected, show all categories
   if (vertical && vertical !== "all") {
     where.category = vertical.toUpperCase();
   }
+  // When vertical is "all", no category filter is applied (shows all categories)
 
   // Location filters - Note: SellerProfile doesn't have place field, so we'll skip place filtering for now
   if (lat && lng) {
@@ -98,7 +157,7 @@ export async function GET(req: NextRequest) {
         createdAt: true,
         seller: {
           include: {
-            User: { select: { id: true, name: true, username: true, profileImage: true } }
+            User: { select: { id: true, name: true, username: true, profileImage: true, displayFullName: true, displayNameOption: true } }
           }
         },
         Image: { 
@@ -127,7 +186,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ createdAt: "desc" }],
       take: 15,
       include: {
-        User: { select: { id: true, name: true, username: true, profileImage: true } },
+        User: { select: { id: true, name: true, username: true, profileImage: true, displayFullName: true, displayNameOption: true } },
         ListingMedia: { 
           select: { url: true, order: true },
           orderBy: { order: 'asc' }
@@ -152,7 +211,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ createdAt: "desc" }],
       take: 15,
       include: {
-        user: { select: { id: true, name: true, username: true, profileImage: true } },
+        user: { select: { id: true, name: true, username: true, profileImage: true, displayFullName: true, displayNameOption: true } },
         photos: { 
           select: { url: true, idx: true },
           orderBy: { idx: 'asc' }
@@ -190,8 +249,8 @@ export async function GET(req: NextRequest) {
       name: dish.user.name,
       username: dish.user.username,
       avatar: dish.user.profileImage,
-      displayFullName: (dish.user as any).displayFullName,
-      displayNameOption: (dish.user as any).displayNameOption
+      displayFullName: dish.user.displayFullName,
+      displayNameOption: dish.user.displayNameOption
     }
   }));
 
@@ -223,8 +282,8 @@ export async function GET(req: NextRequest) {
       name: listing.User.name || undefined,
       username: listing.User.username || undefined,
       avatar: listing.User.profileImage || undefined,
-      displayFullName: (listing.User as any).displayFullName || undefined,
-      displayNameOption: (listing.User as any).displayNameOption || undefined
+      displayFullName: listing.User.displayFullName || undefined,
+      displayNameOption: listing.User.displayNameOption || undefined
     } : undefined
   }));
 
@@ -257,8 +316,8 @@ export async function GET(req: NextRequest) {
       name: product.seller.User?.name || undefined,
       username: product.seller.User?.username || undefined,
       avatar: product.seller.User?.profileImage || undefined,
-      displayFullName: (product.seller.User as any)?.displayFullName || undefined,
-      displayNameOption: (product.seller.User as any)?.displayNameOption || undefined,
+      displayFullName: product.seller.User?.displayFullName || undefined,
+      displayNameOption: product.seller.User?.displayNameOption || undefined,
       lat: product.seller.lat || null, // Include seller location for distance calculation
       lng: product.seller.lng || null
     } : undefined

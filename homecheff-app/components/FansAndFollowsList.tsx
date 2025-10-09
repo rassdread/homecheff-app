@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { UserPlus, Users } from "lucide-react";
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';

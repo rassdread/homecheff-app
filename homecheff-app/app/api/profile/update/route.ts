@@ -28,6 +28,9 @@ export async function PUT(request: NextRequest) {
       sellerRoles, 
       buyerRoles, 
       displayFullName,
+      displayNameOption,
+      encryptionEnabled,
+      messageGuidelinesAccepted,
       bankName,
       iban,
       accountHolderName
@@ -43,7 +46,7 @@ export async function PUT(request: NextRequest) {
     // Get current user to check if username is being changed
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { username: true }
+      select: { username: true, messageGuidelinesAcceptedAt: true }
     });
 
     // Prevent username changes - username is immutable after registration
@@ -90,6 +93,10 @@ export async function PUT(request: NextRequest) {
         sellerRoles: sellerRoles || [],
         buyerRoles: buyerRoles || [],
         displayFullName: displayFullName !== undefined ? displayFullName : true,
+        displayNameOption: displayNameOption || 'full',
+        encryptionEnabled: encryptionEnabled !== undefined ? encryptionEnabled : false,
+        messageGuidelinesAccepted: messageGuidelinesAccepted !== undefined ? messageGuidelinesAccepted : false,
+        messageGuidelinesAcceptedAt: messageGuidelinesAccepted && !currentUser?.messageGuidelinesAcceptedAt ? new Date() : undefined,
         bankName: bankName || null,
         iban: iban || null,
         accountHolderName: accountHolderName || null,
@@ -112,6 +119,10 @@ export async function PUT(request: NextRequest) {
         sellerRoles: true,
         buyerRoles: true,
         displayFullName: true,
+        displayNameOption: true,
+        encryptionEnabled: true,
+        messageGuidelinesAccepted: true,
+        messageGuidelinesAcceptedAt: true,
         profileImage: true,
         updatedAt: true,
       }

@@ -384,3 +384,4 @@ export function isValidPostcode(postcode: string, countryCode: string): boolean 
   
   return country.postcodePattern.test(postcode);
 }
+

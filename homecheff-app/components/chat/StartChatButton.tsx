@@ -55,12 +55,13 @@ export default function StartChatButton({
 
       const { conversation } = await response.json();
       
-      if (onConversationStarted) {
-        onConversationStarted(conversation.id);
-      } else {
-        // Redirect to messages page
-        window.location.href = `/messages/${conversation.id}`;
-      }
+      // Always redirect to messages page to open the chat directly
+      window.location.href = `/messages?conversation=${conversation.id}`;
+
+      // Dispatch event to notify chat window that conversation was updated
+      window.dispatchEvent(new CustomEvent('conversationUpdated', {
+        detail: { conversationId: conversation.id }
+      }));
 
       setShowModal(false);
       setInitialMessage('');
@@ -124,7 +125,7 @@ export default function StartChatButton({
         `}
       >
         <MessageCircle className="w-4 h-4" />
-        <span>{isLoading ? 'Laden...' : 'Stuur bericht'}</span>
+        <span>{isLoading ? 'Laden...' : 'Start chat'}</span>
       </button>
 
       {/* Chat Modal */}
@@ -134,7 +135,7 @@ export default function StartChatButton({
             {/* Header */}
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Bericht sturen naar {sellerName}</h2>
+                <h2 className="text-lg font-semibold">Start chat met {sellerName}</h2>
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -149,7 +150,7 @@ export default function StartChatButton({
               <p className="text-sm text-gray-600">
                 {productId 
                   ? 'Start een gesprek over dit product. Je kunt een eerste bericht sturen of later beginnen.'
-                  : 'Start een gesprek met deze verkoper. Je kunt een eerste bericht sturen of later beginnen.'
+                  : 'Start een gesprek met deze verkoper. Je kunt een eerste bericht sturen en direct verder chatten.'
                 }
               </p>
 

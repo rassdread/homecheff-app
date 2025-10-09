@@ -202,16 +202,29 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
     });
   };
 
-  const renderMessage = (message: MessageType) => {
+  // Group messages by sender and time (WhatsApp style)
+  const shouldGroupWithPrevious = (currentMsg: MessageType, prevMsg: MessageType | undefined) => {
+    if (!prevMsg) return false;
+    if (prevMsg.User.id !== currentMsg.User.id) return false;
+    
+    const timeDiff = new Date(currentMsg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime();
+    return timeDiff < 60000; // Group if less than 1 minute apart
+  };
+
+  const renderMessage = (message: MessageType, index: number) => {
     const isOwn = message.User.id === currentUserId;
     const isSystemMessage = ['SYSTEM', 'ORDER_STATUS_UPDATE', 'ORDER_PICKUP_INFO', 'ORDER_DELIVERY_INFO', 'ORDER_ADDRESS_UPDATE'].includes(message.messageType);
+    const prevMessage = index > 0 ? messages[index - 1] : undefined;
+    const shouldGroup = shouldGroupWithPrevious(message, prevMessage);
+    const showAvatar = !shouldGroup && !isOwn;
+    const showName = !shouldGroup && !isOwn;
 
     // Special styling for system/order messages
     if (isSystemMessage) {
       return (
-        <div key={message.id} className="flex justify-center mb-4">
+        <div key={message.id} className="flex justify-center mb-4 animate-in fade-in duration-300">
           <div className="max-w-md">
-            <div className={`px-4 py-3 rounded-lg border-2 ${
+            <div className={`px-4 py-3 rounded-xl border-2 shadow-sm ${
               message.messageType === 'ORDER_STATUS_UPDATE' 
                 ? 'bg-green-50 border-green-200 text-green-800'
                 : message.messageType === 'ORDER_PICKUP_INFO'
@@ -251,11 +264,13 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
     return (
       <div
         key={message.id}
-        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0`}
+        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${
+          shouldGroup ? 'mb-1' : 'mb-4'
+        } px-2 sm:px-0 animate-in slide-in-from-bottom-2 duration-200`}
       >
         <div className={`flex max-w-[85%] sm:max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-          {/* Avatar */}
-          {!isOwn && (
+          {/* Avatar - WhatsApp/Telegram style (only show if not grouped) */}
+          {showAvatar ? (
             <div className="flex-shrink-0 mr-2">
               {message.User.profileImage ? (
                 <Image
@@ -263,31 +278,33 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                   alt={getDisplayName(message.User)}
                   width={32}
                   height={32}
-                  className="rounded-full"
+                  className="rounded-full border-2 border-gray-200"
                 />
               ) : (
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                  <User className="w-4 h-4 text-white" />
                 </div>
               )}
             </div>
-          )}
+          ) : !isOwn ? (
+            <div className="w-8 mr-2 flex-shrink-0" />
+          ) : null}
 
-          {/* Message content */}
+          {/* Message content - iMessage/WhatsApp style bubbles */}
           <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} min-w-0`}>
-            {!isOwn && (
+            {showName && (
               <ClickableName 
                 user={message.User}
-                className="text-xs text-gray-500 mb-1"
+                className="text-xs text-gray-500 mb-1 px-1"
               />
             )}
             
             <div
-              className={`px-3 sm:px-4 py-2 rounded-lg break-words ${
+              className={`px-3 sm:px-4 py-2 break-words shadow-sm ${
                 isOwn
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-800'
-              }`}
+                  ? 'bg-blue-500 text-white rounded-2xl rounded-tr-sm'
+                  : 'bg-gray-200 text-gray-800 rounded-2xl rounded-tl-sm'
+              } ${shouldGroup ? 'mt-1' : ''}`}
             >
               {message.messageType === 'TEXT' && (
                 <div className="space-y-1">
@@ -348,17 +365,30 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
               )}
             </div>
             
-            <span className={`text-xs text-gray-400 mt-1 ${isOwn ? 'text-right' : 'text-left'}`}>
-              {formatTime(message.createdAt)}
-              {isOwn && message.readAt && (
-                <span className="ml-1 text-blue-400">✓✓</span>
+            {/* Timestamp and read receipts - WhatsApp style */}
+            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+              <span className={`text-xs ${isOwn ? 'text-blue-200' : 'text-gray-400'}`}>
+                {formatTime(message.createdAt)}
+              </span>
+              {isOwn && (
+                <span className="text-xs">
+                  {message.readAt ? (
+                    <span className="text-blue-300" title="Gelezen">✓✓</span>
+                  ) : (
+                    <span className="text-gray-400" title="Verzonden">✓</span>
+                  )}
+                </span>
               )}
-            </span>
+            </div>
           </div>
         </div>
       </div>
     );
   };
+
+  console.log('[MessageList] Render - messages count:', messages.length, 'isLoading:', isLoading);
+  console.log('[MessageList] Messages data:', messages);
+  console.log('[MessageList] Current user ID:', currentUserId);
 
   if (isLoading) {
     return (
@@ -376,11 +406,14 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
             <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
             <p className="text-sm sm:text-base">Nog geen berichten</p>
             <p className="text-xs sm:text-sm">Start het gesprek!</p>
+            <p className="text-xs text-gray-400 mt-2">
+              Debug: {messages.length} berichten geladen | User ID: {currentUserId}
+            </p>
           </div>
         </div>
       ) : (
         <>
-          {messages.map(renderMessage)}
+          {messages.map((message, index) => renderMessage(message, index))}
           <div ref={messagesEndRef} />
         </>
       )}

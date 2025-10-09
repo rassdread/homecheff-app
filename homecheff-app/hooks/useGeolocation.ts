@@ -36,6 +36,7 @@ export function useGeolocation(options: GeolocationOptions = {}) {
   } = options;
 
   const [retryCount, setRetryCount] = useState(0);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   // Check if geolocation is supported and get permission status
   const checkSupportAndPermission = useCallback(async () => {
@@ -84,11 +85,21 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     if (!navigator.geolocation) {
       console.log('❌ navigator.geolocation not available');
       setState(prev => ({ ...prev, error: 'Geolocation not supported' }));
+      if (fallbackToManual && onFallback) {
+        onFallback('GPS niet ondersteund');
+      }
+      return;
+    }
+
+    // Don't retry if we already attempted and failed
+    if (hasAttempted) {
+      console.log('⏭️ Already attempted GPS, skipping');
       return;
     }
 
     // Reset retry count for new request
     setRetryCount(0);
+    setHasAttempted(true);
 
     // Detect browser (desktop and mobile)
     const userAgent = navigator.userAgent.toLowerCase();
@@ -142,8 +153,8 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     else if (isFirefox) {
       console.log('🔧 Applying Firefox specific settings');
       options = {
-        enableHighAccuracy: false, // Firefox also works better with low accuracy
-        timeout: isMobile ? 20000 : 15000, // Longer timeout for Firefox
+        enableHighAccuracy: true, // Firefox works BETTER with high accuracy!
+        timeout: isMobile ? 30000 : 30000, // Extra long timeout for Firefox to prevent annoying errors
         maximumAge: 0 // No cache for Firefox
       };
     }
@@ -296,99 +307,21 @@ export function useGeolocation(options: GeolocationOptions = {}) {
           hostname: window.location.hostname
         });
         
+        // Don't show error in state - just silently fail and use fallback
         setState(prev => ({
           ...prev,
           loading: false,
-          error: errorMessage
+          error: null // Don't store error to avoid showing it to user
         }));
 
-        // Fallback to manual location input for certain errors
+        // Always trigger fallback silently - no more annoying error messages!
         if (fallbackToManual && onFallback) {
-          if (error.code === error.PERMISSION_DENIED || 
-              error.code === error.POSITION_UNAVAILABLE ||
-              (error.code === error.TIMEOUT && retryCount >= 1)) {
-            console.log('🔄 Falling back to manual location input');
-            onFallback(errorMessage);
-          }
+          console.log('🔄 GPS failed, triggering silent fallback to profile location');
+          onFallback(errorCode); // Just send error code, not full message
         }
 
-        // Retry logic for certain errors
-        if ((error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) && retryCount < 3) {
-          console.log(`🔄 Retrying geolocation request (attempt ${retryCount + 1})`);
-          setRetryCount(prev => prev + 1);
-          
-          // Retry with different settings - progressively more aggressive
-          setTimeout(() => {
-            const retryOptions = {
-              enableHighAccuracy: false, // Always low accuracy for retries
-              timeout: 40000, // Even longer timeout for retries
-              maximumAge: 0 // No cache
-            };
-            
-            console.log('🔄 Retry options:', retryOptions);
-            
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const coords = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                };
-                console.log('✅ Retry successful:', coords);
-                setState(prev => ({
-                  ...prev,
-                  coords,
-                  loading: false,
-                  error: null
-                }));
-              },
-              (retryError) => {
-                console.log('❌ Retry also failed:', retryError);
-                
-                // Try one more time with even more aggressive settings
-                if (retryCount < 2) {
-                  console.log('🔄 Final retry attempt...');
-                  setTimeout(() => {
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        const coords = {
-                          lat: position.coords.latitude,
-                          lng: position.coords.longitude
-                        };
-                        console.log('✅ Final retry successful:', coords);
-                        setState(prev => ({
-                          ...prev,
-                          coords,
-                          loading: false,
-                          error: null
-                        }));
-                      },
-                      (finalError) => {
-                        console.log('❌ Final retry failed:', finalError);
-                        setState(prev => ({
-                          ...prev,
-                          loading: false,
-                          error: `All retries failed: ${finalError.message}`
-                        }));
-                      },
-                      {
-                        enableHighAccuracy: false,
-                        timeout: 60000, // 1 minute timeout for final attempt
-                        maximumAge: 0
-                      }
-                    );
-                  }, 2000);
-                } else {
-                  setState(prev => ({
-                    ...prev,
-                    loading: false,
-                    error: `Retry failed: ${retryError.message}`
-                  }));
-                }
-              },
-              retryOptions
-            );
-          }, 2000);
-        }
+        // NO RETRIES - they just cause more delays and errors
+        // Let the fallback handle it immediately
       },
       options
     );

@@ -95,7 +95,61 @@ export default function NewProductForm() {
     console.log('Recipe data processed successfully');
   };
 
-  // Load recipe data and auto-set category based on user role
+  // Process garden project data from sessionStorage
+  const processGardenData = (data: any) => {
+    console.log('Processing garden data:', data);
+    
+    // Set category to GROWN
+    setVertical('GROWN');
+    console.log('Set vertical to GROWN');
+    
+    // Set title and description
+    if (data.title) {
+      setTitle(data.title);
+      console.log('Set title:', data.title);
+    }
+    
+    if (data.description) {
+      setDescription(data.description);
+      console.log('Set description:', data.description);
+    }
+    
+    // Add garden-specific info to description
+    let enhancedDescription = data.description || '';
+    if (data.plantType) enhancedDescription += `\n\nPlant type: ${data.plantType}`;
+    if (data.sunlight) enhancedDescription += `\nZonlicht: ${data.sunlight}`;
+    if (data.waterNeeds) enhancedDescription += `\nWater: ${data.waterNeeds}`;
+    if (data.location) enhancedDescription += `\nLocatie: ${data.location}`;
+    if (data.soilType) enhancedDescription += `\nGrondsoort: ${data.soilType}`;
+    if (data.plantDistance) enhancedDescription += `\nPlantafstand: ${data.plantDistance}`;
+    if (data.notes) enhancedDescription += `\n\nNotities: ${data.notes}`;
+    
+    setDescription(enhancedDescription.trim());
+    console.log('Set enhanced description with garden details');
+    
+    // Activate pre-order if harvest date is available
+    if (data.harvestDate) {
+      setIsFutureProduct(true);
+      setAvailabilityDate(data.harvestDate);
+      console.log('Set pre-order with harvest date:', data.harvestDate);
+    }
+    
+    // Load photos if available
+    if (data.photos && data.photos.length > 0) {
+      const gardenImages = data.photos.map((photo: any, index: number) => ({
+        url: photo.url,
+        file: null,
+        preview: photo.url,
+        isMain: photo.isMain || index === 0
+      }));
+      setImages(gardenImages);
+      console.log('Set garden images:', gardenImages);
+    }
+    
+    console.log('Garden data processed successfully');
+  };
+
+  // Load recipe or garden data and auto-set category based on user role
   React.useEffect(() => {
     // Check if we're coming from a recipe
     let recipeData = sessionStorage.getItem('recipeToProductData');
@@ -107,10 +161,22 @@ export default function NewProductForm() {
       console.log('Checking for recipe data in localStorage:', recipeData);
     }
     
+    // Check if we're coming from a garden project
+    let gardenData = sessionStorage.getItem('gardenToProductData');
+    console.log('Checking for garden data in sessionStorage:', gardenData);
+    
+    // If not found in sessionStorage, try localStorage as backup
+    if (!gardenData) {
+      gardenData = localStorage.getItem('gardenToProductData');
+      console.log('Checking for garden data in localStorage:', gardenData);
+    }
+    
     // Also check URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const fromRecipe = urlParams.get('fromRecipe');
+    const fromGarden = urlParams.get('fromGarden');
     console.log('URL parameter fromRecipe:', fromRecipe);
+    console.log('URL parameter fromGarden:', fromGarden);
     
     // If we have URL parameter but no data, log the issue
     if (fromRecipe === 'true' && !recipeData) {
@@ -120,7 +186,24 @@ export default function NewProductForm() {
       // Don't load any test data - let the user see the empty form
     }
     
-    if (recipeData) {
+    if (fromGarden === 'true' && !gardenData) {
+      console.log('fromGarden=true but no data found in sessionStorage or localStorage');
+      console.log('This indicates an issue with the GardenManager not storing data correctly');
+      console.log('Check if the handleSellGardenProject function is working properly');
+    }
+    
+    // Process garden data first (takes priority over recipe data)
+    if (gardenData) {
+      try {
+        const data = JSON.parse(gardenData);
+        console.log('Successfully parsed garden data:', data);
+        processGardenData(data);
+        console.log('Garden data loaded successfully - keeping in sessionStorage for now');
+      } catch (error) {
+        console.error('Error parsing garden data:', error);
+        console.error('Raw garden data:', gardenData);
+      }
+    } else if (recipeData) {
       try {
         const data = JSON.parse(recipeData);
         console.log('Successfully parsed recipe data:', data);
@@ -134,8 +217,8 @@ export default function NewProductForm() {
         console.error('Raw recipe data:', recipeData);
       }
     } else {
-      console.log('No recipe data found in sessionStorage');
-      // Default to CHEFF if not from recipe
+      console.log('No recipe or garden data found in sessionStorage');
+      // Default to CHEFF if not from recipe or garden
       setVertical('CHEFF');
     }
   }, [session]);
@@ -231,6 +314,9 @@ export default function NewProductForm() {
 
     setSubmitting(true);
     try {
+      const imageUrls = images.map(i => i.url);
+      console.log('Creating product with images:', imageUrls);
+      
       const res = await fetch('/api/products/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -240,13 +326,20 @@ export default function NewProductForm() {
           priceCents,
           category: vertical,
           deliveryMode,
-          images: images.map(i => i.url),
+          images: imageUrls,
           isPublic: true,
           displayNameType,
+          // Pre-order fields
+          isFutureProduct,
+          availabilityDate: isFutureProduct && availabilityDate ? availabilityDate : null,
         }),
       });
       const data = await res.json();
+      console.log('Product creation response:', data);
+      
       if (!res.ok) throw new Error(data?.error || 'Opslaan mislukte');
+      
+      console.log('Product created successfully:', data);
       setMessage('Opgeslagen! Je item staat (als public) klaar voor de feed.');
       setTitle('');
       setDescription('');
@@ -394,6 +487,7 @@ export default function NewProductForm() {
           </div>
         )}
       </div>
+
       
     <form onSubmit={onSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -487,12 +581,90 @@ export default function NewProductForm() {
         </div>
       </div>
 
-      <SimpleImageUploader 
+      <      SimpleImageUploader 
         value={images} 
         onChange={(newImages) => setImages(newImages)} 
         category={vertical}
         productTitle={title}
       />
+
+      {/* Pre-order / Beschikbaarheidsdatum - specifiek voor Garden producten */}
+      {vertical === 'GARDEN' && (
+        <div className="hc-tight bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-full flex items-center justify-center shadow-md">
+              📅
+            </div>
+            <div className="flex-1">
+              <label className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  checked={isFutureProduct}
+                  onChange={(e) => setIsFutureProduct(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                />
+                <span className="font-semibold text-gray-900">Pre-Order: Beschikbaar vanaf een bepaalde datum</span>
+              </label>
+              <p className="text-sm text-gray-600 mb-3">
+                🌱 Perfect voor producten die nog groeien! Klanten kunnen alvast bestellen en betalen. Het product wordt beschikbaar op de ingestelde oogstdatum.
+              </p>
+              
+              {isFutureProduct && (
+                <div className="space-y-3 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🌱 Oogst/Beschikbaar vanaf:
+                    </label>
+                    <input
+                      type="date"
+                      value={availabilityDate}
+                      onChange={(e) => setAvailabilityDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                      required={isFutureProduct}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      📦 De datum waarop je kweek klaar is voor afhaal/bezorging
+                    </p>
+                  </div>
+                  
+                  {availabilityDate && (
+                    <div className="bg-white border-2 border-emerald-400 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center">
+                          ✓
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-emerald-800 mb-1">
+                            🎯 Pre-Order Geactiveerd
+                          </p>
+                          <p className="text-xs text-gray-700 mb-2">
+                            Klanten kunnen nu alvast bestellen en betalen voor dit product.
+                          </p>
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-md p-2">
+                            <p className="text-xs font-medium text-emerald-900">
+                              📅 Beschikbaar vanaf: <span className="font-bold">{new Date(availabilityDate).toLocaleDateString('nl-NL', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}</span>
+                            </p>
+                          </div>
+                          <div className="mt-2 flex items-start gap-2 text-xs text-gray-600">
+                            <span>💡</span>
+                            <span>Het bedrag wordt direct afgerekend, maar het product wordt pas op de oogstdatum geleverd/opgehaald.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Naamweergave keuze */}
       <div className="hc-tight">

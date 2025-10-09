@@ -3,17 +3,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
-import ProfessionalMessagesBox from '@/components/messages/ProfessionalMessagesBox';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
 import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, forceSessionReset, clearNextAuthData } from '@/lib/session-cleanup';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -92,12 +94,14 @@ export default function NavBar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <Link href="/">
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <Home className="w-4 h-4" />
-                <span>Home</span>
-              </Button>
-            </Link>
+            <Button 
+              variant="ghost" 
+              className="flex items-center space-x-2"
+              onClick={() => router.push('/')}
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Button>
             
             <Link href="/faq">
               <Button variant="ghost" className="flex items-center space-x-2">
@@ -124,9 +128,7 @@ export default function NavBar() {
             {user && (
               <>
                 <CartIcon />
-                
-                {/* Professional Messages Box - Only for logged in users */}
-                <ProfessionalMessagesBox />
+                <NotificationBell />
                 
                 {/* Profile Dropdown */}
                 <div className="relative" ref={profileDropdownRef}>
@@ -199,7 +201,7 @@ export default function NavBar() {
                         </Link>
                       )}
                       
-                      {/* Berichten - Altijd zichtbaar */}
+                      {/* Berichten - Altijd zichtbaar, nu via profiel */}
                       <Link 
                         href="/messages" 
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors relative"
@@ -215,12 +217,21 @@ export default function NavBar() {
                       </Link>
                       
                       <Link 
+                        href="/orders" 
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Package className="w-4 h-4" />
+                        <span>Mijn Bestellingen</span>
+                      </Link>
+                      
+                      <Link 
                         href="/favorites" 
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>Mijn Fans</span>
+                        <Heart className="w-4 h-4" />
+                        <span>Fans & Fan van</span>
                       </Link>
                       
                       {/* Privacy Instellingen */}
@@ -305,12 +316,17 @@ export default function NavBar() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <Home className="w-4 h-4" />
-                  <span>Home</span>
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start flex items-center space-x-2"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/');
+                }}
+              >
+                <Home className="w-4 h-4" />
+                <span>Home</span>
+              </Button>
               
               <Link href="/faq" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
@@ -350,11 +366,6 @@ export default function NavBar() {
 
               {user && (
                 <>
-                  {/* Professional Messages Box for Mobile */}
-                  <div className="px-3 py-2">
-                    <ProfessionalMessagesBox />
-                  </div>
-                  
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
                     {user.image ? (
                       <Image
@@ -414,8 +425,8 @@ export default function NavBar() {
                   
                   <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <ShoppingCart className="w-4 h-4" />
-                      <span>Mijn Fans</span>
+                      <Heart className="w-4 h-4" />
+                      <span>Fans & Fan van</span>
                     </Button>
                   </Link>
                   

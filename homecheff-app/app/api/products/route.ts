@@ -49,7 +49,9 @@ export async function GET(req: Request) {
                 profileImage: true, 
                 username: true,
                 buyerRoles: true,
-                place: true
+                place: true,
+                displayFullName: true,
+                displayNameOption: true
               },
             }
           }
@@ -118,6 +120,8 @@ export async function GET(req: Request) {
         username: p.seller?.User?.username ?? null,
         buyerTypes: p.seller?.User?.buyerRoles ?? [],
         followerCount: followCountMap.get(p.seller?.User?.id) ?? 0,
+        displayFullName: p.seller?.User?.displayFullName ?? undefined,
+        displayNameOption: p.seller?.User?.displayNameOption ?? undefined,
       },
       favoriteCount: favoriteCountMap.get(p.id) ?? 0,
     }));

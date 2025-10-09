@@ -91,6 +91,9 @@ interface ProfileSettingsProps {
     buyerRoles?: string[];
     displayFullName?: boolean;
     displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
+    encryptionEnabled?: boolean;
+    messageGuidelinesAccepted?: boolean;
+    messageGuidelinesAcceptedAt?: Date | null;
     bankName?: string;
     iban?: string;
     accountHolderName?: string;
@@ -122,11 +125,14 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     buyerRoles: user?.buyerRoles || [],
     displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
     displayNameOption: user?.displayNameOption || 'full',
+    encryptionEnabled: user?.encryptionEnabled || false,
+    messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
     // Bank details
     bankName: user?.bankName || '',
     iban: user?.iban || '',
     accountHolderName: user?.accountHolderName || ''
   });
+  const [showEncryptionModal, setShowEncryptionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -328,11 +334,30 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       buyerRoles: user?.buyerRoles || [],
       displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
       displayNameOption: user?.displayNameOption || 'full',
+      encryptionEnabled: user?.encryptionEnabled || false,
+      messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
       bankName: user?.bankName || '',
       iban: user?.iban || '',
       accountHolderName: user?.accountHolderName || ''
     });
     setIsEditing(false);
+  };
+
+  const handleEncryptionToggle = () => {
+    if (!formData.messageGuidelinesAccepted) {
+      setShowEncryptionModal(true);
+    } else {
+      setFormData(prev => ({ ...prev, encryptionEnabled: !prev.encryptionEnabled }));
+    }
+  };
+
+  const handleAcceptGuidelines = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      messageGuidelinesAccepted: true,
+      encryptionEnabled: true
+    }));
+    setShowEncryptionModal(false);
   };
 
   const addInterest = (interest: string) => {
@@ -949,6 +974,68 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
           )}
         </div>
 
+        {/* Encryption Settings */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-lg border-2 border-blue-200">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                🔒
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+                  End-to-End Versleutelde Berichten
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-3">
+                  Schakel automatische berichtversleuteling in voor maximale privacy. Niemand, zelfs niet HomeCheff admins, kan je berichten lezen.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-200">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 text-sm">
+                  {formData.encryptionEnabled ? '🔐 Versleuteling Actief' : '🔓 Geen Versleuteling'}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {formData.encryptionEnabled 
+                    ? 'Al je berichten worden automatisch versleuteld'
+                    : 'Je berichten worden onversleuteld opgeslagen'
+                  }
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleEncryptionToggle}
+                disabled={!isEditing}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                  formData.encryptionEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                } disabled:opacity-50`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    formData.encryptionEnabled ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {formData.messageGuidelinesAccepted && (
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-xs text-green-800">
+                  <span>✅</span>
+                  <span>
+                    Je hebt akkoord gegaan met de HomeCheff berichtrichtlijnen op{' '}
+                    {user?.messageGuidelinesAcceptedAt 
+                      ? new Date(user.messageGuidelinesAcceptedAt).toLocaleDateString('nl-NL')
+                      : 'recent'
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Display Settings */}
         <div className="border-t border-gray-200 pt-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Naam weergave</h3>
@@ -1034,6 +1121,123 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
           </div>
         </div>
       </div>
+
+      {/* Encryption Guidelines Modal */}
+      {showEncryptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <span className="text-2xl">🔒</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Versleutelde Berichten Activeren
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    Lees en accepteer de richtlijnen
+                  </p>
+                </div>
+              </div>
+
+              {/* Guidelines Content */}
+              <div className="bg-blue-50 rounded-lg p-4 mb-4 space-y-3">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <span>🛡️</span>
+                  HomeCheff Berichtrichtlijnen
+                </h3>
+                
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p className="font-medium">Door versleutelde berichten te activeren, ga je akkoord met:</p>
+                  
+                  <div className="space-y-2 pl-4">
+                    <div className="flex gap-2">
+                      <span className="text-green-600 flex-shrink-0">✓</span>
+                      <p><strong>Respectvol communiceren:</strong> Behandel anderen met respect en waardigheid</p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <span className="text-green-600 flex-shrink-0">✓</span>
+                      <p><strong>Geen intimidatie of pesten:</strong> Geen dreigingen, intimidatie of pestgedrag</p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <span className="text-green-600 flex-shrink-0">✓</span>
+                      <p><strong>Geen illegale activiteiten:</strong> Geen gebruik voor illegale doeleinden</p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <span className="text-green-600 flex-shrink-0">✓</span>
+                      <p><strong>Privacy respecteren:</strong> Geen persoonlijke info delen zonder toestemming</p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <span className="text-green-600 flex-shrink-0">✓</span>
+                      <p><strong>Geen spam of misbruik:</strong> Geen ongewenste berichten of systeem misbruik</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Notice */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <span>⚠️</span>
+                  Belangrijk: Privacy & Verantwoordelijkheid
+                </h4>
+                <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                  <li>Versleutelde berichten zijn <strong>volledig privé</strong> - zelfs admins kunnen ze niet lezen</li>
+                  <li>Bij misbruik kan je account worden <strong>geblokkeerd</strong></li>
+                  <li>Metadata (wie, wanneer) blijft zichtbaar voor moderatie</li>
+                  <li>Je bent verantwoordelijk voor je eigen communicatie</li>
+                </ul>
+              </div>
+
+              {/* Acceptance Checkbox */}
+              <div className="bg-white border-2 border-blue-200 rounded-lg p-4 mb-4">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.messageGuidelinesAccepted}
+                    onChange={(e) => setFormData(prev => ({ ...prev, messageGuidelinesAccepted: e.target.checked }))}
+                    className="mt-1 w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                      Ik ga akkoord met de HomeCheff berichtrichtlijnen en verplicht me tot respectvolle, ethische communicatie
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Je accepteert hiermee de gedragscode en begrijpt dat misbruik kan leiden tot account sancties
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowEncryptionModal(false);
+                    setFormData(prev => ({ ...prev, messageGuidelinesAccepted: false }));
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleAcceptGuidelines}
+                  disabled={!formData.messageGuidelinesAccepted}
+                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Accepteren & Activeren
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

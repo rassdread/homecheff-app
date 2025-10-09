@@ -50,6 +50,7 @@ export default function GeoFeed() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState('all');
 
   // Filter and sort items
   const filteredAndSortedItems = items
@@ -109,6 +110,7 @@ export default function GeoFeed() {
     setPriceRange({ min: '', max: '' });
     setSortBy('newest');
     setSortOrder('desc');
+    setCategory('all');
   };
 
   useEffect(() => {
@@ -193,6 +195,7 @@ export default function GeoFeed() {
       }
       
       if (q.trim()) params.set("q", q.trim());
+      if (category && category !== 'all') params.set("vertical", category);
       
       try {
         const res = await fetch(`/api/feed?${params.toString()}`);
@@ -208,7 +211,7 @@ export default function GeoFeed() {
     };
 
     fetchItems();
-  }, [radius, q, place, userLocation, locationSource]);
+  }, [radius, q, place, userLocation, locationSource, category]);
 
   return (
     <div className="space-y-4">
@@ -230,6 +233,19 @@ export default function GeoFeed() {
           <label className="block text-base font-semibold mb-1">Zoeken</label>
           <input value={q} onChange={e => setQ(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400" placeholder="bv. pasta, soep, bagels" />
         </div>
+        <div className="min-w-[140px]">
+          <label className="block text-base font-semibold mb-1">Categorie</label>
+          <select 
+            value={category} 
+            onChange={e => setCategory(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
+          >
+            <option value="all">Alle categorieën</option>
+            <option value="cheff">🍳 Chef</option>
+            <option value="garden">🌱 Garden</option>
+            <option value="designer">🎨 Designer</option>
+          </select>
+        </div>
         <div className="min-w-[120px]">
           <label className="block text-base font-semibold mb-1">Locatie</label>
           <button
@@ -244,20 +260,19 @@ export default function GeoFeed() {
         <div className="w-full">
           {locationError && locationSource !== 'profile' && (
             <p className="text-xs text-red-600 mb-2">
-              ⚠️ GPS fout: {locationError}
+              ⚠️ Locatie kon niet worden bepaald
             </p>
           )}
           {userLocation && (
             <p className="text-xs text-green-600 mb-2">
-              {locationSource === 'gps' && '✅ GPS locatie gebruikt'}
-              {locationSource === 'profile' && '📍 Profiel locatie gebruikt (postcode/adres)'}
-              {locationSource === 'manual' && '📍 Handmatige locatie gebruikt'}
-              {userLocation && ` • ${userLocation.lat.toFixed(3)}, ${userLocation.lng.toFixed(3)}`}
+              {locationSource === 'gps' && '✅ Jouw locatie wordt gebruikt'}
+              {locationSource === 'profile' && '📍 Profiel locatie wordt gebruikt'}
+              {locationSource === 'manual' && '📍 Handmatige locatie wordt gebruikt'}
             </p>
           )}
           {!userLocation && !place && (
             <p className="text-xs text-gray-500">
-              {locationSupported ? 'Locatie ophalen...' : 'GPS niet ondersteund: typ een plaats of postcode'}
+              {locationSupported ? 'Locatie ophalen...' : 'Typ een plaats of postcode'}
             </p>
           )}
           {place && (

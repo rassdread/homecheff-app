@@ -27,11 +27,14 @@ type Product = {
 
 interface ProductManagementProps {
   onUpdate: () => void;
+  categoryFilter?: 'CHEFF' | 'GROWN' | 'DESIGNER' | null;
 }
 
-export default function ProductManagement({ onUpdate }: ProductManagementProps) {
+export default function ProductManagement({ onUpdate, categoryFilter = null }: ProductManagementProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  console.log('ProductManagement: Initialized with categoryFilter =', categoryFilter);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,7 +50,7 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [categoryFilter]); // Re-load when category filter changes
 
   const loadProducts = async () => {
     try {
@@ -56,7 +59,19 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
       if (response.ok) {
         const data = await response.json();
         console.log('ProductManagement: Loaded products:', data.products);
-        setProducts(data.products || []);
+        
+        // Filter products by category if categoryFilter is provided
+        let filteredProducts = data.products || [];
+        console.log('ProductManagement: All products before filtering:', filteredProducts.map(p => ({ title: p.title, category: p.category })));
+        
+        if (categoryFilter) {
+          const beforeCount = filteredProducts.length;
+          filteredProducts = filteredProducts.filter((p: Product) => p.category === categoryFilter);
+          console.log(`ProductManagement: Filtered from ${beforeCount} to ${filteredProducts.length} products for ${categoryFilter} category`);
+          console.log('ProductManagement: Filtered products:', filteredProducts.map(p => ({ title: p.title, category: p.category })));
+        }
+        
+        setProducts(filteredProducts);
       }
     } catch (error) {
       console.error('Failed to load products:', error);
@@ -191,15 +206,28 @@ export default function ProductManagement({ onUpdate }: ProductManagementProps) 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map(product => {
             const mainImage = product.Image?.find(img => img.sortOrder === 0) || product.Image?.[0];
+            console.log(`ProductManagement: Product ${product.title} - Images:`, product.Image);
+            console.log(`ProductManagement: Main image for ${product.title}:`, mainImage);
+            
             return (
               <div key={product.id} className="rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {/* Product Image */}
                 <div className="relative">
-                  <img 
-                    src={mainImage?.fileUrl ?? "/placeholder.webp"} 
-                    alt={product.title} 
-                    className="w-full h-48 object-cover" 
-                  />
+                  {mainImage?.fileUrl ? (
+                    <img 
+                      src={mainImage.fileUrl} 
+                      alt={product.title} 
+                      className="w-full h-48 object-cover" 
+                      onError={(e) => {
+                        console.error(`Image failed to load for product ${product.title}:`, mainImage.fileUrl);
+                        e.currentTarget.src = "/placeholder.webp";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                      <Package className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${

@@ -176,11 +176,32 @@ export default function UserManagement() {
     setShowBulkMessageModal(true);
   };
 
-  const filteredUsers = users.filter(user =>
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.username?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    
+    // Check username
+    if (user.username?.toLowerCase().includes(query)) return true;
+    
+    // Check email
+    if (user.email.toLowerCase().includes(query)) return true;
+    
+    // Check full name
+    if (user.name?.toLowerCase().includes(query)) return true;
+    
+    // Check first name and last name separately
+    if (user.name) {
+      const nameParts = user.name.toLowerCase().split(' ').filter(part => part.length > 0);
+      
+      // Check if query matches any part of the name (first name, middle name, last name)
+      if (nameParts.some(part => part.includes(query))) return true;
+      
+      // Check if query matches the start of any name part (for partial matches)
+      if (nameParts.some(part => part.startsWith(query))) return true;
+    }
+    
+    return false;
+  });
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -231,7 +252,7 @@ export default function UserManagement() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="Zoek gebruikers..."
+            placeholder="Zoek op gebruikersnaam, naam, of email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

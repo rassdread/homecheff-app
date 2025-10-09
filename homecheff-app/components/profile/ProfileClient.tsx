@@ -1,14 +1,11 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
-import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell } from 'lucide-react';
+import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import PhotoUploader from './PhotoUploader';
 import MyDishesManager from './MyDishesManager';
-import OrderList from './OrderList';
-import FollowsList from './FollowsList';
-import FansList from './FansList';
 import SettingsMenu from './SettingsMenu';
 import ProfileSettings from './ProfileSettings';
 import AccountSettings from './AccountSettings';
@@ -59,6 +56,7 @@ interface Tab {
   label: string;
   icon: React.ComponentType<any>;
   role?: string;
+  badge?: number;
 }
 
 interface ProfileClientProps {
@@ -68,6 +66,7 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
+  // Always start with overview tab since messages/orders/fans are now in header menu
   const [activeTab, setActiveTab] = useState('overview');
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
@@ -85,6 +84,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   // Functie om profielfoto bij te werken
   const handlePhotoChange = async (newPhotoUrl: string | null) => {
@@ -147,10 +147,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   // Dynamische tabs op basis van gebruikerstype
   const getTabs = () => {
     const baseTabs = [
-      { id: 'overview', label: 'Overzicht', icon: Grid },
-      { id: 'orders', label: 'Bestellingen', icon: ShoppingBag },
-      { id: 'follows', label: 'Fan van', icon: Heart },
-      { id: 'fans', label: 'Fans', icon: Users }
+      { id: 'overview', label: 'Overzicht', icon: Grid }
     ];
 
     const sellerRoles = user?.sellerRoles || [];
@@ -178,12 +175,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       roleSpecificTabs.push({ id: 'dishes', label: 'Mijn Items', icon: Plus, role: 'generic' });
     }
 
-    // Combineer tabs: Overzicht, dan Werkruimte, dan Mijn tabs, dan de rest
+    // Combineer tabs: Overzicht, dan Werkruimte, dan Mijn tabs
     return [
       baseTabs[0], // Overzicht
       ...workspaceTab, // Werkruimte
-      ...roleSpecificTabs, // Mijn Keuken, Mijn Tuin, Mijn Atelier
-      ...baseTabs.slice(1) // Rest van de tabs
+      ...roleSpecificTabs // Mijn Keuken, Mijn Tuin, Mijn Atelier
     ];
   };
 
@@ -706,7 +702,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 relative ${
                           activeTab === tab.id
                             ? 'border-primary-brand text-primary-brand bg-primary-50'
                             : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-primary-200 hover:bg-primary-25'
@@ -827,47 +823,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </div>
                 )}
 
-                {activeTab === 'orders' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Bestellingen</h2>
-                        <p className="text-sm text-gray-500">Je bestelgeschiedenis</p>
-                      </div>
-                    </div>
-                    <Suspense fallback={<div className="h-24 rounded-xl bg-gray-100 animate-pulse" />}>
-                      <OrderList />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeTab === 'follows' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Fan van</h2>
-                        <p className="text-sm text-gray-500">Verkopers waarvan je fan bent</p>
-                      </div>
-                    </div>
-                    <Suspense fallback={<div className="h-32 rounded-xl bg-gray-100 animate-pulse" />}>
-                      <FollowsList />
-                    </Suspense>
-                  </div>
-                )}
-
-                {activeTab === 'fans' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Fans</h2>
-                        <p className="text-sm text-gray-500">Mensen die jouw fan zijn</p>
-                      </div>
-                    </div>
-                    <Suspense fallback={<div className="h-32 rounded-xl bg-gray-100 animate-pulse" />}>
-                      <FansList />
-                    </Suspense>
-                  </div>
-                )}
 
                 {/* Werkruimte tab content */}
                 {activeTab === 'workspace' && (

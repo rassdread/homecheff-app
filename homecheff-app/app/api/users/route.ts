@@ -10,9 +10,8 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Allow public access to user search for better discoverability
+    // Users can search for sellers/chefs even without being logged in
 
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
@@ -23,45 +22,43 @@ export async function GET(request: NextRequest) {
 
     // Build search conditions
     const searchConditions: any = {
-      OR: []
+      // Always exclude ADMIN users from search results
+      role: {
+        not: 'ADMIN'
+      }
     };
 
-    if (q) {
-      searchConditions.OR.push(
-        { name: { contains: q, mode: 'insensitive' } },
-        { username: { contains: q, mode: 'insensitive' } }
-      );
+    // Add text search conditions
+    if (q && q.trim()) {
+      const searchTerm = q.trim();
+      
+      // Search in multiple fields: name, username, bio, place, city
+      // The name search will match first names and last names since it uses 'contains'
+      searchConditions.OR = [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { username: { contains: searchTerm, mode: 'insensitive' } },
+        { bio: { contains: searchTerm, mode: 'insensitive' } },
+        { place: { contains: searchTerm, mode: 'insensitive' } },
+        { city: { contains: searchTerm, mode: 'insensitive' } }
+      ];
     }
 
-    // Add role filtering (exclude ADMIN from search results)
+    // Add role filtering
     if (userRole !== 'all') {
       if (userRole === 'DELIVERY') {
         searchConditions.buyerRoles = {
           has: 'DELIVERY'
         };
       } else {
-        // For seller roles (CHEFF, GROWN, DESIGNER)
+        // For seller roles (chef, garden, designer)
         searchConditions.sellerRoles = {
           has: userRole
         };
       }
     }
     
-    // Always exclude ADMIN users from search results
-    searchConditions.role = {
-      not: 'ADMIN'
-    };
-
-    // Get users with their profiles and location data
-    const whereClause = searchConditions.OR.length > 0 ? searchConditions : {};
-    
-    // If we have role filtering but no search term, we need to adjust the where clause
-    if (userRole !== 'all' && searchConditions.OR.length === 0) {
-      delete whereClause.OR;
-    }
-    
     const users = await prisma.user.findMany({
-      where: whereClause,
+      where: searchConditions,
       include: {
         SellerProfile: {
           include: {
@@ -89,24 +86,28 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform data for frontend
-    const transformedUsers = filteredUsers.map(user => ({
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      image: user.image,
-      role: user.role,
-      sellerRoles: user.sellerRoles,
-      buyerRoles: user.buyerRoles,
-      followerCount: 0, // TODO: implement follower count
-      productCount: user.SellerProfile?.products?.length || 0,
-      location: {
-        place: 'Nederland', // TODO: implement location data
-        city: 'Amsterdam',
-        lat: 52.3676,
-        lng: 4.9041,
-        distanceKm: 0 // TODO: calculate distance
-      }
-    }));
+    const transformedUsers = filteredUsers
+      .map(user => ({
+        id: user.id,
+        name: user.name,
+        username: user.username, // Keep original username (can be null)
+        image: user.image,
+        bio: user.bio,
+        role: user.role,
+        sellerRoles: user.sellerRoles,
+        buyerRoles: user.buyerRoles,
+        displayFullName: user.displayFullName,
+        displayNameOption: user.displayNameOption,
+        followerCount: 0, // TODO: implement follower count
+        productCount: user.SellerProfile?.products?.length || 0,
+        location: {
+          place: user.place || 'Nederland',
+          city: user.city || 'Amsterdam',
+          lat: user.lat || 52.3676,
+          lng: user.lng || 4.9041,
+          distanceKm: 0 // TODO: calculate distance
+        }
+      }));
 
     return NextResponse.json({ users: transformedUsers });
   } catch (error) {

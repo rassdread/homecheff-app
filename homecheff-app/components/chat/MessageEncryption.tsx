@@ -1,13 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Lock, Unlock, Eye, EyeOff } from 'lucide-react';
+import { Lock, Unlock, Eye, EyeOff, Key, Shield } from 'lucide-react';
 
 interface MessageEncryptionProps {
   messageId: string;
   isEncrypted: boolean;
   onEncrypt: (messageId: string, key: string) => Promise<void>;
   onDecrypt: (messageId: string, key: string) => Promise<string>;
+}
+
+// Generate a secure random key
+function generateSecureKey(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 export default function MessageEncryption({ 
@@ -21,9 +28,17 @@ export default function MessageEncryption({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showKey, setShowKey] = useState(false);
+  const [useAutoKey, setUseAutoKey] = useState(true);
+  const [generatedKey, setGeneratedKey] = useState('');
 
   const handleEncrypt = async () => {
-    if (!encryptionKey.trim()) {
+    let keyToUse = encryptionKey;
+    
+    // If using auto-generated key, generate it now
+    if (useAutoKey) {
+      keyToUse = generateSecureKey();
+      setGeneratedKey(keyToUse);
+    } else if (!encryptionKey.trim()) {
       setError('Voer een encryptie sleutel in');
       return;
     }
@@ -32,13 +47,44 @@ export default function MessageEncryption({
     setError('');
 
     try {
-      await onEncrypt(messageId, encryptionKey);
-      setEncryptionKey('');
-      setShowKeyInput(false);
+      await onEncrypt(messageId, keyToUse);
+      
+      if (!useAutoKey) {
+        setEncryptionKey('');
+      }
+      // Don't hide input if auto-key was used (user needs to see/save the key)
+      if (!useAutoKey) {
+        setShowKeyInput(false);
+      }
     } catch (err) {
       setError('Encryptie mislukt. Probeer opnieuw.');
+      setGeneratedKey('');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const handleQuickEncrypt = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const autoKey = generateSecureKey();
+      setGeneratedKey(autoKey);
+      await onEncrypt(messageId, autoKey);
+      setShowKeyInput(true); // Show the generated key
+    } catch (err) {
+      setError('Encryptie mislukt. Probeer opnieuw.');
+      setGeneratedKey('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const copyKeyToClipboard = () => {
+    if (generatedKey) {
+      navigator.clipboard.writeText(generatedKey);
+      alert('Sleutel gekopieerd! Bewaar deze veilig.');
     }
   };
 
@@ -111,46 +157,109 @@ export default function MessageEncryption({
   }
 
   return (
-    <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-      <Unlock className="w-4 h-4 text-blue-600" />
-      <span className="text-sm text-blue-800">Bericht is niet versleuteld</span>
-      <button
-        onClick={() => setShowKeyInput(!showKeyInput)}
-        className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-colors"
-      >
-        {showKeyInput ? 'Annuleren' : 'Versleutelen'}
-      </button>
+    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+      <div className="flex items-center gap-2">
+        <Unlock className="w-4 h-4 text-blue-600" />
+        <span className="text-sm text-blue-800">Bericht is niet versleuteld</span>
+      </div>
       
-      {showKeyInput && (
-        <div className="flex items-center gap-2">
-          <div className="relative">
+      {/* Quick encrypt button */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleQuickEncrypt}
+          disabled={isLoading || generatedKey !== ''}
+          className="flex-1 flex items-center justify-center gap-2 text-xs px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors disabled:opacity-50"
+        >
+          <Shield className="w-3 h-3" />
+          {isLoading ? 'Bezig...' : 'Automatisch Versleutelen'}
+        </button>
+        
+        <button
+          onClick={() => setShowKeyInput(!showKeyInput)}
+          className="text-xs px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-colors"
+        >
+          <Key className="w-3 h-3" />
+        </button>
+      </div>
+      
+      {/* Show generated key */}
+      {generatedKey && (
+        <div className="p-2 bg-yellow-50 border border-yellow-300 rounded space-y-2">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-yellow-600" />
+            <span className="text-xs font-semibold text-yellow-800">Bericht versleuteld!</span>
+          </div>
+          <p className="text-xs text-yellow-700">
+            Bewaar deze sleutel veilig. Je hebt het nodig om het bericht te ontsleutelen:
+          </p>
+          <div className="flex gap-2">
             <input
-              type={showKey ? 'text' : 'password'}
-              value={encryptionKey}
-              onChange={(e) => setEncryptionKey(e.target.value)}
-              placeholder="Encryptie sleutel"
-              className="text-xs px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              type="text"
+              value={generatedKey}
+              readOnly
+              className="flex-1 text-xs px-2 py-1 bg-white border border-yellow-300 rounded font-mono"
             />
             <button
-              type="button"
-              onClick={() => setShowKey(!showKey)}
-              className="absolute right-1 top-1/2 transform -translate-y-1/2"
+              onClick={copyKeyToClipboard}
+              className="text-xs px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded"
             >
-              {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              Kopiëren
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Manual key input */}
+      {showKeyInput && !generatedKey && (
+        <div className="space-y-2 p-2 bg-white rounded border border-blue-200">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={useAutoKey}
+              onChange={(e) => setUseAutoKey(e.target.checked)}
+              id="auto-key"
+              className="w-3 h-3"
+            />
+            <label htmlFor="auto-key" className="text-xs text-gray-700">
+              Automatische sleutel genereren (aanbevolen)
+            </label>
+          </div>
+          
+          {!useAutoKey && (
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={encryptionKey}
+                  onChange={(e) => setEncryptionKey(e.target.value)}
+                  placeholder="Voer je eigen sleutel in (min. 32 tekens)"
+                  className="w-full text-xs px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2"
+                >
+                  {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                </button>
+              </div>
+            </div>
+          )}
+          
           <button
             onClick={handleEncrypt}
             disabled={isLoading}
-            className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
+            className="w-full text-xs px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
           >
-            {isLoading ? '...' : 'Versleutelen'}
+            {isLoading ? 'Bezig...' : 'Versleutelen'}
           </button>
         </div>
       )}
       
       {error && (
-        <span className="text-xs text-red-600">{error}</span>
+        <div className="text-xs text-red-600 p-2 bg-red-50 rounded">
+          {error}
+        </div>
       )}
     </div>
   );

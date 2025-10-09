@@ -144,6 +144,9 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
         // Transform dishes to recipes
         const recipes: Recipe[] = dishes
           .filter((dish: any) => {
+            // ONLY show CHEFF category items (not garden or designer)
+            if (dish.category !== 'CHEFF') return false;
+            
             // In public mode, only show published recipes
             if (isPublic) {
               return dish.status === 'PUBLISHED' && dish.ingredients && dish.instructions;

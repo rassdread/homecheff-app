@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -7,6 +8,7 @@ interface LogoProps {
 }
 
 export default function Logo({ size = 'md', showText = true, className = '' }: LogoProps) {
+  const router = useRouter();
   const sizeClasses = {
     sm: 'w-6 h-6',
     md: 'w-8 h-8',
@@ -20,7 +22,10 @@ export default function Logo({ size = 'md', showText = true, className = '' }: L
   };
 
   return (
-    <Link href="/" className={`flex items-center space-x-3 group ${className}`}>
+    <div 
+      onClick={() => router.push('/')}
+      className={`flex items-center space-x-3 group cursor-pointer ${className}`}
+    >
       {/* Custom Chef Icon */}
       <div className={`${sizeClasses[size]} relative`}>
         <svg
@@ -140,6 +145,6 @@ export default function Logo({ size = 'md', showText = true, className = '' }: L
           </span>
         </div>
       )}
-    </Link>
+    </div>
   );
 }

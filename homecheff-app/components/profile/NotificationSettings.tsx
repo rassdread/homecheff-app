@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Mail, Smartphone, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface NotificationSettingsProps {
@@ -28,6 +28,7 @@ export default function NotificationSettings({ onUpdateSettings }: NotificationS
     }
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(false);
 
   const handleToggle = async (category: string, setting: string) => {
     const newSettings = {

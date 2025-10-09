@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get seller info
-    const sellerProfile = await prisma.sellerProfile.findUnique({
+    // Get seller info - first try as SellerProfile ID, then as User ID
+    let sellerProfile = await prisma.sellerProfile.findUnique({
       where: { id: sellerId },
       include: {
         User: {
@@ -46,6 +46,46 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    // If not found as SellerProfile, try as User ID
+    if (!sellerProfile) {
+      const userAsSeller = await prisma.user.findUnique({
+        where: { id: sellerId },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          profileImage: true
+        }
+      });
+
+      if (!userAsSeller) {
+        return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
+      }
+
+      // Create a mock sellerProfile structure for User ID case
+      sellerProfile = {
+        id: userAsSeller.id, // Use User ID as SellerProfile ID
+        User: userAsSeller,
+        // Add required SellerProfile fields with defaults
+        createdAt: new Date(),
+        bio: null,
+        lat: null,
+        lng: null,
+        updatedAt: new Date(),
+        userId: userAsSeller.id,
+        deliveryMode: 'PICKUP',
+        displayName: null,
+        btw: null,
+        companyName: null,
+        kvk: null,
+        subscriptionId: null,
+        subscriptionValidUntil: null,
+        deliveryRadius: 0,
+        deliveryRegions: []
+      } as any;
+    }
 
     if (!sellerProfile) {
       return NextResponse.json({ error: 'Seller not found' }, { status: 404 });

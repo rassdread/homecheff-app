@@ -6,7 +6,8 @@ import { useSession } from 'next-auth/react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import MessageEncryption from './MessageEncryption';
-import { ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
+import TypingIndicator from './TypingIndicator';
+import { ArrowLeft, MoreVertical, Phone, Video, Circle } from 'lucide-react';
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
@@ -53,7 +54,7 @@ interface Message {
 
 interface ChatWindowProps {
   conversation: Conversation;
-  onBack: () => void;
+  onBack?: () => void;
   onMessagesRead?: () => void;
 }
 
@@ -63,39 +64,195 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const { data: session } = useSession();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const currentUserId = session?.user?.email || '';
+  // Get current user ID from session
+  useEffect(() => {
+    const fetchCurrentUserId = async () => {
+      if (!session?.user?.email) return;
+      
+      try {
+        const response = await fetch('/api/profile/me');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user?.id) {
+            setCurrentUserId(data.user.id);
+            console.log('[ChatWindow] Current user ID set:', data.user.id);
+          }
+        }
+      } catch (error) {
+        console.error('[ChatWindow] Error fetching current user ID:', error);
+      }
+    };
+    
+    fetchCurrentUserId();
+  }, [session?.user?.email]);
 
   useEffect(() => {
-    if (!socket || !conversation.id) return;
+    if (!socket || !conversation.id || !currentUserId) {
+      console.log('[ChatWindow] Not setting up socket listeners:', { 
+        hasSocket: !!socket, 
+        conversationId: conversation.id, 
+        currentUserId 
+      });
+      return;
+    }
+
+    console.log('[ChatWindow] Setting up socket listeners for conversation:', conversation.id);
 
     // Join conversation room
     socket.emit('join-conversation', conversation.id);
+    console.log('[ChatWindow] Joined conversation room:', conversation.id);
 
     // Listen for new messages
-    socket.on('new-message', (newMessage: Message) => {
-      setMessages(prev => [...prev, newMessage]);
+    const handleNewMessage = (newMessage: Message) => {
+      console.log('[ChatWindow] Received new message via socket:', newMessage.id, 'from user:', newMessage.User.id);
+      setMessages(prev => {
+        // Check if message already exists to avoid duplicates
+        const exists = prev.some(msg => msg.id === newMessage.id);
+        if (exists) {
+          console.log('[ChatWindow] Message already exists, skipping:', newMessage.id);
+          return prev;
+        }
+        console.log('[ChatWindow] Adding new message to list. Total messages now:', prev.length + 1);
+        return [...prev, newMessage];
+      });
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('messageReceived', {
+        detail: { 
+          message: newMessage,
+          conversationId: conversation.id 
+        }
+      }));
+      
+      // Scroll to bottom on new message
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    };
+
+    socket.on('new-message', handleNewMessage);
+
+    // Listen for typing indicators - WhatsApp/Telegram style
+    socket.on('user-typing', (data: { userId: string; isTyping: boolean }) => {
+      console.log('[ChatWindow] User typing event:', data);
+      if (data.userId !== currentUserId) {
+        setIsTyping(data.isTyping);
+        // Auto-hide typing indicator after 3 seconds
+        if (data.isTyping) {
+          setTimeout(() => setIsTyping(false), 3000);
+        }
+      }
+    });
+
+    // Listen for online status
+    socket.on('user-online', (data: { userId: string; isOnline: boolean }) => {
+      if (data.userId === conversation.otherParticipant?.id) {
+        setIsOnline(data.isOnline);
+      }
     });
 
     // Listen for message errors
-    socket.on('message-error', (error: { error: string }) => {
-      console.error('Message error:', error);
-      // You can show a toast notification here
+    socket.on('message-error', (error: { error: string; details?: string }) => {
+      console.error('[ChatWindow] Message error:', error);
+      alert(`Fout bij verzenden: ${error.error}${error.details ? ` - ${error.details}` : ''}`);
     });
 
     return () => {
+      console.log('[ChatWindow] Cleaning up socket listeners for conversation:', conversation.id);
       socket.emit('leave-conversation', conversation.id);
-      socket.off('new-message');
+      socket.off('new-message', handleNewMessage);
+      socket.off('user-typing');
+      socket.off('user-online');
       socket.off('message-error');
     };
-  }, [socket, conversation.id]);
+  }, [socket, conversation.id, currentUserId, conversation.otherParticipant?.id]);
+
+  // Enhanced fallback polling for localhost and when socket is not connected
+  useEffect(() => {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const shouldPoll = !isConnected || isLocalhost; // Always poll on localhost for reliability
+    
+    if (shouldPoll && conversation.id) {
+      console.log('[ChatWindow] Starting polling (localhost or socket disconnected)...');
+      
+      const pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch(
+            `/api/conversations/${conversation.id}/messages?page=1&limit=50`,
+            {
+              cache: 'no-store',
+              headers: {
+                'Cache-Control': 'no-cache'
+              }
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const latestMessages = data.messages || [];
+            
+            if (latestMessages.length !== messages.length) {
+              console.log('[ChatWindow] Polling found message count change:', latestMessages.length, 'vs', messages.length);
+              loadMessages(); // Reload all messages
+            }
+          }
+        } catch (error) {
+          console.error('[ChatWindow] Polling error:', error);
+        }
+      }, isLocalhost ? 1000 : 2000); // Faster polling on localhost
+      
+      return () => {
+        console.log('[ChatWindow] Stopping polling');
+        clearInterval(pollInterval);
+      };
+    }
+  }, [isConnected, conversation.id, messages.length]);
 
   useEffect(() => {
     loadMessages();
+  }, [conversation.id]);
+
+  // Also reload messages when conversation object changes
+  useEffect(() => {
+    if (conversation.id) {
+      console.log('[ChatWindow] Conversation changed, reloading messages');
+      loadMessages();
+    }
+  }, [conversation]);
+
+  // Reload messages when conversation changes (e.g., after sending initial message)
+  useEffect(() => {
+    const handleConversationUpdate = () => {
+      console.log('[ChatWindow] Conversation update event received, reloading messages');
+      loadMessages();
+    };
+
+    const handleMessageSent = () => {
+      console.log('[ChatWindow] Message sent event received, reloading messages');
+      loadMessages();
+    };
+
+    // Listen for conversation updates and message sent events
+    window.addEventListener('conversationUpdated', handleConversationUpdate);
+    window.addEventListener('messageSent', handleMessageSent);
+    
+    return () => {
+      window.removeEventListener('conversationUpdated', handleConversationUpdate);
+      window.removeEventListener('messageSent', handleMessageSent);
+    };
   }, [conversation.id]);
 
   // Mark messages as read when conversation is opened
@@ -137,6 +294,8 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
 
   const loadMessages = async (pageNum = 1, append = false) => {
     try {
+      console.log('[ChatWindow] Loading messages for conversation:', conversation.id, 'page:', pageNum);
+      
       if (pageNum === 1) {
         setIsLoading(true);
       } else {
@@ -144,25 +303,44 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
       }
 
       const response = await fetch(
-        `/api/conversations/${conversation.id}/messages?page=${pageNum}&limit=50`
+        `/api/conversations/${conversation.id}/messages?page=${pageNum}&limit=50`,
+        {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }
       );
 
+      console.log('[ChatWindow] Messages response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to load messages');
+        throw new Error(`Failed to load messages: ${response.status}`);
       }
 
-      const { messages: newMessages } = await response.json();
+      const data = await response.json();
+      console.log('[ChatWindow] Messages data received:', data);
+      
+      const { messages: newMessages } = data;
 
       if (append) {
-        setMessages(prev => [...newMessages, ...prev]);
+        setMessages(prev => {
+          const combined = [...newMessages, ...prev];
+          console.log('[ChatWindow] Appending messages. Total:', combined.length);
+          return combined;
+        });
       } else {
-        setMessages(newMessages);
+        console.log('[ChatWindow] Setting messages. Count:', newMessages?.length || 0);
+        setMessages(newMessages || []);
       }
 
-      setHasMoreMessages(newMessages.length === 50);
+      console.log('[ChatWindow] Messages set:', newMessages?.length || 0);
+      setHasMoreMessages((newMessages?.length || 0) === 50);
       setPage(pageNum);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error('[ChatWindow] Error loading messages:', error);
+      // Set empty messages array on error to avoid showing loading state
+      setMessages([]);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -183,11 +361,25 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
     attachmentType?: string;
   }) => {
     if (!socket) {
-      console.error('Socket not connected');
+      console.error('[ChatWindow] Socket not connected');
+      alert('Geen verbinding met de server. Probeer de pagina te vernieuwen.');
+      return;
+    }
+
+    if (!currentUserId) {
+      console.error('[ChatWindow] No current user ID available');
+      alert('Gebruiker niet gevonden. Probeer opnieuw in te loggen.');
       return;
     }
 
     try {
+      console.log('[ChatWindow] Sending message:', {
+        conversationId: conversation.id,
+        senderId: currentUserId,
+        textLength: messageData.text.length,
+        messageType: messageData.messageType
+      });
+
       // Send message via socket
       socket.emit('send-message', {
         conversationId: conversation.id,
@@ -198,9 +390,22 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
         attachmentName: messageData.attachmentName,
         attachmentType: messageData.attachmentType,
       });
+
+      console.log('[ChatWindow] Message sent via socket');
+      
+      // Dispatch event to trigger message reload
+      window.dispatchEvent(new CustomEvent('messageSent', {
+        detail: { conversationId: conversation.id }
+      }));
+      
+      // Also reload messages after a short delay to ensure database is updated
+      setTimeout(() => {
+        console.log('[ChatWindow] Reloading messages after send');
+        loadMessages();
+      }, 1000);
     } catch (error) {
-      console.error('Error sending message:', error);
-      // You can show a toast notification here
+      console.error('[ChatWindow] Error sending message:', error);
+      alert('Fout bij verzenden van bericht. Probeer het opnieuw.');
     }
   };
 
@@ -255,16 +460,19 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-white">
+    <div className="flex flex-col h-full bg-white touch-pan-y">
+      {/* Header - Mobile optimized */}
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-white flex-shrink-0">
         <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          {/* Back button only shown on mobile or when onBack is provided */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0 md:hidden"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
 
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
             {conversation.otherParticipant?.profileImage ? (
@@ -290,11 +498,44 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
                   className="hover:text-primary-600 transition-colors"
                 />
               </h2>
-              {conversation.product && (
-                <p className="text-xs sm:text-sm text-gray-500 truncate">
-                  Over: {conversation.product.title}
-                </p>
-              )}
+              {/* Connection status and online status - WhatsApp style */}
+              <div className="flex items-center gap-1">
+                {/* Connection status indicator */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    if (isLocalhost) {
+                      return (
+                        <>
+                          <Circle className="w-2 h-2 fill-blue-500 text-blue-500" />
+                          <p className="text-xs text-gray-500">Local</p>
+                        </>
+                      );
+                    }
+                    return (
+                      <>
+                        <Circle className={`w-2 h-2 ${isConnected ? 'fill-green-500 text-green-500' : 'fill-red-500 text-red-500'}`} />
+                        <p className="text-xs text-gray-500">
+                          {isConnected ? 'Live' : 'Polling'}
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+                
+                {isTyping ? (
+                  <p className="text-xs text-blue-500 animate-pulse ml-2">aan het typen...</p>
+                ) : isOnline ? (
+                  <div className="flex items-center gap-1 ml-2">
+                    <Circle className="w-2 h-2 fill-green-500 text-green-500" />
+                    <p className="text-xs text-gray-500">online</p>
+                  </div>
+                ) : conversation.product ? (
+                  <p className="text-xs text-gray-500 truncate ml-2">
+                    Over: {conversation.product.title}
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -306,28 +547,40 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
           <button className="p-2 hover:bg-gray-100 rounded-full hidden sm:block">
             <Video className="w-5 h-5 text-gray-600" />
           </button>
+          <button 
+            onClick={() => {
+              console.log('[ChatWindow] Manual reload triggered');
+              loadMessages();
+            }}
+            className="p-2 hover:bg-gray-100 rounded-full text-xs text-gray-500 bg-gray-50 border"
+            title="Herlaad berichten"
+          >
+            🔄
+          </button>
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <MoreVertical className="w-5 h-5 text-gray-600" />
           </button>
         </div>
       </div>
 
-      {/* Product info banner */}
+      {/* Product info banner - Improved design */}
       {conversation.product && (
-        <div className="p-3 bg-blue-50 border-b border-blue-200">
+        <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 flex-shrink-0">
           <div className="flex items-center space-x-3">
             {conversation.product.Image[0] && (
-              <Image
-                src={conversation.product.Image[0].fileUrl}
-                alt={conversation.product.title}
-                width={48}
-                height={48}
-                className="rounded-lg object-cover flex-shrink-0"
-              />
+              <div className="relative flex-shrink-0">
+                <Image
+                  src={conversation.product.Image[0].fileUrl}
+                  alt={conversation.product.title}
+                  width={48}
+                  height={48}
+                  className="rounded-lg object-cover shadow-sm"
+                />
+              </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 truncate">{conversation.product.title}</h3>
-              <p className="text-sm text-blue-600 font-medium">
+              <h3 className="font-medium text-gray-900 truncate text-sm">{conversation.product.title}</h3>
+              <p className="text-sm text-blue-600 font-semibold">
                 {formatPrice(conversation.product.priceCents)}
               </p>
             </div>
@@ -335,8 +588,21 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-hidden" ref={messagesContainerRef}>
+      {/* Messages - Mobile scroll optimized */}
+      <div className="flex-1 overflow-hidden -webkit-overflow-scrolling-touch" ref={messagesContainerRef}>
+        {/* Debug reload button - always visible */}
+        <div className="p-2 text-center bg-gray-50 border-b">
+          <button
+            onClick={() => {
+              console.log('[ChatWindow] Debug reload triggered');
+              loadMessages();
+            }}
+            className="text-xs text-gray-600 hover:text-blue-600 px-2 py-1 rounded border border-gray-300 hover:border-blue-300 transition-colors"
+          >
+            🔄 Herlaad ({messages.length} berichten)
+          </button>
+        </div>
+        
         {hasMoreMessages && (
           <div className="p-3 sm:p-4 text-center">
             <button
@@ -356,6 +622,12 @@ export default function ChatWindow({ conversation, onBack, onMessagesRead }: Cha
           onEncryptMessage={handleEncryptMessage}
           onDecryptMessage={handleDecryptMessage}
         />
+        {/* Typing indicator at bottom - WhatsApp/Telegram style */}
+        {isTyping && (
+          <div className="px-4 pb-2">
+            <TypingIndicator />
+          </div>
+        )}
       </div>
 
       {/* Message input */}

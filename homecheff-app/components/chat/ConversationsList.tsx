@@ -198,114 +198,103 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   }
 
   return (
-    <div className="space-y-2">
-      {conversations.map((conversation) => (
-        <div
-          key={conversation.id}
-          onClick={() => {
-            onSelectConversation(conversation);
-            markConversationAsRead(conversation.id);
-          }}
-          className="p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
-        >
-          <div className="flex items-start space-x-3">
-            {/* Product image, order icon, or participant avatar */}
-            <div className="flex-shrink-0">
-              {conversation.product?.Image[0] ? (
-                <Image
-                  src={conversation.product.Image[0].fileUrl}
-                  alt={conversation.product.title}
-                  width={48}
-                  height={48}
-                  className="rounded-lg object-cover"
-                />
-              ) : conversation.order ? (
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Package className="w-6 h-6 text-blue-600" />
-                </div>
-              ) : (
-                <div className="w-12 h-12 bg-gray-300 rounded-lg flex items-center justify-center">
-                  <MessageCircle className="w-6 h-6 text-gray-500" />
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base">
-                  {conversation.title}
-                </h3>
-                <div className="flex items-center space-x-2 flex-shrink-0">
-                  {conversation.lastMessage && (
-                    <span className="text-xs text-gray-500">
-                      {formatTime(conversation.lastMessageAt)}
-                    </span>
-                  )}
-                  {!conversation.isActive && (
-                    <div className="w-2 h-2 bg-red-500 rounded-full" />
-                  )}
-                  {/* Unread indicator */}
-                  {conversation.lastMessage && 
-                   conversation.lastMessage.User.id !== session?.user?.email && 
-                   !conversation.lastMessage.readAt && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-1">
-                <div className="flex-1 min-w-0">
-                  {conversation.product && (
-                    <p className="text-xs sm:text-sm text-gray-600 truncate">
-                      {conversation.product.title} • {formatPrice(conversation.product.priceCents)}
-                    </p>
-                  )}
-                  
-                  {conversation.order && (
-                    <div className="flex items-center space-x-2">
-                      <Package className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                      <p className="text-xs sm:text-sm text-blue-600 font-medium truncate">
-                        {conversation.order.orderNumber || `Bestelling ${conversation.order.id.slice(-6)}`}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {conversation.lastMessage && (
-                    <p className="text-xs sm:text-sm text-gray-500 truncate">
-                      {getLastMessageSender(conversation.lastMessage, session?.user?.email || '')}
-                      {getLastMessagePreview(conversation.lastMessage)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex-shrink-0 ml-2">
-                  {conversation.lastMessage && conversation.lastMessage.User.id === session?.user?.email && (
-                    <CheckCheck className="w-4 h-4 text-blue-500" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-gray-400 truncate">
-                  Met: <ClickableName 
-                    user={conversation.participants[0]}
-                    className="hover:text-primary-600 transition-colors"
+    <div className="h-full flex flex-col">
+      {/* Search/Filter Bar */}
+      <div className="p-4 border-b border-gray-200 bg-gray-50">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Zoek in gesprekken..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <MessageCircle className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+      
+      {/* Conversations List */}
+      <div className="flex-1 overflow-y-auto">
+        {conversations.map((conversation) => (
+          <div
+            key={conversation.id}
+            onClick={() => {
+              console.log('Conversation clicked:', conversation.id, conversation.title);
+              onSelectConversation(conversation);
+              markConversationAsRead(conversation.id);
+            }}
+            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100"
+          >
+            <div className="flex items-center space-x-3">
+              {/* Avatar */}
+              <div className="flex-shrink-0 relative">
+                {conversation.product?.Image[0] ? (
+                  <Image
+                    src={conversation.product.Image[0].fileUrl}
+                    alt={conversation.product.title}
+                    width={50}
+                    height={50}
+                    className="rounded-full object-cover"
                   />
-                </p>
+                ) : conversation.participants[0]?.profileImage ? (
+                  <Image
+                    src={conversation.participants[0].profileImage}
+                    alt={getDisplayName(conversation.participants[0])}
+                    width={50}
+                    height={50}
+                    className="rounded-full object-cover"
+                  />
+                ) : conversation.order ? (
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-blue-600" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 text-gray-500" />
+                  </div>
+                )}
                 
-                {conversation.lastMessageAt && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-400 flex-shrink-0">
-                    <Clock className="w-3 h-3" />
-                    <span>
-                      {formatTime(conversation.lastMessageAt)}
+                {/* Unread indicator */}
+                {conversation.lastMessage && 
+                 conversation.lastMessage.User.id !== session?.user?.email && 
+                 !conversation.lastMessage.readAt && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-white font-medium">
+                      {1}
                     </span>
                   </div>
                 )}
               </div>
+
+              {/* Conversation Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {conversation.title}
+                  </h3>
+                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                    {formatTime(conversation.lastMessageAt)}
+                  </span>
+                </div>
+                
+                {conversation.lastMessage ? (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 truncate flex-1">
+                      {getLastMessageSender(conversation.lastMessage, session?.user?.email || '')}
+                      {getLastMessagePreview(conversation.lastMessage)}
+                    </p>
+                    {conversation.lastMessage.User.id === session?.user?.email && (
+                      <CheckCheck className="w-4 h-4 text-blue-500 flex-shrink-0 ml-2" />
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 truncate">
+                    Gesprek gestart
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

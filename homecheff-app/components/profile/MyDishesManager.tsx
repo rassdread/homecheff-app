@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import ProductManagement from "./ProductManagement";
 import RecipeManager from "./RecipeManager";
 import RecipeViewer from "./RecipeViewer";
+import GardenManager from "./GardenManager";
 
 type Dish = {
   id: string;
@@ -159,7 +160,18 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   const safeFetch = useSafeFetch();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Dish[]>([]);
-  const [activeTab, setActiveTab] = useState<'dishes' | 'products' | 'recipes'>('products');
+  
+  // Determine initial tab based on role
+  // For chef: start on recipes tab
+  // For garden: start on garden tab (to show their kweken)
+  // For others: start on products tab
+  const getInitialTab = (): 'dishes' | 'products' | 'recipes' | 'garden' => {
+    if (activeRole === 'chef') return 'recipes';
+    if (activeRole === 'garden') return 'garden';
+    return 'products';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'dishes' | 'products' | 'recipes' | 'garden'>(getInitialTab());
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [showRecipeViewer, setShowRecipeViewer] = useState(false);
 
@@ -168,9 +180,6 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   const [publish, setPublish] = useState(false);
   const [priceEuro, setPriceEuro] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<"PICKUP" | "DELIVERY" | "BOTH">("PICKUP");
-  const [useMyLocation, setUseMyLocation] = useState(true);
-  const [place, setPlace] = useState("");
-  const [coords, setCoords] = useState<{lat:number,lng:number} | null>(null);
   const [category, setCategory] = useState<"CHEFF" | "GROWN" | "DESIGNER">("CHEFF");
   const [subcategory, setSubcategory] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -303,18 +312,6 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
 
   useEffect(() => { load(); }, []);
 
-  async function ensureCoords(): Promise<{lat:number,lng:number} | null> {
-    if (!useMyLocation) return null;
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) return resolve(null);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => resolve(null),
-        { enableHighAccuracy: true, maximumAge: 60000, timeout: 8000 }
-      );
-    });
-  }
-
   function onFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
     const filesArr = Array.from(e.target.files || []).slice(0, 5);
     const newFiles: UploadedFile[] = filesArr.map((file, index) => ({
@@ -350,9 +347,6 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
     setMessage(null);
     
     try {
-      const got = await ensureCoords();
-      if (got) setCoords(got);
-
       const uploadedUrls: {url: string, isMain: boolean}[] = [];
       for (const uploadedFile of uploadedFiles) {
         // Client-side validation
@@ -403,15 +397,6 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
         payload.deliveryMode = deliveryMode;
         payload.stock = Number(stock);
         payload.maxStock = maxStock ? Number(maxStock) : null;
-      }
-      
-      if (useMyLocation && (got || coords)) {
-        const c = got || coords;
-        payload.lat = c?.lat;
-        payload.lng = c?.lng;
-        payload.place = place || null;
-      } else if (place) {
-        payload.place = place;
       }
 
       const res = await safeFetch("/api/profile/dishes", {
@@ -483,6 +468,8 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   
   // Use role parameter if provided, otherwise use activeRole
   const currentRole = role || activeRole;
+  
+  console.log('MyDishesManager: currentRole =', currentRole, '(role =', role, ', activeRole =', activeRole, ')');
 
   const handleRecipeClick = (recipeId: string) => {
     setSelectedRecipeId(recipeId);
@@ -534,19 +521,46 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                 <span>Mijn Recepten</span>
               </button>
             )}
+            {currentRole === 'garden' && (
+              <button
+                onClick={() => setActiveTab('garden')}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'garden'
+                    ? 'border-primary-brand text-primary-brand'
+                    : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
+                }`}
+              >
+                <span>Mijn Kweken</span>
+              </button>
+            )}
             </nav>
           </div>
 
           <div className="p-6">
+            {/* Live products tab - shows products filtered by current role */}
             {activeTab === 'products' && (
-              <ProductManagement onUpdate={() => {
-                onStatsUpdate?.();
-              }} />
+              <ProductManagement 
+                onUpdate={() => {
+                  onStatsUpdate?.();
+                }} 
+                categoryFilter={currentRole === 'chef' ? 'CHEFF' : currentRole === 'garden' ? 'GROWN' : currentRole === 'designer' ? 'DESIGNER' : null}
+                key={`products-${currentRole}`} // Force re-render when role changes
+              />
             )}
 
+          {/* Only show recipes tab content for chef role */}
           {activeTab === 'recipes' && currentRole === 'chef' && (
             <RecipeManager 
               isActive={activeTab === 'recipes'} 
+              userId={userId}
+              isPublic={isPublic}
+            />
+          )}
+
+          {/* Only show garden tab content for garden role */}
+          {activeTab === 'garden' && currentRole === 'garden' && (
+            <GardenManager 
+              isActive={activeTab === 'garden'} 
               userId={userId}
               isPublic={isPublic}
             />
@@ -555,7 +569,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
         </div>
       )}
 
-      {/* Public view - show published items */}
+      {/* Public view - show published items filtered by role */}
       {isPublic && (
         <div className="space-y-6">
           {loading ? (
@@ -563,16 +577,30 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand mx-auto"></div>
               <p className="mt-2 text-gray-600">Laden...</p>
             </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
-                <Plus className="w-full h-full" />
+          ) : (() => {
+            // Filter items by current role category
+            const getRoleCategory = (role: string) => {
+              if (role === 'chef') return 'CHEFF';
+              if (role === 'garden') return 'GROWN';
+              if (role === 'designer') return 'DESIGNER';
+              return null;
+            };
+            
+            const roleCategory = getRoleCategory(currentRole);
+            const roleFilteredItems = roleCategory 
+              ? filteredItems.filter(item => item.category === roleCategory)
+              : filteredItems;
+            
+            return roleFilteredItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
+                  <Plus className="w-full h-full" />
+                </div>
+                <p>Nog geen items gedeeld</p>
               </div>
-              <p>Nog geen items gedeeld</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {roleFilteredItems.map((item) => (
                 <div 
                   key={item.id} 
                   className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
@@ -635,7 +663,8 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                 </div>
               ))}
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
