@@ -19,33 +19,34 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  useSecureCookies: process.env.NODE_ENV === 'production',
+  // Force disable secure cookies to fix prefix issues
+  useSecureCookies: false,
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === 'production' ? `__Secure-next-auth.callback-url` : `next-auth.callback-url`,
+      name: `next-auth.callback-url`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production' ? `__Host-next-auth.csrf-token` : `next-auth.csrf-token`,
+      name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
       }
     }
   },
@@ -53,10 +54,36 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          scope: "openid email profile",
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
     }),
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID || "",
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          scope: "email,public_profile",
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture?.data?.url,
+        };
+      },
     }),
     Credentials({
       name: "Inloggen",
@@ -114,35 +141,99 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" || account?.provider === "facebook") {
         try {
+          console.log('🔍 Social login data:', { 
+            provider: account.provider, 
+            userEmail: user.email, 
+            userName: user.name,
+            userImage: user.image,
+            profile: profile 
+          });
+
           // Check if user exists
           let existingUser = await prisma.user.findUnique({
             where: { email: user.email! }
           });
 
           if (!existingUser) {
-            // Create new user for social login with enhanced profile
+            // Extract enhanced profile information
             const nameParts = (user.name || "").split(" ");
             const firstName = nameParts[0] || "";
             const lastName = nameParts.slice(1).join(" ") || "";
             
+            // Generate unique username
+            const baseUsername = user.email!.split('@')[0];
+            let username = baseUsername;
+            let counter = 1;
+            
+            // Ensure username is unique
+            while (await prisma.user.findUnique({ where: { username } })) {
+              username = `${baseUsername}${counter}`;
+              counter++;
+            }
+
+            // Enhanced profile data based on provider
+            let enhancedProfile = {
+              email: user.email!,
+              name: user.name || "",
+              username: username,
+              image: user.image,
+              profileImage: user.image, // Also set as profile image
+              passwordHash: "", // No password for social users
+              role: UserRole.BUYER,
+              interests: ["Koken", "Lokaal", "Duurzaamheid"],
+              bio: `Welkom op HomeCheff! Mijn profiel is aangemaakt via ${account.provider === 'google' ? 'Google' : 'Facebook'} login.`,
+            };
+
+            // Add provider-specific data
+            if (account.provider === "google" && profile) {
+              enhancedProfile = {
+                ...enhancedProfile,
+                bio: profile.bio || enhancedProfile.bio,
+                // Google might provide additional info
+                place: profile.locale ? profile.locale.split('_')[1] : null, // Extract country from locale
+              };
+            }
+
+            if (account.provider === "facebook" && profile) {
+              enhancedProfile = {
+                ...enhancedProfile,
+                bio: profile.bio || enhancedProfile.bio,
+                place: profile.location?.name || null,
+                // Facebook might provide additional info
+              };
+            }
+            
             existingUser = await prisma.user.create({
+              data: enhancedProfile
+            });
+
+            console.log('✅ New social user created:', {
+              id: existingUser.id,
+              email: existingUser.email,
+              username: existingUser.username,
+              provider: account.provider
+            });
+          } else {
+            // Update existing user with latest social data
+            await prisma.user.update({
+              where: { id: existingUser.id },
               data: {
-                email: user.email!,
-                name: user.name || "",
-                username: user.email!.split('@')[0],
-                image: user.image,
-                passwordHash: "", // No password for social users
-                role: UserRole.BUYER,
-                // Add some default interests for social users
-                interests: ["Koken", "Lokaal", "Duurzaamheid"],
-                bio: "Welkom op HomeCheff! Mijn profiel is aangemaakt via social login.",
+                image: user.image || existingUser.image,
+                profileImage: user.image || existingUser.profileImage,
+                name: user.name || existingUser.name,
               }
+            });
+
+            console.log('✅ Existing social user updated:', {
+              id: existingUser.id,
+              email: existingUser.email,
+              provider: account.provider
             });
           }
 
           return true;
         } catch (error) {
-          console.error("Error in signIn callback:", error);
+          console.error("❌ Error in signIn callback:", error);
           return false;
         }
       }
@@ -168,20 +259,44 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token) {
         (session.user as { role?: Role }).role = (token as { role?: Role }).role;
         (session.user as { id?: string }).id = (token as { id?: string }).id;
+        console.log('Session callback:', { 
+          user: session.user.email, 
+          hasRole: !!(token as any).role,
+          hasId: !!(token as any).id,
+          token: Object.keys(token)
+        });
       }
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Use NEXTAUTH_URL from environment, or fallback to baseUrl
+      const actualBaseUrl = process.env.NEXTAUTH_URL || baseUrl;
+      console.log('🔍 NextAuth redirect:', { url, baseUrl, actualBaseUrl });
+      
       try {
-        const u = new URL(url, baseUrl);
-        if (u.pathname === '/login' || u.pathname === '/auth/signin') {
-          return baseUrl + '/';
+        // If url is relative or starts with /, return it with actualBaseUrl
+        if (url.startsWith('/')) {
+          console.log('🔍 Relative URL, using actualBaseUrl');
+          return actualBaseUrl + url;
         }
-      } catch {}
-      return url.startsWith(baseUrl) ? url : baseUrl + '/';
+        
+        // If url is absolute and starts with actualBaseUrl, return it
+        if (url.startsWith(actualBaseUrl)) {
+          console.log('🔍 Absolute URL with correct base, returning as-is');
+          return url;
+        }
+        
+        // Otherwise, extract path and use actualBaseUrl
+        const u = new URL(url);
+        console.log('🔍 Redirecting to:', actualBaseUrl + u.pathname);
+        return actualBaseUrl + u.pathname + u.search;
+      } catch (error) {
+        console.error('🔍 Redirect error:', error);
+        return actualBaseUrl + '/';
+      }
     },
   },
 };

@@ -17,6 +17,14 @@ export default async function ProfilePage({
 }) {
   const session = await getServerSession(authOptions);
   
+  // DEBUG: Log session data for privacy investigation
+  console.log('🔍 PROFILE PAGE DEBUG:', {
+    hasSession: !!session,
+    userEmail: session?.user?.email,
+    userName: session?.user?.name,
+    userId: (session?.user as any)?.id
+  });
+  
   if (!session?.user?.email) {
     return (
       <div className="min-h-screen flex items-center justify-center">

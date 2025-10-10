@@ -2,7 +2,9 @@ import { NextRequest } from 'next/server';
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX_REQUESTS = 1000; // 1000 requests per window (increased for development)
+const RATE_LIMIT_MAX_REQUESTS = process.env.NODE_ENV === 'development' 
+  ? 10000 // Much higher limit for development (React StrictMode doubles everything)
+  : 1000; // 1000 requests per window for production
 
 // Store for rate limiting (in production, use Redis or database)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -29,6 +31,14 @@ export function isValidPhoneNumber(phone: string): boolean {
 
 // Rate limiting
 export function checkRateLimit(request: NextRequest): { allowed: boolean; remaining: number } {
+  // Skip rate limiting for localhost in development
+  if (process.env.NODE_ENV === 'development') {
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    if (ip === 'unknown' || ip.includes('127.0.0.1') || ip.includes('::1') || ip.includes('localhost')) {
+      return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS };
+    }
+  }
+  
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
   const now = Date.now();
   
@@ -104,7 +114,7 @@ export function getSecurityHeaders() {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https:;",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https: wss: https://*.pusher.com wss://*.pusher.com https://sockjs-eu.pusher.com wss://ws-eu.pusher.com;",
   };
 }
 

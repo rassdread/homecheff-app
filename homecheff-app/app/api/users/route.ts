@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
+export const revalidate = 3600; // 1 hour cache like big platforms
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const session = await getServerSession(authOptions);
     
@@ -19,6 +22,9 @@ export async function GET(request: NextRequest) {
     const radius = parseFloat(searchParams.get('radius') || '10');
     const lat = parseFloat(searchParams.get('lat') || '0');
     const lng = parseFloat(searchParams.get('lng') || '0');
+    const take = Math.min(parseInt(searchParams.get('take') || '10'), 50); // Reduced default to 10
+
+    console.log(`👥 Users API: q="${q}", role=${userRole}, take=${take}`);
 
     // Build search conditions
     const searchConditions: any = {
@@ -57,23 +63,42 @@ export async function GET(request: NextRequest) {
       }
     }
     
+    // OPTIMIZED: Use select instead of include to only get necessary data
     const users = await prisma.user.findMany({
       where: searchConditions,
-      include: {
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        profileImage: true,
+        bio: true,
+        role: true,
+        sellerRoles: true,
+        buyerRoles: true,
+        displayFullName: true,
+        displayNameOption: true,
+        place: true,
+        city: true,
+        lat: true,
+        lng: true,
         SellerProfile: {
-          include: {
-            workplacePhotos: true,
-            products: {
+          select: {
+            id: true,
+            _count: {
               select: {
-                id: true
+                products: true // Just count, don't fetch all products
               }
             }
           }
-        },
-        DeliveryProfile: true
+        }
       },
-      take: 50
+      take: take,
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
+
+    console.log(`⏱️  Users query took: ${Date.now() - startTime}ms, got ${users.length} users`);
 
     // Filter by location if coordinates are provided
     let filteredUsers = users;
@@ -85,21 +110,35 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Get follower counts for all users in parallel
+    const userIds = filteredUsers.map(u => u.id);
+    const followerCounts = userIds.length > 0 ? await prisma.follow.groupBy({
+      by: ['sellerId'],
+      where: {
+        sellerId: { in: userIds }
+      },
+      _count: {
+        sellerId: true
+      }
+    }) : [];
+    
+    const followerCountMap = new Map(followerCounts.map((fc: any) => [fc.sellerId, fc._count.sellerId] as [string, number]));
+
     // Transform data for frontend
     const transformedUsers = filteredUsers
       .map(user => ({
         id: user.id,
         name: user.name,
-        username: user.username, // Keep original username (can be null)
-        image: user.image,
+        username: user.username,
+        image: user.profileImage,
         bio: user.bio,
         role: user.role,
         sellerRoles: user.sellerRoles,
         buyerRoles: user.buyerRoles,
         displayFullName: user.displayFullName,
         displayNameOption: user.displayNameOption,
-        followerCount: 0, // TODO: implement follower count
-        productCount: user.SellerProfile?.products?.length || 0,
+        followerCount: followerCountMap.get(user.id) || 0,
+        productCount: user.SellerProfile?._count?.products || 0,
         location: {
           place: user.place || 'Nederland',
           city: user.city || 'Amsterdam',
@@ -108,6 +147,8 @@ export async function GET(request: NextRequest) {
           distanceKm: 0 // TODO: calculate distance
         }
       }));
+
+    console.log(`✅ Total Users API time: ${Date.now() - startTime}ms`);
 
     return NextResponse.json({ users: transformedUsers });
   } catch (error) {

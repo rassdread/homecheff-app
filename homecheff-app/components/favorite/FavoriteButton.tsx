@@ -10,6 +10,7 @@ interface FavoriteButtonProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'button' | 'icon';
+  initialFavorited?: boolean; // NEW: Accept initial favorite status to avoid API call
 }
 
 export default function FavoriteButton({ 
@@ -17,15 +18,22 @@ export default function FavoriteButton({
   productTitle = 'dit product',
   className = '',
   size = 'md',
-  variant = 'icon'
+  variant = 'icon',
+  initialFavorited // NEW
 }: FavoriteButtonProps) {
   const { data: session } = useSession();
-  const [favorited, setFavorited] = useState(false);
+  const [favorited, setFavorited] = useState(initialFavorited ?? false);
   const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(initialFavorited === undefined);
 
-  // Check favorite status on mount
+  // Check favorite status on mount ONLY if initialFavorited not provided
   useEffect(() => {
+    // Skip if we already have the initial state
+    if (initialFavorited !== undefined) {
+      setCheckingStatus(false);
+      return;
+    }
+
     if (!session?.user) {
       setCheckingStatus(false);
       return;
@@ -46,7 +54,7 @@ export default function FavoriteButton({
     };
 
     checkFavoriteStatus();
-  }, [productId, session?.user]);
+  }, [productId, session?.user, initialFavorited]);
 
   const handleToggleFavorite = async (e?: React.MouseEvent) => {
     if (e) {

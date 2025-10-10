@@ -126,12 +126,6 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return `€${(priceCents / 100).toFixed(2)}`;
   };
 
-  const getDisplayNameForParticipants = (participants: Conversation['participants']) => {
-    if (participants.length === 0) return 'Onbekend';
-    const participant = participants[0];
-    return getDisplayName(participant);
-  };
-
   const getLastMessagePreview = (lastMessage: Conversation['lastMessage']) => {
     if (!lastMessage) return 'Nog geen berichten';
     
@@ -146,13 +140,18 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return lastMessage.text || 'Bericht';
   };
 
-  const getLastMessageSender = (lastMessage: Conversation['lastMessage'], currentUserId: string) => {
+  const getLastMessageSender = (lastMessage: Conversation['lastMessage'], currentUser: any) => {
     if (!lastMessage) return '';
     
+    const currentUserId = currentUser?.id || '';
     const isOwn = lastMessage.User.id === currentUserId;
-    const senderName = getDisplayName(lastMessage.User);
     
-    return isOwn ? 'Jij: ' : `${senderName}: `;
+    return isOwn ? 'Jij: ' : '';
+  };
+
+  // Get current user for checking message ownership
+  const getCurrentUserId = () => {
+    return (session?.user as any)?.id || '';
   };
 
   const markConversationAsRead = async (conversationId: string) => {
@@ -247,20 +246,18 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                     <Package className="w-6 h-6 text-blue-600" />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-gray-500" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">
+                      {conversation.title.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                 )}
                 
                 {/* Unread indicator */}
                 {conversation.lastMessage && 
-                 conversation.lastMessage.User.id !== session?.user?.email && 
+                 conversation.lastMessage.User.id !== getCurrentUserId() && 
                  !conversation.lastMessage.readAt && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
-                      {1}
-                    </span>
-                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-white"></div>
                 )}
               </div>
 
@@ -278,11 +275,13 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                 {conversation.lastMessage ? (
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-600 truncate flex-1">
-                      {getLastMessageSender(conversation.lastMessage, session?.user?.email || '')}
+                      {getLastMessageSender(conversation.lastMessage, session?.user)}
                       {getLastMessagePreview(conversation.lastMessage)}
                     </p>
-                    {conversation.lastMessage.User.id === session?.user?.email && (
-                      <CheckCheck className="w-4 h-4 text-blue-500 flex-shrink-0 ml-2" />
+                    {conversation.lastMessage.User.id === getCurrentUserId() && (
+                      <CheckCheck className={`w-4 h-4 flex-shrink-0 ml-2 ${
+                        conversation.lastMessage.readAt ? 'text-blue-500' : 'text-gray-400'
+                      }`} />
                     )}
                   </div>
                 ) : (

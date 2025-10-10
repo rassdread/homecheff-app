@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
   try {
@@ -93,13 +91,18 @@ export async function GET(req: NextRequest) {
         .filter(p => p.userId !== user.id)
         .map(p => p.User);
 
+      // Get the first other participant (for 1-on-1 chats)
+      const otherParticipant = otherParticipants[0] || null;
+
       return {
         id: conversation.id,
         title: conversation.title || 
-               (conversation.Product ? conversation.Product.title : 'Nieuwe conversatie'),
+               (conversation.Product ? conversation.Product.title : 
+               otherParticipant ? (otherParticipant.name || otherParticipant.username || 'Gesprek') : 'Nieuwe conversatie'),
         product: conversation.Product,
         lastMessage: conversation.Message[0] || null,
         participants: otherParticipants,
+        otherParticipant: otherParticipant, // Add single other participant for easy access
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,
         createdAt: conversation.createdAt
@@ -119,8 +122,6 @@ export async function GET(req: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -235,8 +236,6 @@ export async function POST(req: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

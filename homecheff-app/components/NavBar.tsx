@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -137,7 +137,7 @@ export default function NavBar() {
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
                   >
                     {user.image ? (
-                      <Image
+                      <SafeImage
                         src={user.image}
                         alt="Profielfoto"
                         width={32}
@@ -368,7 +368,7 @@ export default function NavBar() {
                 <>
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
                     {user.image ? (
-                      <Image
+                      <SafeImage
                         src={user.image}
                         alt="Profielfoto"
                         width={32}

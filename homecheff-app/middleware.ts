@@ -63,6 +63,13 @@ export function middleware(request: NextRequest) {
     response.headers.set('Expires', '0');
     response.headers.set('Surrogate-Control', 'no-store');
   }
+  
+  // Force no-cache for homepage to prevent routing issues
+  if (request.nextUrl.pathname === '/') {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
 
   return response;
 }

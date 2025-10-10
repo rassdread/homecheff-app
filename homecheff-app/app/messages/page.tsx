@@ -2,9 +2,9 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { MessageCircle, Bell, Heart, Users, Package, UserPlus, Star } from 'lucide-react';
+import { MessageCircle, Bell } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import CompleteChat from '@/components/chat/CompleteChat';
+import OptimizedChat from '@/components/chat/OptimizedChat';
 
 interface Conversation {
   id: string;
@@ -145,31 +145,37 @@ function MessagesPageContent() {
         {activeTab === 'conversations' ? (
           <>
             {/* Conversations List - Left Side */}
-            <div className={`${selectedConversation ? 'w-1/3' : 'w-full'} border-r border-gray-200 bg-white flex flex-col transition-all duration-300`}>
+            <div className={`
+              ${selectedConversation ? 'hidden lg:flex lg:w-96' : 'w-full'} 
+              border-r border-gray-200 bg-white flex-col transition-all duration-300
+            `}>
               <div className="flex-1 overflow-hidden">
                 <ConversationsList onSelectConversation={handleSelectConversation} />
               </div>
             </div>
             
             {/* Chat Window - Right Side */}
-                   {selectedConversation && selectedConversation.otherParticipant && (
-                     <div className="flex-1 flex flex-col bg-white">
-                       <CompleteChat
-                         conversationId={selectedConversation.id}
-                         otherParticipant={selectedConversation.otherParticipant}
-                         onBack={handleBackToList}
-                       />
-                     </div>
-                   )}
+            {selectedConversation && selectedConversation.otherParticipant && (
+              <div className={`
+                ${selectedConversation ? 'w-full' : 'hidden'} 
+                flex flex-col bg-white
+              `}>
+                <OptimizedChat
+                  conversationId={selectedConversation.id}
+                  otherParticipant={selectedConversation.otherParticipant}
+                  onBack={handleBackToList}
+                />
+              </div>
+            )}
             
-            {/* Welcome Message when no conversation selected */}
+            {/* Welcome Message when no conversation selected (Desktop only) */}
             {!selectedConversation && (
-              <div className="flex-1 flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                  <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Selecteer een gesprek</h3>
-                  <p className="text-gray-500">
-                    Klik op een gesprek om te beginnen met chatten
+              <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-50">
+                <div className="text-center p-8">
+                  <MessageCircle className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">Selecteer een gesprek</h3>
+                  <p className="text-gray-500 max-w-md">
+                    Klik op een gesprek aan de linkerkant om te beginnen met chatten
                   </p>
                 </div>
               </div>
@@ -178,10 +184,10 @@ function MessagesPageContent() {
         ) : (
           /* Notifications Tab */
           <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Notificaties</h3>
-              <p className="text-gray-500">
+            <div className="text-center p-8">
+              <Bell className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Notificaties</h3>
+              <p className="text-gray-500 max-w-md mx-auto">
                 Alle notificaties worden binnenkort hier getoond
               </p>
             </div>

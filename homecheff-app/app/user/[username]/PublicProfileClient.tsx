@@ -3,7 +3,7 @@
 import { useState, Suspense, useEffect } from 'react';
 import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 
 import MyDishesManager from '@/components/profile/MyDishesManager';
 import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
@@ -262,7 +262,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
           {/* Profile Photo */}
           <div className="flex-shrink-0">
             <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-200">
-              <Image
+              <SafeImage
                 src={user.profileImage || "/avatar-placeholder.png"}
                 alt="Profielfoto"
                 fill
@@ -415,7 +415,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                               className="relative h-48 cursor-pointer"
                               onClick={() => setSelectedImage(mainPhoto.url)}
                             >
-                              <Image
+                              <SafeImage
                                 src={mainPhoto.url}
                                 alt={product.title}
                                 fill

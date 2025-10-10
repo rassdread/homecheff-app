@@ -1,16 +1,26 @@
 'use client';
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
-import ImageSlider from "@/components/ui/ImageSlider";
+import dynamic from 'next/dynamic';
+
+// Lazy load heavy components for better mobile performance
+const ImageSlider = dynamic(() => import("@/components/ui/ImageSlider"), {
+  loading: () => <div className="w-full h-full bg-gray-200 animate-pulse" />,
+  ssr: false // Disable SSR for better mobile performance
+});
 import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
-import SmartRecommendations from "@/components/recommendations/SmartRecommendations";
+const SmartRecommendations = dynamic(() => import("@/components/recommendations/SmartRecommendations"), {
+  loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false
+});
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
 import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
+import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import ItemCard from "@/components/ItemCard";
 import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 import ClickableName from "@/components/ui/ClickableName";
@@ -31,6 +41,7 @@ type HomeItem = {
   subcategory?: string;
   delivery?: string;
   favoriteCount?: number;
+  isFavorited?: boolean; // NEW: User's favorite status for this product
   location?: {
     place?: string;
     city?: string;
@@ -73,7 +84,21 @@ type HomeUser = {
 };
 
 function HomePageContent() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const { isMobile, imageQuality, lazyLoading } = useMobileOptimization();
+  
+  // Debug session status
+  useEffect(() => {
+    console.log('🏠 HomePage session status:', { 
+      status, 
+      hasSession: !!session, 
+      user: session?.user,
+      userId: (session?.user as any)?.id,
+      userEmail: session?.user?.email,
+      currentPath: window.location.pathname,
+      currentUrl: window.location.href
+    });
+  }, [session, status]);
   const [username, setUsername] = useState<string>("");
   const [userCountry, setUserCountry] = useState<string>("NL");
   const [items, setItems] = useState<HomeItem[]>([]);
@@ -361,12 +386,19 @@ function HomePageContent() {
       console.log('🚀 Starting data fetch...');
       setIsLoading(true);
       
-      // Fetch products first with aggressive caching for better performance
+      // Fetch products first - browser will cache automatically
       const productsStartTime = performance.now();
       console.log('📦 Fetching products from /api/products...');
-      const productsResponse = await fetch('/api/products', {
-        cache: 'force-cache',
-        next: { revalidate: 600 } // 10 minutes cache
+      const userId = (session?.user as any)?.id || session?.user?.email; // Get user ID to fetch favorite status
+      console.log('🔍 Session debug:', { 
+        hasSession: !!session, 
+        userId: userId, 
+        userEmail: session?.user?.email,
+        userIdFromUser: (session?.user as any)?.id 
+      });
+      const productsResponse = await fetch(`/api/products?take=10${userId ? `&userId=${userId}` : ''}&mobile=${isMobile}`, {
+        cache: 'force-cache', // Cache for 5 minutes
+        next: { revalidate: 300 }
       });
       const productsEndTime = performance.now();
       console.log(`⏱️ Products API took: ${(productsEndTime - productsStartTime).toFixed(0)}ms`);
@@ -384,9 +416,9 @@ function HomePageContent() {
       // Fetch users in background (don't block UI)
       const usersStartTime = performance.now();
       console.log('👥 Fetching users from /api/users...');
-      const usersResponse = await fetch('/api/users', {
-        cache: 'force-cache',
-        next: { revalidate: 300 } // 5 minutes cache
+      const usersResponse = await fetch('/api/users?take=10', {
+        cache: 'force-cache', // Cache for 5 minutes
+        next: { revalidate: 300 }
       });
       const usersEndTime = performance.now();
       console.log(`⏱️ Users API took: ${(usersEndTime - usersStartTime).toFixed(0)}ms`);
@@ -408,8 +440,15 @@ function HomePageContent() {
     }
   };
 
+  // Prevent duplicate fetches in React StrictMode (dev only)
+  const hasFetchedRef = useRef<string>('');
+  
   useEffect(() => {
-    fetchData();
+    const fetchKey = `${userRole}`;
+    if (hasFetchedRef.current !== fetchKey) {
+      hasFetchedRef.current = fetchKey;
+      fetchData();
+    }
   }, [userRole]);
 
   // Reset search when switching between products and users
@@ -1490,14 +1529,14 @@ function HomePageContent() {
                     {/* User Avatar */}
                     <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100">
                       {user.image ? (
-                        <Image
+                        <SafeImage
                           src={user.image}
                           alt={user.name || 'Gebruiker'}
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          loading="lazy"
-                          quality={75}
+                          loading={lazyLoading}
+                          quality={imageQuality}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -1570,7 +1609,7 @@ function HomePageContent() {
                           alt={item.title}
                           className="w-full h-full"
                           showDots={item.images.length > 1}
-                          showArrows={item.images.length > 1}
+                          showArrows={false} // Disable arrows on mobile for better performance
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
@@ -1605,6 +1644,7 @@ function HomePageContent() {
                           productId={item.id}
                           productTitle={item.title}
                           size="lg"
+                          initialFavorited={item.isFavorited}
                         />
                       </div>
 
@@ -1644,7 +1684,7 @@ function HomePageContent() {
                       <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
                         <div className="flex-shrink-0 relative w-10 h-10">
                           {item.seller?.avatar ? (
-                            <Image
+                            <SafeImage
                               src={item.seller.avatar}
                               alt={item.seller?.name ?? "Verkoper"}
                               width={40}

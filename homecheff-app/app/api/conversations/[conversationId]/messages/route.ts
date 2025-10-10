@@ -3,11 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from '@/lib/encryption';
 import { pusherServer } from '@/lib/pusher';
-
-const prisma = new PrismaClient();
 
 // System encryption key (stored securely in env)
 const SYSTEM_KEY = process.env.ENCRYPTION_SYSTEM_KEY || 'change-this-in-production-to-secure-key';
@@ -136,8 +134,6 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -226,8 +222,13 @@ export async function POST(
 
     // Return decrypted message to sender
     const messageToReturn = {
-      ...message,
+      id: message.id,
       text: text, // Return original text to sender
+      createdAt: message.createdAt,
+      readAt: message.readAt,
+      senderId: message.senderId,
+      conversationId: message.conversationId,
+      User: message.User,
       _autoEncrypted: true
     };
 
@@ -239,6 +240,14 @@ export async function POST(
 
     // Trigger Pusher event for real-time delivery
     try {
+      console.log('[Pusher] 📤 Sending message payload:', {
+        conversationId,
+        messageId: messageToReturn.id,
+        hasText: !!messageToReturn.text,
+        hasUser: !!messageToReturn.User,
+        payloadKeys: Object.keys(messageToReturn)
+      });
+      
       await pusherServer.trigger(
         `conversation-${conversationId}`,
         'new-message',
@@ -258,8 +267,6 @@ export async function POST(
       { error: 'Internal server error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

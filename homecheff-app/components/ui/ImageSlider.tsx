@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 
 interface ImageSliderProps {
   images: string[];
@@ -63,7 +63,7 @@ export default function ImageSlider({
   if (images.length === 1) {
     return (
       <div className={`relative w-full h-full overflow-hidden ${className}`}>
-        <Image
+        <SafeImage
           src={images[0]}
           alt={alt}
           fill
@@ -80,7 +80,7 @@ export default function ImageSlider({
     <div className={`relative w-full h-full overflow-hidden group ${className}`}>
       {/* Main Image */}
       <div className="relative w-full h-full">
-        <Image
+        <SafeImage
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
           fill

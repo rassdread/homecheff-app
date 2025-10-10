@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         type: 'message',
         title: 'Nieuw bericht',
         message: msg.text || 'Je hebt een nieuw bericht ontvangen',
-        link: `/profile?tab=messages`,
+        link: `/messages`,
         isRead: false,
         createdAt: msg.createdAt.toISOString(),
         from: {

@@ -16,13 +16,32 @@ export default async function ProfileSummary({ avatarOnly = false, stacked = tru
   try {
     const session = await auth();
     const email: string | undefined = session?.user?.email || undefined;
+    
+    // DEBUG: Log session data for privacy investigation
+    console.log('🔍 PROFILE SUMMARY DEBUG:', {
+      hasSession: !!session,
+      userEmail: session?.user?.email,
+      userName: session?.user?.name,
+      userId: (session?.user as any)?.id,
+      emailUsedForQuery: email
+    });
+    
     if (email) {
       me = await prisma.user.findUnique({
         where: { email },
         select: { image: true, profileImage: true, username: true, name: true },
       });
+      
+      // DEBUG: Log found user data
+      console.log('🔍 PROFILE SUMMARY USER DATA:', {
+        foundUser: !!me,
+        username: me?.username,
+        name: me?.name,
+        email: email
+      });
     }
-  } catch {
+  } catch (error) {
+    console.error('🔍 PROFILE SUMMARY ERROR:', error);
     me = null;
   }
 

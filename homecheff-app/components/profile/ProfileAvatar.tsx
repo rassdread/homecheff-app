@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 
 type Props = {
   imageUrl?: string | null;
@@ -16,8 +16,8 @@ export default function ProfileAvatar({ imageUrl, size = 160, className = "" }: 
       className={`relative overflow-hidden rounded-full border-2 border-emerald-700/60 shadow-sm ${className}`}
       style={{ width: dim, height: dim }}
     >
-      {/* Use next/image in fill mode for crisp cover */}
-      <Image
+      {/* Use SafeImage for both URLs and base64 images */}
+      <SafeImage
         src={src}
         alt="Profielfoto"
         fill

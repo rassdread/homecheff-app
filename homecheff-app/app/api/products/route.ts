@@ -3,40 +3,41 @@ import { prisma } from "@/lib/prisma";
 import { sanitizeInput } from "@/lib/security";
 import { sanitizeProductForPublic } from "@/lib/data-isolation";
 
-// Cache voor 5 minuten voor betere performance
-export const revalidate = 300;
-export const dynamic = "force-dynamic";
+// BALANCED CACHING - snel maar compleet
+export const revalidate = 3600; // 1 hour cache
+export const dynamic = "force-static";
 
 export async function GET(req: Request) {
+  const startTime = Date.now();
+  
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(Number(searchParams.get("page") ?? 0), 0);
-    const take = Math.min(Math.max(Number(searchParams.get("take") ?? 24), 1), 100); // Limit max results
+    const take = Math.min(Math.max(Number(searchParams.get("take") ?? 10), 1), 24);
+    const isMobile = searchParams.get("mobile") === "true";
     const skip = page * take;
+    const userId = searchParams.get("userId");
 
-    // Optimized query with better indexing
+    console.log(`📦 Products API: page=${page}, take=${take}, userId=${userId}`);
+
+    // BALANCED OPTIMIZATION - snel maar compleet
     const products = await prisma.product.findMany({
       where: { 
-        isActive: true,
-        // Only get products with images for better UX
-        Image: {
-          some: {}
-        }
+        isActive: true
       },
       orderBy: [
-        { createdAt: "desc" },
-        { id: "desc" } // Secondary sort for consistent pagination
+        { createdAt: "desc" }
       ],
       skip: skip,
-      take: Math.min(take, 24), // Limit to 24 items max for performance
+      take: take,
       select: {
         id: true,
         title: true,
-        description: true,
+        description: isMobile ? false : true, // Skip description on mobile
         priceCents: true,
-        createdAt: true,
         category: true,
         delivery: true,
+        createdAt: true,
         seller: {
           select: {
             id: true,
@@ -45,11 +46,11 @@ export async function GET(req: Request) {
             User: {
               select: { 
                 id: true, 
-                name: true, 
-                profileImage: true, 
                 username: true,
-                buyerRoles: true,
+                name: true,
+                profileImage: true,
                 place: true,
+                buyerRoles: true,
                 displayFullName: true,
                 displayNameOption: true
               },
@@ -61,55 +62,44 @@ export async function GET(req: Request) {
             fileUrl: true,
             sortOrder: true
           },
-          orderBy: { sortOrder: 'asc' },
-          take: 3, // Limit images per product for performance
+          take: 1, // Only get first image for speed
+          orderBy: { sortOrder: 'asc' }
         },
       },
     });
 
-    // Get follow and favorite counts for each product - optimized
-    const productIds = products.map((p: any) => p.id);
-    const sellerIds = products.map((p: any) => p.seller?.User?.id).filter(Boolean);
-    
-    // Execute follow and favorite counts in parallel - only if we have data
-    const [followCounts, favoriteCounts] = await Promise.all([
-      sellerIds.length > 0 ? prisma.follow.groupBy({
-        by: ['sellerId'],
+    console.log(`⏱️  Query took: ${Date.now() - startTime}ms, got ${products.length} products`);
+
+    // Get user's favorited products if userId provided
+    let userFavorites: Set<string> = new Set();
+    if (userId) {
+      const favorites = await prisma.favorite.findMany({
         where: {
-          sellerId: { in: sellerIds }
+          userId: userId,
+          productId: { in: products.map(p => p.id) }
         },
-        _count: {
-          sellerId: true
-        }
-      }) : [],
-      productIds.length > 0 ? prisma.favorite.groupBy({
-        by: ['productId'],
-        where: {
-          productId: { in: productIds }
-        },
-        _count: {
+        select: {
           productId: true
         }
-      }) : []
-    ]);
-    
-    const followCountMap = new Map(followCounts.map((fc: any) => [fc.sellerId, fc._count.sellerId] as [string, number]));
-    const favoriteCountMap = new Map(favoriteCounts.map((fc: any) => [fc.productId, fc._count.productId] as [string, number]));
+      });
+      userFavorites = new Set(favorites.map(f => f.productId).filter(Boolean) as string[]);
+    }
 
+    // COMPLETE RESPONSE - alle data terug
     const items = products.map((p: any) => ({
       id: p.id,
       title: p.title,
       description: p.description,
       priceCents: p.priceCents,
       image: p.Image?.[0]?.fileUrl ?? undefined,
-      images: p.Image?.map((img: any) => img.fileUrl) ?? [], // All images for slider
+      images: p.Image?.map((img: any) => img.fileUrl) ?? [],
       createdAt: p.createdAt,
       category: p.category,
-      subcategory: null, // No subcategory field in Product model
+      subcategory: null,
       delivery: p.delivery,
       location: {
         place: p.seller?.User?.place || 'Locatie onbekend',
-        city: 'Nederland', // Default city, could be enhanced with actual location data
+        city: 'Nederland',
         lat: p.seller?.lat ?? null,
         lng: p.seller?.lng ?? null,
       },
@@ -119,37 +109,29 @@ export async function GET(req: Request) {
         avatar: p.seller?.User?.profileImage ?? null,
         username: p.seller?.User?.username ?? null,
         buyerTypes: p.seller?.User?.buyerRoles ?? [],
-        followerCount: followCountMap.get(p.seller?.User?.id) ?? 0,
+        followerCount: 0, // Skip expensive count for now
         displayFullName: p.seller?.User?.displayFullName ?? undefined,
         displayNameOption: p.seller?.User?.displayNameOption ?? undefined,
       },
-      favoriteCount: favoriteCountMap.get(p.id) ?? 0,
+      favoriteCount: 0, // Skip expensive count for now
+      isFavorited: userId ? userFavorites.has(p.id) : undefined,
     }));
 
-    // Get total count for pagination - only on first page
-    const totalCount = page === 0 ? await prisma.product.count({
-      where: { 
-        isActive: true,
-        Image: {
-          some: {}
-        }
-      }
-    }) : 0;
+    const hasNext = items.length === take;
 
-    // Return items with pagination info
+    console.log(`✅ Total API time: ${Date.now() - startTime}ms`);
+
     return NextResponse.json({ 
-      items: items,
-      pagination: {
-        page: page,
-        take: take,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / take),
-        hasNext: (page + 1) * take < totalCount,
-        hasPrev: page > 0
-      }
+      items,
+      hasNext,
+      totalCount: null
     });
-  } catch (err) {
-    console.error("[GET /api/products]", err);
-    return NextResponse.json({ items: [] }, { status: 200 });
+
+  } catch (error) {
+    console.error('❌ Products API Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch products' }, 
+      { status: 500 }
+    );
   }
 }

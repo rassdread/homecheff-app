@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { MoreHorizontal, Star, Clock, Truck, Package, MapPin } from 'lucide-react';
-import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ type HomeItem = {
   category?: string | null;
   subcategory?: string | null;
   favoriteCount?: number;
+  isFavorited?: boolean; // NEW: User's favorite status
   distanceKm?: number; // Afstand in kilometers
   lat?: number | null; // Product locatie latitude
   lng?: number | null; // Product locatie longitude
@@ -85,7 +86,7 @@ export default function ItemCard({ item }: ItemCardProps) {
       {/* Image */}
       <div className="relative h-48 bg-neutral-100">
         {item.image ? (
-          <Image
+          <SafeImage
             src={item.image}
             alt={item.title || 'Item afbeelding'}
             fill
@@ -121,6 +122,7 @@ export default function ItemCard({ item }: ItemCardProps) {
             productId={item.id}
             productTitle={item.title}
             size="md"
+            initialFavorited={item.isFavorited}
           />
         </div>
         
@@ -159,7 +161,7 @@ export default function ItemCard({ item }: ItemCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {item.seller?.avatar ? (
-              <Image
+              <SafeImage
                 src={item.seller.avatar}
                 alt={item.seller.name || 'Verkoper'}
                 width={24}

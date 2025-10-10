@@ -289,6 +289,9 @@ model Image {
   sortOrder Int
   productId String
   Product   Product @relation(fields: [productId], references: [id])
+
+  // PERFORMANCE INDEX - Critical for fast image loading
+  @@index([productId, sortOrder])
 }
 
 model Listing {
@@ -492,6 +495,9 @@ model SellerProfile {
   workspaceContent WorkspaceContent[]
   Subscription     Subscription?      @relation(fields: [subscriptionId], references: [id])
   User             User               @relation(fields: [userId], references: [id])
+
+  // PERFORMANCE INDEX - Critical for Product->Seller->User joins
+  @@index([userId])
 }
 
 model Session {
@@ -593,6 +599,11 @@ model Follow {
   createdAt  DateTime @default(now())
   User       User     @relation("FollowAsFollower", fields: [followerId], references: [id], onDelete: Cascade)
   Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  // PERFORMANCE INDEXES - Critical for fast follower counts
+  @@unique([followerId, sellerId])
+  @@index([sellerId])
+  @@index([followerId])
 }
 
 model FanRequest {
