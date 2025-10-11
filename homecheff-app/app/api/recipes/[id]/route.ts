@@ -66,7 +66,30 @@ export async function GET(
       });
 
       if (dish) {
-        // Transform Dish to Recipe format
+        console.log(`📸 Public recipe fetch - "${dish.title}": ${dish.photos.length} main photos, ${dish.stepPhotos.length} step photos`);
+        
+        // Transform Dish to Recipe format - INCLUDE ALL STEP PHOTOS
+        const allPhotos = [
+          ...dish.photos.map(photo => ({
+            id: photo.id,
+            url: photo.url,
+            isMain: photo.isMain || false,
+            stepNumber: undefined,
+            description: undefined,
+            fileUrl: photo.url
+          })),
+          ...dish.stepPhotos.map(stepPhoto => ({
+            id: stepPhoto.id,
+            url: stepPhoto.url,
+            isMain: false,
+            stepNumber: stepPhoto.stepNumber,
+            description: stepPhoto.description,
+            fileUrl: stepPhoto.url
+          }))
+        ];
+        
+        console.log(`📸 Total photos being returned: ${allPhotos.length} (${dish.stepPhotos.length} are step photos)`);
+        
         recipe = {
           id: dish.id,
           title: dish.title,
@@ -75,26 +98,10 @@ export async function GET(
           isPublic: dish.status === 'PUBLISHED',
           createdAt: dish.createdAt,
           updatedAt: dish.updatedAt,
-          photos: [
-            ...dish.photos.map(photo => ({
-              id: photo.id,
-              url: photo.url,
-              isMain: photo.isMain || false,
-              stepNumber: undefined,
-              description: undefined
-            })),
-            ...dish.stepPhotos.map(stepPhoto => ({
-              id: stepPhoto.id,
-              url: stepPhoto.url,
-              isMain: false,
-              stepNumber: stepPhoto.stepNumber,
-              description: stepPhoto.description
-            }))
-          ],
+          photos: allPhotos,
           sellerProfile: {
             User: dish.user
           },
-          // Transform JSON fields to arrays
           ingredients: Array.isArray(dish.ingredients) ? dish.ingredients : [],
           instructions: Array.isArray(dish.instructions) ? dish.instructions : [],
           prepTime: dish.prepTime,
@@ -122,13 +129,13 @@ export async function GET(
       difficulty: (recipe as any).difficulty,
       category: (recipe as any).category,
       tags: Array.isArray((recipe as any).tags) ? (recipe as any).tags : [],
-      photos: recipe.photos.map(photo => ({
+      photos: recipe.photos ? recipe.photos.map((photo: any) => ({
         id: photo.id,
-        url: photo.fileUrl,
-        isMain: false,
-        stepNumber: undefined,
-        description: undefined
-      })),
+        url: photo.fileUrl || photo.url,
+        isMain: photo.isMain || false,
+        stepNumber: photo.stepNumber,
+        description: photo.description
+      })) : [],
       isPrivate: !recipe.isPublic,
       createdAt: recipe.createdAt,
       updatedAt: recipe.updatedAt,

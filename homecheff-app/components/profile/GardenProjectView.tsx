@@ -167,7 +167,7 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
       <style jsx global>{`
         @page {
           size: A4;
-          margin: 15mm;
+          margin: 12mm;
         }
         
         @media print {
@@ -343,9 +343,9 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
         </div>
 
         {/* Main Content - Printable */}
-        <div id="printable-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Vintage Botanical Header Card */}
-          <div className="botanical-frame vintage-paper bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-emerald-800 print-botanical-border relative">
+        <div id="printable-content" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 print:py-4">
+          {/* Vintage Botanical Header Card - Compacter */}
+          <div className="botanical-frame vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl overflow-hidden mb-6 print:mb-4 print-avoid-break border-3 border-emerald-800 print-botanical-border relative">
             {/* Decorative corners */}
             <div className="botanical-corner botanical-corner-tl"></div>
             <div className="botanical-corner botanical-corner-tr"></div>
@@ -353,43 +353,43 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             <div className="botanical-corner botanical-corner-br"></div>
             
             {/* Decorative top border */}
-            <div className="bg-gradient-to-r from-emerald-800 via-green-700 to-emerald-800 h-3"></div>
+            <div className="bg-gradient-to-r from-emerald-800 via-green-700 to-emerald-800 h-2"></div>
             
-            <div className="p-8 sm:p-12">
-              {/* Botanical illustration divider */}
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center space-x-3 text-emerald-700">
-                  <Leaf className="w-6 h-6 opacity-60" />
-                  <Sprout className="w-5 h-5 opacity-40" />
-                  <Flower className="w-6 h-6 opacity-60" />
+            <div className="p-6 sm:p-8 print:p-6">
+              {/* Botanical illustration divider - Kleiner */}
+              <div className="text-center mb-3">
+                <div className="inline-flex items-center justify-center space-x-2 text-emerald-700">
+                  <Leaf className="w-4 h-4 opacity-60" />
+                  <Sprout className="w-4 h-4 opacity-40" />
+                  <Flower className="w-4 h-4 opacity-60" />
                 </div>
               </div>
 
-              {/* Main Title with vintage typography */}
-              <h1 className="botanical-title text-center text-4xl sm:text-5xl lg:text-6xl font-bold text-emerald-900 mb-4 tracking-wide">
+              {/* Main Title - Compacter */}
+              <h1 className="botanical-title text-center text-3xl sm:text-4xl font-bold text-emerald-900 mb-2 tracking-wide print:text-3xl">
                 {project.title || 'Kweekproject'}
               </h1>
               
-              {/* Latin name style subtitle */}
+              {/* Plant type subtitle */}
               {project.plantType && (
-                <p className="botanical-subtitle text-center text-xl sm:text-2xl text-emerald-700 mb-6 font-light">
+                <p className="botanical-subtitle text-center text-lg sm:text-xl text-emerald-700 mb-4 font-light print:text-lg print:mb-3">
                   "{project.plantType}"
                 </p>
               )}
 
-              {/* Decorative divider line */}
-              <div className="flex items-center justify-center my-6">
+              {/* Decorative divider - Kleiner */}
+              <div className="flex items-center justify-center my-4 print:my-3">
                 <div className="h-px bg-gradient-to-r from-transparent via-emerald-600 to-transparent w-full max-w-md"></div>
-                <Sprout className="w-8 h-8 mx-4 text-emerald-600 flex-shrink-0" />
+                <Sprout className="w-6 h-6 mx-3 text-emerald-600 flex-shrink-0" />
                 <div className="h-px bg-gradient-to-r from-transparent via-emerald-600 to-transparent w-full max-w-md"></div>
               </div>
 
-              {/* Metadata Grid with botanical style */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mt-8">
+              {/* Metadata Grid - Compacter */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mt-4 print:gap-2 print:mt-3">
                 {/* Difficulty */}
                 {project.difficulty && (
-                  <div className="border-2 border-emerald-200 rounded-lg p-4 bg-gradient-to-b from-white to-emerald-50">
-                    <div className="text-xs uppercase tracking-wider text-emerald-600 mb-2 font-semibold">Moeilijkheidsgraad</div>
+                  <div className="border-2 border-emerald-200 rounded-lg p-3 bg-gradient-to-b from-white to-emerald-50 print:p-2">
+                    <div className="text-xs uppercase tracking-wider text-emerald-600 mb-1 font-semibold">Moeilijkheidsgraad</div>
                     <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold ${
                       project.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-2 border-green-400' :
                       project.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400' :
@@ -401,8 +401,8 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                 )}
                 
                 {/* Creation date */}
-                <div className="border-2 border-emerald-200 rounded-lg p-4 bg-gradient-to-b from-white to-emerald-50">
-                  <div className="text-xs uppercase tracking-wider text-emerald-600 mb-2 font-semibold">Gedocumenteerd</div>
+                <div className="border-2 border-emerald-200 rounded-lg p-3 bg-gradient-to-b from-white to-emerald-50 print:p-2">
+                  <div className="text-xs uppercase tracking-wider text-emerald-600 mb-1 font-semibold">Gedocumenteerd</div>
                   <div className="text-lg font-bold text-gray-800">
                     {new Date(project.createdAt).toLocaleDateString('nl-NL', { 
                       day: 'numeric',
@@ -413,8 +413,8 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                 </div>
 
                 {/* Grower info */}
-                <div className="border-2 border-emerald-200 rounded-lg p-4 bg-gradient-to-b from-white to-emerald-50">
-                  <div className="text-xs uppercase tracking-wider text-emerald-600 mb-2 font-semibold">Gekweekt Door</div>
+                <div className="border-2 border-emerald-200 rounded-lg p-3 bg-gradient-to-b from-white to-emerald-50 print:p-2">
+                  <div className="text-xs uppercase tracking-wider text-emerald-600 mb-1 font-semibold">Gekweekt Door</div>
                   <div className="flex items-center justify-center space-x-2">
                     {project.user.profileImage ? (
                       <Image
@@ -438,18 +438,18 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             </div>
             
             {/* Decorative bottom border */}
-            <div className="bg-gradient-to-r from-emerald-800 via-green-700 to-emerald-800 h-3"></div>
+            <div className="bg-gradient-to-r from-emerald-800 via-green-700 to-emerald-800 h-2"></div>
           </div>
 
-          {/* Featured Image with botanical frame */}
+          {/* Featured Image - Compacter */}
           {mainPhoto && (
-            <div className="botanical-frame bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-emerald-700 relative">
+            <div className="botanical-frame bg-white rounded-none sm:rounded-2xl shadow-xl overflow-hidden mb-6 print:mb-4 print-avoid-break border-3 border-emerald-700 relative">
               <div className="botanical-corner botanical-corner-tl"></div>
               <div className="botanical-corner botanical-corner-tr"></div>
               <div className="botanical-corner botanical-corner-bl"></div>
               <div className="botanical-corner botanical-corner-br"></div>
               
-              <div className="relative w-full" style={{ paddingTop: '66.67%' }}>
+              <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <Image
                   src={mainPhoto.url}
                   alt={project.title || 'Hoofdfoto'}
@@ -457,9 +457,8 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                   className="object-cover"
                   priority
                 />
-                {/* Vintage photo label */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                  <p className="botanical-subtitle text-white text-lg text-center">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 print:p-3">
+                  <p className="botanical-subtitle text-white text-base text-center print:text-sm">
                     Hoofdillustratie — {project.title}
                   </p>
                 </div>
@@ -467,72 +466,72 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             </div>
           )}
 
-          {/* Description with botanical styling */}
+          {/* Description - Compacter */}
           {project.description && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-emerald-300">
-              <div className="flex items-center mb-6">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-emerald-300">
+              <div className="flex items-center mb-4 print:mb-3">
                 <div className="h-px bg-emerald-300 flex-grow"></div>
-                <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-emerald-900 px-4">
+                <h2 className="botanical-title text-xl sm:text-2xl font-bold text-emerald-900 px-4 print:text-xl">
                   Beschrijving
                 </h2>
                 <div className="h-px bg-emerald-300 flex-grow"></div>
               </div>
-              <div className="prose prose-lg max-w-none">
-                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-justify botanical-subtitle text-lg">
+              <div className="prose max-w-none">
+                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-justify botanical-subtitle text-base print:text-sm">
                   {project.description}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Growing Conditions - Botanical Reference Card Style */}
-          <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-emerald-300 botanical-section">
-            <div className="flex items-center mb-8">
+          {/* Growing Conditions - Compacter */}
+          <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-emerald-300 botanical-section">
+            <div className="flex items-center mb-5 print:mb-4">
               <div className="h-px bg-emerald-300 flex-grow"></div>
-              <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-emerald-900 px-4">
+              <h2 className="botanical-title text-xl sm:text-2xl font-bold text-emerald-900 px-4 print:text-xl">
                 Groeiomstandigheden & Verzorging
               </h2>
               <div className="h-px bg-emerald-300 flex-grow"></div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:gap-3">
               {project.sunlight && (
-                <div className="border-2 border-yellow-200 rounded-xl p-5 bg-gradient-to-br from-yellow-50 to-amber-50 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="p-2 bg-yellow-200 rounded-full">
-                      <Sun className="w-6 h-6 text-yellow-700" />
+                <div className="border-2 border-yellow-200 rounded-xl p-3 bg-gradient-to-br from-yellow-50 to-amber-50 hover:shadow-lg transition-shadow print:p-2">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="p-1.5 bg-yellow-200 rounded-full">
+                      <Sun className="w-4 h-4 text-yellow-700" />
                     </div>
                     <p className="text-xs uppercase tracking-wider text-yellow-700 font-bold">Zonlicht</p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900 ml-11">
+                  <p className="font-bold text-base text-gray-900 ml-8 print:text-sm print:ml-7">
                     {sunlightLabels[project.sunlight] || project.sunlight}
                   </p>
                 </div>
               )}
 
               {project.waterNeeds && (
-                <div className="border-2 border-blue-200 rounded-xl p-5 bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="p-2 bg-blue-200 rounded-full">
-                      <Droplet className="w-6 h-6 text-blue-700" />
+                <div className="border-2 border-blue-200 rounded-xl p-3 bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-lg transition-shadow print:p-2">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="p-1.5 bg-blue-200 rounded-full">
+                      <Droplet className="w-4 h-4 text-blue-700" />
                     </div>
                     <p className="text-xs uppercase tracking-wider text-blue-700 font-bold">Water</p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900 ml-11">
+                  <p className="font-bold text-base text-gray-900 ml-8 print:text-sm print:ml-7">
                     {waterNeedsLabels[project.waterNeeds] || project.waterNeeds}
                   </p>
                 </div>
               )}
 
               {project.location && (
-                <div className="border-2 border-emerald-200 rounded-xl p-5 bg-gradient-to-br from-emerald-50 to-green-50 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="p-2 bg-emerald-200 rounded-full">
-                      <MapPin className="w-6 h-6 text-emerald-700" />
+                <div className="border-2 border-emerald-200 rounded-xl p-3 bg-gradient-to-br from-emerald-50 to-green-50 hover:shadow-lg transition-shadow print:p-2">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="p-1.5 bg-emerald-200 rounded-full">
+                      <MapPin className="w-4 h-4 text-emerald-700" />
                     </div>
                     <p className="text-xs uppercase tracking-wider text-emerald-700 font-bold">Locatie</p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900 ml-11">
+                  <p className="font-bold text-base text-gray-900 ml-8 print:text-sm print:ml-7">
                     {locationLabels[project.location] || project.location}
                   </p>
                 </div>
@@ -589,10 +588,10 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
               )}
             </div>
 
-            {/* Additional Details in elegant boxes */}
+            {/* Additional Details - Compacter */}
             {(project.soilType || project.plantDistance) && (
-              <div className="mt-8 pt-6 border-t-2 border-emerald-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="mt-4 pt-4 border-t-2 border-emerald-200 print:mt-3 print:pt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 print:gap-2">
                   {project.soilType && (
                     <div className="border-2 border-amber-200 rounded-xl p-5 bg-gradient-to-br from-amber-50 to-orange-50">
                       <p className="text-xs uppercase tracking-wider text-amber-700 font-bold mb-2">🌱 Grondsoort</p>
@@ -610,12 +609,12 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             )}
           </div>
 
-          {/* Growth Phases - Timeline Style */}
+          {/* Growth Phases - Compacter Timeline */}
           {sortedPhases.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 border-2 border-emerald-300">
-              <div className="flex items-center mb-10">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 border-2 border-emerald-300">
+              <div className="flex items-center mb-6 print:mb-4">
                 <div className="h-px bg-emerald-300 flex-grow"></div>
-                <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-emerald-900 px-4">
+                <h2 className="botanical-title text-xl sm:text-2xl font-bold text-emerald-900 px-4 print:text-xl">
                   ⏳ Groeifasen Tijdlijn
                 </h2>
                 <div className="h-px bg-emerald-300 flex-grow"></div>
@@ -630,19 +629,19 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                   const isEven = index % 2 === 0;
                   
                   return (
-                    <div key={phaseNum} className={`relative mb-12 last:mb-0 ${index > 0 && index % 2 === 0 ? 'print-page-break' : ''} print-avoid-break`}>
-                      {/* Timeline dot */}
-                      <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 -translate-y-4 items-center justify-center z-10">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 border-4 border-white shadow-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-lg">{Number(phaseNum) + 1}</span>
+                    <div key={phaseNum} className={`relative mb-8 last:mb-0 print:mb-6 ${index > 0 && index % 2 === 0 ? 'print-page-break' : ''} print-avoid-break`}>
+                      {/* Timeline dot - Kleiner */}
+                      <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 -translate-y-3 items-center justify-center z-10">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 border-3 border-white shadow-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-base">{Number(phaseNum) + 1}</span>
                         </div>
                       </div>
 
                       <div className={`md:grid md:grid-cols-2 md:gap-8 items-start ${isEven ? '' : 'md:flex-row-reverse'}`}>
-                        {/* Phase info */}
-                        <div className={`${isEven ? 'md:text-right md:pr-12' : 'md:pl-12 md:col-start-2'} mb-6 md:mb-0`}>
+                        {/* Phase info - Compacter */}
+                        <div className={`${isEven ? 'md:text-right md:pr-8' : 'md:pl-8 md:col-start-2'} mb-4 md:mb-0 print:mb-3`}>
                           <div className={`inline-block ${isEven ? 'md:ml-auto' : 'md:mr-auto'} max-w-md`}>
-                            <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-2xl p-6 shadow-lg">
+                            <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl p-4 shadow-lg print:p-3">
                               <div className="flex items-center mb-3 md:hidden">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold mr-3">
                                   {Number(phaseNum) + 1}
@@ -661,29 +660,28 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                           </div>
                         </div>
 
-                        {/* Phase photos */}
-                        <div className={`${isEven ? 'md:pl-12' : 'md:pr-12 md:col-start-1 md:row-start-1'}`}>
-                          <div className="grid grid-cols-1 gap-4">
+                        {/* Phase photos - Compacter */}
+                        <div className={`${isEven ? 'md:pl-8' : 'md:pr-8 md:col-start-1 md:row-start-1'}`}>
+                          <div className="grid grid-cols-1 gap-3 print:gap-2">
                             {photos.map((photo, photoIndex) => (
                               <div 
                                 key={photo.id} 
                                 className="bg-white border-2 border-emerald-200 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                               >
-                                <div className="relative w-full h-56">
+                                <div className="relative w-full h-48 print:h-40">
                                   <Image
                                     src={photo.url}
                                     alt={photo.description || `Fase ${phaseNum}`}
                                     fill
                                     className="object-cover"
                                   />
-                                  {/* Photo number badge */}
-                                  <div className="absolute top-2 left-2 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
+                                  <div className="absolute top-2 left-2 w-7 h-7 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-xs shadow-lg">
                                     {photoIndex + 1}
                                   </div>
                                 </div>
                                 {photo.description && (
-                                  <div className="p-4 bg-gradient-to-br from-emerald-50 to-white border-t-2 border-emerald-100">
-                                    <p className="text-sm text-gray-700 italic botanical-subtitle">
+                                  <div className="p-3 bg-gradient-to-br from-emerald-50 to-white border-t-2 border-emerald-100 print:p-2">
+                                    <p className="text-sm text-gray-700 italic botanical-subtitle print:text-xs">
                                       "{photo.description}"
                                     </p>
                                   </div>
@@ -705,9 +703,9 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                 })}
               </div>
 
-              {/* Timeline summary */}
-              <div className="mt-10 pt-8 border-t-2 border-emerald-200">
-                <div className="bg-gradient-to-r from-emerald-100 via-green-100 to-emerald-100 rounded-2xl p-6 border-2 border-emerald-300">
+              {/* Timeline summary - Compacter */}
+              <div className="mt-6 pt-4 border-t-2 border-emerald-200 print:mt-4 print:pt-3">
+                <div className="bg-gradient-to-r from-emerald-100 via-green-100 to-emerald-100 rounded-xl p-4 border-2 border-emerald-300 print:p-3">
                   <div className="flex items-center justify-center space-x-4 text-emerald-800">
                     <CircleDot className="w-5 h-5" />
                     <p className="font-bold text-center">
@@ -721,87 +719,85 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             </div>
           )}
 
-          {/* Other Photos - Gallery Style */}
+          {/* Other Photos - Compacter Gallery */}
           {otherPhotos.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-emerald-300">
-              <div className="flex items-center mb-8">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-emerald-300">
+              <div className="flex items-center mb-5 print:mb-4">
                 <div className="h-px bg-emerald-300 flex-grow"></div>
-                <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-emerald-900 px-4">
+                <h2 className="botanical-title text-xl sm:text-2xl font-bold text-emerald-900 px-4 print:text-xl">
                   📸 Fotogalerij
                 </h2>
                 <div className="h-px bg-emerald-300 flex-grow"></div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 print:gap-2">
                 {otherPhotos.map((photo, index) => (
                   <div 
                     key={photo.id} 
-                    className="relative group bg-white border-2 border-emerald-200 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all hover:scale-105"
+                    className="relative group bg-white border-2 border-emerald-200 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all hover:scale-105"
                   >
-                    <div className="relative w-full h-48">
+                    <div className="relative w-full h-40 print:h-32">
                       <Image
                         src={photo.url}
                         alt={`Extra foto ${index + 1}`}
                         fill
                         className="object-cover"
                       />
-                      {/* Photo number overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                        <span className="text-white font-bold text-sm">Foto {index + 1}</span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
+                        <span className="text-white font-bold text-xs">Foto {index + 1}</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-6 text-center">
-                <p className="text-sm text-emerald-700 font-medium">
+              <div className="mt-4 text-center print:mt-3">
+                <p className="text-sm text-emerald-700 font-medium print:text-xs">
                   {otherPhotos.length} extra foto{otherPhotos.length !== 1 ? "'s" : ''} ter illustratie
                 </p>
               </div>
             </div>
           )}
 
-          {/* Notes - Vintage Journal Style */}
+          {/* Notes - Compacter */}
           {project.notes && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-amber-300">
-              <div className="flex items-center mb-6">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-amber-300">
+              <div className="flex items-center mb-4 print:mb-3">
                 <div className="h-px bg-amber-300 flex-grow"></div>
-                <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-amber-900 px-4 flex items-center">
-                  <StickyNote className="w-7 h-7 mr-3 text-amber-600" />
+                <h2 className="botanical-title text-xl sm:text-2xl font-bold text-amber-900 px-4 flex items-center print:text-xl">
+                  <StickyNote className="w-5 h-5 mr-2 text-amber-600" />
                   Persoonlijke Notities
                 </h2>
                 <div className="h-px bg-amber-300 flex-grow"></div>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-8 border-2 border-amber-200 shadow-inner">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-amber-200 shadow-inner print:p-4">
                 <div className="relative">
-                  {/* Decorative quote marks */}
-                  <div className="absolute -top-4 -left-2 text-6xl text-amber-300 opacity-50 font-serif">"</div>
+                  <div className="absolute -top-3 -left-1 text-5xl text-amber-300 opacity-50 font-serif print:text-4xl">"</div>
                   <div className="relative z-10">
-                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed botanical-subtitle text-lg pl-8">
+                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed botanical-subtitle text-base pl-6 print:text-sm print:pl-5">
                       {project.notes}
                     </p>
                   </div>
-                  <div className="absolute -bottom-8 -right-2 text-6xl text-amber-300 opacity-50 font-serif">"</div>
+                  <div className="absolute -bottom-6 -right-1 text-5xl text-amber-300 opacity-50 font-serif print:text-4xl">"</div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tags - Vintage Label Style */}
+          {/* Tags - Compacter */}
           {project.tags.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-emerald-300">
-              <div className="flex items-center mb-8">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-emerald-300">
+              <div className="flex items-center mb-5 print:mb-4">
                 <div className="h-px bg-emerald-300 flex-grow"></div>
-                <h2 className="botanical-title text-2xl sm:text-3xl font-bold text-emerald-900 px-4 flex items-center">
-                  <Tag className="w-7 h-7 mr-3 text-emerald-600" />
+                <h2 className="botanical-title text-xl sm:text-2xl font-bold text-emerald-900 px-4 flex items-center print:text-xl">
+                  <Tag className="w-5 h-5 mr-2 text-emerald-600" />
                   Labels & Kenmerken
                 </h2>
                 <div className="h-px bg-emerald-300 flex-grow"></div>
               </div>
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-2 justify-center print:gap-1.5">
                 {project.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-br from-emerald-100 to-green-100 text-emerald-800 rounded-full text-sm font-bold border-2 border-emerald-400 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-br from-emerald-100 to-green-100 text-emerald-800 rounded-full text-sm font-bold border-2 border-emerald-400 shadow-md hover:shadow-lg transition-all hover:scale-105 print:px-3 print:py-1.5 print:text-xs"
                   >
                     <span className="mr-2">🏷️</span>
                     {tag}
@@ -811,19 +807,19 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
             </div>
           )}
 
-          {/* Footer - Botanical Signature */}
-          <div className="text-center mt-12 mb-8 print-avoid-break">
-            <div className="inline-flex items-center justify-center space-x-4 text-emerald-600 opacity-60">
-              <Leaf className="w-6 h-6" />
+          {/* Footer - Compacter */}
+          <div className="text-center mt-8 mb-6 print:mt-6 print:mb-4 print-avoid-break">
+            <div className="inline-flex items-center justify-center space-x-3 text-emerald-600 opacity-60">
+              <Leaf className="w-5 h-5" />
               <div className="text-center">
-                <p className="botanical-subtitle text-lg text-emerald-800">
+                <p className="botanical-subtitle text-base text-emerald-800 print:text-sm">
                   Gedocumenteerd met zorg en passie
                 </p>
-                <p className="text-xs text-emerald-600 mt-1">
+                <p className="text-xs text-emerald-600 mt-1 print:text-xs">
                   HomeCheff Kweekdagboek
                 </p>
               </div>
-              <Flower className="w-6 h-6" />
+              <Flower className="w-5 h-5" />
             </div>
           </div>
         </div>

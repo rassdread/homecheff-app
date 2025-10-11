@@ -36,88 +36,73 @@ export default function RecipeStepPhotos({
     if (!files || files.length === 0) return;
     
     const stepPhotos = photos.filter(p => p.stepNumber === stepNumber);
-    if (stepPhotos.length >= maxPhotosPerStep) {
-      alert(`Maximum ${maxPhotosPerStep} foto's per stap toegestaan`);
-      return;
-    }
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        alert(`Bestand "${file.name}" is geen afbeelding.`);
+        return false;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`Bestand "${file.name}" is te groot. Max 10MB.`);
+        return false;
+      }
+      return true;
+    }).slice(0, Math.min(maxPhotosPerStep - stepPhotos.length, maxTotalPhotos - photos.length));
     
-    if (photos.length >= maxTotalPhotos) {
-      alert(`Maximum ${maxTotalPhotos} foto's totaal toegestaan`);
-      return;
-    }
+    if (validFiles.length === 0) return;
     
     setUploading(true);
+    console.log(`📸 Uploading ${validFiles.length} step foto's parallel voor stap ${stepNumber}...`);
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Client-side validation
-      if (!file.type.startsWith('image/')) {
-        alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
-        continue;
-      }
-      
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
-        continue;
-      }
-
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      
-      // Add photo with preview
-      const stepPhotos = photos.filter(p => p.stepNumber === stepNumber);
-      // Get the actual step description from the steps array
-      const stepDescription = steps[stepNumber - 1] || `Stap ${stepNumber}`;
-      const newPhoto: StepPhoto = {
-        id: `temp-${Date.now()}-${i}`,
-        url: previewUrl,
-        stepNumber: stepNumber,
-        description: stepDescription,
-        idx: stepPhotos.length
-      };
-      
-      const updatedPhotos = [...photos, newPhoto];
-      onPhotosChange(updatedPhotos);
-      
-      // Upload file directly
+    const stepDescription = steps[stepNumber - 1] || `Stap ${stepNumber}`;
+    const newPhotos: StepPhoto[] = validFiles.map((file, i) => ({
+      id: `temp-${Date.now()}-${i}`,
+      url: URL.createObjectURL(file),
+      stepNumber: stepNumber,
+      description: stepDescription,
+      idx: stepPhotos.length + i
+    }));
+    
+    onPhotosChange([...photos, ...newPhotos]);
+    
+    // Upload all files in parallel
+    const uploadPromises = validFiles.map(async (file, i) => {
+      const photoId = newPhotos[i].id;
       try {
         const result = await uploadFile(file, '/api/profile/recipes/photo/upload');
-        
         if (result.success) {
-          // Update photo with actual URL
-          onPhotosChange(
-            updatedPhotos.map(photo => 
-              photo.id === newPhoto.id 
-                ? { ...photo, url: result.url }
-                : photo
-            )
-          );
+          return { success: true, photoId, url: result.url };
         } else {
-          // Remove photo on upload failure
-          onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
           console.error(`Upload failed for ${file.name}:`, result.error);
-          // Don't show alert for Vercel Blob suspended error, as fallback should work
-          if (!result.error?.includes('suspended')) {
-            alert(`Upload van "${file.name}" mislukt: ${result.error}`);
-          }
+          return { success: false, photoId, error: result.error };
         }
       } catch (error) {
-        // Remove photo on error
-        onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
         console.error(`Upload error for ${file.name}:`, error);
-        // Don't show alert for network errors, as fallback should work
-        if (!(error instanceof Error && error.message.includes('fetch'))) {
-          alert(`Upload van "${file.name}" mislukt: ${error}`);
-        }
+        return { success: false, photoId, error: String(error) };
       }
-    }
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    
+    // Update photos with results
+    onPhotosChange([...photos, ...newPhotos].map(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      if (result?.success && result.url) {
+        return { ...photo, url: result.url };
+      }
+      return photo;
+    }).filter(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      return !result || result.success;
+    }));
     
     setUploading(false);
+    console.log(`✅ Stap ${stepNumber}: ${results.filter(r => r.success).length}/${validFiles.length} foto's geüpload`);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, stepNumber: number) => {
     handleFileUpload(e.target.files, stepNumber);
+    e.target.value = '';
   };
 
   const removePhoto = (photoId: string) => {
@@ -142,6 +127,15 @@ export default function RecipeStepPhotos({
     return photos.filter(photo => photo.stepNumber === stepNumber).length;
   };
 
+  console.log(`📸 RecipeStepPhotos rendering:`, {
+    totalSteps: steps.length,
+    totalPhotos: photos.length,
+    photosByStep: photos.reduce((acc: any, p) => {
+      acc[p.stepNumber] = (acc[p.stepNumber] || 0) + 1;
+      return acc;
+    }, {})
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -151,6 +145,9 @@ export default function RecipeStepPhotos({
         </p>
         <div className="mt-2 text-xs text-gray-500">
           <span className="font-medium">Limieten:</span> Max {maxPhotosPerStep} foto's per stap, {maxTotalPhotos} totaal
+        </div>
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+          <strong>Debug:</strong> {steps.length} stappen, {photos.length} foto's totaal
         </div>
       </div>
 

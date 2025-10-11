@@ -41,85 +41,72 @@ export default function GardenGrowthPhotos({
     if (!files || files.length === 0) return;
     
     const phasePhotos = photos.filter(p => p.phaseNumber === phaseNumber);
-    if (phasePhotos.length >= maxPhotosPerPhase) {
-      alert(`Maximum ${maxPhotosPerPhase} foto's per fase toegestaan`);
-      return;
-    }
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        alert(`Bestand "${file.name}" is geen afbeelding.`);
+        return false;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`Bestand "${file.name}" is te groot. Max 10MB.`);
+        return false;
+      }
+      return true;
+    }).slice(0, Math.min(maxPhotosPerPhase - phasePhotos.length, maxTotalPhotos - photos.length));
     
-    if (photos.length >= maxTotalPhotos) {
-      alert(`Maximum ${maxTotalPhotos} foto's totaal toegestaan`);
-      return;
-    }
+    if (validFiles.length === 0) return;
     
     setUploading(true);
+    console.log(`🌱 Uploading ${validFiles.length} groei foto's parallel voor fase ${phaseNumber}...`);
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Client-side validation
-      if (!file.type.startsWith('image/')) {
-        alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
-        continue;
-      }
-      
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
-        continue;
-      }
-
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      
-      // Add photo with preview
-      const phasePhotosCount = photos.filter(p => p.phaseNumber === phaseNumber);
-      const phase = phases[phaseNumber];
-      const newPhoto: GrowthPhoto = {
-        id: `temp-${Date.now()}-${i}`,
-        url: previewUrl,
-        phaseNumber: phaseNumber,
-        description: '', // Start empty, user can add description
-        idx: phasePhotosCount.length
-      };
-      
-      const updatedPhotos = [...photos, newPhoto];
-      onPhotosChange(updatedPhotos);
-      
-      // Upload file directly
+    const newPhotos: GrowthPhoto[] = validFiles.map((file, i) => ({
+      id: `temp-${Date.now()}-${i}`,
+      url: URL.createObjectURL(file),
+      phaseNumber: phaseNumber,
+      description: '',
+      idx: phasePhotos.length + i
+    }));
+    
+    onPhotosChange([...photos, ...newPhotos]);
+    
+    // Upload all files in parallel
+    const uploadPromises = validFiles.map(async (file, i) => {
+      const photoId = newPhotos[i].id;
       try {
         const result = await uploadFile(file, '/api/profile/garden/photo/upload');
-        
         if (result.success) {
-          // Update photo with actual URL
-          onPhotosChange(
-            updatedPhotos.map(photo => 
-              photo.id === newPhoto.id 
-                ? { ...photo, url: result.url }
-                : photo
-            )
-          );
+          return { success: true, photoId, url: result.url };
         } else {
-          // Remove photo on upload failure
-          onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
           console.error(`Upload failed for ${file.name}:`, result.error);
-          if (!result.error?.includes('suspended')) {
-            alert(`Upload van "${file.name}" mislukt: ${result.error}`);
-          }
+          return { success: false, photoId, error: result.error };
         }
       } catch (error) {
-        // Remove photo on error
-        onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
         console.error(`Upload error for ${file.name}:`, error);
-        if (!(error instanceof Error && error.message.includes('fetch'))) {
-          alert(`Upload van "${file.name}" mislukt: ${error}`);
-        }
+        return { success: false, photoId, error: String(error) };
       }
-    }
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    
+    // Update photos with results
+    onPhotosChange([...photos, ...newPhotos].map(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      if (result?.success && result.url) {
+        return { ...photo, url: result.url };
+      }
+      return photo;
+    }).filter(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      return !result || result.success;
+    }));
     
     setUploading(false);
+    console.log(`✅ Fase ${phaseNumber}: ${results.filter(r => r.success).length}/${validFiles.length} foto's geüpload`);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, phaseNumber: number) => {
     handleFileUpload(e.target.files, phaseNumber);
+    e.target.value = '';
   };
 
   const removePhoto = (photoId: string) => {

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -21,10 +23,22 @@ export default function Logo({ size = 'md', showText = true, className = '' }: L
     lg: 'text-2xl'
   };
 
+  const isClickable = !className.includes('pointer-events-none');
+  
+  const handleClick = () => {
+    if (isClickable) {
+      try {
+        router.push('/');
+      } catch (error) {
+        console.error('Navigation error:', error);
+      }
+    }
+  };
+
   return (
     <div 
-      onClick={() => router.push('/')}
-      className={`flex items-center space-x-3 group cursor-pointer ${className}`}
+      onClick={handleClick}
+      className={`flex items-center space-x-3 group ${isClickable ? 'cursor-pointer' : ''} ${className}`}
     >
       {/* Custom Chef Icon */}
       <div className={`${sizeClasses[size]} relative`}>

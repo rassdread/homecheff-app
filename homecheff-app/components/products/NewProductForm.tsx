@@ -153,76 +153,161 @@ export default function NewProductForm() {
     console.log('Garden data processed successfully');
   };
 
-  // Load recipe or garden data and auto-set category based on user role
+  // Process design data from sessionStorage
+  const processDesignData = (data: any) => {
+    console.log('Processing design data:', data);
+    
+    // Set category to DESIGNER
+    setVertical('DESIGNER');
+    console.log('Set vertical to DESIGNER');
+    
+    // Set title and description
+    if (data.title) {
+      setTitle(data.title);
+      console.log('Set title:', data.title);
+    }
+    
+    if (data.description) {
+      setDescription(data.description);
+      console.log('Set description:', data.description);
+    }
+    
+    // Add design-specific info to description
+    let enhancedDescription = data.description || '';
+    if (data.materials && data.materials.length > 0) {
+      enhancedDescription += `\n\nMateriaal: ${data.materials.join(', ')}`;
+    }
+    if (data.dimensions) {
+      enhancedDescription += `\nAfmetingen: ${data.dimensions}`;
+    }
+    if (data.category) {
+      enhancedDescription += `\nCategorie: ${data.category}`;
+    }
+    if (data.notes) {
+      enhancedDescription += `\n\nNotities: ${data.notes}`;
+    }
+    
+    setDescription(enhancedDescription.trim());
+    console.log('Set enhanced description with design details');
+    
+    // Load photos if available
+    if (data.photos && data.photos.length > 0) {
+      const designImages = data.photos.map((photo: any, index: number) => ({
+        url: photo.url,
+        file: null,
+        preview: photo.url,
+        isMain: photo.isMain || index === 0
+      }));
+      setImages(designImages);
+      console.log('Set design images:', designImages);
+    }
+    
+    console.log('Design data processed successfully');
+  };
+
+  // Load recipe, garden, or design data and auto-set category
   React.useEffect(() => {
-    // Check if we're coming from a recipe
-    let recipeData = sessionStorage.getItem('recipeToProductData');
-    console.log('Checking for recipe data in sessionStorage:', recipeData);
+    // First, clear any stale data from previous sessions
+    console.log('🧹 Checking for stale product data to clear...');
     
-    // If not found in sessionStorage, try localStorage as backup
-    if (!recipeData) {
-      recipeData = localStorage.getItem('recipeToProductData');
-      console.log('Checking for recipe data in localStorage:', recipeData);
-    }
-    
-    // Check if we're coming from a garden project
-    let gardenData = sessionStorage.getItem('gardenToProductData');
-    console.log('Checking for garden data in sessionStorage:', gardenData);
-    
-    // If not found in sessionStorage, try localStorage as backup
-    if (!gardenData) {
-      gardenData = localStorage.getItem('gardenToProductData');
-      console.log('Checking for garden data in localStorage:', gardenData);
-    }
-    
-    // Also check URL parameters
+    // Check URL parameters to see what type we're loading
     const urlParams = new URLSearchParams(window.location.search);
     const fromRecipe = urlParams.get('fromRecipe');
     const fromGarden = urlParams.get('fromGarden');
-    console.log('URL parameter fromRecipe:', fromRecipe);
-    console.log('URL parameter fromGarden:', fromGarden);
+    const fromDesign = urlParams.get('fromDesign');
     
-    // If we have URL parameter but no data, log the issue
-    if (fromRecipe === 'true' && !recipeData) {
-      console.log('fromRecipe=true but no data found in sessionStorage or localStorage');
-      console.log('This indicates an issue with the RecipeManager not storing data correctly');
-      console.log('Check if the handleSellRecipe function is working properly');
-      // Don't load any test data - let the user see the empty form
+    console.log('URL parameters:', { fromRecipe, fromGarden, fromDesign });
+    
+    // Get all data from storage
+    let recipeData = sessionStorage.getItem('recipeToProductData') || localStorage.getItem('recipeToProductData');
+    let gardenData = sessionStorage.getItem('gardenToProductData') || localStorage.getItem('gardenToProductData');
+    let designData = sessionStorage.getItem('designToProductData') || localStorage.getItem('designToProductData');
+    
+    console.log('Found data in storage:', { 
+      hasRecipe: !!recipeData, 
+      hasGarden: !!gardenData,
+      hasDesign: !!designData
+    });
+    
+    // Clear data that doesn't match the URL parameter
+    if (fromDesign === 'true') {
+      // We're loading a design - clear other data
+      if (recipeData) {
+        console.log('🗑️ Clearing stale recipe data');
+        sessionStorage.removeItem('recipeToProductData');
+        localStorage.removeItem('recipeToProductData');
+        recipeData = null;
+      }
+      if (gardenData) {
+        console.log('🗑️ Clearing stale garden data');
+        sessionStorage.removeItem('gardenToProductData');
+        localStorage.removeItem('gardenToProductData');
+        gardenData = null;
+      }
+    } else if (fromGarden === 'true') {
+      // We're loading a garden - clear other data
+      if (recipeData) {
+        console.log('🗑️ Clearing stale recipe data');
+        sessionStorage.removeItem('recipeToProductData');
+        localStorage.removeItem('recipeToProductData');
+        recipeData = null;
+      }
+      if (designData) {
+        console.log('🗑️ Clearing stale design data');
+        sessionStorage.removeItem('designToProductData');
+        localStorage.removeItem('designToProductData');
+        designData = null;
+      }
+    } else if (fromRecipe === 'true') {
+      // We're loading a recipe - clear other data
+      if (gardenData) {
+        console.log('🗑️ Clearing stale garden data');
+        sessionStorage.removeItem('gardenToProductData');
+        localStorage.removeItem('gardenToProductData');
+        gardenData = null;
+      }
+      if (designData) {
+        console.log('🗑️ Clearing stale design data');
+        sessionStorage.removeItem('designToProductData');
+        localStorage.removeItem('designToProductData');
+        designData = null;
+      }
     }
     
-    if (fromGarden === 'true' && !gardenData) {
-      console.log('fromGarden=true but no data found in sessionStorage or localStorage');
-      console.log('This indicates an issue with the GardenManager not storing data correctly');
-      console.log('Check if the handleSellGardenProject function is working properly');
-    }
-    
-    // Process garden data first (takes priority over recipe data)
-    if (gardenData) {
+    // Process the correct data based on priority: design > garden > recipe
+    if (designData) {
+      try {
+        const data = JSON.parse(designData);
+        console.log('✅ Successfully parsed design data:', data);
+        processDesignData(data);
+        console.log('Design data loaded successfully');
+      } catch (error) {
+        console.error('❌ Error parsing design data:', error);
+        console.error('Raw design data:', designData);
+      }
+    } else if (gardenData) {
       try {
         const data = JSON.parse(gardenData);
-        console.log('Successfully parsed garden data:', data);
+        console.log('✅ Successfully parsed garden data:', data);
         processGardenData(data);
-        console.log('Garden data loaded successfully - keeping in sessionStorage for now');
+        console.log('Garden data loaded successfully');
       } catch (error) {
-        console.error('Error parsing garden data:', error);
+        console.error('❌ Error parsing garden data:', error);
         console.error('Raw garden data:', gardenData);
       }
     } else if (recipeData) {
       try {
         const data = JSON.parse(recipeData);
-        console.log('Successfully parsed recipe data:', data);
+        console.log('✅ Successfully parsed recipe data:', data);
         processRecipeData(data);
-        
-        // Don't clear the session storage immediately - let user see the data first
-        // sessionStorage.removeItem('recipeToProductData');
-        console.log('Recipe data loaded successfully - keeping in sessionStorage for now');
+        console.log('Recipe data loaded successfully');
       } catch (error) {
-        console.error('Error parsing recipe data:', error);
+        console.error('❌ Error parsing recipe data:', error);
         console.error('Raw recipe data:', recipeData);
       }
     } else {
-      console.log('No recipe or garden data found in sessionStorage');
-      // Default to CHEFF if not from recipe or garden
+      console.log('ℹ️ No product data found - showing empty form');
+      // Default to CHEFF if not from any source
       setVertical('CHEFF');
     }
   }, [session]);

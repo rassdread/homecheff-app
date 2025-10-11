@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Clock, Users, ChefHat, Camera, ArrowLeft, ArrowRight, Download, Share2, Printer } from "lucide-react";
+import { X, Clock, Users, ChefHat, Printer } from "lucide-react";
 import Image from "next/image";
 
 type RecipePhoto = {
@@ -46,7 +46,6 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (isOpen && recipeId) {
@@ -58,16 +57,30 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
     setLoading(true);
     setError(null);
     try {
-      // Try the new public recipes endpoint first
       const response = await fetch(`/api/recipes/${recipeId}`);
       if (response.ok) {
         const data = await response.json();
+        const stepPhotosList = data.recipe.photos?.filter((p: any) => p.stepNumber) || [];
+        console.log(`📸 RecipeViewer - Loaded from public API:`, {
+          title: data.recipe.title,
+          totalPhotos: data.recipe.photos?.length || 0,
+          stepPhotosCount: stepPhotosList.length,
+          stepNumbers: stepPhotosList.map((p: any) => p.stepNumber),
+          instructionsCount: data.recipe.instructions?.length || 0
+        });
         setRecipe(data.recipe);
       } else {
-        // Fallback to the old endpoint for private recipes
         const fallbackResponse = await fetch(`/api/profile/dishes/${recipeId}`);
         if (fallbackResponse.ok) {
           const data = await fallbackResponse.json();
+          const stepPhotosList = data.item.photos?.filter((p: any) => p.stepNumber) || [];
+          console.log(`📸 RecipeViewer - Loaded from private API:`, {
+            title: data.item.title,
+            totalPhotos: data.item.photos?.length || 0,
+            stepPhotosCount: stepPhotosList.length,
+            stepNumbers: stepPhotosList.map((p: any) => p.stepNumber),
+            instructionsCount: data.item.instructions?.length || 0
+          });
           setRecipe(data.item);
         } else {
           setError('Kon recept niet laden');
@@ -81,85 +94,59 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
     }
   };
 
-  // Create combined photos array with proper labels
-  const allPhotos = recipe ? [
-    // Add main photos with "Hoofdfoto" label
-    ...recipe.photos.filter(photo => photo.isMain || !photo.stepNumber).map(photo => ({
-      ...photo,
-      label: 'Hoofdfoto'
-    })),
-    // Add step photos with their descriptions as labels
-    ...recipe.photos.filter(photo => photo.stepNumber).map(photo => {
-      // Get the step description from the instructions array
-      const stepNumber = photo.stepNumber!; // We know it exists due to filter
-      const stepDescription = recipe.instructions[stepNumber - 1] || photo.description || `Stap ${stepNumber}`;
-      return {
-        ...photo,
-        label: stepDescription
-      };
-    })
-  ] : [];
-
-  // Fallback to original photos if allPhotos is empty (for backwards compatibility)
-  const displayPhotos = allPhotos.length > 0 ? allPhotos : (recipe?.photos || []).map(photo => ({
-    ...photo,
-    label: 'Hoofdfoto'
-  }));
-
-  const nextImage = () => {
-    if (displayPhotos.length > 0) {
-      setSelectedImageIndex((prev) => 
-        prev < displayPhotos.length - 1 ? prev + 1 : 0
-      );
-    }
-  };
-
-  const prevImage = () => {
-    if (displayPhotos.length > 0) {
-      setSelectedImageIndex((prev) => 
-        prev > 0 ? prev - 1 : displayPhotos.length - 1
-      );
-    }
+  const mainPhoto = recipe?.photos.find(p => p.isMain || !p.stepNumber);
+  
+  const handlePrint = () => {
+    window.print();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 print:relative print:inset-auto print:bg-white print:p-0">
+      <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto print:max-w-full print:max-h-none print:rounded-none print:shadow-none">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 print:border-b-2 print:border-gray-300">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Recept Details</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <h2 className="text-2xl font-bold text-gray-900 print:text-3xl">Recept Details</h2>
+            <div className="flex items-center gap-2 print:hidden">
+              <button
+                onClick={handlePrint}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Printen"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 print:p-8">
           {loading ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 print:hidden">
               <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-600">Recept laden...</p>
             </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-500">
+            <div className="text-center py-12 text-red-500 print:hidden">
               <ChefHat className="w-12 h-12 mx-auto mb-4 text-red-300" />
               <p>{error}</p>
             </div>
           ) : recipe ? (
-            <div className="space-y-8">
+            <div id="printable-recipe" className="space-y-6 print:space-y-4">
               {/* Recipe Header */}
-              <div className="text-center">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">{recipe.title}</h3>
+              <div className="text-center print:text-left">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4 print:text-4xl print:mb-3">{recipe.title}</h3>
                 
                 {/* Recipe Meta */}
-                <div className="flex flex-wrap justify-center gap-4 mb-6">
+                <div className="flex flex-wrap justify-center gap-4 mb-6 print:justify-start print:gap-6 print:mb-4">
                   {recipe.prepTime && recipe.prepTime > 0 && (
                     <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
                       <Clock className="w-4 h-4" />
@@ -206,143 +193,82 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
                 )}
               </div>
 
-              {/* Recipe Photos */}
-              {displayPhotos.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-xl font-semibold text-gray-900">Foto's</h4>
-                  <div className="relative">
-                    <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden">
-                      <Image
-                        src={displayPhotos[selectedImageIndex].url}
-                        alt={`${recipe.title} - ${displayPhotos[selectedImageIndex].label}`}
-                        width={800}
-                        height={450}
-                        className="w-full h-full object-cover"
-                      />
-                      
-                      {/* Photo Label */}
-                      <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        {displayPhotos[selectedImageIndex].label}
-                      </div>
-                    </div>
-                    
-                    {displayPhotos.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all"
-                        >
-                          <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all"
-                        >
-                          <ArrowRight className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                          {displayPhotos.map((_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => setSelectedImageIndex(index)}
-                              className={`w-3 h-3 rounded-full transition-all ${
-                                index === selectedImageIndex 
-                                  ? 'bg-white' 
-                                  : 'bg-white bg-opacity-50'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
+              {/* Main Recipe Photo - Compacter */}
+              {mainPhoto && (
+                <div className="mb-6 print:mb-4">
+                  <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden print:rounded-lg">
+                    <Image
+                      src={mainPhoto.url}
+                      alt={recipe.title}
+                      width={800}
+                      height={450}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  
-                  {/* Thumbnail Gallery */}
-                  {displayPhotos.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {displayPhotos.map((photo, index) => (
-                        <button
-                          key={photo.id}
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`flex-shrink-0 relative group ${
-                            index === selectedImageIndex 
-                              ? 'ring-2 ring-primary-500' 
-                              : 'border-2 border-gray-200'
-                          }`}
-                        >
-                          <div className="w-20 h-20 rounded-lg overflow-hidden">
-                            <Image
-                              src={photo.url}
-                              alt={`${recipe.title} - ${photo.label}`}
-                              width={80}
-                              height={80}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 rounded-b-lg">
-                            <span className="truncate block">{photo.label}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Main Recipe Content */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Main Recipe Content - 2 Column Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:gap-8">
                 {/* Ingredients */}
                 {recipe.ingredients && recipe.ingredients.length > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h4 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                      <ChefHat className="w-5 h-5 text-emerald-600" />
+                  <div className="bg-gray-50 rounded-xl p-5 print:bg-white print:border-2 print:border-gray-300 print:p-6">
+                    <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2 print:text-2xl print:mb-5">
+                      <ChefHat className="w-5 h-5 text-emerald-600 print:w-6 print:h-6" />
                       Ingrediënten
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="space-y-2 print:space-y-2.5">
                       {recipe.ingredients.map((ingredient, index) => (
                         <li key={index} className="flex items-start gap-3">
-                          <span className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></span>
-                          <span className="text-gray-700">{ingredient}</span>
+                          <span className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0 print:w-2.5 print:h-2.5"></span>
+                          <span className="text-gray-700 text-base print:text-base">{ingredient}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {/* Instructions */}
+                {/* Instructions - Volle breedte */}
                 {recipe.instructions && recipe.instructions.length > 0 && (
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                      <ChefHat className="w-5 h-5 text-emerald-600" />
-                      Bereidingswijze
+                  <div className="lg:col-span-2 print:col-span-2">
+                    <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2 print:text-2xl print:mb-5">
+                      <ChefHat className="w-5 h-5 text-emerald-600 print:w-6 print:h-6" />
+                      Bereidingswijze ({recipe.instructions.length} stappen)
                     </h4>
-                    <div className="space-y-6">
+                    <div className="space-y-4 print:space-y-3">
                       {recipe.instructions.map((instruction, index) => {
                         const stepNumber = index + 1;
                         const currentStepPhotos = recipe.photos?.filter(photo => photo.stepNumber === stepNumber) || [];
                         
+                        if (index === 0) {
+                          console.log(`📸 Rendering step ${stepNumber}:`, {
+                            instruction: instruction.substring(0, 50),
+                            photosForThisStep: currentStepPhotos.length,
+                            allStepPhotos: recipe.photos?.filter(p => p.stepNumber)?.map((p: any) => ({ step: p.stepNumber, url: p.url.substring(0, 50) }))
+                          });
+                        }
+                        
                         return (
-                          <div key={index} className="bg-white border border-gray-200 rounded-xl p-6">
-                            <div className="flex gap-4">
-                              <div className="flex-shrink-0 w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                          <div key={index} className="bg-white border border-gray-200 rounded-xl p-4 print:border-gray-300 print:p-4 print:break-inside-avoid">
+                            <div className="flex gap-3">
+                              <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-base print:w-9 print:h-9">
                                 {stepNumber}
                               </div>
                               <div className="flex-1">
-                                <p className="text-gray-700 leading-relaxed mb-4 text-lg">{instruction}</p>
+                                <p className="text-gray-700 leading-relaxed text-base print:text-base">{instruction}</p>
                                 
-                                {/* Step Photos */}
+                                {/* Step Photos - Compacter */}
                                 {currentStepPhotos.length > 0 && (
-                                  <div className="mt-4">
-                                    <div className="flex gap-3 overflow-x-auto pb-2">
+                                  <div className="mt-3 print:mt-2">
+                                    <div className="flex gap-2 overflow-x-auto">
                                       {currentStepPhotos.map((photo) => (
                                         <div key={photo.id} className="flex-shrink-0">
-                                          <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 shadow-sm">
+                                          <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm print:w-16 print:h-16">
                                             <Image
                                               src={photo.url}
-                                              alt={`Stap ${stepNumber} foto`}
-                                              width={96}
-                                              height={96}
+                                              alt={`Stap ${stepNumber}`}
+                                              width={80}
+                                              height={80}
                                               className="w-full h-full object-cover"
                                             />
                                           </div>
@@ -361,9 +287,9 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
                 )}
               </div>
 
-              {/* Recipe Info */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+              {/* Recipe Info - Compacter */}
+              <div className="bg-gray-50 rounded-xl p-4 mt-4 print:bg-white print:border print:border-gray-300 print:mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                   {recipe.category && (
                     <div>
                       <span className="font-medium">Categorie:</span> {recipe.category}
@@ -374,6 +300,100 @@ export default function RecipeViewer({ recipeId, isOpen, onClose }: RecipeViewer
                   </div>
                 </div>
               </div>
+              
+              {/* HomeCheff Branding Footer */}
+              <div className="mt-8 pt-6 border-t-2 border-gray-200 print:mt-6 print:pt-4 print:border-t-2 print:border-gray-400">
+                <div className="flex flex-col items-center gap-3 print:gap-2">
+                  <div className="flex items-center gap-3">
+                    {/* HomeCheff Logo SVG */}
+                    <div className="w-6 h-6 relative">
+                      <svg viewBox="0 0 60 60" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                          <path d="M15 10 Q20 5 25 10 L30 10 Q35 5 40 10 L40 20 Q40 25 35 25 L20 25 Q15 25 15 20 Z" fill="white" stroke="#1e40af" strokeWidth="2"/>
+                          <rect x="22" y="25" width="16" height="30" fill="white" stroke="#1e40af" strokeWidth="2" rx="2"/>
+                          <circle cx="30" cy="35" r="5" fill="white" stroke="#1e40af" strokeWidth="2"/>
+                          <circle cx="28" cy="33" r="1" fill="#1e40af"/>
+                          <circle cx="32" cy="33" r="1" fill="#1e40af"/>
+                          <path d="M26 37 Q30 40 34 37" stroke="#1e40af" strokeWidth="1.5" fill="none"/>
+                          <circle cx="30" cy="30" r="1" fill="#1e40af"/>
+                          <circle cx="30" cy="35" r="1" fill="#1e40af"/>
+                          <rect x="5" y="30" width="15" height="3" fill="#22c55e" stroke="#1e40af" strokeWidth="1" rx="1"/>
+                          <circle cx="5" cy="31.5" r="3" fill="#22c55e" stroke="#1e40af" strokeWidth="1"/>
+                          <circle cx="45" cy="35" r="10" fill="#3b82f6" stroke="#1e40af" strokeWidth="2"/>
+                          <path d="M35 35 Q45 30 55 35 M35 35 Q45 40 55 35" stroke="#22c55e" strokeWidth="1.5" fill="none"/>
+                          <path d="M45 25 Q50 35 45 45 M45 25 Q40 35 45 45" stroke="#22c55e" strokeWidth="1.5" fill="none"/>
+                          <path d="M48 20 Q50 15 52 20 M50 18 Q52 13 54 18 M52 16 Q54 11 56 16" stroke="white" strokeWidth="2" fill="none"/>
+                        </g>
+                      </svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+                        HomeCheff
+                      </span>
+                      <span className="text-xs text-gray-500 -mt-1">
+                        Lokale Culinaire Parels
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 font-medium">
+                      Gemaakt op HomeCheff
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Deel je culinaire passie met de wereld
+                    </p>
+                  </div>
+                  <div className="text-xs text-gray-400 print:text-gray-600">
+                    www.homecheff.nl
+                  </div>
+                </div>
+              </div>
+              
+              {/* Print styling - Consistent with other viewers */}
+              <style jsx global>{`
+                @page {
+                  size: A4;
+                  margin: 12mm;
+                }
+                
+                @media print {
+                  * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                  }
+                  
+                  body * {
+                    visibility: hidden;
+                  }
+                  
+                  #printable-recipe,
+                  #printable-recipe * {
+                    visibility: visible;
+                  }
+                  
+                  #printable-recipe {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    background: white;
+                  }
+                  
+                  .no-print {
+                    display: none !important;
+                  }
+                  
+                  .print-page-break {
+                    page-break-before: always;
+                    margin-top: 0;
+                    padding-top: 0;
+                  }
+                  
+                  .print-avoid-break {
+                    page-break-inside: avoid;
+                  }
+                }
+              `}</style>
             </div>
           ) : null}
         </div>

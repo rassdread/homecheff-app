@@ -45,6 +45,8 @@ export async function GET(
       return NextResponse.json({ error: "Dish not found" }, { status: 404 });
     }
 
+    console.log(`📸 Single recipe fetch - "${dish.title}": ${dish.photos.length} main photos, ${dish.stepPhotos.length} step photos`);
+    
     // Transform to match expected format
     const transformedDish = {
       id: dish.id,
@@ -65,7 +67,6 @@ export async function GET(
       servings: dish.servings,
       difficulty: dish.difficulty,
       tags: dish.tags,
-      // Design-specific fields
       materials: dish.materials,
       dimensions: dish.dimensions,
       notes: dish.notes,
@@ -85,6 +86,8 @@ export async function GET(
         }))
       ]
     };
+    
+    console.log(`📸 Transformed - Total photos in response: ${transformedDish.photos.length}`);
 
     return NextResponse.json({ item: transformedDish });
   } catch (error) {

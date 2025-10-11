@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Clock, Users, ChefHat, ArrowLeft, Printer,
   Share2, Edit3, Utensils, Flame, Timer,
-  BookOpen, Heart, Star
+  BookOpen, Heart, Star, Download
 } from 'lucide-react';
 import Image from 'next/image';
 

@@ -144,13 +144,13 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
         // Transform dishes to recipes
         const recipes: Recipe[] = dishes
           .filter((dish: any) => {
-            // ONLY show CHEFF category items (not garden or designer)
             if (dish.category !== 'CHEFF') return false;
             
-            // In public mode, only show published recipes
             if (isPublic) {
               return dish.status === 'PUBLISHED' && dish.ingredients && dish.instructions;
             }
+            
+            // In private mode (Mijn Recepten tab), toon ALLE recepten
             return true;
           })
           .map((dish: any) => ({
@@ -200,12 +200,23 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
 
   const handleSaveRecipe = async () => {
     try {
+      const filteredIngredients = formData.ingredients.filter(ing => ing.trim() !== '');
+      const filteredInstructions = formData.instructions.filter(inst => inst.trim() !== '');
+      
+      console.log(`💾 Saving recipe:`, {
+        title: formData.title,
+        originalInstructions: formData.instructions.length,
+        filteredInstructions: filteredInstructions.length,
+        stepPhotosCount: stepPhotos.length,
+        stepPhotosDetails: stepPhotos.map(p => ({ step: p.stepNumber, url: p.url.substring(0, 50) }))
+      });
+      
       const recipeData = {
         ...formData,
         prepTime: parseInt(formData.prepTime),
         servings: parseInt(formData.servings),
-        ingredients: formData.ingredients.filter(ing => ing.trim() !== ''),
-        instructions: formData.instructions.filter(inst => inst.trim() !== ''),
+        ingredients: filteredIngredients,
+        instructions: filteredInstructions,
         photos: formData.photos
       };
 
@@ -708,8 +719,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                   steps={formData.instructions.filter(inst => inst.trim() !== '')}
                   photos={stepPhotos}
                   onPhotosChange={setStepPhotos}
-                  maxPhotosPerStep={2}
-                  maxTotalPhotos={10}
+                  maxPhotosPerStep={5}
+                  maxTotalPhotos={30}
                 />
               </div>
 

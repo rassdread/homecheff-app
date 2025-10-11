@@ -20,77 +20,106 @@ export default function RecipePhotoUpload({
   maxPhotos = 5 
 }: RecipePhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
+  const [dragActive, setDragActive] = useState(false);
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     
-    setUploading(true);
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Check file size (10MB limit)
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
       if (file.size > 10 * 1024 * 1024) {
         alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
-        continue;
+        return false;
       }
+      return true;
+    }).slice(0, maxPhotos - photos.length);
+    
+    if (validFiles.length === 0) return;
+    if (photos.length + validFiles.length > maxPhotos) {
+      alert(`Je kunt maximaal ${maxPhotos} foto's uploaden. Er zijn ${maxPhotos - photos.length} plekken beschikbaar.`);
+    }
+    
+    setUploading(true);
+    console.log(`📸 Uploading ${validFiles.length} foto's parallel...`);
+    
+    // Create preview photos immediately
+    const newPhotos: RecipePhoto[] = validFiles.map((file, i) => ({
+      id: `temp-${Date.now()}-${i}`,
+      url: URL.createObjectURL(file),
+      isMain: photos.length === 0 && i === 0
+    }));
+    
+    onPhotosChange([...photos, ...newPhotos]);
+    
+    // Upload all files in parallel
+    const uploadPromises = validFiles.map(async (file, i) => {
+      const photoId = newPhotos[i].id;
+      setUploadProgress(prev => ({ ...prev, [photoId]: 0 }));
       
-      // Check if we're at the limit
-      if (photos.length >= maxPhotos) {
-        alert(`Maximum ${maxPhotos} foto's toegestaan.`);
-        break;
-      }
-      
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      
-      // Create new photo object
-      const newPhoto: RecipePhoto = {
-        id: `temp-${Date.now()}-${i}`,
-        url: previewUrl,
-        isMain: photos.length === 0 // First photo is main by default
-      };
-      
-      // Add photo to list immediately for preview
-      const updatedPhotos = [...photos, newPhoto];
-      onPhotosChange(updatedPhotos);
-      
-      // Upload file directly
       try {
         const result = await uploadFile(file, '/api/profile/recipes/photo/upload');
         
         if (result.success) {
-          // Update photo with actual URL
-          onPhotosChange(
-            updatedPhotos.map(photo => 
-              photo.id === newPhoto.id 
-                ? { ...photo, url: result.url }
-                : photo
-            )
-          );
+          setUploadProgress(prev => ({ ...prev, [photoId]: 100 }));
+          return { success: true, photoId, url: result.url };
         } else {
-          // Remove photo on upload failure
-          onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
           console.error(`Upload failed for ${file.name}:`, result.error);
-          if (!result.error?.includes('suspended')) {
-            alert(`Upload van "${file.name}" mislukt: ${result.error}`);
-          }
+          return { success: false, photoId, error: result.error };
         }
       } catch (error) {
-        // Remove photo on error
-        onPhotosChange(updatedPhotos.filter(photo => photo.id !== newPhoto.id));
         console.error(`Upload error for ${file.name}:`, error);
-        if (!(error instanceof Error && error.message.includes('fetch'))) {
-          alert(`Upload van "${file.name}" mislukt: ${error}`);
-        }
+        return { success: false, photoId, error: String(error) };
       }
-    }
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    
+    // Update photos with results
+    onPhotosChange([...photos, ...newPhotos].map(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      if (result?.success && result.url) {
+        return { ...photo, url: result.url };
+      }
+      return photo;
+    }).filter(photo => {
+      const result = results.find(r => r.photoId === photo.id);
+      return !result || result.success;
+    }));
     
     setUploading(false);
+    setUploadProgress({});
+    
+    const failed = results.filter(r => !r.success);
+    if (failed.length > 0) {
+      console.log(`⚠️ ${failed.length} foto's niet geüpload`);
+    }
+    console.log(`✅ ${results.filter(r => r.success).length}/${validFiles.length} foto's succesvol geüpload`);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileUpload(e.target.files);
+    e.target.value = '';
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
+    }
   };
 
   const removePhoto = (photoId: string) => {
@@ -112,12 +141,20 @@ export default function RecipePhotoUpload({
           Hoofdfoto's van het Recept
         </label>
         <p className="text-xs text-gray-500 mb-3">
-          Upload maximaal {maxPhotos} hoofdfoto's van je recept.
+          📎 Upload meerdere foto's tegelijk of sleep ze hierheen (max {maxPhotos})
         </p>
       </div>
 
-      {/* Compact upload section */}
-      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+      {/* Drag & Drop upload section */}
+      <div 
+        className={`flex items-center justify-between p-3 rounded-lg border-2 border-dashed transition-all ${
+          dragActive ? 'bg-emerald-50 border-emerald-500' : 'bg-gray-50 border-gray-300'
+        }`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
         <div className="flex items-center space-x-3">
           <input
             id="main-photos-file-input"
@@ -130,7 +167,9 @@ export default function RecipePhotoUpload({
           />
           <label 
             htmlFor="main-photos-file-input"
-            className="cursor-pointer inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`cursor-pointer inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+              uploading ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
+            }`}
           >
             {uploading ? (
               <>
@@ -140,13 +179,20 @@ export default function RecipePhotoUpload({
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Foto's toevoegen
+                {dragActive ? 'Laat los om te uploaden' : 'Foto\'s selecteren'}
               </>
             )}
           </label>
-          <span className="text-sm text-gray-600">
-            {photos.length}/{maxPhotos} foto's
-          </span>
+          <div className="flex flex-col text-right">
+            <span className="text-sm text-gray-600">
+              {photos.length}/{maxPhotos} foto's
+            </span>
+            {dragActive && (
+              <span className="text-xs text-emerald-600 font-medium">
+                ⬇️ Sleep hier
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

@@ -49,16 +49,10 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
 
-    // Transform to match expected format
-    console.log('API: Raw dishes from database:', dishes.map(d => ({
-      id: d.id,
-      title: d.title,
-      prepTime: d.prepTime,
-      servings: d.servings,
-      difficulty: d.difficulty
-    })));
-    
-    const transformedDishes = dishes.map(dish => ({
+    const transformedDishes = dishes.map(dish => {
+      console.log(`📸 Recipe "${dish.title}" - Photos: ${dish.photos.length} main, ${dish.stepPhotos.length} step photos`);
+      
+      return {
       id: dish.id,
       title: dish.title,
       description: dish.description,
@@ -97,7 +91,8 @@ export async function GET(request: NextRequest) {
           description: stepPhoto.description
         }))
       ]
-    }));
+      };
+    });
 
     return NextResponse.json({ items: transformedDishes });
   } catch (error) {

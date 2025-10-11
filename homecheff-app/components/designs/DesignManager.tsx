@@ -69,18 +69,67 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
-  const [formData, setFormData] = useState<DesignFormData>({
-    title: '',
-    description: '',
-    materials: [''],
-    dimensions: '',
-    category: '',
-    subcategory: '',
-    tags: [],
-    notes: '',
-    isPrivate: true,
-    photos: []
-  });
+  // Laad opgeslagen form data uit localStorage bij initialisatie
+  const getInitialFormData = (): DesignFormData => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('designFormDraft');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          console.log('📝 Hersteld design draft uit localStorage:', parsed);
+          return parsed;
+        } catch (e) {
+          console.error('Error parsing saved design draft:', e);
+        }
+      }
+    }
+    return {
+      title: '',
+      description: '',
+      materials: [''],
+      dimensions: '',
+      category: '',
+      subcategory: '',
+      tags: [],
+      notes: '',
+      isPrivate: true,
+      photos: []
+    };
+  };
+
+  const [formData, setFormData] = useState<DesignFormData>(getInitialFormData());
+  const [hasDraft, setHasDraft] = useState(false);
+
+  // Check for draft on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const draft = localStorage.getItem('designFormDraft');
+      setHasDraft(!!draft);
+    }
+  }, []);
+
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    if (showForm && (formData.title || formData.description || formData.photos.length > 0)) {
+      localStorage.setItem('designFormDraft', JSON.stringify(formData));
+      setHasDraft(true);
+      console.log('💾 Design draft auto-saved to localStorage');
+    }
+  }, [formData, showForm]);
+
+  // Waarschuw bij verlaten pagina met niet-opgeslagen data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (showForm && (formData.title || formData.description || formData.photos.length > 0)) {
+        e.preventDefault();
+        e.returnValue = 'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt afsluiten?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [showForm, formData]);
 
   // Auto-hide message
   useEffect(() => {
@@ -105,32 +154,54 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
       setLoading(true);
       const apiUrl = userId ? `/api/profile/dishes?userId=${userId}` : '/api/profile/dishes';
       
+      console.log('🔍 Loading designs from:', apiUrl, '| isPublic:', isPublic);
+      
       const response = await fetch(apiUrl);
       
       if (response.ok) {
         const data = await response.json();
         const items = data.items || [];
         
+        console.log(`📦 Received ${items.length} total items from API`);
+        
+        items.forEach((item: any, index: number) => {
+          console.log(`Item ${index}:`, {
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            status: item.status,
+            photosCount: item.photos?.length || 0
+          });
+        });
+        
         // Filter for DESIGNER category
         const designItems: Design[] = items
           .filter((item: any) => {
-            if (item.category !== 'DESIGNER') return false;
-            
-            if (isPublic) {
-              return item.status === 'PUBLISHED';
+            if (item.category !== 'DESIGNER') {
+              console.log(`❌ Filtering out "${item.title}" - wrong category: ${item.category}`);
+              return false;
             }
             
-            return item.status === 'PRIVATE';
+            if (isPublic) {
+              const shouldShow = item.status === 'PUBLISHED';
+              console.log(`${shouldShow ? '✅' : '❌'} Public mode - "${item.title}" status: ${item.status}`);
+              return shouldShow;
+            }
+            
+            // In private mode (Mijn Designs tab), toon ALLE designs (zowel PRIVATE als PUBLISHED)
+            // Alleen producten die actief te koop zijn worden in de "Live" tab getoond
+            console.log(`✅ Private mode - "${item.title}" status: ${item.status} - showing in Mijn Designs`);
+            return true;
           })
           .map((item: any) => ({
             id: item.id,
             title: item.title || '',
             description: item.description || '',
-            materials: item.materials || [],
+            materials: Array.isArray(item.materials) ? item.materials : [],
             dimensions: item.dimensions || null,
             category: item.category || null,
             subcategory: item.subcategory || null,
-            tags: item.tags || [],
+            tags: Array.isArray(item.tags) ? item.tags : [],
             photos: item.photos?.map((photo: any) => ({
               id: photo.id,
               url: photo.url,
@@ -143,12 +214,14 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
             updatedAt: item.updatedAt
           }));
         
+        console.log(`✅ Loaded ${designItems.length} designs after filtering`);
         setDesigns(designItems);
       } else {
+        console.error('❌ Failed to load designs - HTTP', response.status);
         setDesigns([]);
       }
     } catch (error) {
-      console.error('Error loading designs:', error);
+      console.error('❌ Error loading designs:', error);
       setDesigns([]);
     } finally {
       setLoading(false);
@@ -172,8 +245,21 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
           type: 'error', 
           text: '⚠️ Kan niet opslaan: ' + errors.join(', ')
         });
+        
+        const modal = document.querySelector('.fixed.inset-0');
+        if (modal) {
+          modal.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         return;
       }
+
+      console.log('🎨 Saving design:', {
+        title: formData.title,
+        category: 'DESIGNER',
+        materialsCount: formData.materials.filter(m => m.trim() !== '').length,
+        photosCount: formData.photos.length,
+        isEditing: editingDesign !== null
+      });
 
       const designData = {
         title: formData.title,
@@ -185,7 +271,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
           isMain: photo.isMain || index === 0
         })),
         category: 'DESIGNER',
-        subcategory: formData.subcategory,
+        subcategory: formData.subcategory || null,
         materials: formData.materials.filter(m => m.trim() !== ''),
         dimensions: formData.dimensions || null,
         tags: formData.tags,
@@ -199,9 +285,13 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
         maxStock: null
       };
 
+      console.log('📤 Design payload:', JSON.stringify(designData, null, 2));
+
       const isEditing = editingDesign !== null;
       const url = isEditing ? `/api/profile/dishes/${editingDesign.id}` : '/api/profile/dishes';
       const method = isEditing ? 'PATCH' : 'POST';
+
+      console.log(`📡 Sending ${method} to ${url}`);
 
       const response = await fetch(url, {
         method: method,
@@ -211,8 +301,18 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
         body: JSON.stringify(designData)
       });
 
+      console.log('✅ Design API response status:', response.status);
+
       if (response.ok) {
-        setFormData({
+        const result = await response.json();
+        console.log('✅ Design saved successfully:', result);
+        
+        // Clear localStorage draft
+        localStorage.removeItem('designFormDraft');
+        setHasDraft(false);
+        
+        // Reset form
+        const emptyForm = {
           title: '',
           description: '',
           materials: [''],
@@ -223,18 +323,22 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
           notes: '',
           isPrivate: true,
           photos: []
-        });
+        };
+        setFormData(emptyForm);
         setShowForm(false);
         setEditingDesign(null);
         setMessage({ type: 'success', text: isEditing ? '✅ Design bijgewerkt!' : '✅ Design opgeslagen!' });
         
+        console.log('🔄 Reloading designs...');
         await loadDesigns();
+        console.log('✅ Designs reloaded');
       } else {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Design API error:', response.status, errorData);
         setMessage({ type: 'error', text: errorData.error || `Fout bij opslaan (${response.status})` });
       }
     } catch (error) {
-      console.error('Error saving design:', error);
+      console.error('❌ Error saving design:', error);
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Onbekende fout bij opslaan' });
     }
   };
@@ -338,13 +442,32 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
           <p className="text-sm text-gray-500">Beheer je creatieve werken en designs</p>
         </div>
         {!isPublic && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nieuw Design
-          </button>
+          <div className="flex gap-2">
+            {hasDraft && (
+              <button
+                onClick={() => {
+                  const draft = localStorage.getItem('designFormDraft');
+                  if (draft) {
+                    setFormData(JSON.parse(draft));
+                    setShowForm(true);
+                    setMessage({ type: 'success', text: '📝 Draft hersteld!' });
+                  }
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md animate-pulse"
+                title="Je hebt een niet-opgeslagen design"
+              >
+                <span className="text-lg">💾</span>
+                <span className="hidden sm:inline">Herstel Draft</span>
+              </button>
+            )}
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nieuw Design
+            </button>
+          </div>
         )}
       </div>
 
@@ -397,6 +520,13 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
                 </h2>
                 <button
                   onClick={() => {
+                    if (formData.title || formData.description || formData.photos.length > 0) {
+                      const shouldClose = confirm('Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt sluiten?');
+                      if (!shouldClose) return;
+                    }
+                    
+                    localStorage.removeItem('designFormDraft');
+                    setHasDraft(false);
                     setShowForm(false);
                     setEditingDesign(null);
                     setFormData({
@@ -420,6 +550,16 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
             </div>
 
             <div className="p-6 space-y-6">
+              {/* Auto-save indicator */}
+              {showForm && hasDraft && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-blue-800">
+                    <span className="text-lg">💾</span>
+                    <span>Je werk wordt automatisch opgeslagen als draft</span>
+                  </div>
+                </div>
+              )}
+              
               {/* Message Display */}
               {message && isActive && (
                 <div className={`p-4 rounded-xl border ${
@@ -607,8 +747,26 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
             <div className="sticky bottom-0 bg-white p-6 border-t border-gray-200 flex justify-end gap-3">
               <button
                 onClick={() => {
+                  if (formData.title || formData.description || formData.photos.length > 0) {
+                    const shouldCancel = confirm('Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt annuleren?');
+                    if (!shouldCancel) return;
+                  }
+                  
+                  localStorage.removeItem('designFormDraft');
                   setShowForm(false);
                   setEditingDesign(null);
+                  setFormData({
+                    title: '',
+                    description: '',
+                    materials: [''],
+                    dimensions: '',
+                    category: '',
+                    subcategory: '',
+                    tags: [],
+                    notes: '',
+                    isPrivate: true,
+                    photos: []
+                  });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
@@ -785,4 +943,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
     </div>
   );
 }
+
+
+
 

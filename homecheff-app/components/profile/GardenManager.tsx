@@ -203,24 +203,20 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
         // Transform items to projects
         const gardenProjects: GardenProject[] = items
           .filter((item: any) => {
-            // Log each filter decision
             if (item.category !== 'GROWN') {
               console.log(`❌ Filtering out item "${item.title}" - wrong category: ${item.category}`);
               return false;
             }
             
-            // In public mode, only show published projects
             if (isPublic) {
               const shouldShow = item.status === 'PUBLISHED';
               console.log(`${shouldShow ? '✅' : '❌'} Public mode - item "${item.title}" status: ${item.status}`);
               return shouldShow;
             }
             
-            // In private mode, only show PRIVATE projects (not sold as products)
-            // Products that are sold are shown in the "Live" tab via ProductManagement
-            const shouldShow = item.status === 'PRIVATE';
-            console.log(`${shouldShow ? '✅' : '❌'} Private mode - item "${item.title}" status: ${item.status}`);
-            return shouldShow;
+            // In private mode (Mijn Tuin tab), toon ALLE kweken
+            console.log(`✅ Private mode - "${item.title}" status: ${item.status} - showing in Mijn Tuin`);
+            return true;
           })
           .map((item: any) => ({
             id: item.id,
@@ -917,8 +913,8 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
                   phases={GROWTH_PHASES}
                   photos={growthPhotos}
                   onPhotosChange={setGrowthPhotos}
-                  maxPhotosPerPhase={3}
-                  maxTotalPhotos={15}
+                  maxPhotosPerPhase={5}
+                  maxTotalPhotos={25}
                 />
               </div>
 

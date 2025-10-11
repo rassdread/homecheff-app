@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Palette, ArrowLeft, Printer, Share2, Edit3, 
-  Ruler, Package, Sparkles, Eye, Heart, Star,
-  Brush, Scissors, Layers, Frame
+  Ruler, Sparkles, Brush, Scissors, Layers, Frame, Download
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -85,7 +84,7 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
       <style jsx global>{`
         @page {
           size: A4;
-          margin: 15mm;
+          margin: 12mm;
         }
         
         @media print {
@@ -252,75 +251,75 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
         </div>
 
         {/* Main Content - Printable */}
-        <div id="printable-design" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Vintage Artisan Header Card */}
-          <div className="artisan-frame vintage-paper bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-yellow-800 artisan-border relative">
+        <div id="printable-design" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 print:py-4">
+          {/* Vintage Artisan Header Card - Compacter */}
+          <div className="artisan-frame vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl overflow-hidden mb-6 print:mb-4 print-avoid-break border-3 border-yellow-800 artisan-border relative">
             {/* Decorative corners */}
             <div className="artisan-corner artisan-corner-tl"></div>
             <div className="artisan-corner artisan-corner-tr"></div>
             <div className="artisan-corner artisan-corner-bl"></div>
             <div className="artisan-corner artisan-corner-br"></div>
             
-            {/* Decorative top border with pattern */}
-            <div className="bg-gradient-to-r from-yellow-900 via-amber-800 to-yellow-900 h-4 relative">
+            {/* Decorative top border */}
+            <div className="bg-gradient-to-r from-yellow-900 via-amber-800 to-yellow-900 h-2 relative">
               <div className="absolute inset-0 opacity-30" style={{
                 backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px)'
               }}></div>
             </div>
             
-            <div className="p-8 sm:p-12">
-              {/* Artisan decoration */}
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center space-x-4 text-yellow-800">
-                  <Brush className="w-6 h-6 opacity-60" />
-                  <Palette className="w-8 h-8 opacity-80" />
-                  <Scissors className="w-6 h-6 opacity-60" />
+            <div className="p-6 sm:p-8 print:p-6">
+              {/* Artisan decoration - Kleiner */}
+              <div className="text-center mb-3">
+                <div className="inline-flex items-center justify-center space-x-3 text-yellow-800">
+                  <Brush className="w-4 h-4 opacity-60" />
+                  <Palette className="w-5 h-5 opacity-80" />
+                  <Scissors className="w-4 h-4 opacity-60" />
                 </div>
               </div>
 
-              {/* Main Title with vintage typography */}
-              <h1 className="portfolio-title text-center text-4xl sm:text-5xl lg:text-6xl font-bold text-yellow-900 mb-4 tracking-wider">
+              {/* Main Title - Compacter */}
+              <h1 className="portfolio-title text-center text-3xl sm:text-4xl font-bold text-yellow-900 mb-2 tracking-wider print:text-3xl">
                 {design.title || 'Design'}
               </h1>
               
               {/* Category subtitle */}
               {design.subcategory && (
-                <p className="portfolio-subtitle text-center text-xl sm:text-2xl text-yellow-800 mb-6 font-light">
+                <p className="portfolio-subtitle text-center text-lg sm:text-xl text-yellow-800 mb-4 font-light print:text-lg print:mb-3">
                   {design.subcategory}
                 </p>
               )}
 
-              {/* Decorative divider line */}
-              <div className="flex items-center justify-center my-6">
+              {/* Decorative divider - Kleiner */}
+              <div className="flex items-center justify-center my-4 print:my-3">
                 <div className="h-px bg-gradient-to-r from-transparent via-yellow-700 to-transparent w-full max-w-md"></div>
-                <Sparkles className="w-8 h-8 mx-4 text-yellow-700 flex-shrink-0" />
+                <Sparkles className="w-6 h-6 mx-3 text-yellow-700 flex-shrink-0" />
                 <div className="h-px bg-gradient-to-r from-transparent via-yellow-700 to-transparent w-full max-w-md"></div>
               </div>
 
-              {/* Design Meta */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center mt-8">
+              {/* Design Meta - Compacter */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center mt-4 print:gap-2 print:mt-3">
                 {/* Category */}
                 {design.category && (
-                  <div className="border-2 border-yellow-300 rounded-lg p-4 bg-gradient-to-b from-white to-yellow-50">
-                    <div className="text-xs uppercase tracking-wider text-yellow-700 mb-2 font-semibold">Categorie</div>
-                    <div className="text-lg font-bold text-gray-800">{design.category}</div>
+                  <div className="border-2 border-yellow-300 rounded-lg p-3 bg-gradient-to-b from-white to-yellow-50 print:p-2">
+                    <div className="text-xs uppercase tracking-wider text-yellow-700 mb-1 font-semibold">Categorie</div>
+                    <div className="text-base font-bold text-gray-800">{design.category}</div>
                   </div>
                 )}
                 
                 {/* Dimensions */}
                 {design.dimensions && (
-                  <div className="border-2 border-yellow-300 rounded-lg p-4 bg-gradient-to-b from-white to-yellow-50">
-                    <div className="text-xs uppercase tracking-wider text-yellow-700 mb-2 font-semibold">
+                  <div className="border-2 border-yellow-300 rounded-lg p-3 bg-gradient-to-b from-white to-yellow-50 print:p-2">
+                    <div className="text-xs uppercase tracking-wider text-yellow-700 mb-1 font-semibold">
                       <Ruler className="w-4 h-4 inline mr-1" />
                       Afmetingen
                     </div>
-                    <div className="text-lg font-bold text-gray-800">{design.dimensions}</div>
+                    <div className="text-base font-bold text-gray-800">{design.dimensions}</div>
                   </div>
                 )}
               </div>
 
-              {/* Artist/Maker Info */}
-              <div className="mt-8 pt-6 border-t-2 border-yellow-300">
+              {/* Artist/Maker Info - Compacter */}
+              <div className="mt-4 pt-4 border-t-2 border-yellow-300 print:mt-3 print:pt-3">
                 <div className="flex items-center justify-center space-x-3">
                   <div className="text-xs uppercase tracking-wider text-yellow-700 font-semibold">Gemaakt door</div>
                   {design.user.profileImage ? (
@@ -344,24 +343,24 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
             </div>
             
             {/* Decorative bottom border */}
-            <div className="bg-gradient-to-r from-yellow-900 via-amber-800 to-yellow-900 h-4 relative">
+            <div className="bg-gradient-to-r from-yellow-900 via-amber-800 to-yellow-900 h-2 relative">
               <div className="absolute inset-0 opacity-30" style={{
                 backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px)'
               }}></div>
             </div>
           </div>
 
-          {/* Featured Image Gallery Style */}
+          {/* Featured Image - Compacter */}
           {mainPhoto && (
-            <div className="artisan-frame bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-yellow-700 relative">
+            <div className="artisan-frame bg-white rounded-none sm:rounded-2xl shadow-xl overflow-hidden mb-6 print:mb-4 print-avoid-break border-3 border-yellow-700 relative">
               <div className="artisan-corner artisan-corner-tl"></div>
               <div className="artisan-corner artisan-corner-tr"></div>
               <div className="artisan-corner artisan-corner-bl"></div>
               <div className="artisan-corner artisan-corner-br"></div>
               
-              {/* Gallery frame effect */}
-              <div className="p-4 bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100">
-                <div className="relative w-full bg-white p-2 shadow-inner" style={{ paddingTop: '75%' }}>
+              {/* Gallery frame - Compacter */}
+              <div className="p-3 bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100 print:p-2">
+                <div className="relative w-full bg-white p-2 shadow-inner" style={{ paddingTop: '66.67%' }}>
                   <Image
                     src={mainPhoto.url}
                     alt={design.title || 'Design'}
@@ -371,8 +370,8 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
                   />
                 </div>
                 {/* Exhibition label */}
-                <div className="mt-4 text-center bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3">
-                  <p className="portfolio-subtitle text-yellow-900 text-sm">
+                <div className="mt-3 text-center bg-yellow-50 border-2 border-yellow-300 rounded-lg p-2 print:p-1.5">
+                  <p className="portfolio-subtitle text-yellow-900 text-sm print:text-xs">
                     <Frame className="w-4 h-4 inline mr-2" />
                     {design.title}
                     {design.dimensions && <span className="text-xs ml-2">({design.dimensions})</span>}
@@ -382,44 +381,44 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
             </div>
           )}
 
-          {/* Description */}
+          {/* Description - Compacter */}
           {design.description && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-yellow-400">
-              <div className="flex items-center mb-6">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-yellow-400">
+              <div className="flex items-center mb-4 print:mb-3">
                 <div className="h-px bg-yellow-400 flex-grow"></div>
-                <h2 className="portfolio-title text-2xl sm:text-3xl font-bold text-yellow-900 px-4">
+                <h2 className="portfolio-title text-xl sm:text-2xl font-bold text-yellow-900 px-4 print:text-xl">
                   Over dit Ontwerp
                 </h2>
                 <div className="h-px bg-yellow-400 flex-grow"></div>
               </div>
-              <div className="prose prose-lg max-w-none">
-                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-justify portfolio-subtitle text-lg">
+              <div className="prose max-w-none">
+                <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-justify portfolio-subtitle text-base print:text-sm">
                   {design.description}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Materials & Process */}
+          {/* Materials - Compacter */}
           {design.materials && Array.isArray(design.materials) && design.materials.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-yellow-400">
-              <div className="flex items-center mb-8">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-yellow-400">
+              <div className="flex items-center mb-5 print:mb-4">
                 <div className="h-px bg-yellow-400 flex-grow"></div>
-                <h2 className="portfolio-title text-2xl font-bold text-yellow-900 px-4 flex items-center">
-                  <Layers className="w-6 h-6 mr-2 text-yellow-700" />
+                <h2 className="portfolio-title text-xl sm:text-2xl font-bold text-yellow-900 px-4 flex items-center print:text-xl">
+                  <Layers className="w-5 h-5 mr-2 text-yellow-700" />
                   Materialen & Technieken
                 </h2>
                 <div className="h-px bg-yellow-400 flex-grow"></div>
               </div>
               
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-6 border-2 border-yellow-300">
-                <ul className="space-y-3">
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-5 border-2 border-yellow-300 print:p-4">
+                <ul className="space-y-2 print:space-y-1.5">
                   {design.materials.map((material, index) => (
                     <li key={index} className="flex items-start gap-3 group">
                       <span className="w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 group-hover:bg-yellow-700 transition-colors">
                         {index + 1}
                       </span>
-                      <span className="text-gray-800 text-lg leading-relaxed">{material}</span>
+                      <span className="text-gray-800 text-base leading-relaxed print:text-sm">{material}</span>
                     </li>
                   ))}
                 </ul>
@@ -427,23 +426,23 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
             </div>
           )}
 
-          {/* Additional Photos Gallery */}
+          {/* Additional Photos - Compacter */}
           {otherPhotos.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-yellow-400">
-              <div className="flex items-center mb-8">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-yellow-400">
+              <div className="flex items-center mb-5 print:mb-4">
                 <div className="h-px bg-yellow-400 flex-grow"></div>
-                <h2 className="portfolio-title text-2xl sm:text-3xl font-bold text-yellow-900 px-4">
+                <h2 className="portfolio-title text-xl sm:text-2xl font-bold text-yellow-900 px-4 print:text-xl">
                   📸 Detailfoto's
                 </h2>
                 <div className="h-px bg-yellow-400 flex-grow"></div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 print:gap-3">
                 {otherPhotos.map((photo, index) => (
                   <div 
                     key={photo.id} 
-                    className="artisan-frame relative group bg-yellow-50 p-3 border-2 border-yellow-300 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all hover:scale-105"
+                    className="artisan-frame relative group bg-yellow-50 p-2 border-2 border-yellow-300 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all hover:scale-105 print:p-1.5"
                   >
-                    <div className="relative w-full h-48 bg-white">
+                    <div className="relative w-full h-40 bg-white print:h-32">
                       <Image
                         src={photo.url}
                         alt={`Detail ${index + 1}`}
@@ -460,45 +459,45 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
             </div>
           )}
 
-          {/* Notes */}
+          {/* Notes - Compacter */}
           {design.notes && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-yellow-400">
-              <div className="flex items-center mb-6">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-yellow-400">
+              <div className="flex items-center mb-4 print:mb-3">
                 <div className="h-px bg-yellow-400 flex-grow"></div>
-                <h2 className="portfolio-title text-2xl font-bold text-yellow-900 px-4">
+                <h2 className="portfolio-title text-xl sm:text-2xl font-bold text-yellow-900 px-4 print:text-xl">
                   💭 Maker's Notes
                 </h2>
                 <div className="h-px bg-yellow-400 flex-grow"></div>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-8 border-2 border-yellow-300 shadow-inner">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-yellow-300 shadow-inner print:p-4">
                 <div className="relative">
-                  <div className="absolute -top-4 -left-2 text-6xl text-yellow-300 opacity-50 font-serif">"</div>
+                  <div className="absolute -top-3 -left-1 text-5xl text-yellow-300 opacity-50 font-serif print:text-4xl">"</div>
                   <div className="relative z-10">
-                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed portfolio-subtitle text-lg pl-8">
+                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed portfolio-subtitle text-base pl-6 print:text-sm print:pl-5">
                       {design.notes}
                     </p>
                   </div>
-                  <div className="absolute -bottom-8 -right-2 text-6xl text-yellow-300 opacity-50 font-serif">"</div>
+                  <div className="absolute -bottom-6 -right-1 text-5xl text-yellow-300 opacity-50 font-serif print:text-4xl">"</div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tags */}
+          {/* Tags - Compacter */}
           {design.tags && design.tags.length > 0 && (
-            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-8 sm:p-10 mb-8 print-avoid-break border-2 border-yellow-400">
-              <div className="flex items-center mb-8">
+            <div className="vintage-paper bg-white rounded-none sm:rounded-2xl shadow-xl p-6 sm:p-8 mb-6 print:mb-4 print:p-5 print-avoid-break border-2 border-yellow-400">
+              <div className="flex items-center mb-5 print:mb-4">
                 <div className="h-px bg-yellow-400 flex-grow"></div>
-                <h2 className="portfolio-title text-2xl sm:text-3xl font-bold text-yellow-900 px-4">
+                <h2 className="portfolio-title text-xl sm:text-2xl font-bold text-yellow-900 px-4 print:text-xl">
                   🏷️ Kenmerken
                 </h2>
                 <div className="h-px bg-yellow-400 flex-grow"></div>
               </div>
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-2 justify-center print:gap-1.5">
                 {design.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-br from-yellow-100 to-amber-100 text-yellow-900 rounded-full text-sm font-bold border-2 border-yellow-500 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-br from-yellow-100 to-amber-100 text-yellow-900 rounded-full text-sm font-bold border-2 border-yellow-500 shadow-md hover:shadow-lg transition-all hover:scale-105 print:px-3 print:py-1.5 print:text-xs"
                   >
                     <span className="mr-2">✨</span>
                     {tag}
@@ -508,19 +507,51 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
             </div>
           )}
 
-          {/* Footer - Artisan Signature */}
-          <div className="text-center mt-12 mb-8 print-avoid-break">
-            <div className="inline-flex items-center justify-center space-x-4 text-yellow-700 opacity-60">
-              <Palette className="w-6 h-6" />
+          {/* HomeCheff Branding Footer */}
+          <div className="mt-8 pt-6 border-t-2 border-yellow-300 print:mt-6 print:pt-4">
+            <div className="flex flex-col items-center gap-3 print:gap-2">
+              <div className="flex items-center gap-3">
+                {/* HomeCheff Logo SVG */}
+                <div className="w-6 h-6 relative">
+                  <svg viewBox="0 0 60 60" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                      <path d="M15 10 Q20 5 25 10 L30 10 Q35 5 40 10 L40 20 Q40 25 35 25 L20 25 Q15 25 15 20 Z" fill="white" stroke="#1e40af" strokeWidth="2"/>
+                      <rect x="22" y="25" width="16" height="30" fill="white" stroke="#1e40af" strokeWidth="2" rx="2"/>
+                      <circle cx="30" cy="35" r="5" fill="white" stroke="#1e40af" strokeWidth="2"/>
+                      <circle cx="28" cy="33" r="1" fill="#1e40af"/>
+                      <circle cx="32" cy="33" r="1" fill="#1e40af"/>
+                      <path d="M26 37 Q30 40 34 37" stroke="#1e40af" strokeWidth="1.5" fill="none"/>
+                      <circle cx="30" cy="30" r="1" fill="#1e40af"/>
+                      <circle cx="30" cy="35" r="1" fill="#1e40af"/>
+                      <rect x="5" y="30" width="15" height="3" fill="#22c55e" stroke="#1e40af" strokeWidth="1" rx="1"/>
+                      <circle cx="5" cy="31.5" r="3" fill="#22c55e" stroke="#1e40af" strokeWidth="1"/>
+                      <circle cx="45" cy="35" r="10" fill="#3b82f6" stroke="#1e40af" strokeWidth="2"/>
+                      <path d="M35 35 Q45 30 55 35 M35 35 Q45 40 55 35" stroke="#22c55e" strokeWidth="1.5" fill="none"/>
+                      <path d="M45 25 Q50 35 45 45 M45 25 Q40 35 45 45" stroke="#22c55e" strokeWidth="1.5" fill="none"/>
+                      <path d="M48 20 Q50 15 52 20 M50 18 Q52 13 54 18 M52 16 Q54 11 56 16" stroke="white" strokeWidth="2" fill="none"/>
+                    </g>
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold bg-gradient-to-r from-yellow-700 to-amber-700 bg-clip-text text-transparent">
+                    HomeCheff
+                  </span>
+                  <span className="text-xs text-gray-500 -mt-1">
+                    Creatieve Lokale Talenten
+                  </span>
+                </div>
+              </div>
               <div className="text-center">
-                <p className="portfolio-subtitle text-lg text-yellow-900">
+                <p className="text-sm text-gray-600 font-medium">
+                  Gemaakt op HomeCheff Atelier
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
                   Handgemaakt met passie en aandacht
                 </p>
-                <p className="text-xs text-yellow-700 mt-1">
-                  HomeCheff Atelier
-                </p>
               </div>
-              <Brush className="w-6 h-6" />
+              <div className="text-xs text-gray-400 print:text-gray-600">
+                www.homecheff.nl
+              </div>
             </div>
           </div>
         </div>

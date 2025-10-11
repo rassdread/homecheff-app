@@ -72,42 +72,60 @@ const buyerTypes = [
   }
 ];
 
+interface UserProfile {
+  id: string;
+  name: string;
+  username: string;
+  bio?: string;
+  quote?: string;
+  place?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  gender?: string;
+  interests?: string[];
+  image?: string;
+  sellerRoles?: string[];
+  buyerRoles?: string[];
+  displayFullName?: boolean;
+  displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
+  encryptionEnabled?: boolean;
+  messageGuidelinesAccepted?: boolean;
+  messageGuidelinesAcceptedAt?: Date | null;
+  bankName?: string;
+  iban?: string;
+  accountHolderName?: string;
+}
+
 interface ProfileSettingsProps {
-  user: {
-    id: string;
-    name: string;
-    username: string;
-    bio?: string;
-    quote?: string;
-    place?: string;
-    address?: string;
-    city?: string;
-    postalCode?: string;
-    country?: string;
-    gender?: string;
-    interests?: string[];
-    image?: string;
-    sellerRoles?: string[];
-    buyerRoles?: string[];
-    displayFullName?: boolean;
-    displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
-    encryptionEnabled?: boolean;
-    messageGuidelinesAccepted?: boolean;
-    messageGuidelinesAcceptedAt?: Date | null;
-    bankName?: string;
-    iban?: string;
-    accountHolderName?: string;
-  };
-  onSave: (data: any) => Promise<void>;
+  user: UserProfile;
+  onSave: (data: Partial<UserProfile>) => Promise<void>;
 }
 
 export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [addressLookup, setAddressLookup] = useState({
+  interface AddressLookupState {
+    isLookingUp: boolean;
+    error: string | null;
+    success: boolean;
+    foundAddress: {
+      straatnaam?: string;
+      huisnummer?: string;
+      postcode?: string;
+      plaats?: string;
+      formatted_address?: string;
+      city?: string;
+      lat?: number;
+      lng?: number;
+    } | null;
+  }
+
+  const [addressLookup, setAddressLookup] = useState<AddressLookupState>({
     isLookingUp: false,
-    error: null as string | null,
+    error: null,
     success: false,
-    foundAddress: null as any,
+    foundAddress: null,
   });
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -127,7 +145,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     displayNameOption: user?.displayNameOption || 'full',
     encryptionEnabled: user?.encryptionEnabled || false,
     messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
-    // Bank details
     bankName: user?.bankName || '',
     iban: user?.iban || '',
     accountHolderName: user?.accountHolderName || ''
@@ -153,7 +170,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     }
   };
 
-  // Nederlandse postcode lookup functie
   const lookupDutchAddress = async () => {
     if (!formData.postalCode || !formData.address) {
       setAddressLookup({
@@ -165,7 +181,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       return;
     }
 
-    // Extract huisnummer from address (nu alleen het nummer, geen straatnaam)
     const huisnummerMatch = formData.address.match(/(\d+)/);
     if (!huisnummerMatch) {
       setAddressLookup({
@@ -199,7 +214,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
       const addressData = await response.json();
 
-      // Store the found address for display
       setAddressLookup({
         isLookingUp: false,
         error: null,
@@ -218,7 +232,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     }
   };
 
-  // Globale adres lookup functie voor alle landen
   const lookupGlobalAddress = async () => {
     if (!formData.address || !formData.city) {
       setAddressLookup({
@@ -261,7 +274,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         throw new Error(addressData.message || 'Adres niet gevonden');
       }
 
-      // Store the found address for display
       setAddressLookup({
         isLookingUp: false,
         error: null,
@@ -280,42 +292,35 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     }
   };
 
-  // Bepaal welke lookup functie te gebruiken op basis van land
   const getAddressLookupFunction = () => {
     return formData.country === 'NL' ? lookupDutchAddress : lookupGlobalAddress;
   };
 
-  // Bepaal of we Nederlandse postcode+huisnummer velden moeten tonen
   const isDutchAddressFormat = formData.country === 'NL';
 
-  // Automatische adres lookup wanneer adresgegevens zijn ingevoerd
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (!addressLookup.isLookingUp && !addressLookup.success && isEditing) {
         if (isDutchAddressFormat) {
-          // Nederlandse postcode + huisnummer lookup
           if (formData.postalCode && formData.address) {
             const cleanPostcode = formData.postalCode.replace(/\s/g, '').toUpperCase();
             if (/^\d{4}[A-Z]{2}$/.test(cleanPostcode)) {
               const huisnummerMatch = formData.address.match(/^(\d+)$/);
               if (huisnummerMatch) {
-                console.log('Auto-triggering Dutch address lookup in ProfileSettings...');
                 lookupDutchAddress();
               }
             }
           }
         } else {
-          // Internationale straat + stad lookup
           if (formData.address && formData.city && formData.address.length > 3 && formData.city.length > 2) {
-            console.log('Auto-triggering global address lookup in ProfileSettings...');
             lookupGlobalAddress();
           }
         }
       }
-    }, 1500); // 1.5 second delay after user stops typing
+    }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [formData.postalCode, formData.address, formData.city, formData.country, isEditing, isDutchAddressFormat]);
+  }, [formData.postalCode, formData.address, formData.city, formData.country, isEditing]);
 
   const handleCancel = () => {
     setFormData({
@@ -561,9 +566,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             🔒 Deze gegevens zijn privé en worden alleen gebruikt voor het berekenen van afstanden tot producten
           </p>
           
-          {/* Dynamische adres velden op basis van land */}
           {isDutchAddressFormat ? (
-            // Nederlandse postcode + huisnummer format
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -614,7 +617,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               </div>
             </div>
           ) : (
-            // Internationale straat + stad format
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -666,7 +668,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             </div>
           )}
           
-          {/* Address Lookup Status */}
           {addressLookup.error && (
             <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center">
@@ -684,45 +685,39 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-green-800 mb-2">Adres gevonden!</h4>
-                  <div className="text-sm text-green-700 space-y-1">
-                    {isDutchAddressFormat ? (
-                      // Nederlandse adres format
-                      <>
-                        <div className="font-medium">{addressLookup.foundAddress.straatnaam} {addressLookup.foundAddress.huisnummer}</div>
-                        <div>{addressLookup.foundAddress.postcode} {addressLookup.foundAddress.plaats}</div>
-                      </>
-                    ) : (
-                      // Internationale adres format
-                      <>
-                        <div className="font-medium">{addressLookup.foundAddress.formatted_address}</div>
-                        <div className="text-xs text-green-600">
-                          Coördinaten: {addressLookup.foundAddress.lat?.toFixed(6)}, {addressLookup.foundAddress.lng?.toFixed(6)}
-                        </div>
-                      </>
-                    )}
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-green-800 mb-2">Adres gevonden!</h4>
+                    <div className="text-sm text-green-700 space-y-1">
+                      {isDutchAddressFormat ? (
+                        <>
+                          <div className="font-medium">{addressLookup.foundAddress.straatnaam} {addressLookup.foundAddress.huisnummer}</div>
+                          <div>{addressLookup.foundAddress.postcode} {addressLookup.foundAddress.plaats}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-medium">{addressLookup.foundAddress.formatted_address}</div>
+                          <div className="text-xs text-green-600">
+                            Coördinaten: {addressLookup.foundAddress.lat?.toFixed(6)}, {addressLookup.foundAddress.lng?.toFixed(6)}
+                          </div>
+                        </>
+                      )}
                     <div className="text-xs text-green-600 mt-2">
                       <button
                         type="button"
                         onClick={() => {
-                          if (isDutchAddressFormat) {
-                            // Nederlandse adres data
+                          if (isDutchAddressFormat && addressLookup.foundAddress) {
                             setFormData(prev => ({
                               ...prev,
-                              address: addressLookup.foundAddress.straatnaam + ' ' + addressLookup.foundAddress.huisnummer,
-                              city: addressLookup.foundAddress.plaats,
-                              place: addressLookup.foundAddress.plaats, // Voor afstandsberekening
-                              location: addressLookup.foundAddress.plaats, // Zichtbare locatie
+                              address: `${addressLookup.foundAddress!.straatnaam} ${addressLookup.foundAddress!.huisnummer}`,
+                              city: addressLookup.foundAddress!.plaats || '',
+                              place: addressLookup.foundAddress!.plaats || '',
                             }));
-                          } else {
-                            // Internationale adres data
+                          } else if (addressLookup.foundAddress) {
                             setFormData(prev => ({
                               ...prev,
-                              address: addressLookup.foundAddress.formatted_address,
-                              city: addressLookup.foundAddress.city,
-                              place: addressLookup.foundAddress.city, // Voor afstandsberekening
-                              location: addressLookup.foundAddress.city, // Zichtbare locatie
+                              address: addressLookup.foundAddress!.formatted_address || '',
+                              city: addressLookup.foundAddress!.city || '',
+                              place: addressLookup.foundAddress!.city || '',
                             }));
                           }
                           setAddressLookup(prev => ({ ...prev, success: false, foundAddress: null }));
@@ -735,23 +730,6 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Stad veld alleen voor internationale landen */}
-          {!isDutchAddressFormat && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stad
-              </label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                disabled={!isEditing}
-                placeholder="Bijv. Amsterdam"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-              />
             </div>
           )}
         </div>

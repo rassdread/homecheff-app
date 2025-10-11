@@ -328,3 +328,6 @@ Prisma DB → app/design/[id]/page.tsx → DesignView.tsx
 
 *Laat je creaties stralen met dit prachtige portfolio design!*
 
+
+
+

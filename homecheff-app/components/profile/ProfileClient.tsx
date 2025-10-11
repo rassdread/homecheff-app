@@ -67,7 +67,6 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
-  // Always start with overview tab since messages/orders/fans are now in header menu
   const [activeTab, setActiveTab] = useState('overview');
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
@@ -87,7 +86,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   const [showWelcome, setShowWelcome] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
-  // Functie om profielfoto bij te werken
   const handlePhotoChange = async (newPhotoUrl: string | null) => {
     try {
       const response = await fetch('/api/profile/photo', {
@@ -102,8 +100,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
       if (response.ok) {
         setProfileImage(newPhotoUrl);
-        
-        // Reload pagina om alle wijzigingen te tonen (inclusief session update)
         window.location.reload();
       } else {
         console.error('Failed to update profile photo');
@@ -113,14 +109,12 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     }
   };
 
-  // Check for welcome message
   useEffect(() => {
     if (searchParams?.welcome === 'true' && searchParams?.newUser === 'true') {
       setShowWelcome(true);
     }
   }, [searchParams]);
 
-  // Fetch profile statistics
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/profile/stats');
@@ -139,14 +133,12 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     fetchStats();
   }, []);
 
-  // Refresh stats when switching to overview tab
   useEffect(() => {
     if (activeTab === 'overview') {
       fetchStats();
     }
   }, [activeTab]);
 
-  // Dynamische tabs op basis van gebruikerstype
   const getTabs = () => {
     const baseTabs = [
       { id: 'overview', label: 'Overzicht', icon: Grid }
@@ -156,7 +148,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     const roleSpecificTabs: Tab[] = [];
     const workspaceTab: Tab[] = [];
 
-    // Voeg aparte tabs toe voor elke verkoperrol (Mijn...)
     if (sellerRoles.includes('chef')) {
       roleSpecificTabs.push({ id: 'dishes-chef', label: 'Mijn Keuken', icon: Plus, role: 'chef' });
     }
@@ -167,30 +158,25 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       roleSpecificTabs.push({ id: 'dishes-designer', label: 'Mijn Atelier', icon: Plus, role: 'designer' });
     }
 
-    // Voeg Werkruimte tab toe als er verkoper rollen zijn
     if (sellerRoles.length > 0) {
       workspaceTab.push({ id: 'workspace', label: 'Werkruimte', icon: Grid });
     }
 
-    // Als geen specifieke rollen, voeg generieke tab toe
     if (roleSpecificTabs.length === 0 && user?.role === 'SELLER') {
       roleSpecificTabs.push({ id: 'dishes', label: 'Mijn Items', icon: Plus, role: 'generic' });
     }
 
-    // Combineer tabs: Overzicht, dan Werkruimte, dan Mijn tabs
     return [
-      baseTabs[0], // Overzicht
-      ...workspaceTab, // Werkruimte
-      ...roleSpecificTabs // Mijn Keuken, Mijn Tuin, Mijn Atelier
+      baseTabs[0],
+      ...workspaceTab,
+      ...roleSpecificTabs
     ];
   };
 
   const tabs = getTabs();
 
-  const handleProfileSave = async (data: any) => {
+  const handleProfileSave = async (data: Partial<User>) => {
     try {
-      console.log('Saving profile data:', data);
-      
       const response = await fetch('/api/profile/update', {
         method: 'PUT',
         headers: {
@@ -198,21 +184,15 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         },
         body: JSON.stringify(data),
       });
-
-      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error:', errorData);
+        console.error('Profile update error:', errorData);
         throw new Error(errorData.error || 'Er is een fout opgetreden');
       }
 
       const result = await response.json();
-      console.log('Success result:', result);
-      
-      // Update local user data
-      // You might want to trigger a page refresh or update the user state here
-      window.location.reload(); // Simple refresh for now
+      window.location.reload();
       
       return result;
     } catch (error) {
@@ -222,18 +202,15 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   };
 
   const handlePasswordUpdate = async (currentPassword: string, newPassword: string) => {
-    // TODO: Implement password update API
-    console.log('Updating password');
+    return Promise.resolve();
   };
 
   const handleEmailUpdate = async (newEmail: string) => {
-    // TODO: Implement email update API
-    console.log('Updating email:', newEmail);
+    return Promise.resolve();
   };
 
-  const handleNotificationSettingsUpdate = async (settings: any) => {
-    // TODO: Implement notification settings update API
-    console.log('Updating notification settings:', settings);
+  const handleNotificationSettingsUpdate = async (settings: Record<string, boolean>) => {
+    return Promise.resolve();
   };
 
   const renderSettingsContent = () => {
