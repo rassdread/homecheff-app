@@ -78,6 +78,10 @@ export async function GET(request: NextRequest) {
       servings: dish.servings,
       difficulty: dish.difficulty,
       tags: dish.tags,
+      // Design-specific fields
+      materials: dish.materials,
+      dimensions: dish.dimensions,
+      notes: dish.notes,
       photos: [
         ...dish.photos.map(photo => ({
           id: photo.id,
@@ -143,11 +147,15 @@ export async function POST(req: NextRequest) {
       prepTime,
       servings,
       difficulty,
-      tags
+      tags,
+      // Design-specific fields
+      materials,
+      dimensions,
+      notes
     } = body;
 
-    if (!title || !description) {
-      return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     // Create a new dish instead of listing
@@ -173,6 +181,10 @@ export async function POST(req: NextRequest) {
         servings: servings || null,
         difficulty: difficulty || null,
         tags: tags || [],
+        // Design-specific fields
+        materials: materials || [],
+        dimensions: dimensions || null,
+        notes: notes || null,
       },
     });
 

@@ -65,6 +65,10 @@ export async function GET(
       servings: dish.servings,
       difficulty: dish.difficulty,
       tags: dish.tags,
+      // Design-specific fields
+      materials: dish.materials,
+      dimensions: dish.dimensions,
+      notes: dish.notes,
       photos: [
         ...dish.photos.map(photo => ({
           id: photo.id,
@@ -134,7 +138,11 @@ export async function PATCH(
       prepTime,
       servings,
       difficulty,
-      tags
+      tags,
+      // Design-specific fields
+      materials,
+      dimensions,
+      notes
     } = body;
 
     // Check if dish belongs to this user
@@ -173,6 +181,11 @@ export async function PATCH(
     if (servings !== undefined) updateData.servings = servings;
     if (difficulty !== undefined) updateData.difficulty = difficulty;
     if (tags !== undefined) updateData.tags = tags;
+    
+    // Design-specific fields
+    if (materials !== undefined) updateData.materials = materials;
+    if (dimensions !== undefined) updateData.dimensions = dimensions;
+    if (notes !== undefined) updateData.notes = notes;
 
     const updatedDish = await prisma.dish.update({
       where: { id: id },

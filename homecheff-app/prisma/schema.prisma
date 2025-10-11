@@ -639,6 +639,10 @@ model Dish {
   prepTime       Int?
   servings       Int?
   tags           String[]            @default([])
+  // Design-specific fields
+  materials      String[]            @default([])
+  dimensions     String?
+  // Garden-specific fields
   growthDuration Int?
   harvestDate    String?
   location       String?
