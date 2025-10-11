@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -101,7 +102,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
       if (response.ok) {
         setProfileImage(newPhotoUrl);
-        // Optioneel: pagina herladen om wijzigingen te tonen
+        
+        // Reload pagina om alle wijzigingen te tonen (inclusief session update)
         window.location.reload();
       } else {
         console.error('Failed to update profile photo');

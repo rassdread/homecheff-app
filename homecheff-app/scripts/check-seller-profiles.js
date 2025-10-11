@@ -1,55 +1,118 @@
+// Script om users te checken die seller roles hebben maar geen SellerProfile
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
 async function checkSellerProfiles() {
+  console.log('🔍 Checking users with seller roles but missing SellerProfile...\n');
+
   try {
-    console.log('🔍 Checking seller profiles...');
-
-    // Get all users
-    const users = await prisma.user.findMany({
-      include: { SellerProfile: true },
-      where: { role: 'SELLER' }
-    });
-
-    console.log(`👥 Found ${users.length} seller users:`);
-    
-    users.forEach((user, index) => {
-      console.log(`${index + 1}. ${user.name || user.email}`);
-      console.log(`   - ID: ${user.id}`);
-      console.log(`   - SellerProfile: ${user.SellerProfile ? 'EXISTS' : 'MISSING'}`);
-      if (user.SellerProfile) {
-        console.log(`   - SellerProfile ID: ${user.SellerProfile.id}`);
+    // Find users with seller roles
+    const usersWithSellerRoles = await prisma.user.findMany({
+      where: {
+        OR: [
+          { role: 'SELLER' },
+          { sellerRoles: { has: 'chef' } },
+          { sellerRoles: { has: 'garden' } },
+          { sellerRoles: { has: 'designer' } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        role: true,
+        sellerRoles: true,
+        SellerProfile: {
+          select: {
+            id: true,
+            displayName: true
+          }
+        }
       }
-      console.log('');
     });
 
-    // Get all seller profiles
-    const sellerProfiles = await prisma.sellerProfile.findMany({
-      include: { User: true }
+    console.log(`📦 Found ${usersWithSellerRoles.length} users with seller roles\n`);
+
+    const missingProfiles = [];
+    const hasProfiles = [];
+
+    usersWithSellerRoles.forEach(user => {
+      if (user.SellerProfile) {
+        hasProfiles.push(user);
+      } else {
+        missingProfiles.push(user);
+      }
     });
 
-    console.log(`🏪 Found ${sellerProfiles.length} seller profiles:`);
-    
-    sellerProfiles.forEach((profile, index) => {
-      console.log(`${index + 1}. SellerProfile ID: ${profile.id}`);
-      console.log(`   - User ID: ${profile.userId}`);
-      console.log(`   - User Name: ${profile.User?.name || profile.User?.email}`);
-      console.log('');
+    console.log(`✅ Users WITH SellerProfile: ${hasProfiles.length}`);
+    hasProfiles.forEach(user => {
+      console.log(`   - ${user.name || user.username} (${user.email}) - ${user.SellerProfile.displayName || 'No display name'}`);
     });
 
-    // Check if there are any orphaned seller profiles
-    const orphanedProfiles = sellerProfiles.filter(profile => !profile.User);
-    if (orphanedProfiles.length > 0) {
-      console.log(`⚠️  Found ${orphanedProfiles.length} orphaned seller profiles`);
+    console.log(`\n❌ Users MISSING SellerProfile: ${missingProfiles.length}`);
+    missingProfiles.forEach(user => {
+      console.log(`   - ${user.name || user.username} (${user.email})`);
+      console.log(`     Role: ${user.role}, SellerRoles: ${user.sellerRoles?.join(', ') || 'none'}`);
+    });
+
+    if (missingProfiles.length > 0) {
+      console.log('\n🔧 To fix missing SellerProfiles, run:');
+      console.log('node scripts/create-missing-seller-profiles.js\n');
     }
 
-    // Check if there are users without seller profiles
-    const usersWithoutProfiles = users.filter(user => !user.SellerProfile);
-    if (usersWithoutProfiles.length > 0) {
-      console.log(`⚠️  Found ${usersWithoutProfiles.length} seller users without profiles`);
-    }
-    
+    // Also check garden project users specifically
+    console.log('\n🌱 Checking garden project owners...');
+    const gardenProjectUsers = await prisma.dish.findMany({
+      where: {
+        category: 'GROWN'
+      },
+      include: {
+        user: {
+          include: {
+            SellerProfile: true
+          },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            role: true,
+            sellerRoles: true,
+            SellerProfile: {
+              select: {
+                id: true,
+                businessName: true
+              }
+            }
+          }
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        user: true
+      }
+    });
+
+    const uniqueUsers = new Map();
+    gardenProjectUsers.forEach(project => {
+      const user = project.user;
+      if (!uniqueUsers.has(user.id)) {
+        uniqueUsers.set(user.id, user);
+      }
+    });
+
+    console.log(`📋 Garden project owners (${uniqueUsers.size} unique users):`);
+    Array.from(uniqueUsers.values()).forEach(user => {
+      const hasProfile = user.SellerProfile ? '✅' : '❌';
+      console.log(`   ${hasProfile} ${user.name || user.username} (${user.email})`);
+      if (!user.SellerProfile) {
+        console.log(`      Role: ${user.role}, SellerRoles: ${user.sellerRoles?.join(', ') || 'none'}`);
+      }
+    });
+
   } catch (error) {
     console.error('❌ Error checking seller profiles:', error);
   } finally {
@@ -58,6 +121,3 @@ async function checkSellerProfiles() {
 }
 
 checkSellerProfiles();
-
-
-

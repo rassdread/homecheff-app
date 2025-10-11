@@ -16,25 +16,25 @@ export default function RedirectAfterLogin() {
     if (session?.user) {
       const user = session.user as any;
       
-      // Only redirect if we have specific URL parameters indicating a fresh login
-      const isFromLogin = window.location.search.includes('callbackUrl') || 
-                         window.location.search.includes('error') ||
-                         window.location.search.includes('welcome') ||
-                         document.referrer.includes('/login') ||
-                         document.referrer.includes('/auth/signin');
+      // Only redirect ADMINS and DELIVERY users - let SELLERS and BUYERS stay on homepage
+      // Check if user came from login or has specific callback URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasCallbackUrl = urlParams.has('callbackUrl');
+      const hasError = urlParams.has('error');
       
-      if (isFromLogin) {
+      // Only redirect if explicitly coming from auth flow (not just welcome parameter)
+      const isFromAuthFlow = hasCallbackUrl || hasError || document.referrer.includes('/auth/signin');
+      
+      if (isFromAuthFlow) {
         hasRedirected.current = true;
         
-        // Redirect based on user role
+        // Only redirect ADMIN and DELIVERY users - SELLERS and BUYERS stay on homepage
         if (user.role === 'ADMIN') {
           router.push('/admin');
-        } else if (user.role === 'SELLER') {
-          router.push('/profile');
         } else if (user.role === 'DELIVERY') {
           router.push('/delivery/dashboard');
         }
-        // For BUYER or other roles, stay on homepage
+        // For SELLER and BUYER roles, stay on homepage
       }
     }
   }, [session, status, router]);

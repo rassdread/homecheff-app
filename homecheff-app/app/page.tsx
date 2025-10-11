@@ -99,6 +99,34 @@ function HomePageContent() {
       currentUrl: window.location.href
     });
   }, [session, status]);
+
+  // Check if user needs to complete onboarding (new social login user)
+  // Only run this check ONCE when the component first mounts
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      const needsOnboarding = (session.user as any)?.needsOnboarding;
+      const username = (session.user as any)?.username;
+      const hasTempUsername = username?.startsWith('temp_');
+      const urlParams = new URLSearchParams(window.location.search);
+      const isFromAuth = urlParams.has('callbackUrl') || urlParams.has('error');
+      
+      console.log('🔍 Homepage onboarding check:', { 
+        needsOnboarding, 
+        username, 
+        hasTempUsername,
+        isFromAuth
+      });
+      
+      // Only redirect if user actually needs onboarding AND came from auth flow
+      // This prevents redirect loops when user navigates to homepage normally
+      if (needsOnboarding && hasTempUsername && isFromAuth) {
+        console.log('🔄 User needs onboarding, redirecting...');
+        window.location.href = '/social-login-success';
+      } else {
+        console.log('✅ User staying on homepage');
+      }
+    }
+  }, [session, status]);
   const [username, setUsername] = useState<string>("");
   const [userCountry, setUserCountry] = useState<string>("NL");
   const [items, setItems] = useState<HomeItem[]>([]);

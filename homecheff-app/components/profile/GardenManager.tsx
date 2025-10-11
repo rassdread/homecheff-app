@@ -180,24 +180,47 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
     try {
       setLoading(true);
       const apiUrl = userId ? `/api/profile/garden?userId=${userId}` : '/api/profile/garden';
+      console.log('🔍 Loading garden projects from:', apiUrl, '| isPublic:', isPublic);
+      
       const response = await fetch(apiUrl);
+      
       if (response.ok) {
         const data = await response.json();
         const items = data.items || [];
+        console.log(`📦 Received ${items.length} items from API`);
+        
+        // Log all items to see what's coming from the API
+        items.forEach((item: any, index: number) => {
+          console.log(`Item ${index}:`, {
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            status: item.status,
+            photosCount: item.photos?.length || 0
+          });
+        });
         
         // Transform items to projects
         const gardenProjects: GardenProject[] = items
           .filter((item: any) => {
-            // ONLY show GROWN category items (not chef or designer)
-            if (item.category !== 'GROWN') return false;
+            // Log each filter decision
+            if (item.category !== 'GROWN') {
+              console.log(`❌ Filtering out item "${item.title}" - wrong category: ${item.category}`);
+              return false;
+            }
             
             // In public mode, only show published projects
             if (isPublic) {
-              return item.status === 'PUBLISHED';
+              const shouldShow = item.status === 'PUBLISHED';
+              console.log(`${shouldShow ? '✅' : '❌'} Public mode - item "${item.title}" status: ${item.status}`);
+              return shouldShow;
             }
+            
             // In private mode, only show PRIVATE projects (not sold as products)
             // Products that are sold are shown in the "Live" tab via ProductManagement
-            return item.status === 'PRIVATE';
+            const shouldShow = item.status === 'PRIVATE';
+            console.log(`${shouldShow ? '✅' : '❌'} Private mode - item "${item.title}" status: ${item.status}`);
+            return shouldShow;
           })
           .map((item: any) => ({
             id: item.id,
@@ -236,13 +259,16 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
             updatedAt: item.updatedAt
           }));
         
+        console.log(`✅ Loaded ${gardenProjects.length} garden projects after filtering`);
         setProjects(gardenProjects);
       } else {
-        console.error('Failed to load garden projects');
+        console.error('❌ Failed to load garden projects - HTTP', response.status);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Error response:', errorText);
         setProjects([]);
       }
     } catch (error) {
-      console.error('Error loading garden projects:', error);
+      console.error('❌ Error loading garden projects:', error);
       setProjects([]);
     } finally {
       setLoading(false);
@@ -288,11 +314,13 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
       // Use main photos from formData and growth photos from state
       const mainPhotos = projectData.photos.filter(photo => !photo.phaseNumber);
 
-      console.log('Saving garden project with payload:', {
+      console.log('🌱 Saving garden project with payload:', {
         title: projectData.title,
         category: 'GROWN',
+        status: projectData.isPrivate ? 'PRIVATE' : 'PUBLISHED',
         photosCount: mainPhotos.length,
-        growthPhotosCount: growthPhotos.length
+        growthPhotosCount: growthPhotos.length,
+        isEditing: editingProject !== null
       });
 
       const payload = {
@@ -334,10 +362,14 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
         notes: projectData.notes
       };
 
+      console.log('📤 Full payload being sent:', JSON.stringify(payload, null, 2));
+
       // Use PATCH for updating existing project, POST for creating new one
       const isEditing = editingProject !== null;
       const url = isEditing ? `/api/profile/garden/${editingProject.id}` : '/api/profile/garden';
       const method = isEditing ? 'PATCH' : 'POST';
+
+      console.log(`📡 Sending ${method} request to ${url}`);
 
       const response = await fetch(url, {
         method: method,
@@ -347,11 +379,12 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
         body: JSON.stringify(payload)
       });
 
-      console.log('Garden API response status:', response.status);
+      console.log('✅ Garden API response status:', response.status);
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Garden project saved successfully:', result);
+        console.log('✅ Garden project saved successfully:', result);
+        
         // Reset form
         setFormData({
           title: '',
@@ -374,18 +407,20 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
         setGrowthPhotos([]); // Reset growth photos
         setShowForm(false);
         setEditingProject(null);
-        setMessage({ type: 'success', text: isEditing ? 'Kweek bijgewerkt!' : 'Kweek opgeslagen!' });
+        setMessage({ type: 'success', text: isEditing ? '✅ Kweek bijgewerkt!' : '✅ Kweek opgeslagen!' });
         
         // Reload projects
+        console.log('🔄 Reloading projects...');
         await loadProjects();
+        console.log('✅ Projects reloaded');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Garden API error:', errorData);
-        setMessage({ type: 'error', text: errorData.error || 'Fout bij opslaan van kweek' });
+        console.error('❌ Garden API error:', response.status, errorData);
+        setMessage({ type: 'error', text: errorData.error || `Fout bij opslaan van kweek (${response.status})` });
       }
     } catch (error) {
-      console.error('Error saving garden project:', error);
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Fout bij opslaan van kweek' });
+      console.error('❌ Error saving garden project:', error);
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Onbekende fout bij opslaan van kweek' });
     }
   };
 
@@ -988,12 +1023,13 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
           {filteredProjects.map(project => (
             <div
               key={project.id}
-              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow ${
+              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group ${
                 viewMode === 'list' ? 'flex' : ''
               }`}
+              onClick={() => window.location.href = `/garden/${project.id}`}
             >
               {/* Project Image */}
-              <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center relative`}>
+              <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center relative group-hover:opacity-95 transition-opacity`}>
                 {project.photos.length > 0 ? (
                   <img
                     src={project.photos[0].url}
@@ -1075,7 +1111,8 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
                     </span>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           // Load and edit project
                           setEditingProject(project);
                           const mainPhotos = (project.photos || []).filter(photo => !photo.phaseNumber);
@@ -1104,19 +1141,27 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
                           setShowForm(true);
                         }}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Bewerken"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleSellGardenProject(project)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSellGardenProject(project);
+                        }}
                         className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
                         title="Kweek te koop aanbieden"
                       >
                         <ShoppingCart className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteProject(project.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProject(project.id);
+                        }}
                         className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Verwijderen"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

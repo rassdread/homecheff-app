@@ -43,20 +43,36 @@ function LoginForm() {
     }
     
     // Only validate email format if login method is email
-    if (state.loginMethod === 'email' && !state.emailOrUsername.match(/^[^@]+@[^@]+\.[^@]+$/)) {
-      setState({
-        ...state,
-        error: "Voer een geldig e-mailadres in.",
-        success: false,
-      });
-      return;
+    if (state.loginMethod === 'email') {
+      if (!state.emailOrUsername.match(/^[^@]+@[^@]+\.[^@]+$/)) {
+        setState({
+          ...state,
+          error: "Voer een geldig e-mailadres in.",
+          success: false,
+        });
+        return;
+      }
+    } else {
+      // Validate username format
+      if (state.emailOrUsername.length < 3) {
+        setState({
+          ...state,
+          error: "Gebruikersnaam moet minimaal 3 karakters bevatten.",
+          success: false,
+        });
+        return;
+      }
     }
 
     setState({ ...state, isLoading: true, error: null });
 
     try {
-      // Clear all user data before login to prevent data leakage
-      clearAllUserData();
+      // Clear all user data before login to prevent data leakage (only once per session)
+      const hasCleared = sessionStorage.getItem('login_cleared');
+      if (!hasCleared) {
+        clearAllUserData();
+        sessionStorage.setItem('login_cleared', 'true');
+      }
       
       const result = await signIn("credentials", {
         redirect: false,
@@ -75,6 +91,9 @@ function LoginForm() {
       }
 
       setState({ ...state, error: null, success: true, isLoading: false });
+      
+      // Clear the login cleared flag
+      sessionStorage.removeItem('login_cleared');
       
       // Force session refresh and redirect
       window.location.href = '/?welcome=true';

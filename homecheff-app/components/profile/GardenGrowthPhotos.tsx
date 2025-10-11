@@ -77,7 +77,7 @@ export default function GardenGrowthPhotos({
         id: `temp-${Date.now()}-${i}`,
         url: previewUrl,
         phaseNumber: phaseNumber,
-        description: phase?.name || `Fase ${phaseNumber + 1}`,
+        description: '', // Start empty, user can add description
         idx: phasePhotosCount.length
       };
       
@@ -172,25 +172,28 @@ export default function GardenGrowthPhotos({
                 </div>
               </div>
 
-              {/* Phase Photos - Small format next to phase */}
-              {phasePhotos.length > 0 && (
-                <div className="flex gap-2 flex-shrink-0">
-                  {phasePhotos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="relative group w-16 h-16 bg-white rounded-lg overflow-hidden border-2 border-green-300 shadow-sm"
-                    >
+            </div>
+
+            {/* Phase Photos Grid - Below phase header */}
+            {phasePhotos.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+                {phasePhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="relative group bg-white rounded-lg overflow-hidden border-2 border-green-300 shadow-sm"
+                  >
+                    <div className="aspect-square relative">
                       <img
                         src={photo.url}
-                        alt={`${phase.name} foto`}
+                        alt={photo.description || `${phase.name} foto`}
                         className="w-full h-full object-cover"
                       />
                       
                       {/* Action Buttons */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => removePhoto(photo.id)}
-                          className="p-1 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"
+                          className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
                           title="Verwijder foto"
                         >
                           <X className="w-3 h-3" />
@@ -199,17 +202,34 @@ export default function GardenGrowthPhotos({
                       
                       {/* Upload Progress Indicator */}
                       {photo.url.startsWith('blob:') && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white text-xs p-1">
-                          <div className="flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-2 w-2 border-b border-white"></div>
+                        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                            <p className="text-xs">Uploaden...</p>
                           </div>
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    
+                    {/* Photo Description */}
+                    <div className="p-2">
+                      <input
+                        type="text"
+                        value={photo.description || ''}
+                        onChange={(e) => {
+                          const updatedPhotos = photos.map(p => 
+                            p.id === photo.id ? { ...p, description: e.target.value } : p
+                          );
+                          onPhotosChange(updatedPhotos);
+                        }}
+                        placeholder="Beschrijving (optioneel)"
+                        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Compact Add Photo Button */}
             {canAddMore && (

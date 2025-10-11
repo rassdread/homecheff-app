@@ -19,8 +19,6 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  // Force disable secure cookies to fix prefix issues
-  useSecureCookies: false,
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
@@ -28,16 +26,15 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: false
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     callbackUrl: {
       name: `next-auth.callback-url`,
       options: {
-        httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: false
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     csrfToken: {
@@ -46,7 +43,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: false
+        secure: process.env.NODE_ENV === 'production'
       }
     }
   },
@@ -149,71 +146,12 @@ export const authOptions: NextAuthOptions = {
             profile: profile 
           });
 
-          // Check if user exists
+          // Check if user exists in database
           let existingUser = await prisma.user.findUnique({
             where: { email: user.email! }
           });
 
-          if (!existingUser) {
-            // Extract enhanced profile information
-            const nameParts = (user.name || "").split(" ");
-            const firstName = nameParts[0] || "";
-            const lastName = nameParts.slice(1).join(" ") || "";
-            
-            // Generate unique username
-            const baseUsername = user.email!.split('@')[0];
-            let username = baseUsername;
-            let counter = 1;
-            
-            // Ensure username is unique
-            while (await prisma.user.findUnique({ where: { username } })) {
-              username = `${baseUsername}${counter}`;
-              counter++;
-            }
-
-            // Enhanced profile data based on provider
-            let enhancedProfile = {
-              email: user.email!,
-              name: user.name || "",
-              username: username,
-              image: user.image,
-              profileImage: user.image, // Also set as profile image
-              passwordHash: "", // No password for social users
-              role: UserRole.BUYER,
-              interests: ["Koken", "Lokaal", "Duurzaamheid"],
-              bio: `Welkom op HomeCheff! Mijn profiel is aangemaakt via ${account.provider === 'google' ? 'Google' : 'Facebook'} login.`,
-            };
-
-            // Add provider-specific data
-            if (account.provider === "google" && profile) {
-              enhancedProfile = {
-                ...enhancedProfile,
-                bio: profile.bio || enhancedProfile.bio,
-                // Google might provide additional info
-                place: profile.locale ? profile.locale.split('_')[1] : null, // Extract country from locale
-              };
-            }
-
-            if (account.provider === "facebook" && profile) {
-              enhancedProfile = {
-                ...enhancedProfile,
-                bio: profile.bio || enhancedProfile.bio,
-                place: profile.location?.name || null,
-                // Facebook might provide additional info
-              };
-            }
-            
-            existingUser = await prisma.user.create({
-              data: enhancedProfile
-            });
-
-            console.log('✅ New social user created:', {
-              id: existingUser.id,
-              email: existingUser.email,
-              username: existingUser.username,
-              provider: account.provider
-            });
-          } else {
+          if (existingUser) {
             // Update existing user with latest social data
             await prisma.user.update({
               where: { id: existingUser.id },
@@ -229,6 +167,51 @@ export const authOptions: NextAuthOptions = {
               email: existingUser.email,
               provider: account.provider
             });
+          } else {
+            // NEW USER - Create with temp data, onboarding required
+            let tempUsername = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // Check if temp username already exists (very unlikely but possible)
+            let usernameExists = await prisma.user.findUnique({ where: { username: tempUsername } });
+            let attempts = 0;
+            while (usernameExists && attempts < 5) {
+              tempUsername = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+              usernameExists = await prisma.user.findUnique({ where: { username: tempUsername } });
+              attempts++;
+            }
+            
+            if (usernameExists) {
+              console.error('❌ Failed to generate unique temp username after 5 attempts');
+              return false;
+            }
+            
+            existingUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || "",
+                username: tempUsername,
+                image: user.image,
+                profileImage: user.image,
+                passwordHash: "",
+                role: UserRole.BUYER,
+                interests: [],
+                bio: "",
+                socialOnboardingCompleted: false, // Needs onboarding!
+                termsAccepted: false,
+                privacyPolicyAccepted: false,
+              }
+            });
+
+            console.log('🆕 Incomplete social user created (needs onboarding):', {
+              id: existingUser.id,
+              email: existingUser.email,
+              tempUsername,
+              provider: account.provider,
+              needsOnboarding: true
+            });
+            
+            // Set flag in user object to indicate new social user
+            (user as any).isNewSocialUser = true;
           }
 
           return true;
@@ -239,33 +222,90 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         const u = user as AppUser;
         (token as { role?: Role }).role = u.role;
         (token as { id?: string }).id = u.id;
-        
-        // For social login, get user from database
-        if (account?.provider === "google" || account?.provider === "facebook") {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email! }
-          });
-          if (dbUser) {
-            token.role = dbUser.role as Role;
-            token.id = dbUser.id;
-          }
+        // Set flag for new social users
+        if ((user as any).isNewSocialUser) {
+          (token as any).isNewSocialUser = true;
         }
       }
+      
+      // Always check database for social login users to ensure fresh onboarding status
+      // For regular users, only check on first sign-in or explicit updates
+      const isSocialLogin = (token as any).isNewSocialUser || (token as any).tempUsername;
+      const shouldCheckDB = user || trigger === 'update' || !(token as any).onboardingChecked || isSocialLogin;
+      
+      if (shouldCheckDB && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email as string },
+          select: {
+            id: true,
+            role: true,
+            socialOnboardingCompleted: true,
+            username: true,
+            name: true,
+            image: true,
+            profileImage: true
+          }
+        });
+        
+        if (dbUser) {
+          token.role = dbUser.role as Role;
+          token.id = dbUser.id;
+          // Update name from database (important for social login users)
+          token.name = dbUser.name;
+          (token as any).username = dbUser.username; // Add username to token
+          // Update profile image from database
+          token.picture = dbUser.profileImage || dbUser.image || token.picture;
+          
+          // Check if onboarding is completed - multiple checks for safety
+          const hasTempUsername = dbUser.username?.startsWith('temp_');
+          const onboardingNotCompleted = !dbUser.socialOnboardingCompleted;
+          
+          // User needs onboarding if EITHER condition is true
+          (token as any).needsOnboarding = onboardingNotCompleted && hasTempUsername;
+          (token as any).tempUsername = hasTempUsername;
+          (token as any).socialOnboardingCompleted = dbUser.socialOnboardingCompleted;
+          (token as any).onboardingChecked = true; // Mark as checked
+          
+          console.log('🔍 JWT check - onboarding status:', {
+            id: dbUser.id,
+            needsOnboarding: !dbUser.socialOnboardingCompleted,
+            username: dbUser.username,
+            name: dbUser.name,
+            socialOnboardingCompleted: dbUser.socialOnboardingCompleted,
+            trigger
+          });
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
       if (session.user && token) {
         (session.user as { role?: Role }).role = (token as { role?: Role }).role;
         (session.user as { id?: string }).id = (token as { id?: string }).id;
+        // Update name from token (from database) for social login users
+        (session.user as { name?: string }).name = (token as { name?: string }).name || session.user.name;
+        // Update image from token (from database)
+        (session.user as { image?: string | null }).image = (token as { picture?: string | null }).picture || session.user.image;
+        (session.user as any).username = (token as any).username; // Add username to session
+        (session.user as any).needsOnboarding = (token as any).needsOnboarding || false;
+        (session.user as any).tempUsername = (token as any).tempUsername || false;
+        (session.user as any).socialProvider = (token as any).socialProvider;
+        (session.user as any).socialImage = (token as any).socialImage;
+        (session.user as any).socialName = (token as any).socialName;
         console.log('Session callback:', { 
           user: session.user.email, 
+          userName: session.user.name,
+          username: (token as any).username,
           hasRole: !!(token as any).role,
           hasId: !!(token as any).id,
+          needsOnboarding: (token as any).needsOnboarding,
+          tempUsername: (token as any).tempUsername,
           token: Object.keys(token)
         });
       }
@@ -277,6 +317,19 @@ export const authOptions: NextAuthOptions = {
       console.log('🔍 NextAuth redirect:', { url, baseUrl, actualBaseUrl });
       
       try {
+        // For social login callback, always go to social-login-success
+        // The page itself will check if onboarding is needed and redirect if not
+        if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/facebook')) {
+          console.log('🔍 Social login callback detected, redirecting to social-login-success for check');
+          return actualBaseUrl + '/social-login-success';
+        }
+        
+        // If explicitly requesting social-login-success, allow it
+        if (url.includes('/social-login-success')) {
+          console.log('🔍 Explicit social-login-success request');
+          return actualBaseUrl + '/social-login-success';
+        }
+        
         // If url is relative or starts with /, return it with actualBaseUrl
         if (url.startsWith('/')) {
           console.log('🔍 Relative URL, using actualBaseUrl');
@@ -291,7 +344,7 @@ export const authOptions: NextAuthOptions = {
         
         // Otherwise, extract path and use actualBaseUrl
         const u = new URL(url);
-        console.log('🔍 Redirecting to:', actualBaseUrl + u.pathname);
+        console.log('🔍 Redirecting to:', actualBaseUrl + u.pathname + u.search);
         return actualBaseUrl + u.pathname + u.search;
       } catch (error) {
         console.error('🔍 Redirect error:', error);

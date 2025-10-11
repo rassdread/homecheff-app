@@ -13,18 +13,11 @@ model User {
   email                                  String                    @unique
   createdAt                              DateTime                  @default(now())
   bio                                    String?
-  quote                                  String?
   emailVerified                          DateTime?
   image                                  String?
   lat                                    Float?
   lng                                    Float?
   place                                  String?
-  address                                String?
-  city                                   String?
-  postalCode                             String?
-  country                                String?                   @default("NL")
-  state                                  String? // Province/state for international users
-  timezone                               String?                   @default("Europe/Amsterdam")
   updatedAt                              DateTime                  @updatedAt
   role                                   UserRole                  @default(USER)
   name                                   String?
@@ -36,7 +29,6 @@ model User {
   bankName                               String?
   buyerRoles                             String[]                  @default([])
   displayFullName                        Boolean                   @default(true)
-  displayNameOption                      String                    @default("full")
   gender                                 String?
   iban                                   String?
   marketingAccepted                      Boolean                   @default(false)
@@ -50,32 +42,41 @@ model User {
   taxResponsibilityAcceptedAt            DateTime?
   termsAccepted                          Boolean                   @default(false)
   termsAcceptedAt                        DateTime?
-  // Privacy instellingen
-  messagePrivacy                         MessagePrivacy            @default(EVERYONE)
+  allowProfileViews                      Boolean                   @default(true)
   fanRequestEnabled                      Boolean                   @default(true)
+  messagePrivacy                         MessagePrivacy            @default(EVERYONE)
+  showActivityStatus                     Boolean                   @default(true)
   showFansList                           Boolean                   @default(true)
-  // Encryption settings
-  hasEncryptionKey                       Boolean                   @default(false)
+  showOnlineStatus                       Boolean                   @default(true)
+  showProfileToEveryone                  Boolean                   @default(true)
+  quote                                  String?
+  displayNameOption                      String                    @default("full")
   encryptionEnabled                      Boolean                   @default(false)
+  hasEncryptionKey                       Boolean                   @default(false)
+  address                                String?
+  city                                   String?
+  postalCode                             String?
+  country                                String?                   @default("NL")
+  state                                  String?
+  timezone                               String?                   @default("Europe/Amsterdam")
   messageGuidelinesAccepted              Boolean                   @default(false)
   messageGuidelinesAcceptedAt            DateTime?
-  showProfileToEveryone                  Boolean                   @default(true)
-  showOnlineStatus                       Boolean                   @default(true)
-  allowProfileViews                      Boolean                   @default(true)
-  showActivityStatus                     Boolean                   @default(true)
+  socialOnboardingCompleted              Boolean                   @default(true)
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
   Business                               Business?
   ConversationParticipant                ConversationParticipant[]
+  DeliveryProfile                        DeliveryProfile?
+  deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   DeviceToken                            DeviceToken[]
   Dish                                   Dish[]
+  encryptionKeys                         EncryptionKey[]
+  fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
+  fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
   Favorite                               Favorite[]
   followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
   followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
-  fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
-  encryptionKeys                         EncryptionKey[]
-  fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
   Listing                                Listing[]
   Message                                Message[]
   Notification                           Notification[]
@@ -88,14 +89,11 @@ model User {
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
   reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
   SellerProfile                          SellerProfile?
-  DeliveryProfile                        DeliveryProfile?
-  deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   Session                                Session[]
   Transaction                            Transaction[]
-  workspaceContentProps                  WorkspaceContentProp[]
   workspaceContentComments               WorkspaceContentComment[]
+  workspaceContentProps                  WorkspaceContentProp[]
 
-  // PERFORMANCE INDEXES - For fast user search and filtering
   @@index([username])
   @@index([name])
   @@index([role])
@@ -135,27 +133,27 @@ model Product {
   displayNameType  String          @default("fullname")
   maxStock         Int?
   stock            Int             @default(0)
-  subcategory      String? // Plant type for garden products
-  // Pre-order / Future availability
-  availabilityDate DateTime? // Datum wanneer het product beschikbaar is (voor pre-orders)
-  isFutureProduct  Boolean         @default(false) // Of dit een pre-order/toekomstig product is
+  availabilityDate DateTime?
+  isFutureProduct  Boolean         @default(false)
+  subcategory      String?
   conversations    Conversation[]
+  deliveryOrders   DeliveryOrder[]
   favorites        Favorite[]
   Image            Image[]
   orderItems       OrderItem[]
-  deliveryOrders   DeliveryOrder[]
   seller           SellerProfile   @relation("SellerProducts", fields: [sellerId], references: [id])
   reviews          ProductReview[]
 
-  // PERFORMANCE INDEXES - Critical for fast queries
   @@index([category])
   @@index([sellerId])
   @@index([availabilityDate, isFutureProduct])
-  @@index([isActive, createdAt(sort: Desc)]) // For homepage feed sorting
-  @@index([category, isActive]) // For category filtering
-  @@index([subcategory]) // For subcategory filtering
-  @@index([delivery]) // For delivery mode filtering
-  @@index([priceCents]) // For price sorting/filtering
+  @@index([isActive, createdAt(sort: Desc)])
+  @@index([category, isActive])
+  @@index([subcategory])
+  @@index([delivery])
+  @@index([priceCents])
+  @@index([category], map: "idx_product_category")
+  @@index([sellerId], map: "idx_product_seller")
 }
 
 model Account {
@@ -213,13 +211,14 @@ model Conversation {
   Order                   Order?                    @relation(fields: [orderId], references: [id])
   Product                 Product?                  @relation(fields: [productId], references: [id])
   Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
+  ConversationKey         ConversationKey?
   ConversationParticipant ConversationParticipant[]
   Message                 Message[]
-  ConversationKey         ConversationKey?
 
   @@index([productId])
   @@index([orderId])
   @@index([lastMessageAt])
+  @@index([lastMessageAt], map: "idx_conversation_last_message")
 }
 
 model ConversationParticipant {
@@ -232,6 +231,7 @@ model ConversationParticipant {
 
   @@unique([conversationId, userId])
   @@index([userId])
+  @@index([userId], map: "idx_conversation_participant_user")
 }
 
 model ConversationKey {
@@ -281,6 +281,7 @@ model Favorite {
   @@unique([userId, productId])
   @@index([listingId])
   @@index([productId])
+  @@index([productId], map: "idx_favorite_product")
 }
 
 model Image {
@@ -290,7 +291,6 @@ model Image {
   productId String
   Product   Product @relation(fields: [productId], references: [id])
 
-  // PERFORMANCE INDEX - Critical for fast image loading
   @@index([productId, sortOrder])
 }
 
@@ -307,11 +307,10 @@ model Listing {
   lng              Float?
   isPublic         Boolean         @default(true)
   viewCount        Int             @default(0)
-  // Toekomstige beschikbaarheid
-  availabilityDate DateTime? // Datum wanneer het product beschikbaar is (max 1 week vooruit)
-  isFutureProduct  Boolean         @default(false) // Of dit een toekomstig product is
   createdAt        DateTime        @default(now())
   updatedAt        DateTime
+  availabilityDate DateTime?
+  isFutureProduct  Boolean         @default(false)
   AuditLog         AuditLog[]
   Favorite         Favorite[]
   User             User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -354,9 +353,6 @@ model Message {
   conversationId String
   senderId       String
   text           String?
-  encryptedText  String? // New: Encrypted message content
-  encryptionKey  String? // New: Key identifier for decryption
-  isEncrypted    Boolean      @default(false) // New: Encryption status
   createdAt      DateTime     @default(now())
   readAt         DateTime?
   attachmentName String?
@@ -366,16 +362,19 @@ model Message {
   editedAt       DateTime?
   messageType    MessageType  @default(TEXT)
   orderNumber    String?
+  encryptedText  String?
+  encryptionKey  String?
+  isEncrypted    Boolean      @default(false)
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  // PERFORMANCE INDEXES - For fast message loading
-  @@index([conversationId, createdAt(sort: Desc)]) // For loading recent messages first
+  @@index([conversationId, createdAt(sort: Desc)])
   @@index([senderId])
   @@index([orderNumber])
   @@index([isEncrypted])
-  @@index([readAt]) // For unread message counts
-  @@index([deletedAt]) // For filtering deleted messages
+  @@index([readAt])
+  @@index([deletedAt])
+  @@index([senderId], map: "idx_message_sender")
 }
 
 model Notification {
@@ -466,11 +465,13 @@ model ProductReview {
   @@index([productId])
   @@index([buyerId])
   @@index([rating])
+  @@index([buyerId], map: "idx_review_buyer")
+  @@index([productId], map: "idx_review_product")
 }
 
 model SellerProfile {
-  id                     String    @id
-  userId                 String    @unique
+  id                     String             @id
+  userId                 String             @unique
   displayName            String?
   bio                    String?
   lat                    Float?
@@ -480,23 +481,17 @@ model SellerProfile {
   kvk                    String?
   subscriptionId         String?
   subscriptionValidUntil DateTime?
+  createdAt              DateTime           @default(now())
+  deliveryMode           String             @default("FIXED")
+  deliveryRadius         Float              @default(5.0)
+  deliveryRegions        String[]           @default([])
+  updatedAt              DateTime           @updatedAt
+  products               Product[]          @relation("SellerProducts")
+  Subscription           Subscription?      @relation(fields: [subscriptionId], references: [id])
+  User                   User               @relation(fields: [userId], references: [id])
+  workplacePhotos        WorkplacePhoto[]
+  workspaceContent       WorkspaceContent[]
 
-  // Delivery settings
-  deliveryMode    String   @default("FIXED") // "FIXED" or "DYNAMIC"
-  deliveryRadius  Float    @default(5.0) // in kilometers
-  deliveryRegions String[] @default([]) // for dynamic mode
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  products         Product[]          @relation("SellerProducts")
-  workplacePhotos  WorkplacePhoto[]
-  workspaceContent WorkspaceContent[]
-  Subscription     Subscription?      @relation(fields: [subscriptionId], references: [id])
-  User             User               @relation(fields: [userId], references: [id])
-
-  // PERFORMANCE INDEX - Critical for Product->Seller->User joins
   @@index([userId])
 }
 
@@ -570,14 +565,14 @@ model Order {
   notes                String?
   pickupAddress        String?
   pickupDate           DateTime?
-  stripeSessionId      String?
   platformFeeCollected Boolean          @default(false)
+  stripeSessionId      String?
   conversations        Conversation[]
+  deliveryOrder        DeliveryOrder?
+  deliveryReviews      DeliveryReview[]
   User                 User             @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
   items                OrderItem[]
   reviews              ProductReview[]
-  deliveryOrder        DeliveryOrder?
-  deliveryReviews      DeliveryReview[]
 }
 
 model OrderItem {
@@ -600,7 +595,6 @@ model Follow {
   User       User     @relation("FollowAsFollower", fields: [followerId], references: [id], onDelete: Cascade)
   Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
 
-  // PERFORMANCE INDEXES - Critical for fast follower counts
   @@unique([followerId, sellerId])
   @@index([sellerId])
   @@index([followerId])
@@ -623,47 +617,42 @@ model FanRequest {
 }
 
 model Dish {
-  id           String        @id @default(uuid())
-  userId       String
-  title        String?
-  description  String?
-  status       DishStatus    @default(PRIVATE)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  priceCents   Int?
-  deliveryMode DeliveryMode?
-  lat          Float?
-  lng          Float?
-  place        String?
-  maxStock     Int?
-  stock        Int?          @default(0)
-  category     String? // "CHEFF", "GROWN", "DESIGNER"
-  subcategory  String? // Specific subcategory
-
-  // Recipe-specific fields
-  ingredients  String[] @default([])
-  instructions String[] @default([])
-  prepTime     Int? // in minutes
-  servings     Int?
-  difficulty   String? // "EASY", "MEDIUM", "HARD"
-  tags         String[] @default([])
-
-  // Garden-specific fields
-  plantType      String? // Type of plant
-  plantDate      String? // When planted
-  harvestDate    String? // Expected harvest date
-  growthDuration Int? // Growth duration in days
-  sunlight       String? // "FULL", "PARTIAL", "SHADE"
-  waterNeeds     String? // "HIGH", "MEDIUM", "LOW"
-  location       String? // "INDOOR", "OUTDOOR", "GREENHOUSE", "BALCONY"
-  soilType       String? // Type of soil
-  plantDistance  String? // Plant spacing
-  notes          String? // Additional notes/tips
-
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  photos       DishPhoto[]
-  stepPhotos   RecipeStepPhoto[] // Recipe step photos relation
-  growthPhotos GardenGrowthPhoto[] // Garden growth photos relation
+  id             String              @id @default(uuid())
+  userId         String
+  title          String?
+  description    String?
+  status         DishStatus          @default(PRIVATE)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  priceCents     Int?
+  deliveryMode   DeliveryMode?
+  lat            Float?
+  lng            Float?
+  place          String?
+  maxStock       Int?
+  stock          Int?                @default(0)
+  category       String?
+  subcategory    String?
+  difficulty     String?
+  ingredients    String[]            @default([])
+  instructions   String[]            @default([])
+  prepTime       Int?
+  servings       Int?
+  tags           String[]            @default([])
+  growthDuration Int?
+  harvestDate    String?
+  location       String?
+  notes          String?
+  plantDate      String?
+  plantDistance  String?
+  plantType      String?
+  soilType       String?
+  sunlight       String?
+  waterNeeds     String?
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos         DishPhoto[]
+  growthPhotos   GardenGrowthPhoto[]
+  stepPhotos     RecipeStepPhoto[]
 
   @@index([userId])
 }
@@ -729,6 +718,285 @@ model ReviewResponse {
   @@index([sellerId])
 }
 
+model DeliveryProfile {
+  id                 String               @id @default(cuid())
+  userId             String               @unique
+  age                Int
+  bio                String?
+  transportation     TransportationMode[]
+  maxDistance        Float                @default(3.0)
+  preferredRadius    Float?
+  homeLat            Float?
+  homeLng            Float?
+  homeAddress        String?
+  availableDays      String[]
+  availableTimeSlots String[]
+  isActive           Boolean              @default(true)
+  isVerified         Boolean              @default(false)
+  totalDeliveries    Int                  @default(0)
+  averageRating      Float?
+  totalEarnings      Float                @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  currentAddress     String?
+  currentLat         Float?
+  currentLng         Float?
+  deliveryMode       String               @default("FIXED")
+  deliveryRegions    String[]             @default([])
+  lastLocationUpdate DateTime?
+  deliveryOrders     DeliveryOrder[]
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews            DeliveryReview[]
+  vehiclePhotos      VehiclePhoto[]
+
+  @@map("DeliveryProfile")
+}
+
+model DeliveryOrder {
+  id                   String          @id @default(cuid())
+  orderId              String          @unique
+  deliveryProfileId    String
+  status               String          @default("PENDING")
+  deliveryFee          Float
+  estimatedTime        Int?
+  pickedUpAt           DateTime?
+  deliveredAt          DateTime?
+  currentLat           Float?
+  currentLng           Float?
+  notes                String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  deliveryFeeCollected Boolean         @default(false)
+  deliveryAddress      String?
+  deliveryDate         DateTime?
+  deliveryTime         String?
+  productId            String?
+  deliveryProfile      DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
+  order                Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product              Product?        @relation(fields: [productId], references: [id])
+
+  @@map("DeliveryOrder")
+}
+
+model HomeCheffCollection {
+  id                   String   @id @default(cuid())
+  platformFees         Int
+  deliveryFeeCuts      Int
+  totalAmount          Int
+  status               String   @default("PENDING")
+  description          String?
+  processedOrdersCount Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("HomeCheffCollection")
+}
+
+model VehiclePhoto {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  fileUrl           String
+  sortOrder         Int
+  createdAt         DateTime        @default(now())
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryProfileId])
+  @@map("VehiclePhoto")
+}
+
+model DeliveryReview {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  reviewerId        String
+  orderId           String?
+  rating            Int
+  comment           String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  order             Order?          @relation(fields: [orderId], references: [id])
+  reviewer          User            @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryProfileId, reviewerId, orderId])
+  @@index([deliveryProfileId])
+  @@index([reviewerId])
+  @@map("DeliveryReview")
+}
+
+model WorkplacePhoto {
+  id              String        @id @default(cuid())
+  sellerProfileId String
+  role            String
+  fileUrl         String
+  sortOrder       Int
+  createdAt       DateTime      @default(now())
+  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([sellerProfileId])
+  @@index([role])
+  @@map("WorkplacePhoto")
+}
+
+model WorkspaceContent {
+  id              String                    @id @default(cuid())
+  sellerProfileId String
+  type            WorkspaceContentType
+  title           String
+  description     String?
+  isPublic        Boolean                   @default(true)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  designItem      DesignItem?
+  growingProcess  GrowingProcess?
+  recipe          Recipe?
+  sellerProfile   SellerProfile             @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  comments        WorkspaceContentComment[]
+  photos          WorkspaceContentPhoto[]
+  props           WorkspaceContentProp[]
+
+  @@index([sellerProfileId])
+  @@index([type])
+  @@index([isPublic])
+  @@map("WorkspaceContent")
+}
+
+model WorkspaceContentPhoto {
+  id                 String           @id @default(cuid())
+  workspaceContentId String
+  fileUrl            String
+  sortOrder          Int
+  caption            String?
+  createdAt          DateTime         @default(now())
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceContentId])
+  @@map("WorkspaceContentPhoto")
+}
+
+model WorkspaceContentProp {
+  id                 String           @id @default(cuid())
+  workspaceContentId String
+  userId             String
+  createdAt          DateTime         @default(now())
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceContentId, userId])
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@map("WorkspaceContentProp")
+}
+
+model WorkspaceContentComment {
+  id                 String                    @id @default(cuid())
+  workspaceContentId String
+  userId             String
+  content            String
+  parentId           String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  parent             WorkspaceContentComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies            WorkspaceContentComment[] @relation("CommentReplies")
+  user               User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceContent   WorkspaceContent          @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("WorkspaceContentComment")
+}
+
+model Recipe {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  servings           Int?
+  prepTime           Int?
+  cookTime           Int?
+  difficulty         String?
+  ingredients        Json
+  instructions       Json
+  tags               String[]         @default([])
+  source             String?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("Recipe")
+}
+
+model GrowingProcess {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  plantName          String
+  plantType          String?
+  variety            String?
+  startDate          DateTime?
+  expectedHarvest    DateTime?
+  growingMethod      String?
+  soilType           String?
+  wateringSchedule   String?
+  currentStage       String?
+  weeklyUpdates      Json
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("GrowingProcess")
+}
+
+model DesignItem {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  category           String?
+  materials          String[]         @default([])
+  techniques         String[]         @default([])
+  dimensions         String?
+  inspiration        String?
+  process            Json
+  challenges         String?
+  solutions          String?
+  tags               String[]         @default([])
+  isForSale          Boolean          @default(false)
+  priceCents         Int?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("DesignItem")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  eventType  String
+  entityType String
+  entityId   String
+  userId     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType, entityType])
+  @@index([entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([createdAt], map: "idx_analytics_event_created_at")
+  @@index([userId], map: "idx_analytics_event_user")
+}
+
+model EncryptionKey {
+  id        String    @id @default(uuid())
+  userId    String
+  keyHash   String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@index([isActive])
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -776,315 +1044,6 @@ enum TransportationMode {
   EBIKE
   SCOOTER
   CAR
-}
-
-model DeliveryProfile {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Personal info
-  age Int
-  bio String?
-
-  // Transportation settings
-  transportation  TransportationMode[]
-  maxDistance     Float                @default(3.0) // in kilometers
-  preferredRadius Float? // user-defined radius in km
-
-  // Location settings
-  homeLat     Float?
-  homeLng     Float?
-  homeAddress String?
-
-  // Live location tracking
-  currentLat         Float?
-  currentLng         Float?
-  currentAddress     String?
-  lastLocationUpdate DateTime?
-
-  // Delivery mode
-  deliveryMode    String   @default("FIXED") // "FIXED" or "DYNAMIC"
-  deliveryRegions String[] @default([]) // for dynamic mode
-
-  // Availability
-  availableDays      String[] // ["maandag", "dinsdag", etc.]
-  availableTimeSlots String[] // ["morning", "afternoon", "evening"]
-
-  // Status
-  isActive   Boolean @default(true)
-  isVerified Boolean @default(false)
-
-  // Performance tracking
-  totalDeliveries Int    @default(0)
-  averageRating   Float?
-  totalEarnings   Float  @default(0)
-
-  // Relations
-  deliveryOrders DeliveryOrder[]
-  vehiclePhotos  VehiclePhoto[]
-  reviews        DeliveryReview[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("DeliveryProfile")
-}
-
-model DeliveryOrder {
-  id      String @id @default(cuid())
-  orderId String @unique
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  deliveryProfileId String
-  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
-
-  // Link to specific product (optional for product-specific delivery)
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-
-  status               String  @default("PENDING") // PENDING, ACCEPTED, PICKED_UP, DELIVERED, CANCELLED
-  deliveryFee          Float
-  estimatedTime        Int? // in minutes
-  deliveryFeeCollected Boolean @default(false)
-
-  // Delivery details
-  deliveryAddress String?
-  deliveryDate    DateTime?
-  deliveryTime    String?
-
-  // Tracking
-  pickedUpAt  DateTime?
-  deliveredAt DateTime?
-
-  // Location tracking
-  currentLat Float?
-  currentLng Float?
-
-  // Communication
-  notes String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("DeliveryOrder")
-}
-
-model HomeCheffCollection {
-  id                   String   @id @default(cuid())
-  platformFees         Int // Platform fees collected (12% of product sales)
-  deliveryFeeCuts      Int // Delivery fee cuts collected (12% of delivery fees)
-  totalAmount          Int // Total amount collected
-  status               String   @default("PENDING") // PENDING, PROCESSED, FAILED
-  description          String?
-  processedOrdersCount Int      @default(0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  @@map("HomeCheffCollection")
-}
-
-model VehiclePhoto {
-  id                String          @id @default(cuid())
-  deliveryProfileId String
-  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
-  fileUrl           String
-  sortOrder         Int
-  createdAt         DateTime        @default(now())
-
-  @@index([deliveryProfileId])
-  @@map("VehiclePhoto")
-}
-
-model DeliveryReview {
-  id                String          @id @default(cuid())
-  deliveryProfileId String
-  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
-  reviewerId        String
-  reviewer          User            @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
-  orderId           String?
-  order             Order?          @relation(fields: [orderId], references: [id])
-  rating            Int // 1-5 stars
-  comment           String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  @@unique([deliveryProfileId, reviewerId, orderId])
-  @@index([deliveryProfileId])
-  @@index([reviewerId])
-  @@map("DeliveryReview")
-}
-
-model WorkplacePhoto {
-  id              String        @id @default(cuid())
-  sellerProfileId String
-  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
-  role            String // "CHEF", "GARDEN", "DESIGNER"
-  fileUrl         String
-  sortOrder       Int
-  createdAt       DateTime      @default(now())
-
-  @@index([sellerProfileId])
-  @@index([role])
-  @@map("WorkplacePhoto")
-}
-
-// New models for dynamic workspace content
-model WorkspaceContent {
-  id              String               @id @default(cuid())
-  sellerProfileId String
-  sellerProfile   SellerProfile        @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
-  type            WorkspaceContentType
-  title           String
-  description     String?
-  isPublic        Boolean              @default(true)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-
-  // Relations
-  photos   WorkspaceContentPhoto[]
-  props    WorkspaceContentProp[]
-  comments WorkspaceContentComment[]
-
-  // Specific content based on type
-  recipe         Recipe?
-  growingProcess GrowingProcess?
-  designItem     DesignItem?
-
-  @@index([sellerProfileId])
-  @@index([type])
-  @@index([isPublic])
-  @@map("WorkspaceContent")
-}
-
-model WorkspaceContentPhoto {
-  id                 String           @id @default(cuid())
-  workspaceContentId String
-  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-  fileUrl            String
-  sortOrder          Int
-  caption            String?
-  createdAt          DateTime         @default(now())
-
-  @@index([workspaceContentId])
-  @@map("WorkspaceContentPhoto")
-}
-
-model WorkspaceContentProp {
-  id                 String           @id @default(cuid())
-  workspaceContentId String
-  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-  userId             String
-  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt          DateTime         @default(now())
-
-  @@unique([workspaceContentId, userId])
-  @@index([workspaceContentId])
-  @@index([userId])
-  @@map("WorkspaceContentProp")
-}
-
-model WorkspaceContentComment {
-  id                 String                    @id @default(cuid())
-  workspaceContentId String
-  workspaceContent   WorkspaceContent          @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-  userId             String
-  user               User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content            String
-  parentId           String? // For replies
-  parent             WorkspaceContentComment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies            WorkspaceContentComment[] @relation("CommentReplies")
-  createdAt          DateTime                  @default(now())
-  updatedAt          DateTime                  @updatedAt
-
-  @@index([workspaceContentId])
-  @@index([userId])
-  @@index([parentId])
-  @@map("WorkspaceContentComment")
-}
-
-// Recipe specific content
-model Recipe {
-  id                 String           @id @default(cuid())
-  workspaceContentId String           @unique
-  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-
-  // Recipe details
-  servings   Int?
-  prepTime   Int? // in minutes
-  cookTime   Int? // in minutes
-  difficulty String? // "EASY", "MEDIUM", "HARD"
-
-  // Ingredients and instructions
-  ingredients  Json // Array of {name, amount, unit}
-  instructions Json // Array of {step, description}
-
-  // Additional info
-  tags   String[] @default([])
-  source String? // Where recipe came from
-  notes  String? // Additional notes
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("Recipe")
-}
-
-// Growing process specific content
-model GrowingProcess {
-  id                 String           @id @default(cuid())
-  workspaceContentId String           @unique
-  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-
-  // Plant details
-  plantName String
-  plantType String? // "VEGETABLE", "HERB", "FLOWER", "FRUIT"
-  variety   String? // Specific variety
-
-  // Growing info
-  startDate        DateTime?
-  expectedHarvest  DateTime?
-  growingMethod    String? // "INDOOR", "OUTDOOR", "GREENHOUSE"
-  soilType         String?
-  wateringSchedule String?
-
-  // Progress tracking
-  currentStage  String? // "SEEDLING", "GROWING", "FLOWERING", "HARVEST"
-  weeklyUpdates Json // Array of weekly progress updates
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("GrowingProcess")
-}
-
-// Design item specific content
-model DesignItem {
-  id                 String           @id @default(cuid())
-  workspaceContentId String           @unique
-  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
-
-  // Design details
-  category   String? // "FURNITURE", "DECOR", "CLOTHING", "JEWELRY", "OTHER"
-  materials  String[] @default([])
-  techniques String[] @default([])
-  dimensions String? // "L x W x H"
-
-  // Process info
-  inspiration String? // What inspired this design
-  process     Json // Array of design process steps
-  challenges  String? // Challenges faced
-  solutions   String? // How challenges were solved
-
-  // Additional info
-  tags       String[] @default([])
-  isForSale  Boolean  @default(false)
-  priceCents Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("DesignItem")
 }
 
 enum ListingCategory {
@@ -1179,35 +1138,4 @@ enum WorkspaceContentType {
   RECIPE
   GROWING_PROCESS
   DESIGN_ITEM
-}
-
-// Analytics and tracking
-model AnalyticsEvent {
-  id         String   @id @default(uuid())
-  eventType  String // VIEW, CLICK, PURCHASE, etc.
-  entityType String // PRODUCT, USER, ORDER, etc.
-  entityId   String // ID of the entity being tracked
-  userId     String? // Optional user ID if logged in
-  metadata   Json? // Additional tracking data
-  createdAt  DateTime @default(now())
-
-  @@index([eventType, entityType])
-  @@index([entityId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-// Encryption key management
-model EncryptionKey {
-  id        String    @id @default(uuid())
-  userId    String
-  keyHash   String // Hashed version of the encryption key
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
-  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([keyHash])
-  @@index([isActive])
 }

@@ -41,6 +41,16 @@ export default function NavBar() {
 
   // Sync cart with user ID for isolation and validate session
   useEffect(() => {
+    // Debug session state
+    console.log('🔍 NavBar Session Debug:', {
+      status,
+      hasSession: !!session,
+      hasUser: !!user,
+      userEmail: session?.user?.email,
+      userName: user?.name,
+      userImage: user?.image
+    });
+
     // Setup session isolation to prevent data leakage
     setupSessionIsolation();
     
@@ -58,7 +68,7 @@ export default function NavBar() {
       clearNextAuthData();
       setUnreadCount(0);
     }
-  }, [session]);
+  }, [session, status, user]);
 
   // Fetch unread messages count
   const fetchUnreadCount = async () => {
@@ -110,7 +120,7 @@ export default function NavBar() {
               </Button>
             </Link>
 
-            {status === 'unauthenticated' && (
+            {status === 'unauthenticated' && !user && (
               <>
                 <Link href="/login">
                   <Button variant="ghost" className="text-gray-700 hover:text-primary-brand">
@@ -149,7 +159,7 @@ export default function NavBar() {
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-32">
                       {user.name || 'Profiel'}
                     </span>
                     <ChevronDown 
@@ -349,7 +359,7 @@ export default function NavBar() {
                 </Link>
               )}
 
-              {status !== 'loading' && !user && (
+              {status === 'unauthenticated' && !user && (
                 <>
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-primary-brand">
@@ -380,7 +390,7 @@ export default function NavBar() {
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-32">
                       {user.name || 'Profiel'}
                     </span>
                   </div>

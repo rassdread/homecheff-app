@@ -32,7 +32,7 @@ export default function NewProductForm() {
   const [images, setImages] = React.useState<Uploaded[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
-  const [displayNameType, setDisplayNameType] = React.useState<'fullname' | 'username'>('fullname');
+  const [displayNameType, setDisplayNameType] = React.useState<'fullname' | 'firstname' | 'lastname' | 'username'>('fullname');
   const [isFromRecipe, setIsFromRecipe] = React.useState(false);
   
   // Toekomstige beschikbaarheid state
@@ -42,6 +42,10 @@ export default function NewProductForm() {
   // Function to process recipe data
   const processRecipeData = (data: any) => {
     console.log('Processing recipe data:', data);
+    
+    // Set category to CHEFF for recipes
+    setVertical('CHEFF');
+    console.log('Set vertical to CHEFF');
     
     // Prefill form with recipe data
     if (data.title) {
@@ -99,9 +103,9 @@ export default function NewProductForm() {
   const processGardenData = (data: any) => {
     console.log('Processing garden data:', data);
     
-    // Set category to GROWN
-    setVertical('GROWN');
-    console.log('Set vertical to GROWN');
+    // Set category to GARDEN (will be mapped to GROWN in API)
+    setVertical('GARDEN');
+    console.log('Set vertical to GARDEN');
     
     // Set title and description
     if (data.title) {
@@ -672,9 +676,11 @@ export default function NewProductForm() {
         <select
           className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
           value={displayNameType}
-          onChange={(e) => setDisplayNameType(e.target.value as 'fullname' | 'username')}
+          onChange={(e) => setDisplayNameType(e.target.value as 'fullname' | 'firstname' | 'lastname' | 'username')}
         >
           <option value="fullname">Voor- en achternaam</option>
+          <option value="firstname">Alleen voornaam</option>
+          <option value="lastname">Alleen achternaam</option>
           <option value="username">Gebruikersnaam</option>
         </select>
         <p className="text-sm text-gray-500 mt-1">

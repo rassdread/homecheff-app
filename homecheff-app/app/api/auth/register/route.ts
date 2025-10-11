@@ -75,11 +75,27 @@ export async function POST(req: NextRequest) {
 
     // Gebruikersnaam validatie (indien opgegeven)
     if (username) {
-      if (username.length < 3) {
-        return NextResponse.json({ error: "Gebruikersnaam moet minimaal 3 tekens lang zijn" }, { status: 400 });
+      if (username.length < 3 || username.length > 20) {
+        return NextResponse.json({ error: "Gebruikersnaam moet tussen 3 en 20 tekens lang zijn" }, { status: 400 });
       }
-      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        return NextResponse.json({ error: "Gebruikersnaam mag alleen letters, cijfers en underscores bevatten" }, { status: 400 });
+      
+      // Allow letters, numbers, underscores, dots and dashes
+      if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
+        return NextResponse.json({ error: "Gebruikersnaam mag alleen letters, cijfers, - . en _ bevatten" }, { status: 400 });
+      }
+      
+      // Check reserved usernames
+      const reservedWords = [
+        'admin', 'administrator', 'homecheff', 'api', 'www', 'mail', 'support', 
+        'help', 'info', 'contact', 'about', 'terms', 'privacy', 'login', 'register',
+        'dashboard', 'profile', 'settings', 'logout', 'user', 'users', 'seller',
+        'buyer', 'delivery', 'order', 'orders', 'product', 'products', 'message',
+        'messages', 'conversation', 'conversations', 'review', 'reviews', 'favorite',
+        'favorites', 'follow', 'follows', 'notification', 'notifications'
+      ];
+      
+      if (reservedWords.includes(username.toLowerCase())) {
+        return NextResponse.json({ error: "Deze gebruikersnaam is gereserveerd. Kies een andere gebruikersnaam." }, { status: 400 });
       }
     }
 

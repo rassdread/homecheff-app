@@ -47,7 +47,11 @@ export default async function PublicProfilePage({
           category: true,
           subcategory: true,
           photos: {
-            select: { url: true, idx: true }
+            select: { url: true, idx: true, isMain: true }
+          },
+          growthPhotos: {
+            select: { id: true, url: true, phaseNumber: true },
+            orderBy: { phaseNumber: 'asc' }
           }
         },
         orderBy: { createdAt: 'desc' }
@@ -118,7 +122,11 @@ export default async function PublicProfilePage({
               category: true,
               subcategory: true,
               photos: {
-                select: { url: true, idx: true }
+                select: { url: true, idx: true, isMain: true }
+              },
+              growthPhotos: {
+                select: { id: true, url: true, phaseNumber: true },
+                orderBy: { phaseNumber: 'asc' }
               }
             },
             orderBy: { createdAt: 'desc' }

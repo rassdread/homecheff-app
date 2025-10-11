@@ -144,26 +144,33 @@ export default function RegisterPage() {
   const router = useRouter();
   
   // Clear any existing user data to prevent privacy leaks
+  // Social login now uses separate onboarding flow (social-login-success page)
   useEffect(() => {
-    clearAllUserData();
+    // Only clear on initial mount, not on every render
+    const hasCleared = sessionStorage.getItem('register_cleared');
     
-    // Also clear browser autofill data by resetting form fields
-    const resetFormFields = () => {
-      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
-      const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+    if (!hasCleared) {
+      clearAllUserData();
+      sessionStorage.setItem('register_cleared', 'true');
       
-      if (emailInput) {
-        emailInput.value = '';
-        emailInput.setAttribute('autocomplete', 'off');
-      }
-      if (passwordInput) {
-        passwordInput.value = '';
-        passwordInput.setAttribute('autocomplete', 'new-password');
-      }
-    };
-    
-    // Reset form fields after a short delay to ensure DOM is ready
-    setTimeout(resetFormFields, 100);
+      // Also clear browser autofill data by resetting form fields
+      const resetFormFields = () => {
+        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+        const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+        
+        if (emailInput) {
+          emailInput.value = '';
+          emailInput.setAttribute('autocomplete', 'off');
+        }
+        if (passwordInput) {
+          passwordInput.value = '';
+          passwordInput.setAttribute('autocomplete', 'new-password');
+        }
+      };
+      
+      // Reset form fields after a short delay to ensure DOM is ready
+      setTimeout(resetFormFields, 100);
+    }
   }, []);
 
   const [state, setState] = useState<RegisterState>({
@@ -1107,8 +1114,8 @@ export default function RegisterPage() {
       // Registratie succesvol
       setState(prev => ({ ...prev, success: true }));
       
-      // Clear all user data before auto-login to prevent data leakage
-      clearAllUserData();
+      // Clear the 'register cleared' flag before auto-login
+      sessionStorage.removeItem('register_cleared');
       
       // Probeer automatisch in te loggen
       try {

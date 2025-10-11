@@ -54,14 +54,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Ontbrekende velden' }, { status: 400 });
     }
 
-    // Get user's seller profile
+    // Get user with seller profile
     const user = await prisma.user.findUnique({
       where: { id: (session?.user as any)?.id },
       include: { SellerProfile: true }
     });
 
-    if (!user?.SellerProfile) {
-      return NextResponse.json({ error: 'Geen verkopersprofiel gevonden. Registreer eerst als verkoper.' }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
+    }
+
+    console.log('🔍 User check:', {
+      userId: user.id,
+      hasSellerProfile: !!user.SellerProfile,
+      sellerRoles: user.sellerRoles,
+      role: user.role
+    });
+
+    // Check if user has seller roles or is a seller
+    const isSeller = user.role === 'SELLER' || 
+                     user.sellerRoles?.length > 0 || 
+                     !!user.SellerProfile;
+
+    if (!isSeller) {
+      return NextResponse.json({ 
+        error: 'Geen verkopersprofiel gevonden. Je moet eerst registreren als verkoper in je profielinstellingen.' 
+      }, { status: 400 });
+    }
+
+    // If user has seller roles but no SellerProfile, create one
+    let sellerProfileId = user.SellerProfile?.id;
+    
+    if (!sellerProfileId && (user.role === 'SELLER' || user.sellerRoles?.length > 0)) {
+      console.log('🔄 Creating missing SellerProfile for user with seller roles');
+      
+      const crypto = require('crypto');
+      const newSellerProfile = await prisma.sellerProfile.create({
+        data: {
+          id: crypto.randomUUID(),
+          userId: user.id,
+          displayName: user.name || user.username || 'Mijn Bedrijf',
+          bio: 'Verkoop via HomeCheff',
+          deliveryMode: 'FIXED',
+          deliveryRadius: 5
+        }
+      });
+      
+      sellerProfileId = newSellerProfile.id;
+      console.log('✅ Created SellerProfile:', sellerProfileId);
     }
 
     const cat = CATEGORY_MAP[category] ?? 'CHEFF';
@@ -80,11 +120,13 @@ export async function POST(req: Request) {
         unit: 'PORTION', // Default unit
         delivery: delivery as any,
         isActive: Boolean(isPublic),
-        displayNameType,
+        displayNameType: displayNameType === 'firstname' ? 'first' : 
+                        displayNameType === 'lastname' ? 'last' : 
+                        displayNameType === 'username' ? 'username' : 'full',
         subcategory: subcategory || null,
         availabilityDate: availabilityDate ? new Date(availabilityDate) : null,
         isFutureProduct: Boolean(isFutureProduct),
-        sellerId: user.SellerProfile.id,
+        sellerId: sellerProfileId!,
         Image: {
           create: images.map((url: string, i: number) => ({
             id: crypto.randomUUID(),
@@ -116,18 +158,20 @@ export async function POST(req: Request) {
     });
 
     // Send notifications to followers
-    try {
-      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/notifications/new-product`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: result.id,
-          sellerId: user.SellerProfile.id
-        })
-      });
-    } catch (notificationError) {
-      console.error('Failed to send notifications:', notificationError);
-      // Don't fail the product creation if notifications fail
+    if (sellerProfileId) {
+      try {
+        await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/notifications/new-product`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: result.id,
+            sellerId: sellerProfileId
+          })
+        });
+      } catch (notificationError) {
+        console.error('Failed to send notifications:', notificationError);
+        // Don't fail the product creation if notifications fail
+      }
     }
 
     // Generate initial analytics data for the new product
@@ -143,7 +187,7 @@ export async function POST(req: Request) {
             category: cat,
             title: title,
             priceCents: Number(priceCents),
-            sellerId: user.SellerProfile.id,
+            sellerId: sellerProfileId,
             createdAt: new Date().toISOString()
           }
         }
