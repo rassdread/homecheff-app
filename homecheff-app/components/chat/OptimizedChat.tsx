@@ -82,10 +82,15 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
 
   // Step 2: Load messages
   const loadMessages = useCallback(async (showLoading = true) => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      console.log('[OptimizedChat] ⚠️ No conversationId provided');
+      return;
+    }
 
     try {
       if (showLoading) setIsLoading(true);
+      
+      console.log('[OptimizedChat] 📡 Fetching messages for:', conversationId);
       
       const response = await fetch(
         `/api/conversations/${conversationId}/messages?page=1&limit=100`,
@@ -99,9 +104,13 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
         }
       );
 
+      console.log('[OptimizedChat] 📡 Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
         const loadedMessages = data.messages || [];
+        
+        console.log('[OptimizedChat] ✅ Loaded messages:', loadedMessages.length);
         
         setMessages(loadedMessages);
         setConnectionError(null);
@@ -111,11 +120,13 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       } else {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error('[OptimizedChat] ❌ Error response:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('[OptimizedChat] Error loading messages:', error);
-      setConnectionError('Kon berichten niet laden');
+      console.error('[OptimizedChat] ❌ Error loading messages:', error);
+      setConnectionError(`Kon berichten niet laden: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     } finally {
       setIsLoading(false);
     }

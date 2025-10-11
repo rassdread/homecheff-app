@@ -265,12 +265,19 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-gray-900 truncate">
-                    {conversation.title}
+                    {conversation.participants && conversation.participants.length > 0
+                      ? getDisplayName(conversation.participants[0])
+                      : conversation.title}
                   </h3>
                   <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                     {formatTime(conversation.lastMessageAt)}
                   </span>
                 </div>
+                {conversation.product && (
+                  <p className="text-xs text-gray-500 truncate mb-1">
+                    💬 over: {conversation.product.title}
+                  </p>
+                )}
                 
                 {conversation.lastMessage ? (
                   <div className="flex items-center justify-between">
