@@ -7,6 +7,7 @@ import ProductManagement from "./ProductManagement";
 import RecipeManager from "./RecipeManager";
 import RecipeViewer from "./RecipeViewer";
 import GardenManager from "./GardenManager";
+import DesignManager from "../designs/DesignManager";
 
 type Dish = {
   id: string;
@@ -164,14 +165,16 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   // Determine initial tab based on role
   // For chef: start on recipes tab
   // For garden: start on garden tab (to show their kweken)
+  // For designer: start on designs tab
   // For others: start on products tab
-  const getInitialTab = (): 'dishes' | 'products' | 'recipes' | 'garden' => {
+  const getInitialTab = (): 'dishes' | 'products' | 'recipes' | 'garden' | 'designs' => {
     if (activeRole === 'chef') return 'recipes';
     if (activeRole === 'garden') return 'garden';
+    if (activeRole === 'designer') return 'designs';
     return 'products';
   };
   
-  const [activeTab, setActiveTab] = useState<'dishes' | 'products' | 'recipes' | 'garden'>(getInitialTab());
+  const [activeTab, setActiveTab] = useState<'dishes' | 'products' | 'recipes' | 'garden' | 'designs'>(getInitialTab());
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [showRecipeViewer, setShowRecipeViewer] = useState(false);
 
@@ -533,6 +536,18 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                 <span>Mijn Kweken</span>
               </button>
             )}
+            {currentRole === 'designer' && (
+              <button
+                onClick={() => setActiveTab('designs')}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'designs'
+                    ? 'border-primary-brand text-primary-brand'
+                    : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-gray-300'
+                }`}
+              >
+                <span>Mijn Designs</span>
+              </button>
+            )}
             </nav>
           </div>
 
@@ -561,6 +576,15 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
           {activeTab === 'garden' && currentRole === 'garden' && (
             <GardenManager 
               isActive={activeTab === 'garden'} 
+              userId={userId}
+              isPublic={isPublic}
+            />
+          )}
+
+          {/* Only show designs tab content for designer role */}
+          {activeTab === 'designs' && currentRole === 'designer' && (
+            <DesignManager 
+              isActive={activeTab === 'designs'} 
               userId={userId}
               isPublic={isPublic}
             />
