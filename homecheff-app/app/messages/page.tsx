@@ -57,7 +57,7 @@ function MessagesPageContent() {
   const searchParams = useSearchParams();
 
   const handleSelectConversation = (conversation: Conversation) => {
-    console.log('Conversation selected:', conversation.id, conversation.title);
+    console.log('Conversation selected:', conversation.id, conversation.title || conversation.product?.title || 'Gesprek');
     setSelectedConversation(conversation);
   };
 
