@@ -797,9 +797,10 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
           {filteredRecipes.map(recipe => (
             <div
               key={recipe.id}
-              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow ${
+              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
                 viewMode === 'list' ? 'flex' : ''
               }`}
+              onClick={() => window.location.href = `/recipe/${recipe.id}`}
             >
               {/* Recipe Image */}
               <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gray-100 flex items-center justify-center`}>
@@ -875,7 +876,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                   </span>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation(); // Prevent card click
                         // Load full recipe data including step photos
                         try {
                           // Try the new public recipes endpoint first
@@ -945,19 +947,27 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                         }
                       }}
                       className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Bewerken"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleSellRecipe(recipe)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent card click
+                        handleSellRecipe(recipe);
+                      }}
                       className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
                       title="Recept verkopen als product"
                     >
                       <ShoppingCart className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteRecipe(recipe.id)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent card click
+                        handleDeleteRecipe(recipe.id);
+                      }}
                       className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                      title="Verwijderen"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
