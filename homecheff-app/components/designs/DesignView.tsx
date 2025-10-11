@@ -54,6 +54,14 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
     window.print();
   };
 
+  const handleDownloadPDF = () => {
+    // Trigger print dialog with a hint to save as PDF
+    alert('💡 In het print venster: kies "Opslaan als PDF" als bestemming om te downloaden!');
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  };
+
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -224,6 +232,13 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
               >
                 <Share2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Delen</span>
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">PDF</span>
               </button>
               <button
                 onClick={handlePrint}

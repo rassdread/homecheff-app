@@ -87,11 +87,35 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
   ];
 
   const handlePrint = () => {
-    setIsPrintMode(true);
-    setTimeout(() => {
+    window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    // Trigger print dialog with a hint to save as PDF
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print naar PDF - ${project.title}</title>
+            <script>
+              window.onload = function() {
+                alert('Gebruik "Print" → "Bestemming: Opslaan als PDF" in het print dialoog om te downloaden als PDF.');
+                window.print();
+              }
+            </script>
+          </head>
+          <body>
+            ${document.getElementById('printable-content')?.innerHTML || ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    } else {
+      // Fallback: gebruik gewone print
+      alert('💡 Tip: Gebruik Ctrl/Cmd+P en kies "Opslaan als PDF" om een PDF te maken!');
       window.print();
-      setIsPrintMode(false);
-    }, 100);
+    }
   };
 
   const handleShare = async () => {
@@ -299,6 +323,13 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
               >
                 <Share2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Delen</span>
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">PDF</span>
               </button>
               <button
                 onClick={handlePrint}
