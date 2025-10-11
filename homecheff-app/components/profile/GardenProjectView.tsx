@@ -9,6 +9,7 @@ import {
   CircleDot, ArrowRight
 } from 'lucide-react';
 import Image from 'next/image';
+import BackButton from '@/components/navigation/BackButton';
 
 type GardenPhoto = {
   id: string;
@@ -299,13 +300,12 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
         {/* Header - No print */}
         <div className="no-print bg-white border-b border-emerald-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center space-x-2 text-emerald-700 hover:text-emerald-900 transition-colors font-medium"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Terug naar Tuin</span>
-            </button>
+            <BackButton 
+              fallbackUrl="/profile?tab=garden"
+              label="Terug naar Tuin"
+              variant="minimal"
+              className="text-emerald-700 hover:text-emerald-900"
+            />
 
             <div className="flex items-center space-x-2 sm:space-x-3">
               {isOwner && (

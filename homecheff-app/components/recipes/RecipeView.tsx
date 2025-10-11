@@ -8,6 +8,7 @@ import {
   BookOpen, Heart, Star, Download
 } from 'lucide-react';
 import Image from 'next/image';
+import BackButton from '@/components/navigation/BackButton';
 
 type RecipePhoto = {
   id: string;
@@ -218,13 +219,12 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
         {/* Header - No print */}
         <div className="no-print bg-white border-b border-amber-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center space-x-2 text-amber-700 hover:text-amber-900 transition-colors font-medium"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Terug naar Keuken</span>
-            </button>
+            <BackButton 
+              fallbackUrl="/profile?tab=recipes"
+              label="Terug naar Keuken"
+              variant="minimal"
+              className="text-amber-700 hover:text-amber-900"
+            />
 
             <div className="flex items-center space-x-2 sm:space-x-3">
               {isOwner && (

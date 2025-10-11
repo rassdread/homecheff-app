@@ -7,6 +7,7 @@ import {
   Ruler, Sparkles, Brush, Scissors, Layers, Frame, Download
 } from 'lucide-react';
 import Image from 'next/image';
+import BackButton from '@/components/navigation/BackButton';
 
 type DesignPhoto = {
   id: string;
@@ -207,13 +208,12 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
         {/* Header - No print */}
         <div className="no-print bg-white border-b border-yellow-300 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center space-x-2 text-yellow-800 hover:text-yellow-900 transition-colors font-medium"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Terug naar Atelier</span>
-            </button>
+            <BackButton 
+              fallbackUrl="/profile?tab=designs"
+              label="Terug naar Atelier"
+              variant="minimal"
+              className="text-yellow-800 hover:text-yellow-900"
+            />
 
             <div className="flex items-center space-x-2 sm:space-x-3">
               {isOwner && (

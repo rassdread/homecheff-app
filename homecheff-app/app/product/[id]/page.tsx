@@ -13,6 +13,7 @@ import StartChatButton from "@/components/chat/StartChatButton";
 import PropsButton from "@/components/props/PropsButton";
 import ReportContentButton from "@/components/reporting/ReportContentButton";
 import ClickableName from "@/components/ui/ClickableName";
+import BackButton from "@/components/navigation/BackButton";
 
 type Product = {
   id: string;
@@ -401,13 +402,11 @@ export default function ProductPage() {
       {/* Header */}
       <div className="bg-white border-b border-neutral-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Terug naar home
-          </Link>
+          <BackButton 
+            fallbackUrl="/"
+            label="Terug"
+            variant="minimal"
+          />
         </div>
       </div>
 
