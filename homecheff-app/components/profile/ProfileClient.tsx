@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { useSession } from 'next-auth/react';
 import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -306,7 +307,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 
                 {/* Gekozen naam weergave */}
                 {(() => {
-                  const fullName = user?.name || 'Gebruiker';
+                  const fullName = user ? getDisplayName(user) : '';
                   const nameParts = fullName.split(' ');
                   const firstName = nameParts[0] || '';
                   const lastName = nameParts.slice(1).join(' ') || '';
@@ -317,7 +318,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     case 'last':
                       return <h1 className="text-xl font-bold text-gray-900">{lastName}</h1>;
                     case 'username':
-                      return <h1 className="text-xl font-bold text-gray-900">@{user?.username || 'gebruiker'}</h1>;
+                      return <h1 className="text-xl font-bold text-gray-900">@{user ? getDisplayName(user) : ''}</h1>;
                     case 'full':
                     default:
                       return <h1 className="text-xl font-bold text-gray-900">{fullName}</h1>;
@@ -325,7 +326,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 })()}
                 
                 {/* Altijd gebruikersnaam tonen als kleinere tekst */}
-                <p className="text-sm text-gray-500 mt-6">@{user?.username || 'gebruiker'}</p>
+                <p className="text-sm text-gray-500 mt-6">@{user ? getDisplayName(user) : ''}</p>
                 
                 {user?.place && (
                   <div className="flex items-center justify-center mt-6 text-sm text-gray-500">

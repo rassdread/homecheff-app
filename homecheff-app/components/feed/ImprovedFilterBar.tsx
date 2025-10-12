@@ -157,9 +157,10 @@ export default function ImprovedFilterBar({
         </div>
         
         {showFilters && (
-          <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50">
+          <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50 max-h-[80vh] overflow-y-auto">
             {/* Mobile Search */}
-            <div className="mb-3">
+            <div className="mb-4 pt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Zoeken</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -172,34 +173,8 @@ export default function ImprovedFilterBar({
               </div>
             </div>
 
-            {/* Mobile Category Buttons */}
-            <div className="mb-3">
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {MAIN_CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => {
-                        onCategoryChange(cat.id);
-                        if (cat.id === 'all') onSubcategoryChange('all');
-                      }}
-                      className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm ${
-                        category === cat.id
-                          ? cat.color + ' ring-2 ring-offset-1 ring-emerald-500'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Mobile Controls */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => onSearchTypeChange(searchType === 'products' ? 'users' : 'products')}
                 className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 text-sm ${
@@ -221,13 +196,178 @@ export default function ImprovedFilterBar({
               </button>
             </div>
 
+            {/* Mobile Category Buttons */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Categorieën</label>
+              <div className="grid grid-cols-2 gap-2">
+                {MAIN_CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        onCategoryChange(cat.id);
+                        if (cat.id === 'all') onSubcategoryChange('all');
+                      }}
+                      className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm ${
+                        category === cat.id
+                          ? cat.color + ' ring-2 ring-offset-1 ring-emerald-500'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile Location Settings */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">📍 Locatie & Afstand</label>
+              <div className="space-y-3">
+                {/* Location Input */}
+                <div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      placeholder="Plaats of postcode..."
+                      value={locationInput}
+                      onChange={(e) => onLocationInputChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && locationInput.trim()) {
+                          onLocationSearch(locationInput.trim());
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                    />
+                    <button
+                      onClick={() => locationInput.trim() && onLocationSearch(locationInput.trim())}
+                      disabled={!locationInput.trim()}
+                      className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm"
+                    >
+                      Zoek
+                    </button>
+                  </div>
+                  
+                  {/* Location Quick Actions */}
+                  <div className="flex gap-2 mt-2">
+                    {profileLocation?.lat && profileLocation?.lng && onUseProfile && (
+                      <button
+                        onClick={onUseProfile}
+                        className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-xs flex items-center gap-1"
+                        title="Gebruik profiel locatie"
+                      >
+                        📍 Profiel
+                      </button>
+                    )}
+                    {onUseGPS && (
+                      <button
+                        onClick={onUseGPS}
+                        className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-xs flex items-center gap-1"
+                        title="Gebruik GPS locatie"
+                      >
+                        🛰️ GPS
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Radius Setting */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Zoekstraal: {getRadiusLabel(radius)}
+                  </label>
+                  <select
+                    value={radius}
+                    onChange={(e) => onRadiusChange(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                  >
+                    <option value={5}>5 km - Lokaal</option>
+                    <option value={10}>10 km - Buurt</option>
+                    <option value={25}>25 km - Stad</option>
+                    <option value={50}>50 km - Regio</option>
+                    <option value={100}>100 km - Provincie</option>
+                    <option value={0}>Wereldwijd</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Filters Row */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* Delivery Mode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">🚚 Bezorging</label>
+                <select
+                  value={deliveryMode}
+                  onChange={(e) => onDeliveryModeChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                >
+                  {DELIVERY_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort By */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">📊 Sorteren</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => onSortByChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                >
+                  <option value="newest">Nieuwste</option>
+                  <option value="price-asc">Prijs: Laag - Hoog</option>
+                  <option value="price-desc">Prijs: Hoog - Laag</option>
+                  <option value="distance">Dichtstbij</option>
+                  <option value="popular">Populair</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Price Range */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">💰 Prijsbereik</label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    placeholder="Min €"
+                    value={localPriceMin === 0 ? '' : localPriceMin}
+                    onChange={(e) => setLocalPriceMin(Number(e.target.value) || 0)}
+                    onBlur={handlePriceChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                  />
+                </div>
+                <div className="flex items-center text-gray-500">
+                  <span>-</span>
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    placeholder="Max €"
+                    value={localPriceMax === 1000 ? '' : localPriceMax}
+                    onChange={(e) => setLocalPriceMax(Number(e.target.value) || 1000)}
+                    onBlur={handlePriceChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Mobile Subcategories */}
             {showSubcategories && availableSubcategories.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">🏷️ Subcategorieën</label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                   <button
                     onClick={() => onSubcategoryChange('all')}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                       subcategory === 'all'
                         ? 'bg-emerald-500 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -239,7 +379,7 @@ export default function ImprovedFilterBar({
                     <button
                       key={subcat}
                       onClick={() => onSubcategoryChange(subcat)}
-                      className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         subcategory === subcat
                           ? 'bg-emerald-500 text-white shadow-md'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -249,6 +389,19 @@ export default function ImprovedFilterBar({
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Clear Filters Button */}
+            {activeFiltersCount > 0 && onClearFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button
+                  onClick={onClearFilters}
+                  className="w-full px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+                >
+                  <X className="w-4 h-4" />
+                  Wis alle filters ({activeFiltersCount})
+                </button>
               </div>
             )}
           </div>

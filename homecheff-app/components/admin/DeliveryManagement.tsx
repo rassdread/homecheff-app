@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { 
   Truck, 
   MapPin, 
@@ -16,7 +17,12 @@ import {
   Filter,
   Search,
   Download,
-  RefreshCw
+  RefreshCw,
+  Navigation,
+  Home,
+  Phone,
+  Mail,
+  User
 } from 'lucide-react';
 
 interface DeliveryProfile {
@@ -42,10 +48,20 @@ interface DeliveryProfile {
   lastLocationUpdate: Date | null;
   deliveryMode: string;
   deliveryRegions: string[];
+  // GPS tracking fields
+  gpsTrackingEnabled: boolean;
+  lastGpsUpdate: Date | null;
+  locationAccuracy: number | null;
+  batteryLevel: number | null;
   user: {
     id: string;
     name: string | null;
     email: string;
+    phoneNumber: string | null;
+    address: string | null;
+    city: string | null;
+    postalCode: string | null;
+    country: string | null;
     image: string | null;
     profileImage: string | null;
   };
@@ -365,7 +381,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                         {profile.user.profileImage || profile.user.image ? (
                           <img
                             src={profile.user.profileImage || profile.user.image || ''}
-                            alt={profile.user.name || 'Bezorger'}
+                            alt={getDisplayName(profile.user)}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
@@ -374,7 +390,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {profile.user.name || 'Geen naam'}
+                          {getDisplayName(profile.user)}
                         </div>
                         <div className="text-sm text-gray-500">{profile.user.email}</div>
                         <div className="text-xs text-gray-400">
@@ -455,7 +471,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900">
-                  {selectedProfile.user.name || 'Bezorger Details'}
+                  {getDisplayName(selectedProfile.user)}
                 </h3>
                 <button
                   onClick={() => setSelectedProfile(null)}
@@ -469,7 +485,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">Persoonlijke Info</h4>
                   <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">Naam:</span> {selectedProfile.user.name || 'N/A'}</div>
+                    <div><span className="font-medium">Naam:</span> {getDisplayName(selectedProfile.user)}</div>
                     <div><span className="font-medium">Email:</span> {selectedProfile.user.email}</div>
                     <div><span className="font-medium">Leeftijd:</span> {selectedProfile.age} jaar</div>
                     <div><span className="font-medium">Aangemeld:</span> {formatDate(selectedProfile.createdAt)}</div>
@@ -493,6 +509,83 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                     <div><span className="font-medium">Max Afstand:</span> {selectedProfile.maxDistance}km</div>
                     <div><span className="font-medium">Beschikbare Dagen:</span> {selectedProfile.availableDays.join(', ')}</div>
                     <div><span className="font-medium">Tijdsloten:</span> {selectedProfile.availableTimeSlots.join(', ')}</div>
+                    
+                    {/* GPS Location Info */}
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Navigation className={`w-4 h-4 ${selectedProfile.gpsTrackingEnabled ? 'text-green-500' : 'text-red-500'}`} />
+                        <span className="font-medium text-gray-900">Live GPS Locatie</span>
+                      </div>
+                      
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">Status:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            selectedProfile.gpsTrackingEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {selectedProfile.gpsTrackingEnabled ? 'Actief' : 'Uitgeschakeld'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">Huidige Locatie:</span>
+                          <span className="text-gray-900">
+                            {selectedProfile.currentAddress || 'Onbekend'}
+                          </span>
+                        </div>
+                        
+                        {selectedProfile.currentLat && selectedProfile.currentLng && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Coördinaten:</span>
+                            <span className="text-gray-900 font-mono text-xs">
+                              {selectedProfile.currentLat.toFixed(6)}, {selectedProfile.currentLng.toFixed(6)}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {selectedProfile.locationAccuracy && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Nauwkeurigheid:</span>
+                            <span className="text-gray-900">
+                              {selectedProfile.locationAccuracy}m
+                            </span>
+                          </div>
+                        )}
+                        
+                        {selectedProfile.batteryLevel && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Batterij:</span>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              selectedProfile.batteryLevel > 20 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {selectedProfile.batteryLevel}%
+                            </span>
+                          </div>
+                        )}
+                        
+                        {selectedProfile.lastGpsUpdate && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Laatste Update:</span>
+                            <span className="text-gray-900">
+                              {new Date(selectedProfile.lastGpsUpdate).toLocaleString('nl-NL')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Home Location */}
+                      {selectedProfile.homeAddress && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Home className="w-3 h-3 text-blue-500" />
+                            <span className="text-xs font-medium text-gray-700">Thuis Adres</span>
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {selectedProfile.homeAddress}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -834,7 +834,7 @@ function HomePageContent() {
       <RedirectAfterLogin />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-16 md:py-24">
+      <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-8 md:py-12">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">

@@ -74,9 +74,18 @@ export async function GET(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    // Get other participant (not the current user)
-    const otherParticipant = conversation.ConversationParticipant
+    // Get other participant (not the current user) with consistent data structure
+    const otherParticipantData = conversation.ConversationParticipant
       .find(p => p.userId !== user.id)?.User;
+    
+       const otherParticipant = otherParticipantData ? {
+         id: otherParticipantData.id,
+         name: otherParticipantData.name,
+         username: otherParticipantData.username,
+         profileImage: otherParticipantData.profileImage,
+         displayFullName: (otherParticipantData as any).displayFullName,
+         displayNameOption: (otherParticipantData as any).displayNameOption
+       } : null;
 
     // Transform to match the expected format
     const conversationData = {

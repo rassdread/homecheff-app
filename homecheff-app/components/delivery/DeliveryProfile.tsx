@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { 
   MapPin, 
   Clock, 
@@ -227,7 +228,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                     {deliveryProfile.user.image ? (
                       <Image
                         src={deliveryProfile.user.image}
-                        alt={deliveryProfile.user.name || 'Bezorger'}
+                        alt={getDisplayName(deliveryProfile.user)}
                         width={96}
                         height={96}
                         className="w-full h-full object-cover"
@@ -481,7 +482,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                                 {review.reviewer.image ? (
                                   <Image
                                     src={review.reviewer.image}
-                                    alt={review.reviewer.name || 'Gebruiker'}
+                                    alt={getDisplayName(review.reviewer)}
                                     width={40}
                                     height={40}
                                     className="w-full h-full object-cover rounded-full"
@@ -492,7 +493,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">
-                                  {review.reviewer.name || 'Anonieme gebruiker'}
+                                  {getDisplayName(review.reviewer)}
                                 </p>
                                 <div className="flex items-center gap-2">
                                   <div className="flex">

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { Search, User, Mail, Phone, MapPin, Copy, Eye, EyeOff, Shield, Building, Hash } from 'lucide-react';
 import Image from 'next/image';
 
@@ -121,7 +122,7 @@ export default function AdminUserContact() {
                   {user.profileImage ? (
                     <Image
                       src={user.profileImage}
-                      alt={user.name || user.username || 'User'}
+                      alt={user.name || getDisplayName(user)}
                       width={48}
                       height={48}
                       className="rounded-full"
@@ -132,7 +133,7 @@ export default function AdminUserContact() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{user.name || user.username}</h4>
+                    <h4 className="font-semibold text-gray-900">{getDisplayName(user)}</h4>
                     <p className="text-sm text-gray-600">{user.email}</p>
                   </div>
                   <span className={`px-3 py-1 text-xs rounded-full ${
@@ -158,7 +159,7 @@ export default function AdminUserContact() {
               {selectedUser.profileImage ? (
                 <Image
                   src={selectedUser.profileImage}
-                  alt={selectedUser.name || selectedUser.username || 'User'}
+                  alt={getDisplayName(selectedUser)}
                   width={64}
                   height={64}
                   className="rounded-full border-4 border-white"
@@ -170,7 +171,7 @@ export default function AdminUserContact() {
               )}
               <div>
                 <h3 className="text-2xl font-bold">{selectedUser.name || selectedUser.username}</h3>
-                <p className="text-blue-100">@{selectedUser.username || 'geen username'}</p>
+                <p className="text-blue-100">@{getDisplayName(selectedUser)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

@@ -18,8 +18,10 @@ import {
   AlertCircle,
   Play,
   Pause,
-  RefreshCw
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface DeliveryStats {
   todayEarnings: number;
@@ -30,6 +32,12 @@ interface DeliveryStats {
   completedDeliveries: number;
   pendingDeliveries: number;
   totalEarnings: number;
+  availableOrders: number;
+  deliveryRadius: number;
+  currentLocation?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface DeliveryOrder {
@@ -46,6 +54,7 @@ interface DeliveryOrder {
   createdAt: Date;
   pickedUpAt?: Date;
   deliveredAt?: Date;
+  conversationId?: string;
   product: {
     title: string;
     image: string;
@@ -67,10 +76,14 @@ export default function DeliveryDashboard() {
     onlineTime: 0,
     completedDeliveries: 0,
     pendingDeliveries: 0,
-    totalEarnings: 0
+    totalEarnings: 0,
+    availableOrders: 0,
+    deliveryRadius: 10
   });
   const [recentOrders, setRecentOrders] = useState<DeliveryOrder[]>([]);
+  const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDeliveryData();
@@ -87,6 +100,7 @@ export default function DeliveryDashboard() {
         setStats(data.stats);
         setRecentOrders(data.recentOrders);
         setCurrentOrder(data.currentOrder);
+        setAvailableOrders(data.availableOrders || []);
       }
     } catch (error) {
       console.error('Error fetching delivery data:', error);
@@ -140,7 +154,31 @@ export default function DeliveryDashboard() {
   };
 
   const acceptOrder = async (orderId: string) => {
-    await updateOrderStatus(orderId, 'ACCEPTED');
+    setAcceptingOrder(orderId);
+    try {
+      const response = await fetch(`/api/delivery/orders/${orderId}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Set this as current order
+        setCurrentOrder(data.order);
+        // Remove from available orders
+        setAvailableOrders(prev => prev.filter(o => o.id !== orderId));
+        // Refresh stats
+        await fetchDeliveryData();
+      } else {
+        const error = await response.json();
+        alert(`Fout: ${error.error || 'Kon opdracht niet accepteren'}`);
+      }
+    } catch (error) {
+      console.error('Error accepting order:', error);
+      alert('Er is een fout opgetreden bij het accepteren van de opdracht');
+    } finally {
+      setAcceptingOrder(null);
+    }
   };
 
   const pickupOrder = async (orderId: string) => {
@@ -257,11 +295,12 @@ export default function DeliveryDashboard() {
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Bezorgingen</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalDeliveries}</p>
+                <p className="text-sm font-medium text-gray-600">Beschikbaar</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.availableOrders}</p>
+                <p className="text-xs text-gray-500 mt-1">Nieuwe bestellingen</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Truck className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Bell className="w-6 h-6 text-orange-600" />
               </div>
             </div>
           </div>
@@ -271,6 +310,7 @@ export default function DeliveryDashboard() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Beoordeling</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.averageRating.toFixed(1)}</p>
+                <p className="text-xs text-gray-500 mt-1">{stats.totalDeliveries} bezorgingen</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-lg">
                 <Star className="w-6 h-6 text-yellow-600" />
@@ -280,6 +320,101 @@ export default function DeliveryDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Available Orders Section */}
+          {!currentOrder && availableOrders.length > 0 && isOnline && (
+            <div className="lg:col-span-3 mb-6">
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl shadow-sm border-2 border-orange-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-500 rounded-full">
+                      <Bell className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">Beschikbare Bezorgopdrachten</h3>
+                      <p className="text-sm text-gray-600">Binnen jouw werkgebied ({stats.deliveryRadius}km)</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={fetchDeliveryData}
+                    className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Ververs
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {availableOrders.map((order) => (
+                    <div key={order.id} className="bg-white rounded-xl border-2 border-gray-200 p-5 hover:border-orange-300 transition-all">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                          {order.product.image ? (
+                            <img
+                              src={order.product.image}
+                              alt={order.product.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Truck className="w-8 h-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 mb-1">{order.product.title}</h4>
+                          <p className="text-sm text-gray-600 mb-2">van {order.product.seller.name}</p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {order.distance.toFixed(1)}km
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              ~{order.estimatedTime}min
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4 pb-4 border-b">
+                        <div className="text-sm text-gray-600">
+                          <p className="font-medium">Bezorgkosten</p>
+                          <p className="text-xs text-gray-500">Jij krijgt 88%</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-emerald-600">
+                            {formatCurrency(order.deliveryFee)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            ≈ {formatCurrency(order.deliveryFee * 0.88)} voor jou
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => acceptOrder(order.id)}
+                        disabled={acceptingOrder === order.id}
+                        className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {acceptingOrder === order.id ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            Accepteren...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-5 h-5" />
+                            Accepteer Opdracht
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Current Order */}
           <div className="lg:col-span-2">
             {currentOrder ? (
@@ -322,69 +457,155 @@ export default function DeliveryDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium text-gray-700">Ophaaladres</p>
-                      <p className="text-gray-600">{currentOrder.product.seller.address}</p>
+                  <div className="space-y-4">
+                    {/* Pickup Details */}
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-blue-500 rounded-lg">
+                          <MapPin className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-blue-900 mb-1">📦 Ophaaladres (Verkoper)</p>
+                          <p className="text-sm text-blue-800">{currentOrder.product.seller.name}</p>
+                          <p className="text-sm text-blue-700 mt-1">{currentOrder.product.seller.address}</p>
+                          {(currentOrder.product.seller as any).phone && (
+                            <p className="text-sm text-blue-700 mt-1">
+                              📞 {(currentOrder.product.seller as any).phone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-700">Bezorgadres</p>
-                      <p className="text-gray-600">{currentOrder.customerAddress}</p>
+
+                    {/* Delivery Details */}
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-green-500 rounded-lg">
+                          <Navigation className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-green-900 mb-1">🏠 Bezorgadres (Klant)</p>
+                          <p className="text-sm text-green-800">{currentOrder.customerName}</p>
+                          <p className="text-sm text-green-700 mt-1">{currentOrder.customerAddress}</p>
+                          {currentOrder.customerPhone && (
+                            <p className="text-sm text-green-700 mt-1">
+                              📞 {currentOrder.customerPhone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {currentOrder.notes && (
-                    <div>
-                      <p className="font-medium text-gray-700 text-sm">Opmerkingen</p>
-                      <p className="text-gray-600 text-sm">{currentOrder.notes}</p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="font-medium text-yellow-900 text-sm mb-1">💬 Opmerkingen</p>
+                      <p className="text-yellow-800 text-sm">{currentOrder.notes}</p>
                     </div>
                   )}
 
-                  <div className="flex gap-3">
-                    {currentOrder.status === 'PENDING' && (
-                      <button
-                        onClick={() => acceptOrder(currentOrder.id)}
-                        className="flex-1 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 font-medium"
+                  <div className="space-y-3 pt-4 border-t">
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      {currentOrder.status === 'PENDING' && (
+                        <>
+                          <button
+                            onClick={() => acceptOrder(currentOrder.id)}
+                            className="flex-1 bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 font-semibold flex items-center justify-center gap-2 shadow-lg"
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                            Accepteer Bestelling
+                          </button>
+                          <button
+                            onClick={() => cancelOrder(currentOrder.id)}
+                            className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+                          >
+                            Weigeren
+                          </button>
+                        </>
+                      )}
+                      {currentOrder.status === 'ACCEPTED' && (
+                        <button
+                          onClick={() => pickupOrder(currentOrder.id)}
+                          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 shadow-lg"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          Product Opgehaald
+                        </button>
+                      )}
+                      {currentOrder.status === 'PICKED_UP' && (
+                        <button
+                          onClick={() => deliverOrder(currentOrder.id)}
+                          className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2 shadow-lg"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          Product Bezorgd
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Communication Button - Show after acceptance */}
+                    {(currentOrder.status === 'ACCEPTED' || currentOrder.status === 'PICKED_UP') && currentOrder.conversationId && (
+                      <Link
+                        href={`/messages?conversation=${currentOrder.conversationId}`}
+                        className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 font-semibold flex items-center justify-center gap-2 shadow-lg transition-all"
                       >
-                        Accepteer Bestelling
-                      </button>
-                    )}
-                    {currentOrder.status === 'ACCEPTED' && (
-                      <button
-                        onClick={() => setCurrentOrder(prev => prev ? { ...prev, status: 'PICKED_UP' } : null)}
-                        className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium"
-                      >
-                        Markeer als Opgehaald
-                      </button>
-                    )}
-                    {currentOrder.status === 'PICKED_UP' && (
-                      <button
-                        onClick={() => deliverOrder(currentOrder.id)}
-                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 font-medium"
-                      >
-                        Markeer als Bezorgd
-                      </button>
+                        <MessageCircle className="w-5 h-5" />
+                        Stuur bericht naar klant
+                      </Link>
                     )}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-                <Truck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen actieve bestelling</h3>
-                <p className="text-gray-600 mb-4">
-                  {isOnline 
-                    ? 'Wacht op nieuwe bestellingen in jouw gebied' 
-                    : 'Ga online om bestellingen te ontvangen'
-                  }
-                </p>
-                {!isOnline && (
-                  <button
-                    onClick={toggleOnlineStatus}
-                    className="bg-emerald-600 text-white py-2 px-6 rounded-lg hover:bg-emerald-700 font-medium"
-                  >
-                    Ga Online
-                  </button>
+                {!isOnline ? (
+                  <>
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Pause className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Je bent offline</h3>
+                    <p className="text-gray-600 mb-6">
+                      Ga online om bestellingen te ontvangen in jouw werkgebied ({stats.deliveryRadius}km)
+                    </p>
+                    <button
+                      onClick={toggleOnlineStatus}
+                      className="bg-emerald-600 text-white py-3 px-8 rounded-lg hover:bg-emerald-700 font-semibold flex items-center justify-center gap-2 mx-auto shadow-lg"
+                    >
+                      <Play className="w-5 h-5" />
+                      Ga Online
+                    </button>
+                  </>
+                ) : availableOrders.length > 0 ? (
+                  <>
+                    <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Bell className="w-10 h-10 text-orange-600 animate-pulse" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {availableOrders.length} opdracht{availableOrders.length !== 1 ? 'en' : ''} beschikbaar!
+                    </h3>
+                    <p className="text-gray-600">
+                      Scroll naar boven om beschikbare opdrachten te zien en te accepteren
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-10 h-10 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Je bent online!</h3>
+                    <p className="text-gray-600 mb-4">
+                      Wacht op nieuwe bestellingen binnen {stats.deliveryRadius}km van je locatie
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+                      <p className="font-medium mb-2">🔍 We zoeken opdrachten waarbij:</p>
+                      <ul className="text-left space-y-1 text-xs">
+                        <li>✓ Je binnen {stats.deliveryRadius}km bent van de verkoper</li>
+                        <li>✓ Je binnen {stats.deliveryRadius}km bent van de koper</li>
+                        <li>✓ Je beschikbaar bent in het gevraagde tijdslot</li>
+                      </ul>
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -392,25 +613,49 @@ export default function DeliveryDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Work Area Info */}
+            <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl shadow-sm border border-emerald-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-emerald-600" />
+                Jouw Werkgebied
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">Bezorgradius</span>
+                  <span className="font-bold text-emerald-600">{stats.deliveryRadius} km</span>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-emerald-100">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>GPS Validatie:</strong>
+                  </p>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>✓ Binnen {stats.deliveryRadius}km van verkoper</li>
+                    <li>✓ Binnen {stats.deliveryRadius}km van koper</li>
+                    <li>✓ Beschikbaar in jouw tijdslot</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             {/* Quick Stats */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Snelle Statistieken</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Vandaag</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Online Tijd</span>
                   <span className="font-medium">{formatTime(stats.onlineTime)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Voltooid Vandaag</span>
-                  <span className="font-medium">{stats.completedDeliveries}</span>
+                  <span className="text-gray-600">Voltooid</span>
+                  <span className="font-medium text-green-600">{stats.completedDeliveries}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Wachtend</span>
-                  <span className="font-medium">{stats.pendingDeliveries}</span>
+                  <span className="text-gray-600">In behandeling</span>
+                  <span className="font-medium text-blue-600">{stats.pendingDeliveries}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Totaal Verdiensten</span>
-                  <span className="font-medium text-emerald-600">{formatCurrency(stats.totalEarnings)}</span>
+                <div className="flex justify-between pt-2 border-t">
+                  <span className="text-gray-600">Totaal Verdiend</span>
+                  <span className="font-bold text-emerald-600">{formatCurrency(stats.totalEarnings)}</span>
                 </div>
               </div>
             </div>
@@ -435,13 +680,14 @@ export default function DeliveryDashboard() {
             </div>
 
             {/* Tips */}
-            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Tips</h3>
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Bezorger Tips</h3>
               <ul className="space-y-2 text-sm text-gray-700">
-                <li>• Houd je telefoon opgeladen</li>
-                <li>• Controleer je route voor vertrek</li>
-                <li>• Wees vriendelijk tegen klanten</li>
-                <li>• Update je locatie regelmatig</li>
+                <li>🔋 Houd je telefoon opgeladen</li>
+                <li>📍 Locatie altijd aan voor GPS matching</li>
+                <li>🚴 Check je vervoersmiddel voor vertrek</li>
+                <li>😊 Wees vriendelijk en professioneel</li>
+                <li>⏰ Houd rekening met het 3-uur tijdvenster</li>
               </ul>
             </div>
           </div>

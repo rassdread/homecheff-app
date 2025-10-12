@@ -4,10 +4,9 @@ export const dynamic = 'force-dynamic';
 
 import { stripe, createConnectPaymentIntent, calculatePayout } from '@/lib/stripe';
 import { formatAmountForStripe } from '@/lib/stripe';
-// Removed pricing import - fees are now calculated differently
+import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
-// import { findDeliveryProfilesInRadius, isProfileAvailable } from '@/lib/geolocation';
 
 const prisma = new PrismaClient();
 
@@ -53,7 +52,10 @@ export async function POST(req: NextRequest) {
                 name: true,
                 email: true,
                 stripeConnectAccountId: true,
-                stripeConnectOnboardingCompleted: true
+                stripeConnectOnboardingCompleted: true,
+                lat: true,
+                lng: true,
+                place: true
               }
             }
           }
@@ -67,6 +69,19 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
+    
+    // If delivery mode is TEEN_DELIVERY or DELIVERY, validate coordinates
+    if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
+      if (!coordinates || !coordinates.lat || !coordinates.lng) {
+        return NextResponse.json(
+          { error: 'Bezorgadres coördinaten zijn vereist voor bezorging' },
+          { status: 400 }
+        );
+      }
+
+      console.log(`✅ Coordinates validated for delivery: ${coordinates.lat}, ${coordinates.lng}`);
+      console.log(`📢 Eligible deliverers will be notified after payment`);
+    }
 
     // Calculate total amount
     const totalAmount = items.reduce((sum: number, item: any) => {
@@ -77,25 +92,78 @@ export async function POST(req: NextRequest) {
     let deliveryFeeCents = 0;
     let deliveryFeeBreakdown: any = null;
     
-    if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
-      deliveryFeeCents = 200; // €2.00 base delivery fee
-      
-      // Calculate distance-based fee (mock for now)
+    if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY' || deliveryMode === 'LOCAL_DELIVERY') {
       if (coordinates) {
-        // In real app, calculate actual distance
-        const distance = 5; // Mock distance in km
-        if (distance > 3) {
-          deliveryFeeCents += Math.round((distance - 3) * 50); // €0.50 per km after 3km
+        // Calculate actual distance from seller to buyer
+        let totalDistance = 0;
+        
+        // For each product, calculate distance from seller to buyer
+        for (const item of items) {
+          const product = products.find(p => p.id === item.productId);
+          if (product?.seller?.User?.lat && product?.seller?.User?.lng) {
+            const distance = calculateDistance(
+              product.seller.User.lat,
+              product.seller.User.lng,
+              coordinates.lat,
+              coordinates.lng
+            );
+            totalDistance = Math.max(totalDistance, distance); // Use longest distance if multiple products
+          }
         }
+        
+        // Round to 1 decimal
+        totalDistance = Math.round(totalDistance * 10) / 10;
+        
+        console.log(`📏 Calculated delivery distance: ${totalDistance} km`);
+        
+        // Determine delivery type based on mode
+        const deliveryType = deliveryMode === 'LOCAL_DELIVERY' ? 'SELLER_DELIVERY' : 'PLATFORM_DELIVERERS';
+        
+        // Calculate fee using pricing module
+        let pricing;
+        if (totalDistance > 30) {
+          // Use long distance pricing for distances over 30km
+          pricing = calculateLongDistanceDeliveryFee(totalDistance);
+        } else {
+          pricing = calculateDeliveryFee(totalDistance, deliveryType);
+        }
+        
+        deliveryFeeCents = pricing.totalDeliveryFee;
+        deliveryFeeBreakdown = {
+          baseFee: pricing.baseFee,
+          distanceFee: pricing.distanceFee,
+          totalDeliveryFee: pricing.totalDeliveryFee,
+          deliveryPersonCut: pricing.delivererCut,
+          homecheffCut: pricing.platformCut,
+          distance: totalDistance,
+          breakdown: pricing.breakdown
+        };
+
+        console.log(`💰 Delivery fee: €${(deliveryFeeCents / 100).toFixed(2)} (Base: €${(pricing.baseFee / 100).toFixed(2)}, Distance: €${(pricing.distanceFee / 100).toFixed(2)})`);
+      } else {
+        // Fallback if no coordinates
+        deliveryFeeCents = 250; // €2.50 default
+        deliveryFeeBreakdown = {
+          baseFee: 250,
+          distanceFee: 0,
+          totalDeliveryFee: 250,
+          deliveryPersonCut: Math.round(250 * 0.88),
+          homecheffCut: Math.round(250 * 0.12)
+        };
       }
-      
-      deliveryFeeBreakdown = {
-        baseFee: 200,
-        distanceFee: deliveryFeeCents - 200,
-        totalDeliveryFee: deliveryFeeCents,
-        deliveryPersonCut: Math.round(deliveryFeeCents * 0.88), // 88% to delivery person
-        homecheffCut: Math.round(deliveryFeeCents * 0.12) // 12% to HomeCheff (same as platform fee)
-      };
+    }
+    
+    // Helper function to calculate distance
+    function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
     }
 
     const subtotal = totalAmount + deliveryFeeCents;
@@ -194,6 +262,7 @@ export async function POST(req: NextRequest) {
         platformFeeCents: platformFeeCents.toString(),
         deliveryFeeCents: deliveryFeeCents.toString(),
         deliveryFeeBreakdown: deliveryFeeBreakdown ? JSON.stringify(deliveryFeeBreakdown) : '',
+        coordinates: coordinates ? JSON.stringify(coordinates) : '',
         subtotal: subtotal.toString(),
         finalTotal: finalTotal.toString(),
         stripeFeeCents: stripeFeeCents.toString(),

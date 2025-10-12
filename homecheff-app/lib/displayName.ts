@@ -15,7 +15,8 @@ export interface User {
  * Get display name based on user preferences
  */
 export function getDisplayName(user: User | null | undefined): string {
-  if (!user) return 'Onbekend';
+  // Always fall back to username, never show "Onbekend" if username exists
+  if (!user) return 'Gebruiker';
   
   // If displayFullName is false, don't show name at all
   if (user.displayFullName === false) {
@@ -40,15 +41,15 @@ export function getDisplayName(user: User | null | undefined): string {
     return 'Anoniem';
   }
   
-  // Default to full name or username
-  return user.name || user.username || 'Onbekend';
+  // Default to full name or username, never "Onbekend"
+  return user.name || user.username || 'Gebruiker';
 }
 
 /**
  * Get display name with fallback for public display
  */
 export function getPublicDisplayName(user: User | null | undefined): string {
-  if (!user) return 'Onbekend';
+  if (!user) return 'Gebruiker';
   
   // For public display, respect privacy settings but show something
   if (user.displayFullName === false) {

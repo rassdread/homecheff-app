@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield, Phone } from 'lucide-react';
+import { getDisplayName } from '@/lib/displayName';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield, Phone, Archive } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
@@ -12,6 +13,8 @@ import ContentModerationDashboard from './ContentModerationDashboard';
 import AdminMessages from './AdminMessages';
 import AdminUserContact from './AdminUserContact';
 import AdminFilters from './AdminFilters';
+import ChatArchiver from './ChatArchiver';
+import LiveLocationMap from './LiveLocationMap';
 
 interface AdminStats {
   totalUsers: number;
@@ -74,10 +77,20 @@ interface AdminStats {
     lastLocationUpdate: Date | null;
     deliveryMode: string;
     deliveryRegions: string[];
+    // GPS tracking fields
+    gpsTrackingEnabled: boolean;
+    lastGpsUpdate: Date | null;
+    locationAccuracy: number | null;
+    batteryLevel: number | null;
     user: {
       id: string;
       name: string | null;
       email: string;
+      phoneNumber: string | null;
+      address: string | null;
+      city: string | null;
+      postalCode: string | null;
+      country: string | null;
       image: string | null;
       profileImage: string | null;
     };
@@ -153,9 +166,11 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     { id: 'users', label: 'Gebruikers', icon: Users },
     { id: 'contact', label: 'Contact Zoeken', icon: Phone },
     { id: 'messages', label: 'Chat Overzicht', icon: MessageSquare },
+    { id: 'chat-archive', label: 'Chat Archivering', icon: Archive },
     { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'delivery', label: 'Bezorgers', icon: Truck },
+    { id: 'live-locations', label: 'Live Locaties', icon: Truck },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'moderation', label: 'Content Moderation', icon: Shield },
     { id: 'notifications', label: 'Notificaties', icon: Bell },
@@ -324,7 +339,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                           {user.profileImage || user.image ? (
                             <img
                               src={user.profileImage || user.image || ''}
-                              alt={user.name || 'User'}
+                              alt={getDisplayName(user)}
                               className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
@@ -333,7 +348,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {user.name || 'Geen naam'}
+                            {getDisplayName(user)}
                           </p>
                           <p className="text-sm text-gray-500 truncate">{user.email}</p>
                         </div>
@@ -363,7 +378,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                             {product.title}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
-                            door {product.seller.User.name || product.seller.User.username || 'Onbekend'}
+                            door {getDisplayName(product.seller.User)}
                           </p>
                         </div>
                         <div className="text-right">
@@ -387,9 +402,11 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'sellers' && <SellerManagement />}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'delivery' && <DeliveryManagement deliveryProfiles={stats.deliveryProfiles} />}
+        {activeTab === 'live-locations' && <LiveLocationMap locations={stats.deliveryProfiles} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'moderation' && <ContentModerationDashboard />}
         {activeTab === 'messages' && <AdminMessages />}
+        {activeTab === 'chat-archive' && <ChatArchiver />}
         {activeTab === 'contact' && <AdminUserContact />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { useRouter } from 'next/navigation';
 import { 
   Clock, Users, ChefHat, ArrowLeft, Printer,
   Share2, Edit3, Utensils, Flame, Timer,
-  BookOpen, Heart, Star, Download
+  BookOpen, Heart, Star, Download, MessageCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import BackButton from '@/components/navigation/BackButton';
+import StartChatButton from '@/components/chat/StartChatButton';
 
 type RecipePhoto = {
   id: string;
@@ -257,6 +259,14 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Printen</span>
               </button>
+              {!isOwner && (
+                <StartChatButton
+                  sellerId={recipe.user.id}
+                  sellerName={recipe.user.name || getDisplayName(recipe.user)}
+                  productId={recipe.id}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -349,7 +359,7 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
                   {recipe.user.profileImage ? (
                     <Image
                       src={recipe.user.profileImage}
-                      alt={recipe.user.name || recipe.user.username || 'Chef'}
+                      alt={recipe.user.name || getDisplayName(recipe.user)}
                       width={40}
                       height={40}
                       className="rounded-full border-2 border-amber-500"
@@ -360,7 +370,7 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
                     </div>
                   )}
                   <span className="font-bold text-gray-800">
-                    {recipe.user.name || recipe.user.username || 'Chef'}
+                    {recipe.user.name || getDisplayName(recipe.user)}
                   </span>
                 </div>
               </div>

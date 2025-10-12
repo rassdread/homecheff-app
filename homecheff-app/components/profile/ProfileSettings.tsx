@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
 
 const sellerTypes = [
@@ -128,8 +129,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     foundAddress: null,
   });
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    username: user?.username || '',
+    name: user ? getDisplayName(user) : '',
+    username: user ? getDisplayName(user) : '',
     bio: user?.bio || '',
     quote: user?.quote || '',
     place: user?.place || '',
@@ -324,8 +325,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
-      username: user?.username || '',
+      name: user ? getDisplayName(user) : '',
+      username: user ? getDisplayName(user) : '',
       bio: user?.bio || '',
       quote: user?.quote || '',
       place: user?.place || '',

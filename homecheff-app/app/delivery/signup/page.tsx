@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
+import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X, Zap, Car } from 'lucide-react';
 
 interface DeliverySignupData {
   // Account creation
@@ -104,9 +104,9 @@ export default function DeliverySignupPage() {
 
   const transportationOptions = [
     { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 5 },
-    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
+    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Zap className="w-5 h-5" />, maxRange: 10 },
     { id: 'SCOOTER', label: 'Scooter', icon: <Bike className="w-5 h-5" />, maxRange: 15 },
-    { id: 'CAR', label: 'Auto', icon: <Bike className="w-5 h-5" />, maxRange: 25 }
+    { id: 'CAR', label: 'Auto', icon: <Car className="w-5 h-5" />, maxRange: 25 }
   ];
 
   const dayOptions = [

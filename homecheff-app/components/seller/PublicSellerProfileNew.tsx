@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { 
   MapPin, 
   Clock, 
@@ -401,7 +402,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     {sellerProfile.User.image ? (
                       <Image
                         src={sellerProfile.User.image}
-                        alt={sellerProfile.User.name || 'Verkoper'}
+                        alt={getDisplayName(sellerProfile.User)}
                         width={128}
                         height={128}
                         className="w-full h-full object-cover"
@@ -454,8 +455,8 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   />
                   {/* Only show follow/chat buttons if user is logged in */}
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <FollowButton sellerId={sellerProfile.id} sellerName={sellerProfile.User.name || 'deze verkoper'} />
-                    <StartChatButton sellerId={sellerProfile.id} sellerName={sellerProfile.User.name || 'deze verkoper'} />
+                    <FollowButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
+                    <StartChatButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
                   </div>
                 </div>
               </div>

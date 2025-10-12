@@ -12,6 +12,7 @@ import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
 import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, forceSessionReset, clearNextAuthData } from '@/lib/session-cleanup';
+import { getDisplayName } from '@/lib/displayName';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -167,7 +168,7 @@ export default function NavBar() {
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-700 truncate max-w-32">
-                      {user.name || 'Profiel'}
+                      {getDisplayName(user)}
                     </span>
                     <ChevronDown 
                       className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
@@ -405,7 +406,7 @@ export default function NavBar() {
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-700 truncate max-w-32">
-                      {user.name || 'Profiel'}
+                      {getDisplayName(user)}
                     </span>
                   </div>
                   

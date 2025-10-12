@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { MoreHorizontal, Star, Clock, Truck, Package, MapPin } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
@@ -164,7 +165,7 @@ export default function ItemCard({ item }: ItemCardProps) {
             {item.seller?.avatar ? (
               <SafeImage
                 src={item.seller.avatar}
-                alt={item.seller.name || 'Verkoper'}
+                alt={getDisplayName(item.seller)}
                 width={24}
                 height={24}
                 className="rounded-full border border-primary-100"
@@ -172,7 +173,7 @@ export default function ItemCard({ item }: ItemCardProps) {
             ) : (
               <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
                 <span className="text-xs text-primary-600 font-medium">
-                  {(item.seller?.name || 'U')[0].toUpperCase()}
+                  {(item.seller ? getDisplayName(item.seller) : '?')[0].toUpperCase()}
                 </span>
               </div>
             )}

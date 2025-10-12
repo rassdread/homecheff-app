@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { useRouter } from 'next/navigation';
 import { 
   Palette, ArrowLeft, Printer, Share2, Edit3, 
-  Ruler, Sparkles, Brush, Scissors, Layers, Frame, Download
+  Ruler, Sparkles, Brush, Scissors, Layers, Frame, Download, MessageCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import BackButton from '@/components/navigation/BackButton';
+import StartChatButton from '@/components/chat/StartChatButton';
 
 type DesignPhoto = {
   id: string;
@@ -246,6 +248,14 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Printen</span>
               </button>
+              {!isOwner && (
+                <StartChatButton
+                  sellerId={design.user.id}
+                  sellerName={design.user.name || getDisplayName(design.user)}
+                  productId={design.id}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -325,7 +335,7 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
                   {design.user.profileImage ? (
                     <Image
                       src={design.user.profileImage}
-                      alt={design.user.name || design.user.username || 'Maker'}
+                      alt={design.user.name || getDisplayName(design.user)}
                       width={40}
                       height={40}
                       className="rounded-full border-2 border-yellow-600"
@@ -336,7 +346,7 @@ export default function DesignView({ design, isOwner }: DesignViewProps) {
                     </div>
                   )}
                   <span className="font-bold text-gray-800">
-                    {design.user.name || design.user.username || 'Artisan'}
+                    {design.user.name || getDisplayName(design.user)}
                   </span>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { Users, TrendingUp, ShoppingBag, Package, Star, Euro, Eye, Mail, Calendar, Building2, ChevronDown, ChevronRight, MessageSquare, Phone } from 'lucide-react';
 import Link from 'next/link';
 
@@ -264,7 +265,7 @@ export default function SellerManagement() {
                           {seller.user.profileImage ? (
                             <img
                               src={seller.user.profileImage}
-                              alt={seller.user.name || 'Verkoper'}
+                              alt={getDisplayName(seller.user)}
                               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                             />
                           ) : (
@@ -278,7 +279,7 @@ export default function SellerManagement() {
                               href={seller.user.username ? `/user/${seller.user.username}` : `/profile/${seller.user.id}`}
                               className="text-base sm:text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                             >
-                              {seller.displayName || seller.user.name || 'Onbekend'}
+                              {seller.displayName || getDisplayName(seller.user)}
                             </Link>
                             {seller.companyName && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

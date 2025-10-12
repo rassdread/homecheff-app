@@ -5,6 +5,7 @@ import { Star, Camera, MessageCircle, ThumbsUp, Reply } from 'lucide-react';
 import StarRating from './StarRating';
 import ReviewResponseForm from './ReviewResponseForm';
 import Image from 'next/image';
+import { getDisplayName } from '@/lib/displayName';
 
 interface ReviewItemProps {
   review: {
@@ -60,9 +61,6 @@ export default function ReviewItem({
     });
   };
 
-  const getDisplayName = (user: { name?: string; username?: string }) => {
-    return user.name || user.username || 'Anoniem';
-  };
 
   const handleResponseSubmit = async (comment: string) => {
     if (!onResponseSubmit) return;

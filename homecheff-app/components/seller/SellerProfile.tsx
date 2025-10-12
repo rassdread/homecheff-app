@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { 
   MapPin, 
   Clock, 
@@ -26,12 +27,14 @@ import {
   Edit3,
   Plus,
   Grid,
-  List
+  List,
+  Truck
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import ShareButton from '@/components/ui/ShareButton';
 import Image from 'next/image';
+import SellerDeliverySettings from './SellerDeliverySettings';
 
 // Reviews removed for now - can be added later if needed
 
@@ -176,7 +179,7 @@ interface SellerProfileProps {
 }
 
 export default function SellerProfile({ sellerProfile, isOwner = false }: SellerProfileProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products' | 'workspace'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products' | 'workspace' | 'delivery'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -527,7 +530,7 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                     {sellerProfile.User.image ? (
                       <Image
                         src={sellerProfile.User.image}
-                        alt={sellerProfile.User.name || 'Verkoper'}
+                        alt={getDisplayName(sellerProfile.User)}
                         width={96}
                         height={96}
                         className="w-full h-full object-cover"
@@ -697,7 +700,8 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                         label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0]) 
                       }
                     ] : []),
-                    { id: 'products', label: 'Etalage' }
+                    { id: 'products', label: 'Etalage' },
+                    ...(isOwner ? [{ id: 'delivery', label: 'Bezorging' }] : [])
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -1025,7 +1029,7 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                                     {comment.user.image ? (
                                       <Image
                                         src={comment.user.image}
-                                        alt={comment.user.name || 'User'}
+                                        alt={getDisplayName(comment.user)}
                                         width={24}
                                         height={24}
                                         className="rounded-full"
@@ -1036,7 +1040,7 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-xs font-medium text-gray-900">
-                                      {comment.user.name || 'Anoniem'}
+                                      {getDisplayName(comment.user)}
                                     </p>
                                     <p className="text-xs text-gray-600">{comment.content}</p>
                                   </div>
@@ -1175,6 +1179,20 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                         )}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Delivery Settings Tab */}
+                {activeTab === 'delivery' && isOwner && (
+                  <div className="space-y-6">
+                    <SellerDeliverySettings
+                      sellerProfileId={sellerProfile.id}
+                      initialSettings={{
+                        deliveryMode: sellerProfile.deliveryMode,
+                        deliveryRadius: sellerProfile.deliveryRadius,
+                        deliveryRegions: sellerProfile.deliveryRegions
+                      }}
+                    />
                   </div>
                 )}
               </div>

@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     // Calculate distances and filter deliverers within range
     const matchedDeliverers = deliveryProfiles
       .map(delivery => {
-        // Calculate distance from delivery person to seller
+        // Calculate distance from delivery person to seller (pickup location)
         const distanceToSeller = Math.round(calculateDistance(
           delivery.user.lat!,
           delivery.user.lng!,
@@ -91,24 +91,35 @@ export async function GET(req: NextRequest) {
           product.seller.lng!
         ) * 10) / 10;
 
-        // Calculate distance from seller to buyer (if buyer location provided)
+        // Calculate distance from delivery person to buyer (delivery location)
         let distanceToBuyer = 0;
+        let distanceFromDelivererToBuyer = 0;
         if (buyerLat && buyerLng) {
+          // Distance from seller to buyer (total route distance)
           distanceToBuyer = Math.round(calculateDistance(
             product.seller.lat!,
             product.seller.lng!,
             buyerLat,
             buyerLng
           ) * 10) / 10;
+          
+          // Distance from deliverer's home location to buyer
+          distanceFromDelivererToBuyer = Math.round(calculateDistance(
+            delivery.user.lat!,
+            delivery.user.lng!,
+            buyerLat,
+            buyerLng
+          ) * 10) / 10;
         }
 
-        // Total delivery distance
+        // Total delivery distance (from deliverer to seller, then to buyer)
         const totalDeliveryDistance = distanceToSeller + distanceToBuyer;
 
         return {
           ...delivery,
           distanceToSeller,
           distanceToBuyer,
+          distanceFromDelivererToBuyer,
           totalDeliveryDistance,
           deliveryRadius: delivery.maxDistance
         };
@@ -119,10 +130,14 @@ export async function GET(req: NextRequest) {
           // Distance is less important since islands are small
           return delivery.distanceToSeller <= 50; // Max 50km on same island
         } else {
-          // For other countries: use normal radius logic
-          const withinDeliveryRadius = delivery.distanceToSeller <= delivery.deliveryRadius;
+          // For other countries: deliverer must be within radius of BOTH seller and buyer
+          const withinRadiusOfSeller = delivery.distanceToSeller <= delivery.deliveryRadius;
+          const withinRadiusOfBuyer = buyerLat && buyerLng 
+            ? delivery.distanceFromDelivererToBuyer <= delivery.deliveryRadius 
+            : true; // If no buyer location, only check seller
           const reasonableDistance = delivery.totalDeliveryDistance <= 100;
-          return withinDeliveryRadius && reasonableDistance;
+          
+          return withinRadiusOfSeller && withinRadiusOfBuyer && reasonableDistance;
         }
       })
       .sort((a, b) => {

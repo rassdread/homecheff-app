@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { useSafeFetch } from '@/hooks/useSafeFetch';
 import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit, MessageSquare, Phone, X } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
@@ -336,7 +337,7 @@ export default function UserManagement() {
                           <img
                             className="h-10 w-10 rounded-full"
                             src={user.image || user.profileImage || ''}
-                            alt={user.name || 'User'}
+                            alt={getDisplayName(user)}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -349,7 +350,7 @@ export default function UserManagement() {
                           href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
                           className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
                         >
-                          {user.name || 'Geen naam'}
+                          {getDisplayName(user)}
                         </Link>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         {user.username && (

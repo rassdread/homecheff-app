@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { Package, Search, Trash2, Eye, User, Calendar, Euro } from 'lucide-react';
 
 interface Product {
@@ -280,7 +281,7 @@ export default function ProductManagement() {
                         {product.seller.User.profileImage ? (
                           <img
                             src={product.seller.User.profileImage}
-                            alt={product.seller.User.name || 'Verkoper'}
+                            alt={getDisplayName(product.seller.User)}
                             className="h-8 w-8 rounded-full mr-3"
                           />
                         ) : (
@@ -290,7 +291,7 @@ export default function ProductManagement() {
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {product.seller.User.name || 'Onbekend'}
+                            {getDisplayName(product.seller.User)}
                           </div>
                           <div className="text-sm text-gray-500">{product.seller.User.email}</div>
                         </div>

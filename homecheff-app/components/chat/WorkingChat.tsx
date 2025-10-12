@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Send, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { getDisplayName } from '@/lib/displayName';
 
 interface WorkingChatProps {
   conversationId: string;
@@ -158,9 +159,6 @@ export default function WorkingChat({ conversationId, otherParticipant, onBack }
     }
   };
 
-  const getDisplayName = (user: any) => {
-    return user?.name || user?.username || 'Onbekend';
-  };
 
   return (
     <div className="flex flex-col h-full bg-white">

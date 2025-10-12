@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Send, Trash2, Circle, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
+import { getDisplayName } from '@/lib/displayName';
 
 interface CompleteChatProps {
   conversationId: string;
@@ -45,25 +46,6 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
   
   const { data: session } = useSession();
 
-  // Helper: Get display name with proper fallback
-  const getDisplayName = (user: any) => {
-    if (!user) return 'Gebruiker';
-    
-    // Check display preferences
-    if (user.displayNameOption === 'username' && user.username) {
-      return user.username;
-    }
-    if (user.displayNameOption === 'firstname' && user.name) {
-      return user.name.split(' ')[0];
-    }
-    if (user.displayNameOption === 'lastname' && user.name) {
-      const parts = user.name.split(' ');
-      return parts[parts.length - 1];
-    }
-    
-    // Default fallback
-    return user.name || user.username || 'Gebruiker';
-  };
 
   // Step 1: Get current user ID
   useEffect(() => {

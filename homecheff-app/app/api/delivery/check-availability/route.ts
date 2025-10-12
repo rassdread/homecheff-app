@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
-    const { lat, lng, deliveryDate, deliveryTime, maxRadius = 10 } = await req.json();
+    const { lat, lng, deliveryDate, deliveryTime, maxRadius = 10, sellerLat, sellerLng } = await req.json();
 
     if (!lat || !lng) {
       return NextResponse.json({ 
@@ -14,45 +14,78 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Find active delivery profiles within radius
+    // Find active delivery profiles with GPS coordinates
     const availableProfiles = await prisma.deliveryProfile.findMany({
       where: {
         isActive: true,
-        // In a real app, you would use PostGIS or calculate distance in SQL
-        // For now, we'll get all active profiles and filter by distance
+        user: {
+          lat: { not: null },
+          lng: { not: null }
+        }
       },
       include: {
         user: {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            lat: true,
+            lng: true
           }
         }
       }
     });
 
-    // Calculate distance for each profile (mock implementation)
-    // In production, you'd use the actual coordinates from deliveryProfile
+    // Calculate distance for each profile and filter within radius
     const profilesInRange = availableProfiles.filter(profile => {
-      // Mock: assume all active profiles are within range for demo
-      // In real app, calculate actual distance using coordinates
-      return true;
+      if (!profile.user.lat || !profile.user.lng) return false;
+
+      // Calculate distance from deliverer to buyer location
+      const distanceToBuyer = calculateDistance(
+        profile.user.lat,
+        profile.user.lng,
+        lat,
+        lng
+      );
+
+      // If seller location provided, also check distance to seller
+      if (sellerLat && sellerLng) {
+        const distanceToSeller = calculateDistance(
+          profile.user.lat,
+          profile.user.lng,
+          sellerLat,
+          sellerLng
+        );
+        
+        // Deliverer must be within radius of BOTH seller and buyer
+        return distanceToSeller <= profile.maxDistance && 
+               distanceToBuyer <= profile.maxDistance;
+      }
+
+      // If no seller location, only check distance to buyer
+      return distanceToBuyer <= profile.maxDistance;
     });
 
     // Check availability based on delivery time
     const requestedDate = deliveryDate ? new Date(deliveryDate) : new Date();
-    const isWeekend = requestedDate.getDay() === 0 || requestedDate.getDay() === 6;
+    const requestedDay = requestedDate.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
     const requestedHour = deliveryTime ? parseInt(deliveryTime.split(':')[0]) : new Date().getHours();
 
-    // Filter by availability (mock business hours: 9-21, more limited on weekends)
+    // Filter by time availability
     const availableProfilesFiltered = profilesInRange.filter(profile => {
-      // Check if profile has availability for this time slot
-      // For demo, assume all profiles are available during business hours
-      const isBusinessHours = requestedHour >= 9 && requestedHour <= 21;
-      const isWeekendAvailable = isWeekend ? requestedHour >= 10 && requestedHour <= 18 : true;
+      // Check if profile works on this day
+      if (!profile.availableDays.includes(requestedDay as any)) {
+        return false;
+      }
+
+      // Check if profile works in this time slot (with 3-hour window)
+      const timeSlotAvailable = profile.availableTimeSlots.some((slot: string) => {
+        const [startTime, endTime] = slot.split('-').map(t => parseInt(t.split(':')[0]));
+        // Check if the requested hour + 3 hours window fits within the slot
+        return requestedHour >= startTime && (requestedHour + 3) <= endTime;
+      });
       
-      return isBusinessHours && isWeekendAvailable;
+      return timeSlotAvailable;
     });
 
     const isAvailable = availableProfilesFiltered.length > 0;

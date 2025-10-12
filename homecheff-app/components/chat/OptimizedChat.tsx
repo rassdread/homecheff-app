@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, Trash2, RefreshCw, Circle, CheckCheck, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Pusher from 'pusher-js';
+import { getDisplayName } from '@/lib/displayName';
 
 interface OptimizedChatProps {
   conversationId: string;
@@ -50,25 +51,6 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Helper: Get display name with proper fallback
-  const getDisplayName = (user: any) => {
-    if (!user) return 'Gebruiker';
-    
-    // Check display preferences
-    if (user.displayNameOption === 'username' && user.username) {
-      return user.username;
-    }
-    if (user.displayNameOption === 'firstname' && user.name) {
-      return user.name.split(' ')[0];
-    }
-    if (user.displayNameOption === 'lastname' && user.name) {
-      const parts = user.name.split(' ');
-      return parts[parts.length - 1];
-    }
-    
-    // Default fallback
-    return user.name || user.username || `Gebruiker`;
-  };
 
   // Step 1: Get current user ID
   useEffect(() => {

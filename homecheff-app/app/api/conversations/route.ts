@@ -107,11 +107,20 @@ export async function GET(req: NextRequest) {
     .filter(participant => participant.Conversation.isActive) // Only show active conversations
     .map(participant => {
       const conversation = participant.Conversation;
+      
+      // Get other participants (exclude current user) with proper user data
       const otherParticipants = conversation.ConversationParticipant
         .filter(p => p.userId !== user.id)
-        .map(p => p.User);
+        .map(p => ({
+          id: p.User.id,
+          name: p.User.name,
+          username: p.User.username,
+          profileImage: p.User.profileImage,
+          displayFullName: p.User.displayFullName,
+          displayNameOption: p.User.displayNameOption
+        }));
 
-      // Get the first other participant (for 1-on-1 chats)
+      // Get the first other participant (for 1-on-1 chats) with consistent data structure
       const otherParticipant = otherParticipants[0] || null;
 
       return {

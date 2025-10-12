@@ -103,6 +103,9 @@ model User {
   @@index([createdAt])
   @@index([city])
   @@index([country])
+  
+  // Relations
+  dynamicSeller DynamicSeller?
 }
 
 model Business {
@@ -753,12 +756,39 @@ model DeliveryProfile {
   deliveryMode       String               @default("FIXED")
   deliveryRegions    String[]             @default([])
   lastLocationUpdate DateTime?
+  // GPS tracking fields
+  gpsTrackingEnabled Boolean              @default(false)
+  lastGpsUpdate      DateTime?
+  locationAccuracy   Float?
+  batteryLevel       Int?
   deliveryOrders     DeliveryOrder[]
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews            DeliveryReview[]
   vehiclePhotos      VehiclePhoto[]
 
   @@map("DeliveryProfile")
+}
+
+model DynamicSeller {
+  id                   String               @id @default(cuid())
+  userId               String               @unique
+  currentLat           Float?
+  currentLng           Float?
+  locationAccuracy     Float?
+  isActive             Boolean              @default(false)
+  deliveryRadius       Float                @default(5.0)
+  availableTimeSlots   String[]             @default([])
+  contactPhone         String?
+  contactEmail         String?
+  specialInstructions  String?
+  estimatedDeliveryTime Int                 @default(30)
+  lastLocationUpdate   DateTime?
+  lastGpsUpdate        DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("DynamicSeller")
 }
 
 model DeliveryOrder {

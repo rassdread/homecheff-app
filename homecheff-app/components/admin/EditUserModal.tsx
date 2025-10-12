@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { X, User, Eye, EyeOff, Upload, Camera } from 'lucide-react';
 import { UserRole } from '@prisma/client';
 
@@ -26,9 +27,9 @@ interface EditUserModalProps {
 
 export default function EditUserModal({ user, onClose, onUserUpdated }: EditUserModalProps) {
   const [formData, setFormData] = useState({
-    name: user.name || '',
+    name: getDisplayName(user),
     email: user.email,
-    username: user.username || '',
+    username: getDisplayName(user),
     bio: user.bio || '',
     place: user.place || '',
     gender: user.gender || '',

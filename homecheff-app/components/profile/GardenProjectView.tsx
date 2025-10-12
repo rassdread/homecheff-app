@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from 'react';
+import { getDisplayName } from '@/lib/displayName';
 import { useRouter } from 'next/navigation';
 import { 
   Calendar, Droplet, Sun, MapPin, Sprout, Clock, 
   Gauge, StickyNote, Tag, User, ArrowLeft, Printer,
   Download, Share2, Edit3, Leaf, Flower, 
-  CircleDot, ArrowRight
+  CircleDot, ArrowRight, MessageCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import BackButton from '@/components/navigation/BackButton';
+import StartChatButton from '@/components/chat/StartChatButton';
 
 type GardenPhoto = {
   id: string;
@@ -338,6 +340,14 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Printen</span>
               </button>
+              {!isOwner && (
+                <StartChatButton
+                  sellerId={project.user.id}
+                  sellerName={project.user.name || getDisplayName(project.user)}
+                  productId={project.id}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -419,7 +429,7 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                     {project.user.profileImage ? (
                       <Image
                         src={project.user.profileImage}
-                        alt={project.user.name || project.user.username || 'User'}
+                        alt={project.user.name || getDisplayName(project.user)}
                         width={32}
                         height={32}
                         className="rounded-full border-2 border-emerald-500"
@@ -430,7 +440,7 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                       </div>
                     )}
                     <span className="font-bold text-gray-800">
-                      {project.user.name || project.user.username || 'Tuinier'}
+                      {project.user.name || getDisplayName(project.user)}
                     </span>
                   </div>
                 </div>

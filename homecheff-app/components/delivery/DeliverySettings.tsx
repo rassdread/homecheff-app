@@ -57,10 +57,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [success, setSuccess] = useState(false);
 
   const transportationOptions = [
-    { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 5 },
-    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
-    { id: 'SCOOTER', label: 'Scooter', icon: <Navigation className="w-5 h-5" />, maxRange: 15 },
-    { id: 'CAR', label: 'Auto', icon: <Navigation className="w-5 h-5" />, maxRange: 25 }
+    { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
+    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 20 },
+    { id: 'SCOOTER', label: 'Scooter', icon: <Navigation className="w-5 h-5" />, maxRange: 30 },
+    { id: 'CAR', label: 'Auto', icon: <Navigation className="w-5 h-5" />, maxRange: 50 }
   ];
 
   const dayOptions = [
@@ -79,12 +79,15 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     { id: 'evening', label: 'Avond (17:00-21:00)' }
   ];
 
-  // Calculate max distance based on transportation
+  // Calculate max distance based on transportation (get the highest)
   const getMaxDistanceForTransport = () => {
-    const selectedTransport = transportationOptions.find(t => 
-      formData.transportation.includes(t.id)
-    );
-    return selectedTransport?.maxRange || 5;
+    if (formData.transportation.length === 0) return 10;
+    
+    const maxRange = transportationOptions
+      .filter(t => formData.transportation.includes(t.id))
+      .reduce((max, t) => Math.max(max, t.maxRange), 0);
+      
+    return maxRange;
   };
 
   const handleTransportationChange = (transportId: string) => {
@@ -272,24 +275,46 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Maximale afstand van je huis (km)
+                  Bezorgradius (maximale afstand)
                 </label>
-                <input
-                  type="range"
-                  min="2"
-                  max={getMaxDistanceForTransport()}
-                  value={formData.preferredRadius}
-                  onChange={(e) => setFormData(prev => ({ ...prev, preferredRadius: parseInt(e.target.value) }))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>2 km</span>
-                  <span className="font-medium text-primary-brand">{formData.preferredRadius} km</span>
-                  <span>{getMaxDistanceForTransport()} km</span>
+                <div className="space-y-2">
+                  <input
+                    type="range"
+                    min="2"
+                    max={getMaxDistanceForTransport()}
+                    step="1"
+                    value={formData.maxDistance}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      maxDistance: parseInt(e.target.value),
+                      preferredRadius: Math.min(prev.preferredRadius, parseInt(e.target.value))
+                    }))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-brand"
+                  />
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>2 km</span>
+                    <span className="font-bold text-lg text-primary-brand">{formData.maxDistance} km</span>
+                    <span>{getMaxDistanceForTransport()} km max</span>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Je krijgt alleen bestellingen binnen {formData.preferredRadius} km van je huis
-                </p>
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Zo werkt het:</strong>
+                  </p>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>✓ Je moet binnen <strong>{formData.maxDistance}km</strong> van de verkoper zijn (ophalen)</li>
+                    <li>✓ Je moet binnen <strong>{formData.maxDistance}km</strong> van de koper zijn (bezorgen)</li>
+                    <li>✓ Beide afstanden moeten kloppen om de bestelling te zien</li>
+                  </ul>
+                </div>
+                {formData.transportation.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
+                    <span>🚴</span>
+                    <span>
+                      Met je {formData.transportation.length === 1 ? 'gekozen vervoersmiddel' : 'gekozen vervoersmiddelen'} kun je tot <strong>{getMaxDistanceForTransport()}km</strong> bezorgen
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

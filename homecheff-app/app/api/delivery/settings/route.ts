@@ -1,137 +1,151 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-export const dynamic = 'force-dynamic';
-
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function PUT(req: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
-    }
-
-    const {
-      transportation,
-      maxDistance,
-      preferredRadius,
-      deliveryMode,
-      availableDays,
-      availableTimeSlots,
-      bio,
-      isActive
-    } = await req.json();
-
-    // Validate input
-    if (!transportation || transportation.length === 0) {
-      return NextResponse.json({ 
-        error: 'Selecteer minimaal één vervoersmiddel' 
-      }, { status: 400 });
-    }
-
-    if (maxDistance < 2 || maxDistance > 25) {
-      return NextResponse.json({ 
-        error: 'Maximale afstand moet tussen 2 en 25 km liggen' 
-      }, { status: 400 });
-    }
-
-    if (preferredRadius < 2 || preferredRadius > maxDistance) {
-      return NextResponse.json({ 
-        error: 'Voorkeursradius moet tussen 2 km en maximale afstand liggen' 
-      }, { status: 400 });
-    }
-
-    if (!deliveryMode || !['FIXED', 'DYNAMIC'].includes(deliveryMode)) {
-      return NextResponse.json({ 
-        error: 'Ongeldige bezorgmodus' 
-      }, { status: 400 });
-    }
-
-    if (!availableDays || availableDays.length === 0) {
-      return NextResponse.json({ 
-        error: 'Selecteer minimaal één beschikbare dag' 
-      }, { status: 400 });
-    }
-
-    if (!availableTimeSlots || availableTimeSlots.length === 0) {
-      return NextResponse.json({ 
-        error: 'Selecteer minimaal één tijdslot' 
-      }, { status: 400 });
-    }
-
-    // Get user's delivery profile
-    const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: (session.user as any).id }
-    });
-
-    if (!profile) {
-      return NextResponse.json({ 
-        error: 'Geen bezorger profiel gevonden' 
-      }, { status: 404 });
-    }
-
-    // Update delivery profile
-    const updatedProfile = await prisma.deliveryProfile.update({
-      where: { id: profile.id },
-      data: {
-        transportation,
-        maxDistance,
-        preferredRadius,
-        deliveryMode,
-        availableDays,
-        availableTimeSlots,
-        bio: bio || null,
-        isActive
-      }
-    });
-
-    return NextResponse.json({ 
-      success: true, 
-      profile: updatedProfile 
-    });
-
-  } catch (error) {
-    console.error('Delivery settings update error:', error);
-    return NextResponse.json({ 
-      error: 'Er is een fout opgetreden bij het updaten van de instellingen' 
-    }, { status: 500 });
-  }
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's delivery profile
-    const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: (session.user as any).id },
+    const userEmail = session.user.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: 'No email found' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get delivery profile with settings
+    const deliveryProfile = await prisma.deliveryProfile.findUnique({
+      where: { userId: user.id },
       include: {
         user: {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            lat: true,
+            lng: true,
+            place: true,
+            phoneNumber: true
           }
         }
       }
     });
 
-    if (!profile) {
-      return NextResponse.json({ 
-        error: 'Geen bezorger profiel gevonden' 
-      }, { status: 404 });
+    if (!deliveryProfile) {
+      return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
     }
 
-    return NextResponse.json({ profile });
-
+    return NextResponse.json({
+      profile: {
+        id: deliveryProfile.id,
+        isActive: deliveryProfile.isActive,
+        maxDistance: deliveryProfile.maxDistance,
+        availableDays: deliveryProfile.availableDays,
+        availableTimes: deliveryProfile.availableTimeSlots || [],
+        transportation: deliveryProfile.transportation || [],
+        deliveryRegions: deliveryProfile.deliveryRegions,
+        bio: deliveryProfile.bio,
+        totalDeliveries: deliveryProfile.totalDeliveries,
+        averageRating: deliveryProfile.averageRating,
+        totalEarnings: deliveryProfile.totalEarnings,
+        createdAt: deliveryProfile.createdAt
+      },
+      user: deliveryProfile.user
+    });
   } catch (error) {
-    console.error('Delivery settings fetch error:', error);
-    return NextResponse.json({ 
-      error: 'Er is een fout opgetreden bij het ophalen van de instellingen' 
-    }, { status: 500 });
+    console.error('Error fetching delivery settings:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch delivery settings' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userEmail = session.user.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: 'No email found' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const {
+      isActive,
+      maxDistance,
+      availableDays,
+      availableTimes,
+      transportation,
+      deliveryRegions,
+      bio,
+      phoneNumber,
+      lat,
+      lng,
+      place
+    } = body;
+
+    // Update delivery profile
+    const updatedDeliveryProfile = await prisma.deliveryProfile.update({
+      where: { userId: user.id },
+      data: {
+        isActive: isActive !== undefined ? isActive : undefined,
+        maxDistance: maxDistance !== undefined ? maxDistance : undefined,
+        availableDays: availableDays !== undefined ? availableDays : undefined,
+        availableTimeSlots: availableTimes !== undefined ? availableTimes : undefined,
+        transportation: transportation !== undefined ? transportation : undefined,
+        deliveryRegions: deliveryRegions !== undefined ? deliveryRegions : undefined,
+        bio: bio !== undefined ? bio : undefined,
+        updatedAt: new Date()
+      }
+    });
+
+    // Update user location if provided
+    if (lat !== undefined || lng !== undefined || place !== undefined || phoneNumber !== undefined) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lat: lat !== undefined ? lat : undefined,
+          lng: lng !== undefined ? lng : undefined,
+          place: place !== undefined ? place : undefined,
+          phoneNumber: phoneNumber !== undefined ? phoneNumber : undefined
+        }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      profile: updatedDeliveryProfile
+    });
+  } catch (error) {
+    console.error('Error updating delivery settings:', error);
+    return NextResponse.json(
+      { error: 'Failed to update delivery settings' },
+      { status: 500 }
+    );
   }
 }

@@ -94,29 +94,46 @@ export async function GET(req: NextRequest) {
     );
 
     // Transform current order for frontend
-    const transformedCurrentOrder = currentOrder ? {
-      id: currentOrder.id,
-      orderId: currentOrder.orderId,
-      status: currentOrder.status,
-      deliveryFee: currentOrder.deliveryFee,
-      estimatedTime: currentOrder.estimatedTime || 30,
-      distance: 5, // Mock distance - would be calculated from coordinates
-      customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
-      customerAddress: currentOrder.order.deliveryAddress || 'Adres niet beschikbaar',
-      customerPhone: '06-12345678', // Mock phone - would come from user profile
-      notes: currentOrder.notes || '',
-      createdAt: currentOrder.createdAt,
-      pickedUpAt: currentOrder.pickedUpAt,
-      deliveredAt: currentOrder.deliveredAt,
-      product: {
-        title: currentOrder.order.items[0]?.Product?.title || 'Product',
-        image: currentOrder.order.items[0]?.Product?.Image?.[0]?.fileUrl || '',
-        seller: {
-          name: currentOrder.order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
-          address: 'Verkoper adres' // Mock address - would come from seller profile
+    let transformedCurrentOrder: any = null;
+    if (currentOrder) {
+      // Find conversation for this delivery order
+      const conversation = await prisma.conversation.findFirst({
+        where: {
+          orderId: currentOrder.orderId,
+          ConversationParticipant: {
+            some: {
+              userId: (session as any).user.id
+            }
+          }
+        },
+        select: { id: true }
+      });
+
+      transformedCurrentOrder = {
+        id: currentOrder.id,
+        orderId: currentOrder.orderId,
+        status: currentOrder.status,
+        deliveryFee: currentOrder.deliveryFee,
+        estimatedTime: currentOrder.estimatedTime || 30,
+        distance: 5, // Mock distance - would be calculated from coordinates
+        customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
+        customerAddress: currentOrder.order.deliveryAddress || 'Adres niet beschikbaar',
+        customerPhone: '06-12345678', // Mock phone - would come from user profile
+        notes: currentOrder.notes || '',
+        createdAt: currentOrder.createdAt,
+        pickedUpAt: currentOrder.pickedUpAt,
+        deliveredAt: currentOrder.deliveredAt,
+        conversationId: conversation?.id,
+        product: {
+          title: currentOrder.order.items[0]?.Product?.title || 'Product',
+          image: currentOrder.order.items[0]?.Product?.Image?.[0]?.fileUrl || '',
+          seller: {
+            name: currentOrder.order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
+            address: 'Verkoper adres' // Mock address - would come from seller profile
+          }
         }
-      }
-    } : null;
+      };
+    }
 
     // Transform recent orders
     const transformedRecentOrders = deliveryProfile.deliveryOrders.slice(0, 5).map(order => ({
@@ -143,6 +160,150 @@ export async function GET(req: NextRequest) {
       }
     }));
 
+    // Get user location
+    const user = await prisma.user.findUnique({
+      where: { id: (session as any).user.id },
+      select: { lat: true, lng: true }
+    });
+
+    // Get available orders within deliverer's radius
+    const availableDeliveryOrders = await prisma.deliveryOrder.findMany({
+      where: {
+        status: 'PENDING',
+        deliveryProfileId: ''
+      },
+      include: {
+        order: {
+          include: {
+            items: {
+              include: {
+                Product: {
+                  include: {
+                    Image: {
+                      select: { fileUrl: true },
+                      take: 1
+                    },
+                    seller: {
+                      include: {
+                        User: {
+                          select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            lat: true,
+                            lng: true,
+                            place: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            User: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                lat: true,
+                lng: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+
+    // Filter orders by GPS distance and time availability
+    const filteredAvailableOrders = availableDeliveryOrders.filter(deliveryOrder => {
+      if (!user?.lat || !user?.lng) return false;
+      if (!deliveryOrder.order) return false;
+
+      const product = deliveryOrder.order.items[0]?.Product;
+      if (!product?.seller?.User?.lat || !product?.seller?.User?.lng) return false;
+      if (!deliveryOrder.order.User?.lat || !deliveryOrder.order.User?.lng) return false;
+
+      // Calculate distance to seller (pickup)
+      const distanceToSeller = calculateDistance(
+        user.lat,
+        user.lng,
+        product.seller.User.lat,
+        product.seller.User.lng
+      );
+
+      // Calculate distance to buyer (delivery)
+      const distanceToBuyer = calculateDistance(
+        user.lat,
+        user.lng,
+        deliveryOrder.order.User.lat,
+        deliveryOrder.order.User.lng
+      );
+
+      // Check if within delivery radius of BOTH
+      const withinSellerRadius = distanceToSeller <= deliveryProfile.maxDistance;
+      const withinBuyerRadius = distanceToBuyer <= deliveryProfile.maxDistance;
+
+      return withinSellerRadius && withinBuyerRadius;
+    });
+
+    // Transform available orders for frontend
+    const transformedAvailableOrders = filteredAvailableOrders.map(deliveryOrder => {
+      const product = deliveryOrder.order.items[0]?.Product;
+      const sellerLat = product?.seller?.User?.lat || 0;
+      const sellerLng = product?.seller?.User?.lng || 0;
+      const buyerLat = deliveryOrder.order.User?.lat || 0;
+      const buyerLng = deliveryOrder.order.User?.lng || 0;
+
+      // Calculate distances
+      const distanceToSeller = user?.lat && user?.lng && sellerLat && sellerLng
+        ? calculateDistance(user.lat, user.lng, sellerLat, sellerLng)
+        : 0;
+      const distanceToBuyer = user?.lat && user?.lng && buyerLat && buyerLng
+        ? calculateDistance(user.lat, user.lng, buyerLat, buyerLng)
+        : 0;
+      const totalDistance = distanceToSeller + distanceToBuyer;
+
+      return {
+        id: deliveryOrder.id,
+        orderId: deliveryOrder.orderId,
+        status: 'PENDING' as const,
+        deliveryFee: deliveryOrder.deliveryFee,
+        estimatedTime: Math.round(totalDistance * 5), // ~5 min per km
+        distance: totalDistance,
+        customerName: deliveryOrder.order.User?.name || deliveryOrder.order.User?.username || 'Klant',
+        customerAddress: deliveryOrder.deliveryAddress || 'Bezorgadres',
+        customerPhone: '06-12345678', // Mock - would come from user
+        notes: deliveryOrder.notes || '',
+        createdAt: deliveryOrder.createdAt,
+        product: {
+          title: product?.title || 'Product',
+          image: product?.Image?.[0]?.fileUrl || '',
+          seller: {
+            name: product?.seller?.User?.name || 'Verkoper',
+            address: product?.seller?.User?.place || 'Ophaaladres'
+          }
+        }
+      };
+    });
+
+    const availableOrdersCount = transformedAvailableOrders.length;
+    
+    // Helper function for distance calculation
+    function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
     const stats = {
       todayEarnings,
       weekEarnings,
@@ -151,13 +312,20 @@ export async function GET(req: NextRequest) {
       onlineTime: 480, // Mock online time in minutes - would be calculated from activity
       completedDeliveries,
       pendingDeliveries,
-      totalEarnings
+      totalEarnings,
+      availableOrders: availableOrdersCount,
+      deliveryRadius: deliveryProfile.maxDistance || 10,
+      currentLocation: user?.lat && user?.lng ? {
+        lat: user.lat,
+        lng: user.lng
+      } : undefined
     };
 
     return NextResponse.json({
       stats,
       currentOrder: transformedCurrentOrder,
-      recentOrders: transformedRecentOrders
+      recentOrders: transformedRecentOrders,
+      availableOrders: transformedAvailableOrders
     });
 
   } catch (error) {
