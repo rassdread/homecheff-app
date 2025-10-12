@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send, Trash2, RefreshCw, Circle, CheckCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Send, Trash2, RefreshCw, Circle, CheckCheck, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Pusher from 'pusher-js';
 
@@ -47,10 +48,26 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
   const channelRef = useRef<any>(null);
   
   const { data: session } = useSession();
+  const router = useRouter();
 
-  // Helper: Get display name
+  // Helper: Get display name with proper fallback
   const getDisplayName = (user: any) => {
-    return user?.name || user?.username || 'Gebruiker';
+    if (!user) return 'Gebruiker';
+    
+    // Check display preferences
+    if (user.displayNameOption === 'username' && user.username) {
+      return user.username;
+    }
+    if (user.displayNameOption === 'firstname' && user.name) {
+      return user.name.split(' ')[0];
+    }
+    if (user.displayNameOption === 'lastname' && user.name) {
+      const parts = user.name.split(' ');
+      return parts[parts.length - 1];
+    }
+    
+    // Default fallback
+    return user.name || user.username || `Gebruiker`;
   };
 
   // Step 1: Get current user ID
@@ -360,10 +377,21 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
           )}
 
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-gray-900 truncate text-sm sm:text-base">
-              {getDisplayName(otherParticipant)}
-            </h2>
-            <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                const username = otherParticipant.username || otherParticipant.id;
+                if (username) {
+                  router.push(`/user/${username}`);
+                }
+              }}
+              className="group flex items-center gap-2 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+            >
+              <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 truncate text-sm sm:text-base transition-colors">
+                {getDisplayName(otherParticipant)}
+              </h2>
+              <UserIcon className="w-3 h-3 text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
+            </button>
+            <div className="flex items-center gap-1 px-2">
               <Circle 
                 className={`w-2 h-2 ${isOnline ? 'fill-green-500 text-green-500 animate-pulse' : 'fill-gray-400 text-gray-400'}`} 
               />
@@ -430,26 +458,51 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
                     {!isOwn && (
                       <div className="flex-shrink-0 w-8 h-8">
                         {showAvatar && (
-                          message.User.profileImage ? (
-                            <Image
-                              src={message.User.profileImage}
-                              alt={getDisplayName(message.User)}
-                              width={32}
-                              height={32}
-                              className="rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-medium">
-                                {getDisplayName(message.User).charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )
+                          <button
+                            onClick={() => {
+                              const username = message.User?.username || message.User?.id;
+                              if (username) {
+                                router.push(`/user/${username}`);
+                              }
+                            }}
+                            className="group relative"
+                            title={`Bekijk profiel van ${getDisplayName(message.User)}`}
+                          >
+                            {message.User?.profileImage ? (
+                              <Image
+                                src={message.User.profileImage}
+                                alt={getDisplayName(message.User)}
+                                width={32}
+                                height={32}
+                                className="rounded-full object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 bg-gray-300 group-hover:bg-blue-500 rounded-full flex items-center justify-center transition-colors">
+                                <span className="text-xs font-medium group-hover:text-white">
+                                  {getDisplayName(message.User).charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </button>
                         )}
                       </div>
                     )}
 
-                    <div>
+                    <div className="flex-1">
+                      {/* Show sender name for other's messages */}
+                      {!isOwn && showAvatar && message.User && (
+                        <button
+                          onClick={() => {
+                            const username = message.User?.username || message.User?.id;
+                            if (username) {
+                              router.push(`/user/${username}`);
+                            }
+                          }}
+                          className="text-xs font-medium text-gray-600 hover:text-blue-600 hover:underline mb-1 px-2 transition-colors"
+                        >
+                          {getDisplayName(message.User)}
+                        </button>
+                      )}
                       <div
                         className={`px-3 sm:px-4 py-2 rounded-2xl ${
                           isOwn

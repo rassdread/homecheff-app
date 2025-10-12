@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { MessageCircle, Clock, CheckCheck, Package } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MessageCircle, Clock, CheckCheck, Package, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
@@ -66,6 +67,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     loadConversations();
@@ -161,12 +163,16 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   };
 
   const getLastMessageSender = (lastMessage: Conversation['lastMessage'], currentUser: any) => {
-    if (!lastMessage) return '';
+    if (!lastMessage || !lastMessage.User) return '';
     
     const currentUserId = currentUser?.id || '';
     const isOwn = lastMessage.User.id === currentUserId;
     
-    return isOwn ? 'Jij: ' : '';
+    if (isOwn) return 'Jij: ';
+    
+    // Show sender name for received messages in preview
+    const senderName = getDisplayName(lastMessage.User);
+    return senderName ? `${senderName}: ` : '';
   };
 
   // Get current user for checking message ownership
@@ -290,17 +296,33 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               {/* Conversation Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-gray-900 truncate">
-                    {conversation.participants && conversation.participants.length > 0
-                      ? getDisplayName(conversation.participants[0])
-                      : conversation.title}
-                  </h3>
+                  <div className="flex items-center gap-1 flex-1 min-w-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const participant = conversation.otherParticipant || conversation.participants?.[0];
+                        const username = participant?.username || participant?.id;
+                        if (username) {
+                          router.push(`/user/${username}`);
+                        }
+                      }}
+                      className="group flex items-center gap-1 hover:bg-gray-100 rounded px-1 py-0.5 transition-colors"
+                      title="Bekijk profiel"
+                    >
+                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 truncate transition-colors">
+                        {conversation.participants && conversation.participants.length > 0
+                          ? getDisplayName(conversation.participants[0])
+                          : conversation.title || 'Gesprek'}
+                      </h3>
+                      <UserIcon className="w-3 h-3 text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
+                    </button>
+                  </div>
                   <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                     {formatTime(conversation.lastMessageAt)}
                   </span>
                 </div>
                 {conversation.product && (
-                  <p className="text-xs text-gray-500 truncate mb-1">
+                  <p className="text-xs text-gray-500 truncate mb-1 px-1">
                     💬 over: {conversation.product.title}
                   </p>
                 )}
