@@ -128,6 +128,7 @@ function HomePageContent() {
     }
   }, [session, status]);
   const [username, setUsername] = useState<string>("");
+  const [userFirstName, setUserFirstName] = useState<string>("");
   const [userCountry, setUserCountry] = useState<string>("NL");
   const [items, setItems] = useState<HomeItem[]>([]);
   const [users, setUsers] = useState<HomeUser[]>([]);
@@ -870,8 +871,8 @@ function HomePageContent() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
-              {username ? (
-                `Hey ${username.split(' ')[0]}, wat gaat het worden vandaag?`
+              {userFirstName ? (
+                `Hey ${userFirstName}, wat gaat het worden vandaag?`
               ) : (
                 'Ontdek Lokale Delicatessen'
               )}

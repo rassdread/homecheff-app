@@ -5,125 +5,110 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    // Check if user is admin
     const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if user is admin
     const adminUser = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user.email },
       select: { role: true }
     });
 
     if (adminUser?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Geen admin rechten' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden - Admin only' }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
-    const conversationId = searchParams.get('conversationId');
-    const userId = searchParams.get('userId');
+    console.log('[Admin Messages API] Fetching all conversations...');
 
-    // Build where clause
-    const where: any = {};
-    
-    if (conversationId) {
-      where.conversationId = conversationId;
-    }
-    
-    if (userId) {
-      where.OR = [
-        { senderId: userId },
-        {
-          Conversation: {
-            ConversationParticipant: {
-              some: {
-                userId: userId
-              }
-            }
-          }
-        }
-      ];
-    }
-
-    // Get messages with limited information for privacy
-    const messages = await prisma.message.findMany({
-      where,
+    // Fetch all conversations with metadata
+    const conversations = await prisma.conversation.findMany({
       select: {
         id: true,
-        conversationId: true,
-        senderId: true,
-        // Only show message text if not encrypted
-        text: true,
-        isEncrypted: true,
-        // Show metadata but not encrypted content
+        title: true,
+        isActive: true,
         createdAt: true,
-        readAt: true,
-        messageType: true,
-        deletedAt: true,
-        editedAt: true,
-        User: {
+        lastMessageAt: true,
+        Product: {
           select: {
             id: true,
-            name: true,
-            username: true,
-            email: true
+            title: true
           }
         },
-        Conversation: {
+        ConversationParticipant: {
           select: {
-            id: true,
-            productId: true,
-            orderId: true,
-            ConversationParticipant: {
+            User: {
               select: {
-                userId: true,
-                User: {
-                  select: {
-                    id: true,
-                    name: true,
-                    username: true,
-                    email: true
-                  }
-                }
+                id: true,
+                name: true,
+                username: true,
+                profileImage: true
               }
             }
           }
+        },
+        Message: {
+          select: {
+            id: true,
+            text: true,
+            isEncrypted: true,
+            createdAt: true,
+            User: {
+              select: {
+                name: true,
+                username: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        _count: {
+          select: {
+            Message: true
+          }
         }
       },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset
+      orderBy: { lastMessageAt: 'desc' }
     });
 
-    // Transform messages to hide encrypted content
-    const sanitizedMessages = messages.map(msg => ({
-      ...msg,
-      text: msg.isEncrypted ? '[VERSLEUTELD BERICHT - Niet leesbaar door admin]' : msg.text
+    // Transform conversations with encryption info
+    const conversationSummaries = conversations.map(conv => ({
+      id: conv.id,
+      title: conv.title,
+      isActive: conv.isActive,
+      createdAt: conv.createdAt,
+      lastMessageAt: conv.lastMessageAt,
+      messageCount: conv._count.Message,
+      // Check if conversation has encrypted messages
+      isEncrypted: conv.Message.length > 0 && conv.Message[0].isEncrypted,
+      participants: conv.ConversationParticipant.map(p => p.User),
+      product: conv.Product,
+      lastMessage: conv.Message[0] ? {
+        text: conv.Message[0].isEncrypted ? '[VERSLEUTELD]' : conv.Message[0].text,
+        createdAt: conv.Message[0].createdAt,
+        isEncrypted: conv.Message[0].isEncrypted,
+        sender: conv.Message[0].User
+      } : null
     }));
 
-    const totalCount = await prisma.message.count({ where });
-
-    return NextResponse.json({
-      messages: sanitizedMessages,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore: offset + limit < totalCount
-      },
-      notice: 'Versleutelde berichten zijn niet leesbaar, zelfs niet voor admins. Dit beschermt de privacy van gebruikers.'
+    console.log('[Admin Messages API] Returning:', {
+      count: conversationSummaries.length,
+      encrypted: conversationSummaries.filter(c => c.isEncrypted).length,
+      plaintext: conversationSummaries.filter(c => !c.isEncrypted).length
     });
 
+    return NextResponse.json({ conversations: conversationSummaries });
+
   } catch (error) {
-    console.error('Error fetching messages:', error);
-    return NextResponse.json({ 
-      error: 'Er is een fout opgetreden bij het ophalen van berichten' 
-    }, { status: 500 });
+    console.error('[Admin Messages API] Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { status: 500 }
+    );
   }
 }
-

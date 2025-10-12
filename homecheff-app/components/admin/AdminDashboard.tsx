@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield, Phone } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
@@ -9,6 +9,8 @@ import NotificationCenter from './NotificationCenter';
 import DeliveryManagement from './DeliveryManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ContentModerationDashboard from './ContentModerationDashboard';
+import AdminMessages from './AdminMessages';
+import AdminUserContact from './AdminUserContact';
 import AdminFilters from './AdminFilters';
 
 interface AdminStats {
@@ -149,12 +151,14 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
   const tabs = [
     { id: 'overview', label: 'Overzicht', icon: Eye },
     { id: 'users', label: 'Gebruikers', icon: Users },
+    { id: 'contact', label: 'Contact Zoeken', icon: Phone },
+    { id: 'messages', label: 'Chat Overzicht', icon: MessageSquare },
     { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'delivery', label: 'Bezorgers', icon: Truck },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'moderation', label: 'Content Moderation', icon: Shield },
-    { id: 'notifications', label: 'Berichten', icon: MessageSquare },
+    { id: 'notifications', label: 'Notificaties', icon: Bell },
   ];
 
   return (
@@ -385,6 +389,8 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'delivery' && <DeliveryManagement deliveryProfiles={stats.deliveryProfiles} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'moderation' && <ContentModerationDashboard />}
+        {activeTab === 'messages' && <AdminMessages />}
+        {activeTab === 'contact' && <AdminUserContact />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>

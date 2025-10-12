@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, Eye, RefreshCw, Filter, Search, Shield } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Eye, RefreshCw, Filter, Search, Shield, Maximize2, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface ModerationLog {
   id: string;
@@ -35,6 +36,7 @@ export default function ContentModerationDashboard() {
   const [logs, setLogs] = useState<ModerationLog[]>([]);
   const [stats, setStats] = useState<ModerationStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     status: 'all',
     category: 'all',
@@ -282,12 +284,29 @@ export default function ContentModerationDashboard() {
               <div key={log.id} className="px-6 py-4">
                 <div className="flex items-start space-x-4">
                   {/* Image Preview */}
-                  <div className="flex-shrink-0">
-                    <img
-                      src={log.imageUrl}
-                      alt="Moderation preview"
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                    />
+                  <div className="flex-shrink-0 relative group">
+                    <div className="relative w-24 h-24">
+                      <Image
+                        src={log.imageUrl}
+                        alt="Moderation preview"
+                        fill
+                        className="object-cover rounded-lg border-2 border-gray-300 group-hover:border-blue-500 transition-colors"
+                        onError={(e) => {
+                          console.error('Image failed to load:', log.imageUrl);
+                          e.currentTarget.src = '/images/placeholder-image.png';
+                        }}
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedImage(log.imageUrl);
+                        }}
+                        className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
+                        title="Bekijk groter"
+                      >
+                        <Maximize2 className="w-6 h-6 text-white" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Log Details */}
@@ -370,6 +389,32 @@ export default function ContentModerationDashboard() {
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 flex items-center gap-2 bg-black/50 px-4 py-2 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+              Sluiten
+            </button>
+            <Image
+              src={selectedImage}
+              alt="Full size preview"
+              width={1200}
+              height={800}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

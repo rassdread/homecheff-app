@@ -59,6 +59,7 @@ model User {
   country                                String?                   @default("NL")
   state                                  String?
   timezone                               String?                   @default("Europe/Amsterdam")
+  phoneNumber                            String?
   messageGuidelinesAccepted              Boolean                   @default(false)
   messageGuidelinesAcceptedAt            DateTime?
   socialOnboardingCompleted              Boolean                   @default(true)

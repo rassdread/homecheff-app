@@ -13,7 +13,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { username, role, isBuyer, isSeller, userTypes, selectedBuyerType, acceptedTerms, acceptedPrivacy } = body;
+    const { 
+      username, role, isBuyer, isSeller, userTypes, selectedBuyerType, 
+      phoneNumber, address, city, postalCode, country,
+      acceptedTerms, acceptedPrivacy 
+    } = body;
 
     // Validate input
     if (!username || username.length < 3) {
@@ -22,6 +26,10 @@ export async function POST(request: NextRequest) {
 
     if (!role) {
       return NextResponse.json({ message: 'Rol is verplicht' }, { status: 400 });
+    }
+
+    if (!phoneNumber || !address || !city || !postalCode || !country) {
+      return NextResponse.json({ message: 'Contactgegevens zijn verplicht' }, { status: 400 });
     }
 
     if (!acceptedTerms || !acceptedPrivacy) {
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
       interests = [...interests, selectedBuyerType];
     }
 
-    // Update user with complete onboarding data
+    // Update user with complete onboarding data including contact info
     const updatedUser = await prisma.user.update({
       where: { id: existingUser.id },
       data: {
@@ -74,6 +82,12 @@ export async function POST(request: NextRequest) {
         interests,
         sellerRoles,
         buyerRoles,
+        phoneNumber,
+        address,
+        city,
+        postalCode,
+        country,
+        place: city, // Use city as place for location
         socialOnboardingCompleted: true, // Mark as completed!
         termsAccepted: acceptedTerms,
         termsAcceptedAt: acceptedTerms ? new Date() : null,

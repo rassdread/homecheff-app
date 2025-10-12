@@ -81,7 +81,7 @@ export default function SocialLoginOnboarding() {
   const [socialData, setSocialData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [step, setStep] = useState<'username' | 'role' | 'terms'>('username');
+  const [step, setStep] = useState<'username' | 'role' | 'contact' | 'terms'>('username');
   
   // Step 1: Username
   const [username, setUsername] = useState('');
@@ -94,7 +94,15 @@ export default function SocialLoginOnboarding() {
   const [selectedBuyerType, setSelectedBuyerType] = useState<string>(''); // Voor koper (één)
   const [roleError, setRoleError] = useState('');
   
-  // Step 3: Terms
+  // Step 3: Contact Info (NEW)
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('NL');
+  const [contactError, setContactError] = useState('');
+  
+  // Step 4: Terms
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [termsError, setTermsError] = useState('');
@@ -218,8 +226,28 @@ export default function SocialLoginOnboarding() {
       return;
     }
 
-    // Alles goed, ga naar volgende stap
+    // Alles goed, ga naar contact info stap
     setRoleError('');
+    setStep('contact');
+  };
+
+  const handleContactSubmit = () => {
+    // Validate required contact fields
+    if (!phoneNumber.trim()) {
+      setContactError('Telefoonnummer is verplicht');
+      return;
+    }
+    if (!address.trim() || !city.trim()) {
+      setContactError('Adres en stad zijn verplicht');
+      return;
+    }
+    if (!postalCode.trim()) {
+      setContactError('Postcode is verplicht');
+      return;
+    }
+
+    // Alles goed, ga naar terms stap
+    setContactError('');
     setStep('terms');
   };
 
@@ -247,6 +275,11 @@ export default function SocialLoginOnboarding() {
           isSeller,
           userTypes: selectedUserTypes,
           selectedBuyerType,
+          phoneNumber,
+          address,
+          city,
+          postalCode,
+          country,
           acceptedTerms,
           acceptedPrivacy,
         }),
@@ -325,11 +358,13 @@ export default function SocialLoginOnboarding() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {step === 'username' && 'Welkom bij HomeCheff! 🎉'}
             {step === 'role' && 'Kies je rol 👤'}
+            {step === 'contact' && 'Contactgegevens 📞'}
             {step === 'terms' && 'Laatste stap! 📋'}
           </h1>
           <p className="text-gray-600">
             {step === 'username' && 'Kies een unieke gebruikersnaam'}
             {step === 'role' && 'Ben je koper of verkoper?'}
+            {step === 'contact' && 'Voor afstand berekening en contact'}
             {step === 'terms' && 'Accepteer de voorwaarden'}
           </p>
         </div>
@@ -561,7 +596,127 @@ export default function SocialLoginOnboarding() {
           </div>
         )}
 
-        {/* STEP 3: Terms & Privacy */}
+        {/* STEP 3: Contact Information */}
+        {step === 'contact' && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Contactgegevens</h3>
+              <p className="text-gray-600">Deze gegevens zijn nodig voor afstand berekening en contact.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Telefoonnummer *
+                </label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    setContactError('');
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="+31 6 12345678"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Land *
+                </label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="NL">Nederland</option>
+                  <option value="BE">België</option>
+                  <option value="DE">Duitsland</option>
+                  <option value="FR">Frankrijk</option>
+                  <option value="CW">Curaçao</option>
+                  <option value="AW">Aruba</option>
+                  <option value="SX">Sint Maarten</option>
+                  <option value="SR">Suriname</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {country === 'NL' ? 'Huisnummer' : 'Adres'} *
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setContactError('');
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                    placeholder={country === 'NL' ? '123' : 'Street 123'}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Postcode *
+                  </label>
+                  <input
+                    type="text"
+                    value={postalCode}
+                    onChange={(e) => {
+                      setPostalCode(e.target.value.toUpperCase());
+                      setContactError('');
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                    placeholder={country === 'NL' ? '1234AB' : '12345'}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Stad *
+                </label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setContactError('');
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Amsterdam"
+                />
+              </div>
+            </div>
+
+            {contactError && (
+              <p className="text-sm text-red-600">{contactError}</p>
+            )}
+
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setStep('role')}
+                className="px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all flex items-center space-x-2"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Terug</span>
+              </button>
+              
+              <button
+                onClick={handleContactSubmit}
+                className="flex-1 px-6 py-4 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center space-x-2"
+              >
+                <span>Volgende stap</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4: Terms & Privacy */}
         {step === 'terms' && (
           <div className="space-y-6">
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
@@ -624,7 +779,7 @@ export default function SocialLoginOnboarding() {
 
             <div className="flex space-x-4">
               <button
-                onClick={() => setStep('role')}
+                onClick={() => setStep('contact')}
                 className="px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all flex items-center space-x-2"
               >
                 <ArrowLeft className="w-5 h-5" />
