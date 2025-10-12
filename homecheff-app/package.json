@@ -8,7 +8,17 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "echo 'Skipping prisma generate'",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && vercel --prod",
+    "deploy:quick": "vercel --prod",
+    "deploy:preview": "vercel",
+    "test:chat-config": "node scripts/test-chat-config.js",
+    "test:pusher": "node scripts/test-pusher-connection.js",
+    "debug:conversations": "node scripts/debug-conversation-participants.js",
+    "test:participant-display": "node scripts/test-participant-display.js",
+    "fix:participants": "node scripts/fix-participant-identification.js",
+    "test:api-participants": "node scripts/test-api-participants.js",
+    "test:user-identification": "node scripts/test-user-identification.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
