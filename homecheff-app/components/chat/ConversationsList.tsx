@@ -9,7 +9,7 @@ import { getDisplayName } from '@/lib/displayName';
 
 interface Conversation {
   id: string;
-  title: string;
+  title?: string;
   product?: {
     id: string;
     title: string;
@@ -46,6 +46,12 @@ interface Conversation {
     username: string | null;
     profileImage: string | null;
   }>;
+  otherParticipant?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    profileImage: string | null;
+  };
   lastMessageAt: string | null;
   isActive: boolean;
   createdAt: string;
@@ -68,16 +74,30 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const loadConversations = async () => {
     try {
       setIsLoading(true);
+      console.log('[ConversationsList] 📡 Loading conversations...');
+      
       const response = await fetch('/api/conversations');
       
+      console.log('[ConversationsList] Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to load conversations');
+        const errorText = await response.text();
+        console.error('[ConversationsList] ❌ Error response:', response.status, errorText);
+        throw new Error(`Failed to load conversations: ${response.status}`);
       }
 
       const { conversations: fetchedConversations } = await response.json();
+      
+      console.log('[ConversationsList] ✅ Loaded conversations:', {
+        count: fetchedConversations.length,
+        withParticipants: fetchedConversations.filter((c: any) => c.participants?.length > 0).length,
+        withLastMessage: fetchedConversations.filter((c: any) => c.lastMessage).length,
+        conversationIds: fetchedConversations.map((c: any) => c.id)
+      });
+      
       setConversations(fetchedConversations);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      console.error('[ConversationsList] ❌ Critical error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -216,7 +236,13 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
           <div
             key={conversation.id}
             onClick={() => {
-              console.log('Conversation clicked:', conversation.id, conversation.title);
+              console.log('[ConversationsList] 🖱️ Conversation clicked:', {
+                id: conversation.id,
+                title: conversation.title,
+                hasParticipants: !!conversation.participants && conversation.participants.length > 0,
+                hasOtherParticipant: !!conversation.otherParticipant,
+                participantName: conversation.otherParticipant?.name || conversation.participants?.[0]?.name
+              });
               onSelectConversation(conversation);
               markConversationAsRead(conversation.id);
             }}
@@ -248,7 +274,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                 ) : (
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">
-                      {conversation.title.charAt(0).toUpperCase()}
+                      {(conversation.participants?.[0]?.name || conversation.participants?.[0]?.username || conversation.title || 'G').charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}

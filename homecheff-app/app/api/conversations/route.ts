@@ -7,8 +7,16 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(req: NextRequest) {
   try {
+    console.log('[Conversations API] 📡 GET Request started');
+    
     const session = await auth();
+    console.log('[Conversations API] Session:', { 
+      hasSession: !!session, 
+      email: session?.user?.email 
+    });
+    
     if (!session?.user?.email) {
+      console.log('[Conversations API] ❌ Unauthorized');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -16,6 +24,8 @@ export async function GET(req: NextRequest) {
       where: { email: session.user.email },
       select: {
         id: true,
+        name: true,
+        username: true,
         ConversationParticipant: {
           select: {
             Conversation: {
@@ -46,8 +56,10 @@ export async function GET(req: NextRequest) {
                   select: {
                     id: true,
                     text: true,
+                    messageType: true,
                     createdAt: true,
                     readAt: true,
+                    senderId: true,
                     User: {
                       select: {
                         id: true,
@@ -66,7 +78,9 @@ export async function GET(req: NextRequest) {
                         id: true,
                         name: true,
                         username: true,
-                        profileImage: true
+                        profileImage: true,
+                        displayFullName: true,
+                        displayNameOption: true
                       }
                     }
                   }
@@ -79,8 +93,14 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
+      console.log('[Conversations API] ❌ User not found');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    
+    console.log('[Conversations API] User found:', {
+      userId: user.id,
+      participantCount: user.ConversationParticipant.length
+    });
 
     // Transform conversations and filter out inactive ones
     const conversations = user.ConversationParticipant
@@ -113,13 +133,19 @@ export async function GET(req: NextRequest) {
       const bTime = b.lastMessageAt || b.createdAt;
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
+    
+    console.log('[Conversations API] ✅ Returning conversations:', {
+      count: conversations.length,
+      conversationIds: conversations.map(c => c.id),
+      withMessages: conversations.filter(c => c.lastMessage).length
+    });
 
     return NextResponse.json({ conversations });
 
   } catch (error) {
-    console.error('Error fetching conversations:', error);
+    console.error('[Conversations API] ❌ Critical error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 }
     );
   }

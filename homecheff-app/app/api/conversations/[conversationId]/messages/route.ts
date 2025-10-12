@@ -51,19 +51,36 @@ export async function GET(
   { params }: { params: { conversationId: string } }
 ) {
   try {
+    console.log('[Messages API] 📡 GET Request started');
+    
     const session = await auth();
+    console.log('[Messages API] Session check:', { 
+      hasSession: !!session, 
+      email: session?.user?.email 
+    });
+    
     if (!session?.user?.email) {
+      console.log('[Messages API] ❌ Unauthorized - no session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = params;
     const { page = '1', limit = '50' } = Object.fromEntries(req.nextUrl.searchParams);
+    
+    console.log('[Messages API] Parameters:', { conversationId, page, limit });
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     });
+    
+    console.log('[Messages API] User lookup:', { 
+      email: session.user.email,
+      userId: user?.id,
+      found: !!user 
+    });
 
     if (!user) {
+      console.log('[Messages API] ❌ User not found');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -74,8 +91,15 @@ export async function GET(
         userId: user.id
       }
     });
+    
+    console.log('[Messages API] Participant check:', { 
+      conversationId,
+      userId: user.id,
+      isParticipant: !!participant 
+    });
 
     if (!participant) {
+      console.log('[Messages API] ❌ Access denied - not a participant');
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -99,25 +123,45 @@ export async function GET(
       take: parseInt(limit),
       skip: (parseInt(page) - 1) * parseInt(limit)
     });
-
-    // Decrypt messages automatically
-    const conversationKey = await getConversationKey(conversationId);
-    const decryptedMessages = messages.map(msg => {
-      if (msg.isEncrypted && msg.encryptedText) {
-        try {
-          const encryptedData = JSON.parse(msg.encryptedText);
-          const decryptedText = decryptText(encryptedData, conversationKey);
-          return { ...msg, text: decryptedText, _wasEncrypted: true };
-        } catch (error) {
-          console.error('Decryption failed for message:', msg.id, error);
-          return { ...msg, text: '[Ontsleuteling mislukt]', _decryptionError: true };
-        }
-      }
-      return msg;
+    
+    console.log('[Messages API] 📨 Fetched messages:', {
+      count: messages.length,
+      encrypted: messages.filter(m => m.isEncrypted).length,
+      plaintext: messages.filter(m => !m.isEncrypted).length,
+      messageIds: messages.map(m => m.id)
     });
 
+    // Decrypt messages automatically
+    let decryptedMessages = messages;
+    
+    // Only try to decrypt if there are encrypted messages
+    if (messages.some(m => m.isEncrypted)) {
+      try {
+        const conversationKey = await getConversationKey(conversationId);
+        console.log('[Messages API] 🔐 Decryption key obtained');
+        
+        decryptedMessages = messages.map(msg => {
+          if (msg.isEncrypted && msg.encryptedText) {
+            try {
+              const encryptedData = JSON.parse(msg.encryptedText);
+              const decryptedText = decryptText(encryptedData, conversationKey);
+              console.log('[Messages API] ✅ Decrypted message:', msg.id);
+              return { ...msg, text: decryptedText, _wasEncrypted: true };
+            } catch (error) {
+              console.error('[Messages API] ❌ Decryption failed for message:', msg.id, error);
+              return { ...msg, text: '[Ontsleuteling mislukt]', _decryptionError: true };
+            }
+          }
+          return msg;
+        });
+      } catch (keyError) {
+        console.error('[Messages API] ❌ Error getting encryption key:', keyError);
+        // Continue without decryption - return plaintext messages
+      }
+    }
+
     // Mark messages as read
-    await prisma.message.updateMany({
+    const markedAsRead = await prisma.message.updateMany({
       where: {
         conversationId,
         senderId: { not: user.id },
@@ -125,13 +169,22 @@ export async function GET(
       },
       data: { readAt: new Date() }
     });
+    
+    console.log('[Messages API] 📖 Marked as read:', markedAsRead.count);
 
-    return NextResponse.json({ messages: decryptedMessages.reverse() });
+    const finalMessages = decryptedMessages.reverse();
+    console.log('[Messages API] ✅ Returning messages:', {
+      count: finalMessages.length,
+      firstMessage: finalMessages[0]?.text?.substring(0, 50),
+      lastMessage: finalMessages[finalMessages.length - 1]?.text?.substring(0, 50)
+    });
+
+    return NextResponse.json({ messages: finalMessages });
 
   } catch (error) {
-    console.error('Error fetching messages:', error);
+    console.error('[Messages API] ❌ Critical error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 }
     );
   }

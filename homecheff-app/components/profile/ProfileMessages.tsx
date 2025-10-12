@@ -8,7 +8,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface Conversation {
   id: string;
-  title: string;
+  title?: string;
   product?: {
     id: string;
     title: string;
@@ -18,12 +18,31 @@ interface Conversation {
       sortOrder: number;
     }>;
   };
+  participants: Array<{
+    id: string;
+    name: string | null;
+    username: string | null;
+    profileImage: string | null;
+  }>;
   otherParticipant?: {
     id: string;
     name: string | null;
     username: string | null;
     profileImage: string | null;
   };
+  lastMessage?: {
+    id: string;
+    text: string | null;
+    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'PRODUCT_SHARE' | 'SYSTEM';
+    createdAt: string;
+    readAt?: string | null;
+    User: {
+      id: string;
+      name: string | null;
+      username: string | null;
+      profileImage: string | null;
+    };
+  } | null;
   lastMessageAt: string | null;
   isActive: boolean;
   createdAt: string;
@@ -117,13 +136,15 @@ export default function ProfileMessages({ onUnreadCountChange }: ProfileMessages
             bottom: 0
           }}
         >
-          {selectedConversation.otherParticipant && (
-            <CompleteChat
-              conversationId={selectedConversation.id}
-              otherParticipant={selectedConversation.otherParticipant}
-              onBack={handleBackToList}
-            />
-          )}
+          <CompleteChat
+            conversationId={selectedConversation.id}
+            otherParticipant={
+              selectedConversation.otherParticipant || 
+              (selectedConversation.participants && selectedConversation.participants[0]) ||
+              { id: '', name: 'Gebruiker', username: null, profileImage: null }
+            }
+            onBack={handleBackToList}
+          />
         </div>
       );
     }

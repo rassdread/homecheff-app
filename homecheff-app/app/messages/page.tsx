@@ -76,7 +76,15 @@ function MessagesPageContent() {
   const searchParams = useSearchParams();
 
   const handleSelectConversation = (conversation: Conversation) => {
-    console.log('Conversation selected:', conversation.id, conversation.title || conversation.product?.title || 'Gesprek');
+    console.log('[MessagesPage] 🎯 Conversation selected:', {
+      id: conversation.id,
+      title: conversation.title,
+      productTitle: conversation.product?.title,
+      hasParticipants: !!conversation.participants && conversation.participants.length > 0,
+      hasOtherParticipant: !!conversation.otherParticipant,
+      participantCount: conversation.participants?.length || 0,
+      otherParticipantName: conversation.otherParticipant?.name || conversation.participants?.[0]?.name
+    });
     setSelectedConversation(conversation);
   };
 
