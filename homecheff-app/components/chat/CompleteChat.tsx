@@ -45,9 +45,24 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
   
   const { data: session } = useSession();
 
-  // Helper: Get display name
+  // Helper: Get display name with proper fallback
   const getDisplayName = (user: any) => {
-    return user?.name || user?.username || 'Gebruiker';
+    if (!user) return 'Gebruiker';
+    
+    // Check display preferences
+    if (user.displayNameOption === 'username' && user.username) {
+      return user.username;
+    }
+    if (user.displayNameOption === 'firstname' && user.name) {
+      return user.name.split(' ')[0];
+    }
+    if (user.displayNameOption === 'lastname' && user.name) {
+      const parts = user.name.split(' ');
+      return parts[parts.length - 1];
+    }
+    
+    // Default fallback
+    return user.name || user.username || 'Gebruiker';
   };
 
   // Step 1: Get current user ID

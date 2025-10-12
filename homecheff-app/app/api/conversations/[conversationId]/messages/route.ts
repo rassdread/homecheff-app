@@ -115,7 +115,9 @@ export async function GET(
             id: true,
             name: true,
             username: true,
-            profileImage: true
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true
           }
         }
       },
@@ -176,7 +178,13 @@ export async function GET(
     console.log('[Messages API] ✅ Returning messages:', {
       count: finalMessages.length,
       firstMessage: finalMessages[0]?.text?.substring(0, 50),
-      lastMessage: finalMessages[finalMessages.length - 1]?.text?.substring(0, 50)
+      lastMessage: finalMessages[finalMessages.length - 1]?.text?.substring(0, 50),
+      userDataSample: finalMessages[0]?.User ? {
+        hasName: !!finalMessages[0].User.name,
+        hasUsername: !!finalMessages[0].User.username,
+        hasDisplayOption: !!finalMessages[0].User.displayNameOption,
+        displayNameOption: finalMessages[0].User.displayNameOption
+      } : 'No user data'
     });
 
     return NextResponse.json({ messages: finalMessages });
@@ -248,7 +256,7 @@ export async function POST(
       textToStore = null; // Don't store plaintext if encrypted
     }
 
-    // Create message
+    // Create message with full user display info
     const message = await prisma.message.create({
       data: {
         conversationId,
@@ -267,7 +275,9 @@ export async function POST(
             id: true,
             name: true,
             username: true,
-            profileImage: true
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true
           }
         }
       }
@@ -298,6 +308,10 @@ export async function POST(
         messageId: messageToReturn.id,
         hasText: !!messageToReturn.text,
         hasUser: !!messageToReturn.User,
+        userName: messageToReturn.User?.name,
+        userUsername: messageToReturn.User?.username,
+        displayNameOption: messageToReturn.User?.displayNameOption,
+        displayFullName: messageToReturn.User?.displayFullName,
         payloadKeys: Object.keys(messageToReturn)
       });
       
