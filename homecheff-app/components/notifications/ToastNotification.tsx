@@ -20,6 +20,12 @@ export default function ToastNotification() {
     if (notifications.length > 0) {
       const latestNotification = notifications[0];
       
+      // Check if payload exists
+      if (!latestNotification.payload) {
+        console.warn('Notification has no payload:', latestNotification);
+        return;
+      }
+      
       // Check if this is a new notification (within last 5 seconds)
       const notificationTime = new Date(latestNotification.createdAt).getTime();
       const now = Date.now();
@@ -27,8 +33,8 @@ export default function ToastNotification() {
       if (now - notificationTime < 5000) { // 5 seconds
         const newToast: Toast = {
           id: `toast-${latestNotification.id}`,
-          title: latestNotification.payload.title,
-          message: latestNotification.payload.message,
+          title: latestNotification.payload?.title || 'Notificatie',
+          message: latestNotification.payload?.message || 'Je hebt een nieuwe notificatie',
           type: latestNotification.type === 'MESSAGE_RECEIVED' ? 'message' : 'notification',
           timestamp: now,
         };

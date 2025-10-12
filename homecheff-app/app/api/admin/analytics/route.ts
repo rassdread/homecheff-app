@@ -365,7 +365,7 @@ export async function GET(req: NextRequest) {
         earnings: deliverer.deliveryOrders.reduce((sum, order) => sum + order.deliveryFee, 0)
       }))),
       
-      // Top products
+      // Top products with real view counts
       prisma.product.findMany({
         include: {
           Image: {
@@ -378,14 +378,43 @@ export async function GET(req: NextRequest) {
         },
         where: { isActive: true },
         orderBy: { createdAt: 'desc' },
-        take: 10
-      }).then(products => products.map(product => ({
-        id: product.id,
-        title: product.title,
-        views: Math.floor(Math.random() * 1000) + 100, // Mock views
-        favorites: product.favorites.length,
-        revenue: Math.floor(Math.random() * 5000) + 500 // Mock revenue
-      })))
+        take: 20 // Get more to sort by views
+      }).then(async (products) => {
+        // Get view counts for each product
+        const productsWithViews = await Promise.all(
+          products.map(async (product) => {
+            const viewCount = await prisma.analyticsEvent.count({
+              where: {
+                entityId: product.id,
+                eventType: 'PRODUCT_VIEW'
+              }
+            });
+            
+            const orderCount = await prisma.orderItem.count({
+              where: {
+                productId: product.id,
+                Order: {
+                  status: {
+                    in: ['PROCESSING', 'SHIPPED', 'DELIVERED']
+                  }
+                }
+              }
+            });
+            
+            return {
+              id: product.id,
+              title: product.title,
+              views: viewCount,
+              favorites: product.favorites.length,
+              orders: orderCount,
+              revenue: orderCount * (product.priceCents / 100) // Approximate revenue
+            };
+          })
+        );
+        
+        // Sort by views and return top 10
+        return productsWithViews.sort((a, b) => b.views - a.views).slice(0, 10);
+      })
     ]);
 
     // Calculate growth percentages

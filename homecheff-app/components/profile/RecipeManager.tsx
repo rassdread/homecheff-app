@@ -52,6 +52,8 @@ type RecipeFormData = {
   category: string;
   tags: string[];
   isPrivate: boolean;
+  allowDownload: boolean;
+  allowPrint: boolean;
   photos: RecipePhotoUnion[];
 };
 
@@ -119,6 +121,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
     category: '',
     tags: [],
     isPrivate: true,
+    allowDownload: true,
+    allowPrint: true,
     photos: []
   });
 
@@ -282,6 +286,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
           category: '',
           tags: [],
           isPrivate: true,
+          allowDownload: true,
+          allowPrint: true,
           photos: []
         });
         setShowForm(false);
@@ -508,6 +514,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                       category: '',
                       tags: [],
                       isPrivate: true,
+                      allowDownload: true,
+                      allowPrint: true,
                       photos: []
                     });
                   }}
@@ -926,6 +934,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                             category: fullRecipe.category || '',
                             tags: fullRecipe.tags || [],
                             isPrivate: fullRecipe.status === 'PRIVATE',
+                            allowDownload: true,
+                            allowPrint: true,
                             photos: mainPhotos
                           });
                           
@@ -950,6 +960,8 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                             category: recipe.category || '',
                             tags: recipe.tags || [],
                             isPrivate: recipe.isPrivate,
+                            allowDownload: true,
+                            allowPrint: true,
                             photos: mainPhotos
                           });
                           

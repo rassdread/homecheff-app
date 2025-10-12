@@ -13,13 +13,13 @@ const ImageSlider = dynamic(() => import("@/components/ui/ImageSlider"), {
   loading: () => <div className="w-full h-full bg-gray-200 animate-pulse" />,
   ssr: false // Disable SSR for better mobile performance
 });
-import AdvancedFiltersPanel from "@/components/feed/AdvancedFiltersPanel";
+import ImprovedFilterBar from "@/components/feed/ImprovedFilterBar";
 const SmartRecommendations = dynamic(() => import("@/components/recommendations/SmartRecommendations"), {
   loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false
 });
 import NotificationProvider, { useNotifications } from "@/components/notifications/NotificationProvider";
-import { useSavedSearches, defaultFilters } from "@/hooks/useSavedSearches";
+import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import ItemCard from "@/components/ItemCard";
 import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
@@ -140,7 +140,6 @@ function HomePageContent() {
   const [subcategory, setSubcategory] = useState<string>("all");
   const [deliveryMode, setDeliveryMode] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<{min: number, max: number}>({min: 0, max: 1000});
-  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [location, setLocation] = useState<string>("");
@@ -158,7 +157,6 @@ function HomePageContent() {
   });
   const [showRecommendations, setShowRecommendations] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // grid = 2 columns, list = 1 column
-  const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
   const [manualLocationInput, setManualLocationInput] = useState<string>('');
   
   // Location filtering states
@@ -204,8 +202,6 @@ function HomePageContent() {
     return 'Wereldwijd';
   };
   
-  // New state for advanced filters
-  const [filters, setFilters] = useState(defaultFilters);
   
   // Hooks for new features
   const { savedSearches, saveSearch, loading: searchesLoading } = useSavedSearches();
@@ -371,10 +367,34 @@ function HomePageContent() {
         if (response.ok) {
           const userData = await response.json();
           if (userData.user) {
-            const { lat, lng, place, postcode } = userData.user;
+            const { lat, lng, place, postcode, address, name, username: userUsername, country } = userData.user;
+            
+            // Set user first name from name field (works for both regular and social login)
+            if (name) {
+              const firstName = name.split(' ')[0]; // Get first word from name
+              setUserFirstName(firstName);
+              console.log('👤 Set user first name:', firstName);
+            }
+            
+            // Set username
+            if (userUsername) {
+              setUsername(userUsername);
+            }
+            
+            // Set country
+            if (country) {
+              setUserCountry(country);
+            }
             
             // Save profile location
             setProfileLocation({ place, postcode, lat, lng });
+            
+            // Set default location input to profile address/postcode
+            if (place || postcode || address) {
+              const locationText = place || postcode || address || '';
+              setManualLocationInput(locationText);
+              console.log('📝 Pre-filled location input:', locationText);
+            }
             
             // Automatically use profile location if available
             if (lat && lng) {
@@ -758,57 +778,6 @@ function HomePageContent() {
     });
   }, [users, q, sortBy, location, radius, userLocation, searchType, userRole, startLocationCoords]);
 
-  // New functions for advanced features
-  const handleSaveSearch = async (name: string) => {
-    try {
-      const currentFilters = {
-        ...filters,
-        q,
-        category,
-        subcategory,
-        userRole,
-        priceRange,
-        radius,
-        location,
-        sortBy,
-        deliveryMode,
-      };
-      await saveSearch(name, currentFilters);
-      addNotification({
-        type: 'success',
-        title: 'Zoekopdracht opgeslagen',
-        message: `"${name}" is opgeslagen in je persoonlijke zoekopdrachten`,
-        duration: 3000,
-      });
-    } catch (error) {
-      addNotification({
-        type: 'error',
-        title: 'Opslaan mislukt',
-        message: 'Er is een fout opgetreden bij het opslaan van je zoekopdracht',
-        duration: 5000,
-      });
-    }
-  };
-
-  const handleLoadSearch = (search: any) => {
-    setQ(search.filters.q);
-    setCategory(search.filters.category);
-    setSubcategory(search.filters.subcategory);
-    setUserRole(search.filters.userRole || 'all');
-    setPriceRange(search.filters.priceRange);
-    setRadius(search.filters.radius);
-    setLocation(search.filters.location);
-    setSortBy(search.filters.sortBy);
-    setDeliveryMode(search.filters.deliveryMode);
-    setFilters(search.filters);
-    
-    addNotification({
-      type: 'info',
-      title: 'Zoekopdracht geladen',
-      message: `"${search.name}" is toegepast`,
-      duration: 3000,
-    });
-  };
 
   const handleApplyFilters = () => {
     // Trigger data fetch with current filters
@@ -826,7 +795,6 @@ function HomePageContent() {
     setLocation('');
     setSortBy('newest');
     setDeliveryMode('all');
-    setFilters(defaultFilters);
   };
 
   const handleProductClick = (product: any) => {
@@ -866,614 +834,72 @@ function HomePageContent() {
       <RedirectAfterLogin />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-12 md:py-24">
+      <section className="relative bg-gradient-to-br from-primary-brand via-primary-700 to-primary-800 py-16 md:py-24">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 animate-fade-in">
               {userFirstName ? (
-                `Hey ${userFirstName}, wat gaat het worden vandaag?`
+                <>
+                  Hey {userFirstName}, <br className="sm:hidden" />
+                  wat gaat het worden vandaag?
+                </>
               ) : (
                 'Ontdek Lokale Delicatessen'
               )}
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-primary-100 mb-6 md:mb-8 max-w-3xl mx-auto px-4">
+            <p className="text-lg sm:text-xl md:text-2xl text-primary-100 mb-8 max-w-3xl mx-auto px-4">
               Vind verse producten, heerlijke gerechten en unieke creaties van lokale makers in jouw buurt
             </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
-              {/* Mobile Header */}
-              <div className="md:hidden flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Zoeken</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                    className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl transition-colors touch-manipulation"
-                    title={viewMode === 'grid' ? 'Lijst weergave' : 'Grid weergave'}
-                  >
-                    {viewMode === 'grid' ? <List className="w-6 h-6" /> : <Grid3X3 className="w-6 h-6" />}
-                  </button>
-                  <button
-                    onClick={() => setShowMobileFilters(!showMobileFilters)}
-                    className={`p-3 rounded-xl transition-all duration-200 touch-manipulation relative ${
-                      showMobileFilters 
-                        ? 'bg-red-100 hover:bg-red-200 text-red-600 scale-105' 
-                        : (category !== 'all' || subcategory !== 'all' || priceRange.min > 0 || priceRange.max < 1000 || sortBy !== 'newest' || radius !== 10)
-                        ? 'bg-primary-brand hover:bg-primary-700 text-white shadow-lg'
-                        : 'bg-blue-100 hover:bg-blue-200 text-blue-600'
-                    }`}
-                    title={showMobileFilters ? 'Filters sluiten' : 'Filters openen'}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    {showMobileFilters ? <X className="w-6 h-6" /> : <Filter className="w-6 h-6" />}
-                    {!showMobileFilters && (category !== 'all' || subcategory !== 'all' || priceRange.min > 0 || priceRange.max < 1000 || sortBy !== 'newest' || radius !== 10) && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-bold">!</span>
-                      </div>
-                    )}
-                  </button>
-                  
+            
+            {userFirstName && (
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                  <span className="text-primary-100 text-sm">👋</span>
+                  <span className="text-white text-sm font-medium">Welkom terug!</span>
                 </div>
+                {profileLocation?.place && (
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                    <span className="text-primary-100 text-sm">📍</span>
+                    <span className="text-white text-sm font-medium">{profileLocation.place}</span>
+                  </div>
+                )}
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                <div className="flex-1 relative">
-                  <Search size={20} className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 text-base md:text-lg border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
-                    placeholder={searchType === 'products' ? "Zoek naar producten, gerechten of makers..." : "Zoek naar gebruikersnaam, voornaam of achternaam..."}
-                  />
-                </div>
-                
-                {/* Search Type Selector */}
-                <div className="relative">
-                  <select
-                    value={searchType}
-                    onChange={(e) => setSearchType(e.target.value as 'products' | 'users')}
-                    className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 md:py-4 pr-8 text-base md:text-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none cursor-pointer"
-                  >
-                    <option value="products">Producten</option>
-                    <option value="users">Gebruikers</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <Filter className="w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-                
-                {/* Desktop Controls */}
-                <div className="hidden md:flex items-center gap-2">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-secondary-brand hover:bg-secondary-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <Filter className="w-4 h-4 md:w-5 md:h-5" />
-                    <span className="font-medium text-sm md:text-base">
-                      {showFilters ? 'Filters wissen' : 'Filters'}
-                    </span>
-                  </button>
-                  
-                  <button
-                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                    title={viewMode === 'grid' ? 'Lijst weergave' : 'Grid weergave'}
-                  >
-                    {viewMode === 'grid' ? <List className="w-4 h-4 md:w-5 md:h-5" /> : <Grid3X3 className="w-4 h-4 md:w-5 md:h-5" />}
-                  </button>
-                  
-                  
-                  <button
-                    onClick={handleRequestNotificationPermission}
-                    className="flex items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                    title="Notificaties inschakelen"
-                  >
-                    <Bell className="w-4 h-4 md:w-5 md:h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Advanced Filters Panel - Desktop */}
-              {showFilters && (
-                <div className="hidden md:block mt-6 pt-6 border-t border-neutral-200">
-                  <AdvancedFiltersPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    savedSearches={savedSearches}
-                    onSaveSearch={handleSaveSearch}
-                    onLoadSearch={handleLoadSearch}
-                    onClearFilters={handleClearFilters}
-                    onApplyFilters={handleApplyFilters}
-                    searchType={searchType}
-                    userLocation={userLocation}
-                    locationSource={locationSource}
-                    profileLocation={profileLocation}
-                    onUseGPS={handleUseGPS}
-                    onUseProfile={handleUseProfile}
-                    onManualLocation={handleManualLocation}
-                    isGeocodingManual={isStartLocationGeocoding}
-                  />
-                </div>
-              )}
-
-              {/* Mobile Filters Panel - Nieuwe Mobiele Implementatie v2 */}
-              {showMobileFilters && (
-                <div className="md:hidden mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-                    <button
-                      onClick={() => setShowMobileFilters(false)}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      <X className="w-6 h-6 text-gray-500" />
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {/* STARTLOCATIE SECTIE - MOBILE */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        <h4 className="text-sm font-semibold text-gray-900">Startlocatie</h4>
-                      </div>
-                      
-                      {/* Current location status */}
-                      <div className="mb-2 p-2 bg-white rounded-lg border border-blue-100">
-                        <div className="text-xs text-gray-700">
-                          <strong>Huidige:</strong> {locationSource === 'profile' && profileLocation ? (
-                            <span className="text-blue-600">
-                              📍 {profileLocation.place || profileLocation.postcode || 'Profiel'}
-                            </span>
-                          ) : locationSource === 'gps' && userLocation ? (
-                            <span className="text-green-600">🛰️ GPS</span>
-                          ) : locationSource === 'manual' && userLocation ? (
-                            <span className="text-purple-600">📌 Handmatig</span>
-                          ) : (
-                            <span className="text-gray-500">⚠️ Geen locatie</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Manual location input - Mobile optimized */}
-                      <div className="space-y-2">
-                        <div>
-                          <input
-                            type="text"
-                            value={manualLocationInput}
-                            onChange={(e) => setManualLocationInput(e.target.value)}
-                            placeholder="Plaats of postcode..."
-                            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && manualLocationInput.trim() && handleManualLocation) {
-                                handleManualLocation(manualLocationInput.trim());
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              if (manualLocationInput.trim() && handleManualLocation) {
-                                handleManualLocation(manualLocationInput.trim());
-                              }
-                            }}
-                            disabled={!manualLocationInput.trim() || isStartLocationGeocoding}
-                            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                          >
-                            {isStartLocationGeocoding ? 'Zoeken...' : 'Instellen'}
-                          </button>
-                          {profileLocation?.lat && profileLocation?.lng && handleUseProfile && (
-                            <button
-                              onClick={handleUseProfile}
-                              className="px-3 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-sm"
-                            >
-                              📍 Profiel
-                            </button>
-                          )}
-                          {handleUseGPS && (
-                            <button
-                              onClick={handleUseGPS}
-                              className="px-3 py-2 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-sm"
-                            >
-                              🛰️ GPS
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Categorie Filter - Mobiel geoptimaliseerd */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Categorie
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { value: "all", label: "Alle", icon: "🔍" },
-                          { value: "CHEFF", label: "Chef", icon: "👨‍🍳" },
-                          { value: "GROWN", label: "Garden", icon: "🌱" },
-                          { value: "DESIGNER", label: "Designer", icon: "🎨" }
-                        ].map((cat) => (
-                          <button
-                            key={cat.value}
-                            onClick={() => {
-                              setCategory(cat.value);
-                              setSubcategory("all");
-                            }}
-                            className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
-                              category === cat.value
-                                ? 'bg-primary-brand text-white shadow-lg scale-105'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
-                            }`}
-                            style={{ WebkitTapHighlightColor: 'transparent' }}
-                          >
-                            <div className="text-lg mb-1">{cat.icon}</div>
-                            <div>{cat.label}</div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Subcategorie Filter */}
-                    {category !== "all" && (
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Subcategorie
-                        </label>
-                        <select
-                          value={subcategory}
-                          onChange={(e) => setSubcategory(e.target.value)}
-                          className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
-                          style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
-                        >
-                          <option value="all">Alle subcategorieën</option>
-                          {category === "CHEFF" && (
-                            <>
-                              <option value="Ontbijt">Ontbijt</option>
-                              <option value="Lunch">Lunch</option>
-                              <option value="Diner">Diner</option>
-                              <option value="Snacks">Snacks</option>
-                              <option value="Desserts">Desserts</option>
-                            </>
-                          )}
-                          {category === "GROWN" && (
-                            <>
-                              <option value="Groenten">Groenten</option>
-                              <option value="Fruit">Fruit</option>
-                              <option value="Kruiden">Kruiden</option>
-                              <option value="Bloemen">Bloemen</option>
-                              <option value="Planten">Planten</option>
-                            </>
-                          )}
-                          {category === "DESIGNER" && (
-                            <>
-                              <option value="Kleding">Kleding</option>
-                              <option value="Accessoires">Accessoires</option>
-                              <option value="Woondecoratie">Woondecoratie</option>
-                              <option value="Kunst">Kunst</option>
-                              <option value="Handwerk">Handwerk</option>
-                            </>
-                          )}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Prijs Range Filter */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Prijs (€)
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">Van</label>
-                          <input
-                            type="number"
-                            placeholder="0"
-                            value={priceRange.min || ''}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseFloat(e.target.value) || 0 }))}
-                            className="w-full px-3 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
-                            style={{ WebkitTapHighlightColor: 'transparent' }}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">Tot</label>
-                          <input
-                            type="number"
-                            placeholder="1000"
-                            value={priceRange.max || ''}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseFloat(e.target.value) || 1000 }))}
-                            className="w-full px-3 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand touch-manipulation"
-                            style={{ WebkitTapHighlightColor: 'transparent' }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Startlocatie Filter */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Startlocatie (optioneel)
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={startLocation}
-                          onChange={(e) => setStartLocation(e.target.value)}
-                          placeholder="Plaats, postcode of adres..."
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand outline-none"
-                        />
-                        <button
-                          onClick={() => handleManualLocation(startLocation)}
-                          disabled={!startLocation.trim() || isStartLocationGeocoding}
-                          className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isStartLocationGeocoding ? 'Zoeken...' : 'Zoek'}
-                        </button>
-                      </div>
-                      {startLocationCoords && (
-                        <div className="text-xs text-green-600">
-                          ✓ Startlocatie ingesteld: {startLocation}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Afstand Filter - Categorie-specifiek */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Zoekradius
-                        {category !== 'all' && (
-                          <span className="text-xs text-gray-500 ml-2">
-                            {(() => {
-                              // Use userCountry state
-                              const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
-                              const suriname = ['SR'];
-                              
-                              if (caribbeanCountries.includes(userCountry)) {
-                                return 'Caribisch - Onbeperkt';
-                              } else if (suriname.includes(userCountry)) {
-                                return 'Suriname - Onbeperkt';
-                              } else {
-                                return category === 'CHEFF' ? 'Lokaal' : 
-                                       category === 'GROWN' ? 'Regionaal' : 
-                                       category === 'DESIGNER' ? 'Wereldwijd' : 'Standaard';
-                              }
-                            })()}
-                          </span>
-                        )}
-                      </label>
-                      
-                      {/* Dynamische radius opties op basis van categorie */}
-                      <div className="grid grid-cols-6 gap-2">
-                        {(() => {
-                          const currentCategory = category === 'all' ? 'all' : category;
-                          // Use userCountry state
-                          const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
-                          const suriname = ['SR'];
-                          
-                          // Special options for Caribbean and Suriname
-                          if (caribbeanCountries.includes(userCountry) || suriname.includes(userCountry)) {
-                            return [5, 10, 25, 50, 100, 0].map((km) => (
-                              <button
-                                key={km}
-                                onClick={() => {
-                                  setCategoryRadius(prev => ({
-                                    ...prev,
-                                    [currentCategory]: km
-                                  }));
-                                  setRadius(km); // Voor backward compatibility
-                                }}
-                                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
-                                  (categoryRadius[currentCategory] || categoryRadius['all']) === km
-                                    ? 'bg-primary-brand text-white shadow-lg scale-105'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
-                                }`}
-                                style={{ WebkitTapHighlightColor: 'transparent' }}
-                              >
-                                {km === 0 ? '🌍' : 
-                                 km === 100 ? '🏝️' : 
-                                 `${km} km`}
-                              </button>
-                            ));
-                          }
-                          
-                          // Default options for other countries
-                          const radiusOptions = currentCategory === 'DESIGNER' 
-                            ? [5, 10, 25, 50, 200, 0] // 0 = onbeperkt voor designer
-                            : currentCategory === 'GROWN'
-                            ? [5, 10, 25, 50, 200, 0] // Garden kan ook nationaal/wereldwijd
-                            : [5, 10, 25, 50, 200]; // CHEFF: lokaal tot nationaal
-                          
-                          return radiusOptions.map((km) => (
-                            <button
-                              key={km}
-                              onClick={() => {
-                                setCategoryRadius(prev => ({
-                                  ...prev,
-                                  [currentCategory]: km
-                                }));
-                                setRadius(km); // Voor backward compatibility
-                              }}
-                              className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 touch-manipulation ${
-                                (categoryRadius[currentCategory] || categoryRadius['all']) === km
-                                  ? 'bg-primary-brand text-white shadow-lg scale-105'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
-                              }`}
-                              style={{ WebkitTapHighlightColor: 'transparent' }}
-                            >
-                              {km === 0 ? '🌍' : 
-                               km === 200 ? '🇳🇱' : 
-                               `${km} km`}
-                            </button>
-                          ));
-                        })()}
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 text-center">
-                        {(() => {
-                          // Use userCountry state
-                          const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'];
-                          const suriname = ['SR'];
-                          const currentRadius = getSpecialRadius(userCountry, category);
-                          
-                          if (caribbeanCountries.includes(userCountry)) {
-                            if (currentRadius === 0) {
-                              return '🏝️ Caribisch - Alle eilanden';
-                            } else if (currentRadius >= 100) {
-                              return '🏝️ Meerdere eilanden';
-                            } else {
-                              return `🏝️ Binnen ${currentRadius} km`;
-                            }
-                          } else if (suriname.includes(userCountry)) {
-                            if (currentRadius === 0) {
-                              return '🇸🇷 Suriname - Onbeperkt';
-                            } else {
-                              return `🇸🇷 Binnen ${currentRadius} km`;
-                            }
-                          } else {
-                            if (currentRadius === 0) {
-                              return '🌍 Wereldwijd - Alle producten';
-                            } else if (currentRadius >= 100) {
-                              return 'Alle producten';
-                            } else {
-                              return `Producten binnen ${currentRadius} km`;
-                            }
-                          }
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Bezorging Filter */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Bezorging
-                      </label>
-                      <select
-                        value={deliveryMode}
-                        onChange={(e) => setDeliveryMode(e.target.value)}
-                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
-                        style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
-                      >
-                        <option value="all">Alle opties</option>
-                        <option value="PICKUP">Alleen afhalen</option>
-                        <option value="DELIVERY">Alleen bezorgen</option>
-                        <option value="BOTH">Afhalen en bezorgen</option>
-                      </select>
-                    </div>
-
-                    {/* Locatie Filter */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Zoek in locatie
-                      </label>
-                      <input
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Plaats of postcode..."
-                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
-                      />
-                    </div>
-
-                    {/* Sorteer Filter */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Sorteren op
-                      </label>
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-primary-brand bg-white touch-manipulation"
-                        style={{ WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}
-                      >
-                        <option value="newest">Nieuwste eerst</option>
-                        <option value="oldest">Oudste eerst</option>
-                        <option value="price-low">Prijs laag-hoog</option>
-                        <option value="price-high">Prijs hoog-laag</option>
-                        <option value="distance">Afstand{!userLocation ? ' (locatie nodig)' : ''}</option>
-                        <option value="name">Naam A-Z</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={handleClearFilters}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium touch-manipulation active:scale-95"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      Reset
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleApplyFilters();
-                        setShowMobileFilters(false);
-                      }}
-                      className="flex-1 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 rounded-xl transition-colors font-medium touch-manipulation active:scale-95"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      Toepassen
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* NEW: Smart Location Status */}
-      <section className="py-4 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {userLocation ? (
-                <>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-700">
-                      Startlocatie actief - Afstanden worden berekend
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {locationSource === 'profile' && profileLocation ? 
-                        `📍 ${profileLocation.place || profileLocation.postcode || 'Profiel locatie'}` :
-                        locationSource === 'gps' ? 
-                        '🛰️ GPS locatie' :
-                        locationSource === 'manual' ? 
-                        '📌 Handmatig ingesteld' :
-                        'Locatie ingesteld'
-                      }
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-700">
-                      Stel je startlocatie in voor afstandsberekening
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Open de filters hieronder om je locatie in te stellen
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:bg-blue-800"
-              >
-                {showFilters ? 'Filters sluiten' : 'Filters openen'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* NEW: Improved Filter Bar */}
+      <ImprovedFilterBar
+        category={category}
+        subcategory={subcategory}
+        deliveryMode={deliveryMode}
+        priceRange={priceRange}
+        sortBy={sortBy}
+        radius={radius}
+        searchQuery={q}
+        searchType={searchType}
+        locationInput={manualLocationInput}
+        userLocation={userLocation}
+        locationSource={locationSource}
+        profileLocation={profileLocation}
+        viewMode={viewMode}
+        onCategoryChange={setCategory}
+        onSubcategoryChange={setSubcategory}
+        onDeliveryModeChange={setDeliveryMode}
+        onPriceRangeChange={setPriceRange}
+        onSortByChange={setSortBy}
+        onRadiusChange={setRadius}
+        onSearchQueryChange={setQ}
+        onSearchTypeChange={setSearchType}
+        onLocationInputChange={setManualLocationInput}
+        onLocationSearch={handleManualLocation}
+        onUseProfile={handleUseProfile}
+        onUseGPS={handleUseGPS}
+        onViewModeChange={setViewMode}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* Main Content */}
       <section className="py-8 md:py-12">
@@ -1506,7 +932,11 @@ function HomePageContent() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {isLoading ? 'Laden...' : `${filtered.length} producten gevonden`}
+                  {isLoading ? 'Laden...' : 
+                    searchType === 'products' 
+                      ? `${filtered.length} producten gevonden`
+                      : `${filteredUsers.length} gebruikers gevonden`
+                  }
                 </h2>
                 {q && (
                   <p className="text-sm text-gray-600 mt-1">
@@ -1546,17 +976,24 @@ function HomePageContent() {
                 </button>
               </div>
             ) : searchType === 'users' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "space-y-4"
+              }>
                 {filteredUsers.map((user) => (
                   <Link
                     href={`/user/${user.username || user.id}`}
                     key={user.id}
                   >
                     <div 
-                      className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                      className={`group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer ${
+                        viewMode === 'list' ? 'flex flex-row' : ''
+                      }`}
                     >
                     {/* User Avatar */}
-                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100">
+                    <div className={`relative overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100 ${
+                      viewMode === 'list' ? 'w-32 h-32 flex-shrink-0' : 'h-64'
+                    }`}>
                       {user.image ? (
                         <SafeImage
                           src={user.image}
@@ -1623,15 +1060,22 @@ function HomePageContent() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className={viewMode === 'grid'
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "space-y-4"
+              }>
                 {filtered.map((item) => (
                   <div 
                     key={item.id} 
                     onClick={() => handleProductClick(item)}
-                    className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
+                    className={`group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer ${
+                      viewMode === 'list' ? 'flex flex-row' : ''
+                    }`}
                   >
                     {/* Image with Slider */}
-                    <div className="relative h-64 overflow-hidden">
+                    <div className={`relative overflow-hidden ${
+                      viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'h-64'
+                    }`}>
                       {item.images && item.images.length > 0 ? (
                         <ImageSlider 
                           images={item.images}
@@ -1686,7 +1130,7 @@ function HomePageContent() {
                     </div>
 
                     {/* Content */}
-                    <div className="p-6">
+                    <div className={viewMode === 'list' ? 'p-6 flex-1' : 'p-6'}>
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 flex-1">
                           {item.title}

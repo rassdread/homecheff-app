@@ -63,6 +63,8 @@ model User {
   messageGuidelinesAccepted              Boolean                   @default(false)
   messageGuidelinesAcceptedAt            DateTime?
   socialOnboardingCompleted              Boolean                   @default(true)
+  downloadPermission                     DownloadPermission        @default(EVERYONE)
+  printPermission                        PrintPermission           @default(EVERYONE)
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
@@ -618,21 +620,23 @@ model FanRequest {
 }
 
 model Dish {
-  id             String              @id @default(uuid())
-  userId         String
-  title          String?
-  description    String?
-  status         DishStatus          @default(PRIVATE)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  priceCents     Int?
-  deliveryMode   DeliveryMode?
-  lat            Float?
-  lng            Float?
-  place          String?
-  maxStock       Int?
-  stock          Int?                @default(0)
-  category       String?
+  id                    String              @id @default(uuid())
+  userId                String
+  title                 String?
+  description           String?
+  status                DishStatus          @default(PRIVATE)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  priceCents            Int?
+  deliveryMode          DeliveryMode?
+  lat                   Float?
+  lng                   Float?
+  place                 String?
+  maxStock              Int?
+  stock                 Int?                @default(0)
+  category              String?
+  downloadPermission    DownloadPermission  @default(EVERYONE)
+  printPermission       PrintPermission     @default(EVERYONE)
   subcategory    String?
   difficulty     String?
   ingredients    String[]            @default([])
@@ -1131,6 +1135,22 @@ enum Unit {
 enum DishStatus {
   PRIVATE
   PUBLISHED
+}
+
+enum DownloadPermission {
+  EVERYONE      // Iedereen kan downloaden
+  FANS_ONLY     // Alleen fans kunnen downloaden
+  FAN_OF_ONLY   // Alleen als je fan bent van de maker
+  ASK_PERMISSION // Moet toestemming vragen
+  NOBODY        // Niemand kan downloaden
+}
+
+enum PrintPermission {
+  EVERYONE      // Iedereen kan printen
+  FANS_ONLY     // Alleen fans kunnen printen
+  FAN_OF_ONLY   // Alleen als je fan bent van de maker
+  ASK_PERMISSION // Moet toestemming vragen
+  NOBODY        // Niemand kan printen
 }
 
 enum Role {

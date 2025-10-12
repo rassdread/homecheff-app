@@ -16,6 +16,8 @@ interface PrivacySettings {
   showOnlineStatus: boolean;
   allowProfileViews: boolean;
   showActivityStatus: boolean;
+  downloadPermission: 'EVERYONE' | 'FANS_ONLY' | 'FAN_OF_ONLY' | 'ASK_PERMISSION' | 'NOBODY';
+  printPermission: 'EVERYONE' | 'FANS_ONLY' | 'FAN_OF_ONLY' | 'ASK_PERMISSION' | 'NOBODY';
 }
 
 interface PrivacySettingsProps {
@@ -32,6 +34,8 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
     showOnlineStatus: true,
     allowProfileViews: true,
     showActivityStatus: true,
+    downloadPermission: 'EVERYONE',
+    printPermission: 'EVERYONE',
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -222,7 +226,7 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
             <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
               <div className="flex-1">
                 <div className="font-medium text-gray-900">Profiel publiek zichtbaar</div>
-                <div className="text-sm text-gray-600">Je profiel is vindbaar en zichtbaar voor anderen</div>
+                <div className="text-sm text-gray-600">Je profiel is zichtbaar voor anderen via directe links</div>
               </div>
               <input
                 type="checkbox"
@@ -270,6 +274,75 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
                 className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
             </label>
+          </div>
+        </div>
+
+        {/* Content Download & Print Permissions */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-gray-600" />
+            <h3 className="font-medium text-gray-900">Content Rechten</h3>
+          </div>
+          <p className="text-sm text-gray-600">Bepaal wie je recepten, designs en kweek projecten mag downloaden of printen</p>
+          
+          <div className="space-y-4">
+            {/* Download Permission */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-amber-50">
+              <label className="block font-medium text-gray-900 mb-3">Download Toestemming</label>
+              <div className="space-y-2">
+                {[
+                  { value: 'EVERYONE', label: 'Iedereen', desc: 'Alle gebruikers mogen je content downloaden' },
+                  { value: 'FANS_ONLY', label: 'Alleen je Fans', desc: 'Alleen goedgekeurde fans mogen downloaden' },
+                  { value: 'FAN_OF_ONLY', label: 'Alleen Fan Van jou', desc: 'Alleen als zij jouw fan zijn' },
+                  { value: 'ASK_PERMISSION', label: 'Toestemming Vragen', desc: 'Gebruikers moeten eerst toestemming vragen' },
+                  { value: 'NOBODY', label: 'Niemand', desc: 'Download niet toegestaan' }
+                ].map(option => (
+                  <label key={option.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-white cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="downloadPermission"
+                      value={option.value}
+                      checked={settings.downloadPermission === option.value}
+                      onChange={(e) => updateSetting('downloadPermission', e.target.value)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{option.label}</div>
+                      <div className="text-sm text-gray-600">{option.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Print Permission */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+              <label className="block font-medium text-gray-900 mb-3">Print Toestemming</label>
+              <div className="space-y-2">
+                {[
+                  { value: 'EVERYONE', label: 'Iedereen', desc: 'Alle gebruikers mogen je content printen' },
+                  { value: 'FANS_ONLY', label: 'Alleen je Fans', desc: 'Alleen goedgekeurde fans mogen printen' },
+                  { value: 'FAN_OF_ONLY', label: 'Alleen Fan Van jou', desc: 'Alleen als zij jouw fan zijn' },
+                  { value: 'ASK_PERMISSION', label: 'Toestemming Vragen', desc: 'Gebruikers moeten eerst toestemming vragen' },
+                  { value: 'NOBODY', label: 'Niemand', desc: 'Printen niet toegestaan' }
+                ].map(option => (
+                  <label key={option.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-white cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="printPermission"
+                      value={option.value}
+                      checked={settings.printPermission === option.value}
+                      onChange={(e) => updateSetting('printPermission', e.target.value)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{option.label}</div>
+                      <div className="text-sm text-gray-600">{option.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

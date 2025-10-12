@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
         showOnlineStatus: true,
         allowProfileViews: true,
         showActivityStatus: true,
+        downloadPermission: true,
+        printPermission: true,
       }
     });
 
@@ -33,13 +35,15 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ 
       settings: {
-        messagePrivacy: user.messagePrivacy,
-        fanRequestEnabled: user.fanRequestEnabled,
-        showFansList: user.showFansList,
-        showProfileToEveryone: user.showProfileToEveryone,
-        showOnlineStatus: user.showOnlineStatus,
-        allowProfileViews: user.allowProfileViews,
-        showActivityStatus: user.showActivityStatus,
+        messagePrivacy: user.messagePrivacy || 'EVERYONE',
+        fanRequestEnabled: user.fanRequestEnabled !== false,
+        showFansList: user.showFansList !== false,
+        showProfileToEveryone: user.showProfileToEveryone !== false,
+        showOnlineStatus: user.showOnlineStatus !== false,
+        allowProfileViews: user.allowProfileViews !== false,
+        showActivityStatus: user.showActivityStatus !== false,
+        downloadPermission: user.downloadPermission || 'EVERYONE',
+        printPermission: user.printPermission || 'EVERYONE',
       }
     });
   } catch (error) {
@@ -65,11 +69,21 @@ export async function PUT(req: NextRequest) {
       showOnlineStatus,
       allowProfileViews,
       showActivityStatus,
+      downloadPermission,
+      printPermission,
     } = body;
 
-    // Validate messagePrivacy
+    // Validate permissions
     if (messagePrivacy && !['NOBODY', 'FANS_ONLY', 'EVERYONE'].includes(messagePrivacy)) {
       return NextResponse.json({ error: 'Invalid message privacy setting' }, { status: 400 });
+    }
+
+    const validPermissions = ['EVERYONE', 'FANS_ONLY', 'FAN_OF_ONLY', 'ASK_PERMISSION', 'NOBODY'];
+    if (downloadPermission && !validPermissions.includes(downloadPermission)) {
+      return NextResponse.json({ error: 'Invalid download permission' }, { status: 400 });
+    }
+    if (printPermission && !validPermissions.includes(printPermission)) {
+      return NextResponse.json({ error: 'Invalid print permission' }, { status: 400 });
     }
 
     // Update user privacy settings
@@ -83,6 +97,8 @@ export async function PUT(req: NextRequest) {
         ...(typeof showOnlineStatus === 'boolean' && { showOnlineStatus }),
         ...(typeof allowProfileViews === 'boolean' && { allowProfileViews }),
         ...(typeof showActivityStatus === 'boolean' && { showActivityStatus }),
+        ...(downloadPermission && { downloadPermission }),
+        ...(printPermission && { printPermission }),
       },
       select: {
         id: true,
@@ -93,19 +109,23 @@ export async function PUT(req: NextRequest) {
         showOnlineStatus: true,
         allowProfileViews: true,
         showActivityStatus: true,
+        downloadPermission: true,
+        printPermission: true,
       }
     });
 
     return NextResponse.json({ 
       success: true,
       settings: {
-        messagePrivacy: updatedUser.messagePrivacy,
-        fanRequestEnabled: updatedUser.fanRequestEnabled,
-        showFansList: updatedUser.showFansList,
-        showProfileToEveryone: updatedUser.showProfileToEveryone,
-        showOnlineStatus: updatedUser.showOnlineStatus,
-        allowProfileViews: updatedUser.allowProfileViews,
-        showActivityStatus: updatedUser.showActivityStatus,
+        messagePrivacy: updatedUser.messagePrivacy || 'EVERYONE',
+        fanRequestEnabled: updatedUser.fanRequestEnabled !== false,
+        showFansList: updatedUser.showFansList !== false,
+        showProfileToEveryone: updatedUser.showProfileToEveryone !== false,
+        showOnlineStatus: updatedUser.showOnlineStatus !== false,
+        allowProfileViews: updatedUser.allowProfileViews !== false,
+        showActivityStatus: updatedUser.showActivityStatus !== false,
+        downloadPermission: updatedUser.downloadPermission || 'EVERYONE',
+        printPermission: updatedUser.printPermission || 'EVERYONE',
       }
     });
   } catch (error) {

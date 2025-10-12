@@ -6,7 +6,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -112,6 +112,13 @@ export default function NavBar() {
               <Home className="w-4 h-4" />
               <span>Home</span>
             </Button>
+            
+            <Link href="/inspiratie">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <Lightbulb className="w-4 h-4" />
+                <span>Inspiratie</span>
+              </Button>
+            </Link>
             
             <Link href="/faq">
               <Button variant="ghost" className="flex items-center space-x-2">
@@ -337,6 +344,13 @@ export default function NavBar() {
                 <Home className="w-4 h-4" />
                 <span>Home</span>
               </Button>
+              
+              <Link href="/inspiratie" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                  <Lightbulb className="w-4 h-4" />
+                  <span>Inspiratie</span>
+                </Button>
+              </Link>
               
               <Link href="/faq" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">

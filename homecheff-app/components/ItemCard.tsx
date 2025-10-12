@@ -19,6 +19,7 @@ type HomeItem = {
   category?: string | null;
   subcategory?: string | null;
   favoriteCount?: number;
+  viewCount?: number;
   isFavorited?: boolean; // NEW: User's favorite status
   distanceKm?: number; // Afstand in kilometers
   lat?: number | null; // Product locatie latitude
@@ -214,6 +215,13 @@ export default function ItemCard({ item }: ItemCardProps) {
                   <div className="flex items-center gap-1">
                     <span className="text-xs">❤️</span>
                     <span className="text-xs text-neutral-500">{item.favoriteCount}</span>
+                  </div>
+                )}
+                
+                {item.viewCount && item.viewCount > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs">👁️</span>
+                    <span className="text-xs text-neutral-500">{item.viewCount}</span>
                   </div>
                 )}
               </div>

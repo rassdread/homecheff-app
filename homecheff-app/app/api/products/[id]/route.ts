@@ -51,6 +51,32 @@ export async function GET(
       }
     });
 
+    // Get analytics statistics
+    const [viewCount, orderCount, favoriteCount] = await Promise.all([
+      // Count unique views from AnalyticsEvent
+      prisma.analyticsEvent.count({
+        where: {
+          entityId: id,
+          eventType: 'PRODUCT_VIEW'
+        }
+      }),
+      // Count completed orders for this product
+      prisma.orderItem.count({
+        where: {
+          productId: id,
+          Order: {
+            status: {
+              in: ['PROCESSING', 'SHIPPED', 'DELIVERED']
+            }
+          }
+        }
+      }),
+      // Count favorites
+      prisma.favorite.count({
+        where: { productId: id }
+      })
+    ]);
+
     // If not found in new model, try old Listing model
     if (!product) {
       const listing = await prisma.listing.findUnique({
@@ -103,7 +129,26 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ product });
+    // Calculate average rating from reviews
+    const reviewStats = product.reviews?.length > 0 
+      ? {
+          averageRating: product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length,
+          reviewCount: product.reviews.length
+        }
+      : {
+          averageRating: 0,
+          reviewCount: 0
+        };
+
+    return NextResponse.json({ 
+      product,
+      stats: {
+        viewCount,
+        orderCount,
+        favoriteCount,
+        ...reviewStats
+      }
+    });
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
