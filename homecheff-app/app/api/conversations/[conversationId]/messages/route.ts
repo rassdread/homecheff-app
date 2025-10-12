@@ -203,15 +203,32 @@ export async function POST(
   { params }: { params: { conversationId: string } }
 ) {
   try {
+    console.log('[Messages API POST] 📤 Request started');
+    
     const session = await auth();
+    console.log('[Messages API POST] Session:', { 
+      hasSession: !!session, 
+      email: session?.user?.email 
+    });
+    
     if (!session?.user?.email) {
+      console.log('[Messages API POST] ❌ Unauthorized');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = params;
-    const { text, messageType = 'TEXT', attachmentUrl, attachmentName, attachmentType } = await req.json();
+    const body = await req.json();
+    const { text, messageType = 'TEXT', attachmentUrl, attachmentName, attachmentType } = body;
+    
+    console.log('[Messages API POST] Body:', { 
+      conversationId, 
+      hasText: !!text,
+      textLength: text?.length,
+      messageType 
+    });
 
     if (!text && !attachmentUrl) {
+      console.log('[Messages API POST] ❌ No text or attachment');
       return NextResponse.json(
         { error: 'Message text or attachment is required' },
         { status: 400 }
@@ -219,10 +236,23 @@ export async function POST(
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true
+      }
+    });
+    
+    console.log('[Messages API POST] User lookup:', { 
+      email: session.user.email,
+      userId: user?.id,
+      found: !!user 
     });
 
     if (!user) {
+      console.log('[Messages API POST] ❌ User not found');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -233,15 +263,29 @@ export async function POST(
         userId: user.id
       }
     });
+    
+    console.log('[Messages API POST] Participant check:', { 
+      conversationId,
+      userId: user.id,
+      isParticipant: !!participant 
+    });
 
     if (!participant) {
+      console.log('[Messages API POST] ❌ Access denied - not participant');
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
+
+    console.log('[Messages API POST] ✅ User is participant, creating message...');
 
     // Check if user has encryption enabled
     const senderUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { encryptionEnabled: true }
+    });
+    
+    console.log('[Messages API POST] Encryption check:', { 
+      userId: user.id,
+      encryptionEnabled: senderUser?.encryptionEnabled 
     });
 
     let encryptedData: { encrypted: string; iv: string; tag: string } | null = null;
@@ -250,11 +294,21 @@ export async function POST(
 
     // Only encrypt if user has it enabled
     if (senderUser?.encryptionEnabled && text) {
-      const conversationKey = await getConversationKey(conversationId);
-      encryptedData = encryptText(text, conversationKey);
-      isEncrypted = true;
-      textToStore = null; // Don't store plaintext if encrypted
+      console.log('[Messages API POST] 🔐 Encrypting message...');
+      try {
+        const conversationKey = await getConversationKey(conversationId);
+        encryptedData = encryptText(text, conversationKey);
+        isEncrypted = true;
+        textToStore = null; // Don't store plaintext if encrypted
+        console.log('[Messages API POST] ✅ Message encrypted');
+      } catch (encError) {
+        console.error('[Messages API POST] ❌ Encryption failed:', encError);
+        // Continue without encryption on error
+        console.log('[Messages API POST] ⚠️ Continuing without encryption');
+      }
     }
+    
+    console.log('[Messages API POST] 📝 Creating message in database...');
 
     // Create message with full user display info
     const message = await prisma.message.create({
@@ -282,6 +336,15 @@ export async function POST(
         }
       }
     });
+    
+    console.log('[Messages API POST] ✅ Message created:', {
+      messageId: message.id,
+      senderId: message.senderId,
+      hasUser: !!message.User,
+      userName: message.User?.name,
+      userUsername: message.User?.username,
+      hasDisplayOption: !!message.User?.displayNameOption
+    });
 
     // Return decrypted message to sender
     const messageToReturn = {
@@ -294,12 +357,16 @@ export async function POST(
       User: message.User,
       _autoEncrypted: true
     };
+    
+    console.log('[Messages API POST] 📦 Message payload prepared');
 
     // Update conversation last message time
+    console.log('[Messages API POST] 🕐 Updating conversation timestamp...');
     await prisma.conversation.update({
       where: { id: conversationId },
       data: { lastMessageAt: new Date() }
     });
+    console.log('[Messages API POST] ✅ Conversation updated');
 
     // Trigger Pusher event for real-time delivery
     try {
@@ -323,15 +390,27 @@ export async function POST(
       console.log(`[Pusher] ✅ Message sent to conversation-${conversationId}`);
     } catch (pusherError) {
       console.error('[Pusher] ❌ Error sending message:', pusherError);
+      console.log('[Pusher] ⚠️ Continuing despite Pusher error (non-critical)');
       // Don't fail the request if Pusher fails
     }
+    
+    console.log('[Messages API POST] 🎉 Success! Returning message to client');
 
     return NextResponse.json({ message: messageToReturn });
 
   } catch (error) {
-    console.error('Error creating message:', error);
+    console.error('[Messages API POST] ❌ Critical error:', error);
+    console.error('[Messages API POST] Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        hint: 'Check server logs for details'
+      },
       { status: 500 }
     );
   }
