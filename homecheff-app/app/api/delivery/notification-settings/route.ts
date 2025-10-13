@@ -20,23 +20,40 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get delivery profile with notification settings
+    // Get delivery profile
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: user.id },
-      include: {
-        notificationSettings: true
-      }
+      where: { userId: user.id }
     });
 
     if (!deliveryProfile) {
       return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
     }
 
+    // Get notification settings separately
+    const notificationSettings = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "DeliveryNotificationSettings" 
+      WHERE "deliveryProfileId" = ${deliveryProfile.id}
+      LIMIT 1
+    `.then(rows => rows[0]).catch(() => null);
+
     // Create default settings if they don't exist
-    if (!deliveryProfile.notificationSettings) {
-      const defaultSettings = await prisma.deliveryNotificationSettings.create({
-        data: {
-          deliveryProfileId: deliveryProfile.id,
+    if (!notificationSettings) {
+      const id = crypto.randomUUID();
+      await prisma.$executeRaw`
+        INSERT INTO "DeliveryNotificationSettings" (
+          "id", "deliveryProfileId", "enablePushNotifications", "enableEmailNotifications", 
+          "enableSmsNotifications", "shiftReminders", "autoGoOnline", "quietHoursEnabled",
+          "createdAt", "updatedAt"
+        )
+        VALUES (
+          ${id}, ${deliveryProfile.id}, true, true, false, '[60, 30, 5]', false, false,
+          ${new Date()}, ${new Date()}
+        )
+      `;
+
+      return NextResponse.json({ 
+        settings: {
+          id,
           enablePushNotifications: true,
           enableEmailNotifications: true,
           enableSmsNotifications: false,
@@ -45,14 +62,12 @@ export async function GET(req: NextRequest) {
           quietHoursEnabled: false
         }
       });
-
-      return NextResponse.json({ settings: defaultSettings });
     }
 
     return NextResponse.json({ 
       settings: {
-        ...deliveryProfile.notificationSettings,
-        shiftReminders: deliveryProfile.notificationSettings.shiftReminders as number[]
+        ...notificationSettings,
+        shiftReminders: JSON.parse(notificationSettings.shiftReminders || '[60, 30, 5]')
       }
     });
   } catch (error) {
@@ -109,38 +124,60 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
     }
 
-    // Upsert notification settings
-    const updatedSettings = await prisma.deliveryNotificationSettings.upsert({
-      where: { deliveryProfileId: deliveryProfile.id },
-      create: {
-        deliveryProfileId: deliveryProfile.id,
-        enablePushNotifications: enablePushNotifications ?? true,
-        enableEmailNotifications: enableEmailNotifications ?? true,
-        enableSmsNotifications: enableSmsNotifications ?? false,
-        shiftReminders: shiftReminders ?? [60, 30, 5],
-        autoGoOnline: autoGoOnline ?? false,
-        quietHoursEnabled: quietHoursEnabled ?? false,
-        quietHoursStart: quietHoursStart || null,
-        quietHoursEnd: quietHoursEnd || null
-      },
-      update: {
-        enablePushNotifications: enablePushNotifications !== undefined ? enablePushNotifications : undefined,
-        enableEmailNotifications: enableEmailNotifications !== undefined ? enableEmailNotifications : undefined,
-        enableSmsNotifications: enableSmsNotifications !== undefined ? enableSmsNotifications : undefined,
-        shiftReminders: shiftReminders !== undefined ? shiftReminders : undefined,
-        autoGoOnline: autoGoOnline !== undefined ? autoGoOnline : undefined,
-        quietHoursEnabled: quietHoursEnabled !== undefined ? quietHoursEnabled : undefined,
-        quietHoursStart: quietHoursStart !== undefined ? quietHoursStart : undefined,
-        quietHoursEnd: quietHoursEnd !== undefined ? quietHoursEnd : undefined,
-        updatedAt: new Date()
-      }
-    });
+    // Check if settings exist
+    const existingSettings = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "DeliveryNotificationSettings" 
+      WHERE "deliveryProfileId" = ${deliveryProfile.id}
+      LIMIT 1
+    `.then(rows => rows[0]).catch(() => null);
+
+    const remindersJson = JSON.stringify(shiftReminders ?? [60, 30, 5]);
+
+    if (existingSettings) {
+      // Update existing
+      await prisma.$executeRaw`
+        UPDATE "DeliveryNotificationSettings" 
+        SET 
+          "enablePushNotifications" = ${enablePushNotifications ?? existingSettings.enablePushNotifications},
+          "enableEmailNotifications" = ${enableEmailNotifications ?? existingSettings.enableEmailNotifications},
+          "enableSmsNotifications" = ${enableSmsNotifications ?? existingSettings.enableSmsNotifications},
+          "shiftReminders" = ${remindersJson}::json,
+          "autoGoOnline" = ${autoGoOnline ?? existingSettings.autoGoOnline},
+          "quietHoursEnabled" = ${quietHoursEnabled ?? existingSettings.quietHoursEnabled},
+          "quietHoursStart" = ${quietHoursStart ?? existingSettings.quietHoursStart},
+          "quietHoursEnd" = ${quietHoursEnd ?? existingSettings.quietHoursEnd},
+          "updatedAt" = ${new Date()}
+        WHERE "deliveryProfileId" = ${deliveryProfile.id}
+      `;
+    } else {
+      // Create new
+      const id = crypto.randomUUID();
+      await prisma.$executeRaw`
+        INSERT INTO "DeliveryNotificationSettings" (
+          "id", "deliveryProfileId", "enablePushNotifications", "enableEmailNotifications",
+          "enableSmsNotifications", "shiftReminders", "autoGoOnline", "quietHoursEnabled",
+          "quietHoursStart", "quietHoursEnd", "createdAt", "updatedAt"
+        )
+        VALUES (
+          ${id}, ${deliveryProfile.id}, ${enablePushNotifications ?? true}, ${enableEmailNotifications ?? true},
+          ${enableSmsNotifications ?? false}, ${remindersJson}::json, ${autoGoOnline ?? false}, ${quietHoursEnabled ?? false},
+          ${quietHoursStart}, ${quietHoursEnd}, ${new Date()}, ${new Date()}
+        )
+      `;
+    }
+
+    // Fetch updated settings
+    const updatedSettings = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "DeliveryNotificationSettings" 
+      WHERE "deliveryProfileId" = ${deliveryProfile.id}
+      LIMIT 1
+    `.then(rows => rows[0]);
 
     return NextResponse.json({
       success: true,
       settings: {
         ...updatedSettings,
-        shiftReminders: updatedSettings.shiftReminders as number[]
+        shiftReminders: JSON.parse(updatedSettings.shiftReminders || '[60, 30, 5]')
       }
     });
   } catch (error) {

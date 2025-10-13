@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // In-memory cache for messages (in production, use Redis)
 const messageCache = new Map<string, { data: any; timestamp: number }>();
@@ -75,7 +73,9 @@ export async function GET(
             id: true,
             name: true,
             username: true,
-            profileImage: true
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true
           }
         }
       },
@@ -113,7 +113,5 @@ export async function GET(
   } catch (error) {
     console.error('Fast messages API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

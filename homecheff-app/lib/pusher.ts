@@ -10,10 +10,23 @@ export const pusherServer = new Pusher({
   useTLS: true,
 });
 
-// Client-side Pusher instance
+// Client-side Pusher instance (singleton) - SINGLE SOURCE OF TRUTH
+let pusherClientInstance: PusherClient | null = null;
+
 export const getPusherClient = () => {
-  return new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  });
+  if (typeof window === 'undefined') {
+    return null as any;
+  }
+  
+  if (!pusherClientInstance) {
+    pusherClientInstance = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+      authEndpoint: '/api/pusher/auth',
+    });
+  }
+  return pusherClientInstance;
 };
+
+// Export singleton for direct use - delegates to getPusherClient()
+export const pusherClient = typeof window !== 'undefined' ? getPusherClient() : null as any;
 

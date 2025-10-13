@@ -233,7 +233,9 @@ export async function GET(req: NextRequest) {
       id: dish.user.id,
       name: dish.user.name,
       username: dish.user.username,
-      profileImage: dish.user.profileImage
+      profileImage: dish.user.profileImage,
+      displayFullName: dish.user.displayFullName,
+      displayNameOption: dish.user.displayNameOption
     },
     images: dish.photos.map(photo => photo.url),
     image: dish.photos[0]?.url || null,

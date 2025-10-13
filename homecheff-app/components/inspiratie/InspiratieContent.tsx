@@ -28,6 +28,8 @@ type InspirationItem = {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
 };
 

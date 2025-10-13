@@ -98,6 +98,7 @@ model User {
   workspaceContentComments               WorkspaceContentComment[]
   workspaceContentProps                  WorkspaceContentProp[]
   pushTokens                             PushToken[]
+  notificationPreferences                NotificationPreferences?
 
   @@index([username])
   @@index([name])
@@ -886,6 +887,51 @@ model PushToken {
   @@index([userId])
   @@index([token])
   @@map("PushToken")
+}
+
+// Notification preferences for all users
+model NotificationPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Email Notifications
+  emailNewMessages       Boolean @default(true)
+  emailNewOrders         Boolean @default(true)
+  emailOrderUpdates      Boolean @default(true)
+  emailDeliveryUpdates   Boolean @default(true)
+  emailMarketing         Boolean @default(false)
+  emailWeeklyDigest      Boolean @default(true)
+  emailSecurityAlerts    Boolean @default(true)
+  
+  // Push Notifications (In-app via Pusher)
+  pushNewMessages        Boolean @default(true)
+  pushNewOrders          Boolean @default(true)
+  pushOrderUpdates       Boolean @default(true)
+  pushDeliveryUpdates    Boolean @default(true)
+  pushNearbyProducts     Boolean @default(false)
+  pushSecurityAlerts     Boolean @default(true)
+  
+  // SMS Notifications
+  smsOrderUpdates        Boolean @default(false)
+  smsDeliveryUpdates     Boolean @default(false)
+  smsSecurityAlerts      Boolean @default(true)
+  
+  // Chat specific settings
+  chatSoundEnabled       Boolean @default(true)
+  chatNotificationPreview Boolean @default(true)
+  chatGroupMentionsOnly  Boolean @default(false)
+  
+  // Quiet hours
+  quietHoursEnabled      Boolean @default(false)
+  quietHoursStart        String? @default("22:00")
+  quietHoursEnd          String? @default("08:00")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@map("NotificationPreferences")
 }
 
 model DynamicSeller {

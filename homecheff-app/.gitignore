@@ -43,3 +43,8 @@ next-env.d.ts
 /app/generated/prisma
 
 .vercel
+
+# Sensitive files
+STRIPE_KEYS.txt
+*_KEYS.txt
+*.key

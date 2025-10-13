@@ -40,6 +40,8 @@ export async function GET(req: NextRequest) {
             name: true,
             username: true,
             image: true,
+            displayFullName: true,
+            displayNameOption: true,
           },
         },
         photos: {
@@ -103,6 +105,8 @@ export async function GET(req: NextRequest) {
         name: dish.user.name,
         username: dish.user.username,
         profileImage: dish.user.image,
+        displayFullName: dish.user.displayFullName,
+        displayNameOption: dish.user.displayNameOption,
       },
       photos: dish.photos.map((photo) => ({
         id: photo.id,

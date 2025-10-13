@@ -17,30 +17,36 @@ export async function POST(
 
     const { messageId } = params;
 
-    // Mark message as delivered
-    const updatedMessage = await prisma.message.update({
+    const deliveredAt = new Date();
+
+    // Mark message as delivered (using raw SQL until Prisma regenerates)
+    await prisma.$executeRaw`
+      UPDATE "Message" 
+      SET "deliveredAt" = ${deliveredAt}
+      WHERE "id" = ${messageId}
+    `;
+
+    // Get conversation ID for Pusher
+    const message = await prisma.message.findUnique({
       where: { id: messageId },
-      data: { 
-        deliveredAt: new Date()
-      },
-      include: {
-        Conversation: true
-      }
+      select: { conversationId: true }
     });
 
-    // Notify sender via Pusher
-    await pusherServer.trigger(
-      `conversation-${updatedMessage.conversationId}`,
-      'message-delivered',
-      {
-        messageId: updatedMessage.id,
-        deliveredAt: updatedMessage.deliveredAt
-      }
-    );
+    if (message) {
+      // Notify sender via Pusher
+      await pusherServer.trigger(
+        `conversation-${message.conversationId}`,
+        'message-delivered',
+        {
+          messageId: messageId,
+          deliveredAt: deliveredAt.toISOString()
+        }
+      );
+    }
 
     return NextResponse.json({ 
       success: true,
-      deliveredAt: updatedMessage.deliveredAt
+      deliveredAt: deliveredAt.toISOString()
     });
 
   } catch (error) {

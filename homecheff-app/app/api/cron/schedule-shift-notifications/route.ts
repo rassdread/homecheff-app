@@ -11,20 +11,10 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const endTime = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours from now
 
-    // Get all active delivery profiles with notification settings
+    // Get all active delivery profiles
     const profiles = await prisma.deliveryProfile.findMany({
       where: {
-        isActive: true,
-        notificationSettings: {
-          OR: [
-            { enablePushNotifications: true },
-            { enableEmailNotifications: true },
-            { enableSmsNotifications: true }
-          ]
-        }
-      },
-      include: {
-        notificationSettings: true
+        isActive: true
       }
     });
 
@@ -33,9 +23,21 @@ export async function GET(req: NextRequest) {
     let scheduledCount = 0;
 
     for (const profile of profiles) {
-      if (!profile.notificationSettings) continue;
+      // Get notification settings separately (until Prisma client is regenerated)
+      const notificationSettings = await prisma.$queryRaw<any[]>`
+        SELECT * FROM "DeliveryNotificationSettings" 
+        WHERE "deliveryProfileId" = ${profile.id}
+        LIMIT 1
+      `.then(rows => rows[0]);
+      
+      if (!notificationSettings) continue;
+      if (!notificationSettings.enablePushNotifications && 
+          !notificationSettings.enableEmailNotifications && 
+          !notificationSettings.enableSmsNotifications) {
+        continue;
+      }
 
-      const reminders = profile.notificationSettings.shiftReminders as number[];
+      const reminders = JSON.parse(notificationSettings.shiftReminders || '[60, 30, 5]') as number[];
       const { availableDays, availableTimeSlots } = profile;
 
       // Map day names to day numbers (1=Monday, 7=Sunday)
@@ -87,29 +89,29 @@ export async function GET(req: NextRequest) {
             // Skip if notification time is in the past
             if (notifyAt < now) continue;
 
-            // Check if notification already exists
-            const existing = await prisma.shiftNotification.findFirst({
-              where: {
-                deliveryProfileId: profile.id,
-                scheduledFor: shiftTime,
-                minutesBefore,
-                status: { in: ['PENDING', 'SENT'] }
-              }
-            });
+            // Check if notification already exists (using raw SQL)
+            const existing = await prisma.$queryRaw<any[]>`
+              SELECT * FROM "ShiftNotification" 
+              WHERE "deliveryProfileId" = ${profile.id}
+                AND "scheduledFor" = ${shiftTime}
+                AND "minutesBefore" = ${minutesBefore}
+                AND "status" IN ('PENDING', 'SENT')
+              LIMIT 1
+            `.then(rows => rows[0]).catch(() => null);
 
             if (existing) continue;
 
             // Check quiet hours
             let skipDueToQuietHours = false;
-            if (profile.notificationSettings.quietHoursEnabled && 
-                profile.notificationSettings.quietHoursStart && 
-                profile.notificationSettings.quietHoursEnd) {
+            if (notificationSettings.quietHoursEnabled && 
+                notificationSettings.quietHoursStart && 
+                notificationSettings.quietHoursEnd) {
               const notifyHour = notifyAt.getHours();
               const notifyMinute = notifyAt.getMinutes();
               const notifyTimeStr = `${String(notifyHour).padStart(2, '0')}:${String(notifyMinute).padStart(2, '0')}`;
               
-              const quietStart = profile.notificationSettings.quietHoursStart;
-              const quietEnd = profile.notificationSettings.quietHoursEnd;
+              const quietStart = notificationSettings.quietHoursStart;
+              const quietEnd = notificationSettings.quietHoursEnd;
 
               if (quietStart < quietEnd) {
                 // Normal range (e.g., 22:00 to 08:00)
@@ -127,25 +129,24 @@ export async function GET(req: NextRequest) {
 
             // Determine channel(s)
             let channel = 'PUSH';
-            if (minutesBefore === 5 && profile.notificationSettings.enableSmsNotifications) {
+            if (minutesBefore === 5 && notificationSettings.enableSmsNotifications) {
               channel = 'SMS';
-            } else if (minutesBefore >= 30 && profile.notificationSettings.enableEmailNotifications) {
+            } else if (minutesBefore >= 30 && notificationSettings.enableEmailNotifications) {
               channel = 'EMAIL';
             }
 
-            // Create notification
-            await prisma.shiftNotification.create({
-              data: {
-                deliveryProfileId: profile.id,
-                scheduledFor: shiftTime,
-                notifyAt,
-                minutesBefore,
-                status: 'PENDING',
-                channel,
-                dayOfWeek: dayOfWeek,
-                timeSlot: timeSlot
-              }
-            });
+            // Create notification (using raw SQL)
+            const notificationId = crypto.randomUUID();
+            await prisma.$executeRaw`
+              INSERT INTO "ShiftNotification" (
+                "id", "deliveryProfileId", "scheduledFor", "notifyAt", "minutesBefore",
+                "status", "channel", "dayOfWeek", "timeSlot", "createdAt", "updatedAt"
+              )
+              VALUES (
+                ${notificationId}, ${profile.id}, ${shiftTime}, ${notifyAt}, ${minutesBefore},
+                'PENDING', ${channel}, ${dayOfWeek}, ${timeSlot}, ${new Date()}, ${new Date()}
+              )
+            `;
 
             scheduledCount++;
           }

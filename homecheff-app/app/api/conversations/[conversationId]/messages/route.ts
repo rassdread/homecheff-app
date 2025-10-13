@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from '@/lib/encryption';
 import { pusherServer } from '@/lib/pusher';
+import { NotificationService } from '@/lib/notifications/notification-service';
 
 // System encryption key (stored securely in env)
 const SYSTEM_KEY = process.env.ENCRYPTION_SYSTEM_KEY || 'change-this-in-production-to-secure-key';
@@ -392,6 +393,35 @@ export async function POST(
       console.error('[Pusher] ❌ Error sending message:', pusherError);
       console.log('[Pusher] ⚠️ Continuing despite Pusher error (non-critical)');
       // Don't fail the request if Pusher fails
+    }
+
+    // Send notification to other participants
+    try {
+      console.log('[Notifications] 🔔 Sending chat notifications...');
+      
+      // Get all participants except sender
+      const otherParticipants = await prisma.conversationParticipant.findMany({
+        where: {
+          conversationId,
+          userId: { not: user.id }
+        },
+        select: { userId: true }
+      });
+
+      // Send notification to each participant
+      for (const participant of otherParticipants) {
+        await NotificationService.sendChatNotification(
+          participant.userId,
+          user.id,
+          text?.substring(0, 100) || 'Nieuw bericht',
+          conversationId
+        );
+      }
+      
+      console.log(`[Notifications] ✅ Sent notifications to ${otherParticipants.length} participants`);
+    } catch (notifError) {
+      console.error('[Notifications] ❌ Error sending notifications:', notifError);
+      // Don't fail the request if notifications fail
     }
     
     console.log('[Messages API POST] 🎉 Success! Returning message to client');

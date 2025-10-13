@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
             image: true, 
             profileImage: true,
             username: true,
-            role: true 
+            role: true,
+            displayFullName: true,
+            displayNameOption: true
           } 
         }
       },

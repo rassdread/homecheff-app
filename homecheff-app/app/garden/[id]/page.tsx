@@ -28,7 +28,9 @@ async function getGardenProject(id: string, userId?: string) {
           id: true,
           username: true,
           name: true,
-          profileImage: true
+          profileImage: true,
+          displayFullName: true,
+          displayNameOption: true
         }
       }
     }
