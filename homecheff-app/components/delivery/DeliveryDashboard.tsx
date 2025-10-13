@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import DeliveryNotificationListener from './DeliveryNotificationListener';
 import { 
   MapPin, 
   Clock, 
@@ -307,6 +308,9 @@ export default function DeliveryDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Notification Listener */}
+      <DeliveryNotificationListener />
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

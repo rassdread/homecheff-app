@@ -169,18 +169,26 @@ export class NotificationService {
    * Send email notification
    */
   private static async sendEmailNotification(email: string, message: NotificationMessage): Promise<void> {
-    // TODO: Implement actual email sending via Resend
-    // For now, just log
-    console.log('📧 Email to:', email, message.title);
+    console.log('📧 Email would be sent to:', email, message.title);
     
-    // Example implementation:
+    // TODO: When Resend is configured, uncomment:
     /*
+    import { Resend } from 'resend';
+    import { renderShiftReminderEmail, getShiftReminderSubject } from './email-templates';
+    
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: 'HomeCheff <notificaties@homecheff.nl>',
       to: email,
       subject: message.title,
-      html: renderEmailTemplate(message)
+      html: renderShiftReminderEmail({
+        recipientEmail: email,
+        recipientName: 'Bezorger', // Get from user data
+        minutesBefore: message.data?.minutesBefore || 0,
+        shiftTime: message.data?.shiftTime || '',
+        timeSlot: message.data?.timeSlot || '',
+        dayOfWeek: message.data?.dayOfWeek || ''
+      })
     });
     */
   }

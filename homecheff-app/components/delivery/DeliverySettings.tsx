@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import ShiftNotificationSettings from './ShiftNotificationSettings';
 
 interface DeliveryProfile {
   id: string;
@@ -57,6 +58,27 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState<any>(null);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
+
+  // Fetch notification settings on mount
+  useEffect(() => {
+    const fetchNotificationSettings = async () => {
+      try {
+        const response = await fetch('/api/delivery/notification-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setNotificationSettings(data.settings);
+        }
+      } catch (error) {
+        console.error('Error fetching notification settings:', error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotificationSettings();
+  }, []);
 
   const transportationOptions = [
     { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
@@ -429,6 +451,30 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               />
             </div>
           </div>
+
+          {/* Shift Notifications */}
+          {!loadingNotifications && notificationSettings && (
+            <ShiftNotificationSettings
+              initialSettings={notificationSettings}
+              onSave={async (settings) => {
+                const response = await fetch('/api/delivery/notification-settings', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  setNotificationSettings(data.settings);
+                  setSuccess(true);
+                  setTimeout(() => setSuccess(false), 3000);
+                } else {
+                  const error = await response.json();
+                  alert(`Fout: ${error.error}`);
+                }
+              }}
+            />
+          )}
 
           {/* Save Button */}
           <div className="flex justify-end">

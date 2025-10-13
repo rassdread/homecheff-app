@@ -10,5 +10,15 @@
 		"app/api/**/*.ts": {
 			"maxDuration": 30
 		}
-	}
+	},
+	"crons": [
+		{
+			"path": "/api/cron/schedule-shift-notifications",
+			"schedule": "0 * * * *"
+		},
+		{
+			"path": "/api/cron/send-notifications",
+			"schedule": "* * * * *"
+		}
+	]
 }
