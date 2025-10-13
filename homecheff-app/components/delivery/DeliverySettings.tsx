@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import ShiftNotificationSettings from './ShiftNotificationSettings';
+import AddSellerRolesSettings from './AddSellerRolesSettings';
 
 interface DeliveryProfile {
   id: string;
@@ -60,24 +61,34 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [success, setSuccess] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<any>(null);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [userSellerRoles, setUserSellerRoles] = useState<string[]>([]);
 
-  // Fetch notification settings on mount
+  // Fetch notification settings and user roles on mount
   useEffect(() => {
-    const fetchNotificationSettings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/delivery/notification-settings');
-        if (response.ok) {
-          const data = await response.json();
+        const [notifResponse, userResponse] = await Promise.all([
+          fetch('/api/delivery/notification-settings'),
+          fetch('/api/user/me')
+        ]);
+        
+        if (notifResponse.ok) {
+          const data = await notifResponse.json();
           setNotificationSettings(data.settings);
         }
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUserSellerRoles(userData.sellerRoles || []);
+        }
       } catch (error) {
-        console.error('Error fetching notification settings:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoadingNotifications(false);
       }
     };
 
-    fetchNotificationSettings();
+    fetchData();
   }, []);
 
   const transportationOptions = [
@@ -471,6 +482,43 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                 } else {
                   const error = await response.json();
                   alert(`Fout: ${error.error}`);
+                }
+              }}
+            />
+          )}
+
+          {/* Add Seller Roles */}
+          {!loadingNotifications && (
+            <AddSellerRolesSettings
+              currentRoles={userSellerRoles}
+              age={deliveryProfile.age}
+              onSave={async (newRoles, agreements) => {
+                const response = await fetch('/api/delivery/add-seller-roles', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    roles: newRoles,
+                    agreements,
+                    age: deliveryProfile.age
+                  })
+                });
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  setUserSellerRoles(data.totalRoles);
+                  setSuccess(true);
+                  setTimeout(() => {
+                    setSuccess(false);
+                    router.push('/delivery/dashboard');
+                  }, 2000);
+                  alert(data.message);
+                } else {
+                  const error = await response.json();
+                  if (error.details) {
+                    alert(`Validatie mislukt:\n${error.details.join('\n')}`);
+                  } else {
+                    alert(`Fout: ${error.error}`);
+                  }
                 }
               }}
             />
