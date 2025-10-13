@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, Trash2, RefreshCw, Circle, CheckCheck, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Send, Trash2, RefreshCw, Circle, Check, CheckCheck, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import Pusher from 'pusher-js';
 import { getDisplayName } from '@/lib/displayName';
@@ -24,6 +24,7 @@ interface Message {
   text: string;
   senderId: string;
   createdAt: string;
+  deliveredAt: string | null;
   readAt: string | null;
   User: {
     id: string;
@@ -42,6 +43,9 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
   const [isSending, setIsSending] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [otherUserLastSeen, setOtherUserLastSeen] = useState<string | null>(null);
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -186,6 +190,56 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
+          
+          // Mark as delivered automatically
+          markMessageAsDelivered(data.id);
+        }
+      });
+
+      // Listen for typing indicators
+      channelRef.current.bind('user-typing', (data: any) => {
+        if (data.userId !== currentUserId) {
+          setOtherUserTyping(data.isTyping);
+          if (data.isTyping) {
+            // Reset typing after 3 seconds
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+              setOtherUserTyping(false);
+            }, 3000);
+          }
+        }
+      });
+
+      // Listen for read receipts
+      channelRef.current.bind('message-read', (data: any) => {
+        if (data.messageId) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === data.messageId ? { ...msg, readAt: data.readAt } : msg
+          ));
+        }
+      });
+
+      // Listen for delivered receipts
+      channelRef.current.bind('message-delivered', (data: any) => {
+        if (data.messageId) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === data.messageId ? { ...msg, deliveredAt: data.deliveredAt } : msg
+          ));
+        }
+      });
+
+      // Listen for user presence
+      channelRef.current.bind('user-online', (data: any) => {
+        if (data.userId === otherParticipant.id) {
+          setIsOnline(true);
+          setOtherUserLastSeen(null);
+        }
+      });
+
+      channelRef.current.bind('user-offline', (data: any) => {
+        if (data.userId === otherParticipant.id) {
+          setIsOnline(false);
+          setOtherUserLastSeen(data.lastSeen || new Date().toISOString());
         }
       });
 
@@ -239,6 +293,7 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
       text: messageText,
       senderId: currentUserId,
       createdAt: new Date().toISOString(),
+      deliveredAt: null,
       readAt: null,
       User: {
         id: currentUserId,
@@ -327,6 +382,53 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
     });
   };
 
+  // Format last seen
+  const formatLastSeen = (lastSeenString: string | null) => {
+    if (!lastSeenString) return 'onlangs';
+    const lastSeen = new Date(lastSeenString);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSeen.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'zojuist';
+    if (diffMins < 60) return `${diffMins}m geleden`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}u geleden`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d geleden`;
+  };
+
+  // Mark message as delivered
+  const markMessageAsDelivered = async (messageId: string) => {
+    try {
+      await fetch(`/api/messages/${messageId}/delivered`, {
+        method: 'POST'
+      });
+    } catch (error) {
+      console.error('Error marking message as delivered:', error);
+    }
+  };
+
+  // Update typing status
+  const handleTyping = async () => {
+    try {
+      await fetch(`/api/conversations/${conversationId}/typing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, isTyping: true })
+      });
+    } catch (error) {
+      console.error('Error sending typing indicator:', error);
+    }
+  };
+
+  // Send typing indicator when user types
+  useEffect(() => {
+    if (newMessage.length > 0) {
+      handleTyping();
+    }
+  }, [newMessage]);
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* HEADER */}
@@ -374,12 +476,27 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
               <UserIcon className="w-3 h-3 text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
             </button>
             <div className="flex items-center gap-1 px-2">
-              <Circle 
-                className={`w-2 h-2 ${isOnline ? 'fill-green-500 text-green-500 animate-pulse' : 'fill-gray-400 text-gray-400'}`} 
-              />
-              <p className="text-xs text-gray-500">
-                {isOnline ? 'Online' : 'Offline'}
-              </p>
+              {otherUserTyping ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-xs text-blue-600 font-medium">
+                    typt...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <Circle 
+                    className={`w-2 h-2 ${isOnline ? 'fill-green-500 text-green-500 animate-pulse' : 'fill-gray-400 text-gray-400'}`} 
+                  />
+                  <p className="text-xs text-gray-500">
+                    {isOnline ? 'Online' : otherUserLastSeen ? `Laatst gezien ${formatLastSeen(otherUserLastSeen)}` : 'Offline'}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -498,8 +615,20 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
                         <p className="text-xs text-gray-400">
                           {formatTime(message.createdAt)}
                         </p>
-                        {isOwn && message.readAt && (
-                          <CheckCheck className="w-3 h-3 text-blue-500" />
+                        {isOwn && (
+                          <div className="flex items-center" title={
+                            message.readAt ? 'Gelezen' : 
+                            message.deliveredAt ? 'Bezorgd' : 
+                            'Verzonden'
+                          }>
+                            {message.readAt ? (
+                              <CheckCheck className="w-3 h-3 text-blue-500" />
+                            ) : message.deliveredAt ? (
+                              <CheckCheck className="w-3 h-3 text-gray-400" />
+                            ) : (
+                              <Check className="w-3 h-3 text-gray-400" />
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

@@ -233,12 +233,16 @@ model ConversationParticipant {
   conversationId String
   userId         String
   joinedAt       DateTime     @default(now())
+  lastSeen       DateTime?
+  isTyping       Boolean      @default(false)
+  lastTypingAt   DateTime?
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
   @@index([userId])
   @@index([userId], map: "idx_conversation_participant_user")
+  @@index([lastSeen])
 }
 
 model ConversationKey {
@@ -361,6 +365,7 @@ model Message {
   senderId       String
   text           String?
   createdAt      DateTime     @default(now())
+  deliveredAt    DateTime?
   readAt         DateTime?
   attachmentName String?
   attachmentType String?
@@ -380,6 +385,7 @@ model Message {
   @@index([orderNumber])
   @@index([isEncrypted])
   @@index([readAt])
+  @@index([deliveredAt])
   @@index([deletedAt])
   @@index([senderId], map: "idx_message_sender")
 }

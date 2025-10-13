@@ -256,101 +256,109 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow-sm border p-8 mb-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Profile Photo */}
-          <div className="flex-shrink-0">
-            <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-200">
-              <SafeImage
-                src={user.profileImage || "/avatar-placeholder.png"}
-                alt="Profielfoto"
-                fill
-                className="object-cover"
-                sizes="128px"
-              />
+      {/* Profile Header - Strak en Gelikt */}
+      <div className="bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-3xl shadow-lg border-2 border-emerald-100 overflow-hidden mb-8">
+        {/* Cover Image Effect */}
+        <div className="h-32 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 relative">
+          <div className="absolute inset-0 bg-black/10"></div>
+        </div>
+        
+        <div className="px-4 sm:px-6 lg:px-8 pb-6 -mt-16 relative">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Profile Photo */}
+            <div className="flex-shrink-0 mx-auto lg:mx-0">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white">
+                <SafeImage
+                  src={user.profileImage || "/avatar-placeholder.png"}
+                  alt="Profielfoto"
+                  fill
+                  className="object-cover"
+                  sizes="128px"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Profile Info */}
-          <div className="flex-1">
-            <div className="mb-4">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {/* Profile Info */}
+            <div className="flex-1 text-center lg:text-left mt-4">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
                 {getDisplayName()}
               </h1>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>@{user.username || 'gebruiker'}</span>
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
+                <span className="font-medium">@{user.username || 'gebruiker'}</span>
                 {user.place && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>{user.place}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>Lid sinds {new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}</span>
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Lid sinds {new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}</span>
+                  <span className="sm:hidden">{new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
-            </div>
 
-            {/* Quote */}
-            {user.quote && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
-                <blockquote className="text-gray-700 italic leading-relaxed">
-                  "{user.quote}"
-                </blockquote>
+              {/* Quote */}
+              {user.quote && (
+                <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+                  <blockquote className="text-sm sm:text-base text-gray-700 italic leading-relaxed">
+                    "{user.quote}"
+                  </blockquote>
+                </div>
+              )}
+
+              {/* Bio */}
+              {user.bio && (
+                <p className="text-sm sm:text-base text-gray-700 mb-4 leading-relaxed">{user.bio}</p>
+              )}
+
+              {/* Roles */}
+              <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
+                {user.sellerRoles?.map(role => (
+                  <span
+                    key={role}
+                    className="px-3 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 rounded-full text-xs sm:text-sm font-semibold border border-emerald-200 shadow-sm"
+                  >
+                    {getRoleLabel(role)}
+                  </span>
+                ))}
               </div>
-            )}
 
-            {/* Bio */}
-            {user.bio && (
-              <p className="text-gray-700 mb-4 leading-relaxed">{user.bio}</p>
-            )}
-
-            {/* Roles */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {user.sellerRoles?.map(role => (
-                <span
-                  key={role}
-                  className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium"
-                >
-                  {getRoleLabel(role)}
-                </span>
-              ))}
-            </div>
-
-            {/* Stats & Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-6 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{products.length} items</span>
+              {/* Stats */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-6">
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100">
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                  <span className="font-medium text-gray-900">{products.length}</span>
+                  <span className="hidden sm:inline">items</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4" />
-                  <span>{userStats.reviews} beoordelingen</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-2 rounded-lg border border-yellow-100">
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600" />
+                  <span className="font-medium text-gray-900">{userStats.reviews}</span>
+                  <span className="hidden sm:inline">reviews</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{userStats.followers} fans</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+                  <span className="font-medium text-gray-900">{userStats.followers}</span>
+                  <span className="hidden sm:inline">fans</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Heart className="w-4 h-4" />
-                  <span>{userStats.props} props</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-pink-50 to-red-50 px-3 py-2 rounded-lg border border-pink-100">
+                  <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-600" />
+                  <span className="font-medium text-gray-900">{userStats.props}</span>
+                  <span className="hidden sm:inline">props</span>
                 </div>
               </div>
               
-              {/* Action Buttons - Mobile Responsive */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Action Buttons - Volledig Responsive */}
+              <div className="grid grid-cols-2 gap-3">
                 <FollowButton 
                   sellerId={user.id}
                   sellerName={getDisplayName()}
-                  className="px-4 py-2 w-full sm:w-auto text-center"
+                  className="w-full px-4 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                 />
                 <StartChatButton
                   sellerId={user.id}
                   sellerName={getDisplayName()}
-                  className="px-4 py-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-center"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
                 />
               </div>
             </div>
