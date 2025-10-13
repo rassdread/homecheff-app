@@ -265,12 +265,31 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     }`}
                   >
                     <div className="flex flex-col items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      <span className="text-sm font-medium">Flexibel</span>
-                      <span className="text-xs text-gray-600">Meerdere gebieden</span>
+                      <Navigation className="w-5 h-5" />
+                      <span className="text-sm font-medium">Dynamisch GPS</span>
+                      <span className="text-xs text-gray-600">Live locatie tracking</span>
                     </div>
                   </button>
                 </div>
+                
+                {/* Dynamic GPS Explanation */}
+                {formData.deliveryMode === 'DYNAMIC' && (
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <Navigation className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 mb-2">🛰️ Dynamische GPS Locatie</p>
+                        <ul className="text-xs text-blue-800 space-y-1">
+                          <li>✓ Je locatie wordt continu bijgewerkt tijdens bezorgen</li>
+                          <li>✓ Radius beweegt mee met jouw positie</li>
+                          <li>✓ Ontvang orders in gebieden waar je rijdt</li>
+                          <li>✓ Meer flexibiliteit = meer verdiensten</li>
+                          <li>⚡ GPS actief wanneer je online bent</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

@@ -18,6 +18,7 @@ model User {
   lat                                    Float?
   lng                                    Float?
   place                                  String?
+  lastLocationUpdate                     DateTime?
   updatedAt                              DateTime                  @updatedAt
   role                                   UserRole                  @default(USER)
   name                                   String?
@@ -744,6 +745,9 @@ model DeliveryProfile {
   availableDays      String[]
   availableTimeSlots String[]
   isActive           Boolean              @default(true)
+  isOnline           Boolean              @default(false)
+  lastOnlineAt       DateTime?
+  lastOfflineAt      DateTime?
   isVerified         Boolean              @default(false)
   totalDeliveries    Int                  @default(0)
   averageRating      Float?

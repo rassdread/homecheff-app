@@ -84,10 +84,100 @@ export default function DeliveryDashboard() {
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
+  const [gpsEnabled, setGpsEnabled] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
 
   useEffect(() => {
     fetchDeliveryData();
-  }, []);
+    fetchOnlineStatus();
+    
+    // Auto-refresh every 30 seconds when online
+    const interval = setInterval(() => {
+      if (isOnline) {
+        fetchDeliveryData();
+      }
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [isOnline]);
+
+  // Start GPS tracking when online
+  useEffect(() => {
+    if (isOnline && gpsEnabled) {
+      startGPSTracking();
+    } else {
+      stopGPSTracking();
+    }
+  }, [isOnline, gpsEnabled]);
+
+  let gpsWatchId: number | null = null;
+
+  const startGPSTracking = () => {
+    if (!navigator.geolocation) {
+      console.error('Geolocation not supported');
+      return;
+    }
+
+    console.log('🛰️ Starting GPS tracking for deliverer...');
+    
+    // Get initial position
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        updateGPSLocation(position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        console.error('GPS error:', error);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+    );
+
+    // Watch position for continuous updates
+    gpsWatchId = navigator.geolocation.watchPosition(
+      (position) => {
+        updateGPSLocation(position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        console.error('GPS watch error:', error);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 }
+    );
+  };
+
+  const stopGPSTracking = () => {
+    if (gpsWatchId !== null) {
+      navigator.geolocation.clearWatch(gpsWatchId);
+      gpsWatchId = null;
+      console.log('🛑 Stopped GPS tracking');
+    }
+  };
+
+  const updateGPSLocation = async (lat: number, lng: number) => {
+    setCurrentLocation({ lat, lng });
+    
+    try {
+      await fetch('/api/delivery/update-gps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lng })
+      });
+      console.log('📍 GPS location updated:', { lat, lng });
+    } catch (error) {
+      console.error('Failed to update GPS location:', error);
+    }
+  };
+
+  const fetchOnlineStatus = async () => {
+    try {
+      const response = await fetch('/api/delivery/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setIsOnline(data.profile?.isOnline || false);
+        setGpsEnabled(data.profile?.deliveryMode === 'DYNAMIC');
+      }
+    } catch (error) {
+      console.error('Error fetching online status:', error);
+    }
+  };
 
   const fetchDeliveryData = async () => {
     try {
@@ -101,6 +191,7 @@ export default function DeliveryDashboard() {
         setRecentOrders(data.recentOrders);
         setCurrentOrder(data.currentOrder);
         setAvailableOrders(data.availableOrders || []);
+        setIsOnline(data.isOnline || false);
       }
     } catch (error) {
       console.error('Error fetching delivery data:', error);
@@ -232,13 +323,21 @@ export default function DeliveryDashboard() {
                 <Settings className="w-4 h-4" />
                 Instellingen
               </a>
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-              }`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  isOnline ? 'bg-green-500' : 'bg-gray-400'
-                }`} />
-                {isOnline ? 'Online' : 'Offline'}
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                  isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                  }`} />
+                  {isOnline ? 'Online' : 'Offline'}
+                </div>
+                {gpsEnabled && currentLocation && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 text-blue-800">
+                    <Navigation className="w-4 h-4" />
+                    <span className="text-sm">GPS Actief</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={toggleOnlineStatus}

@@ -17,7 +17,17 @@ export async function GET(req: NextRequest) {
     // Check if user has delivery profile
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { userId: (session as any).user.id },
-      include: {
+      select: {
+        id: true,
+        isOnline: true,
+        isActive: true,
+        maxDistance: true,
+        totalDeliveries: true,
+        averageRating: true,
+        totalEarnings: true,
+        deliveryMode: true,
+        currentLat: true,
+        currentLng: true,
         deliveryOrders: {
           include: {
             order: {
@@ -323,6 +333,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       stats,
+      isOnline: deliveryProfile.isOnline || false,
       currentOrder: transformedCurrentOrder,
       recentOrders: transformedRecentOrders,
       availableOrders: transformedAvailableOrders
