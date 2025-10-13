@@ -19,10 +19,16 @@ interface NotificationMessage {
   timestamp?: string;
 }
 
+interface DisplayNotification extends NotificationMessage {
+  id: string;
+  displayId: number;
+}
+
 export default function DeliveryNotificationListener() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Array<NotificationMessage & { id: number }>>([]);
+  const [notifications, setNotifications] = useState<DisplayNotification[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [audio] = useState(() => {
     if (typeof window !== 'undefined') {
       const notificationAudio = new Audio('/notification.mp3');
@@ -32,20 +38,41 @@ export default function DeliveryNotificationListener() {
     return null;
   });
 
+  // Get user ID from session
   useEffect(() => {
-    if (!session?.user?.id) return;
+    const fetchUserId = async () => {
+      if (!session?.user?.email) return;
+      
+      try {
+        const response = await fetch('/api/user/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUserId(data.id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user ID:', error);
+      }
+    };
 
-    console.log('🔔 Subscribing to delivery notifications for user:', session.user.id);
+    fetchUserId();
+  }, [session?.user?.email]);
 
-    const channel = pusherClient.subscribe(`private-delivery-${session.user.id}`);
+  useEffect(() => {
+    if (!userId) return;
+
+    console.log('🔔 Subscribing to delivery notifications for user:', userId);
+
+    const channel = pusherClient.subscribe(`private-delivery-${userId}`);
     
     // Listen for general notifications
     channel.bind('notification', (data: NotificationMessage) => {
       console.log('📢 Notification received:', data);
       
-      const notification = {
+      const displayId = Date.now();
+      const notification: DisplayNotification = {
         ...data,
-        id: Date.now()
+        id: data.id || `notif-${displayId}`,
+        displayId
       };
       
       // Add to notifications list
@@ -63,9 +90,8 @@ export default function DeliveryNotificationListener() {
             body: data.body,
             icon: '/logo.png',
             badge: '/badge.png',
-            tag: `delivery-${notification.id}`,
-            requireInteraction: data.urgent,
-            vibrate: data.urgent ? [200, 100, 200] : undefined
+            tag: `delivery-${notification.displayId}`,
+            requireInteraction: data.urgent
           });
 
           // Handle notification click
@@ -87,7 +113,7 @@ export default function DeliveryNotificationListener() {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [session?.user?.id, audio, router]);
+  }, [userId, audio, router]);
 
   // Request notification permission on mount
   useEffect(() => {
@@ -98,7 +124,7 @@ export default function DeliveryNotificationListener() {
     }
   }, []);
 
-  const handleAction = async (notificationId: number, action: string) => {
+  const handleAction = async (notificationDisplayId: number, action: string) => {
     if (action === 'GO_ONLINE') {
       try {
         await fetch('/api/delivery/toggle-status', {
@@ -106,20 +132,20 @@ export default function DeliveryNotificationListener() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isOnline: true })
         });
-        router.push('/bezorger');
+        router.push('/delivery/dashboard');
       } catch (error) {
         console.error('Failed to go online:', error);
       }
     } else if (action === 'VIEW_DASHBOARD') {
-      router.push('/bezorger');
+      router.push('/delivery/dashboard');
     }
     
     // Remove notification
-    dismissNotification(notificationId);
+    dismissNotification(notificationDisplayId);
   };
 
-  const dismissNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const dismissNotification = (displayId: number) => {
+    setNotifications(prev => prev.filter(n => n.displayId !== displayId));
   };
 
   // Auto-dismiss non-urgent notifications after 10 seconds
@@ -167,7 +193,7 @@ export default function DeliveryNotificationListener() {
               </span>
             </div>
             <button 
-              onClick={() => dismissNotification(notification.id)}
+              onClick={() => dismissNotification(notification.displayId)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
@@ -185,7 +211,7 @@ export default function DeliveryNotificationListener() {
               {notification.actions.map((action, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleAction(notification.id, action.action)}
+                  onClick={() => handleAction(notification.displayId, action.action)}
                   className={`
                     flex-1 py-2 px-3 rounded-lg font-semibold text-sm
                     transition-all transform hover:scale-105 active:scale-95

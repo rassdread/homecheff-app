@@ -59,6 +59,7 @@ export default function DeliverySignupPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const [emailValidation, setEmailValidation] = useState<ValidationState>({
     isValid: null,
     message: "",
@@ -365,8 +366,45 @@ export default function DeliverySignupPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Debounced email validatie
+  // Pre-fill existing user data if logged in
   useEffect(() => {
+    const loadExistingUserData = async () => {
+      if (!session?.user?.email) return;
+      
+      try {
+        const response = await fetch('/api/user/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setIsExistingUser(true);
+          setFormData(prev => ({
+            ...prev,
+            name: userData.name || prev.name,
+            email: userData.email || prev.email,
+            username: userData.username || prev.username,
+            postalCode: userData.postalCode || prev.postalCode,
+            address: userData.address || prev.address,
+            city: userData.city || prev.city,
+            country: userData.country || prev.country,
+            // Skip account creation step if already logged in
+          }));
+          
+          // Skip to delivery profile step
+          if (currentStep === 1) {
+            setCurrentStep(2);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadExistingUserData();
+  }, [session?.user?.email]);
+
+  // Debounced email validatie (alleen als nieuwe gebruiker)
+  useEffect(() => {
+    if (isExistingUser) return; // Skip validation for existing users
+    
     if (!formData.email) {
       setEmailValidation({
         isValid: null,
@@ -381,7 +419,7 @@ export default function DeliverySignupPage() {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [formData.email]);
+  }, [formData.email, isExistingUser]);
 
   const nextStep = () => {
     if (currentStep < 9) setCurrentStep(currentStep + 1);

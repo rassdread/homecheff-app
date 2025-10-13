@@ -149,7 +149,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         setSuccess(true);
         // Toon success bericht kort en navigeer dan terug naar dashboard
         setTimeout(() => {
-          router.push('/bezorger');
+          router.push('/delivery/dashboard');
         }, 1500);
       } else {
         const error = await response.json();
