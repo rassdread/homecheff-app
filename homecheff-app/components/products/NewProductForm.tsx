@@ -579,90 +579,164 @@ export default function NewProductForm() {
 
       
     <form onSubmit={onSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="hc-tight">
-          <label className="hc-label">Titel</label>
-          <input
-            className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={currentExamples.titlePlaceholder}
-          />
-        </div>
-        <div className="hc-tight">
-          <label className="hc-label">Prijs (€)</label>
-          <input
-            className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="12,50"
-            inputMode="decimal"
-          />
+      {/* Categorie Selector - PROMINENT BOVENAAN */}
+      <div className="mb-8">
+        <label className="block text-lg font-bold text-gray-900 mb-4">
+          1️⃣ Kies je Categorie
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {VERTICALS.map(v => (
+            <button
+              key={v.value}
+              type="button"
+              onClick={() => setVertical(v.value)}
+              className={`p-6 rounded-2xl border-4 transition-all transform hover:scale-105 ${
+                vertical === v.value
+                  ? 'border-primary-brand bg-gradient-to-br from-primary-50 to-primary-100 shadow-xl ring-4 ring-primary-200'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
+              }`}
+            >
+              <div className="text-center">
+                <div className="text-5xl mb-3">{v.label.split(' ')[0]}</div>
+                <div className={`text-xl font-bold ${
+                  vertical === v.value ? 'text-primary-brand' : 'text-gray-900'
+                }`}>
+                  {v.label.split(' ')[1]}
+                </div>
+                {vertical === v.value && (
+                  <div className="mt-3 text-sm font-medium text-primary-brand flex items-center justify-center gap-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Geselecteerd
+                  </div>
+                )}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="hc-tight">
-        <label className="hc-label">Beschrijving</label>
-        <textarea
-          className="w-full rounded-md border p-2 min-h-28 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={currentExamples.descriptionPlaceholder}
-        />
-      </div>
+      {/* Basis Informatie */}
+      <div className="mb-6">
+        <label className="block text-lg font-bold text-gray-900 mb-4">
+          2️⃣ Product Informatie
+        </label>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="hc-label">Titel</label>
+              <input
+                className="w-full rounded-md border p-3 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors text-lg"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={currentExamples.titlePlaceholder}
+              />
+            </div>
+            <div>
+              <label className="hc-label">Prijs (€)</label>
+              <input
+                className="w-full rounded-md border p-3 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors text-lg"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="12,50"
+                inputMode="decimal"
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="hc-tight">
-          <label className="hc-label">Categorie</label>
-          <select
-            className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-            value={vertical}
-            onChange={(e) => setVertical(e.target.value)}
-          >
-            {VERTICALS.map(v => (
-              <option key={v.value} value={v.value}>{v.label}</option>
-            ))}
-          </select>
-        </div>
-        <div className="hc-tight">
-          <label className="hc-label">Afhalen / Bezorgen</label>
-          <select
-            className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-            value={deliveryMode}
-            onChange={(e) => setDeliveryMode(e.target.value)}
-          >
-            {DELIVERY.map(d => (
-              <option key={d.value} value={d.value}>{d.label}</option>
-            ))}
-          </select>
+          <div>
+            <label className="hc-label">Beschrijving</label>
+            <textarea
+              className="w-full rounded-md border p-3 min-h-32 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={currentExamples.descriptionPlaceholder}
+            />
+          </div>
+
+          <div>
+            <label className="hc-label">Afhalen / Bezorgen</label>
+            <div className="grid grid-cols-3 gap-3">
+              {DELIVERY.map(d => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => setDeliveryMode(d.value)}
+                  className={`p-3 rounded-lg border-2 transition-all ${
+                    deliveryMode === d.value
+                      ? 'border-primary-brand bg-primary-50 text-primary-brand font-bold'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Inspiratie sectie met dynamische voorbeelden */}
-      <div className="hc-tight">
-        <label className="hc-label flex items-center gap-2">
-          <span>💡</span>
-          Inspiratie voor {vertical === 'CHEFF' ? '🍳 Chef' : vertical === 'GARDEN' ? '🌱 Garden' : '🎨 Designer'} producten
+      <div className="mb-6">
+        <label className="block text-lg font-bold text-gray-900 mb-4">
+          💡 Inspiratie voor {vertical === 'CHEFF' ? '🍳 Chef' : vertical === 'GARDEN' ? '🌱 Garden' : '🎨 Designer'} producten
         </label>
-        <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl p-4 border border-primary-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`rounded-2xl p-6 border-2 ${
+          vertical === 'CHEFF' ? 'bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-orange-200' :
+          vertical === 'GARDEN' ? 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-green-200' :
+          'bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 border-purple-200'
+        }`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Titel voorbeelden:</h4>
-              <div className="space-y-1">
+              <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${
+                vertical === 'CHEFF' ? 'text-orange-900' :
+                vertical === 'GARDEN' ? 'text-green-900' :
+                'text-purple-900'
+              }`}>
+                <span className="text-xl">{vertical === 'CHEFF' ? '🍳' : vertical === 'GARDEN' ? '🌱' : '🎨'}</span>
+                Titel voorbeelden
+              </h4>
+              <div className="space-y-2">
                 {currentExamples.titleExamples.slice(0, 3).map((example, index) => (
-                  <div key={index} className="text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setTitle(example)}
+                    className={`w-full text-left text-sm px-4 py-2 rounded-lg transition-all hover:scale-105 ${
+                      vertical === 'CHEFF' ? 'bg-white hover:bg-orange-100 border border-orange-200 text-orange-900' :
+                      vertical === 'GARDEN' ? 'bg-white hover:bg-green-100 border border-green-200 text-green-900' :
+                      'bg-white hover:bg-purple-100 border border-purple-200 text-purple-900'
+                    }`}
+                  >
                     {example}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Beschrijving voorbeelden:</h4>
-              <div className="space-y-1">
+              <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${
+                vertical === 'CHEFF' ? 'text-orange-900' :
+                vertical === 'GARDEN' ? 'text-green-900' :
+                'text-purple-900'
+              }`}>
+                <span className="text-xl">📝</span>
+                Beschrijving voorbeelden
+              </h4>
+              <div className="space-y-2">
                 {currentExamples.descriptionExamples.slice(0, 2).map((example, index) => (
-                  <div key={index} className="text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setDescription(example)}
+                    className={`w-full text-left text-xs px-4 py-3 rounded-lg transition-all hover:scale-105 ${
+                      vertical === 'CHEFF' ? 'bg-white hover:bg-orange-100 border border-orange-200 text-orange-800' :
+                      vertical === 'GARDEN' ? 'bg-white hover:bg-green-100 border border-green-200 text-green-800' :
+                      'bg-white hover:bg-purple-100 border border-purple-200 text-purple-800'
+                    }`}
+                  >
                     {example}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -670,16 +744,22 @@ export default function NewProductForm() {
         </div>
       </div>
 
-      <      SimpleImageUploader 
-        value={images} 
-        onChange={(newImages) => setImages(newImages)} 
-        category={vertical}
-        productTitle={title}
-      />
+      {/* Foto's Upload */}
+      <div className="mb-6">
+        <label className="block text-lg font-bold text-gray-900 mb-4">
+          3️⃣ Foto's Toevoegen
+        </label>
+          <      SimpleImageUploader 
+          value={images} 
+          onChange={(newImages) => setImages(newImages)} 
+          category={vertical}
+          productTitle={title}
+        />
+      </div>
 
       {/* Pre-order / Beschikbaarheidsdatum - specifiek voor Garden producten */}
       {vertical === 'GARDEN' && (
-        <div className="hc-tight bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5">
+        <div className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-full flex items-center justify-center shadow-md">
               📅
@@ -756,39 +836,74 @@ export default function NewProductForm() {
       )}
 
       {/* Naamweergave keuze */}
-      <div className="hc-tight">
-        <label className="hc-label">Naamweergave bij product</label>
-        <select
-          className="w-full rounded-md border p-2 focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
-          value={displayNameType}
-          onChange={(e) => setDisplayNameType(e.target.value as 'fullname' | 'firstname' | 'lastname' | 'username')}
-        >
-          <option value="fullname">Voor- en achternaam</option>
-          <option value="firstname">Alleen voornaam</option>
-          <option value="lastname">Alleen achternaam</option>
-          <option value="username">Gebruikersnaam</option>
-        </select>
-        <p className="text-sm text-gray-500 mt-1">
-          Kies hoe je naam wordt weergegeven bij dit product
-        </p>
+      <div className="mb-6">
+        <label className="block text-lg font-bold text-gray-900 mb-4">
+          4️⃣ Privacy Instellingen
+        </label>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-3">Naamweergave bij product</label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { value: 'fullname', label: 'Voor- en achternaam', icon: '👤' },
+              { value: 'firstname', label: 'Alleen voornaam', icon: '😊' },
+              { value: 'lastname', label: 'Alleen achternaam', icon: '🎭' },
+              { value: 'username', label: 'Gebruikersnaam', icon: '@' }
+            ].map(option => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setDisplayNameType(option.value as any)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  displayNameType === option.value
+                    ? 'border-primary-brand bg-primary-50 text-primary-brand font-bold'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-2xl mb-1">{option.icon}</div>
+                <div className="text-xs">{option.label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Submit Button */}
+      <div className="flex flex-col gap-4">
         <button
           type="submit"
-          className="rounded-xl px-6 py-3 bg-primary-brand text-white font-medium shadow-lg hover:bg-primary-700 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
           disabled={submitting}
+          className={`w-full rounded-2xl px-8 py-5 text-white font-bold shadow-2xl transition-all duration-200 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed text-xl ${
+            vertical === 'CHEFF' ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:shadow-orange-500/50' :
+            vertical === 'GARDEN' ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:shadow-green-500/50' :
+            'bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 hover:shadow-purple-500/50'
+          }`}
         >
-          {submitting ? 'Opslaan…' : 'Product Toevoegen'}
+          {submitting ? (
+            <span className="flex items-center justify-center gap-3">
+              <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              Opslaan...
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-3">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              {vertical === 'CHEFF' ? '🍳 Voeg Chef Product Toe' : 
+               vertical === 'GARDEN' ? '🌱 Voeg Garden Product Toe' : 
+               '🎨 Voeg Designer Product Toe'}
+            </span>
+          )}
         </button>
+        
         {message && (
-          <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          <div className={`p-4 rounded-xl text-center font-medium text-lg ${
             message.includes('Opgeslagen') 
-              ? 'bg-success-100 text-success-800 border border-success-200' 
-              : 'bg-error-100 text-error-800 border border-error-200'
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-2 border-green-200' 
+              : 'bg-gradient-to-r from-red-50 to-orange-50 text-red-800 border-2 border-red-200'
           }`}>
+            {message.includes('Opgeslagen') ? '✅ ' : '❌ '}
             {message}
-          </span>
+          </div>
         )}
       </div>
     </form>
