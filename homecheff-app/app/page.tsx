@@ -169,6 +169,7 @@ function HomePageContent() {
   const [startLocation, setStartLocation] = useState<string>('');
   const [startLocationCoords, setStartLocationCoords] = useState<{lat: number, lng: number} | null>(null);
   const [isStartLocationGeocoding, setIsStartLocationGeocoding] = useState<boolean>(false);
+  const [validatedAddress, setValidatedAddress] = useState<string>(''); // Stores the full validated address
   
   // Category-specific radius settings
   const [categoryRadius, setCategoryRadius] = useState<{[key: string]: number}>({
@@ -246,60 +247,68 @@ function HomePageContent() {
     }
   };
 
-  // NEW: Handler for manual location input from filters
+  // NEW: Handler for manual location input from filters (postcode,huisnummer format)
   const handleManualLocation = async (location: string) => {
     if (!location.trim()) return;
     
     setIsStartLocationGeocoding(true);
+    setValidatedAddress(''); // Clear previous address
+    
     try {
-      // Try Dutch postcode first if it looks like one
-      const isDutchPostcode = /^\d{4}\s?[A-Z]{2}$/i.test(location.trim());
+      // Check if it's in "postcode,huisnummer" format
+      const parts = location.split(',');
       
-      let response;
-      if (isDutchPostcode) {
-        response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(location.trim())}&huisnummer=1`);
-      } else {
-        response = await fetch('/api/geocoding/international', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: location })
-        });
-      }
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.lat && data.lng) {
-          setUserLocation({ lat: data.lat, lng: data.lng });
-          setLocationSource('manual');
-          console.log('✅ Manual location set:', { location, lat: data.lat, lng: data.lng });
-          addNotification({
-            type: 'success',
-            title: 'Startlocatie ingesteld',
-            message: `Afstanden worden berekend vanaf ${location}`,
-            duration: 3000,
-          });
+      if (parts.length === 2) {
+        // Dutch address with postcode and huisnummer
+        const postcode = parts[0].trim();
+        const huisnummer = parts[1].trim();
+        
+        console.log('🔍 Validating Dutch address:', { postcode, huisnummer });
+        
+        const response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.lat && data.lng) {
+            setUserLocation({ lat: data.lat, lng: data.lng });
+            setStartLocationCoords({ lat: data.lat, lng: data.lng });
+            setLocationSource('manual');
+            
+            // Set the validated full address
+            const fullAddress = data.formatted_address || `${data.straatnaam || ''} ${huisnummer}, ${data.postcode || postcode} ${data.plaats || ''}`;
+            setValidatedAddress(fullAddress);
+            
+            console.log('✅ Address validated:', { fullAddress, lat: data.lat, lng: data.lng });
+            
+            addNotification({
+              type: 'success',
+              title: 'Adres gevalideerd',
+              message: fullAddress,
+              duration: 4000,
+            });
+          } else {
+            throw new Error('Geen coördinaten ontvangen');
+          }
         } else {
-          addNotification({
-            type: 'error',
-            title: 'Locatie niet gevonden',
-            message: 'Probeer een andere plaats of postcode',
-            duration: 5000,
-          });
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Adres niet gevonden');
         }
       } else {
+        // Fallback for other formats
         addNotification({
           type: 'error',
-          title: 'Locatie niet gevonden',
-          message: 'Controleer de spelling en probeer opnieuw',
+          title: 'Ongeldig formaat',
+          message: 'Vul zowel postcode als huisnummer in',
           duration: 5000,
         });
       }
     } catch (error) {
-      console.error('Manual location geocoding error:', error);
+      console.error('Address validation error:', error);
+      setValidatedAddress('');
       addNotification({
         type: 'error',
-        title: 'Fout bij zoeken',
-        message: 'Er is een fout opgetreden bij het zoeken van de locatie',
+        title: 'Adres niet gevonden',
+        message: error instanceof Error ? error.message : 'Controleer postcode en huisnummer',
         duration: 5000,
       });
     } finally {
@@ -310,6 +319,7 @@ function HomePageContent() {
   // NEW: Handler to use GPS location
   const handleUseGPS = () => {
     console.log('🛰️ User requested GPS location');
+    setValidatedAddress(''); // Clear validated address when using GPS
     getCurrentPosition();
   };
 
@@ -317,12 +327,18 @@ function HomePageContent() {
   const handleUseProfile = () => {
     if (profileLocation?.lat && profileLocation?.lng) {
       setUserLocation({ lat: profileLocation.lat, lng: profileLocation.lng });
+      setStartLocationCoords({ lat: profileLocation.lat, lng: profileLocation.lng });
       setLocationSource('profile');
+      
+      // Set validated address from profile
+      const profileAddress = profileLocation.place || profileLocation.postcode || 'Profiel locatie';
+      setValidatedAddress(profileAddress);
+      
       console.log('📍 Using profile location:', profileLocation);
       addNotification({
         type: 'success',
         title: 'Profiel locatie actief',
-        message: `Afstanden worden berekend vanaf ${profileLocation.place || profileLocation.postcode || 'je profiel locatie'}`,
+        message: `Afstanden worden berekend vanaf ${profileAddress}`,
         duration: 3000,
       });
     }
@@ -418,7 +434,9 @@ function HomePageContent() {
   useEffect(() => {
     if (gpsLocation) {
       setUserLocation(gpsLocation);
+      setStartLocationCoords(gpsLocation);
       setLocationSource('gps');
+      setValidatedAddress('GPS Locatie');
       console.log('✅ Using GPS location:', gpsLocation);
       addNotification({
         type: 'success',
@@ -885,6 +903,7 @@ function HomePageContent() {
         locationSource={locationSource}
         profileLocation={profileLocation}
         viewMode={viewMode}
+        validatedAddress={validatedAddress}
         onCategoryChange={setCategory}
         onSubcategoryChange={setSubcategory}
         onDeliveryModeChange={setDeliveryMode}

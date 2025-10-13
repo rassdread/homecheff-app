@@ -51,6 +51,7 @@ interface ImprovedFilterBarProps {
   locationSource: 'profile' | 'manual' | 'gps' | null;
   profileLocation: { place?: string; postcode?: string; lat?: number; lng?: number } | null;
   viewMode: 'grid' | 'list';
+  validatedAddress?: string; // NEW: Validated full address to display
   
   // Callbacks
   onCategoryChange: (category: string) => void;
@@ -83,6 +84,7 @@ export default function ImprovedFilterBar({
   locationSource,
   profileLocation,
   viewMode,
+  validatedAddress,
   onCategoryChange,
   onSubcategoryChange,
   onDeliveryModeChange,
@@ -225,50 +227,79 @@ export default function ImprovedFilterBar({
 
             {/* Mobile Location Settings */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">📍 Locatie & Afstand</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">📍 Startlocatie voor afstand</label>
               <div className="space-y-3">
-                {/* Location Input */}
+                {/* Postcode & Huisnummer Input */}
                 <div>
-                  <div className="flex gap-1">
+                  <div className="grid grid-cols-3 gap-2 mb-2">
                     <input
                       type="text"
-                      placeholder="Plaats of postcode..."
-                      value={locationInput}
-                      onChange={(e) => onLocationInputChange(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && locationInput.trim()) {
-                          onLocationSearch(locationInput.trim());
-                        }
+                      placeholder="Postcode (1234AB)"
+                      value={locationInput.split(',')[0] || ''}
+                      onChange={(e) => {
+                        const postcode = e.target.value.toUpperCase();
+                        const huisnummer = locationInput.split(',')[1] || '';
+                        onLocationInputChange(huisnummer ? `${postcode},${huisnummer}` : postcode);
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                      className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm uppercase"
+                      maxLength={7}
                     />
-                    <button
-                      onClick={() => locationInput.trim() && onLocationSearch(locationInput.trim())}
-                      disabled={!locationInput.trim()}
-                      className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm"
-                    >
-                      Zoek
-                    </button>
+                    <input
+                      type="text"
+                      placeholder="Nr."
+                      value={locationInput.split(',')[1] || ''}
+                      onChange={(e) => {
+                        const postcode = locationInput.split(',')[0] || '';
+                        const huisnummer = e.target.value;
+                        onLocationInputChange(`${postcode},${huisnummer}`);
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                    />
                   </div>
+                  <button
+                    onClick={() => {
+                      const [postcode, huisnummer] = locationInput.split(',');
+                      if (postcode?.trim() && huisnummer?.trim()) {
+                        onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                      }
+                    }}
+                    disabled={!locationInput.includes(',') || !locationInput.split(',')[0]?.trim() || !locationInput.split(',')[1]?.trim()}
+                    className="w-full px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm font-medium"
+                  >
+                    🔍 Valideer Adres
+                  </button>
+                  
+                  {/* Validated Address Display */}
+                  {validatedAddress && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-emerald-900">Adres gevalideerd</p>
+                          <p className="text-xs text-emerald-700 mt-1">{validatedAddress}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Location Quick Actions */}
                   <div className="flex gap-2 mt-2">
                     {profileLocation?.lat && profileLocation?.lng && onUseProfile && (
                       <button
                         onClick={onUseProfile}
-                        className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-xs flex items-center gap-1"
+                        className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-xs font-medium"
                         title="Gebruik profiel locatie"
                       >
-                        📍 Profiel
+                        📍 Profiel locatie
                       </button>
                     )}
                     {onUseGPS && (
                       <button
                         onClick={onUseGPS}
-                        className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-xs flex items-center gap-1"
+                        className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-xs font-medium"
                         title="Gebruik GPS locatie"
                       >
-                        🛰️ GPS
+                        🛰️ Gebruik GPS
                       </button>
                     )}
                   </div>
@@ -509,28 +540,44 @@ export default function ImprovedFilterBar({
             </select>
           </div>
 
-          {/* Location Input */}
+          {/* Postcode & Huisnummer Input */}
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-gray-500" />
             <div className="flex gap-1">
               <input
                 type="text"
-                placeholder="Plaats of postcode..."
-                value={locationInput}
-                onChange={(e) => onLocationInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && locationInput.trim()) {
-                    onLocationSearch(locationInput.trim());
-                  }
+                placeholder="Postcode"
+                value={locationInput.split(',')[0] || ''}
+                onChange={(e) => {
+                  const postcode = e.target.value.toUpperCase();
+                  const huisnummer = locationInput.split(',')[1] || '';
+                  onLocationInputChange(huisnummer ? `${postcode},${huisnummer}` : postcode);
                 }}
-                className="w-40 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm uppercase"
+                maxLength={7}
+              />
+              <input
+                type="text"
+                placeholder="Nr"
+                value={locationInput.split(',')[1] || ''}
+                onChange={(e) => {
+                  const postcode = locationInput.split(',')[0] || '';
+                  const huisnummer = e.target.value;
+                  onLocationInputChange(`${postcode},${huisnummer}`);
+                }}
+                className="w-16 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
               />
               <button
-                onClick={() => locationInput.trim() && onLocationSearch(locationInput.trim())}
-                disabled={!locationInput.trim()}
-                className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm"
+                onClick={() => {
+                  const [postcode, huisnummer] = locationInput.split(',');
+                  if (postcode?.trim() && huisnummer?.trim()) {
+                    onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                  }
+                }}
+                disabled={!locationInput.includes(',') || !locationInput.split(',')[0]?.trim() || !locationInput.split(',')[1]?.trim()}
+                className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm font-medium"
               >
-                Zoek
+                Valideer
               </button>
               {profileLocation?.lat && profileLocation?.lng && onUseProfile && (
                 <button
@@ -552,6 +599,19 @@ export default function ImprovedFilterBar({
               )}
             </div>
           </div>
+
+          {/* Validated Address Display - Desktop */}
+          {validatedAddress && (
+            <div className="flex items-center gap-2">
+              <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-900">Startlocatie:</span>
+                  <span className="text-sm text-emerald-700">{validatedAddress}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Radius */}
           <div className="flex items-center gap-2">

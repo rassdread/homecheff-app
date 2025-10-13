@@ -197,3 +197,84 @@ export async function geocodeDutchAddressWithFallback(
   // Use OpenStreetMap Nominatim for Dutch addresses (more reliable than PDOK)
   return await geocodeDutchAddress(postcode, huisnummer);
 }
+
+// Postcode-only geocoding (for general area search)
+export async function geocodeDutchPostcode(
+  postcode: string
+): Promise<Pick<DutchAddress, 'postcode' | 'plaats' | 'lat' | 'lng' | 'formatted_address'> | DutchGeocodingError> {
+  try {
+    // Clean postcode (remove spaces, convert to uppercase)
+    const cleanPostcode = postcode.replace(/\s/g, '').toUpperCase();
+    
+    // Validate Dutch postcode format (1234AB)
+    if (!/^\d{4}[A-Z]{2}$/.test(cleanPostcode)) {
+      return {
+        error: true,
+        message: 'Ongeldige postcode. Gebruik formaat: 1234AB'
+      };
+    }
+
+    console.log(`Geocoding Dutch postcode: ${cleanPostcode}`);
+
+    // Use OpenStreetMap Nominatim for postcode lookup
+    const query = `${cleanPostcode}, Nederland`;
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?postalcode=${cleanPostcode}&country=Netherlands&format=json&limit=1&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'HomeCheff-App/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Nominatim API error: ${response.status} ${response.statusText}`);
+      return {
+        error: true,
+        message: `Postcode lookup mislukt: ${response.statusText}`
+      };
+    }
+
+    const data = await response.json();
+    
+    if (!data || data.length === 0) {
+      return {
+        error: true,
+        message: 'Postcode niet gevonden. Controleer de postcode.'
+      };
+    }
+
+    const result = data[0];
+    const address = result.address || {};
+    
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return {
+        error: true,
+        message: 'Coördinaten niet beschikbaar voor deze postcode.'
+      };
+    }
+
+    // Format postcode with space
+    const formattedPostcode = cleanPostcode.replace(/(\d{4})([A-Z]{2})/, '$1 $2');
+    const plaats = address.city || address.town || address.village || address.suburb || 'Onbekend';
+    
+    return {
+      postcode: formattedPostcode,
+      plaats: plaats,
+      lat: lat,
+      lng: lng,
+      formatted_address: `${formattedPostcode} ${plaats}`
+    };
+
+  } catch (error) {
+    console.error('Postcode geocoding error:', error);
+    return {
+      error: true,
+      message: 'Er is een fout opgetreden bij het opzoeken van de postcode.'
+    };
+  }
+}

@@ -453,7 +453,7 @@ export default function ProductPage() {
   return (
     <main className={`min-h-screen bg-gradient-to-br ${theme.bg} via-white to-gray-50`}>
       {/* Sticky Navigation */}
-      <div className={`sticky top-16 z-40 transition-all duration-300 ${
+      <div className={`sticky top-16 lg:top-32 z-30 transition-all duration-300 ${
         scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -813,8 +813,9 @@ export default function ProductPage() {
             </div>
 
             {/* Sidebar - Floating Card */}
-            <div className="lg:col-span-1">
-              <div className={`sticky top-32 bg-gradient-to-br ${theme.gradient} rounded-3xl p-8 shadow-2xl text-white`}>
+            <div className="lg:col-span-1 space-y-6">
+              {/* Price & Actions Card */}
+              <div className={`bg-gradient-to-br ${theme.gradient} rounded-3xl p-6 shadow-2xl text-white`}>
                 {/* Price */}
                 <div className="mb-6">
                   <div className="text-sm opacity-80 mb-1">Prijs</div>
@@ -849,9 +850,9 @@ export default function ProductPage() {
                   ) : isOwner ? (
                 <Link
                   href={`/product/${product.id}/edit`}
-                      className="w-full bg-white text-gray-900 py-4 px-6 rounded-2xl text-center font-bold transition-all hover:scale-105 shadow-xl flex items-center justify-center gap-2"
+                      className="block w-full bg-white text-gray-900 py-4 px-6 rounded-2xl text-center font-bold transition-all hover:scale-105 shadow-xl"
                 >
-                  <Edit3 className="w-5 h-5" />
+                  <Edit3 className="w-5 h-5 inline mr-2" />
                   Product bewerken
                 </Link>
               ) : (
