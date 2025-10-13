@@ -97,6 +97,7 @@ model User {
   Transaction                            Transaction[]
   workspaceContentComments               WorkspaceContentComment[]
   workspaceContentProps                  WorkspaceContentProp[]
+  pushTokens                             PushToken[]
 
   @@index([username])
   @@index([name])
@@ -771,12 +772,120 @@ model DeliveryProfile {
   lastGpsUpdate      DateTime?
   locationAccuracy   Float?
   batteryLevel       Int?
+  // New relations
   deliveryOrders     DeliveryOrder[]
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews            DeliveryReview[]
   vehiclePhotos      VehiclePhoto[]
+  detailedAvailability DeliveryAvailability[]
+  notificationSettings DeliveryNotificationSettings?
+  shiftNotifications   ShiftNotification[]
 
   @@map("DeliveryProfile")
+}
+
+// Per-day detailed availability (optional, extends simple availableDays/TimeSlots)
+model DeliveryAvailability {
+  id                String   @id @default(cuid())
+  deliveryProfileId String
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek         Int      // 0-6 (Sunday-Saturday) or 1-7 (Monday-Sunday)
+  isAvailable       Boolean  @default(true)
+  
+  // Preset slots (compatible with existing timeSlots)
+  morningSlot       Boolean  @default(false)  // 9:00-12:00
+  afternoonSlot     Boolean  @default(false)  // 12:00-17:00
+  eveningSlot       Boolean  @default(false)  // 17:00-21:00
+  
+  // Custom time ranges (JSON array: [{start: "09:00", end: "12:00"}])
+  customSlots       Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([deliveryProfileId, dayOfWeek])
+  @@index([deliveryProfileId])
+  @@map("DeliveryAvailability")
+}
+
+// Notification settings for shift reminders
+model DeliveryNotificationSettings {
+  id                String   @id @default(cuid())
+  deliveryProfileId String   @unique
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  
+  // Notification channels
+  enablePushNotifications  Boolean @default(true)
+  enableEmailNotifications Boolean @default(true)
+  enableSmsNotifications   Boolean @default(false)
+  
+  // Shift reminders (in minutes before shift start) - JSON array: [60, 30, 5]
+  shiftReminders    Json     @default("[60, 30, 5]")
+  
+  // Additional settings
+  autoGoOnline      Boolean  @default(false)  // Auto online at shift start
+  quietHoursEnabled Boolean  @default(false)
+  quietHoursStart   String?  // "22:00"
+  quietHoursEnd     String?  // "08:00"
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([deliveryProfileId])
+  @@map("DeliveryNotificationSettings")
+}
+
+// Individual shift notifications (scheduled)
+model ShiftNotification {
+  id                String   @id @default(cuid())
+  deliveryProfileId String
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  
+  scheduledFor      DateTime  // Exact time of shift
+  notifyAt          DateTime  // When to send notification
+  minutesBefore     Int       // 60, 30, 5, etc.
+  
+  status            String    @default("PENDING") // PENDING, SENT, FAILED, CANCELLED
+  channel           String    @default("PUSH")    // PUSH, EMAIL, SMS
+  
+  sentAt            DateTime?
+  readAt            DateTime?
+  clickedAt         DateTime?
+  error             String?
+  
+  // Context
+  dayOfWeek         Int
+  timeSlot          String    // "morning", "afternoon", "evening"
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([deliveryProfileId, notifyAt, status])
+  @@index([notifyAt, status])
+  @@index([status])
+  @@map("ShiftNotification")
+}
+
+// Push notification tokens (for mobile-ready infrastructure)
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  token     String   @unique
+  platform  String   // 'web', 'android', 'ios'
+  type      String   // 'WEB_PUSH', 'FCM', 'APNS'
+  
+  isActive  Boolean  @default(true)
+  lastUsedAt DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([token])
+  @@map("PushToken")
 }
 
 model DynamicSeller {

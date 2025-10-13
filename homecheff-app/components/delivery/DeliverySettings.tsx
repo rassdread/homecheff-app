@@ -13,6 +13,7 @@ import {
   Settings as SettingsIcon
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 
 interface DeliveryProfile {
@@ -42,6 +43,7 @@ interface DeliverySettingsProps {
 }
 
 export default function DeliverySettings({ deliveryProfile }: DeliverySettingsProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     transportation: deliveryProfile.transportation || [],
     maxDistance: deliveryProfile.maxDistance || 5,
@@ -123,7 +125,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
       if (response.ok) {
         setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        // Toon success bericht kort en navigeer dan terug naar dashboard
+        setTimeout(() => {
+          router.push('/bezorger');
+        }, 1500);
       } else {
         const error = await response.json();
         alert(`Fout: ${error.error}`);
