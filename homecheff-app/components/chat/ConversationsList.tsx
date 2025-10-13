@@ -39,6 +39,8 @@ interface Conversation {
       name: string | null;
       username: string | null;
       profileImage: string | null;
+      displayFullName?: boolean | null;
+      displayNameOption?: string | null;
     };
   } | null;
   participants: Array<{
@@ -46,12 +48,16 @@ interface Conversation {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   }>;
   otherParticipant?: {
     id: string;
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
   lastMessageAt: string | null;
   isActive: boolean;

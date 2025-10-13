@@ -13,48 +13,14 @@ import { UserRole } from "@prisma/client";
 type Role = UserRole;
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
 
-// Determine if we're using secure cookies (production with HTTPS)
-const useSecureCookies = process.env.NODE_ENV === 'production';
-const cookiePrefix = useSecureCookies ? '__Secure-' : '';
-const hostPrefix = useSecureCookies ? '__Host-' : '';
-
 export const authOptions: NextAuthOptions = {
   pages: { signIn: "/login" },
   session: { 
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  useSecureCookies,
-  cookies: {
-    sessionToken: {
-      name: `${cookiePrefix}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: useSecureCookies
-      }
-    },
-    callbackUrl: {
-      name: `${cookiePrefix}next-auth.callback-url`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: useSecureCookies
-      }
-    },
-    csrfToken: {
-      name: `${hostPrefix}next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: useSecureCookies,
-        ...(useSecureCookies && { domain: undefined }) // __Host- prefix requires no domain
-      }
-    }
-  },
+  // Let NextAuth handle cookies automatically based on environment
+  // This prevents __Secure- and __Host- prefix issues on Vercel
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",

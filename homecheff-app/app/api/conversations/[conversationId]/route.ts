@@ -48,7 +48,9 @@ export async function GET(
                 id: true,
                 name: true,
                 username: true,
-                profileImage: true
+                profileImage: true,
+                displayFullName: true,
+                displayNameOption: true
               }
             }
           }
@@ -83,8 +85,8 @@ export async function GET(
          name: otherParticipantData.name,
          username: otherParticipantData.username,
          profileImage: otherParticipantData.profileImage,
-         displayFullName: (otherParticipantData as any).displayFullName,
-         displayNameOption: (otherParticipantData as any).displayNameOption
+         displayFullName: otherParticipantData.displayFullName,
+         displayNameOption: otherParticipantData.displayNameOption
        } : null;
 
     // Transform to match the expected format

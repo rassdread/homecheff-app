@@ -168,8 +168,9 @@ export async function POST(req: NextRequest) {
 
     const subtotal = totalAmount + deliveryFeeCents;
 
-    // Calculate fees - buyers pay Stripe fee + HomeCheff platform fee (12%)
-    const platformFeeCents = Math.round(totalAmount * 0.12); // 12% platform fee on product sales
+    // Calculate fees - buyers pay Stripe fee + HomeCheff platform fee
+    // Note: Actual platform fee is calculated in webhook based on seller's subscription
+    const platformFeeCents = Math.round(totalAmount * 0.12); // Estimated 12% for display purposes
     const finalTotal = subtotal + platformFeeCents; // Add platform fee to subtotal
     const stripeFeeCents = Math.round((finalTotal * 0.014) + 25); // 1.4% + €0.25 Stripe fee on final total
     const totalWithStripeFee = finalTotal + stripeFeeCents;

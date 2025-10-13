@@ -327,8 +327,22 @@ export async function POST(req: NextRequest) {
 
           const itemTotal = item.priceCents * item.quantity;
           
-          // Calculate platform fee (12% for individuals, varies for business)
-          const platformFeePercentage = 12; // Default to 12% for now
+          // Calculate platform fee based on seller's subscription
+          let platformFeePercentage = 12; // Default for individuals
+          
+          // Check if seller has a business subscription
+          const sellerProfile = await prisma.sellerProfile.findUnique({
+            where: { userId: product.seller.User.id },
+            include: {
+              Subscription: true
+            }
+          });
+          
+          if (sellerProfile?.Subscription) {
+            // Use subscription fee (stored in basis points)
+            platformFeePercentage = sellerProfile.Subscription.feeBps / 100;
+          }
+          
           const platformFeeCents = Math.round(itemTotal * platformFeePercentage / 100);
           const sellerPayoutCents = itemTotal - platformFeeCents;
 
@@ -340,7 +354,7 @@ export async function POST(req: NextRequest) {
               buyerId: buyerId,
               sellerId: product.seller.User.id,
               amountCents: itemTotal,
-              platformFeeBps: platformFeePercentage * 100, // Convert to basis points
+              platformFeeBps: Math.round(platformFeePercentage * 100), // Convert to basis points
               status: 'CAPTURED',
               provider: 'STRIPE',
               providerRef: session.id,

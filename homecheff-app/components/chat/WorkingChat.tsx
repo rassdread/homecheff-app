@@ -13,6 +13,8 @@ interface WorkingChatProps {
     name?: string | null;
     username?: string | null;
     profileImage?: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
   onBack?: () => void;
 }
@@ -27,6 +29,8 @@ interface Message {
     name?: string | null;
     username?: string | null;
     profileImage?: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
 }
 

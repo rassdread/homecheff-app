@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MessageCircle, Bell } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import OptimizedChat from '@/components/chat/OptimizedChat';
+import CompleteChat from '@/components/chat/CompleteChat';
 
 interface Conversation {
   id: string;
@@ -23,12 +23,16 @@ interface Conversation {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   }>;
   otherParticipant?: {
     id: string;
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
   lastMessage?: {
     id: string;
@@ -41,6 +45,8 @@ interface Conversation {
       name: string | null;
       username: string | null;
       profileImage: string | null;
+      displayFullName?: boolean | null;
+      displayNameOption?: string | null;
     };
   } | null;
   lastMessageAt: string | null;
@@ -187,7 +193,7 @@ function MessagesPageContent() {
                 ${selectedConversation ? 'w-full' : 'hidden'} 
                 flex flex-col bg-white
               `}>
-                <OptimizedChat
+                <CompleteChat
                   conversationId={selectedConversation.id}
                   otherParticipant={
                     selectedConversation.otherParticipant || 

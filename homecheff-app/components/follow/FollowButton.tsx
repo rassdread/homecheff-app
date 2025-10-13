@@ -50,7 +50,8 @@ export default function FollowButton({
 
   const handleToggleFollow = async () => {
     if (!session?.user) {
-      alert('Je moet ingelogd zijn om verkopers fan te worden');
+      console.log('User not logged in - redirect to login');
+      window.location.href = '/login';
       return;
     }
 
@@ -68,26 +69,20 @@ export default function FollowButton({
         const data = await response.json();
         setFollowing(data.following);
         
-        // Show feedback and redirect to fans list if becoming a fan
+        // Show feedback without redirect
         if (data.following) {
           console.log(`Je bent nu fan van ${sellerName}`);
-          // Show success message and redirect to fans list
-          alert(`Je bent nu fan van ${sellerName}! Je vindt deze verkoper in je "Mijn Fans" lijst.`);
-          // Redirect to fans page after a short delay
-          setTimeout(() => {
-            window.location.href = '/favorites';
-          }, 1500);
+          // Just update the UI - no redirect needed
         } else {
           console.log(`Je bent geen fan meer van ${sellerName}`);
-          alert(`Je bent geen fan meer van ${sellerName}`);
+          // Just update the UI - no alert needed
         }
       } else {
         const error = await response.json();
-        alert(error.error || 'Er is een fout opgetreden');
+        console.error('Follow error:', error.error || 'Er is een fout opgetreden');
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-      alert('Er is een fout opgetreden bij het fan worden');
     } finally {
       setLoading(false);
     }
@@ -140,12 +135,12 @@ export default function FollowButton({
       {following ? (
         <>
           <UserCheck className={`${iconSize[size]} ${following ? 'animate-bounce' : ''}`} />
-          <span>Fan</span>
+          <span>Fan van</span>
         </>
       ) : (
         <>
           <UserPlus className={iconSize[size]} />
-          <span>Fan worden</span>
+          <span>Fan van worden</span>
         </>
       )}
     </button>

@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Check, Star, Crown, Zap } from 'lucide-react';
+import { Check, Star, Crown, Zap, Building, Users, TrendingUp, Award, Camera, Image as ImageIcon, Upload, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { PRICING_TIERS, type PricingTier } from '@/lib/pricing';
+import Image from 'next/image';
 
-export default function PricingPage() {
+export default function BusinessProfilePage() {
   const { data: session } = useSession();
   const [currentTier, setCurrentTier] = useState<PricingTier>('INDIVIDUAL');
   const [userRevenue, setUserRevenue] = useState({ yearly: 0, monthly: 0 });
+  const [activeTab, setActiveTab] = useState<'overview' | 'subscription' | 'workspace' | 'settings'>('overview');
+  const [workspacePhotos, setWorkspacePhotos] = useState<string[]>([]);
+  const [businessInfo, setBusinessInfo] = useState<any>(null);
 
   useEffect(() => {
     if (session?.user) {
@@ -57,34 +61,104 @@ export default function PricingPage() {
 
   const getTierIcon = (tier: PricingTier) => {
     switch (tier) {
-      case 'INDIVIDUAL': return <Star className="w-6 h-6" />;
-      case 'BUSINESS_BASIC': return <Check className="w-6 h-6" />;
-      case 'BUSINESS_PRO': return <Crown className="w-6 h-6" />;
-      case 'BUSINESS_PREMIUM': return <Zap className="w-6 h-6" />;
+      case 'INDIVIDUAL': return <Star className="w-8 h-8" />;
+      case 'BUSINESS_BASIC': return <Building className="w-8 h-8" />;
+      case 'BUSINESS_PRO': return <TrendingUp className="w-8 h-8" />;
+      case 'BUSINESS_PREMIUM': return <Award className="w-8 h-8" />;
     }
   };
 
   const getTierColor = (tier: PricingTier) => {
     switch (tier) {
-      case 'INDIVIDUAL': return 'border-gray-200';
-      case 'BUSINESS_BASIC': return 'border-green-200';
-      case 'BUSINESS_PRO': return 'border-blue-200';
-      case 'BUSINESS_PREMIUM': return 'border-purple-200';
+      case 'INDIVIDUAL': return 'border-gray-200 bg-gray-50';
+      case 'BUSINESS_BASIC': return 'border-green-200 bg-green-50';
+      case 'BUSINESS_PRO': return 'border-blue-200 bg-blue-50';
+      case 'BUSINESS_PREMIUM': return 'border-purple-200 bg-purple-50';
+    }
+  };
+
+  const getTierIconColor = (tier: PricingTier) => {
+    switch (tier) {
+      case 'INDIVIDUAL': return 'bg-gray-100 text-gray-600';
+      case 'BUSINESS_BASIC': return 'bg-green-100 text-green-600';
+      case 'BUSINESS_PRO': return 'bg-blue-100 text-blue-600';
+      case 'BUSINESS_PREMIUM': return 'bg-purple-100 text-purple-600';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full mb-6">
+            <Award className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-4">
             HomeCheff Verdienmodel
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
             Kies het pakket dat het beste bij jouw behoeften past. 
             Schaal op naarmate je groeit en profiteer van lagere fees.
           </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-white rounded-2xl p-2 shadow-lg border border-gray-200">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'overview'
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Building className="w-5 h-5" />
+                <span>Overzicht</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'subscription'
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Award className="w-5 h-5" />
+                <span>Abonnement</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('workspace')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'workspace'
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Camera className="w-5 h-5" />
+                <span>Werkruimte</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                activeTab === 'settings'
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-5 h-5" />
+                <span>Instellingen</span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Current Status */}

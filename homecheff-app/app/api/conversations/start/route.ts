@@ -87,7 +87,9 @@ export async function POST(req: NextRequest) {
                 id: true,
                 name: true,
                 username: true,
-                profileImage: true
+                profileImage: true,
+                displayFullName: true,
+                displayNameOption: true
               }
             }
           }
@@ -151,7 +153,9 @@ export async function POST(req: NextRequest) {
               id: true,
               name: true,
               username: true,
-              profileImage: true
+              profileImage: true,
+              displayFullName: true,
+              displayNameOption: true
             }
           }
         }

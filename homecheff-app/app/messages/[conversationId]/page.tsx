@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import OptimizedChat from '@/components/chat/OptimizedChat';
+import CompleteChat from '@/components/chat/CompleteChat';
 import { useSession } from 'next-auth/react';
 
 interface Conversation {
@@ -22,6 +22,8 @@ interface Conversation {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   };
   lastMessageAt: string | null;
   isActive: boolean;
@@ -94,7 +96,7 @@ export default function ConversationPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <OptimizedChat
+      <CompleteChat
         conversationId={conversation.id}
         otherParticipant={{
           id: conversation.otherParticipant?.id || 'unknown',

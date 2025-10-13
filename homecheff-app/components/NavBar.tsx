@@ -181,7 +181,7 @@ export default function NavBar() {
 
                   {/* Dropdown Menu */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60] animate-in slide-in-from-top-2 duration-200">
                       {/* Profile Link - Different for different roles */}
                       {(user as any)?.role === 'ADMIN' ? (
                         <Link 
@@ -251,7 +251,7 @@ export default function NavBar() {
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <Heart className="w-4 h-4" />
-                        <span>Fans & Fan van</span>
+                        <span>Fan van & Fans</span>
                       </Link>
                       
                       {/* Privacy Instellingen */}
@@ -467,7 +467,7 @@ export default function NavBar() {
                   <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                       <Heart className="w-4 h-4" />
-                      <span>Fans & Fan van</span>
+                      <span>Fan van & Fans</span>
                     </Button>
                   </Link>
                   

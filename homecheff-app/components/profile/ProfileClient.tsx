@@ -3,8 +3,9 @@
 import { useState, Suspense, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { useSession } from 'next-auth/react';
-import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle } from 'lucide-react';
+import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle, Building, Award, Camera, TrendingUp, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 import PhotoUploader from './PhotoUploader';
 import MyDishesManager from './MyDishesManager';
@@ -148,6 +149,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     const sellerRoles = user?.sellerRoles || [];
     const roleSpecificTabs: Tab[] = [];
     const workspaceTab: Tab[] = [];
+    const businessTabs: Tab[] = [];
+
+    // Check if user has business profile (KVK registration)
+    const hasBusinessProfile = user?.role === 'SELLER' && sellerRoles.length > 0;
+
+    if (hasBusinessProfile) {
+      businessTabs.push(
+        { id: 'business-overview', label: 'Bedrijf', icon: Building },
+        { id: 'subscription', label: 'Abonnement', icon: Award },
+        { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+      );
+    }
 
     if (sellerRoles.includes('chef')) {
       roleSpecificTabs.push({ id: 'dishes-chef', label: 'Mijn Keuken', icon: Plus, role: 'chef' });
@@ -160,7 +173,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     }
 
     if (sellerRoles.length > 0) {
-      workspaceTab.push({ id: 'workspace', label: 'Werkruimte', icon: Grid });
+      workspaceTab.push({ id: 'workspace', label: 'Werkruimte', icon: Camera });
     }
 
     if (roleSpecificTabs.length === 0 && user?.role === 'SELLER') {
@@ -169,6 +182,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
     return [
       baseTabs[0],
+      ...businessTabs,
       ...workspaceTab,
       ...roleSpecificTabs
     ];
@@ -803,6 +817,155 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </div>
                 )}
 
+
+                {/* Business Overview tab content */}
+                {activeTab === 'business-overview' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                          <Building className="w-5 h-5 mr-2 text-emerald-600" />
+                          Bedrijfsprofiel
+                        </h2>
+                        <p className="text-sm text-gray-500">Beheer je bedrijfsgegevens en branding</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Bedrijfslogo upload */}
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          🏢 Bedrijfslogo
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-4">Upload je bedrijfslogo voor branding</p>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors">
+                          <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">Klik om logo te uploaden</p>
+                        </div>
+                      </div>
+                      
+                      {/* Bedrijfsinfo */}
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          📋 Bedrijfsgegevens
+                        </h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Bedrijfsnaam</label>
+                            <p className="text-sm text-gray-500">HomeCheff Bedrijf</p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">KVK Nummer</label>
+                            <p className="text-sm text-gray-500">12345678</p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">BTW Nummer</label>
+                            <p className="text-sm text-gray-500">NL123456789B01</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Subscription tab content */}
+                {activeTab === 'subscription' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                          <Award className="w-5 h-5 mr-2 text-emerald-600" />
+                          Abonnement & Fees
+                        </h2>
+                        <p className="text-sm text-gray-500">Beheer je abonnement en bekijk fee structuur</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Huidig abonnement */}
+                      <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl border border-emerald-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Bedrijf</h3>
+                        <p className="text-2xl font-bold text-emerald-600">€39/maand</p>
+                        <p className="text-sm text-gray-600 mt-2">7% uitbetalingsfee</p>
+                        <div className="mt-4">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
+                            Actief
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Fee vergelijking */}
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Fee Vergelijking</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Particulier</span>
+                            <span className="text-sm font-medium">12%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-emerald-600">Basic (jouw)</span>
+                            <span className="text-sm font-medium text-emerald-600">7%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Pro</span>
+                            <span className="text-sm font-medium">4%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Premium</span>
+                            <span className="text-sm font-medium">2%</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Upgrade optie */}
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Upgrade</h3>
+                        <p className="text-sm text-gray-600 mb-4">Lagere fees voor hogere omzet?</p>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                          Bekijk Pro Plan
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Analytics tab content */}
+                {activeTab === 'analytics' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                          <BarChart3 className="w-5 h-5 mr-2 text-emerald-600" />
+                          Bedrijfs Analytics
+                        </h2>
+                        <p className="text-sm text-gray-500">Inzicht in je prestaties en omzet</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Maandomzet</h3>
+                        <p className="text-2xl font-bold text-emerald-600">€2,450</p>
+                        <p className="text-sm text-green-600">+12% vs vorige maand</p>
+                      </div>
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
+                        <p className="text-2xl font-bold text-blue-600">24</p>
+                        <p className="text-sm text-green-600">+8% vs vorige maand</p>
+                      </div>
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Gem. Rating</h3>
+                        <p className="text-2xl font-bold text-yellow-600">4.8</p>
+                        <p className="text-sm text-gray-600">Van 127 reviews</p>
+                      </div>
+                      <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Fans</h3>
+                        <p className="text-2xl font-bold text-purple-600">156</p>
+                        <p className="text-sm text-green-600">+5 deze week</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Werkruimte tab content */}
                 {activeTab === 'workspace' && (
