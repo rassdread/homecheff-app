@@ -241,14 +241,14 @@ export default function SellerOrdersPage() {
                       <div className="flex gap-2">
                         {order.conversationId && (
                           <Link href={`/messages/${order.conversationId}`}>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" className="px-3 py-2">
                               <MessageCircle className="w-4 h-4" />
                             </Button>
                           </Link>
                         )}
                         <Button
                           variant="outline"
-                          size="sm"
+                          className="px-3 py-2"
                           onClick={() => router.push(`/orders/${order.id}`)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
