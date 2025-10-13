@@ -12,6 +12,7 @@
     "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && vercel --prod",
     "deploy:quick": "vercel --prod",
     "deploy:preview": "vercel",
+    "test:verkoop": "node scripts/test-verkoop-flow.js",
     "test:chat-config": "node scripts/test-chat-config.js",
     "test:pusher": "node scripts/test-pusher-connection.js",
     "debug:conversations": "node scripts/debug-conversation-participants.js",

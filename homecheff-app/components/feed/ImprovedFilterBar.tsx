@@ -135,7 +135,7 @@ export default function ImprovedFilterBar({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-16 z-40 shadow-sm">
+    <div className="bg-white border-b border-gray-200 sticky top-0 lg:top-16 z-50 lg:z-40 shadow-sm">
       {/* Mobile: Collapsible Filter Bar */}
       <div className="lg:hidden">
         <div className="px-4 py-2">

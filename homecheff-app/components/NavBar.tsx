@@ -13,6 +13,7 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
 import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, forceSessionReset, clearNextAuthData } from '@/lib/session-cleanup';
 import { getDisplayName } from '@/lib/displayName';
+import { useCart } from '@/hooks/useCart';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -20,6 +21,7 @@ export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { totalItems: cartItemCount } = useCart();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const user =
     session && 'user' in session
@@ -97,7 +99,7 @@ export default function NavBar() {
   };
 
   return (
-    <header className="w-full border-b bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
+    <header className="w-full border-b bg-white/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -361,17 +363,31 @@ export default function NavBar() {
               </Link>
 
               {user && (
-                <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Berichten</span>
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/checkout" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>Winkelwagen</span>
+                      {cartItemCount > 0 && (
+                        <span className="ml-auto bg-primary-brand text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {cartItemCount > 99 ? '99+' : cartItemCount}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Berichten</span>
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                </>
               )}
 
               {status === 'unauthenticated' && !user && (
