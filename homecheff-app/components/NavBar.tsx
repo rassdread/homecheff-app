@@ -251,7 +251,7 @@ export default function NavBar() {
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <Heart className="w-4 h-4" />
-                        <span>Fan van & Fans</span>
+                        <span>Fan (van) & Fans</span>
                       </Link>
                       
                       {/* Privacy Instellingen */}

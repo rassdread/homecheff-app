@@ -62,7 +62,7 @@ export default function FansAndFollowsList() {
   }
 
   const currentItems = activeTab === 'follows' ? follows : fans;
-  const currentLabel = activeTab === 'follows' ? 'verkopers waarvan je fan bent' : 'je fans';
+  const currentLabel = activeTab === 'follows' ? 'fan (van)' : 'fans';
 
   return (
     <div className="space-y-4">
@@ -77,7 +77,7 @@ export default function FansAndFollowsList() {
           }`}
         >
           <UserPlus className="w-4 h-4" />
-          Fan van ({follows.length})
+          Fan (van) ({follows.length})
         </button>
         <button
           onClick={() => setActiveTab('fans')}

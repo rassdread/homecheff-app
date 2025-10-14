@@ -140,7 +140,7 @@ export default function FollowButton({
       ) : (
         <>
           <UserPlus className={iconSize[size]} />
-          <span>Fan van worden</span>
+          <span>Fan worden</span>
         </>
       )}
     </button>
