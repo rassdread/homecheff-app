@@ -18,6 +18,8 @@ interface ConversationSummary {
     name: string | null;
     username: string | null;
     profileImage: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   }>;
   product?: {
     id: string;
@@ -144,7 +146,7 @@ export default function AdminChatManagement() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <MessageSquare className="w-6 h-6" />
-                {selectedConversation.participants.map(p => p.name || p.username || p.id).join(' & ')}
+                {selectedConversation.participants.map(p => getDisplayName(p)).join(' & ')}
               </h2>
               <p className="text-gray-600">
                 {selectedConversation.product && `Over: ${selectedConversation.product.title} • `}
@@ -373,7 +375,7 @@ export default function AdminChatManagement() {
                         <Unlock className="w-4 h-4 text-gray-400" />
                       )}
                       <h4 className="font-medium text-gray-900">
-                        {conv.participants.map(p => p.name || p.username || p.id).join(' & ')}
+                        {conv.participants.map(p => getDisplayName(p)).join(' & ')}
                       </h4>
                       <span className={`px-2 py-0.5 text-xs rounded-full ${
                         conv.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
