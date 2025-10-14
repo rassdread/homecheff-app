@@ -151,7 +151,8 @@ export default function WorkspacePhotoUpload({
       }).filter(photo => {
         // Remove failed uploads
         const result = results.find(r => r.tempId === photo.id);
-        return !photo.uploading || (result && result.success);
+        // Keep photos that are not uploading anymore, or that succeeded
+        return !('uploading' in photo) || !photo.uploading || (result && result.success);
       });
     });
     
