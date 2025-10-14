@@ -170,6 +170,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     ];
 
     const sellerRoles = user?.sellerRoles || [];
+    const deliveryTab: Tab[] = [];
     const roleSpecificTabs: Tab[] = [];
     const workspaceTab: Tab[] = [];
     const businessTabs: Tab[] = [];
@@ -187,6 +188,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         { id: 'subscription', label: 'Abonnement', icon: Award },
         { id: 'analytics', label: 'Analytics', icon: BarChart3 }
       );
+    }
+
+    // Voeg Ambassadeur tab toe als user een bezorger is
+    if (user?.DeliveryProfile) {
+      deliveryTab.push({ id: 'ambassador', label: '🚴 Ambassadeur', icon: TrendingUp });
     }
 
     if (sellerRoles.includes('chef')) {
@@ -209,6 +215,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
     return [
       baseTabs[0],
+      ...deliveryTab, // Ambassadeur tab komt als eerste (na overzicht)
       ...businessTabs,
       ...workspaceTab,
       ...roleSpecificTabs
@@ -856,6 +863,127 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 )}
 
                 {/* Rol-specifieke tabs content */}
+                {/* Ambassadeur Tab Content */}
+                {activeTab === 'ambassador' && user.DeliveryProfile && (
+                  <div className="space-y-6">
+                    {/* Pakkende Header */}
+                    <div className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-4 left-8 text-6xl">🚴</div>
+                        <div className="absolute bottom-4 right-12 text-5xl">📦</div>
+                        <div className="absolute top-1/2 left-1/3 text-4xl">⚡</div>
+                      </div>
+                      <div className="relative z-10">
+                        <h2 className="text-2xl font-bold mb-2">🚴 Ambassadeur Dashboard</h2>
+                        <p className="text-blue-100 mb-4">Beheer je bezorger activiteiten</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-2xl font-bold">{user.DeliveryProfile.totalDeliveries}</div>
+                            <div className="text-sm text-blue-100">Bezorgingen</div>
+                          </div>
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-2xl font-bold">⭐ {user.DeliveryProfile.averageRating?.toFixed(1) || '0.0'}</div>
+                            <div className="text-sm text-blue-100">Rating</div>
+                          </div>
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-2xl font-bold">{user.DeliveryProfile.reviews.length}</div>
+                            <div className="text-sm text-blue-100">Reviews</div>
+                          </div>
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-2xl font-bold">{user.DeliveryProfile.vehiclePhotos.length}</div>
+                            <div className="text-sm text-blue-100">Voertuig Foto's</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Link
+                        href="/delivery/dashboard"
+                        className="p-4 bg-white border-2 border-blue-200 rounded-xl hover:shadow-lg transition-all flex items-center gap-3"
+                      >
+                        <TrendingUp className="w-6 h-6 text-blue-600" />
+                        <div>
+                          <div className="font-semibold text-gray-900">Bezorger Dashboard</div>
+                          <div className="text-xs text-gray-600">Bekijk je bezorgingen en verdiensten</div>
+                        </div>
+                      </Link>
+                      <Link
+                        href="/delivery/settings"
+                        className="p-4 bg-white border-2 border-gray-200 rounded-xl hover:shadow-lg transition-all flex items-center gap-3"
+                      >
+                        <Settings className="w-6 h-6 text-gray-600" />
+                        <div>
+                          <div className="font-semibold text-gray-900">Bezorger Instellingen</div>
+                          <div className="text-xs text-gray-600">Pas je beschikbaarheid aan</div>
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Reviews & Vehicle Photos - Simple View in ProfileClient */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-white border rounded-xl p-6">
+                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                          <Award className="w-5 h-5 text-yellow-600" />
+                          Recente Reviews ({user.DeliveryProfile.reviews.length})
+                        </h3>
+                        {user.DeliveryProfile.reviews.length === 0 ? (
+                          <p className="text-sm text-gray-500">Nog geen reviews ontvangen</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {user.DeliveryProfile.reviews.slice(0, 3).map((review) => (
+                              <div key={review.id} className="border-b pb-3 last:border-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {Array.from({ length: 5 }, (_, i) => (
+                                    <span key={i} className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>
+                                  ))}
+                                </div>
+                                {review.comment && (
+                                  <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
+                                )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(review.createdAt).toLocaleDateString('nl-NL')}
+                                </p>
+                              </div>
+                            ))}
+                            {user.DeliveryProfile.reviews.length > 3 && (
+                              <button
+                                onClick={() => setActiveTab('ambassador')}
+                                className="text-xs text-blue-600 hover:underline font-medium"
+                              >
+                                Bekijk alle {user.DeliveryProfile.reviews.length} reviews →
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="bg-white border rounded-xl p-6">
+                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                          <Camera className="w-5 h-5 text-blue-600" />
+                          Voertuig Foto's ({user.DeliveryProfile.vehiclePhotos.length})
+                        </h3>
+                        {user.DeliveryProfile.vehiclePhotos.length === 0 ? (
+                          <p className="text-sm text-gray-500">Nog geen voertuig foto's</p>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            {user.DeliveryProfile.vehiclePhotos.slice(0, 4).map((photo) => (
+                              <div key={photo.id} className="aspect-square rounded-lg overflow-hidden border">
+                                <img
+                                  src={photo.fileUrl}
+                                  alt="Voertuig"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {(activeTab.startsWith('dishes-') || activeTab === 'dishes') && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
