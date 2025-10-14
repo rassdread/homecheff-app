@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
-import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye } from 'lucide-react';
+import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
 
@@ -31,6 +31,42 @@ interface User {
     id: string;
     products: any[];
   };
+  DeliveryProfile?: {
+    id: string;
+    age: number;
+    bio: string | null;
+    transportation: string[];
+    maxDistance: number;
+    preferredRadius: number;
+    deliveryMode: string;
+    availableDays: string[];
+    availableTimeSlots: string[];
+    isActive: boolean;
+    isVerified: boolean;
+    totalDeliveries: number;
+    averageRating: number | null;
+    totalEarnings: number;
+    createdAt: string;
+    reviews: Array<{
+      id: string;
+      rating: number;
+      comment: string | null;
+      createdAt: string;
+      reviewer: {
+        id: string;
+        name: string | null;
+        username: string | null;
+        profileImage: string | null;
+        displayFullName: boolean;
+        displayNameOption: string;
+      };
+    }>;
+    vehiclePhotos: Array<{
+      id: string;
+      fileUrl: string;
+      sortOrder: number;
+    }>;
+  };
 }
 
 interface ProfileStats {
@@ -58,6 +94,7 @@ interface PublicProfileClientProps {
 
 export default function PublicProfileClient({ user, openNewProducts, isOwnProfile = false }: PublicProfileClientProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [ambassadorSubTab, setAmbassadorSubTab] = useState<'overview' | 'reviews' | 'vehicle'>('overview');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [profileImage, setProfileImage] = useState(user?.profileImage ?? null);
@@ -138,8 +175,14 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     ];
 
     const sellerRoles = user.sellerRoles || [];
+    const deliveryTab: Array<{id: string, label: string, icon: any}> = [];
     const roleSpecificTabs: Array<{id: string, label: string, icon: any, role: string}> = [];
     const workspaceTab: Array<{id: string, label: string, icon: any}> = [];
+
+    // Voeg Ambassadeur tab toe als user een bezorger is (BOVENAAN!)
+    if (user.DeliveryProfile) {
+      deliveryTab.push({ id: 'ambassador', label: '🚴 Ambassadeur', icon: Truck });
+    }
 
     // Voeg aparte tabs toe voor elke verkoperrol (Mijn...)
     if (sellerRoles.includes('chef')) {
@@ -159,6 +202,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
 
     return [
       ...baseTabs,
+      ...deliveryTab, // Ambassadeur komt als eerste (na overzicht)
       ...workspaceTab,
       ...roleSpecificTabs
     ];
@@ -451,6 +495,218 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                 );
                 })()}
               </div>
+            </div>
+          )}
+
+          {/* Ambassadeur Tab - Bezorger Rol */}
+          {activeTab === 'ambassador' && user.DeliveryProfile && (
+            <div className="space-y-6">
+              {/* Pakkende Bezorger Header */}
+              <div className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-4 left-8 text-6xl">🚴</div>
+                  <div className="absolute bottom-4 right-12 text-5xl">📦</div>
+                  <div className="absolute top-1/2 left-1/3 text-4xl">⚡</div>
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                        <Truck className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold">HomeCheff Ambassadeur</h2>
+                        <p className="text-blue-100">Betrouwbare bezorger in jouw buurt</p>
+                      </div>
+                    </div>
+                    {user.DeliveryProfile.isVerified && (
+                      <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-semibold">Geverifieerd</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Bezorger Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                      <div className="text-3xl font-bold">{user.DeliveryProfile.totalDeliveries}</div>
+                      <div className="text-sm text-blue-100">Bezorgingen</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                      <div className="text-3xl font-bold flex items-center gap-1">
+                        {user.DeliveryProfile.averageRating?.toFixed(1) || '0.0'}
+                        <Star className="w-5 h-5 fill-yellow-300 text-yellow-300" />
+                      </div>
+                      <div className="text-sm text-blue-100">Gemiddelde Rating</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                      <div className="text-3xl font-bold">{user.DeliveryProfile.maxDistance} km</div>
+                      <div className="text-sm text-blue-100">Max Afstand</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                      <div className="text-3xl font-bold">{user.DeliveryProfile.transportation.length}</div>
+                      <div className="text-sm text-blue-100">Vervoermiddelen</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-tabs */}
+              <div className="flex gap-2 border-b border-gray-200">
+                <button
+                  onClick={() => setAmbassadorSubTab('overview')}
+                  className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                    ambassadorSubTab === 'overview'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Overzicht
+                </button>
+                <button
+                  onClick={() => setAmbassadorSubTab('reviews')}
+                  className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                    ambassadorSubTab === 'reviews'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Reviews ({user.DeliveryProfile.reviews.length})
+                </button>
+                <button
+                  onClick={() => setAmbassadorSubTab('vehicle')}
+                  className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                    ambassadorSubTab === 'vehicle'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Voertuig Foto's ({user.DeliveryProfile.vehiclePhotos.length})
+                </button>
+              </div>
+
+              {/* Overview Sub-tab */}
+              {ambassadorSubTab === 'overview' && (
+                <div className="space-y-6">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-4">Over mijn bezorgdienst</h3>
+                    <p className="text-gray-700 leading-relaxed">
+                      {user.DeliveryProfile.bio || user.bio || 'Ik ben een betrouwbare bezorger voor HomeCheff!'}
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white border rounded-xl p-6">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                        <Truck className="w-5 h-5 text-blue-600" />
+                        Vervoermiddelen
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {user.DeliveryProfile.transportation.map((t) => (
+                          <span key={t} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                            {t === 'BIKE' ? '🚴 Fiets' : t === 'EBIKE' ? '🚴 E-Bike' : t === 'SCOOTER' ? '🛵 Scooter' : '🚗 Auto'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border rounded-xl p-6">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-green-600" />
+                        Beschikbaarheid
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Dagen:</span> {user.DeliveryProfile.availableDays.join(', ')}</div>
+                        <div><span className="font-medium">Tijden:</span> {user.DeliveryProfile.availableTimeSlots.join(', ')}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews Sub-tab */}
+              {ambassadorSubTab === 'reviews' && (
+                <div className="space-y-4">
+                  {user.DeliveryProfile.reviews.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Star className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nog geen reviews ontvangen</p>
+                    </div>
+                  ) : (
+                    user.DeliveryProfile.reviews.map((review) => (
+                      <div key={review.id} className="bg-white border rounded-xl p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            {review.reviewer.profileImage ? (
+                              <SafeImage
+                                src={review.reviewer.profileImage}
+                                alt={review.reviewer.name || 'Reviewer'}
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <User className="w-5 h-5 text-gray-500" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium">{review.reviewer.name || review.reviewer.username || 'Anoniem'}</div>
+                              <div className="text-sm text-gray-500">
+                                {new Date(review.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Vehicle Photos Sub-tab */}
+              {ambassadorSubTab === 'vehicle' && (
+                <div>
+                  {user.DeliveryProfile.vehiclePhotos.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Camera className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nog geen voertuig foto's toegevoegd</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {user.DeliveryProfile.vehiclePhotos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="aspect-square rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+                          onClick={() => setSelectedImage(photo.fileUrl)}
+                        >
+                          <SafeImage
+                            src={photo.fileUrl}
+                            alt="Voertuig foto"
+                            fill
+                            className="object-cover hover:scale-105 transition-transform"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

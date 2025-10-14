@@ -78,6 +78,45 @@ export default async function PublicProfilePage({
                     orderBy: { createdAt: 'desc' }
                   }
                 }
+              },
+              // Bezorger data
+              DeliveryProfile: {
+                select: {
+                  id: true,
+                  age: true,
+                  bio: true,
+                  transportation: true,
+                  maxDistance: true,
+                  preferredRadius: true,
+                  deliveryMode: true,
+                  availableDays: true,
+                  availableTimeSlots: true,
+                  isActive: true,
+                  isVerified: true,
+                  totalDeliveries: true,
+                  averageRating: true,
+                  totalEarnings: true,
+                  createdAt: true,
+                  reviews: {
+                    include: {
+                      reviewer: {
+                        select: {
+                          id: true,
+                          name: true,
+                          username: true,
+                          profileImage: true,
+                          displayFullName: true,
+                          displayNameOption: true
+                        }
+                      }
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10
+                  },
+                  vehiclePhotos: {
+                    orderBy: { sortOrder: 'asc' }
+                  }
+                }
               }
     }
   });
@@ -151,6 +190,45 @@ export default async function PublicProfilePage({
                   }
                 },
                 orderBy: { createdAt: 'desc' }
+              }
+            }
+          },
+          // Bezorger data
+          DeliveryProfile: {
+            select: {
+              id: true,
+              age: true,
+              bio: true,
+              transportation: true,
+              maxDistance: true,
+              preferredRadius: true,
+              deliveryMode: true,
+              availableDays: true,
+              availableTimeSlots: true,
+              isActive: true,
+              isVerified: true,
+              totalDeliveries: true,
+              averageRating: true,
+              totalEarnings: true,
+              createdAt: true,
+              reviews: {
+                include: {
+                  reviewer: {
+                    select: {
+                      id: true,
+                      name: true,
+                      username: true,
+                      profileImage: true,
+                      displayFullName: true,
+                      displayNameOption: true
+                    }
+                  }
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10
+              },
+              vehiclePhotos: {
+                orderBy: { sortOrder: 'asc' }
               }
             }
           }
