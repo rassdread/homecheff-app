@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Check if conversation already exists for this order
+    // Check if conversation already exists for this order (including inactive)
     let conversation = await prisma.conversation.findFirst({
       where: {
         orderId,
@@ -133,6 +133,19 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    // If conversation exists but was deleted, reactivate it
+    if (conversation && !conversation.isActive) {
+      console.log('[StartOrderConversation] Reactivating deleted conversation:', conversation.id);
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { 
+          isActive: true,
+          lastMessageAt: new Date()
+        }
+      });
+      conversation.isActive = true;
+    }
 
     // Create new conversation if it doesn't exist
     if (!conversation) {

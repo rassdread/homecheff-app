@@ -85,9 +85,19 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       
       if (res.ok) {
         const data = await res.json();
-        setMessages(data.messages || []);
+        const newMessages = data.messages || [];
+        
+        console.log('✅ Messages loaded:', {
+          count: newMessages.length,
+          messages: newMessages.map((m: any) => ({
+            id: m.id.substring(0, 8),
+            text: m.text?.substring(0, 30),
+            sender: m.User?.name || m.User?.username
+          }))
+        });
+        
+        setMessages(newMessages);
         setIsLoading(false);
-        console.log('✅ Messages loaded:', data.messages?.length || 0);
         
         // Scroll to bottom
         setTimeout(() => {
@@ -241,7 +251,11 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       
       if (res.ok) {
         console.log('✅ Message sent!');
-        // Don't reload - Pusher will handle it
+        
+        // Immediately reload messages to show sent message
+        setTimeout(() => {
+          loadMessages();
+        }, 200);
       } else {
         console.error('❌ Failed to send:', res.status);
         alert('Kon bericht niet verzenden');

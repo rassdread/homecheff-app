@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if general conversation already exists (no productId)
+    // Check if general conversation already exists (no productId, including inactive)
     let conversation = await prisma.conversation.findFirst({
       where: {
         productId: null,
@@ -86,6 +86,19 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    // If conversation exists but was deleted, reactivate it
+    if (conversation && !conversation.isActive) {
+      console.log('[StartGeneralConversation] Reactivating deleted conversation:', conversation.id);
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { 
+          isActive: true,
+          lastMessageAt: new Date()
+        }
+      });
+      conversation.isActive = true;
+    }
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
