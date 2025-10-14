@@ -3,7 +3,7 @@
 import { useState, Suspense, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { useSession } from 'next-auth/react';
-import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle, Building, Award, Camera, TrendingUp, BarChart3 } from 'lucide-react';
+import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle, Building, Award, Camera, TrendingUp, BarChart3, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -55,6 +55,15 @@ interface User {
       priceCents: number;
       isActive: boolean;
     } | null;
+  } | null;
+  DeliveryProfile?: {
+    id: string;
+    isActive: boolean;
+    isVerified: boolean;
+    totalDeliveries: number;
+    averageRating: number | null;
+    reviews: any[];
+    vehiclePhotos: any[];
   } | null;
 }
 
@@ -578,6 +587,67 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Delivery Role - Ambassadeur */}
+              {user.DeliveryProfile && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                      Mijn Bezorgersrol
+                    </h3>
+                    {user.DeliveryProfile.isVerified && (
+                      <span className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Geverifieerd
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <div
+                      className="relative overflow-hidden rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+                      onClick={() => setActiveTab('ambassador')}
+                    >
+                      {/* Gradient overlay */}
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xl shadow-lg">
+                            🚴
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold text-blue-800 text-sm">
+                              HomeCheff Ambassadeur
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                              Bezorger
+                            </span>
+                            {user.DeliveryProfile.isActive && (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 animate-pulse">
+                                🟢 Actief
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 leading-relaxed">
+                            Betrouwbare bezorger • {user.DeliveryProfile.totalDeliveries} bezorgingen • ⭐ {user.DeliveryProfile.averageRating?.toFixed(1) || '0.0'}
+                          </p>
+                        </div>
+                        
+                        {/* Arrow indicator */}
+                        <div className="flex-shrink-0">
+                          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
