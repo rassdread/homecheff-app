@@ -42,6 +42,20 @@ interface User {
   showOnlineStatus?: boolean;
   fanRequestEnabled?: boolean;
   createdAt: Date;
+  SellerProfile?: {
+    id: string;
+    companyName: string | null;
+    kvk: string | null;
+    btw: string | null;
+    subscriptionId: string | null;
+    subscriptionValidUntil: Date | null;
+    Subscription?: {
+      id: string;
+      name: string;
+      priceCents: number;
+      isActive: boolean;
+    } | null;
+  } | null;
 }
 
 interface ProfileStats {
@@ -151,8 +165,12 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     const workspaceTab: Tab[] = [];
     const businessTabs: Tab[] = [];
 
-    // Check if user has business profile (KVK registration)
-    const hasBusinessProfile = user?.role === 'SELLER' && sellerRoles.length > 0;
+    // Check if user has business profile (KVK registration + active subscription)
+    const hasBusinessProfile = !!(
+      user?.SellerProfile?.kvk && 
+      user?.SellerProfile?.subscriptionId &&
+      user?.SellerProfile?.Subscription?.isActive
+    );
 
     if (hasBusinessProfile) {
       businessTabs.push(

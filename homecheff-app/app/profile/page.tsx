@@ -59,6 +59,25 @@ export default async function ProfilePage({
       iban: true,
       accountHolderName: true,
       createdAt: true,
+      // Seller/Business data
+      SellerProfile: {
+        select: {
+          id: true,
+          companyName: true,
+          kvk: true,
+          btw: true,
+          subscriptionId: true,
+          subscriptionValidUntil: true,
+          Subscription: {
+            select: {
+              id: true,
+              name: true,
+              priceCents: true,
+              isActive: true
+            }
+          }
+        }
+      },
       // Bezorger data
       DeliveryProfile: {
         select: {
