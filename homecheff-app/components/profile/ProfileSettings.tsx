@@ -161,7 +161,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     setSuccess(null);
     
     try {
-      await onSave(formData);
+      // Exclude username from formData since it can't be changed
+      const { username, ...dataToSave } = formData;
+      await onSave(dataToSave);
       setSuccess('Profiel succesvol bijgewerkt!');
       setIsEditing(false);
     } catch (error: any) {
