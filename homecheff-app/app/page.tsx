@@ -379,11 +379,56 @@ function HomePageContent() {
     }
   };
 
-  // NEW: Handler to use GPS location
-  const handleUseGPS = () => {
+  // NEW: Handler to use GPS location - IMPROVED
+  const handleUseGPS = async () => {
     console.log('🛰️ User requested GPS location');
     setValidatedAddress(''); // Clear validated address when using GPS
-    getCurrentPosition();
+    setIsStartLocationGeocoding(true); // Show loading state
+    
+    try {
+      // Check browser support
+      if (!navigator.geolocation) {
+        throw new Error('GPS wordt niet ondersteund door je browser');
+      }
+      
+      // Check permissions first
+      if (navigator.permissions) {
+        const permission = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+        console.log('📍 GPS Permission status:', permission.state);
+        
+        if (permission.state === 'denied') {
+          addNotification({
+            type: 'error',
+            title: 'GPS Toegang Geweigerd',
+            message: 'Schakel GPS toegang in via je browser instellingen',
+            duration: 6000,
+          });
+          setIsStartLocationGeocoding(false);
+          return;
+        }
+      }
+      
+      addNotification({
+        type: 'info',
+        title: 'GPS Locatie Ophalen',
+        message: 'Even geduld, je locatie wordt bepaald...',
+        duration: 3000,
+      });
+      
+      // Try to get position
+      await getCurrentPosition();
+      console.log('✅ GPS location requested successfully');
+      
+    } catch (error) {
+      console.error('GPS error:', error);
+      addNotification({
+        type: 'error',
+        title: 'GPS Fout',
+        message: error instanceof Error ? error.message : 'Kon GPS locatie niet ophalen',
+        duration: 5000,
+      });
+      setIsStartLocationGeocoding(false);
+    }
   };
 
   // NEW: Handler to use profile location

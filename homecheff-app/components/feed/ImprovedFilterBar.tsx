@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChefHat, Sprout, Palette, MapPin, Euro, Truck, Package, TrendingUp, Clock, X, Search, Grid3X3, List, Users, Filter, ChevronDown, Check } from 'lucide-react';
+import { ChefHat, Sprout, Palette, MapPin, Euro, Truck, Package, TrendingUp, Clock, X, Search, Grid3X3, List, Users, Filter, ChevronDown, Check, Navigation } from 'lucide-react';
 
 // Subcategorieën per hoofdcategorie
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -700,10 +700,11 @@ export default function ImprovedFilterBar({
               {onUseGPS && (
                 <button
                   onClick={onUseGPS}
-                  className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-sm"
-                  title="Gebruik GPS locatie"
+                  className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-sm font-medium flex items-center gap-1 transition-all hover:shadow-md"
+                  title="Gebruik je huidige GPS locatie"
                 >
-                  🛰️
+                  <Navigation className="w-4 h-4" />
+                  <span className="hidden xl:inline">GPS</span>
                 </button>
               )}
             </div>
