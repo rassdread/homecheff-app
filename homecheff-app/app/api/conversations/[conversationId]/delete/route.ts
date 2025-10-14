@@ -38,27 +38,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Mark conversation as inactive for this user
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { isActive: false }
+    // Hide conversation for THIS user only (not for other participants)
+    await prisma.conversationParticipant.update({
+      where: { id: participant.id },
+      data: { isHidden: true }
     });
 
-    // Mark all messages in this conversation as deleted
-    await prisma.message.updateMany({
-      where: {
-        conversationId
-      },
-      data: {
-        deletedAt: new Date()
-      }
-    });
-
-    console.log(`[DeleteConversation] Conversation ${conversationId} marked as inactive`);
+    console.log(`[DeleteConversation] Conversation ${conversationId} hidden for user ${user.id}`);
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Gesprek succesvol gewist' 
+      message: 'Gesprek succesvol verborgen' 
     });
 
   } catch (error) {

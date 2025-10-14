@@ -247,68 +247,131 @@ function HomePageContent() {
     }
   };
 
-  // NEW: Handler for manual location input from filters (postcode,huisnummer format)
+  // Cache for geocoding results to improve speed
+  const geocodingCache = useRef<Map<string, {lat: number, lng: number, address: string}>>(new Map());
+  const geocodingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // NEW: Handler for manual location input from filters (postcode,huisnummer format) - OPTIMIZED
   const handleManualLocation = async (location: string) => {
     if (!location.trim()) return;
+    
+    // Check if it's in "postcode,huisnummer" format
+    const parts = location.split(',');
+    if (parts.length !== 2) {
+      addNotification({
+        type: 'error',
+        title: 'Ongeldig formaat',
+        message: 'Gebruik formaat: postcode,huisnummer (bijv: 1012AB,123)',
+        duration: 4000,
+      });
+      return;
+    }
+    
+    const postcode = parts[0].trim().toUpperCase().replace(/\s/g, '');
+    const huisnummer = parts[1].trim();
+    
+    // Quick validation before API call
+    if (!/^\d{4}[A-Z]{2}$/.test(postcode)) {
+      addNotification({
+        type: 'error',
+        title: 'Ongeldige postcode',
+        message: 'Postcode moet in formaat 1234AB zijn',
+        duration: 4000,
+      });
+      return;
+    }
+    
+    if (!huisnummer || isNaN(Number(huisnummer))) {
+      addNotification({
+        type: 'error',
+        title: 'Ongeldig huisnummer',
+        message: 'Huisnummer moet een getal zijn',
+        duration: 4000,
+      });
+      return;
+    }
+    
+    // Check cache first for instant results
+    const cacheKey = `${postcode}-${huisnummer}`;
+    const cached = geocodingCache.current.get(cacheKey);
+    
+    if (cached) {
+      console.log('✅ Using cached address:', cacheKey);
+      setUserLocation({ lat: cached.lat, lng: cached.lng });
+      setStartLocationCoords({ lat: cached.lat, lng: cached.lng });
+      setLocationSource('manual');
+      setValidatedAddress(cached.address);
+      addNotification({
+        type: 'success',
+        title: 'Adres gevonden (cache)',
+        message: cached.address,
+        duration: 3000,
+      });
+      return;
+    }
     
     setIsStartLocationGeocoding(true);
     setValidatedAddress(''); // Clear previous address
     
     try {
-      // Check if it's in "postcode,huisnummer" format
-      const parts = location.split(',');
+      console.log('🔍 Validating Dutch address:', { postcode, huisnummer });
       
-      if (parts.length === 2) {
-        // Dutch address with postcode and huisnummer
-        const postcode = parts[0].trim();
-        const huisnummer = parts[1].trim();
-        
-        console.log('🔍 Validating Dutch address:', { postcode, huisnummer });
-        
-        const response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.lat && data.lng) {
-            setUserLocation({ lat: data.lat, lng: data.lng });
-            setStartLocationCoords({ lat: data.lat, lng: data.lng });
-            setLocationSource('manual');
-            
-            // Set the validated full address
-            const fullAddress = data.formatted_address || `${data.straatnaam || ''} ${huisnummer}, ${data.postcode || postcode} ${data.plaats || ''}`;
-            setValidatedAddress(fullAddress);
-            
-            console.log('✅ Address validated:', { fullAddress, lat: data.lat, lng: data.lng });
-            
-            addNotification({
-              type: 'success',
-              title: 'Adres gevalideerd',
-              message: fullAddress,
-              duration: 4000,
-            });
-          } else {
-            throw new Error('Geen coördinaten ontvangen');
-          }
+      const startTime = performance.now();
+      const response = await fetch(`/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`, {
+        signal: AbortSignal.timeout(8000) // 8 second timeout
+      });
+      const responseTime = performance.now() - startTime;
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.lat && data.lng) {
+          setUserLocation({ lat: data.lat, lng: data.lng });
+          setStartLocationCoords({ lat: data.lat, lng: data.lng });
+          setLocationSource('manual');
+          
+          // Set the validated full address
+          const fullAddress = data.formatted_address || `${data.straatnaam || ''} ${huisnummer}, ${data.postcode || postcode} ${data.plaats || ''}`;
+          setValidatedAddress(fullAddress);
+          
+          // Cache the result for future use
+          geocodingCache.current.set(cacheKey, {
+            lat: data.lat,
+            lng: data.lng,
+            address: fullAddress
+          });
+          
+          console.log(`✅ Address validated in ${responseTime.toFixed(0)}ms:`, { fullAddress, lat: data.lat, lng: data.lng });
+          
+          addNotification({
+            type: 'success',
+            title: 'Adres gevalideerd',
+            message: fullAddress,
+            duration: 3000,
+          });
         } else {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Adres niet gevonden');
+          throw new Error('Geen coördinaten ontvangen');
         }
       } else {
-        // Fallback for other formats
-        addNotification({
-          type: 'error',
-          title: 'Ongeldig formaat',
-          message: 'Vul zowel postcode als huisnummer in',
-          duration: 5000,
-        });
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Adres niet gevonden');
       }
     } catch (error) {
       console.error('Address validation error:', error);
       setValidatedAddress('');
+      
+      let errorMessage = 'Controleer postcode en huisnummer';
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+          errorMessage = 'Validatie duurt te lang, probeer opnieuw';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       addNotification({
         type: 'error',
         title: 'Adres niet gevonden',
-        message: error instanceof Error ? error.message : 'Controleer postcode en huisnummer',
+        message: errorMessage,
         duration: 5000,
       });
     } finally {
@@ -508,12 +571,21 @@ function HomePageContent() {
   };
 
   // Prevent duplicate fetches in React StrictMode (dev only)
-  const hasFetchedRef = useRef<string>('');
+  const hasFetchedRef = useRef<boolean>(false);
   
+  // Fetch data on mount (works for both logged in and non-logged in users)
   useEffect(() => {
-    const fetchKey = `${userRole}`;
-    if (hasFetchedRef.current !== fetchKey) {
-      hasFetchedRef.current = fetchKey;
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      console.log('🎬 Initial data fetch (works for non-logged users too)');
+      fetchData();
+    }
+  }, []);
+  
+  // Also fetch when userRole changes (for logged in users filtering)
+  useEffect(() => {
+    if (hasFetchedRef.current) {
+      console.log('🔄 Refetching due to userRole change:', userRole);
       fetchData();
     }
   }, [userRole]);

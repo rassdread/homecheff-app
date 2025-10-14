@@ -238,6 +238,7 @@ model ConversationParticipant {
   lastSeen       DateTime?
   isTyping       Boolean      @default(false)
   lastTypingAt   DateTime?
+  isHidden       Boolean      @default(false)
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -245,6 +246,7 @@ model ConversationParticipant {
   @@index([userId])
   @@index([userId], map: "idx_conversation_participant_user")
   @@index([lastSeen])
+  @@index([isHidden])
 }
 
 model ConversationKey {

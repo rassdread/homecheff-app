@@ -20,7 +20,8 @@ import {
   Play,
   Pause,
   RefreshCw,
-  MessageCircle
+  MessageCircle,
+  User
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -320,6 +321,13 @@ export default function DeliveryDashboard() {
               <p className="text-gray-600">Beheer je bezorgingen en verdiensten</p>
             </div>
             <div className="flex items-center gap-4">
+              <a
+                href="/delivery/profiel"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                Mijn Profiel
+              </a>
               <a
                 href="/delivery/settings"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"

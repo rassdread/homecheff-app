@@ -64,7 +64,7 @@ export async function GET(
             id: true,
             name: true,
             username: true,
-            image: true,
+            profileImage: true,
           }
         }
       },
@@ -90,13 +90,15 @@ export async function GET(
       messages: messages.map(message => ({
         id: message.id,
         text: message.text,
+        messageType: message.messageType,
         createdAt: message.createdAt,
+        readAt: message.readAt,
         isEncrypted: message.isEncrypted,
-        sender: {
+        User: {
           id: message.User.id,
           name: message.User.name,
           username: message.User.username,
-          profileImage: message.User.image,
+          profileImage: message.User.profileImage,
         }
       }))
     });

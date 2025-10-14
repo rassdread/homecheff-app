@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     console.log('[Admin Messages API] Fetching all conversations...');
 
     // Fetch all conversations with metadata
+    // Note: Admin sees ALL conversations, including hidden ones (for moderation)
     const conversations = await prisma.conversation.findMany({
       select: {
         id: true,
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
         },
         ConversationParticipant: {
           select: {
+            isHidden: true,
             User: {
               select: {
                 id: true,

@@ -39,6 +39,29 @@ export async function GET(request: NextRequest) {
         place: true,
         gender: true,
         interests: true,
+        phoneNumber: true,
+        address: true,
+        city: true,
+        postalCode: true,
+        country: true,
+        lat: true,
+        lng: true,
+        SellerProfile: {
+          select: {
+            companyName: true,
+            kvk: true,
+            btw: true,
+          }
+        },
+        DeliveryProfile: {
+          select: {
+            homeLat: true,
+            homeLng: true,
+            currentLat: true,
+            currentLng: true,
+            isOnline: true,
+          }
+        },
       },
       orderBy: { createdAt: 'desc' }
     });

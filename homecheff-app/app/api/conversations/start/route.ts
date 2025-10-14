@@ -97,9 +97,22 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // If conversation exists but was deleted, reactivate it
-    if (conversation && !conversation.isActive) {
-      console.log('[StartConversation] Reactivating deleted conversation:', conversation.id);
+    // If conversation exists, make sure it's visible for this user and reactivate it
+    if (conversation) {
+      console.log('[StartConversation] Reactivating conversation:', conversation.id);
+      
+      // Unhide conversation for this user if it was hidden
+      await prisma.conversationParticipant.updateMany({
+        where: {
+          conversationId: conversation.id,
+          userId: user.id
+        },
+        data: {
+          isHidden: false
+        }
+      });
+      
+      // Reactivate conversation
       await prisma.conversation.update({
         where: { id: conversation.id },
         data: { 

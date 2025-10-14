@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
     const session = await auth();
     console.log('[Conversations API] Session:', { 
       hasSession: !!session, 
-      email: session?.user?.email 
+      email: session?.user?.email,
+      userId: (session?.user as any)?.id
     });
     
     if (!session?.user?.email) {
@@ -27,6 +28,9 @@ export async function GET(req: NextRequest) {
         name: true,
         username: true,
         ConversationParticipant: {
+          where: {
+            isHidden: false  // Only fetch non-hidden conversations
+          },
           select: {
             Conversation: {
               select: {
@@ -148,7 +152,14 @@ export async function GET(req: NextRequest) {
     console.log('[Conversations API] ✅ Returning conversations:', {
       count: conversations.length,
       conversationIds: conversations.map(c => c.id),
-      withMessages: conversations.filter(c => c.lastMessage).length
+      withMessages: conversations.filter(c => c.lastMessage).length,
+      conversations: conversations.map(c => ({
+        id: c.id,
+        title: c.title,
+        isActive: c.isActive,
+        participants: c.participants.length,
+        hasLastMessage: !!c.lastMessage
+      }))
     });
 
     return NextResponse.json({ conversations });

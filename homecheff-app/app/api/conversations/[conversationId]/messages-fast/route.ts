@@ -57,8 +57,8 @@ export async function GET(
     const messages = await prisma.message.findMany({
       where: {
         conversationId,
-        deletedAt: null,
         isEncrypted: false // Skip encrypted messages for speed
+        // Note: We don't filter on deletedAt anymore - conversation visibility is handled via isHidden on participant level
       },
       select: {
         id: true,

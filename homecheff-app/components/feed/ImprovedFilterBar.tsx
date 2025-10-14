@@ -104,6 +104,8 @@ export default function ImprovedFilterBar({
   const [showFilters, setShowFilters] = useState(false);
   const [localPriceMin, setLocalPriceMin] = useState(priceRange.min);
   const [localPriceMax, setLocalPriceMax] = useState(priceRange.max);
+  const [isValidating, setIsValidating] = useState(false);
+  const [formatValid, setFormatValid] = useState<boolean | null>(null);
 
   // Auto-show subcategories when category is selected
   useEffect(() => {
@@ -113,6 +115,27 @@ export default function ImprovedFilterBar({
       setShowSubcategories(false);
     }
   }, [category]);
+
+  // Real-time format validation
+  useEffect(() => {
+    if (!locationInput || !locationInput.includes(',')) {
+      setFormatValid(null);
+      return;
+    }
+    
+    const [postcode, huisnummer] = locationInput.split(',');
+    const cleanPostcode = postcode?.trim().toUpperCase().replace(/\s/g, '');
+    const cleanHuisnummer = huisnummer?.trim();
+    
+    // Validate format - explicitly return boolean
+    const isValidFormat: boolean = Boolean(
+      /^\d{4}[A-Z]{2}$/.test(cleanPostcode || '') && 
+      cleanHuisnummer && 
+      !isNaN(Number(cleanHuisnummer))
+    );
+    
+    setFormatValid(isValidFormat);
+  }, [locationInput]);
 
   // Get available subcategories for current category
   const availableSubcategories = category && category !== 'all' ? SUBCATEGORIES[category] || [] : [];
@@ -241,32 +264,78 @@ export default function ImprovedFilterBar({
                         const huisnummer = locationInput.split(',')[1] || '';
                         onLocationInputChange(huisnummer ? `${postcode},${huisnummer}` : postcode);
                       }}
-                      className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm uppercase"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && formatValid && !isValidating) {
+                          e.preventDefault();
+                          const [postcode, huisnummer] = locationInput.split(',');
+                          if (postcode?.trim() && huisnummer?.trim()) {
+                            setIsValidating(true);
+                            onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                            setTimeout(() => setIsValidating(false), 3000);
+                          }
+                        }
+                      }}
+                      className={`col-span-2 px-3 py-2 border rounded-lg focus:ring-2 text-sm uppercase transition-all ${
+                        formatValid === false && locationInput.split(',')[0]?.trim() 
+                          ? 'border-red-300 focus:ring-red-500 bg-red-50' 
+                          : formatValid === true
+                          ? 'border-emerald-300 focus:ring-emerald-500 bg-emerald-50'
+                          : 'border-gray-300 focus:ring-emerald-500'
+                      }`}
                       maxLength={7}
                     />
                     <input
                       type="text"
-                      placeholder="Nr."
+                      placeholder="Nr. (123)"
                       value={locationInput.split(',')[1] || ''}
                       onChange={(e) => {
                         const postcode = locationInput.split(',')[0] || '';
                         const huisnummer = e.target.value;
                         onLocationInputChange(`${postcode},${huisnummer}`);
                       }}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && formatValid && !isValidating) {
+                          e.preventDefault();
+                          const [postcode, huisnummer] = locationInput.split(',');
+                          if (postcode?.trim() && huisnummer?.trim()) {
+                            setIsValidating(true);
+                            onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                            setTimeout(() => setIsValidating(false), 3000);
+                          }
+                        }
+                      }}
+                      className={`px-3 py-2 border rounded-lg focus:ring-2 text-sm transition-all ${
+                        formatValid === false && locationInput.split(',')[1]?.trim()
+                          ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                          : formatValid === true
+                          ? 'border-emerald-300 focus:ring-emerald-500 bg-emerald-50'
+                          : 'border-gray-300 focus:ring-emerald-500'
+                      }`}
                     />
                   </div>
                   <button
                     onClick={() => {
                       const [postcode, huisnummer] = locationInput.split(',');
                       if (postcode?.trim() && huisnummer?.trim()) {
+                        setIsValidating(true);
                         onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                        setTimeout(() => setIsValidating(false), 3000);
                       }
                     }}
-                    disabled={!locationInput.includes(',') || !locationInput.split(',')[0]?.trim() || !locationInput.split(',')[1]?.trim()}
-                    className="w-full px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm font-medium"
+                    disabled={!formatValid || isValidating}
+                    className="w-full px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-all flex items-center justify-center gap-2"
                   >
-                    🔍 Valideer Adres
+                    {isValidating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Valideren...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Valideer</span>
+                      </>
+                    )}
                   </button>
                   
                   {/* Validated Address Display */}
@@ -553,7 +622,24 @@ export default function ImprovedFilterBar({
                   const huisnummer = locationInput.split(',')[1] || '';
                   onLocationInputChange(huisnummer ? `${postcode},${huisnummer}` : postcode);
                 }}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm uppercase"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && formatValid && !isValidating) {
+                    e.preventDefault();
+                    const [postcode, huisnummer] = locationInput.split(',');
+                    if (postcode?.trim() && huisnummer?.trim()) {
+                      setIsValidating(true);
+                      onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                      setTimeout(() => setIsValidating(false), 3000);
+                    }
+                  }
+                }}
+                className={`w-24 px-3 py-2 border rounded-lg focus:ring-2 text-sm uppercase transition-all ${
+                  formatValid === false && locationInput.split(',')[0]?.trim()
+                    ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                    : formatValid === true
+                    ? 'border-emerald-300 focus:ring-emerald-500 bg-emerald-50'
+                    : 'border-gray-300 focus:ring-emerald-500'
+                }`}
                 maxLength={7}
               />
               <input
@@ -565,19 +651,42 @@ export default function ImprovedFilterBar({
                   const huisnummer = e.target.value;
                   onLocationInputChange(`${postcode},${huisnummer}`);
                 }}
-                className="w-16 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && formatValid && !isValidating) {
+                    e.preventDefault();
+                    const [postcode, huisnummer] = locationInput.split(',');
+                    if (postcode?.trim() && huisnummer?.trim()) {
+                      setIsValidating(true);
+                      onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                      setTimeout(() => setIsValidating(false), 3000);
+                    }
+                  }
+                }}
+                className={`w-16 px-3 py-2 border rounded-lg focus:ring-2 text-sm transition-all ${
+                  formatValid === false && locationInput.split(',')[1]?.trim()
+                    ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                    : formatValid === true
+                    ? 'border-emerald-300 focus:ring-emerald-500 bg-emerald-50'
+                    : 'border-gray-300 focus:ring-emerald-500'
+                }`}
               />
               <button
                 onClick={() => {
                   const [postcode, huisnummer] = locationInput.split(',');
                   if (postcode?.trim() && huisnummer?.trim()) {
+                    setIsValidating(true);
                     onLocationSearch(`${postcode.trim()},${huisnummer.trim()}`);
+                    setTimeout(() => setIsValidating(false), 3000);
                   }
                 }}
-                disabled={!locationInput.includes(',') || !locationInput.split(',')[0]?.trim() || !locationInput.split(',')[1]?.trim()}
-                className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 text-sm font-medium"
+                disabled={!formatValid || isValidating}
+                className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-xs font-medium transition-all flex items-center gap-1"
               >
-                Valideer
+                {isValidating ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Check className="w-3 h-3" />
+                )}
               </button>
               {profileLocation?.lat && profileLocation?.lng && onUseProfile && (
                 <button

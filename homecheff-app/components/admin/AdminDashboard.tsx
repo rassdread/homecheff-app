@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getDisplayName } from '@/lib/displayName';
-import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield, Phone, Archive } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, Settings, Trash2, Eye, Send, Bell, TrendingUp, Truck, Shield } from 'lucide-react';
 import UserManagement from './UserManagement';
 import ProductManagement from './ProductManagement';
 import SellerManagement from './SellerManagement';
@@ -10,10 +10,8 @@ import NotificationCenter from './NotificationCenter';
 import DeliveryManagement from './DeliveryManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ContentModerationDashboard from './ContentModerationDashboard';
-import AdminMessages from './AdminMessages';
-import AdminUserContact from './AdminUserContact';
+import AdminChatManagement from './AdminChatManagement';
 import AdminFilters from './AdminFilters';
-import ChatArchiver from './ChatArchiver';
 import LiveLocationMap from './LiveLocationMap';
 
 interface AdminStats {
@@ -164,9 +162,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
   const tabs = [
     { id: 'overview', label: 'Overzicht', icon: Eye },
     { id: 'users', label: 'Gebruikers', icon: Users },
-    { id: 'contact', label: 'Contact Zoeken', icon: Phone },
-    { id: 'messages', label: 'Chat Overzicht', icon: MessageSquare },
-    { id: 'chat-archive', label: 'Chat Archivering', icon: Archive },
+    { id: 'messages', label: 'Berichten', icon: MessageSquare },
     { id: 'sellers', label: 'Verkopers', icon: TrendingUp },
     { id: 'products', label: 'Producten', icon: Package },
     { id: 'delivery', label: 'Bezorgers', icon: Truck },
@@ -405,9 +401,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {activeTab === 'live-locations' && <LiveLocationMap locations={stats.deliveryProfiles} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'moderation' && <ContentModerationDashboard />}
-        {activeTab === 'messages' && <AdminMessages />}
-        {activeTab === 'chat-archive' && <ChatArchiver />}
-        {activeTab === 'contact' && <AdminUserContact />}
+        {activeTab === 'messages' && <AdminChatManagement />}
         {activeTab === 'notifications' && <NotificationCenter />}
       </div>
     </div>

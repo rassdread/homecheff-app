@@ -105,10 +105,10 @@ export async function GET(
     }
 
     // Fetch messages with pagination
+    // Note: We don't filter on deletedAt anymore - conversation visibility is handled via isHidden on participant level
     const messages = await prisma.message.findMany({
       where: {
-        conversationId,
-        deletedAt: null
+        conversationId
       },
       include: {
         User: {
@@ -370,7 +370,18 @@ export async function POST(
         isActive: true // Reactivate conversation when new message is sent
       }
     });
-    console.log('[Messages API POST] ✅ Conversation updated and reactivated');
+    
+    // Unhide conversation for ALL participants when a new message is sent
+    console.log('[Messages API POST] 👁️ Unhiding conversation for all participants...');
+    await prisma.conversationParticipant.updateMany({
+      where: {
+        conversationId: conversationId
+      },
+      data: {
+        isHidden: false
+      }
+    });
+    console.log('[Messages API POST] ✅ Conversation updated, reactivated and unhidden for all participants');
 
     // Trigger Pusher event for real-time delivery
     try {

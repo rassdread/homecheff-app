@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { 
   Plus, Grid, List, Search, Heart, Users, Star, Eye, 
   Truck, Bike, Navigation, MapPin, Clock, Award, Shield,
-  CheckCircle, Calendar, TrendingUp, MessageCircle, Camera
+  CheckCircle, Calendar, TrendingUp, MessageCircle, Camera,
+  ChefHat, Sprout, Palette, Package
 } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
@@ -22,9 +23,24 @@ interface User {
   interests: string[];
   profileImage: string | null;
   role: string;
+  sellerRoles?: string[];
+  buyerRoles?: string[];
   displayFullName: boolean;
   displayNameOption: string;
   createdAt: string;
+  SellerProfile?: {
+    id: string;
+    displayName: string | null;
+    companyName: string | null;
+    products: Array<{
+      id: string;
+      title: string;
+      description: string;
+      priceCents: number;
+      category: string;
+      Image: Array<{ fileUrl: string }>;
+    }>;
+  } | null;
   DeliveryProfile: {
     id: string;
     age: number;
@@ -73,6 +89,7 @@ interface ProfileStats {
 
 export default function PublicDeliveryProfileClient({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [userStats, setUserStats] = useState<ProfileStats>({
     deliveries: user.DeliveryProfile.totalDeliveries,
     rating: user.DeliveryProfile.averageRating || 0,
@@ -80,6 +97,22 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
     followers: 0,
     props: 0
   });
+
+  // Check if viewing own profile
+  useEffect(() => {
+    const checkOwnProfile = async () => {
+      try {
+        const response = await fetch('/api/user/me');
+        if (response.ok) {
+          const data = await response.json();
+          setIsOwnProfile(data.user?.id === user.id);
+        }
+      } catch (error) {
+        console.error('Error checking profile ownership:', error);
+      }
+    };
+    checkOwnProfile();
+  }, [user.id]);
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -181,8 +214,13 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
     ));
   };
 
+  const hasSellerRoles = user.sellerRoles && user.sellerRoles.length > 0;
+  const hasProducts = user.SellerProfile?.products && user.SellerProfile.products.length > 0;
+
   const tabs = [
     { id: 'overview', label: 'Overzicht', icon: Eye },
+    ...(hasSellerRoles ? [{ id: 'roles', label: 'Verkoper Rollen', icon: Award }] : []),
+    ...(hasProducts ? [{ id: 'products', label: `Producten (${user.SellerProfile?.products.length || 0})`, icon: Package }] : []),
     { id: 'transportation', label: 'Vervoer', icon: Truck },
     { id: 'reviews', label: `Reviews (${user.DeliveryProfile.reviews.length})`, icon: Star },
     { id: 'vehicle', label: 'Voertuig Foto\'s', icon: Camera }
@@ -190,6 +228,26 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Settings Button for Own Profile */}
+      {isOwnProfile && (
+        <div className="mb-6 flex justify-end gap-3">
+          <Link
+            href="/delivery/dashboard"
+            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium shadow-sm"
+          >
+            <TrendingUp className="w-4 h-4" />
+            Dashboard
+          </Link>
+          <Link
+            href="/delivery/settings"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            {hasSellerRoles ? 'Beheer Rollen' : 'Voeg Rollen Toe'}
+          </Link>
+        </div>
+      )}
+
       {/* Profile Header - Strak en Gelikt (Bezorger Stijl) */}
       <div className="bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/30 rounded-3xl shadow-lg border-2 border-blue-100 overflow-hidden mb-8">
         {/* Cover Image Effect - Bezorger Gradient */}
@@ -272,7 +330,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                 </p>
               )}
 
-              {/* Bezorger Badge */}
+              {/* Bezorger Badge & Seller Roles */}
               <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
                 <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 rounded-full text-xs sm:text-sm font-semibold border border-blue-200 shadow-sm">
                   🚴 HomeCheff Bezorger
@@ -280,6 +338,22 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                 {user.DeliveryProfile.isVerified && (
                   <span className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full text-xs sm:text-sm font-semibold border border-green-200 shadow-sm">
                     ✅ Geverifieerd
+                  </span>
+                )}
+                {/* Seller Roles Badges */}
+                {user.sellerRoles?.includes('CHEFF') && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 rounded-full text-xs sm:text-sm font-semibold border border-orange-200 shadow-sm">
+                    👨‍🍳 Chef
+                  </span>
+                )}
+                {user.sellerRoles?.includes('GROWN') && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full text-xs sm:text-sm font-semibold border border-green-200 shadow-sm">
+                    🌱 Tuinier
+                  </span>
+                )}
+                {user.sellerRoles?.includes('DESIGNER') && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 rounded-full text-xs sm:text-sm font-semibold border border-purple-200 shadow-sm">
+                    🎨 Designer
                   </span>
                 )}
               </div>
@@ -471,6 +545,154 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                   })}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'roles' && hasSellerRoles && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Award className="w-6 h-6 text-purple-600" />
+                Verkoper Rollen
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {user.sellerRoles?.includes('CHEFF') && (
+                  <div className="bg-gradient-to-br from-orange-100 to-red-100 border-2 border-orange-200 rounded-xl p-6 shadow-lg">
+                    <div className="text-center">
+                      <div className="text-5xl mb-3">👨‍🍳</div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Chef</h3>
+                      <p className="text-sm text-gray-700 mb-4">Verkoop culinaire creaties</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Actief</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {user.sellerRoles?.includes('GROWN') && (
+                  <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200 rounded-xl p-6 shadow-lg">
+                    <div className="text-center">
+                      <div className="text-5xl mb-3">🌱</div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Tuinier</h3>
+                      <p className="text-sm text-gray-700 mb-4">Deel groenten en kruiden</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Actief</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {user.sellerRoles?.includes('DESIGNER') && (
+                  <div className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200 rounded-xl p-6 shadow-lg">
+                    <div className="text-center">
+                      <div className="text-5xl mb-3">🎨</div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Designer</h3>
+                      <p className="text-sm text-gray-700 mb-4">Verkoop handgemaakte items</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Actief</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Info about adding more roles */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <Award className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-2">Meerdere Rollen</h4>
+                    <p className="text-sm text-gray-700">
+                      Deze bezorger heeft meerdere verkoper rollen en kan verschillende soorten producten aanbieden. 
+                      Bekijk de producten tab om te zien wat er te koop is!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'products' && hasProducts && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Package className="w-6 h-6 text-emerald-600" />
+                  Te Koop Producten
+                </h2>
+                <Link
+                  href={`/user/${user.username}`}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Bekijk alle producten →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {user.SellerProfile?.products.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/product/${product.id}`}
+                    className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
+                  >
+                    {/* Product Image */}
+                    <div className="relative h-48 bg-gray-100">
+                      {product.Image[0]?.fileUrl ? (
+                        <SafeImage
+                          src={product.Image[0].fileUrl}
+                          alt={product.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          {product.category === 'CHEFF' && <ChefHat className="w-12 h-12 text-gray-400" />}
+                          {product.category === 'GROWN' && <Sprout className="w-12 h-12 text-gray-400" />}
+                          {product.category === 'DESIGNER' && <Palette className="w-12 h-12 text-gray-400" />}
+                        </div>
+                      )}
+                      {/* Price Badge */}
+                      <div className="absolute bottom-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                        €{(product.priceCents / 100).toFixed(2)}
+                      </div>
+                      {/* Category Badge */}
+                      <div className="absolute top-2 right-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          product.category === 'CHEFF' ? 'bg-orange-100 text-orange-700' :
+                          product.category === 'GROWN' ? 'bg-green-100 text-green-700' :
+                          product.category === 'DESIGNER' ? 'bg-purple-100 text-purple-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {product.category === 'CHEFF' && '👨‍🍳'}
+                          {product.category === 'GROWN' && '🌱'}
+                          {product.category === 'DESIGNER' && '🎨'}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Product Info */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {product.description}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* More Products Link */}
+              {(user.SellerProfile?.products.length || 0) >= 6 && (
+                <div className="text-center">
+                  <Link
+                    href={`/user/${user.username}`}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Bekijk Alle Producten →
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

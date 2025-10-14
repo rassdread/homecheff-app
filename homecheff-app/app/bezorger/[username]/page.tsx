@@ -27,9 +27,36 @@ export default async function PublicDeliveryProfilePage({
       interests: true,
       profileImage: true,
       role: true,
+      sellerRoles: true,
+      buyerRoles: true,
       displayFullName: true,
       displayNameOption: true,
       createdAt: true,
+      SellerProfile: {
+        select: {
+          id: true,
+          displayName: true,
+          companyName: true,
+          products: {
+            where: {
+              isActive: true
+            },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              priceCents: true,
+              category: true,
+              Image: {
+                select: { fileUrl: true },
+                take: 1
+              }
+            },
+            take: 6,
+            orderBy: { createdAt: 'desc' }
+          }
+        }
+      },
       DeliveryProfile: {
         select: {
           id: true,
@@ -93,9 +120,36 @@ export default async function PublicDeliveryProfilePage({
           interests: true,
           profileImage: true,
           role: true,
+          sellerRoles: true,
+          buyerRoles: true,
           displayFullName: true,
           displayNameOption: true,
           createdAt: true,
+          SellerProfile: {
+            select: {
+              id: true,
+              displayName: true,
+              companyName: true,
+              products: {
+                where: {
+                  isActive: true
+                },
+                select: {
+                  id: true,
+                  title: true,
+                  description: true,
+                  priceCents: true,
+                  category: true,
+                  Image: {
+                    select: { fileUrl: true },
+                    take: 1
+                  }
+                },
+                take: 6,
+                orderBy: { createdAt: 'desc' }
+              }
+            }
+          },
           DeliveryProfile: {
             select: {
               id: true,

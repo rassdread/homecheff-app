@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { useSafeFetch } from '@/hooks/useSafeFetch';
-import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit, MessageSquare, Phone, X } from 'lucide-react';
+import { Users, Search, Trash2, Eye, Mail, Shield, UserCheck, UserX, UserPlus, Edit, MessageSquare, Phone, X, Info, MapPin, Building, Hash, Navigation } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -20,6 +21,25 @@ interface User {
   place: string | null;
   gender: string | null;
   interests: string[] | null;
+  phoneNumber: string | null;
+  address: string | null;
+  city: string | null;
+  postalCode: string | null;
+  country: string | null;
+  lat: number | null;
+  lng: number | null;
+  SellerProfile?: {
+    companyName: string | null;
+    kvk: string | null;
+    btw: string | null;
+  } | null;
+  DeliveryProfile?: {
+    homeLat: number | null;
+    homeLng: number | null;
+    currentLat: number | null;
+    currentLng: number | null;
+    isOnline: boolean;
+  } | null;
 }
 
 export default function UserManagement() {
@@ -30,6 +50,8 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedUserForContact, setSelectedUserForContact] = useState<User | null>(null);
   const [bulkMessageData, setBulkMessageData] = useState({
     subject: '',
     message: '',
@@ -346,12 +368,24 @@ export default function UserManagement() {
                         )}
                       </div>
                       <div className="ml-4">
-                        <Link 
-                          href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
-                          className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
-                        >
-                          {getDisplayName(user)}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link 
+                            href={user.username ? `/user/${user.username}` : `/profile/${user.id}`}
+                            className="text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 py-1 px-1 -mx-1 rounded touch-manipulation"
+                          >
+                            {getDisplayName(user)}
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setSelectedUserForContact(user);
+                              setShowContactModal(true);
+                            }}
+                            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Contactgegevens bekijken"
+                          >
+                            <Info className="w-4 h-4" />
+                          </button>
+                        </div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         {user.username && (
                           <div className="text-xs text-gray-400">@{user.username}</div>
@@ -511,6 +545,207 @@ export default function UserManagement() {
         </div>
       )}
 
+      {/* Contact Info Modal */}
+      {showContactModal && selectedUserForContact && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={() => setShowContactModal(false)}
+            ></div>
+
+            {/* Modal */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {selectedUserForContact.image || selectedUserForContact.profileImage ? (
+                      <Image
+                        src={selectedUserForContact.image || selectedUserForContact.profileImage || ''}
+                        alt={getDisplayName(selectedUserForContact)}
+                        width={48}
+                        height={48}
+                        className="rounded-full border-2 border-white"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-bold text-white">
+                        {getDisplayName(selectedUserForContact)}
+                      </h3>
+                      <p className="text-blue-100 text-sm">Contactgegevens</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowContactModal(false)}
+                    className="text-white hover:text-gray-200 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-6 space-y-4">
+                {/* Email */}
+                <div className="flex items-start gap-3">
+                  <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-500 uppercase">E-mail</p>
+                    <a 
+                      href={`mailto:${selectedUserForContact.email}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {selectedUserForContact.email}
+                    </a>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {selectedUserForContact.phoneNumber && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-gray-500 uppercase">Telefoonnummer</p>
+                      <a 
+                        href={`tel:${selectedUserForContact.phoneNumber}`}
+                        className="text-sm text-blue-600 hover:underline font-mono"
+                      >
+                        {selectedUserForContact.phoneNumber}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Address */}
+                {(selectedUserForContact.address || selectedUserForContact.city) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-gray-500 uppercase">Adres</p>
+                      <div className="text-sm text-gray-900 space-y-0.5">
+                        {selectedUserForContact.address && (
+                          <p>{selectedUserForContact.address}</p>
+                        )}
+                        {(selectedUserForContact.postalCode || selectedUserForContact.city) && (
+                          <p>
+                            {selectedUserForContact.postalCode} {selectedUserForContact.city}
+                          </p>
+                        )}
+                        {selectedUserForContact.country && (
+                          <p className="text-gray-600">{selectedUserForContact.country}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Business Info */}
+                {selectedUserForContact.SellerProfile && (
+                  <>
+                    <div className="border-t border-gray-200 pt-4"></div>
+                    <h4 className="text-sm font-semibold text-gray-700">Bedrijfsgegevens</h4>
+                    
+                    {selectedUserForContact.SellerProfile.companyName && (
+                      <div className="flex items-start gap-3">
+                        <Building className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase">Bedrijfsnaam</p>
+                          <p className="text-sm text-gray-900">{selectedUserForContact.SellerProfile.companyName}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedUserForContact.SellerProfile.kvk && (
+                      <div className="flex items-start gap-3">
+                        <Hash className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase">KVK</p>
+                          <p className="text-sm text-gray-900 font-mono">{selectedUserForContact.SellerProfile.kvk}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedUserForContact.SellerProfile.btw && (
+                      <div className="flex items-start gap-3">
+                        <Hash className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase">BTW</p>
+                          <p className="text-sm text-gray-900 font-mono">{selectedUserForContact.SellerProfile.btw}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Location / GPS */}
+                {((selectedUserForContact.lat && selectedUserForContact.lng) || 
+                 (selectedUserForContact.DeliveryProfile?.currentLat && selectedUserForContact.DeliveryProfile?.currentLng)) && (
+                  <>
+                    <div className="border-t border-gray-200 pt-4"></div>
+                    <div className="flex items-start gap-3">
+                      <Navigation className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-gray-500 uppercase">Locatie</p>
+                        {selectedUserForContact.DeliveryProfile?.currentLat && selectedUserForContact.DeliveryProfile?.currentLng && (
+                          <>
+                            <p className="text-sm text-gray-900">
+                              Live locatie: {selectedUserForContact.DeliveryProfile.currentLat.toFixed(6)}, {selectedUserForContact.DeliveryProfile.currentLng.toFixed(6)}
+                            </p>
+                            <a
+                              href={`https://www.google.com/maps?q=${selectedUserForContact.DeliveryProfile.currentLat},${selectedUserForContact.DeliveryProfile.currentLng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                            >
+                              Bekijk op Google Maps →
+                            </a>
+                            {selectedUserForContact.DeliveryProfile.isOnline && (
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                🟢 Online
+                              </span>
+                            )}
+                          </>
+                        )}
+                        {selectedUserForContact.lat && selectedUserForContact.lng && !selectedUserForContact.DeliveryProfile?.currentLat && (
+                          <>
+                            <p className="text-sm text-gray-900">
+                              {selectedUserForContact.lat.toFixed(6)}, {selectedUserForContact.lng.toFixed(6)}
+                            </p>
+                            <a
+                              href={`https://www.google.com/maps?q=${selectedUserForContact.lat},${selectedUserForContact.lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                            >
+                              Bekijk op Google Maps →
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-2">
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Sluiten
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
