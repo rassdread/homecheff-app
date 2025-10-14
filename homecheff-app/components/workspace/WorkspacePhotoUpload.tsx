@@ -74,33 +74,40 @@ export default function WorkspacePhotoUpload({
       return;
     }
 
-    const filesToUpload = Array.from(files).slice(0, remainingSlots);
-    
-    for (const file of filesToUpload) {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
       // Client-side validation
       if (!file.type.startsWith('image/')) {
         alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
-        continue;
+        return false;
       }
       
       if (file.size > 10 * 1024 * 1024) { // 10MB
         alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
-        continue;
+        return false;
       }
+      
+      return true;
+    }).slice(0, remainingSlots);
+    
+    if (validFiles.length === 0) return;
 
-      const tempId = crypto.randomUUID();
-      const tempPhoto: PhotoItem = {
-        id: tempId,
-        url: '',
-        uploading: true
-      };
+    setLoading(true);
+    console.log(`🏢 Uploading ${validFiles.length} workspace foto's parallel...`);
 
-      // Add uploading placeholder
-      setPhotos(prevPhotos => {
-        const updatedPhotos = [...prevPhotos, tempPhoto];
-        return updatedPhotos;
-      });
+    // Create placeholder photos immediately
+    const tempPhotos: PhotoItem[] = validFiles.map(() => ({
+      id: crypto.randomUUID(),
+      url: '',
+      uploading: true
+    }));
 
+    setPhotos(prevPhotos => [...prevPhotos, ...tempPhotos]);
+
+    // Upload all files in parallel using Promise.all for speed
+    const uploadPromises = validFiles.map(async (file, i) => {
+      const tempId = tempPhotos[i].id;
+      
       try {
         // Upload file directly to database
         const formData = new FormData();
@@ -115,33 +122,48 @@ export default function WorkspacePhotoUpload({
         if (response.ok) {
           const result = await response.json();
           console.log(`Upload successful for ${file.name}:`, result);
-          
-          // Replace uploading placeholder with uploaded photo
-          setPhotos(prevPhotos => {
-            const updatedPhotos = prevPhotos.map(p => 
-              p.id === tempId 
-                ? { id: result.photos[0]?.id || tempId, url: result.photos[0]?.fileUrl || '' }
-                : p
-            );
-            return updatedPhotos;
-          });
+          return { 
+            success: true, 
+            tempId, 
+            id: result.photos[0]?.id || tempId, 
+            url: result.photos[0]?.fileUrl || '' 
+          };
         } else {
-          // Remove failed upload
-          setPhotos(prevPhotos => {
-            const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
-            return updatedPhotos;
-          });
-          alert(`Upload van "${file.name}" mislukt`);
+          console.error(`Upload failed for ${file.name}`);
+          return { success: false, tempId, error: 'Upload mislukt' };
         }
-        
       } catch (error) {
-        // Remove failed upload
-        setPhotos(prevPhotos => {
-          const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
-          return updatedPhotos;
-        });
-        alert(`Upload van "${file.name}" mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+        console.error(`Upload error for ${file.name}:`, error);
+        return { success: false, tempId, error: String(error) };
       }
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    // Update photos with results
+    setPhotos(prevPhotos => {
+      return prevPhotos.map(photo => {
+        const result = results.find(r => r.tempId === photo.id);
+        if (result?.success && result.url) {
+          return { id: result.id, url: result.url };
+        }
+        return photo;
+      }).filter(photo => {
+        // Remove failed uploads
+        const result = results.find(r => r.tempId === photo.id);
+        return !photo.uploading || (result && result.success);
+      });
+    });
+    
+    setLoading(false);
+    
+    const successCount = results.filter(r => r.success).length;
+    const failedCount = results.filter(r => !r.success).length;
+    
+    console.log(`✅ ${successCount}/${validFiles.length} workspace foto's succesvol geüpload`);
+    
+    if (failedCount > 0) {
+      alert(`${failedCount} foto('s) konden niet worden geüpload.`);
     }
   };
 

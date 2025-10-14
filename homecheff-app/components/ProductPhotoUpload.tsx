@@ -33,73 +33,94 @@ export default function ProductPhotoUpload({
       return;
     }
 
-    const filesToUpload = Array.from(files).slice(0, remainingSlots);
-    
-    for (const file of filesToUpload) {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
       // Client-side validation
       if (!file.type.startsWith('image/')) {
         alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
-        continue;
+        return false;
       }
       
       if (file.size > 10 * 1024 * 1024) { // 10MB
         alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
-        continue;
+        return false;
       }
+      
+      return true;
+    }).slice(0, remainingSlots);
+    
+    if (validFiles.length === 0) return;
 
-      const tempId = crypto.randomUUID();
-      const tempPhoto: ProductPhoto = {
-        id: tempId,
-        url: '',
-        uploading: true
-      };
+    setUploading(true);
+    console.log(`📦 Uploading ${validFiles.length} foto's parallel...`);
 
-      // Add uploading placeholder
-      setPhotos(prevPhotos => {
-        const updatedPhotos = [...prevPhotos, tempPhoto];
-        onPhotosChange?.(updatedPhotos);
-        return updatedPhotos;
-      });
+    // Create placeholder photos immediately
+    const tempPhotos: ProductPhoto[] = validFiles.map(() => ({
+      id: crypto.randomUUID(),
+      url: '',
+      uploading: true
+    }));
 
+    setPhotos(prevPhotos => {
+      const updatedPhotos = [...prevPhotos, ...tempPhotos];
+      onPhotosChange?.(updatedPhotos);
+      return updatedPhotos;
+    });
+
+    // Upload all files in parallel using Promise.all for speed
+    const uploadPromises = validFiles.map(async (file, i) => {
+      const tempId = tempPhotos[i].id;
+      
       try {
-        // Upload file directly
         const result = await uploadFile(file, '/api/upload');
         
         if (result.success) {
-          // Replace uploading placeholder with uploaded photo
-          setPhotos(prevPhotos => {
-            const updatedPhotos = prevPhotos.map(p => 
-              p.id === tempId 
-                ? { id: crypto.randomUUID(), url: result.url }
-                : p
-            );
-            onPhotosChange?.(updatedPhotos);
-            return updatedPhotos;
-          });
+          return { success: true, tempId, url: result.url };
         } else {
-          // Remove failed upload
-          setPhotos(prevPhotos => {
-            const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
-            onPhotosChange?.(updatedPhotos);
-            return updatedPhotos;
-          });
-          alert(`Upload van "${file.name}" mislukt: ${result.error}`);
+          console.error(`Upload failed for ${file.name}:`, result.error);
+          return { success: false, tempId, error: result.error };
         }
-        
       } catch (error) {
-        // Remove failed upload
-        setPhotos(prevPhotos => {
-          const updatedPhotos = prevPhotos.filter(p => p.id !== tempId);
-          onPhotosChange?.(updatedPhotos);
-          return updatedPhotos;
-        });
-        alert(`Upload van "${file.name}" mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+        console.error(`Upload error for ${file.name}:`, error);
+        return { success: false, tempId, error: String(error) };
       }
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    // Update photos with results
+    setPhotos(prevPhotos => {
+      const updatedPhotos = prevPhotos.map(photo => {
+        const result = results.find(r => r.tempId === photo.id);
+        if (result?.success && result.url) {
+          return { id: crypto.randomUUID(), url: result.url };
+        }
+        return photo;
+      }).filter(photo => {
+        // Remove failed uploads
+        const result = results.find(r => r.tempId === photo.id);
+        return !photo.uploading || (result && result.success);
+      });
+      
+      onPhotosChange?.(updatedPhotos);
+      return updatedPhotos;
+    });
+    
+    setUploading(false);
+    
+    const successCount = results.filter(r => r.success).length;
+    const failedCount = results.filter(r => !r.success).length;
+    
+    console.log(`✅ ${successCount}/${validFiles.length} foto's succesvol geüpload`);
+    
+    if (failedCount > 0) {
+      alert(`${failedCount} foto('s) konden niet worden geüpload.`);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileUpload(e.target.files);
+    e.target.value = ''; // Reset input to allow re-uploading same files
   };
 
   const removePhoto = (photoId: string) => {

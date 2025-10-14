@@ -316,7 +316,9 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   useEffect(() => { load(); }, []);
 
   function onFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const filesArr = Array.from(e.target.files || []).slice(0, 5);
+    const filesArr = Array.from(e.target.files || []).slice(0, 5 - uploadedFiles.length);
+    if (filesArr.length === 0) return;
+    
     const newFiles: UploadedFile[] = filesArr.map((file, index) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -324,6 +326,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
     }));
     
     setUploadedFiles(prev => [...prev, ...newFiles].slice(0, 5));
+    e.target.value = ''; // Reset input
   }
 
   function removeFile(index: number) {
@@ -350,8 +353,10 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
     setMessage(null);
     
     try {
-      const uploadedUrls: {url: string, isMain: boolean}[] = [];
-      for (const uploadedFile of uploadedFiles) {
+      console.log(`📸 Uploading ${uploadedFiles.length} foto's parallel...`);
+      
+      // Upload all files in parallel using Promise.all for speed
+      const uploadPromises = uploadedFiles.map(async (uploadedFile) => {
         // Client-side validation
         if (!uploadedFile.file.type.startsWith('image/')) {
           throw new Error(`Bestand "${uploadedFile.file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
@@ -380,11 +385,17 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
           throw new Error(`Upload van "${uploadedFile.file.name}" mislukt: Geen URL ontvangen`);
         }
         
-        uploadedUrls.push({
+        return {
           url: data.url,
-          isMain: uploadedFile.isMain
-        });
-      }
+          isMain: uploadedFile.isMain,
+          success: true
+        };
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      const uploadedUrls = results.filter(r => r.success);
+      
+      console.log(`✅ ${uploadedUrls.length}/${uploadedFiles.length} foto's succesvol geüpload`);
 
       const payload: any = {
         title,
