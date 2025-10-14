@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import CompleteChat from '@/components/chat/CompleteChat';
+import ChatBox from '@/components/chat/ChatBox';
 import { useSession } from 'next-auth/react';
 
 interface Conversation {
@@ -96,7 +96,7 @@ export default function ConversationPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <CompleteChat
+      <ChatBox
         conversationId={conversation.id}
         otherParticipant={{
           id: conversation.otherParticipant?.id || 'unknown',

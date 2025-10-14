@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, Send, Trash2, Circle, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
+import { getPusherClient } from '@/lib/pusher';
 
 interface CompleteChatProps {
   conversationId: string;
@@ -43,10 +44,12 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [lastFetch, setLastFetch] = useState<number>(Date.now());
+  const [pusherConnected, setPusherConnected] = useState(false);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout>();
+  const pusherRef = useRef<any>(null);
   
   const { data: session } = useSession();
 
@@ -79,10 +82,13 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
 
   // Step 2: Load messages
   const loadMessages = async () => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      console.log('[CompleteChat] ⏭️ No conversationId, skipping load');
+      return;
+    }
 
     try {
-      console.log('[CompleteChat] 📥 Loading messages...');
+      console.log('[CompleteChat] 📥 Loading messages for:', conversationId);
       
       const response = await fetch(
         `/api/conversations/${conversationId}/messages?page=1&limit=100`,
@@ -96,23 +102,34 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
         }
       );
 
+      console.log('[CompleteChat] Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
         const loadedMessages = data.messages || [];
+        
+        console.log(`[CompleteChat] ✅ Loaded ${loadedMessages.length} messages:`, loadedMessages.map(m => ({
+          id: m.id,
+          text: m.text?.substring(0, 30),
+          senderId: m.senderId,
+          createdAt: m.createdAt
+        })));
         
         setMessages(loadedMessages);
         setLastFetch(Date.now());
         setIsLoading(false);
         
-        console.log(`[CompleteChat] ✅ Loaded ${loadedMessages.length} messages`);
-        
         // Auto-scroll to bottom
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
+      } else {
+        const errorText = await response.text();
+        console.error('[CompleteChat] ❌ Failed to load messages:', response.status, errorText);
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('[CompleteChat] Error loading messages:', error);
+      console.error('[CompleteChat] ❌ Error loading messages:', error);
       setIsLoading(false);
     }
   };
@@ -125,29 +142,83 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
     }
   }, [conversationId, currentUserId]);
 
-  // Step 4: Real-time polling (every 2 seconds)
+  // Step 4: Setup Pusher real-time + polling backup
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
 
-    console.log('[CompleteChat] 🔄 Starting real-time polling');
+    console.log('[CompleteChat] 🔄 Setting up real-time updates');
 
-    // Clear any existing interval
+    // Setup Pusher for real-time updates
+    const pusher = getPusherClient();
+    if (pusher) {
+      pusherRef.current = pusher;
+      
+      const channel = pusher.subscribe(`conversation-${conversationId}`);
+      
+      channel.bind('pusher:subscription_succeeded', () => {
+        console.log('[CompleteChat] ✅ Pusher connected');
+        setPusherConnected(true);
+      });
+      
+      channel.bind('pusher:subscription_error', (error: any) => {
+        console.error('[CompleteChat] ❌ Pusher error:', error);
+        setPusherConnected(false);
+      });
+      
+      channel.bind('new-message', (data: Message) => {
+        console.log('[CompleteChat] 📨 New message via Pusher:', data);
+        
+        // Add message to state if not already there
+        setMessages((prev) => {
+          const exists = prev.some(m => m.id === data.id);
+          if (exists) {
+            console.log('[CompleteChat] ⏭️ Message already exists, skipping');
+            return prev;
+          }
+          console.log('[CompleteChat] ✅ Adding new message to state');
+          return [...prev, data];
+        });
+        
+        // Auto-scroll to bottom
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      });
+      
+      console.log('[CompleteChat] ✅ Pusher subscribed to:', `conversation-${conversationId}`);
+    } else {
+      console.warn('[CompleteChat] ⚠️ Pusher not available');
+    }
+
+    // Backup polling (every 5 seconds when Pusher is connected, every 2 seconds when not)
+    const pollInterval = pusherConnected ? 5000 : 2000;
+    
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
     }
 
-    // Poll every 2 seconds
     pollingIntervalRef.current = setInterval(() => {
+      if (!pusherConnected) {
+        console.log('[CompleteChat] 🔄 Polling (Pusher not connected)');
+      }
       loadMessages();
-    }, 2000);
+    }, pollInterval);
 
     return () => {
+      // Cleanup Pusher
+      if (pusher && pusherRef.current) {
+        console.log('[CompleteChat] 🛑 Unsubscribing from Pusher');
+        pusher.unsubscribe(`conversation-${conversationId}`);
+        pusherRef.current = null;
+      }
+      
+      // Cleanup polling
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         console.log('[CompleteChat] 🛑 Stopped polling');
       }
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId, pusherConnected]);
 
   // Step 5: Send message
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -284,8 +355,10 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
               {getDisplayName(otherParticipant)}
             </h2>
             <div className="flex items-center gap-1">
-              <Circle className="w-2 h-2 fill-green-500 text-green-500 animate-pulse" />
-              <p className="text-xs text-gray-500">Online • Updates elke 2s</p>
+              <Circle className={`w-2 h-2 ${pusherConnected ? 'fill-green-500 text-green-500' : 'fill-yellow-500 text-yellow-500'} animate-pulse`} />
+              <p className="text-xs text-gray-500">
+                {pusherConnected ? 'Real-time actief' : 'Polling mode'}
+              </p>
             </div>
           </div>
         </div>

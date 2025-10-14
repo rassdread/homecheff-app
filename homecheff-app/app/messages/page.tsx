@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MessageCircle, Bell } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
-import CompleteChat from '@/components/chat/CompleteChat';
+import ChatBox from '@/components/chat/ChatBox';
 
 interface Conversation {
   id: string;
@@ -193,7 +193,7 @@ function MessagesPageContent() {
                 ${selectedConversation ? 'w-full' : 'hidden'} 
                 flex flex-col bg-white
               `}>
-                <CompleteChat
+                <ChatBox
                   conversationId={selectedConversation.id}
                   otherParticipant={
                     selectedConversation.otherParticipant || 
