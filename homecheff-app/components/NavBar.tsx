@@ -194,7 +194,7 @@ export default function NavBar() {
                         </Link>
                       ) : (user as any)?.role === 'DELIVERY' ? (
                         <Link 
-                          href="/delivery/profile" 
+                          href="/profile" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           onClick={() => setIsProfileDropdownOpen(false)}
                         >
@@ -435,7 +435,7 @@ export default function NavBar() {
                       </Button>
                     </Link>
                   ) : (user as any)?.role === 'DELIVERY' ? (
-                    <Link href="/delivery/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                         <User className="w-4 h-4" />
                         <span>Mijn Profiel</span>
