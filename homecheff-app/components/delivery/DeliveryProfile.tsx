@@ -82,6 +82,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'photos'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState<{ id: string; progress: string; }[]>([]);
 
   const transportationLabels = {
     'BIKE': 'Fiets',
@@ -137,31 +138,77 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
   const handlePhotoUpload = async (files: FileList) => {
     if (files.length === 0) return;
     
-    setUploading(true);
-    
-    try {
-      const formData = new FormData();
-      Array.from(files).forEach((file, index) => {
-        formData.append(`photos`, file);
-      });
-      
-      const response = await fetch('/api/delivery/upload-vehicle-photos', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        alert(`Fout bij uploaden: ${error.error}`);
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
+      // Client-side validation
+      if (!file.type.startsWith('image/')) {
+        alert(`Bestand "${file.name}" is geen afbeelding. Alleen afbeeldingen zijn toegestaan.`);
+        return false;
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Er is een fout opgetreden bij het uploaden');
-    } finally {
-      setUploading(false);
-      setShowUploadModal(false);
+      
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
+        return false;
+      }
+      
+      return true;
+    }).slice(0, 5 - deliveryProfile.vehiclePhotos.length);
+    
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    console.log(`🚗 Uploading ${validFiles.length} voertuig foto's parallel...`);
+
+    // Create progress trackers
+    const tempPhotos = validFiles.map((_, i) => ({
+      id: `temp-${Date.now()}-${i}`,
+      progress: 'uploading'
+    }));
+    setUploadingPhotos(tempPhotos);
+
+    // Upload all files in parallel using Promise.all for speed
+    const uploadPromises = validFiles.map(async (file) => {
+      try {
+        const formData = new FormData();
+        formData.append('photos', file);
+        
+        const response = await fetch('/api/delivery/upload-vehicle-photos', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          return { success: true, fileName: file.name };
+        } else {
+          const error = await response.json();
+          console.error(`Upload failed for ${file.name}:`, error);
+          return { success: false, fileName: file.name, error: error.error };
+        }
+      } catch (error) {
+        console.error(`Upload error for ${file.name}:`, error);
+        return { success: false, fileName: file.name, error: String(error) };
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    
+    setUploading(false);
+    setUploadingPhotos([]);
+    setShowUploadModal(false);
+    
+    const successCount = results.filter(r => r.success).length;
+    const failedCount = results.filter(r => !r.success).length;
+    
+    console.log(`✅ ${successCount}/${validFiles.length} voertuig foto's succesvol geüpload`);
+    
+    if (successCount > 0) {
+      // Reload to show new photos
+      window.location.reload();
+    }
+    
+    if (failedCount > 0) {
+      const failedFiles = results.filter(r => !r.success).map(r => r.fileName).join(', ');
+      alert(`${failedCount} foto('s) konden niet worden geüpload: ${failedFiles}`);
     }
   };
 
@@ -582,6 +629,26 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Upload Voertuig Foto's
             </h3>
+            
+            {/* Uploading Progress */}
+            {uploading && uploadingPhotos.length > 0 && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 text-blue-800 mb-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <p className="text-sm font-medium">
+                    Bezig met uploaden... ({uploadingPhotos.length} foto's)
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  {uploadingPhotos.map((photo) => (
+                    <div key={photo.id} className="text-xs text-blue-700">
+                      • Foto wordt geüpload...
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               <input
                 type="file"
@@ -590,15 +657,23 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                 onChange={(e) => e.target.files && handlePhotoUpload(e.target.files)}
                 className="hidden"
                 id="vehicle-photos"
+                disabled={uploading}
               />
               <label
                 htmlFor="vehicle-photos"
-                className="cursor-pointer flex flex-col items-center gap-4"
+                className={`flex flex-col items-center gap-4 ${uploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 <Upload className="w-8 h-8 text-gray-400" />
                 <div>
-                  <p className="text-gray-600">Klik om foto's te selecteren</p>
-                  <p className="text-sm text-gray-500">of sleep ze hierheen</p>
+                  <p className="text-gray-600">
+                    {uploading ? 'Uploaden...' : 'Klik om foto\'s te selecteren'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {uploading ? 'Even geduld...' : 'of sleep ze hierheen'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Maximaal {5 - deliveryProfile.vehiclePhotos.length} foto's meer
+                  </p>
                 </div>
               </label>
             </div>
@@ -606,8 +681,9 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
               <Button
                 variant="ghost"
                 onClick={() => setShowUploadModal(false)}
+                disabled={uploading}
               >
-                Annuleren
+                {uploading ? 'Uploaden...' : 'Annuleren'}
               </Button>
             </div>
           </div>
