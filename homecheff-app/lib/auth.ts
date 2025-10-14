@@ -127,19 +127,30 @@ export const authOptions: NextAuthOptions = {
 
           if (existingUser) {
             // Update existing user with latest social data
+            // BUT preserve custom uploaded photos - only use social image if user has no custom photo
+            const updateData: any = {
+              name: user.name || existingUser.name,
+            };
+            
+            // Only update images if user hasn't uploaded a custom profile photo
+            // Check if existing image is from social provider (starts with http)
+            const hasCustomPhoto = existingUser.profileImage && !existingUser.profileImage.startsWith('http');
+            
+            if (!hasCustomPhoto && user.image) {
+              updateData.image = user.image;
+              updateData.profileImage = user.image;
+            }
+            
             await prisma.user.update({
               where: { id: existingUser.id },
-              data: {
-                image: user.image || existingUser.image,
-                profileImage: user.image || existingUser.profileImage,
-                name: user.name || existingUser.name,
-              }
+              data: updateData
             });
 
             console.log('✅ Existing social user updated:', {
               id: existingUser.id,
               email: existingUser.email,
-              provider: account.provider
+              provider: account.provider,
+              preservedCustomPhoto: hasCustomPhoto
             });
           } else {
             // NEW USER - Create with temp data, onboarding required

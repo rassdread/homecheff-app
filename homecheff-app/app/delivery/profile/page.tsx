@@ -10,19 +10,28 @@ export default async function DeliveryProfilePage() {
     redirect('/login');
   }
 
+  const userId = (session.user as any).id;
+
+  // Get user with all relevant data
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      profileImage: true,
+      image: true,
+      displayFullName: true,
+      displayNameOption: true,
+      sellerRoles: true
+    }
+  });
+
   // Check if user has delivery profile
   const deliveryProfile = await prisma.deliveryProfile.findUnique({
-    where: { userId: (session.user as any).id },
+    where: { userId },
     include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          sellerRoles: true
-        }
-      },
       reviews: {
         include: {
           reviewer: {
@@ -53,6 +62,13 @@ export default async function DeliveryProfilePage() {
   const deliveryProfileWithDefaults = {
     ...deliveryProfile,
     preferredRadius: deliveryProfile.preferredRadius || 3.0,
+    user: {
+      id: user!.id,
+      name: user!.name,
+      email: user!.email,
+      image: user!.profileImage || user!.image,
+      sellerRoles: user!.sellerRoles || []
+    },
     reviews: deliveryProfile.reviews.map(review => ({
       ...review,
       comment: review.comment || ''
