@@ -361,13 +361,16 @@ export async function POST(
     
     console.log('[Messages API POST] 📦 Message payload prepared');
 
-    // Update conversation last message time
+    // Update conversation last message time and reactivate if inactive
     console.log('[Messages API POST] 🕐 Updating conversation timestamp...');
     await prisma.conversation.update({
       where: { id: conversationId },
-      data: { lastMessageAt: new Date() }
+      data: { 
+        lastMessageAt: new Date(),
+        isActive: true // Reactivate conversation when new message is sent
+      }
     });
-    console.log('[Messages API POST] ✅ Conversation updated');
+    console.log('[Messages API POST] ✅ Conversation updated and reactivated');
 
     // Trigger Pusher event for real-time delivery
     try {

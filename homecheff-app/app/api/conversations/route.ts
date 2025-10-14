@@ -104,9 +104,9 @@ export async function GET(req: NextRequest) {
       participantCount: user.ConversationParticipant.length
     });
 
-    // Transform conversations and filter out inactive ones
+    // Transform conversations - show all conversations (including inactive ones that might have new messages)
     const conversations = user.ConversationParticipant
-    .filter(participant => participant.Conversation.isActive) // Only show active conversations
+    // Remove filter to show all conversations, even inactive ones
     .map(participant => {
       const conversation = participant.Conversation;
       
