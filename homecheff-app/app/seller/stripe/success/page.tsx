@@ -64,7 +64,7 @@ export default function StripeConnectSuccess() {
         </p>
 
         <Button
-          onClick={() => router.push('/seller/dashboard')}
+          onClick={() => router.push('/verkoper/dashboard')}
           className="w-full inline-flex items-center justify-center"
         >
           Ga naar Dashboard

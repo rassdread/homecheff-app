@@ -104,13 +104,27 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Fetch messages with pagination
+    // Fetch messages with pagination - OPTIMIZED QUERY
     // Note: We don't filter on deletedAt anymore - conversation visibility is handled via isHidden on participant level
     const messages = await prisma.message.findMany({
       where: {
-        conversationId
+        conversationId,
+        // Skip encrypted messages for faster loading (can be loaded separately if needed)
+        isEncrypted: false
       },
-      include: {
+      select: {
+        id: true,
+        text: true,
+        messageType: true,
+        createdAt: true,
+        readAt: true,
+        deliveredAt: true,
+        attachmentUrl: true,
+        attachmentName: true,
+        attachmentType: true,
+        senderId: true,
+        isEncrypted: true,
+        encryptedText: true,
         User: {
           select: {
             id: true,
@@ -123,7 +137,7 @@ export async function GET(
         }
       },
       orderBy: { createdAt: 'desc' },
-      take: parseInt(limit),
+      take: Math.min(parseInt(limit), 50), // Cap at 50 for performance
       skip: (parseInt(page) - 1) * parseInt(limit)
     });
     
@@ -163,14 +177,27 @@ export async function GET(
       }
     }
 
-    // Mark messages as read
+    // Mark messages as read and delivered
+    const now = new Date();
+    
+    // Mark as delivered first
+    await prisma.message.updateMany({
+      where: {
+        conversationId,
+        senderId: { not: user.id },
+        deliveredAt: null
+      },
+      data: { deliveredAt: now }
+    });
+    
+    // Then mark as read
     const markedAsRead = await prisma.message.updateMany({
       where: {
         conversationId,
         senderId: { not: user.id },
         readAt: null
       },
-      data: { readAt: new Date() }
+      data: { readAt: now }
     });
     
     console.log('[Messages API] 📖 Marked as read:', markedAsRead.count);
@@ -257,7 +284,7 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user is participant in conversation
+    // 🔒 WATERMARK VALIDATION: Check if user is participant in conversation
     const participant = await prisma.conversationParticipant.findFirst({
       where: {
         conversationId,
@@ -265,18 +292,45 @@ export async function POST(
       }
     });
     
-    console.log('[Messages API POST] Participant check:', { 
+    console.log('[Messages API POST] 🔒 Participant validation:', { 
       conversationId,
       userId: user.id,
       isParticipant: !!participant 
     });
 
     if (!participant) {
-      console.log('[Messages API POST] ❌ Access denied - not participant');
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      console.log('[Messages API POST] ❌ SECURITY: Access denied - user is NOT a participant in this conversation');
+      console.log('[Messages API POST] 🔒 WATERMARK: Prevented unauthorized message creation');
+      return NextResponse.json({ 
+        error: 'Access denied - You are not a participant in this conversation',
+        code: 'NOT_PARTICIPANT'
+      }, { status: 403 });
     }
 
-    console.log('[Messages API POST] ✅ User is participant, creating message...');
+    // 🔒 ADDITIONAL VALIDATION: Verify conversation exists and is active
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { id: true, isActive: true }
+    });
+
+    if (!conversation) {
+      console.log('[Messages API POST] ❌ SECURITY: Conversation does not exist');
+      return NextResponse.json({ 
+        error: 'Conversation not found',
+        code: 'CONVERSATION_NOT_FOUND'
+      }, { status: 404 });
+    }
+
+    console.log('[Messages API POST] ✅ WATERMARK VALIDATED: User is legitimate participant, proceeding...');
+    
+    // 🔖 LOG WATERMARK INFO: Email and Username for audit trail
+    console.log('[Messages API POST] 🔖 WATERMARK INFO:', {
+      userId: user.id,
+      email: user.email,
+      username: user.username,
+      conversationId: conversationId,
+      timestamp: new Date().toISOString()
+    });
 
     // Check if user has encryption enabled
     const senderUser = await prisma.user.findUnique({
@@ -424,12 +478,17 @@ export async function POST(
 
       // Send notification to each participant
       for (const participant of otherParticipants) {
-        await NotificationService.sendChatNotification(
-          participant.userId,
-          user.id,
-          text?.substring(0, 100) || 'Nieuw bericht',
-          conversationId
-        );
+        try {
+          await NotificationService.sendChatNotification(
+            participant.userId,
+            user.id,
+            text?.substring(0, 100) || 'Nieuw bericht',
+            conversationId
+          );
+        } catch (notifError) {
+          console.error(`[Notifications] ❌ Failed to send notification to user ${participant.userId}:`, notifError);
+          // Continue with other participants
+        }
       }
       
       console.log(`[Notifications] ✅ Sent notifications to ${otherParticipants.length} participants`);

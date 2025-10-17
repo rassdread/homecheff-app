@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkRateLimit, getSecurityHeaders } from '@/lib/security';
 
+// Domain-based language routing
+const DOMAIN_LANGUAGE_MAP = {
+  'homecheff.nl': 'nl',
+  'homecheff.eu': 'en',
+  'www.homecheff.nl': 'nl',
+  'www.homecheff.eu': 'en',
+} as const;
+
 // Security headers for session isolation
 const SESSION_ISOLATION_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, private',
@@ -15,6 +23,25 @@ const SESSION_ISOLATION_HEADERS = {
 };
 
 export function middleware(request: NextRequest) {
+  const hostname = request.headers.get('host') || '';
+  const domainLanguage = DOMAIN_LANGUAGE_MAP[hostname as keyof typeof DOMAIN_LANGUAGE_MAP];
+  
+  // Set language based on domain
+  const response = NextResponse.next();
+  
+  if (domainLanguage) {
+    // Set language cookie for domain-based routing
+    response.cookies.set('homecheff-language', domainLanguage, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+    
+    // Add language header for the app to read
+    response.headers.set('X-HomeCheff-Language', domainLanguage);
+  }
+
   // Rate limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const rateLimit = checkRateLimit(request);
@@ -31,7 +58,6 @@ export function middleware(request: NextRequest) {
   }
 
   // Add security headers
-  const response = NextResponse.next();
   const securityHeaders = getSecurityHeaders();
   
   // Add basic security headers

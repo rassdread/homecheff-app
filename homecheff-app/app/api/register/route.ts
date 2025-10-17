@@ -19,10 +19,10 @@ export async function POST(req: Request) {
     console.log('Registration attempt with data:', { 
       email: body.email, 
       isBusiness: body.isBusiness,
-      hasBankData: !!(body.bankName || body.iban || body.accountHolderName)
+      // Bank details now handled via Stripe
     });
     
-  const { email, password, firstName, lastName, username, gender, userTypes, selectedBuyerType, interests, location, bio, isBusiness, kvk, btw, company, subscription, bankName, iban, accountHolderName, isDelivery } = body;
+  const { email, password, firstName, lastName, username, gender, userTypes, selectedBuyerType, interests, location, bio, isBusiness, kvk, btw, company, subscription, isDelivery } = body;
   if (!email || !password)
       return NextResponse.json({ error: "Email en wachtwoord vereist" }, { status: 400 });
 

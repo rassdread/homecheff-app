@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { validateApiSession } from '@/lib/api-auth';
 import { PrismaClient } from '@prisma/client';
-import { TransportationMode } from '@prisma/client';
+// import { string } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate and convert transportation modes
-    const validTransportModes = transportation.filter(t => 
-      Object.values(TransportationMode).includes(t as TransportationMode)
-    ) as TransportationMode[];
+    const validTransportModes = transportation.filter(t =>
+      ['BIKE', 'CAR', 'SCOOTER', 'PUBLIC_TRANSPORT', 'WALKING'].includes(t as string)
+    ) as string[];
 
     if (validTransportModes.length === 0) {
       return NextResponse.json({ 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: user!.id,
         age,
-        transportation: validTransportModes,
+        transportation: validTransportModes as any,
         maxDistance,
         availableDays,
         availableTimeSlots,
@@ -133,9 +133,9 @@ export async function PUT(req: NextRequest) {
     // Validate transportation modes if provided
     let validTransportModes;
     if (transportation) {
-      validTransportModes = transportation.filter(t => 
-        Object.values(TransportationMode).includes(t as TransportationMode)
-      ) as TransportationMode[];
+      validTransportModes = transportation.filter(t =>
+        ['BIKE', 'CAR', 'SCOOTER', 'PUBLIC_TRANSPORT', 'WALKING'].includes(t as string)
+      ) as string[];
       
       if (validTransportModes.length === 0) {
         return NextResponse.json({ 

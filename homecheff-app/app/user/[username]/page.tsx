@@ -31,7 +31,9 @@ export default async function PublicProfilePage({
       buyerRoles: true,
       displayFullName: true,
       displayNameOption: true,
+      showFansList: true,
       createdAt: true,
+      profileViews: true,
       // Publieke producten (alleen gepubliceerde)
       Dish: {
         where: {
@@ -145,7 +147,9 @@ export default async function PublicProfilePage({
           buyerRoles: true,
           displayFullName: true,
           displayNameOption: true,
+          showFansList: true,
           createdAt: true,
+          profileViews: true,
           // Publieke producten (alleen gepubliceerde)
           Dish: {
             where: {

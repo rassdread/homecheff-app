@@ -876,6 +876,7 @@ export default function ProductPage() {
                       productId={product.id}
                       sellerId={product.seller?.User?.id || ''}
                       sellerName={getDisplayName(product)}
+                      showSuccessMessage={true}
                       className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
                     />
                   )}

@@ -121,8 +121,13 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Check if user exists in database
+          if (!user.email) {
+            console.error('❌ No email provided by Facebook');
+            return false;
+          }
+          
           let existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+            where: { email: user.email }
           });
 
           if (existingUser) {
@@ -133,8 +138,12 @@ export const authOptions: NextAuthOptions = {
             };
             
             // Only update images if user hasn't uploaded a custom profile photo
-            // Check if existing image is from social provider (starts with http)
-            const hasCustomPhoto = existingUser.profileImage && !existingUser.profileImage.startsWith('http');
+            // Check if existing image is from social provider (starts with http) or is a data URL (custom upload)
+            const hasCustomPhoto = existingUser.profileImage && 
+              (!existingUser.profileImage.startsWith('http') || 
+               existingUser.profileImage.startsWith('data:') ||
+               existingUser.profileImage.includes('vercel-storage') ||
+               existingUser.profileImage.includes('blob.vercel-storage'));
             
             if (!hasCustomPhoto && user.image) {
               updateData.image = user.image;
@@ -184,6 +193,16 @@ export const authOptions: NextAuthOptions = {
                 socialOnboardingCompleted: false, // Needs onboarding!
                 termsAccepted: false,
                 privacyPolicyAccepted: false,
+                // Set default values to match regular registration
+                displayFullName: true,
+                displayNameOption: 'full',
+                showFansList: true,
+                marketingAccepted: false,
+                messageGuidelinesAccepted: false,
+                encryptionEnabled: false,
+                // Initialize empty arrays for consistency
+                sellerRoles: [],
+                buyerRoles: []
               }
             });
 

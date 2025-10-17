@@ -52,13 +52,13 @@ export default async function ProfilePage({
       buyerRoles: true,
       displayFullName: true,
       displayNameOption: true,
+      showFansList: true,
       encryptionEnabled: true,
       messageGuidelinesAccepted: true,
       messageGuidelinesAcceptedAt: true,
-      bankName: true,
-      iban: true,
-      accountHolderName: true,
+      // Bank details now handled via Stripe
       createdAt: true,
+      profileViews: true,
       // Seller/Business data
       SellerProfile: {
         select: {

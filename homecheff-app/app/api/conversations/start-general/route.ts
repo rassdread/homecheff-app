@@ -59,15 +59,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if general conversation already exists (no productId, including inactive)
+    // 🔒 WATERDICHT: Check if 1-on-1 general conversation already exists between EXACTLY these 2 users
     let conversation = await prisma.conversation.findFirst({
       where: {
         productId: null,
-        ConversationParticipant: {
-          some: {
-            userId: { in: [user.id, sellerProfile.User.id] }
+        AND: [
+          {
+            ConversationParticipant: {
+              some: { userId: user.id }
+            }
+          },
+          {
+            ConversationParticipant: {
+              some: { userId: sellerProfile.User.id }
+            }
           }
-        }
+        ]
       },
       include: {
         ConversationParticipant: {
@@ -86,6 +93,12 @@ export async function POST(req: NextRequest) {
         }
       }
     });
+
+    // 🔒 SAFETY CHECK: Verify this is a 1-on-1 conversation (exactly 2 participants)
+    if (conversation && conversation.ConversationParticipant.length !== 2) {
+      console.warn(`[StartGeneralConversation] ⚠️ Found conversation with ${conversation.ConversationParticipant.length} participants, creating new one`);
+      conversation = null; // Force creation of new conversation
+    }
 
     // If conversation exists but was deleted, reactivate it
     if (conversation && !conversation.isActive) {

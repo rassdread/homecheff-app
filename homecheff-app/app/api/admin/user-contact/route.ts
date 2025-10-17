@@ -53,10 +53,7 @@ export async function GET(req: NextRequest) {
         profileImage: true,
         role: true,
         createdAt: true,
-        // Bank info (on User)
-        bankName: true,
-        iban: true,
-        accountHolderName: true,
+        // Bank info now handled via Stripe
         // Business info (via SellerProfile)
         SellerProfile: {
           select: {

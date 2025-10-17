@@ -1,4 +1,34 @@
-import { PrismaClient, UserRole, ProductCategory, DeliveryMode, Unit } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+// Define enums manually since Prisma client might not be available
+enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN', 
+  BUYER = 'BUYER',
+  SELLER = 'SELLER',
+  DELIVERY = 'DELIVERY'
+}
+
+enum ProductCategory {
+  CHEFF = 'CHEFF',
+  GROWN = 'GROWN',
+  DESIGNER = 'DESIGNER'
+}
+
+enum DeliveryMode {
+  PICKUP = 'PICKUP',
+  DELIVERY = 'DELIVERY',
+  BOTH = 'BOTH'
+}
+
+enum Unit {
+  KG = 'KG',
+  GRAM = 'GRAM',
+  LITER = 'LITER',
+  PIECE = 'PIECE',
+  BUNCH = 'BUNCH',
+  PACKAGE = 'PACKAGE'
+}
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();

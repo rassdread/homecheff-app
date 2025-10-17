@@ -21,6 +21,7 @@ export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const { totalItems: cartItemCount } = useCart();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const user =
@@ -41,6 +42,21 @@ export default function NavBar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch user profile data
+  const fetchUserProfile = async () => {
+    if (!session?.user?.email) return;
+    
+    try {
+      const response = await fetch('/api/profile/me');
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   // Sync cart with user ID for isolation and validate session
   useEffect(() => {
@@ -65,11 +81,14 @@ export default function NavBar() {
       setCartUserId(session.user.email);
       // Fetch unread count
       fetchUnreadCount();
+      // Fetch user profile data
+      fetchUserProfile();
     } else {
       // No session - clear all user data to prevent data leakage
       setCartUserId(null);
       clearNextAuthData();
       setUnreadCount(0);
+      setUserProfile(null);
     }
   }, [session, status, user]);
 
@@ -156,9 +175,9 @@ export default function NavBar() {
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
                   >
-                    {user.image ? (
+                    {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
-                        src={user.image}
+                        src={userProfile?.profileImage || userProfile?.image || user?.image || ''}
                         alt="Profielfoto"
                         width={32}
                         height={32}
@@ -170,7 +189,7 @@ export default function NavBar() {
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-700 truncate max-w-32">
-                      {getDisplayName(user)}
+                      {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                     <ChevronDown 
                       className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
@@ -185,12 +204,12 @@ export default function NavBar() {
                       {/* Profile Link - Different for different roles */}
                       {(user as any)?.role === 'ADMIN' ? (
                         <Link 
-                          href="/admin" 
+                          href="/admin/profile" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           onClick={() => setIsProfileDropdownOpen(false)}
                         >
                           <User className="w-4 h-4" />
-                          <span>Admin Profiel</span>
+                          <span>Mijn Profiel</span>
                         </Link>
                       ) : (user as any)?.role === 'DELIVERY' ? (
                         <Link 
@@ -245,14 +264,6 @@ export default function NavBar() {
                         <span>Mijn Bestellingen</span>
                       </Link>
                       
-                      <Link 
-                        href="/favorites" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Heart className="w-4 h-4" />
-                        <span>Fan (van) & Fans</span>
-                      </Link>
                       
                       {/* Privacy Instellingen */}
                       <Link 
@@ -264,8 +275,21 @@ export default function NavBar() {
                         <span>Privacy Instellingen</span>
                       </Link>
                       
-                      {/* Verkoper Dashboard - Alleen voor verkopers */}
-                      {(user as any)?.role === 'SELLER' && (
+                      {/* Dynamic Dashboard Links - Based on roles */}
+                      {/* Admin Dashboard - Show for ADMIN role */}
+                      {(user as any)?.role === 'ADMIN' && (
+                        <Link 
+                          href="/admin" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+
+                      {/* Seller Dashboard - Show if user has seller roles OR is SELLER role */}
+                      {((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') && (
                         <Link 
                           href="/verkoper/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
@@ -276,20 +300,8 @@ export default function NavBar() {
                         </Link>
                       )}
                       
-                      {/* Admin Dashboard Link - Alleen voor Admins */}
-                      {(user as any)?.role === 'ADMIN' && (
-                        <Link 
-                          href="/admin" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          <Settings className="w-4 h-4" />
-                          <span>Admin Dashboard</span>
-                        </Link>
-                      )}
-                      
-                      {/* Delivery Dashboard Link - Alleen voor bezorgers */}
-                      {(user as any)?.role === 'DELIVERY' && (
+                      {/* Delivery Dashboard - Show if user has delivery role OR is DELIVERY role */}
+                      {((user as any)?.role === 'DELIVERY') && (
                         <Link 
                           href="/delivery/dashboard" 
                           className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
@@ -298,6 +310,16 @@ export default function NavBar() {
                           <Package className="w-4 h-4" />
                           <span>Bezorger Dashboard</span>
                         </Link>
+                      )}
+
+                      {/* Multi-role indicator */}
+                      {((user as any)?.role === 'ADMIN' && ((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER' || (user as any)?.role === 'DELIVERY')) && (
+                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 mt-2">
+                          <span className="flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Multi-rol gebruiker
+                          </span>
+                        </div>
                       )}
                       
                       <div className="border-t border-gray-100 my-2"></div>
@@ -408,9 +430,9 @@ export default function NavBar() {
               {user && (
                 <>
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
-                    {user.image ? (
+                    {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
-                        src={user.image}
+                        src={userProfile?.profileImage || userProfile?.image || user?.image || ''}
                         alt="Profielfoto"
                         width={32}
                         height={32}
@@ -422,7 +444,7 @@ export default function NavBar() {
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-700 truncate max-w-32">
-                      {getDisplayName(user)}
+                      {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                   </div>
                   
@@ -464,15 +486,20 @@ export default function NavBar() {
                     </Button>
                   </Link>
                   
-                  <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <Heart className="w-4 h-4" />
-                      <span>Fan van & Fans</span>
-                    </Button>
-                  </Link>
                   
-                  {/* Verkoper Dashboard - Alleen voor verkopers */}
-                  {(user as any)?.role === 'SELLER' && (
+                  {/* Multi-role Dashboard Links - Based on user roles */}
+                  {/* Admin Dashboard - Show for ADMIN role */}
+                  {(user as any)?.role === 'ADMIN' && (
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-red-600">
+                        <Shield className="w-4 h-4" />
+                        <span>Admin Dashboard</span>
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {/* Seller Dashboard - Show if user has seller roles OR is SELLER role */}
+                  {((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') && (
                     <Link href="/verkoper/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600">
                         <Settings className="w-4 h-4" />
@@ -481,17 +508,7 @@ export default function NavBar() {
                     </Link>
                   )}
                   
-                  {/* Admin Dashboard Link - Alleen voor Admins */}
-                  {(user as any)?.role === 'ADMIN' && (
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-red-600">
-                        <Settings className="w-4 h-4" />
-                        <span>Admin Dashboard</span>
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  {/* Delivery Dashboard Link - Only for Delivery Users */}
+                  {/* Delivery Dashboard - Show for DELIVERY role */}
                   {(user as any)?.role === 'DELIVERY' && (
                     <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">
@@ -499,6 +516,16 @@ export default function NavBar() {
                         <span>Bezorger Dashboard</span>
                       </Button>
                     </Link>
+                  )}
+
+                  {/* Multi-role indicator for mobile */}
+                  {((user as any)?.role === 'ADMIN' && ((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER' || (user as any)?.role === 'DELIVERY')) && (
+                    <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-200 mt-2">
+                      <span className="flex items-center gap-1">
+                        <Shield className="w-3 h-3" />
+                        Multi-rol gebruiker
+                      </span>
+                    </div>
                   )}
                   
                   <div className="border-t border-gray-200 my-2"></div>

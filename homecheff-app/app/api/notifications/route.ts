@@ -20,281 +20,154 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const notifications: any[] = [];
+    const { searchParams } = new URL(req.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
-    // 1. Unread Messages
-    const unreadMessages = await prisma.message.findMany({
-      where: {
-        Conversation: {
-          ConversationParticipant: {
-            some: {
-              userId: user.id
-            }
-          }
-        },
-        senderId: { not: user.id },
-        readAt: null
-      },
-      take: 5,
+    // Get notifications for the user
+    const notifications = await prisma.notification.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true
-          }
-        },
-        Conversation: {
-          select: {
-            id: true,
-            Product: {
-              select: {
-                id: true,
-                title: true
-              }
-            }
-          }
-        }
+      take: limit,
+      skip: offset,
+      select: {
+        id: true,
+        type: true,
+        payload: true,
+        readAt: true,
+        createdAt: true
       }
     });
 
-    unreadMessages.forEach(msg => {
-      notifications.push({
-        id: `msg_${msg.id}`,
-        type: 'message',
-        title: 'Nieuw bericht',
-        message: msg.text || 'Je hebt een nieuw bericht ontvangen',
-        link: `/messages`,
-        isRead: false,
-        createdAt: msg.createdAt.toISOString(),
-        from: {
-          id: msg.User.id,
-          name: msg.User.name || 'Gebruiker',
-          username: msg.User.username || undefined,
-          image: msg.User.profileImage || undefined
-        },
+    // Transform notifications to match the expected format
+    const transformedNotifications = notifications.map(notification => {
+      const payload = notification.payload as any;
+      
+      return {
+        id: notification.id,
+        type: notification.type.toLowerCase(),
+        title: getNotificationTitle(notification.type, payload),
+        message: payload.message || 'Nieuwe notificatie',
+        link: getNotificationLink(notification.type, payload),
+        isRead: !!notification.readAt,
+        createdAt: notification.createdAt.toISOString(),
+        from: payload.from ? {
+          id: payload.fromId || 'admin',
+          name: payload.from,
+          username: payload.fromUsername,
+          image: payload.fromImage
+        } : undefined,
         metadata: {
-          conversationId: msg.conversationId
+          productId: payload.productId,
+          orderId: payload.orderId,
+          conversationId: payload.conversationId
         }
-      });
+      };
     });
 
-    // 2. New Followers (Fans)
-    const newFollowers = await prisma.follow.findMany({
-      where: {
-        sellerId: user.id,
-        createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
-        }
-      },
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true
-          }
-        }
-      }
-    });
+    return NextResponse.json({ notifications: transformedNotifications });
 
-    newFollowers.forEach(follow => {
-      notifications.push({
-        id: `follow_${follow.id}`,
-        type: 'follow',
-        title: 'Nieuwe fan!',
-        message: `${follow.User.name || 'Iemand'} volgt je nu`,
-        link: `/user/${follow.User.username || follow.User.id}`,
-        isRead: false, // You might want to track this separately
-        createdAt: follow.createdAt.toISOString(),
-        from: {
-          id: follow.User.id,
-          name: follow.User.name || 'Gebruiker',
-          username: follow.User.username,
-          image: follow.User.profileImage
-        }
-      });
-    });
-
-    // 3. Fan Requests
-    const fanRequests = await prisma.fanRequest.findMany({
-      where: {
-        targetId: user.id,
-        status: 'PENDING'
-      },
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        requester: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true
-          }
-        }
-      }
-    });
-
-    fanRequests.forEach(request => {
-      notifications.push({
-        id: `fan_req_${request.id}`,
-        type: 'fan',
-        title: 'Nieuw fan verzoek',
-        message: `${request.requester.name || 'Iemand'} wil je fan worden`,
-        link: `/profile/fans`,
-        isRead: false,
-        createdAt: request.createdAt.toISOString(),
-        from: {
-          id: request.requester.id,
-          name: request.requester.name || 'Gebruiker',
-          username: request.requester.username,
-          image: request.requester.profileImage
-        }
-      });
-    });
-
-    // 4. New Orders (for sellers)
-    const newOrders = await prisma.order.findMany({
-      where: {
-        items: {
-          some: {
-            Product: {
-              seller: {
-                userId: user.id
-              }
-            }
-          }
-        },
-        createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      },
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true
-          }
-        }
-      }
-    });
-
-    newOrders.forEach(order => {
-      notifications.push({
-        id: `order_${order.id}`,
-        type: 'order',
-        title: 'Nieuwe bestelling!',
-        message: `${order.User.name || 'Een klant'} heeft een bestelling geplaatst`,
-        link: `/orders/${order.id}`,
-        isRead: false,
-        createdAt: order.createdAt.toISOString(),
-        from: {
-          id: order.User.id,
-          name: order.User.name || 'Klant',
-          username: order.User.username,
-          image: order.User.profileImage
-        },
-        metadata: {
-          orderId: order.id
-        }
-      });
-    });
-
-    // 5. New Props (WorkspaceContent props) - Skip for now due to complex schema
-    // TODO: Add when workspace content schema is finalized
-
-    // 6. New Favorites
-    const newFavorites = await prisma.favorite.findMany({
-      where: {
-        OR: [
-          {
-            Product: {
-              seller: {
-                userId: user.id
-              }
-            }
-          },
-          {
-            Listing: {
-              ownerId: user.id
-            }
-          }
-        ],
-        createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      },
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            profileImage: true
-          }
-        },
-        Product: {
-          select: {
-            id: true,
-            title: true
-          }
-        }
-      }
-    });
-
-    newFavorites.forEach(fav => {
-      notifications.push({
-        id: `fav_${fav.id}`,
-        type: 'favorite',
-        title: 'Nieuw favoriet!',
-        message: `${fav.User.name || 'Iemand'} heeft je product favoriet gemaakt`,
-        link: fav.Product ? `/product/${fav.Product.id}` : '/profile',
-        isRead: false,
-        createdAt: fav.createdAt.toISOString(),
-        from: {
-          id: fav.User.id,
-          name: fav.User.name || 'Gebruiker',
-          username: fav.User.username,
-          image: fav.User.profileImage
-        },
-        metadata: {
-          productId: fav.productId
-        }
-      });
-    });
-
-    // Sort all notifications by date
-    notifications.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    // Take only latest 20
-    const latestNotifications = notifications.slice(0, 20);
-    const unreadCount = latestNotifications.filter(n => !n.isRead).length;
-
-    return NextResponse.json({
-      notifications: latestNotifications,
-      unreadCount,
-      total: notifications.length
-    });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 }
     );
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { notificationIds, markAllAsRead } = await req.json();
+
+    if (markAllAsRead) {
+      // Mark all notifications as read
+      await prisma.notification.updateMany({
+        where: { 
+          userId: user.id,
+          readAt: null
+        },
+        data: { readAt: new Date() }
+      });
+    } else if (notificationIds && Array.isArray(notificationIds)) {
+      // Mark specific notifications as read
+      await prisma.notification.updateMany({
+        where: { 
+          id: { in: notificationIds },
+          userId: user.id
+        },
+        data: { readAt: new Date() }
+      });
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error('Error updating notifications:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
+      { status: 500 }
+    );
+  }
+}
+
+function getNotificationTitle(type: string, payload: any): string {
+  switch (type) {
+    case 'ADMIN_NOTICE':
+      return 'Admin Bericht';
+    case 'FAN_REQUEST':
+      return 'Nieuwe Fan';
+    case 'PROP_RECEIVED':
+      return 'Prop Ontvangen';
+    case 'FOLLOW_RECEIVED':
+      return 'Nieuwe Follower';
+    case 'FAVORITE_RECEIVED':
+      return 'Product Favoriet';
+    case 'REVIEW_RECEIVED':
+      return 'Nieuwe Review';
+    case 'ORDER_RECEIVED':
+      return 'Nieuwe Bestelling';
+    case 'ORDER_UPDATE':
+      return 'Bestelling Update';
+    case 'MESSAGE_RECEIVED':
+      return 'Nieuw Bericht';
+    case 'NEW_CONVERSATION':
+      return 'Nieuw Gesprek';
+    default:
+      return 'Notificatie';
+  }
+}
+
+function getNotificationLink(type: string, payload: any): string | undefined {
+  switch (type) {
+    case 'MESSAGE_RECEIVED':
+    case 'NEW_CONVERSATION':
+      return payload.conversationId ? `/messages?conversation=${payload.conversationId}` : '/messages';
+    case 'FAVORITE_RECEIVED':
+      return payload.productId ? `/product/${payload.productId}` : undefined;
+    case 'REVIEW_RECEIVED':
+      return payload.productId ? `/product/${payload.productId}` : undefined;
+    case 'ORDER_RECEIVED':
+    case 'ORDER_UPDATE':
+      return payload.orderId ? `/orders` : undefined;
+    case 'FAN_REQUEST':
+    case 'FOLLOW_RECEIVED':
+      return payload.fromId ? `/user/${payload.fromUsername || payload.fromId}` : undefined;
+    default:
+      return undefined;
+  }
+}

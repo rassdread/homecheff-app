@@ -53,8 +53,8 @@ export default function MultiImageUploader({ max = 10, value = [], onChange, cat
         continue;
       }
       
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        alert(`Bestand "${file.name}" is te groot. Maximum 10MB toegestaan.`);
+      if (file.size > 5 * 1024 * 1024) { // 5MB - consistent met andere uploads
+        alert(`Bestand "${file.name}" is te groot. Maximum 5MB toegestaan.`);
         continue;
       }
       
@@ -171,7 +171,7 @@ export default function MultiImageUploader({ max = 10, value = [], onChange, cat
           id="file-upload"
           type="file"
           multiple
-          accept="image/*"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
           onChange={(e) => handleFiles(e.target.files)}
           className="sr-only"
         />

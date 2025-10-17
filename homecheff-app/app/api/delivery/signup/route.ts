@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { TransportationMode } from '@prisma/client';
+// import { string } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user account with DELIVERY role
+    // Create user account with DELIVERY role and complete profile
     const user = await prisma.user.create({
       data: {
         name,
@@ -107,17 +107,29 @@ export async function POST(req: NextRequest) {
         username: username.toLowerCase(),
         passwordHash: hashedPassword,
         role: 'DELIVERY',
-        emailVerified: new Date() // Auto-verify for delivery users
+        emailVerified: new Date(), // Auto-verify for delivery users
+        // Set default values to match regular registration
+        displayFullName: true,
+        displayNameOption: 'full',
+        showFansList: true,
+        privacyPolicyAccepted: true,
+        privacyPolicyAcceptedAt: new Date(),
+        marketingAccepted: false,
+        messageGuidelinesAccepted: false,
+        encryptionEnabled: false,
+        // Initialize empty arrays for consistency
+        interests: [],
+        sellerRoles: [],
+        buyerRoles: []
       }
     });
 
     // Validate and convert transportation modes
     console.log('Transportation modes received:', transportation);
-    console.log('TransportationMode enum values:', Object.values(TransportationMode));
     
     const validTransportModes = transportation.filter(t => 
-      Object.values(TransportationMode).includes(t as TransportationMode)
-    ) as TransportationMode[];
+      ['BIKE', 'CAR', 'SCOOTER', 'PUBLIC_TRANSPORT', 'WALKING'].includes(t as string)
+    ) as string[];
 
     console.log('Valid transport modes:', validTransportModes);
 
@@ -132,7 +144,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: user.id,
         age,
-        transportation: validTransportModes,
+        transportation: validTransportModes as any,
         maxDistance: maxDistance || 3,
         preferredRadius: preferredRadius || 5,
         deliveryMode: deliveryMode || 'FIXED',

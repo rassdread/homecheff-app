@@ -345,6 +345,7 @@ export default function GardenProjectView({ project, isOwner }: GardenProjectVie
                   sellerId={project.user.id}
                   sellerName={project.user.name || getDisplayName(project.user)}
                   productId={project.id}
+                  showSuccessMessage={true}
                   className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
                 />
               )}

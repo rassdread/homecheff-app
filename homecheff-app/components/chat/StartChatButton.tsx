@@ -9,7 +9,9 @@ interface StartChatButtonProps {
   sellerId: string;
   sellerName: string;
   onConversationStarted?: (conversationId: string) => void;
+  onMessageSent?: (conversationId: string) => void; // New callback for when message is sent
   className?: string;
+  showSuccessMessage?: boolean; // Whether to show success message instead of redirect
 }
 
 export default function StartChatButton({ 
@@ -17,11 +19,14 @@ export default function StartChatButton({
   sellerId, 
   sellerName, 
   onConversationStarted,
-  className = ''
+  onMessageSent,
+  className = '',
+  showSuccessMessage = false
 }: StartChatButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [initialMessage, setInitialMessage] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const { data: session } = useSession();
 
   const handleStartChat = async () => {
@@ -55,16 +60,35 @@ export default function StartChatButton({
 
       const { conversation } = await response.json();
       
-      // Always redirect to messages page to open the chat directly
-      window.location.href = `/messages?conversation=${conversation.id}`;
+      // Call callback if provided
+      if (onConversationStarted) {
+        onConversationStarted(conversation.id);
+      }
+      
+      if (onMessageSent) {
+        onMessageSent(conversation.id);
+      }
 
-      // Dispatch event to notify chat window that conversation was updated
-      window.dispatchEvent(new CustomEvent('conversationUpdated', {
-        detail: { conversationId: conversation.id }
-      }));
+      // Show success message or redirect based on props
+      if (showSuccessMessage) {
+        setShowSuccess(true);
+        setShowModal(false);
+        setInitialMessage('');
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        // Default behavior: redirect to messages page
+        window.location.href = `/messages?conversation=${conversation.id}`;
+        
+        // Dispatch event to notify chat window that conversation was updated
+        window.dispatchEvent(new CustomEvent('conversationUpdated', {
+          detail: { conversationId: conversation.id }
+        }));
 
-      setShowModal(false);
-      setInitialMessage('');
+        setShowModal(false);
+        setInitialMessage('');
+      }
     } catch (error) {
       console.error('Error starting conversation:', error);
       alert(`Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
@@ -101,8 +125,27 @@ export default function StartChatButton({
 
       const { conversation } = await response.json();
       
-      // Redirect to messages with conversation open
-      window.location.href = `/messages?conversation=${conversation.id}`;
+      // Call callback if provided
+      if (onConversationStarted) {
+        onConversationStarted(conversation.id);
+      }
+      
+      if (onMessageSent) {
+        onMessageSent(conversation.id);
+      }
+
+      // Show success message or redirect based on props
+      if (showSuccessMessage) {
+        setShowSuccess(true);
+        setShowModal(false);
+        setInitialMessage('');
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        // Default behavior: redirect to messages page
+        window.location.href = `/messages?conversation=${conversation.id}`;
+      }
     } catch (error) {
       console.error('Error starting conversation:', error);
       alert(`Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
@@ -145,6 +188,16 @@ export default function StartChatButton({
 
   return (
     <>
+      {/* Success Message */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+            <span className="text-green-500 text-sm">✓</span>
+          </div>
+          <span>Bericht verzonden! Je kunt het gesprek bekijken in je berichten.</span>
+        </div>
+      )}
+
       <button
         onClick={() => setShowModal(true)}
         disabled={isLoading}

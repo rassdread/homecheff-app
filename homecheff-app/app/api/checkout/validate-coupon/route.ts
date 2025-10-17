@@ -4,9 +4,16 @@ export const dynamic = 'force-dynamic';
 
 import Stripe from "stripe";
 
+// Test mode - gebruik sandbox keys
+const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test');
+
 // Laat de SDK zelf de juiste (gepinde) API-versie kiezen.
 // Hiermee voorkom je type-fouten op "2023-08-16".
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = isTestMode && process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-08-27.basil',
+    })
+  : null;
 
 export async function POST(req: Request) {
   try {
@@ -17,6 +24,41 @@ export async function POST(req: Request) {
       );
     }
 
+    // In test mode, simuleer een succesvolle coupon validatie
+    if (isTestMode) {
+      const body = await req.json().catch(() => ({}));
+      const raw = (body?.code ?? "").toString();
+      const code = raw.trim();
+
+      if (!code) {
+        return NextResponse.json(
+          { valid: false, reason: "missing_code" },
+          { status: 400 }
+        );
+      }
+
+      // Mock response voor test coupons
+      if (code.toLowerCase() === 'test' || code.toLowerCase() === 'welcome') {
+        return NextResponse.json({
+          valid: true,
+          source: "test_mode",
+          discount: 10,
+          discountType: "percent_off",
+          currency: "eur",
+          couponId: "test_coupon",
+          promotionCodeId: "promo_test",
+          name: "Test Coupon",
+          expiresAt: null,
+          redeemBy: null,
+        });
+      }
+
+      return NextResponse.json({
+        valid: false,
+        reason: "invalid_code",
+      });
+    }
+
     const body = await req.json().catch(() => ({}));
     const raw = (body?.code ?? "").toString();
     const code = raw.trim();
@@ -25,6 +67,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { valid: false, reason: "missing_code" },
         { status: 400 }
+      );
+    }
+
+    if (!stripe) {
+      return NextResponse.json(
+        { valid: false, reason: "stripe_not_configured" },
+        { status: 500 }
       );
     }
 

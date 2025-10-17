@@ -83,8 +83,22 @@ export default function ItemCard({ item }: ItemCardProps) {
 
   // Seller name will be handled by ClickableName component
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on seller name or favorite button
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-seller-name]') || target.closest('[data-favorite-button]')) {
+      return;
+    }
+    
+    // Navigate to product page
+    router.push(`/product/${item.id}`);
+  };
+
   return (
-    <article className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group">
+    <article 
+      className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image */}
       <div className="relative h-48 bg-neutral-100">
         {item.image ? (
@@ -119,7 +133,7 @@ export default function ItemCard({ item }: ItemCardProps) {
         )}
         
         {/* Favorite Button */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3" data-favorite-button>
           <FavoriteButton 
             productId={item.id}
             productTitle={item.title}
@@ -162,29 +176,23 @@ export default function ItemCard({ item }: ItemCardProps) {
         {/* Seller Info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {item.seller?.avatar ? (
-              <SafeImage
-                src={item.seller.avatar}
-                alt={getDisplayName(item.seller)}
-                width={24}
-                height={24}
-                className="rounded-full border border-primary-100"
-              />
-            ) : (
-              <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-xs text-primary-600 font-medium">
-                  {(item.seller ? getDisplayName(item.seller) : '?')[0].toUpperCase()}
-                </span>
-              </div>
-            )}
+            <SafeImage
+              src={item.seller?.avatar || ""}
+              alt={getDisplayName(item.seller)}
+              width={24}
+              height={24}
+              className="rounded-full border border-primary-100"
+            />
             <div>
               <div className="flex items-center gap-2">
-                <ClickableName 
-                  user={item.seller}
-                  className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors"
-                  fallbackText="Onbekend"
-                  linkTo="profile"
-                />
+                <div data-seller-name>
+                  <ClickableName 
+                    user={item.seller}
+                    className="text-sm font-medium text-neutral-900 hover:text-primary-600 transition-colors"
+                    fallbackText="Onbekend"
+                    linkTo="profile"
+                  />
+                </div>
                 {item.seller?.followerCount && item.seller.followerCount > 0 && (
                   <span className="text-xs text-neutral-500">
                     ({item.seller.followerCount})
@@ -229,7 +237,11 @@ export default function ItemCard({ item }: ItemCardProps) {
             </div>
           </div>
           
-          <button className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors">
+          <button 
+            className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+            data-favorite-button
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>

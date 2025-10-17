@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
+// import { UserRole } from '@prisma/client';
 
 // GET - Fetch all users
 export async function GET(request: NextRequest) {
@@ -112,7 +112,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role
-    if (!Object.values(UserRole).includes(role)) {
+    const validRoles = ['USER', 'ADMIN', 'SELLER', 'BUYER', 'DELIVERY'];
+    if (!validRoles.includes(role)) {
       return NextResponse.json({ 
         error: 'Ongeldige rol' 
       }, { status: 400 });
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
       name,
       username,
       passwordHash: hashedPassword,
-      role: role as UserRole,
+      role: role as any,
       emailVerified: new Date(), // Auto-verify admin created users
       bio: `Account aangemaakt door admin op ${new Date().toLocaleDateString('nl-NL')}`,
       termsAccepted: true,

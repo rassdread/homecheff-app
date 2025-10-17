@@ -397,6 +397,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                 <StartChatButton
                   sellerId={user.id}
                   sellerName={getDisplayName()}
+                  showSuccessMessage={true}
                   className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
                 />
               </div>

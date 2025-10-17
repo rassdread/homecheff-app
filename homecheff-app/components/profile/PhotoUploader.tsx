@@ -76,7 +76,7 @@ export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUr
             <div className="flex flex-col items-center gap-2">
               <label className="cursor-pointer whitespace-nowrap">
                 {hasNoPhoto ? "Foto toevoegen" : "Foto wijzigen"}
-                <input className="hidden" type="file" accept="image/*" onChange={onFileChange} />
+                <input className="hidden" type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onFileChange} />
               </label>
               <button
                 onClick={setNoPhoto}

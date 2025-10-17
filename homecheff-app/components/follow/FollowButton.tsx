@@ -135,7 +135,7 @@ export default function FollowButton({
       {following ? (
         <>
           <UserCheck className={`${iconSize[size]} ${following ? 'animate-bounce' : ''}`} />
-          <span>Fan van</span>
+          <span>Fan</span>
         </>
       ) : (
         <>

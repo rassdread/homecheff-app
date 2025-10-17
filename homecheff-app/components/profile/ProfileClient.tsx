@@ -15,6 +15,7 @@ import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
 import WorkspacePhotoUpload from '../workspace/WorkspacePhotoUpload';
+import FansAndFollowsList from '../FansAndFollowsList';
 
 interface User {
   id: string;
@@ -38,6 +39,7 @@ interface User {
   buyerRoles?: string[];
   displayFullName?: boolean;
   displayNameOption?: 'full' | 'first' | 'last' | 'username';
+  showFansList?: boolean;
   showProfileToEveryone?: boolean;
   showOnlineStatus?: boolean;
   fanRequestEnabled?: boolean;
@@ -213,12 +215,16 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       roleSpecificTabs.push({ id: 'dishes', label: 'Mijn Items', icon: Plus, role: 'generic' });
     }
 
+    // Fan & Fans tab altijd achteraan
+    const fanTab = { id: 'fans', label: 'Fan & Fans', icon: Users };
+
     return [
       baseTabs[0],
       ...deliveryTab, // Ambassadeur tab komt als eerste (na overzicht)
       ...businessTabs,
       ...workspaceTab,
-      ...roleSpecificTabs
+      ...roleSpecificTabs,
+      fanTab // Fan & Fans tab altijd achteraan
     ];
   };
 
@@ -383,121 +389,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </div>
                 )}
               </div>
-              
-              {/* PRIMAIRE ROLEN - Bezorger & Zakelijk bovenaan */}
-              {(user.DeliveryProfile || (user?.SellerProfile?.kvk && user?.SellerProfile?.subscriptionId && user?.SellerProfile?.Subscription?.isActive)) && (
-                <div className="mt-6 space-y-4">
-                  {/* Bezorger Rol - Net als andere rollen */}
-                  {user.DeliveryProfile && (
-                    <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
-                          <span className="text-sm">🚴</span>
-                          <span>Ambassadeur</span>
-                        </span>
-                        {user.DeliveryProfile.isVerified && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium shadow-sm">
-                            <span className="text-sm">✅</span>
-                            <span>Geverifieerd</span>
-                          </span>
-                        )}
-                        {user.DeliveryProfile.isActive && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium shadow-sm animate-pulse">
-                            <span className="text-sm">🟢</span>
-                            <span>Actief</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Zakelijke KVK Account - Net als andere rollen */}
-                  {(user?.SellerProfile?.kvk && user?.SellerProfile?.subscriptionId && user?.SellerProfile?.Subscription?.isActive) && (
-                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
-                          <span className="text-sm">🏢</span>
-                          <span>Zakelijk</span>
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium shadow-sm">
-                          <span className="text-sm">✅</span>
-                          <span>KVK Geregistreerd</span>
-                        </span>
-                        {user.SellerProfile?.Subscription?.isActive && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium shadow-sm">
-                            <span className="text-sm">💎</span>
-                            <span>{user.SellerProfile.Subscription.name}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Alle Rollen - Consistente stijl */}
-              {(user.sellerRoles && user.sellerRoles.length > 0) || user.DeliveryProfile ? (
-                <div className="mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <div className="flex flex-wrap gap-2">
-                    {/* Bezorger rol altijd eerst */}
-                    {user.DeliveryProfile && (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
-                        <span className="text-sm">🚴</span>
-                        <span>Ambassadeur</span>
-                      </span>
-                    )}
-                    
-                    {/* Verkoper rollen */}
-                    {user.sellerRoles && user.sellerRoles.map((role, index) => {
-                      const roleInfo = {
-                        chef: { icon: "👨‍🍳", label: "Chef", color: "bg-emerald-100 text-emerald-800" },
-                        garden: { icon: "🌱", label: "Tuinier", color: "bg-green-100 text-green-800" },
-                        designer: { icon: "🎨", label: "Designer", color: "bg-purple-100 text-purple-800" }
-                      }[role];
-                      
-                      return (
-                        <span
-                          key={index}
-                          className={`inline-flex items-center gap-1 px-3 py-1 ${roleInfo?.color || 'bg-gray-100 text-gray-800'} rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
-                        >
-                          <span className="text-sm">{roleInfo?.icon || '🏷️'}</span>
-                          <span>{roleInfo?.label || role}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Koperrollen - Boven de bio */}
-              {user.buyerRoles && user.buyerRoles.length > 0 && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex flex-wrap gap-2">
-                    {user.buyerRoles.map((role, index) => {
-                      const roleInfo = {
-                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800" },
-                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800" },
-                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800" },
-                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800" },
-                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800" },
-                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800" },
-                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800" },
-                        food_lover: { icon: "🍽️", label: "Food Lover", color: "bg-orange-100 text-orange-800" }
-                      }[role];
-                      
-                      return (
-                        <span
-                          key={index}
-                          className={`inline-flex items-center gap-1 px-3 py-1 ${roleInfo?.color || 'bg-gray-100 text-gray-800'} rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
-                        >
-                          <span className="text-sm">{roleInfo?.icon || '🏷️'}</span>
-                          <span>{roleInfo?.label || role}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Bio sectie apart */}
               {user.bio && (
@@ -519,7 +410,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.followers}
                   </div>
-                  <div className="text-xs text-gray-500">Fan van</div>
+                  <div className="text-xs text-gray-500">Fan</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
@@ -528,6 +419,154 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-xs text-gray-500">Fan</div>
                 </div>
               </div>
+              
+              {/* Active Delivery Role - Mijn Bijdrage */}
+              {user.DeliveryProfile && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Mijn Bijdrage
+                    </h3>
+                    <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
+                      Ambassadeur
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="p-4 bg-blue-100 text-blue-800 rounded-lg border shadow-sm hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">🚴</span>
+                        <div>
+                          <h4 className="font-semibold text-sm">Ambassadeur</h4>
+                          <p className="text-xs opacity-75">Betrouwbare bezorger in jouw buurt</p>
+                        </div>
+                        <div className="ml-auto">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            {user.DeliveryProfile.isActive ? 'Actief' : 'Inactief'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1">
+                          <span className="text-green-600">👍</span>
+                          <span>{user.DeliveryProfile.isVerified ? 'Geverifieerd' : 'Niet geverifieerd'}</span>
+                        </span>
+                        <span className="text-gray-600">{user.DeliveryProfile.totalDeliveries} bezorgingen</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Buyer Roles - Enhanced */}
+              {user.buyerRoles && user.buyerRoles.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-secondary-brand rounded-full"></span>
+                      Mijn Koperrollen
+                    </h3>
+                    <span className="text-xs text-secondary-brand font-medium bg-secondary-50 px-2 py-1 rounded-full">
+                      {user.buyerRoles.length} actief
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {user.buyerRoles.map((role, index) => {
+                      const roleInfo = {
+                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800", description: "Ontdek nieuwe smaken en ervaringen" },
+                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800", description: "Verzamel unieke producten en items" },
+                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800", description: "Passie voor kwaliteit en authenticiteit" },
+                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800", description: "Op zoek naar nieuwe culinaire avonturen" },
+                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800", description: "Verfijnde smaak en aandacht voor detail" },
+                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800", description: "Kenner van kunst en cultuur" },
+                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800", description: "Geniet van het leven en de kleine dingen" },
+                        food_lover: { icon: "🍽️", label: "Food Lover", color: "bg-orange-100 text-orange-800", description: "Passie voor lekker eten en drinken" }
+                      }[role];
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`p-4 ${roleInfo?.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl">{roleInfo?.icon}</span>
+                            <div>
+                              <h4 className="font-semibold text-sm">{roleInfo?.label}</h4>
+                              <p className="text-xs opacity-75">{roleInfo?.description}</p>
+                            </div>
+                            <div className="ml-auto">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Actief
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1">
+                              <span className="text-green-600">👍</span>
+                              <span>Geverifieerd</span>
+                            </span>
+                            <span className="text-gray-600">0 aankopen</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Seller Roles - Enhanced */}
+              {user.sellerRoles && user.sellerRoles.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-primary-brand rounded-full"></span>
+                      Mijn Verkoperrollen
+                    </h3>
+                    <span className="text-xs text-primary-brand font-medium bg-primary-50 px-2 py-1 rounded-full">
+                      {user.sellerRoles.length} actief
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {user.sellerRoles.map((role, index) => {
+                      const roleInfo = {
+                        chef: { icon: "👨‍🍳", label: "Chef", color: "bg-emerald-100 text-emerald-800", description: "Culinaire creaties en gerechten" },
+                        garden: { icon: "🌱", label: "Tuinier", color: "bg-green-100 text-green-800", description: "Verse groenten en kruiden" },
+                        designer: { icon: "🎨", label: "Designer", color: "bg-purple-100 text-purple-800", description: "Handgemaakte kunstwerken" }
+                      }[role];
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`p-4 ${roleInfo?.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl">{roleInfo?.icon}</span>
+                            <div>
+                              <h4 className="font-semibold text-sm">{roleInfo?.label}</h4>
+                              <p className="text-xs opacity-75">{roleInfo?.description}</p>
+                            </div>
+                            <div className="ml-auto">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Actief
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1">
+                              <span className="text-green-600">👍</span>
+                              <span>Geverifieerd</span>
+                            </span>
+                            <span className="text-gray-600">0 producten</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Interests - Enhanced */}
               {user.interests && user.interests.length > 0 && (
@@ -550,46 +589,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         {interest}
                       </span>
                     ))}
-                  </div>
-                </div>
-              )}
-
-
-
-              {/* Active Buyer Roles - Enhanced */}
-              {user.buyerRoles && user.buyerRoles.length > 0 && (
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                      <span className="w-2 h-2 bg-secondary-brand rounded-full"></span>
-                      Mijn Koperrollen
-                    </h3>
-                    <span className="text-xs text-secondary-brand font-medium bg-secondary-50 px-2 py-1 rounded-full">
-                      {user.buyerRoles.length} actief
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {user.buyerRoles.map((role, index) => {
-                      const roleInfo = {
-                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800" },
-                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800" },
-                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800" },
-                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800" },
-                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800" },
-                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800" },
-                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800" }
-                      }[role];
-                      
-                      return (
-                        <div
-                          key={index}
-                          className={`inline-flex items-center gap-2 px-3 py-2 ${roleInfo?.color} rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
-                        >
-                          <span className="text-sm">{roleInfo?.icon}</span>
-                          <span>{roleInfo?.label}</span>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               )}
@@ -678,23 +677,27 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
           {/* Main Content */}
           <div className="lg:col-span-3">
             {/* Tabs */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <nav className="flex space-x-1 px-2 sm:px-4 overflow-x-auto scrollbar-hide">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 relative ${
-                          activeTab === tab.id
-                            ? 'border-primary-brand text-primary-brand bg-primary-50'
-                            : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-primary-200 hover:bg-primary-25'
+                        className={`flex items-center space-x-2 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 relative whitespace-nowrap ${
+                          isActive
+                            ? 'bg-emerald-500 text-white shadow-md transform scale-105'
+                            : 'text-gray-600 hover:text-emerald-600 hover:bg-white hover:shadow-sm'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-500'}`} />
                         <span>{tab.label}</span>
+                        {isActive && (
+                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        )}
                       </button>
                     );
                   })}
@@ -1085,7 +1088,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     <div className="flex items-center justify-between">
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900">Werkruimte</h2>
-                        <p className="text-sm text-gray-500">Upload foto's van je werkplekken per rol</p>
                       </div>
                     </div>
                     
@@ -1136,6 +1138,20 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* Fans & Follows Tab */}
+                {activeTab === 'fans' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900">Fan & Fans</h2>
+                        <p className="text-sm text-gray-500">Beheer je volgers en wie je volgt</p>
+                      </div>
+                    </div>
+                    
+                    <FansAndFollowsList />
                   </div>
                 )}
               </div>

@@ -683,7 +683,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                         </span>
                       ) : (item as any).ingredients ? (
                         <span className="text-sm text-emerald-600 font-medium">
-                          Bekijk recept
+                          {role === 'garden' ? 'Bekijk kweek' : role === 'designer' ? 'Bekijk design' : 'Bekijk recept'}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-500">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ClickableName from '@/components/ui/ClickableName';
+import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { 
@@ -48,19 +49,13 @@ export default function FollowsList() {
       {items.map(f => (
         <li key={f.id} className="p-3 flex items-center gap-3">
           {/* Avatar */}
-          <div className="w-8 h-8 rounded-full overflow-hidden border bg-gray-200 flex-shrink-0">
-            {(f.Seller?.profileImage || f.Seller?.image) ? (
-              <img 
-                src={f.Seller.profileImage || f.Seller.image || ""} 
-                alt={getDisplayName(f.Seller)} 
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-primary-brand text-white text-sm font-bold">
-                {getDisplayName(f.Seller).charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+          <SafeImage
+            src={f.Seller?.profileImage || f.Seller?.image || ""}
+            alt={getDisplayName(f.Seller)}
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full object-cover border flex-shrink-0"
+          />
           
           {/* Name with link */}
           <ClickableName

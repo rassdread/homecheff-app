@@ -91,12 +91,11 @@ interface UserProfile {
   buyerRoles?: string[];
   displayFullName?: boolean;
   displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
+  showFansList?: boolean;
   encryptionEnabled?: boolean;
   messageGuidelinesAccepted?: boolean;
   messageGuidelinesAcceptedAt?: Date | null;
-  bankName?: string;
-  iban?: string;
-  accountHolderName?: string;
+  // Bank details now handled via Stripe
 }
 
 interface ProfileSettingsProps {
@@ -129,8 +128,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     foundAddress: null,
   });
   const [formData, setFormData] = useState({
-    name: user ? getDisplayName(user) : '',
-    username: user ? getDisplayName(user) : '',
+    name: user?.name || user?.username || '',
+    username: user?.username || user?.name || '',
     bio: user?.bio || '',
     quote: user?.quote || '',
     place: user?.place || '',
@@ -144,11 +143,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     buyerRoles: user?.buyerRoles || [],
     displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
     displayNameOption: user?.displayNameOption || 'full',
+    showFansList: user?.showFansList !== undefined ? user.showFansList : true,
     encryptionEnabled: user?.encryptionEnabled || false,
     messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
-    bankName: user?.bankName || '',
-    iban: user?.iban || '',
-    accountHolderName: user?.accountHolderName || ''
+    // Bank details now handled via Stripe
   });
   const [showEncryptionModal, setShowEncryptionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,8 +159,11 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     setSuccess(null);
     
     try {
-      // Exclude username from formData since it can't be changed
-      const { username, ...dataToSave } = formData;
+      // Include username with current value (can't be changed but API expects it)
+      const dataToSave = {
+        ...formData,
+        username: user?.username || user?.name || formData.username // Use current username
+      };
       await onSave(dataToSave);
       setSuccess('Profiel succesvol bijgewerkt!');
       setIsEditing(false);
@@ -327,8 +328,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
   const handleCancel = () => {
     setFormData({
-      name: user ? getDisplayName(user) : '',
-      username: user ? getDisplayName(user) : '',
+      name: user?.name || user?.username || '',
+      username: user?.username || user?.name || '',
       bio: user?.bio || '',
       quote: user?.quote || '',
       place: user?.place || '',
@@ -342,11 +343,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       buyerRoles: user?.buyerRoles || [],
       displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
       displayNameOption: user?.displayNameOption || 'full',
+      showFansList: user?.showFansList !== undefined ? user.showFansList : true,
       encryptionEnabled: user?.encryptionEnabled || false,
       messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
-      bankName: user?.bankName || '',
-      iban: user?.iban || '',
-      accountHolderName: user?.accountHolderName || ''
+      // Bank details now handled via Stripe
     });
     setIsEditing(false);
   };
@@ -859,51 +859,23 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             </div>
           )}
 
-          {/* Bank Details - Only show when seller roles are selected */}
+          {/* Stripe Connect - Only show when seller roles are selected */}
           {formData.sellerRoles.length > 0 && (
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
-                <span className="mr-2">🏦</span>
-                Uitbetaalgegevens
-              </h4>
-              <p className="text-sm text-gray-600 mb-4">Vul je bankgegevens in om uitbetalingen te ontvangen</p>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Banknaam</label>
-                    <input
-                      type="text"
-                      value={formData.bankName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
-                      disabled={!isEditing}
-                      placeholder="ABN AMRO, ING, Rabobank..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
-                    <input
-                      type="text"
-                      value={formData.iban}
-                      onChange={(e) => setFormData(prev => ({ ...prev, iban: e.target.value }))}
-                      disabled={!isEditing}
-                      placeholder="NL91ABNA0417164300"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Rekeninghouder naam</label>
-                  <input
-                    type="text"
-                    value={formData.accountHolderName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, accountHolderName: e.target.value }))}
-                    disabled={!isEditing}
-                    placeholder="Jouw volledige naam"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
+                  <h4 className="font-medium text-blue-900 mb-1">Uitbetalingen via Stripe</h4>
+                  <p className="text-sm text-blue-700">
+                    Uitbetalingen worden veilig afgehandeld via Stripe. 
+                    <a href="/seller/stripe/refresh" className="font-medium underline hover:text-blue-800 ml-1">
+                      Connect met Stripe
+                    </a> om je bankgegevens toe te voegen.
+                  </p>
                 </div>
               </div>
             </div>
@@ -1097,6 +1069,32 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-medium text-gray-900">Geen naam</div>
                 <div className="text-xs sm:text-sm text-gray-600">Toon geen naam op je profiel, alleen gebruikersnaam</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Privacy Settings */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Privacy instellingen</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Bepaal welke informatie zichtbaar is op je publieke profiel
+          </p>
+          
+          <div className="space-y-4">
+            <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="checkbox"
+                checked={formData.showFansList}
+                onChange={(e) => setFormData(prev => ({ ...prev, showFansList: e.target.checked }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-gray-900">Fan lijst tonen</div>
+                <div className="text-xs text-gray-600">
+                  Toon je fan lijst en wie je volgt op je publieke profiel
+                </div>
               </div>
             </label>
           </div>

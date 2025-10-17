@@ -42,9 +42,41 @@ export async function POST(req: NextRequest) {
           where: { userId }
         });
 
-        // 2. Delete product reviews
+        // 2. Delete product reviews (as buyer)
         await tx.productReview.deleteMany({
           where: { buyerId: userId }
+        });
+        
+        // 2b. Delete products directly associated with user (sellerId = userId)
+        const directProducts = await tx.product.findMany({
+          where: { sellerId: userId },
+          select: { id: true }
+        });
+        
+        for (const product of directProducts) {
+          // Delete product images
+          await tx.image.deleteMany({
+            where: { productId: product.id }
+          });
+          
+          // Delete product reviews
+          await tx.productReview.deleteMany({
+            where: { productId: product.id }
+          });
+          
+          // Delete favorites for this product
+          await tx.favorite.deleteMany({
+            where: { productId: product.id }
+          });
+          
+          // Delete order items for this product
+          await tx.orderItem.deleteMany({
+            where: { productId: product.id }
+          });
+        }
+        
+        await tx.product.deleteMany({
+          where: { sellerId: userId }
         });
 
         // 3. Delete order items and orders

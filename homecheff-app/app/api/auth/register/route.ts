@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+// import { UserRole } from "@prisma/client";
 import { geocodeAddress } from "@/lib/global-geocoding";
 
 export async function POST(req: NextRequest) {
@@ -31,9 +31,7 @@ export async function POST(req: NextRequest) {
       city,
       postalCode,
       bio,
-      bankName,
-      iban,
-      accountHolderName,
+      // Bank details now handled via Stripe
       kvk,
       btw,
       subscription,
@@ -169,7 +167,7 @@ export async function POST(req: NextRequest) {
 
     // Determine user role based on userTypes
     const hasSellerRole = userTypes && userTypes.length > 0;
-    const userRole = hasSellerRole ? UserRole.SELLER : UserRole.BUYER;
+    const userRole = hasSellerRole ? 'SELLER' : 'BUYER';
 
     let user;
     if (hasSellerRole) {
@@ -285,9 +283,9 @@ export async function POST(req: NextRequest) {
     // Bepaal redirect URL op basis van rol
     let redirectUrl = "/"; // Default naar homepage
     
-    if (userRole === UserRole.SELLER) {
+    if (userRole === 'SELLER') {
       redirectUrl = "/profile"; // Verkopers naar profielpagina
-    } else if (userRole === UserRole.BUYER) {
+    } else if (userRole === 'BUYER') {
       redirectUrl = "/"; // Kopers naar homepage
     }
 

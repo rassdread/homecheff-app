@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
+// import { UserRole } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       data: {
         username,
         name: existingUser.name || username, // Keep social name or use username as fallback
-        role: role as UserRole,
+        role: role as any,
         interests,
         sellerRoles,
         buyerRoles,
@@ -94,6 +94,13 @@ export async function POST(request: NextRequest) {
         privacyPolicyAccepted: acceptedPrivacy,
         privacyPolicyAcceptedAt: acceptedPrivacy ? new Date() : null,
         bio: `Welkom op HomeCheff!`,
+        // Set default values to match regular registration
+        displayFullName: true,
+        displayNameOption: 'full',
+        showFansList: true,
+        marketingAccepted: false,
+        messageGuidelinesAccepted: false,
+        encryptionEnabled: false,
       }
     });
 

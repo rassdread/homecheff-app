@@ -29,11 +29,10 @@ export async function PUT(request: NextRequest) {
       buyerRoles, 
       displayFullName,
       displayNameOption,
+      showFansList,
       encryptionEnabled,
       messageGuidelinesAccepted,
-      bankName,
-      iban,
-      accountHolderName
+      // Bank details now handled via Stripe
     } = body;
 
     // Validate required fields
@@ -94,12 +93,11 @@ export async function PUT(request: NextRequest) {
         buyerRoles: buyerRoles || [],
         displayFullName: displayFullName !== undefined ? displayFullName : true,
         displayNameOption: displayNameOption || 'full',
+        showFansList: showFansList !== undefined ? showFansList : true,
         encryptionEnabled: encryptionEnabled !== undefined ? encryptionEnabled : false,
         messageGuidelinesAccepted: messageGuidelinesAccepted !== undefined ? messageGuidelinesAccepted : false,
         messageGuidelinesAcceptedAt: messageGuidelinesAccepted && !currentUser?.messageGuidelinesAcceptedAt ? new Date() : undefined,
-        bankName: bankName || null,
-        iban: iban || null,
-        accountHolderName: accountHolderName || null,
+        // Bank details now handled via Stripe
       },
       select: {
         id: true,

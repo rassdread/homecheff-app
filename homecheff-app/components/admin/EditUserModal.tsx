@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { X, User, Eye, EyeOff, Upload, Camera } from 'lucide-react';
-import { UserRole } from '@prisma/client';
+// Define UserRole enum manually since Prisma client might not be available
+type UserRole = 'ADMIN' | 'BUYER' | 'SELLER' | 'USER' | 'DELIVERY';
 
 interface User {
   id: string;

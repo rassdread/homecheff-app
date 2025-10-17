@@ -17,11 +17,21 @@ export async function uploadFile(file: File, endpoint: string = '/api/upload'): 
       };
     }
     
-    if (file.size > 10 * 1024 * 1024) { // 10MB
+    // Check for specific image formats
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
       return {
         url: '',
         success: false,
-        error: 'Bestand is te groot. Maximum 10MB toegestaan.'
+        error: 'Alleen JPG, PNG, WebP en GIF bestanden zijn toegestaan.'
+      };
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB - consistent met andere uploads
+      return {
+        url: '',
+        success: false,
+        error: 'Bestand is te groot. Maximum 5MB toegestaan.'
       };
     }
 

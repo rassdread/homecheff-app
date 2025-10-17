@@ -79,6 +79,7 @@ function MessagesPageContent() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'conversations' | 'notifications'>('conversations');
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const searchParams = useSearchParams();
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -96,6 +97,30 @@ function MessagesPageContent() {
 
   const handleBackToList = () => {
     setSelectedConversation(null);
+  };
+
+  // Load notifications when tab changes to notifications
+  const loadNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      const response = await fetch('/api/notifications');
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab: 'conversations' | 'notifications') => {
+    setActiveTab(tab);
+    if (tab === 'notifications') {
+      loadNotifications();
+    }
   };
 
   // Handle URL conversation parameter
@@ -147,7 +172,7 @@ function MessagesPageContent() {
             {/* Tabs */}
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
               <button
-                onClick={() => setActiveTab('conversations')}
+                onClick={() => handleTabChange('conversations')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'conversations'
                     ? 'bg-white text-gray-900 shadow-sm'
@@ -158,7 +183,7 @@ function MessagesPageContent() {
                 Gesprekken
               </button>
               <button
-                onClick={() => setActiveTab('notifications')}
+                onClick={() => handleTabChange('notifications')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'notifications'
                     ? 'bg-white text-gray-900 shadow-sm'
@@ -167,6 +192,11 @@ function MessagesPageContent() {
               >
                 <Bell className="w-4 h-4" />
                 Notificaties
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                    {notifications.filter(n => !n.isRead).length}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -220,13 +250,115 @@ function MessagesPageContent() {
           </>
         ) : (
           /* Notifications Tab */
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center p-8">
-              <Bell className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Notificaties</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
-                Alle notificaties worden binnenkort hier getoond
-              </p>
+          <div className="flex-1 flex flex-col bg-white">
+            {/* Notifications Header */}
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Notificaties ({notifications.length})
+                </h2>
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await fetch('/api/notifications', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ markAllAsRead: true })
+                        });
+                        loadNotifications();
+                      } catch (error) {
+                        console.error('Error marking all as read:', error);
+                      }
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Alles als gelezen markeren
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Notifications List */}
+            <div className="flex-1 overflow-y-auto">
+              {notificationsLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="text-center">
+                    <Bell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500">Geen notificaties</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                        !notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                      }`}
+                      onClick={async () => {
+                        // Mark as read if not already read
+                        if (!notification.isRead) {
+                          try {
+                            await fetch('/api/notifications', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ notificationIds: [notification.id] })
+                            });
+                            loadNotifications();
+                          } catch (error) {
+                            console.error('Error marking notification as read:', error);
+                          }
+                        }
+                        
+                        // Navigate to link if available
+                        if (notification.link) {
+                          window.location.href = notification.link;
+                        }
+                      }}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className={`w-2 h-2 rounded-full ${
+                            !notification.isRead ? 'bg-blue-500' : 'bg-gray-300'
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className={`text-sm font-medium ${
+                              !notification.isRead ? 'text-gray-900' : 'text-gray-700'
+                            }`}>
+                              {notification.title}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(notification.createdAt).toLocaleDateString('nl-NL', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          <p className={`text-sm mt-1 ${
+                            !notification.isRead ? 'text-gray-800' : 'text-gray-600'
+                          }`}>
+                            {notification.message}
+                          </p>
+                          {notification.from && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Van: {notification.from.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

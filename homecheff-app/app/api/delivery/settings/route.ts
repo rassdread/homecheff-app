@@ -37,7 +37,8 @@ export async function GET(req: NextRequest) {
             lat: true,
             lng: true,
             place: true,
-            phoneNumber: true
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true
           }
         }
       }
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
         totalEarnings: deliveryProfile.totalEarnings,
         createdAt: deliveryProfile.createdAt
       },
-      user: deliveryProfile.user
+      user: deliveryProfile.user || null
     });
   } catch (error) {
     console.error('Error fetching delivery settings:', error);
@@ -103,7 +104,6 @@ export async function PUT(req: NextRequest) {
       transportation,
       deliveryRegions,
       bio,
-      phoneNumber,
       lat,
       lng,
       place
@@ -125,14 +125,13 @@ export async function PUT(req: NextRequest) {
     });
 
     // Update user location if provided
-    if (lat !== undefined || lng !== undefined || place !== undefined || phoneNumber !== undefined) {
+    if (lat !== undefined || lng !== undefined || place !== undefined) {
       await prisma.user.update({
         where: { id: user.id },
         data: {
           lat: lat !== undefined ? lat : undefined,
           lng: lng !== undefined ? lng : undefined,
           place: place !== undefined ? place : undefined,
-          phoneNumber: phoneNumber !== undefined ? phoneNumber : undefined
         }
       });
     }

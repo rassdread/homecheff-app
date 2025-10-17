@@ -22,6 +22,16 @@ export const getPusherClient = () => {
     pusherClientInstance = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
       authEndpoint: '/api/pusher/auth',
+      // Performance optimizations
+      enabledTransports: ['ws', 'wss'],
+      disabledTransports: ['xhr_polling', 'xhr_streaming'],
+      // Connection settings
+      activityTimeout: 30000,
+      pongTimeout: 6000,
+      // Enable compression
+      enableStats: false,
+      // Faster connection
+      forceTLS: true,
     });
   }
   return pusherClientInstance;

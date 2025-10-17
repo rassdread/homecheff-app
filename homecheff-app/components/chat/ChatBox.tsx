@@ -45,7 +45,8 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
   const [isSending, setIsSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const [lastSeenAt, setLastSeenAt] = useState<string | null>(null);
   const [pusherConnected, setPusherConnected] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,34 +76,65 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     fetchUser();
   }, [session]);
 
-  // Load messages
-  const loadMessages = async () => {
+  // Load messages - OPTIMIZED VERSION
+  const loadMessages = async (isInitialLoad = false) => {
     if (!conversationId) return;
     
     try {
-      console.log('📥 Loading messages...');
-      const res = await fetch(`/api/conversations/${conversationId}/messages?limit=100`);
+      console.log('📥 Loading messages (optimized)...');
+      const res = await fetch(`/api/conversations/${conversationId}/messages-fast?limit=50`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       
       if (res.ok) {
         const data = await res.json();
         const newMessages = data.messages || [];
         
-        console.log('✅ Messages loaded:', {
+        console.log('✅ Messages loaded (optimized):', {
           count: newMessages.length,
-          messages: newMessages.map((m: any) => ({
-            id: m.id.substring(0, 8),
-            text: m.text?.substring(0, 30),
-            sender: m.User?.name || m.User?.username
-          }))
+          cacheStatus: res.headers.get('X-Cache'),
+          isInitialLoad
         });
         
-        setMessages(newMessages);
+        if (isInitialLoad) {
+          // Initial load - replace all messages
+          setMessages(newMessages);
+        } else {
+          // Update load - only add new messages
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id));
+            const newUniqueMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+            
+            if (newUniqueMessages.length > 0) {
+              console.log(`📨 Adding ${newUniqueMessages.length} new messages`);
+              return [...prev, ...newUniqueMessages].sort((a, b) => 
+                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              );
+            }
+            return prev;
+          });
+        }
+        
         setIsLoading(false);
         
-        // Scroll to bottom
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        // Scroll to bottom only on initial load or when new messages are added
+        if (isInitialLoad || (data.messages && data.messages.length > 0)) {
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      } else {
+        // Fallback to regular API if fast API fails
+        console.log('⚠️ Fast API failed, trying regular API...');
+        const fallbackRes = await fetch(`/api/conversations/${conversationId}/messages?limit=50`);
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          setMessages(fallbackData.messages || []);
+        }
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('❌ Error loading messages:', error);
@@ -141,9 +173,17 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       console.log('📨 New message received:', data);
       
       setMessages((prev) => {
-        // Check if message already exists
-        if (prev.some(m => m.id === data.id)) {
-          return prev;
+        // Check if message already exists (including optimistic messages)
+        if (prev.some(m => m.id === data.id || m.id.startsWith('temp-'))) {
+          // If we have an optimistic message, replace it with real message
+          if (prev.some(m => m.id.startsWith('temp-') && m.senderId === data.senderId && m.text === data.text)) {
+            return prev.map(msg => 
+              msg.id.startsWith('temp-') && msg.senderId === data.senderId && msg.text === data.text 
+                ? data 
+                : msg
+            );
+          }
+          return prev; // Message already exists
         }
         return [...prev, data];
       });
@@ -167,9 +207,12 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     });
     
     // Online status
-    channel.bind('user-online', (data: { userId: string; online: boolean }) => {
+    channel.bind('user-online', (data: { userId: string; online: boolean; lastSeenAt?: string }) => {
       if (data.userId === otherParticipant.id) {
         setIsOnline(data.online);
+        if (data.lastSeenAt) {
+          setLastSeenAt(data.lastSeenAt);
+        }
       }
     });
     
@@ -181,17 +224,46 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     };
   }, [conversationId, currentUserId, otherParticipant.id]);
 
-  // Initial load + polling backup
+  // Initial load + smart polling backup
   useEffect(() => {
     if (conversationId && currentUserId) {
-      loadMessages();
+      loadMessages(true); // Initial load
+      loadOtherUserStatus(); // Load other user's online status
       
-      // Poll every 5 seconds as backup (or 2 seconds if Pusher not connected)
-      const pollInterval = pusherConnected ? 5000 : 2000;
-      const interval = setInterval(loadMessages, pollInterval);
-      return () => clearInterval(interval);
+      // Smart polling: only when Pusher is not connected or after connection issues
+      let pollInterval: NodeJS.Timeout | null = null;
+      
+      if (!pusherConnected) {
+        // Poll every 3 seconds when Pusher is not connected
+        pollInterval = setInterval(() => {
+          loadMessages(false); // Update load
+        }, 3000);
+      } else {
+        // When Pusher is connected, only poll every 30 seconds as backup
+        pollInterval = setInterval(() => {
+          loadMessages(false); // Update load
+        }, 30000);
+      }
+      
+      return () => {
+        if (pollInterval) clearInterval(pollInterval);
+      };
     }
   }, [conversationId, currentUserId, pusherConnected]);
+
+  // Load other user's online status
+  const loadOtherUserStatus = async () => {
+    try {
+      const response = await fetch(`/api/users/online-status?userId=${otherParticipant.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsOnline(data.isOnline);
+        setLastSeenAt(data.lastSeenAt);
+      }
+    } catch (error) {
+      console.error('Error loading user status:', error);
+    }
+  };
 
   // Handle typing
   const handleTyping = (value: string) => {
@@ -225,7 +297,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     }, 2000);
   };
 
-  // Send message
+  // Send message with optimistic UI
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -241,30 +313,71 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       clearTimeout(typingTimeoutRef.current);
     }
     
+    // Create optimistic message immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: tempId,
+      text,
+      senderId: currentUserId,
+      createdAt: new Date().toISOString(),
+      User: {
+        id: currentUserId,
+        name: null,
+        username: null,
+        profileImage: null,
+        displayFullName: null,
+        displayNameOption: null
+      }
+    };
+    
+    // Add optimistic message immediately to UI
+    setMessages(prev => [...prev, optimisticMessage]);
+    
+    // Scroll to bottom immediately
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+    
     try {
       console.log('📤 Sending message...');
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      const res = await fetch(`/api/conversations/${conversationId}/messages/quick`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, messageType: 'TEXT' })
       });
       
       if (res.ok) {
+        const data = await res.json();
+        const realMessage = data.message;
+        
         console.log('✅ Message sent!');
         
-        // Immediately reload messages to show sent message
+        // Replace optimistic message with real message
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId ? realMessage : msg
+          )
+        );
+        
+        // Scroll to bottom after real message
         setTimeout(() => {
-          loadMessages();
-        }, 200);
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       } else {
         console.error('❌ Failed to send:', res.status);
+        
+        // Remove optimistic message and restore input
+        setMessages(prev => prev.filter(msg => msg.id !== tempId));
+        setNewMessage(text);
         alert('Kon bericht niet verzenden');
-        setNewMessage(text); // Restore message
       }
     } catch (error) {
       console.error('❌ Error sending:', error);
-      alert('Fout bij verzenden');
+      
+      // Remove optimistic message and restore input
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
       setNewMessage(text);
+      alert('Fout bij verzenden');
     } finally {
       setIsSending(false);
     }
@@ -274,6 +387,26 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     return new Date(date).toLocaleTimeString('nl-NL', {
       hour: '2-digit',
       minute: '2-digit'
+    });
+  };
+
+  const formatLastSeen = (date: string) => {
+    const now = new Date();
+    const lastSeen = new Date(date);
+    const diffInMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'zojuist';
+    if (diffInMinutes < 60) return `${diffInMinutes} min geleden`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} uur geleden`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} dag${diffInDays > 1 ? 'en' : ''} geleden`;
+    
+    return lastSeen.toLocaleDateString('nl-NL', {
+      day: 'numeric',
+      month: 'short'
     });
   };
 
@@ -324,7 +457,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
               <>
                 <Circle className={`w-2 h-2 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
                 <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                  {isOnline ? 'Online' : 'Offline'}
+                  {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
                 </span>
                 {pusherConnected && (
                   <span className="text-xs text-gray-400">• Live</span>
@@ -373,7 +506,9 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
                       </p>
                       {isOwn && (
                         <span className="text-xs">
-                          {msg.readAt ? (
+                          {msg.id.startsWith('temp-') ? (
+                            <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+                          ) : msg.readAt ? (
                             <CheckCheck className="w-3 h-3 text-blue-400" />
                           ) : msg.deliveredAt ? (
                             <CheckCheck className="w-3 h-3 text-gray-400" />

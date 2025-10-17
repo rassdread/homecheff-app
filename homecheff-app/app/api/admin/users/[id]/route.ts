@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
+// import { UserRole } from '@prisma/client';
 
 // PATCH - Update user
 export async function PATCH(
@@ -48,7 +48,8 @@ export async function PATCH(
     }
 
     // Validate role
-    if (!Object.values(UserRole).includes(role)) {
+    const validRoles = ['USER', 'ADMIN', 'SELLER', 'BUYER', 'DELIVERY'];
+    if (!validRoles.includes(role)) {
       return NextResponse.json({ 
         error: 'Ongeldige rol' 
       }, { status: 400 });
@@ -91,7 +92,7 @@ export async function PATCH(
       place: place || null,
       gender: gender || null,
       interests: interests || [],
-      role: role as UserRole,
+      role: role as any,
     };
 
     // Add profile image if provided
@@ -240,7 +241,39 @@ export async function DELETE(
         where: { userId: id }
       });
 
-      // 6. Delete seller profile and related data
+      // 6. Delete products directly associated with user (sellerId = userId)
+      const directProducts = await tx.product.findMany({
+        where: { sellerId: id },
+        select: { id: true }
+      });
+      
+      for (const product of directProducts) {
+        // Delete product images
+        await tx.image.deleteMany({
+          where: { productId: product.id }
+        });
+        
+        // Delete product reviews
+        await tx.productReview.deleteMany({
+          where: { productId: product.id }
+        });
+        
+        // Delete favorites for this product
+        await tx.favorite.deleteMany({
+          where: { productId: product.id }
+        });
+        
+        // Delete order items for this product
+        await tx.orderItem.deleteMany({
+          where: { productId: product.id }
+        });
+      }
+      
+      await tx.product.deleteMany({
+        where: { sellerId: id }
+      });
+
+      // 7. Delete seller profile and related data
       const sellerProfiles = await tx.sellerProfile.findMany({
         where: { userId: id },
         select: { id: true }
@@ -262,6 +295,21 @@ export async function DELETE(
           await tx.image.deleteMany({
             where: { productId: product.id }
           });
+          
+          // Delete product reviews
+          await tx.productReview.deleteMany({
+            where: { productId: product.id }
+          });
+          
+          // Delete favorites for this product
+          await tx.favorite.deleteMany({
+            where: { productId: product.id }
+          });
+          
+          // Delete order items for this product
+          await tx.orderItem.deleteMany({
+            where: { productId: product.id }
+          });
         }
         
         await tx.product.deleteMany({
@@ -273,12 +321,12 @@ export async function DELETE(
         where: { userId: id }
       });
 
-      // 7. Delete delivery profile
+      // 8. Delete delivery profile
       await tx.deliveryProfile.deleteMany({
         where: { userId: id }
       });
 
-      // 8. Finally, delete the user
+      // 9. Finally, delete the user
       await tx.user.delete({
         where: { id }
       });

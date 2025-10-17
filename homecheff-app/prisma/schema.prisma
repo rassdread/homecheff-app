@@ -66,6 +66,7 @@ model User {
   socialOnboardingCompleted              Boolean                   @default(true)
   downloadPermission                     DownloadPermission        @default(EVERYONE)
   printPermission                        PrintPermission           @default(EVERYONE)
+  profileViews                           Int                       @default(0)
   Account                                Account[]
   AdminAction                            AdminAction[]
   AuditLog                               AuditLog[]
@@ -131,6 +132,7 @@ model Business {
 model Product {
   id               String          @id @default(uuid())
   sellerId         String
+  seller           User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   category         ProductCategory
   title            String
   description      String
@@ -1285,6 +1287,13 @@ enum NotificationType {
   ADMIN_NOTICE
   NEW_CONVERSATION
   MESSAGE_REACTION
+  FAN_REQUEST
+  PROP_RECEIVED
+  FOLLOW_RECEIVED
+  FAVORITE_RECEIVED
+  REVIEW_RECEIVED
+  ORDER_RECEIVED
+  ORDER_UPDATE
 }
 
 enum ProductCategory {

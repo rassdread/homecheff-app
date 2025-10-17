@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
       }, {} as Record<string, number>);
 
       const topCategory = Object.entries(categoryCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0];
+        .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0];
 
       if (topCategory) {
         const similarProducts = await prisma.product.findMany({

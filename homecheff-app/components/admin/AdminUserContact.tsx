@@ -18,10 +18,7 @@ interface UserContactInfo {
   profileImage: string | null;
   role: string;
   createdAt: string;
-  // Bank info
-  bankName: string | null;
-  iban: string | null;
-  accountHolderName: string | null;
+  // Bank info now handled via Stripe
   // Business info (via SellerProfile relation)
   SellerProfile?: {
     companyName: string | null;
@@ -364,42 +361,22 @@ export default function AdminUserContact() {
                 </>
               )}
 
-              {/* Bank Info */}
-              {(selectedUser.iban || selectedUser.bankName) && (
-                <>
-                  <h4 className="font-semibold text-gray-900 border-b pb-2 pt-4">Bankgegevens</h4>
-                  
-                  {selectedUser.iban && (
-                    <div className="flex items-start gap-3">
-                      <Hash className="w-5 h-5 text-gray-400 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">IBAN</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-gray-900 font-mono">{maskSensitiveData(selectedUser.iban)}</p>
-                          {showSensitiveData && (
-                            <button
-                              onClick={() => copyToClipboard(selectedUser.iban!, 'IBAN')}
-                              className="p-1 hover:bg-gray-100 rounded"
-                            >
-                              <Copy className="w-4 h-4 text-gray-400" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedUser.accountHolderName && (
-                    <div className="flex items-start gap-3">
-                      <User className="w-5 h-5 text-gray-400 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">Rekeninghouder</p>
-                        <p className="text-gray-900">{selectedUser.accountHolderName}</p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+              {/* Payment Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-1">Uitbetalingen via Stripe</h4>
+                    <p className="text-sm text-blue-700">
+                      Bankgegevens worden veilig beheerd via Stripe Connect.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

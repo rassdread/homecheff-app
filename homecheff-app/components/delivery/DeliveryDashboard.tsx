@@ -21,7 +21,9 @@ import {
   Pause,
   RefreshCw,
   MessageCircle,
-  User
+  User,
+  CreditCard,
+  ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,10 +90,16 @@ export default function DeliveryDashboard() {
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
   const [gpsEnabled, setGpsEnabled] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [stripeConnectStatus, setStripeConnectStatus] = useState<{
+    accountId?: string | null;
+    onboardingCompleted?: boolean;
+  } | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   useEffect(() => {
     fetchDeliveryData();
     fetchOnlineStatus();
+    fetchStripeConnectStatus();
     
     // Auto-refresh every 30 seconds when online
     const interval = setInterval(() => {
@@ -178,6 +186,21 @@ export default function DeliveryDashboard() {
       }
     } catch (error) {
       console.error('Error fetching online status:', error);
+    }
+  };
+
+  const fetchStripeConnectStatus = async () => {
+    try {
+      const response = await fetch('/api/profile/me');
+      if (response.ok) {
+        const data = await response.json();
+        setStripeConnectStatus({
+          accountId: data.user?.stripeConnectAccountId,
+          onboardingCompleted: data.user?.stripeConnectOnboardingCompleted
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching Stripe Connect status:', error);
     }
   };
 
@@ -297,6 +320,28 @@ export default function DeliveryDashboard() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}u ${mins}m` : `${mins}m`;
+  };
+
+  const handleStripeOnboard = async () => {
+    setStripeLoading(true);
+    try {
+      const response = await fetch('/api/stripe/connect/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.onboardingUrl) {
+        window.location.href = data.onboardingUrl;
+      } else {
+        alert(data.error || 'Er is een fout opgetreden bij Stripe Connect');
+      }
+    } catch (error) {
+      alert('Er is een fout opgetreden bij het opzetten van Stripe Connect');
+    } finally {
+      setStripeLoading(false);
+    }
   };
 
   if (loading) {
@@ -788,6 +833,45 @@ export default function DeliveryDashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Stripe Connect Status */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Betalingsstatus
+              </h3>
+              
+              {stripeConnectStatus?.onboardingCompleted ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                    <span className="font-medium text-green-800">Stripe Connect Actief</span>
+                  </div>
+                  <p className="text-green-700 text-sm">
+                    Je kunt betalingen ontvangen. Uitbetalingen gebeuren automatisch naar je bankrekening.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mr-2" />
+                    <span className="font-medium text-amber-800">Stripe Connect Vereist</span>
+                  </div>
+                  <p className="text-amber-700 text-sm mb-3">
+                    Om betalingen te ontvangen, moet je eerst Stripe Connect opzetten.
+                  </p>
+                  <button
+                    onClick={handleStripeOnboard}
+                    disabled={stripeLoading}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {stripeLoading ? 'Bezig...' : 'Nu Opzetten'}
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Tips */}

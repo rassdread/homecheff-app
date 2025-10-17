@@ -84,14 +84,36 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       setIsLoading(true);
       console.log('[ConversationsList] 📡 Loading conversations...');
       
-      const response = await fetch('/api/conversations');
+      const response = await fetch('/api/conversations-fast', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       
       console.log('[ConversationsList] Response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[ConversationsList] ❌ Error response:', response.status, errorText);
-        throw new Error(`Failed to load conversations: ${response.status}`);
+        console.error('[ConversationsList] ❌ Fast API failed:', response.status, errorText);
+        
+        // Fallback to regular API
+        console.log('[ConversationsList] 🔄 Trying regular API...');
+        const fallbackResponse = await fetch('/api/conversations', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!fallbackResponse.ok) {
+          throw new Error(`Failed to load conversations: ${fallbackResponse.status}`);
+        }
+        
+        const fallbackData = await fallbackResponse.json();
+        setConversations(fallbackData.conversations || []);
+        setIsLoading(false);
+        return;
       }
 
       const { conversations: fetchedConversations } = await response.json();

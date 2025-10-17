@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ClickableName from '@/components/ui/ClickableName';
+import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName } from '@/lib/displayName';
 
 type Fan = { 
@@ -53,19 +54,13 @@ export default function FansList({ userId }: FansListProps) {
       {items.map(fan => (
         <li key={fan.id} className="p-3 flex items-center gap-3">
           {/* Avatar */}
-          <div className="w-8 h-8 rounded-full overflow-hidden border bg-gray-200 flex-shrink-0">
-            {(fan.user?.profileImage || fan.user?.image) ? (
-              <img 
-                src={fan.user.profileImage || fan.user.image || ""} 
-                alt={getDisplayName(fan.user)} 
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-primary-brand text-white text-sm font-bold">
-                {getDisplayName(fan.user).charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+          <SafeImage
+            src={fan.user?.profileImage || fan.user?.image || ""}
+            alt={getDisplayName(fan.user)}
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full object-cover border flex-shrink-0"
+          />
           
           {/* Name with link */}
           <ClickableName

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { X, UserPlus, Eye, EyeOff } from 'lucide-react';
-import { UserRole } from '@prisma/client';
+// Define UserRole enum manually since Prisma client might not be available
+type UserRole = 'ADMIN' | 'BUYER' | 'SELLER' | 'USER' | 'DELIVERY';
 
 interface CreateUserModalProps {
   isOpen: boolean;

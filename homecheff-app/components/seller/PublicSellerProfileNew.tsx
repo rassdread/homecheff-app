@@ -456,7 +456,11 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   {/* Only show follow/chat buttons if user is logged in */}
                   <div className="flex flex-col sm:flex-row gap-2">
                     <FollowButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
-                    <StartChatButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
+                    <StartChatButton 
+                      sellerId={sellerProfile.id} 
+                      sellerName={getDisplayName(sellerProfile.User)} 
+                      showSuccessMessage={true}
+                    />
                   </div>
                 </div>
               </div>
@@ -669,7 +673,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                       { id: 'recipes', label: 'Recepten', icon: ChefHat },
                       { id: 'reviews', label: 'Reviews', icon: Star },
                       { id: 'orders', label: 'Bestellingen', icon: Calendar },
-                      { id: 'follows', label: 'Fan van', icon: Heart }
+                      { id: 'follows', label: 'Fan', icon: Heart }
                     ];
 
                     // Add role-specific tabs
@@ -1113,7 +1117,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {activeTab === 'follows' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">Fan van</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">Fan</h3>
                     </div>
 
                     <div className="text-center py-12">

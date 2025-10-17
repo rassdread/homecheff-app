@@ -9,13 +9,13 @@ import {
   Save,
   AlertCircle,
   CheckCircle,
-
-  Phone,
   Navigation,
   Calendar,
   DollarSign,
   Star,
-  TrendingUp
+  TrendingUp,
+  CreditCard,
+  ExternalLink
 } from 'lucide-react';
 
 interface DeliveryProfile {
@@ -40,7 +40,8 @@ interface UserData {
   lat: number | null;
   lng: number | null;
   place: string | null;
-  phoneNumber: string | null;
+  stripeConnectAccountId?: string | null;
+  stripeConnectOnboardingCompleted?: boolean;
 }
 
 interface EarningsStats {
@@ -87,6 +88,7 @@ export default function DeliveryProfileSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -96,7 +98,6 @@ export default function DeliveryProfileSettings() {
     availableTimes: [] as string[],
     vehicleType: '',
     bio: '',
-    phoneNumber: '',
     place: ''
   });
 
@@ -122,7 +123,6 @@ export default function DeliveryProfileSettings() {
           availableTimes: settingsData.profile.availableTimes || [],
           vehicleType: settingsData.profile.vehicleType || '',
           bio: settingsData.profile.bio || '',
-          phoneNumber: settingsData.user.phoneNumber || '',
           place: settingsData.user.place || ''
         });
       }
@@ -198,6 +198,28 @@ export default function DeliveryProfileSettings() {
       month: 'short',
       year: 'numeric'
     }).format(new Date(date));
+  };
+
+  const handleStripeOnboard = async () => {
+    setStripeLoading(true);
+    try {
+      const response = await fetch('/api/stripe/connect/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.onboardingUrl) {
+        window.location.href = data.onboardingUrl;
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Er is een fout opgetreden bij Stripe Connect' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Er is een fout opgetreden bij het opzetten van Stripe Connect' });
+    } finally {
+      setStripeLoading(false);
+    }
   };
 
   if (loading) {
@@ -380,20 +402,6 @@ export default function DeliveryProfileSettings() {
                 </div>
               </div>
 
-              {/* Contact Info */}
-              <div>
-                <label className="block font-medium text-gray-900 mb-2">
-                  <Phone className="w-4 h-4 inline mr-1" />
-                  Telefoonnummer
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  placeholder="06-12345678"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
 
               {/* Location */}
               <div>
@@ -474,6 +482,57 @@ export default function DeliveryProfileSettings() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Stripe Connect Setup */}
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Betalingsinstellingen
+            </h3>
+
+            {user?.stripeConnectOnboardingCompleted ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                  <h4 className="font-semibold text-green-800">Stripe Connect Ingesteld</h4>
+                </div>
+                <p className="text-green-700 text-sm mb-3">
+                  Je kunt nu betalingen ontvangen voor je bezorgingen. Uitbetalingen gebeuren automatisch naar je opgegeven bankrekening.
+                </p>
+                <div className="text-xs text-green-600 space-y-1">
+                  <p>• Uitbetalingstermijn: 7 dagen (nieuwe accounts)</p>
+                  <p>• Automatische uitbetalingen na elke bezorging</p>
+                  <p>• Je ontvangt 88% van de bezorgkosten</p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 mr-2" />
+                  <h4 className="font-semibold text-amber-800">Stripe Connect Vereist</h4>
+                </div>
+                <p className="text-amber-700 text-sm mb-4">
+                  Om betalingen te kunnen ontvangen voor je bezorgingen, moet je eerst je Stripe Connect account opzetten. 
+                  Dit is een eenmalige setup die 5 minuten duurt.
+                </p>
+                <div className="text-xs text-amber-600 mb-4 space-y-1">
+                  <p>• Veilige betalingsverwerking via Stripe</p>
+                  <p>• Automatische uitbetalingen naar je bankrekening</p>
+                  <p>• Je ontvangt 88% van de bezorgkosten</p>
+                  <p>• Geen maandelijkse kosten</p>
+                </div>
+                <button
+                  onClick={handleStripeOnboard}
+                  disabled={stripeLoading}
+                  className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  {stripeLoading ? 'Bezig...' : 'Stripe Connect Opzetten'}
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Save Button */}

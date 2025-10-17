@@ -14,14 +14,33 @@ export async function GET() {
       if (email) {
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
+          select: { 
+            id: true, 
+            name: true, 
+            username: true, 
+            email: true, 
+            image: true, 
+            profileImage: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
+            role: true,
+            sellerRoles: true,
+            buyerRoles: true
+          },
         });
         
         if (!user) {
           return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
         
-        return NextResponse.json({ user });
+        // Fix for social login accounts: prioritize profileImage over image, but handle base64
+        const processedUser = {
+          ...user,
+          profileImage: user.profileImage?.startsWith('data:') ? user.profileImage : (user.profileImage || user.image),
+          image: user.profileImage?.startsWith('data:') ? user.profileImage : (user.image || user.profileImage)
+        };
+        
+        return NextResponse.json({ user: processedUser });
       }
     } catch {}
 
@@ -34,14 +53,33 @@ export async function GET() {
       if (email) {
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, username: true, email: true, image: true, profileImage: true },
+          select: { 
+            id: true, 
+            name: true, 
+            username: true, 
+            email: true, 
+            image: true, 
+            profileImage: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
+            role: true,
+            sellerRoles: true,
+            buyerRoles: true
+          },
         });
         
         if (!user) {
           return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
         
-        return NextResponse.json({ user });
+        // Fix for social login accounts: prioritize profileImage over image, but handle base64
+        const processedUser = {
+          ...user,
+          profileImage: user.profileImage?.startsWith('data:') ? user.profileImage : (user.profileImage || user.image),
+          image: user.profileImage?.startsWith('data:') ? user.profileImage : (user.image || user.profileImage)
+        };
+        
+        return NextResponse.json({ user: processedUser });
       }
     } catch {}
 

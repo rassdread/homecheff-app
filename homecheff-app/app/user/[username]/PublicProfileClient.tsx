@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
-import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle } from 'lucide-react';
+import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
 
@@ -9,6 +9,8 @@ import MyDishesManager from '@/components/profile/MyDishesManager';
 import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
 import FollowButton from '@/components/follow/FollowButton';
 import StartChatButton from '@/components/chat/StartChatButton';
+import PhotoCarousel from '@/components/ui/PhotoCarousel';
+import FansAndFollowsList from '@/components/FansAndFollowsList';
 
 interface User {
   id: string;
@@ -25,7 +27,9 @@ interface User {
   buyerRoles: string[];
   displayFullName: boolean;
   displayNameOption: string;
+  showFansList: boolean;
   createdAt: string;
+  profileViews?: number;
   Dish: any[];
   SellerProfile?: {
     id: string;
@@ -109,6 +113,9 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [currentPhotos, setCurrentPhotos] = useState<Array<{id: string, fileUrl: string}>>([]);
+  const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const [userStats, setUserStats] = useState({
     reviews: 0,
     followers: 0,
@@ -200,11 +207,15 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
       workspaceTab.push({ id: 'workspace', label: 'Werkruimte', icon: Grid });
     }
 
+    // Fan & Fans tab altijd achteraan
+    const fanTab = { id: 'fans', label: 'Fan & Fans', icon: Users };
+
     return [
       ...baseTabs,
       ...deliveryTab, // Ambassadeur komt als eerste (na overzicht)
       ...workspaceTab,
-      ...roleSpecificTabs
+      ...roleSpecificTabs,
+      fanTab // Fan & Fans tab altijd achteraan
     ];
   };
 
@@ -242,6 +253,23 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     };
 
     fetchUserStats();
+  }, [user.id]);
+
+  // Track profile view
+  useEffect(() => {
+    const trackView = async () => {
+      try {
+        await fetch('/api/analytics/track-profile-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileUserId: user.id })
+        });
+      } catch (error) {
+        console.error('Error tracking profile view:', error);
+      }
+    };
+
+    trackView();
   }, [user.id]);
 
   const getDisplayName = () => {
@@ -311,14 +339,24 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Profile Photo */}
             <div className="flex-shrink-0 mx-auto lg:mx-0">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white">
+              <div 
+                className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white cursor-pointer hover:scale-105 transition-transform duration-200"
+                onClick={() => setShowProfileImageModal(true)}
+              >
                 <SafeImage
                   src={user.profileImage || "/avatar-placeholder.png"}
                   alt="Profielfoto"
                   fill
                   className="object-cover"
-                  sizes="128px"
+                  sizes="(max-width: 768px) 128px, 160px"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
+                  <div className="opacity-0 hover:opacity-100 transition-opacity duration-200">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -358,10 +396,39 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
 
               {/* Roles */}
               <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
+                {/* Bijdrage rol eerst */}
+                {user.DeliveryProfile && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 rounded-full text-xs sm:text-sm font-semibold border border-blue-200 shadow-sm">
+                    🚴 Ambassadeur
+                  </span>
+                )}
+                {/* Koperrollen */}
+                {user.buyerRoles?.map(role => {
+                  const roleInfo = {
+                    ontdekker: { icon: "🔍", label: "Ontdekker" },
+                    verzamelaar: { icon: "📦", label: "Verzamelaar" },
+                    liefhebber: { icon: "❤️", label: "Liefhebber" },
+                    avonturier: { icon: "🗺️", label: "Avonturier" },
+                    fijnproever: { icon: "👅", label: "Fijnproever" },
+                    connaisseur: { icon: "🎭", label: "Connaisseur" },
+                    genieter: { icon: "✨", label: "Genieter" },
+                    food_lover: { icon: "🍽️", label: "Food Lover" }
+                  }[role];
+                  
+                  return (
+                    <span
+                      key={role}
+                      className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-xs sm:text-sm font-semibold border border-green-200 shadow-sm"
+                    >
+                      {roleInfo?.icon} {roleInfo?.label || role}
+                    </span>
+                  );
+                })}
+                {/* Verkoper rollen */}
                 {user.sellerRoles?.map(role => (
                   <span
                     key={role}
-                    className="px-3 py-1.5 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 rounded-full text-xs sm:text-sm font-semibold border border-emerald-200 shadow-sm"
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-xs sm:text-sm font-semibold border border-purple-200 shadow-sm"
                   >
                     {getRoleLabel(role)}
                   </span>
@@ -390,6 +457,11 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                   <span className="font-medium text-gray-900">{userStats.props}</span>
                   <span className="hidden sm:inline">props</span>
                 </div>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-teal-50 to-cyan-50 px-3 py-2 rounded-lg border border-teal-100">
+                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-teal-600" />
+                  <span className="font-medium text-gray-900">{user.profileViews || 0}</span>
+                  <span className="hidden sm:inline">views</span>
+                </div>
               </div>
               
               {/* Action Buttons - Volledig Responsive */}
@@ -402,6 +474,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                 <StartChatButton
                   sellerId={user.id}
                   sellerName={getDisplayName()}
+                  showSuccessMessage={true}
                   className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
                 />
               </div>
@@ -411,31 +484,32 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border">
-        <div className="border-b border-gray-200">
-          <div className="flex items-center justify-between px-6">
-            <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1 sm:gap-2 py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
-                      activeTab === tab.id
-                        ? 'border-emerald-500 text-emerald-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                  </button>
-                );
-              })}
-            </nav>
-            
-          </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+          <nav className="flex space-x-1 px-2 sm:px-4 overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 relative whitespace-nowrap ${
+                    isActive
+                      ? 'bg-emerald-500 text-white shadow-md transform scale-105'
+                      : 'text-gray-600 hover:text-emerald-600 hover:bg-white hover:shadow-sm'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
         <div className="p-6">
@@ -687,22 +761,48 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <p>Nog geen voertuig foto's toegevoegd</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {user.DeliveryProfile.vehiclePhotos.map((photo) => (
-                        <div
-                          key={photo.id}
-                          className="aspect-square rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
-                          onClick={() => setSelectedImage(photo.fileUrl)}
-                        >
-                          <SafeImage
-                            src={photo.fileUrl}
-                            alt="Voertuig foto"
-                            fill
-                            className="object-cover hover:scale-105 transition-transform"
-                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                          />
+                    <div className="space-y-6">
+                      {/* Main Carousel */}
+                      <PhotoCarousel
+                        photos={user.DeliveryProfile.vehiclePhotos}
+                        className="w-full"
+                        showThumbnails={true}
+                        autoPlay={false}
+                      />
+                      
+                      {/* Photo Grid (Alternative View) */}
+                      <div className="mt-8">
+                        <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
+                          <Camera className="w-4 h-4" />
+                          Alle Voertuig Foto's ({user.DeliveryProfile.vehiclePhotos.length})
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {user.DeliveryProfile.vehiclePhotos.map((photo, index) => (
+                            <div
+                              key={photo.id}
+                              className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                              onClick={() => {
+                                setSelectedImage(photo.fileUrl);
+                                setSelectedImageIndex(index);
+                                setCurrentPhotos(user.DeliveryProfile?.vehiclePhotos || []);
+                              }}
+                            >
+                              <SafeImage
+                                src={photo.fileUrl}
+                                alt="Voertuig foto"
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-200"
+                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200 flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  <Eye className="w-6 h-6 text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -762,7 +862,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                         👨‍🍳 De Keuken
                       </h3>
-                    </div>
+                                </div>
                     <WorkspacePhotosDisplay 
                       userId={user.id}
                       userRoles={['CHEFF']}
@@ -800,27 +900,135 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
               </div>
             </div>
           )}
+
+          {/* Fan & Fans tab content */}
+          {activeTab === 'fans' && (
+            <div className="space-y-6">
+              {isOwnProfile ? (
+                <FansAndFollowsList />
+              ) : user.showFansList ? (
+                <FansAndFollowsList />
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                  <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Fan & Fans Lijst</h3>
+                  <p className="text-gray-600 mb-4">
+                    De fan lijst van dit profiel is privé.
+                  </p>
+                  <div className="text-sm text-gray-500">
+                    Deze gebruiker heeft ervoor gekozen om hun fan lijst privé te houden.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Image Modal */}
-      {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={() => setSelectedImage(null)}>
-          <div className="relative max-w-4xl max-h-[90vh] p-4">
+      {selectedImage && currentPhotos.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          {/* Close Button */}
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all duration-200 z-10"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Previous Button - Desktop: Fixed buttons, Mobile: Transparent overlay */}
+          {currentPhotos.length > 1 && selectedImageIndex > 0 && (
             <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full text-white transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIndex = selectedImageIndex - 1;
+                setSelectedImageIndex(newIndex);
+                setSelectedImage(currentPhotos[newIndex].fileUrl);
+              }}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 md:bg-white/30 hover:bg-white/40 rounded-full text-white transition-all duration-200 z-10 backdrop-blur-sm"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          )}
+
+          {/* Next Button - Desktop: Fixed buttons, Mobile: Transparent overlay */}
+          {currentPhotos.length > 1 && selectedImageIndex < currentPhotos.length - 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIndex = selectedImageIndex + 1;
+                setSelectedImageIndex(newIndex);
+                setSelectedImage(currentPhotos[newIndex].fileUrl);
+              }}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 md:bg-white/30 hover:bg-white/40 rounded-full text-white transition-all duration-200 z-10 backdrop-blur-sm"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          )}
+
+          {/* Image Container */}
+          <div 
+            className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SafeImage
+              src={selectedImage}
+              alt="Uitvergrote foto"
+              width={1200}
+              height={800}
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
+
+          {/* Photo Counter */}
+          {currentPhotos.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-medium text-sm">
+              {selectedImageIndex + 1} / {currentPhotos.length}
+            </div>
+          )}
+
+          {/* Swipe hint for mobile */}
+          <div className="md:hidden absolute bottom-16 left-1/2 -translate-x-1/2 text-white/60 text-xs">
+            Swipe voor volgende foto
+          </div>
+        </div>
+      )}
+
+      {/* Profile Image Modal */}
+      {showProfileImageModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative max-w-4xl max-h-full">
+            {/* Close button */}
+            <button
+              onClick={() => setShowProfileImageModal(false)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <img
-              src={selectedImage}
-              alt="Uitvergrote foto"
-              className="max-w-full max-h-full object-contain rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
+            
+            {/* Profile Image */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
+              <SafeImage
+                src={user.profileImage || "/avatar-placeholder.png"}
+                alt="Profielfoto"
+                width={600}
+                height={600}
+                className="w-full h-auto max-w-2xl max-h-[80vh] object-contain"
+              />
+              
+              {/* User info below image */}
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{getDisplayName()}</h3>
+                <p className="text-gray-600">@{user.username}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -111,9 +111,9 @@ function LoginForm() {
     setState({ ...state, isLoading: true, error: null });
     
     try {
-      // For social login, redirect to success page
+      // For social login, redirect to registration page to complete profile
       await signIn(provider, { 
-        callbackUrl: '/social-login-success',
+        callbackUrl: '/register?social=true',
         redirect: true 
       });
     } catch (error) {

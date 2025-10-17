@@ -148,7 +148,7 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
           }
           
           .culinary-border {
-            border: 3px double #92400e !important;
+            border: 3px double #006D52 !important;
           }
         }
         
@@ -162,7 +162,7 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
           position: absolute;
           width: 40px;
           height: 40px;
-          border-color: #92400e;
+          border-color: #006D52;
         }
         
         .culinary-corner-tl {
@@ -209,30 +209,30 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
           background-image: 
             repeating-linear-gradient(
               0deg,
-              rgba(146, 64, 14, 0.03) 0px,
-              rgba(146, 64, 14, 0.03) 1px,
+              rgba(0, 109, 82, 0.03) 0px,
+              rgba(0, 109, 82, 0.03) 1px,
               transparent 1px,
               transparent 2px
             );
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-50">
         {/* Header - No print */}
-        <div className="no-print bg-white border-b border-amber-200 sticky top-0 z-10 shadow-sm">
+        <div className="no-print bg-white border-b border-primary-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <BackButton 
               fallbackUrl="/profile?tab=recipes"
               label="Terug naar Keuken"
               variant="minimal"
-              className="text-amber-700 hover:text-amber-900"
+              className="text-primary-700 hover:text-primary-900"
             />
 
             <div className="flex items-center space-x-2 sm:space-x-3">
               {isOwner && (
                 <button
                   onClick={() => router.push(`/profile?tab=recipes&edit=${recipe.id}`)}
-                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm text-amber-700 border-2 border-amber-600 rounded-lg hover:bg-amber-50 transition-all hover:shadow-md"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm text-primary-700 border-2 border-primary-600 rounded-lg hover:bg-primary-50 transition-all hover:shadow-md"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span className="hidden sm:inline">Bewerken</span>
@@ -247,14 +247,14 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md hover:shadow-lg"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">PDF</span>
               </button>
               <button
                 onClick={handlePrint}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-700 hover:to-orange-700 transition-all shadow-md hover:shadow-lg"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-secondary-600 to-secondary-700 text-white rounded-lg hover:from-secondary-700 hover:to-secondary-800 transition-all shadow-md hover:shadow-lg"
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Printen</span>
@@ -264,7 +264,8 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
                   sellerId={recipe.user.id}
                   sellerName={recipe.user.name || getDisplayName(recipe.user)}
                   productId={recipe.id}
-                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
+                  showSuccessMessage={true}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md hover:shadow-lg"
                 />
               )}
             </div>
@@ -274,7 +275,7 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
         {/* Main Content - Printable */}
         <div id="printable-recipe" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Vintage Cookbook Header Card */}
-          <div className="culinary-frame vintage-paper bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-amber-800 culinary-border relative">
+          <div className="culinary-frame vintage-paper bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden mb-8 print-avoid-break border-4 border-primary-800 culinary-border relative">
             {/* Decorative corners */}
             <div className="culinary-corner culinary-corner-tl"></div>
             <div className="culinary-corner culinary-corner-tr"></div>
@@ -282,12 +283,12 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
             <div className="culinary-corner culinary-corner-br"></div>
             
             {/* Decorative top border */}
-            <div className="bg-gradient-to-r from-amber-800 via-orange-700 to-amber-800 h-3"></div>
+            <div className="bg-gradient-to-r from-primary-800 via-primary-700 to-primary-800 h-3"></div>
             
             <div className="p-8 sm:p-12">
               {/* Culinary decoration */}
               <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center space-x-3 text-amber-700">
+                <div className="inline-flex items-center justify-center space-x-3 text-primary-700">
                   <Utensils className="w-6 h-6 opacity-60" />
                   <ChefHat className="w-7 h-7 opacity-80" />
                   <Utensils className="w-6 h-6 opacity-60" />
@@ -295,22 +296,22 @@ export default function RecipeView({ recipe, isOwner }: RecipeViewProps) {
               </div>
 
               {/* Main Title with vintage typography */}
-              <h1 className="cookbook-title text-center text-4xl sm:text-5xl lg:text-6xl font-bold text-amber-900 mb-4 tracking-wide">
+              <h1 className="cookbook-title text-center text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-900 mb-4 tracking-wide">
                 {recipe.title || 'Recept'}
               </h1>
               
               {/* Category subtitle */}
               {recipe.category && (
-                <p className="cookbook-subtitle text-center text-xl sm:text-2xl text-amber-700 mb-6 font-light">
+                <p className="cookbook-subtitle text-center text-xl sm:text-2xl text-primary-700 mb-6 font-light">
                   {recipe.category}
                 </p>
               )}
 
               {/* Decorative divider line */}
               <div className="flex items-center justify-center my-6">
-                <div className="h-px bg-gradient-to-r from-transparent via-amber-600 to-transparent w-full max-w-md"></div>
-                <ChefHat className="w-8 h-8 mx-4 text-amber-600 flex-shrink-0" />
-                <div className="h-px bg-gradient-to-r from-transparent via-amber-600 to-transparent w-full max-w-md"></div>
+                <div className="h-px bg-gradient-to-r from-transparent via-primary-600 to-transparent w-full max-w-md"></div>
+                <ChefHat className="w-8 h-8 mx-4 text-primary-600 flex-shrink-0" />
+                <div className="h-px bg-gradient-to-r from-transparent via-primary-600 to-transparent w-full max-w-md"></div>
               </div>
 
               {/* Recipe Meta Grid */}

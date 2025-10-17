@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn, getSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { clearAllUserData } from "@/lib/session-cleanup";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
@@ -111,10 +111,7 @@ type RegisterState = {
   btw: string;
   company: string;
   subscription: string;
-  // Uitbetaalgegevens
-  bankName: string;
-  iban: string;
-  accountHolderName: string;
+  // Uitbetaalgegevens - nu via Stripe
   error: string | null;
   success: boolean;
   showSubscriptions: boolean;
@@ -140,38 +137,83 @@ type RegisterState = {
   };
 };
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isSocialLogin = searchParams?.get('social') === 'true';
   
-  // Clear any existing user data to prevent privacy leaks
-  // Social login now uses separate onboarding flow (social-login-success page)
+  // Load social login data if coming from social login
   useEffect(() => {
-    // Only clear on initial mount, not on every render
-    const hasCleared = sessionStorage.getItem('register_cleared');
+    const loadSocialData = async () => {
+      if (isSocialLogin) {
+        try {
+          const session = await getSession();
+          if (session?.user) {
+            const socialName = (session.user as any).socialName || session.user.name || '';
+            const socialEmail = session.user.email || '';
+            
+            // Parse name into first and last name
+            const nameParts = socialName.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            
+            // Generate username from email or name
+            const emailUsername = socialEmail.split('@')[0] || '';
+            const nameUsername = firstName.toLowerCase() + (lastName ? lastName.toLowerCase() : '');
+            const suggestedUsername = nameUsername || emailUsername;
+            
+            // Pre-fill the form with social data
+            setState(prev => ({
+              ...prev,
+              firstName,
+              lastName,
+              email: socialEmail,
+              username: suggestedUsername,
+              // Start at step 1 for social login users
+              currentStep: 1
+            }));
+            
+            console.log('🔍 Social login data loaded:', { firstName, lastName, email: socialEmail, suggestedUsername });
+          }
+        } catch (error) {
+          console.error('Error loading social data:', error);
+        }
+      }
+    };
     
-    if (!hasCleared) {
-      clearAllUserData();
-      sessionStorage.setItem('register_cleared', 'true');
+    loadSocialData();
+  }, [isSocialLogin]);
+  
+  // Clear any existing user data to prevent privacy leaks (only for non-social login)
+  useEffect(() => {
+    if (!isSocialLogin) {
+      // Only clear on initial mount, not on every render
+      const hasCleared = sessionStorage.getItem('register_cleared');
       
-      // Also clear browser autofill data by resetting form fields
-      const resetFormFields = () => {
-        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
-        const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+      if (!hasCleared) {
+        clearAllUserData();
+        sessionStorage.setItem('register_cleared', 'true');
         
-        if (emailInput) {
-          emailInput.value = '';
-          emailInput.setAttribute('autocomplete', 'off');
-        }
-        if (passwordInput) {
-          passwordInput.value = '';
-          passwordInput.setAttribute('autocomplete', 'new-password');
-        }
-      };
-      
-      // Reset form fields after a short delay to ensure DOM is ready
-      setTimeout(resetFormFields, 100);
+        // Also clear browser autofill data by resetting form fields
+        const resetFormFields = () => {
+          const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+          const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+          
+          if (emailInput) {
+            emailInput.value = '';
+            emailInput.setAttribute('autocomplete', 'off');
+          }
+          if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.setAttribute('autocomplete', 'new-password');
+          }
+        };
+        
+        // Reset form fields after a short delay to ensure DOM is ready
+        setTimeout(resetFormFields, 100);
+      }
     }
-  }, []);
+  }, [isSocialLogin]);
 
   const [state, setState] = useState<RegisterState>({
     firstName: "",
@@ -201,10 +243,7 @@ export default function RegisterPage() {
     btw: "",
     company: "",
     subscription: "",
-    // Uitbetaalgegevens
-    bankName: "",
-    iban: "",
-    accountHolderName: "",
+    // Uitbetaalgegevens - nu via Stripe
     error: null,
     success: false,
     showSubscriptions: false,
@@ -1086,10 +1125,7 @@ export default function RegisterPage() {
           btw: state.btw,
           company: state.company,
           subscription: state.subscription,
-          // Uitbetaalgegevens
-          bankName: state.bankName,
-          iban: state.iban,
-          accountHolderName: state.accountHolderName,
+          // Uitbetaalgegevens - nu via Stripe
           // Privacy en marketing
           acceptPrivacyPolicy: state.acceptPrivacyPolicy,
           acceptTerms: state.acceptTerms,
@@ -1245,35 +1281,50 @@ export default function RegisterPage() {
             {state.currentStep === 1 && (
               <div className="text-center">
                 <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Welkom bij HomeCheff!</h2>
-                  <p className="text-lg text-gray-600 mb-8">Word onderdeel van de lokale community en ontdek unieke producten van je buren</p>
+                  {isSocialLogin ? (
+                    <>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-4">Welkom bij HomeCheff! 🎉</h2>
+                      <p className="text-lg text-gray-600 mb-8">Je bent succesvol ingelogd! Nu gaan we je profiel compleet maken.</p>
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+                        <p className="text-emerald-800 font-medium">✅ Je bent ingelogd met Google</p>
+                        <p className="text-emerald-700 text-sm mt-1">Je gegevens worden automatisch ingevuld in de volgende stappen</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-4">Welkom bij HomeCheff!</h2>
+                      <p className="text-lg text-gray-600 mb-8">Word onderdeel van de lokale community en ontdek unieke producten van je buren</p>
+                    </>
+                  )}
                 </div>
 
-                {/* Social Login Options */}
-                <div className="space-y-4 mb-8">
-                  <button
-                    onClick={() => handleSocialLogin("google")}
-                    className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md"
-                  >
-                    <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Doorgaan met Google
-                  </button>
+                {/* Social Login Options - only show for non-social login */}
+                {!isSocialLogin && (
+                  <div className="space-y-4 mb-8">
+                    <button
+                      onClick={() => handleSocialLogin("google")}
+                      className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md"
+                    >
+                      <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Doorgaan met Google
+                    </button>
 
-                  <button
-                    onClick={() => handleSocialLogin("facebook")}
-                    className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md"
-                  >
-                    <svg className="w-6 h-6 mr-3" fill="#1877F2" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    Doorgaan met Facebook
-                  </button>
-                </div>
+                    <button
+                      onClick={() => handleSocialLogin("facebook")}
+                      className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md"
+                    >
+                      <svg className="w-6 h-6 mr-3" fill="#1877F2" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      Doorgaan met Facebook
+                    </button>
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="relative mb-8">
@@ -1404,7 +1455,17 @@ export default function RegisterPage() {
             {state.currentStep === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Je account</h2>
-                <p className="text-gray-600 mb-8">Vul je basis gegevens in om je account aan te maken</p>
+                {isSocialLogin ? (
+                  <div className="mb-8">
+                    <p className="text-gray-600 mb-4">Je gegevens van Google zijn hieronder ingevuld. Je kunt ze aanpassen indien nodig.</p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <p className="text-blue-800 font-medium">📝 Gegevens vooringevuld van Google</p>
+                      <p className="text-blue-700 text-sm mt-1">Controleer en pas aan waar nodig</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 mb-8">Vul je basis gegevens in om je account aan te maken</p>
+                )}
                 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1542,33 +1603,61 @@ export default function RegisterPage() {
                     )}
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Wachtwoord *</label>
-                    <div className="relative">
-                      <input
-                        type={state.showPassword ? "text" : "password"}
-                        value={state.password}
-                        onChange={e => setState(prev => ({ ...prev, password: e.target.value }))}
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="Minimaal 8 karakters"
-                        autoComplete="new-password"
-                        autoCapitalize="off"
-                        autoCorrect="off"
-                        spellCheck="false"
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setState(prev => ({ ...prev, showPassword: !prev.showPassword }))}
-                      >
-                        {state.showPassword ? (
-                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
+                  {/* Wachtwoord veld - alleen voor niet-social login */}
+                  {!isSocialLogin && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Wachtwoord *</label>
+                      <div className="relative">
+                        <input
+                          type={state.showPassword ? "text" : "password"}
+                          value={state.password}
+                          onChange={e => setState(prev => ({ ...prev, password: e.target.value }))}
+                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          placeholder="Minimaal 8 karakters"
+                          autoComplete="new-password"
+                          autoCapitalize="off"
+                          autoCorrect="off"
+                          spellCheck="false"
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={() => setState(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                        >
+                          {state.showPassword ? (
+                            <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                          ) : (
+                            <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                          )}
+                        </button>
+                      </div>
+                      {state.password && (
+                        <p className={`text-sm mt-2 ${
+                          state.password.length >= 8 
+                            ? 'text-green-600' 
+                            : 'text-red-600'
+                        }`}>
+                          {state.password.length >= 8 
+                            ? '✅ Wachtwoord is sterk genoeg' 
+                            : '❌ Wachtwoord moet minimaal 8 karakters bevatten'
+                          }
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  )}
+                  
+                  {/* Social login info */}
+                  {isSocialLogin && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <p className="text-green-800 font-medium">🔐 Wachtwoord niet nodig</p>
+                      </div>
+                      <p className="text-green-700 text-sm mt-1">
+                        Je gebruikt Google om in te loggen, dus je hoeft geen wachtwoord in te voeren.
+                      </p>
+                    </div>
+                  )}
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Geslacht</label>
@@ -1967,38 +2056,20 @@ export default function RegisterPage() {
                 <p className="text-gray-600 mb-8">Vul je bankgegevens in om uitbetalingen te ontvangen</p>
                 
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Banknaam</label>
-                      <input
-                        type="text"
-                        value={state.bankName}
-                        onChange={e => setState(prev => ({ ...prev, bankName: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="ABN AMRO, ING, Rabobank..."
-                      />
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-900">Uitbetalingen via Stripe</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Uitbetalingen worden veilig afgehandeld via Stripe. Je kunt later je bankgegevens toevoegen in je verkoper instellingen.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
-                      <input
-                        type="text"
-                        value={state.iban}
-                        onChange={e => setState(prev => ({ ...prev, iban: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="NL91ABNA0417164300"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Rekeninghouder naam</label>
-                    <input
-                      type="text"
-                      value={state.accountHolderName}
-                      onChange={e => setState(prev => ({ ...prev, accountHolderName: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="Jouw volledige naam"
-                    />
                   </div>
 
                   {/* Belastingverantwoordelijkheid checkbox */}
@@ -2189,8 +2260,8 @@ export default function RegisterPage() {
                   onClick={nextStep}
                   disabled={
                     (state.currentStep === 2 && state.userTypes.length === 0 && state.selectedBuyerType === "") ||
-                    (state.currentStep === 3 && (!state.firstName || !state.lastName || !state.username || !state.email || !state.password || state.usernameValidation.isValid !== true)) ||
-                    (state.currentStep === 5 && state.userTypes.length > 0 && (!state.bankName || !state.iban || !state.accountHolderName || !state.acceptTaxResponsibility))
+                    (state.currentStep === 3 && (!state.firstName || !state.lastName || !state.username || !state.email || (!isSocialLogin && !state.password) || state.usernameValidation.isValid !== true)) ||
+                    (state.currentStep === 5 && state.userTypes.length > 0 && (!state.acceptTaxResponsibility))
                   }
                   className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -2210,5 +2281,20 @@ export default function RegisterPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Laden...</p>
+        </div>
+      </div>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

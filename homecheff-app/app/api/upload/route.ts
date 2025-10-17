@@ -21,16 +21,25 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     let buffer = Buffer.from(arrayBuffer);
     
-    // Simple file size check for images (no compression)
+    // Enhanced file validation for images
     const isImage = file.type.startsWith('image/');
     if (isImage) {
+      // Check file format
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        return NextResponse.json({ 
+          error: "Alleen JPG, PNG, WebP en GIF bestanden zijn toegestaan." 
+        }, { status: 400 });
+      }
+      
+      // Check file size
       const maxSize = 5 * 1024 * 1024; // 5MB limit
       if (buffer.length > maxSize) {
         return NextResponse.json({ 
           error: "Afbeelding is te groot. Maximum grootte is 5MB." 
         }, { status: 400 });
       }
-      console.log(`Image upload: ${file.name}, ${Math.round(buffer.length / 1024)}KB`);
+      console.log(`Image upload: ${file.name}, ${Math.round(buffer.length / 1024)}KB, type: ${file.type}`);
     }
     
     // Try Vercel Blob first

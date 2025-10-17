@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "echo 'Skipping prisma generate'",
+    "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && vercel --prod",
     "deploy:quick": "vercel --prod",

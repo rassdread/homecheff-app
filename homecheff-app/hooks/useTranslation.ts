@@ -15,12 +15,33 @@ export function useTranslation() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Load language from localStorage or default to Dutch
-    const savedLanguage = localStorage.getItem('homecheff-language') as Language;
-    if (savedLanguage && (savedLanguage === 'nl' || savedLanguage === 'en')) {
-      setLanguage(savedLanguage);
+    // Check for domain-based language first
+    const hostname = window.location.hostname;
+    let detectedLanguage: Language = 'nl'; // default
+    
+    if (hostname.includes('homecheff.eu')) {
+      detectedLanguage = 'en';
+    } else if (hostname.includes('homecheff.nl')) {
+      detectedLanguage = 'nl';
     }
-    loadTranslations(savedLanguage || 'nl');
+    
+    // Check for language cookie (set by middleware)
+    const cookieLanguage = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('homecheff-language='))
+      ?.split('=')[1] as Language;
+    
+    // Use cookie language if available, otherwise use domain detection, then localStorage
+    const finalLanguage = (cookieLanguage && (cookieLanguage === 'nl' || cookieLanguage === 'en')) 
+      ? cookieLanguage 
+      : detectedLanguage;
+    
+    // Load language from localStorage as fallback
+    const savedLanguage = localStorage.getItem('homecheff-language') as Language;
+    const languageToUse = finalLanguage || (savedLanguage && (savedLanguage === 'nl' || savedLanguage === 'en') ? savedLanguage : 'nl');
+    
+    setLanguage(languageToUse);
+    loadTranslations(languageToUse);
   }, []);
 
   const loadTranslations = async (lang: Language) => {

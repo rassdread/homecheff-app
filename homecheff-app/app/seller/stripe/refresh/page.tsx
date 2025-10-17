@@ -8,7 +8,7 @@ export default function StripeConnectRefresh() {
 
   useEffect(() => {
     // Redirect back to seller dashboard
-    router.push('/seller/dashboard?stripe_refresh=true');
+    router.push('/verkoper/dashboard?stripe_refresh=true');
   }, [router]);
 
   return (
