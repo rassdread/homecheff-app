@@ -76,7 +76,7 @@
     "eslint": "^9.34.0",
     "null-loader": "^4.0.1",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.3.7",
+    "tailwindcss": "3.3.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typescript": "^5"
