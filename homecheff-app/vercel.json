@@ -4,7 +4,6 @@
 	"outputDirectory": ".next",
 	"framework": "nextjs",
 	"frameworkVersion": "14.2.5",
-	"ignoreCommand": "node vercel-ignore-build.js",
 	"env": {
 		"NODE_ENV": "production"
 	},
