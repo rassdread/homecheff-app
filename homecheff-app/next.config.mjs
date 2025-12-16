@@ -34,17 +34,10 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    // Enable modern bundling
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
-    // Edge Runtime is configured per API route
   },
+  
+  // Disable CSS optimizations that require lightningcss
+  cssModules: false,
   
   // Enable static optimization
   swcMinify: true,
