@@ -36,9 +36,6 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  // Disable CSS optimizations that require lightningcss
-  cssModules: false,
-  
   // Enable static optimization
   swcMinify: true,
   
