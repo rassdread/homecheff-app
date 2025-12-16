@@ -2,7 +2,7 @@
 	"buildCommand": "npm run build",
 	"installCommand": "npm ci --legacy-peer-deps",
 	"outputDirectory": ".next",
-	"framework": "nextjs",
+	"framework": null,
 	"env": {
 		"NODE_ENV": "production"
 	},
