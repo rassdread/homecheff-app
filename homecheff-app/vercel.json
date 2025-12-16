@@ -1,5 +1,5 @@
 {
-	"buildCommand": "npm run build",
+	"buildCommand": "npm install next@14.2.5 --save-exact && npm run build",
 	"installCommand": "npm ci --legacy-peer-deps",
 	"outputDirectory": ".next",
 	"framework": "nextjs",

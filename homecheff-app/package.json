@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
+    "prebuild": "npm install next@14.2.5 --save-exact --no-save",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
