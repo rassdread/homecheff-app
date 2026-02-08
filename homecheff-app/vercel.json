@@ -1,15 +1,22 @@
 {
-	"buildCommand": "npm install next@14.2.5 --save-exact && npm run build",
 	"installCommand": "npm ci --legacy-peer-deps",
+	"buildCommand": "node scripts/vercel-build.js",
 	"outputDirectory": ".next",
 	"framework": "nextjs",
-	"frameworkVersion": "14.2.5",
+	"ignoreCommand": "node vercel-ignore-build.js",
+	"git": {
+		"deploymentEnabled": false
+	},
 	"env": {
 		"NODE_ENV": "production"
 	},
 	"functions": {
 		"app/api/**/*.ts": {
 			"maxDuration": 30
+		},
+		"app/api/upload/route.ts": {
+			"maxDuration": 60,
+			"memory": 1024
 		}
 	},
 	"crons": [
@@ -37,6 +44,27 @@
 				{
 					"key": "X-XSS-Protection",
 					"value": "1; mode=block"
+				}
+			]
+		},
+		{
+			"source": "/api/video-proxy",
+			"headers": [
+				{
+					"key": "Access-Control-Allow-Origin",
+					"value": "*"
+				},
+				{
+					"key": "Access-Control-Allow-Methods",
+					"value": "GET, OPTIONS"
+				},
+				{
+					"key": "Access-Control-Allow-Headers",
+					"value": "Content-Type"
+				},
+				{
+					"key": "Access-Control-Max-Age",
+					"value": "86400"
 				}
 			]
 		}
