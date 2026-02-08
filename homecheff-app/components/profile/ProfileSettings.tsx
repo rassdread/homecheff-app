@@ -1,74 +1,84 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
+import HelpSettings from '@/components/onboarding/HelpSettings';
+import { useTranslation } from '@/hooks/useTranslation';
+import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+
+export interface ProfileSettingsRef {
+  handleSave: () => Promise<void>;
+  handleCancel: () => void;
+  isEditing: boolean;
+  isLoading: boolean;
+}
 
 const sellerTypes = [
   {
     id: "chef",
     title: "Chef",
-    description: "Verkoop je culinaire creaties",
+    description: "Sell your culinary creations",
     icon: "👨‍🍳",
-    features: ["Gerechten verkopen", "Bezorging & ophalen", "Reviews ontvangen", "Fans verzamelen"]
+    features: ["Sell dishes", "Delivery & pickup", "Receive reviews", "Gain fans"]
   },
   {
     id: "garden",
     title: "Garden",
-    description: "Deel je groenten en kruiden",
+    description: "Share your vegetables and herbs",
     icon: "🌱",
-    features: ["Groenten verkopen", "Seizoensproducten", "Lokale community", "Duurzaamheid"]
+    features: ["Sell vegetables", "Seasonal products", "Local community", "Sustainability"]
   },
   {
     id: "designer",
     title: "Designer",
-    description: "Verkoop je handgemaakte items",
+    description: "Sell your handmade items",
     icon: "🎨",
-    features: ["Handwerk verkopen", "Custom orders", "Portfolio opbouwen", "Kunstenaarsnetwerk"]
+    features: ["Sell handmade items", "Custom orders", "Build portfolio", "Artist network"]
   },
 ];
 
 const buyerTypes = [
   {
     id: "ontdekker",
-    title: "Ontdekker",
-    description: "Ik ontdek graag lokale parels en verborgen talenten",
+    title: "Explorer",
+    description: "I love discovering local gems and hidden talents",
     icon: "🔍"
   },
   {
     id: "verzamelaar",
-    title: "Verzamelaar",
-    description: "Ik verzamel unieke en bijzondere items",
+    title: "Collector",
+    description: "I collect unique and special items",
     icon: "📦"
   },
   {
     id: "liefhebber",
-    title: "Liefhebber",
-    description: "Ik waardeer kwaliteit en vakmanschap",
+    title: "Enthusiast",
+    description: "I appreciate quality and craftsmanship",
     icon: "❤️"
   },
   {
     id: "avonturier",
-    title: "Avonturier",
-    description: "Ik zoek nieuwe ervaringen en uitdagingen",
+    title: "Adventurer",
+    description: "I seek new experiences and challenges",
     icon: "🗺️"
   },
   {
     id: "fijnproever",
-    title: "Fijnproever",
-    description: "Ik geniet van subtiele smaken en details",
+    title: "Connoisseur",
+    description: "I enjoy subtle flavors and details",
     icon: "👅"
   },
   {
     id: "connaisseur",
-    title: "Connaisseur",
-    description: "Ik heb kennis van kwaliteit en authenticiteit",
+    title: "Connoisseur",
+    description: "I have knowledge of quality and authenticity",
     icon: "🎭"
   },
   {
     id: "genieter",
-    title: "Genieter",
-    description: "Ik waardeer het goede leven en mooie dingen",
+    title: "Enjoyer",
+    description: "I appreciate the good life and beautiful things",
     icon: "✨"
   }
 ];
@@ -101,10 +111,18 @@ interface UserProfile {
 interface ProfileSettingsProps {
   user: UserProfile;
   onSave: (data: Partial<UserProfile>) => Promise<void>;
+  onEditStateChange?: (isEditing: boolean) => void;
 }
 
-export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) {
+const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
+  ({ user, onSave, onEditStateChange }, ref) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Notify parent when edit state changes
+  useEffect(() => {
+    onEditStateChange?.(isEditing);
+  }, [isEditing, onEditStateChange]);
   interface AddressLookupState {
     isLookingUp: boolean;
     error: string | null;
@@ -137,6 +155,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     city: user?.city || '',
     postalCode: user?.postalCode || '',
     country: user?.country || 'NL',
+    lat: (user as any)?.lat ?? null,
+    lng: (user as any)?.lng ?? null,
     gender: user?.gender || '',
     interests: user?.interests || [],
     sellerRoles: user?.sellerRoles || [],
@@ -165,20 +185,28 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         username: user?.username || user?.name || formData.username // Use current username
       };
       await onSave(dataToSave);
-      setSuccess('Profiel succesvol bijgewerkt!');
+      setSuccess(t('profileSettings.profileUpdated'));
       setIsEditing(false);
     } catch (error: any) {
-      setError(error.message || 'Er is een fout opgetreden bij het opslaan');
+      setError(error.message || t('profileSettings.errorSaving'));
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    handleSave,
+    handleCancel,
+    isEditing,
+    isLoading
+  }), [isEditing, isLoading]);
+
   const lookupDutchAddress = async () => {
     if (!formData.postalCode || !formData.address) {
       setAddressLookup({
         isLookingUp: false,
-        error: 'Voer postcode en huisnummer in',
+        error: 'Enter postal code and house number',
         success: false,
         foundAddress: null
       });
@@ -189,7 +217,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     if (!huisnummerMatch) {
       setAddressLookup({
         isLookingUp: false,
-        error: 'Voer een geldig huisnummer in (bijv. 123)',
+        error: 'Enter a valid house number (e.g. 123)',
         success: false,
         foundAddress: null
       });
@@ -207,13 +235,22 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     });
 
     try {
-      const response = await fetch(
-        `/api/geocoding/dutch?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`
-      );
+      // Use Google Maps geocoding for all countries (including Netherlands)
+      const response = await fetch('/api/geocoding/global', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: `${postcode} ${huisnummer}`,
+          city: '',
+          countryCode: 'NL'
+        })
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Adres lookup mislukt');
+        throw new Error(errorData.error || (t('errors.addressLookupFailed') || 'Address lookup failed'));
       }
 
       const addressData = await response.json();
@@ -229,7 +266,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       console.error('Address lookup error:', error);
       setAddressLookup({
         isLookingUp: false,
-        error: error instanceof Error ? error.message : 'Adres lookup mislukt',
+        error: error instanceof Error ? error.message : (t('errors.addressLookupFailed') || 'Address lookup failed'),
         success: false,
         foundAddress: null
       });
@@ -240,7 +277,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
     if (!formData.address || !formData.city) {
       setAddressLookup({
         isLookingUp: false,
-        error: 'Voer straatnaam en stad in',
+        error: t('errors.enterStreetCity') || 'Enter street name and city',
         success: false,
         foundAddress: null
       });
@@ -269,7 +306,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Adres lookup mislukt');
+        throw new Error(errorData.error || (t('errors.addressLookupFailed') || 'Address lookup failed'));
       }
 
       const addressData = await response.json();
@@ -289,7 +326,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       console.error('Global address lookup error:', error);
       setAddressLookup({
         isLookingUp: false,
-        error: error instanceof Error ? error.message : 'Adres lookup mislukt',
+        error: error instanceof Error ? error.message : (t('errors.addressLookupFailed') || 'Address lookup failed'),
         success: false,
         foundAddress: null
       });
@@ -337,6 +374,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       city: user?.city || '',
       postalCode: user?.postalCode || '',
       country: user?.country || 'NL',
+      lat: (user as any)?.lat ?? null,
+      lng: (user as any)?.lng ?? null,
       gender: user?.gender || '',
       interests: user?.interests || [],
       sellerRoles: user?.sellerRoles || [],
@@ -402,6 +441,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
   return (
     <div className="space-y-6">
+      {/* Help & Uitleg - BOVENAAN */}
+      <HelpSettings />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -409,8 +451,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             <User className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Profielinstellingen</h2>
-            <p className="text-xs sm:text-sm text-gray-500">Beheer je persoonlijke informatie</p>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('profileSettings.title')}</h2>
+            <p className="text-xs sm:text-sm text-gray-500">{t('profileSettings.subtitle')}</p>
           </div>
         </div>
         {!isEditing ? (
@@ -419,7 +461,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
           >
             <Edit3 className="w-4 h-4" />
-            <span>Bewerken</span>
+            <span>{t('profileSettings.edit')}</span>
           </button>
         ) : (
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
@@ -428,7 +470,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto"
             >
               <X className="w-4 h-4" />
-              <span>Annuleren</span>
+              <span>{t('profileSettings.cancel')}</span>
             </button>
             <button
               onClick={handleSave}
@@ -436,7 +478,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              <span>{isLoading ? 'Opslaan...' : 'Opslaan'}</span>
+              <span>{isLoading ? t('profileSettings.saving') : t('profileSettings.save')}</span>
             </button>
           </div>
         )}
@@ -477,7 +519,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Volledige naam
+              {t('profileSettings.fullName')}
             </label>
             <input
               type="text"
@@ -489,7 +531,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Gebruikersnaam
+              {t('profileSettings.username')}
             </label>
             <input
               type="text"
@@ -497,21 +539,21 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               disabled={true}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
             />
-            <p className="text-xs text-gray-500 mt-1">Gebruikersnaam kan niet worden gewijzigd na aanmaak</p>
+            <p className="text-xs text-gray-500 mt-1">{t('profileSettings.usernameCannotChange')}</p>
           </div>
         </div>
 
         {/* Bio */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Bio
+            {t('profileSettings.bio')}
           </label>
           <textarea
             value={formData.bio}
             onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
             disabled={!isEditing}
             rows={3}
-            placeholder="Vertel iets over jezelf..."
+            placeholder={t('profileSettings.bioPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
         </div>
@@ -519,20 +561,20 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         {/* Quote/Motto */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Levensmotto / Quote
+            {t('profileSettings.quote')}
           </label>
           <textarea
             value={formData.quote}
             onChange={(e) => setFormData(prev => ({ ...prev, quote: e.target.value }))}
             disabled={!isEditing}
             rows={2}
-            placeholder="Je levensmotto of favoriete quote..."
+            placeholder={t('profileSettings.quotePlaceholder')}
             maxLength={150}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
           <div className="flex justify-between items-center mt-1">
             <p className="text-xs text-gray-500">
-              💭 Een korte, inspirerende boodschap die anderen kunnen zien op je profiel
+              {t('profileSettings.quoteHint')}
             </p>
             <span className="text-xs text-gray-400">
               {formData.quote.length}/150
@@ -544,18 +586,18 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             <MapPin className="w-4 h-4 inline mr-1" />
-            Locatie (zichtbaar voor anderen)
+            {t('profileSettings.location')}
           </label>
           <input
             type="text"
             value={formData.place}
             onChange={(e) => setFormData(prev => ({ ...prev, place: e.target.value }))}
             disabled={!isEditing}
-            placeholder="Bijv. Amsterdam, Nederland"
+            placeholder={t('profileSettings.locationPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
           <p className="text-xs text-gray-500 mt-1">
-            🌍 Deze locatie is zichtbaar voor andere gebruikers
+            {t('profileSettings.locationHint')}
           </p>
         </div>
 
@@ -563,184 +605,54 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
             <MapPin className="w-4 h-4 mr-2" />
-            Adresgegevens (privé - voor afstand berekening)
+            {t('profileSettings.addressDetails')}
           </h3>
           <p className="text-xs text-gray-500 mb-4">
-            🔒 Deze gegevens zijn privé en worden alleen gebruikt voor het berekenen van afstanden tot producten
+            {t('profileSettings.addressPrivate')}
           </p>
           
-          {isDutchAddressFormat ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Huisnummer
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="Bijv. 123"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Postcode
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={formData.postalCode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-                    disabled={!isEditing}
-                    placeholder="Bijv. 1012 AB"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={getAddressLookupFunction()}
-                    disabled={!isEditing || addressLookup.isLookingUp || !formData.postalCode || !formData.address}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {addressLookup.isLookingUp ? (
-                      <div className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Zoeken...
-                      </div>
-                    ) : (
-                      'Zoek'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Straatnaam en huisnummer
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="Bijv. Main Street 123"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stad
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                    disabled={!isEditing}
-                    placeholder="Bijv. Amsterdam"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={getAddressLookupFunction()}
-                    disabled={!isEditing || addressLookup.isLookingUp || !formData.address || !formData.city}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {addressLookup.isLookingUp ? (
-                      <div className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Zoeken...
-                      </div>
-                    ) : (
-                      'Zoek'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {addressLookup.error && (
-            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span className="text-sm text-red-700">{addressLookup.error}</span>
-              </div>
-            </div>
-          )}
-
-          {addressLookup.success && addressLookup.foundAddress && (
-            <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium text-green-800 mb-2">Adres gevonden!</h4>
-                    <div className="text-sm text-green-700 space-y-1">
-                      {isDutchAddressFormat ? (
-                        <>
-                          <div className="font-medium">{addressLookup.foundAddress.straatnaam} {addressLookup.foundAddress.huisnummer}</div>
-                          <div>{addressLookup.foundAddress.postcode} {addressLookup.foundAddress.plaats}</div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="font-medium">{addressLookup.foundAddress.formatted_address}</div>
-                          <div className="text-xs text-green-600">
-                            Coördinaten: {addressLookup.foundAddress.lat?.toFixed(6)}, {addressLookup.foundAddress.lng?.toFixed(6)}
-                          </div>
-                        </>
-                      )}
-                    <div className="text-xs text-green-600 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isDutchAddressFormat && addressLookup.foundAddress) {
-                            setFormData(prev => ({
-                              ...prev,
-                              address: `${addressLookup.foundAddress!.straatnaam} ${addressLookup.foundAddress!.huisnummer}`,
-                              city: addressLookup.foundAddress!.plaats || '',
-                              place: addressLookup.foundAddress!.plaats || '',
-                            }));
-                          } else if (addressLookup.foundAddress) {
-                            setFormData(prev => ({
-                              ...prev,
-                              address: addressLookup.foundAddress!.formatted_address || '',
-                              city: addressLookup.foundAddress!.city || '',
-                              place: addressLookup.foundAddress!.city || '',
-                            }));
-                          }
-                          setAddressLookup(prev => ({ ...prev, success: false, foundAddress: null }));
-                        }}
-                        className="text-green-600 hover:text-green-800 underline"
-                      >
-                        Dit adres gebruiken
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <DynamicAddressFields
+            value={{
+              address: formData.address,
+              postalCode: formData.postalCode,
+              houseNumber: '', // ProfileSettings doesn't store houseNumber separately
+              city: formData.city,
+              country: formData.country,
+              lat: formData.lat,
+              lng: formData.lng,
+            }}
+            onChange={(data) => {
+              // For NL format: address contains house number, so we need to parse it
+              // For other formats: address is the street name
+              setFormData(prev => ({
+                ...prev,
+                address: data.address || '',
+                postalCode: data.postalCode || '',
+                city: data.city || '',
+                country: data.country || 'NL',
+                lat: data.lat ?? null,
+                lng: data.lng ?? null,
+              }));
+            }}
+            onGeocode={(data) => {
+              setFormData(prev => ({
+                ...prev,
+                lat: data.lat,
+                lng: data.lng,
+              }));
+            }}
+            required={false}
+            showValidation={true}
+            disabled={!isEditing}
+            geocodingEnabled={isEditing}
+            showCountrySelector={true}
+          />
         </div>
 
         {/* Gender */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Geslacht
+            {t('profileSettings.gender')}
           </label>
           <select
             value={formData.gender}
@@ -748,16 +660,16 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             disabled={!isEditing}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
           >
-            <option value="">Maak een keuze</option>
-            <option value="man">Man</option>
-            <option value="vrouw">Vrouw</option>
+            <option value="">{t('profileSettings.selectGender')}</option>
+            <option value="man">{t('profileSettings.male')}</option>
+            <option value="vrouw">{t('profileSettings.female')}</option>
           </select>
         </div>
 
         {/* Interests */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Interesses
+            {t('profileSettings.interests')}
           </label>
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
@@ -782,7 +694,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <input
                   type="text"
-                  placeholder="Voeg interesse toe..."
+                  placeholder={t('profileSettings.addInterestPlaceholder')}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
@@ -799,7 +711,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                   }}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
                 >
-                  Toevoegen
+                  {t('profileSettings.addInterest')}
                 </button>
               </div>
             )}
@@ -808,9 +720,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
         {/* Seller Roles Section */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Verkopersrollen</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.sellerRoles')}</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Kies welke verkopersrollen je wilt gebruiken op het platform
+            {t('profileSettings.sellerRolesDescription')}
           </p>
           
           <div className="grid gap-3 sm:gap-4">
@@ -854,7 +766,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
           {formData.sellerRoles.length > 0 && (
             <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
               <p className="text-sm text-emerald-700">
-                <strong>Geselecteerd:</strong> {formData.sellerRoles.map(id => sellerTypes.find(t => t.id === id)?.title).join(', ')}
+                <strong>{t('profileSettings.selected')}</strong> {formData.sellerRoles.map(id => sellerTypes.find(st => st.id === id)?.title).join(', ')}
               </p>
             </div>
           )}
@@ -869,12 +781,12 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-medium text-blue-900 mb-1">Uitbetalingen via Stripe</h4>
+                  <h4 className="font-medium text-blue-900 mb-1">{t('profileSettings.stripeConnect')}</h4>
                   <p className="text-sm text-blue-700">
-                    Uitbetalingen worden veilig afgehandeld via Stripe. 
+                    {t('profileSettings.stripeConnectText')}
                     <a href="/seller/stripe/refresh" className="font-medium underline hover:text-blue-800 ml-1">
-                      Connect met Stripe
-                    </a> om je bankgegevens toe te voegen.
+                      {t('profileSettings.connectWithStripe')}
+                    </a>
                   </p>
                 </div>
               </div>
@@ -884,9 +796,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
         {/* Buyer Roles Section */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Koperrol</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.buyerRole')}</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Kies 1 koperrol die het beste bij je past
+            {t('profileSettings.buyerRoleDescription')}
           </p>
           
           <div className="grid gap-2 sm:gap-3">
@@ -921,7 +833,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
           {formData.buyerRoles.length > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700">
-                <strong>Geselecteerd:</strong> {formData.buyerRoles.map(id => buyerTypes.find(t => t.id === id)?.title).join(', ')}
+                <strong>{t('profileSettings.selected')}</strong> {formData.buyerRoles.map(id => buyerTypes.find(bt => bt.id === id)?.title).join(', ')}
               </p>
             </div>
           )}
@@ -936,10 +848,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               </div>
               <div className="flex-1">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
-                  End-to-End Versleutelde Berichten
+                  {t('profileSettings.encryption')}
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3">
-                  Schakel automatische berichtversleuteling in voor maximale privacy. Niemand, zelfs niet HomeCheff admins, kan je berichten lezen.
+                  {t('profileSettings.encryptionDescription')}
                 </p>
               </div>
             </div>
@@ -947,12 +859,12 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
             <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-200">
               <div className="flex-1">
                 <div className="font-medium text-gray-900 text-sm">
-                  {formData.encryptionEnabled ? '🔐 Versleuteling Actief' : '🔓 Geen Versleuteling'}
+                  {formData.encryptionEnabled ? t('profileSettings.encryptionActive') : t('profileSettings.encryptionInactive')}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {formData.encryptionEnabled 
-                    ? 'Al je berichten worden automatisch versleuteld'
-                    : 'Je berichten worden onversleuteld opgeslagen'
+                    ? t('profileSettings.encryptionEnabledText')
+                    : t('profileSettings.encryptionDisabledText')
                   }
                 </div>
               </div>
@@ -977,10 +889,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 <div className="flex items-center gap-2 text-xs text-green-800">
                   <span>✅</span>
                   <span>
-                    Je hebt akkoord gegaan met de HomeCheff berichtrichtlijnen op{' '}
+                    {t('profileSettings.messageGuidelinesAccepted')}{' '}
                     {user?.messageGuidelinesAcceptedAt 
-                      ? new Date(user.messageGuidelinesAcceptedAt).toLocaleDateString('nl-NL')
-                      : 'recent'
+                      ? new Date(user.messageGuidelinesAcceptedAt).toLocaleDateString(t('common.dateFormat') || 'en-US')
+                      : t('common.recent') || 'recent'
                     }
                   </span>
                 </div>
@@ -991,9 +903,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
         {/* Display Settings */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Naam weergave</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.displaySettings')}</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Kies welke naam zichtbaar is op je profiel voor andere gebruikers
+            {t('profileSettings.displaySettingsDescription')}
           </p>
           
           <div className="space-y-2 sm:space-y-3">
@@ -1007,8 +919,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">Volledige naam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon je volledige naam op je profiel (bijv. "Jan de Vries")</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.fullNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.fullNameDisplayDescription')}</div>
               </div>
             </label>
             
@@ -1022,8 +934,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">Alleen voornaam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je voornaam op je profiel (bijv. "Jan")</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.firstNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.firstNameDisplayDescription')}</div>
               </div>
             </label>
             
@@ -1037,8 +949,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">Alleen achternaam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je achternaam op je profiel (bijv. "de Vries")</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.lastNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.lastNameDisplayDescription')}</div>
               </div>
             </label>
             
@@ -1052,8 +964,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">Gebruikersnaam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon alleen je gebruikersnaam op je profiel (bijv. "@jandevries")</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.usernameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.usernameDisplayDescription')}</div>
               </div>
             </label>
             
@@ -1067,8 +979,8 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">Geen naam</div>
-                <div className="text-xs sm:text-sm text-gray-600">Toon geen naam op je profiel, alleen gebruikersnaam</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.noNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.noNameDisplayDescription')}</div>
               </div>
             </label>
           </div>
@@ -1076,9 +988,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
 
         {/* Privacy Settings */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Privacy instellingen</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.privacySettings')}</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Bepaal welke informatie zichtbaar is op je publieke profiel
+            {t('profileSettings.privacySettingsDescription')}
           </p>
           
           <div className="space-y-4">
@@ -1091,15 +1003,38 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm font-medium text-gray-900">Fan lijst tonen</div>
+                <div className="text-sm font-medium text-gray-900">{t('profileSettings.showFansList')}</div>
                 <div className="text-xs text-gray-600">
-                  Toon je fan lijst en wie je volgt op je publieke profiel
+                  {t('profileSettings.showFansListDescription')}
                 </div>
               </div>
             </label>
           </div>
         </div>
       </div>
+
+      {/* Save Button at Bottom - Only show when editing */}
+      {isEditing && (
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 sm:p-6 shadow-lg -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 max-w-4xl mx-auto">
+            <button
+              onClick={handleCancel}
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto"
+            >
+              <X className="w-4 h-4" />
+              <span>{t('profileSettings.cancel')}</span>
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
+            >
+              <Save className="w-4 h-4" />
+              <span>{isLoading ? t('profileSettings.saving') : t('profileSettings.save')}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Encryption Guidelines Modal */}
       {showEncryptionModal && (
@@ -1113,10 +1048,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    Versleutelde Berichten Activeren
+                    {t('profileSettings.encryptionModalTitle')}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Lees en accepteer de richtlijnen
+                    {t('profileSettings.encryptionModalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -1125,7 +1060,7 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <div className="bg-blue-50 rounded-lg p-4 mb-4 space-y-3">
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                   <span>🛡️</span>
-                  HomeCheff Berichtrichtlijnen
+                  {t('profileSettings.messageGuidelines')}
                 </h3>
                 
                 <div className="space-y-2 text-sm text-gray-700">
@@ -1164,13 +1099,13 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                   <span>⚠️</span>
-                  Belangrijk: Privacy & Verantwoordelijkheid
+                  {t('profileSettings.importantPrivacyResponsibility')}
                 </h4>
                 <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                  <li>Versleutelde berichten zijn <strong>volledig privé</strong> - zelfs admins kunnen ze niet lezen</li>
-                  <li>Bij misbruik kan je account worden <strong>geblokkeerd</strong></li>
-                  <li>Metadata (wie, wanneer) blijft zichtbaar voor moderatie</li>
-                  <li>Je bent verantwoordelijk voor je eigen communicatie</li>
+                  <li dangerouslySetInnerHTML={{ __html: t('profileSettings.messageGuidelinesDetail1') }} />
+                  <li dangerouslySetInnerHTML={{ __html: t('profileSettings.messageGuidelinesDetail2') }} />
+                  <li>{t('profileSettings.messageGuidelinesDetail3')}</li>
+                  <li>{t('profileSettings.messageGuidelinesDetail4')}</li>
                 </ul>
               </div>
 
@@ -1185,10 +1120,10 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                      Ik ga akkoord met de HomeCheff berichtrichtlijnen en verplicht me tot respectvolle, ethische communicatie
+                      {t('profileSettings.acceptGuidelines')}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Je accepteert hiermee de gedragscode en begrijpt dat misbruik kan leiden tot account sancties
+                      {t('profileSettings.acceptGuidelinesSubtext')}
                     </p>
                   </div>
                 </label>
@@ -1219,5 +1154,9 @@ export default function ProfileSettings({ user, onSave }: ProfileSettingsProps) 
       )}
     </div>
   );
-}
+});
+
+ProfileSettings.displayName = 'ProfileSettings';
+
+export default ProfileSettings;
 

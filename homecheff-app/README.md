@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Platform Setup
+- **Mac users:** See [Mac Setup Guide](docs/MAC_SETUP.md) for detailed instructions
+- **Windows users:** See [Android App Setup](docs/ANDROID_APP_BENODIGDHEDEN.md) for Windows-specific instructions
+
+### Quick Start
+
 First, run the development server:
 
 ```bash

@@ -1,21 +1,25 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useRef } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { useSession } from 'next-auth/react';
-import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle, Building, Award, Camera, TrendingUp, BarChart3, CheckCircle } from 'lucide-react';
+import { Settings, Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, Edit3, User, Shield, Bell, MessageCircle, Building, Award, Camera, TrendingUp, BarChart3, CheckCircle, Star, Save, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import PhotoUploader from './PhotoUploader';
 import MyDishesManager from './MyDishesManager';
 import SettingsMenu from './SettingsMenu';
-import ProfileSettings from './ProfileSettings';
+import ProfileSettings, { ProfileSettingsRef } from './ProfileSettings';
 import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
 import WorkspacePhotoUpload from '../workspace/WorkspacePhotoUpload';
 import FansAndFollowsList from '../FansAndFollowsList';
+import BusinessBadge from '@/components/ui/BusinessBadge';
+import ItemsWithReviews from './ItemsWithReviews';
 
 interface User {
   id: string;
@@ -94,9 +98,23 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
+  const { t } = useTranslation();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+  const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
+  
+  // Reset contentSubTab wanneer activeTab verandert
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      setContentSubTab('dorpsplein'); // Overview blijft dorpsplein als standaard
+    } else if (activeTab.startsWith('dishes-') || activeTab === 'dishes') {
+      setContentSubTab('inspiratie'); // Andere tabs gebruiken inspiratie als standaard
+    }
+  }, [activeTab]);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
+  const profileSettingsRef = useRef<ProfileSettingsRef>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [profileImage, setProfileImage] = useState(user?.profileImage ?? user?.image ?? null);
@@ -140,6 +158,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     if (searchParams?.welcome === 'true' && searchParams?.newUser === 'true') {
       setShowWelcome(true);
     }
+    
+    // Set active tab from URL params
+    if (searchParams?.tab && typeof searchParams.tab === 'string') {
+      setActiveTab(searchParams.tab);
+    }
   }, [searchParams]);
 
   const fetchStats = async () => {
@@ -168,7 +191,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
   const getTabs = () => {
     const baseTabs = [
-      { id: 'overview', label: 'Overzicht', icon: Grid }
+      { id: 'overview', label: t('profilePage.tabs.overview'), icon: Grid }
     ];
 
     const sellerRoles = user?.sellerRoles || [];
@@ -186,37 +209,40 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
     if (hasBusinessProfile) {
       businessTabs.push(
-        { id: 'business-overview', label: 'Bedrijf', icon: Building },
-        { id: 'subscription', label: 'Abonnement', icon: Award },
-        { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+        { id: 'business-overview', label: t('profilePage.tabs.business'), icon: Building },
+        { id: 'subscription', label: t('profilePage.tabs.subscription'), icon: Award },
+        { id: 'analytics', label: t('profilePage.tabs.analytics'), icon: BarChart3 }
       );
     }
 
     // Voeg Ambassadeur tab toe als user een bezorger is
     if (user?.DeliveryProfile) {
-      deliveryTab.push({ id: 'ambassador', label: '🚴 Ambassadeur', icon: TrendingUp });
+      deliveryTab.push({ id: 'ambassador', label: t('profilePage.tabs.ambassador'), icon: TrendingUp });
     }
 
     if (sellerRoles.includes('chef')) {
-      roleSpecificTabs.push({ id: 'dishes-chef', label: 'Mijn Keuken', icon: Plus, role: 'chef' });
+      roleSpecificTabs.push({ id: 'dishes-chef', label: t('profilePage.tabs.myKitchen'), icon: Plus, role: 'chef' });
     }
     if (sellerRoles.includes('garden')) {
-      roleSpecificTabs.push({ id: 'dishes-garden', label: 'Mijn Tuin', icon: Plus, role: 'garden' });
+      roleSpecificTabs.push({ id: 'dishes-garden', label: t('profilePage.tabs.myGarden'), icon: Plus, role: 'garden' });
     }
     if (sellerRoles.includes('designer')) {
-      roleSpecificTabs.push({ id: 'dishes-designer', label: 'Mijn Atelier', icon: Plus, role: 'designer' });
+      roleSpecificTabs.push({ id: 'dishes-designer', label: t('profilePage.tabs.myStudio'), icon: Plus, role: 'designer' });
     }
 
     if (sellerRoles.length > 0) {
-      workspaceTab.push({ id: 'workspace', label: 'Werkruimte', icon: Camera });
+      workspaceTab.push({ id: 'workspace', label: t('profilePage.tabs.workspace'), icon: Camera });
     }
 
     if (roleSpecificTabs.length === 0 && user?.role === 'SELLER') {
-      roleSpecificTabs.push({ id: 'dishes', label: 'Mijn Items', icon: Plus, role: 'generic' });
+      roleSpecificTabs.push({ id: 'dishes', label: t('profilePage.tabs.myItems'), icon: Plus, role: 'generic' });
     }
 
+    // Reviews tab - toon items met reviews
+    const reviewsTab = { id: 'reviews', label: t('profilePage.tabs.reviews'), icon: Star };
+
     // Fan & Fans tab altijd achteraan
-    const fanTab = { id: 'fans', label: 'Fan & Fans', icon: Users };
+    const fanTab = { id: 'fans', label: t('profilePage.tabs.fans'), icon: Users };
 
     return [
       baseTabs[0],
@@ -224,6 +250,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       ...businessTabs,
       ...workspaceTab,
       ...roleSpecificTabs,
+      reviewsTab, // Reviews tab
       fanTab // Fan & Fans tab altijd achteraan
     ];
   };
@@ -243,7 +270,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Profile update error:', errorData);
-        throw new Error(errorData.error || 'Er is een fout opgetreden');
+        throw new Error(errorData.error || 'An error occurred');
       }
 
       const result = await response.json();
@@ -275,13 +302,13 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     
     switch (settingsSection) {
       case 'profile':
-        return <ProfileSettings user={user} onSave={handleProfileSave} />;
+        return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
       case 'account':
         return <AccountSettings user={user} onUpdatePassword={handlePasswordUpdate} onUpdateEmail={handleEmailUpdate} onAccountDeleted={() => window.location.href = '/'} />;
       case 'notifications':
         return <NotificationSettings onUpdateSettings={handleNotificationSettingsUpdate} />;
       default:
-        return <ProfileSettings user={user} onSave={handleProfileSave} />;
+        return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
     }
   };
 
@@ -307,8 +334,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Welkom bij HomeCheff!</h3>
-                  <p className="text-sm opacity-90">Vul je profiel aan om te beginnen</p>
+                  <h3 className="font-semibold">{t('profilePage.welcome.title')}</h3>
+                  <p className="text-sm opacity-90">{t('profilePage.welcome.subtitle')}</p>
                 </div>
               </div>
               <button
@@ -341,7 +368,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-emerald-800 mb-2 tracking-wide">Mijn Levensmotto</h3>
+                        <h3 className="text-sm font-semibold text-emerald-800 mb-2 tracking-wide">{t('profilePage.sidebar.myLifeMotto')}</h3>
                         <blockquote className="text-lg text-gray-800 italic leading-relaxed font-medium">
                           "{user.quote.trim()}"
                         </blockquote>
@@ -358,6 +385,45 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     />
                   </Suspense>
                 </div>
+                
+                {/* Business Badge - exclusief bovenaan voor KVK bedrijven */}
+                {user?.SellerProfile?.kvk && user?.SellerProfile?.companyName && (
+                  <div className="mb-4 space-y-3">
+                    <div className="flex justify-center">
+                      <BusinessBadge 
+                        companyName={user.SellerProfile.companyName}
+                        subscriptionName={user.SellerProfile.Subscription?.name || undefined}
+                        size="lg"
+                      />
+                    </div>
+                    
+                    {/* Melding als er geen actief abonnement is */}
+                    {(!user.SellerProfile.subscriptionId || !user.SellerProfile.Subscription?.isActive) && (
+                      <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                              {t('profilePage.subscriptionSection.required')}
+                            </h4>
+                            <p className="text-sm text-amber-800 mb-3">
+                              {t('profilePage.subscriptionSection.description')}
+                            </p>
+                            <Link href="/sell">
+                              <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-sm py-2">
+                                {t('profilePage.subscriptionSection.chooseSubscription')}
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* Gekozen naam weergave */}
                 {(() => {
@@ -393,7 +459,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {/* Bio sectie apart */}
               {user.bio && (
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Over mij</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">{t('profilePage.sidebar.aboutMe')}</h3>
                   <p className="text-sm text-gray-600">{user.bio}</p>
                 </div>
               )}
@@ -404,19 +470,19 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.items}
                   </div>
-                  <div className="text-xs text-gray-500">Items</div>
+                  <div className="text-xs text-gray-500">{t('profilePage.sidebar.items')}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.followers}
                   </div>
-                  <div className="text-xs text-gray-500">Fan</div>
+                  <div className="text-xs text-gray-500">{t('profilePage.sidebar.fans')}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
                     {loadingStats ? '...' : stats.following}
                   </div>
-                  <div className="text-xs text-gray-500">Fan</div>
+                  <div className="text-xs text-gray-500">{t('profilePage.sidebar.fan')}</div>
                 </div>
               </div>
               
@@ -426,10 +492,10 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      Mijn Bijdrage
+                      {t('profilePage.sidebar.myContribution')}
                     </h3>
                     <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
-                      Ambassadeur
+                      {t('profilePage.sidebar.ambassador')}
                     </span>
                   </div>
                   <div className="space-y-2">
@@ -437,22 +503,22 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-2xl">🚴</span>
                         <div>
-                          <h4 className="font-semibold text-sm">Ambassadeur</h4>
-                          <p className="text-xs opacity-75">Betrouwbare bezorger in jouw buurt</p>
+                          <h4 className="font-semibold text-sm">{t('profilePage.sidebar.ambassador')}</h4>
+                          <p className="text-xs opacity-75">{t('profilePage.reliableDelivery')}</p>
                         </div>
                         <div className="ml-auto">
                           <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            {user.DeliveryProfile.isActive ? 'Actief' : 'Inactief'}
+                            {user.DeliveryProfile.isActive ? t('profilePage.sidebar.active') : t('profilePage.sidebar.inactive')}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="flex items-center gap-1">
                           <span className="text-green-600">👍</span>
-                          <span>{user.DeliveryProfile.isVerified ? 'Geverifieerd' : 'Niet geverifieerd'}</span>
+                          <span>{user.DeliveryProfile.isVerified ? t('profilePage.sidebar.verified') : t('profilePage.sidebar.notVerified')}</span>
                         </span>
-                        <span className="text-gray-600">{user.DeliveryProfile.totalDeliveries} bezorgingen</span>
+                        <span className="text-gray-600">{user.DeliveryProfile.totalDeliveries} {t('profilePage.sidebar.deliveries')}</span>
                       </div>
                     </div>
                   </div>
@@ -463,51 +529,62 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {user.buyerRoles && user.buyerRoles.length > 0 && (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                       <span className="w-2 h-2 bg-secondary-brand rounded-full"></span>
-                      Mijn Koperrollen
+                      {t('profilePage.sidebar.myBuyerRoles')}
                     </h3>
                     <span className="text-xs text-secondary-brand font-medium bg-secondary-50 px-2 py-1 rounded-full">
-                      {user.buyerRoles.length} actief
+                      {user.buyerRoles.length} {t('profilePage.sidebar.activeCount')}
                     </span>
                   </div>
                   <div className="space-y-2">
                     {user.buyerRoles.map((role, index) => {
-                      const roleInfo = {
-                        ontdekker: { icon: "🔍", label: "Ontdekker", color: "bg-info-100 text-info-800", description: "Ontdek nieuwe smaken en ervaringen" },
-                        verzamelaar: { icon: "📦", label: "Verzamelaar", color: "bg-secondary-100 text-secondary-800", description: "Verzamel unieke producten en items" },
-                        liefhebber: { icon: "❤️", label: "Liefhebber", color: "bg-error-100 text-error-800", description: "Passie voor kwaliteit en authenticiteit" },
-                        avonturier: { icon: "🗺️", label: "Avonturier", color: "bg-warning-100 text-warning-800", description: "Op zoek naar nieuwe culinaire avonturen" },
-                        fijnproever: { icon: "👅", label: "Fijnproever", color: "bg-primary-100 text-primary-800", description: "Verfijnde smaak en aandacht voor detail" },
-                        connaisseur: { icon: "🎭", label: "Connaisseur", color: "bg-neutral-100 text-neutral-800", description: "Kenner van kunst en cultuur" },
-                        genieter: { icon: "✨", label: "Genieter", color: "bg-success-100 text-success-800", description: "Geniet van het leven en de kleine dingen" },
-                        food_lover: { icon: "🍽️", label: "Food Lover", color: "bg-orange-100 text-orange-800", description: "Passie voor lekker eten en drinken" }
-                      }[role];
+                      const roleKey = role === 'ontdekker' ? 'explorer' : 
+                                     role === 'verzamelaar' ? 'collector' :
+                                     role === 'liefhebber' ? 'enthusiast' :
+                                     role === 'avonturier' ? 'adventurer' :
+                                     role === 'fijnproever' ? 'connoisseur' :
+                                     role === 'connaisseur' ? 'connoisseurArt' :
+                                     role === 'genieter' ? 'enjoyer' :
+                                     role === 'food_lover' ? 'foodLover' : role;
+                      
+                      const roleInfo = role === 'ontdekker' ? { icon: "🔍", color: "bg-info-100 text-info-800" } :
+                                     role === 'verzamelaar' ? { icon: "📦", color: "bg-secondary-100 text-secondary-800" } :
+                                     role === 'liefhebber' ? { icon: "❤️", color: "bg-error-100 text-error-800" } :
+                                     role === 'avonturier' ? { icon: "🗺️", color: "bg-warning-100 text-warning-800" } :
+                                     role === 'fijnproever' ? { icon: "👅", color: "bg-primary-100 text-primary-800" } :
+                                     role === 'connaisseur' ? { icon: "🎭", color: "bg-neutral-100 text-neutral-800" } :
+                                     role === 'genieter' ? { icon: "✨", color: "bg-success-100 text-success-800" } :
+                                     role === 'food_lover' ? { icon: "🍽️", color: "bg-orange-100 text-orange-800" } :
+                                     { icon: "⭐", color: "bg-gray-100 text-gray-800" };
+                      
+                      const label = t(`profilePage.buyerRoles.${roleKey}.label`) || role;
+                      const description = t(`profilePage.buyerRoles.${roleKey}.description`) || '';
                       
                       return (
                         <div
                           key={index}
-                          className={`p-4 ${roleInfo?.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
+                          className={`p-4 ${roleInfo.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
                         >
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="text-2xl">{roleInfo?.icon}</span>
+                            <span className="text-2xl">{roleInfo.icon}</span>
                             <div>
-                              <h4 className="font-semibold text-sm">{roleInfo?.label}</h4>
-                              <p className="text-xs opacity-75">{roleInfo?.description}</p>
+                              <h4 className="font-semibold text-sm">{label}</h4>
+                              <p className="text-xs opacity-75">{description}</p>
                             </div>
                             <div className="ml-auto">
                               <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
                                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                Actief
+                                {t('profilePage.sidebar.active')}
                               </span>
                             </div>
                           </div>
                           <div className="flex items-center justify-between text-xs">
                             <span className="flex items-center gap-1">
                               <span className="text-green-600">👍</span>
-                              <span>Geverifieerd</span>
+                              <span>{t('profilePage.sidebar.verified')}</span>
                             </span>
-                            <span className="text-gray-600">0 aankopen</span>
+                            <span className="text-gray-600">0 {t('profilePage.purchases')}</span>
                           </div>
                         </div>
                       );
@@ -520,46 +597,48 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {user.sellerRoles && user.sellerRoles.length > 0 && (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                       <span className="w-2 h-2 bg-primary-brand rounded-full"></span>
-                      Mijn Verkoperrollen
+                      {t('profilePage.mySellerRoles')}
                     </h3>
                     <span className="text-xs text-primary-brand font-medium bg-primary-50 px-2 py-1 rounded-full">
-                      {user.sellerRoles.length} actief
+                      {user.sellerRoles.length} {t('profilePage.sidebar.activeCount')}
                     </span>
                   </div>
                   <div className="space-y-2">
                     {user.sellerRoles.map((role, index) => {
-                      const roleInfo = {
-                        chef: { icon: "👨‍🍳", label: "Chef", color: "bg-emerald-100 text-emerald-800", description: "Culinaire creaties en gerechten" },
-                        garden: { icon: "🌱", label: "Tuinier", color: "bg-green-100 text-green-800", description: "Verse groenten en kruiden" },
-                        designer: { icon: "🎨", label: "Designer", color: "bg-purple-100 text-purple-800", description: "Handgemaakte kunstwerken" }
-                      }[role];
+                      const roleInfo = role === 'chef' ? { icon: "👨‍🍳", color: "bg-emerald-100 text-emerald-800" } :
+                                     role === 'garden' ? { icon: "🌱", color: "bg-green-100 text-green-800" } :
+                                     role === 'designer' ? { icon: "🎨", color: "bg-purple-100 text-purple-800" } :
+                                     { icon: "⭐", color: "bg-gray-100 text-gray-800" };
+                      
+                      const label = t(`profilePage.sellerRoles.${role}.label`) || role;
+                      const description = t(`profilePage.sellerRoles.${role}.description`) || '';
                       
                       return (
                         <div
                           key={index}
-                          className={`p-4 ${roleInfo?.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
+                          className={`p-4 ${roleInfo.color} rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}
                         >
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="text-2xl">{roleInfo?.icon}</span>
+                            <span className="text-2xl">{roleInfo.icon}</span>
                             <div>
-                              <h4 className="font-semibold text-sm">{roleInfo?.label}</h4>
-                              <p className="text-xs opacity-75">{roleInfo?.description}</p>
+                              <h4 className="font-semibold text-sm">{label}</h4>
+                              <p className="text-xs opacity-75">{description}</p>
                             </div>
                             <div className="ml-auto">
                               <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/50 rounded-full text-xs font-medium">
                                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                Actief
+                                {t('profilePage.sidebar.active')}
                               </span>
                             </div>
                           </div>
                           <div className="flex items-center justify-between text-xs">
                             <span className="flex items-center gap-1">
                               <span className="text-green-600">👍</span>
-                              <span>Geverifieerd</span>
+                              <span>{t('profilePage.sidebar.verified')}</span>
                             </span>
-                            <span className="text-gray-600">0 producten</span>
+                            <span className="text-gray-600">0 {t('profilePage.productsCount')}</span>
                           </div>
                         </div>
                       );
@@ -574,10 +653,10 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                       <span className="w-2 h-2 bg-success-500 rounded-full"></span>
-                      Interesses
+                      {t('profilePage.sidebar.interests')}
                     </h3>
                     <span className="text-xs text-success-600 font-medium bg-success-50 px-2 py-1 rounded-full">
-                      {user.interests.length} items
+                      {user.interests.length} {t('profilePage.sidebar.itemsCount')}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -596,15 +675,23 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {/* Legacy Buyer Types */}
               {user.buyerTypes && user.buyerTypes.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Mijn koper types</h3>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">{t('profilePage.sidebar.myBuyerTypes')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {user.buyerTypes.map((type, index) => {
-                      const typeInfo = {
-                        chef: { icon: "👨‍🍳", label: "Chef" },
-                        garden: { icon: "🌱", label: "Garden" },
-                        designer: { icon: "🎨", label: "Designer" },
-                        ontdekker: { icon: "🔍", label: "Ontdekker" }
-                      }[type];
+                      const roleKey = type === 'ontdekker' ? 'explorer' : 
+                                     type === 'verzamelaar' ? 'collector' :
+                                     type === 'liefhebber' ? 'enthusiast' :
+                                     type === 'avonturier' ? 'adventurer' :
+                                     type === 'fijnproever' ? 'connoisseur' :
+                                     type === 'connaisseur' ? 'connoisseurArt' :
+                                     type === 'genieter' ? 'enjoyer' :
+                                     type === 'food_lover' ? 'foodLover' : type;
+                      
+                      const typeInfo = type === 'chef' ? { icon: "👨‍🍳", label: t('profilePage.sellerRoles.chef.label') } :
+                                     type === 'garden' ? { icon: "🌱", label: t('profilePage.sellerRoles.garden.label') } :
+                                     type === 'designer' ? { icon: "🎨", label: t('profilePage.sellerRoles.designer.label') } :
+                                     type === 'ontdekker' ? { icon: "🔍", label: t('profilePage.buyerRoles.explorer.label') } :
+                                     { icon: "⭐", label: type };
                       
                       return (
                         <span
@@ -623,25 +710,47 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {/* Selected Buyer Type */}
               {user.selectedBuyerType && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Mijn koper type</h3>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">{t('profilePage.sidebar.myBuyerType')}</h3>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const typeInfo = {
-                        chef: { icon: "👨‍🍳", label: "Chef", description: "Ik kook graag en deel mijn creaties" },
-                        garden: { icon: "🌱", label: "Garden", description: "Ik kweek groenten en kruiden" },
-                        designer: { icon: "🎨", label: "Designer", description: "Ik maak handgemaakte items" },
-                        ontdekker: { icon: "🔍", label: "Ontdekker", description: "Ik ontdek graag lokale parels" },
-                        verzamelaar: { icon: "📦", label: "Verzamelaar", description: "Ik verzamel unieke items" },
-                        liefhebber: { icon: "❤️", label: "Liefhebber", description: "Ik waardeer kwaliteit en vakmanschap" },
-                        avonturier: { icon: "🗺️", label: "Avonturier", description: "Ik zoek nieuwe ervaringen" }
-                      }[user.selectedBuyerType];
+                      const roleKey = user.selectedBuyerType === 'ontdekker' ? 'explorer' : 
+                                     user.selectedBuyerType === 'verzamelaar' ? 'collector' :
+                                     user.selectedBuyerType === 'liefhebber' ? 'enthusiast' :
+                                     user.selectedBuyerType === 'avonturier' ? 'adventurer' :
+                                     user.selectedBuyerType === 'fijnproever' ? 'connoisseur' :
+                                     user.selectedBuyerType === 'connaisseur' ? 'connoisseurArt' :
+                                     user.selectedBuyerType === 'genieter' ? 'enjoyer' :
+                                     user.selectedBuyerType === 'food_lover' ? 'foodLover' : user.selectedBuyerType;
+                      
+                      const typeInfo = user.selectedBuyerType === 'chef' ? { 
+                        icon: "👨‍🍳", 
+                        label: t('profilePage.sellerRoles.chef.label'), 
+                        description: t('profilePage.sellerRoles.chef.description') 
+                      } :
+                      user.selectedBuyerType === 'garden' ? { 
+                        icon: "🌱", 
+                        label: t('profilePage.sellerRoles.garden.label'), 
+                        description: t('profilePage.sellerRoles.garden.description') 
+                      } :
+                      user.selectedBuyerType === 'designer' ? { 
+                        icon: "🎨", 
+                        label: t('profilePage.sellerRoles.designer.label'), 
+                        description: t('profilePage.sellerRoles.designer.description') 
+                      } :
+                      user.selectedBuyerType ? { 
+                        icon: "⭐", 
+                        label: t(`profilePage.buyerRoles.${roleKey}.label`) || user.selectedBuyerType, 
+                        description: t(`profilePage.buyerRoles.${roleKey}.description`) || '' 
+                      } : null;
+                      
+                      if (!typeInfo) return null;
                       
                       return (
                         <div className="px-4 py-3 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-xl flex items-center gap-3">
-                          <span className="text-2xl">{typeInfo?.icon}</span>
+                          <span className="text-2xl">{typeInfo.icon}</span>
                           <div>
-                            <div className="font-semibold">{typeInfo?.label}</div>
-                            <div className="text-sm opacity-80">{typeInfo?.description}</div>
+                            <div className="font-semibold">{typeInfo.label}</div>
+                            <div className="text-sm opacity-80">{typeInfo.description}</div>
                           </div>
                         </div>
                       );
@@ -652,22 +761,22 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
               {/* Member Since */}
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-center text-sm text-gray-500">
+                  <div className="flex items-center justify-center text-sm text-gray-500">
                   <Calendar className="w-4 h-4 mr-1" />
-                  Lid sinds {new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}
+                  {t('profilePage.sidebar.memberSince')} {new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}
                 </div>
               </div>
 
               {/* Instellingen - Altijd zichtbaar */}
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Instellingen</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.sidebar.settings')}</h3>
                 
                 <button
                   onClick={() => setShowSettings(true)}
                   className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Profiel instellingen</span>
+                  <span>{t('profilePage.sidebar.profileSettings')}</span>
                 </button>
                 
               </div>
@@ -678,7 +787,37 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
           <div className="lg:col-span-3">
             {/* Tabs */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              {/* Mobile: Grid Layout */}
+              <div className="md:hidden p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative p-4 rounded-xl font-medium text-sm transition-all duration-300 flex flex-col items-center justify-center gap-2 min-h-[80px] ${
+                          isActive
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg transform scale-[1.02] border-2 border-emerald-400'
+                            : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700 hover:from-gray-100 hover:to-gray-200 border-2 border-transparent hover:border-gray-200 hover:shadow-md'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-600'}`} />
+                        <span className={`text-xs font-semibold text-center leading-tight ${isActive ? 'text-white' : 'text-gray-700'}`}>
+                          {tab.label}
+                        </span>
+                        {isActive && (
+                          <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Desktop: Horizontal Tabs */}
+              <div className="hidden md:block bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <nav className="flex space-x-1 px-2 sm:px-4 overflow-x-auto scrollbar-hide">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
@@ -709,13 +848,13 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold text-gray-900">Overzicht</h2>
+                      <h2 className="text-lg font-semibold text-gray-900">{t('profilePage.overview')}</h2>
                       <div className="flex items-center space-x-2">
                         <div className="relative">
                           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                           <input
                             type="text"
-                            placeholder="Zoeken..."
+                            placeholder={t('profilePage.search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
@@ -738,11 +877,10 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       </div>
                     </div>
 
-
                     {/* Stripe Connect Setup - alleen voor verkopers */}
-                    {user.role === 'SELLER' && (
+                    {(user.role === 'SELLER' || (user.sellerRoles && user.sellerRoles.length > 0)) && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Betalingsinstellingen</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('profilePage.paymentSettings')}</h3>
                         <StripeConnectSetup
                           stripeConnectAccountId={user.stripeConnectAccountId}
                           stripeConnectOnboardingCompleted={user.stripeConnectOnboardingCompleted}
@@ -751,11 +889,54 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       </div>
                     )}
 
+                    {/* Producten Overzicht met sub-tabs */}
+                    {(user.role === 'SELLER' || (user.sellerRoles && user.sellerRoles.length > 0)) && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.tabs.myProducts')}</h3>
+                        
+                        {/* Sub-tabs voor Dorpsplein en Inspiratie */}
+                        <div className="flex gap-2 border-b border-gray-200 mb-6">
+                          <button
+                            onClick={() => setContentSubTab('dorpsplein')}
+                            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                              contentSubTab === 'dorpsplein'
+                                ? 'border-emerald-500 text-emerald-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            {t('profilePage.tabs.subTabs.villageSquare')}
+                          </button>
+                          <button
+                            onClick={() => setContentSubTab('inspiratie')}
+                            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                              contentSubTab === 'inspiratie'
+                                ? 'border-emerald-500 text-emerald-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            {t('profilePage.tabs.subTabs.inspiration')}
+                          </button>
+                        </div>
+
+                        {/* Content op basis van sub-tab */}
+                        <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>
+                          <MyDishesManager 
+                            onStatsUpdate={fetchStats} 
+                            activeRole="overview"
+                            role="overview"
+                            isPublic={false}
+                            showOnlyActive={false}
+                            contentSubTab={contentSubTab}
+                          />
+                        </Suspense>
+                      </div>
+                    )}
+
                     {/* Recent Activity */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Recente Activiteit</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.tabs.recentActivity')}</h3>
                       <div className="bg-gray-50 rounded-xl p-6 text-center">
-                        <p className="text-gray-500">Nog geen recente activiteit</p>
+                        <p className="text-gray-500">{t('profilePage.tabs.noRecentActivity')}</p>
                       </div>
                     </div>
                   </div>
@@ -773,24 +954,24 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         <div className="absolute top-1/2 left-1/3 text-4xl">⚡</div>
                       </div>
                       <div className="relative z-10">
-                        <h2 className="text-2xl font-bold mb-2">🚴 Ambassadeur Dashboard</h2>
-                        <p className="text-blue-100 mb-4">Beheer je bezorger activiteiten</p>
+                        <h2 className="text-2xl font-bold mb-2">🚴 {t('profilePage.ambassador.dashboard')}</h2>
+                        <p className="text-blue-100 mb-4">{t('profilePage.ambassador.manageActivities')}</p>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
                             <div className="text-2xl font-bold">{user.DeliveryProfile.totalDeliveries}</div>
-                            <div className="text-sm text-blue-100">Bezorgingen</div>
+                            <div className="text-sm text-blue-100">{t('profilePage.ambassador.deliveries')}</div>
                           </div>
                           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
                             <div className="text-2xl font-bold">⭐ {user.DeliveryProfile.averageRating?.toFixed(1) || '0.0'}</div>
-                            <div className="text-sm text-blue-100">Rating</div>
+                            <div className="text-sm text-blue-100">{t('profilePage.ambassador.rating')}</div>
                           </div>
                           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
                             <div className="text-2xl font-bold">{user.DeliveryProfile.reviews.length}</div>
-                            <div className="text-sm text-blue-100">Reviews</div>
+                            <div className="text-sm text-blue-100">{t('profilePage.ambassador.reviews')}</div>
                           </div>
                           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
                             <div className="text-2xl font-bold">{user.DeliveryProfile.vehiclePhotos.length}</div>
-                            <div className="text-sm text-blue-100">Voertuig Foto's</div>
+                            <div className="text-sm text-blue-100">{t('profilePage.ambassador.vehiclePhotos')}</div>
                           </div>
                         </div>
                       </div>
@@ -804,8 +985,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       >
                         <TrendingUp className="w-6 h-6 text-blue-600" />
                         <div>
-                          <div className="font-semibold text-gray-900">Bezorger Dashboard</div>
-                          <div className="text-xs text-gray-600">Bekijk je bezorgingen en verdiensten</div>
+                          <div className="font-semibold text-gray-900">Delivery Dashboard</div>
+                          <div className="text-xs text-gray-600">View your deliveries and earnings</div>
                         </div>
                       </Link>
                       <Link
@@ -814,8 +995,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       >
                         <Settings className="w-6 h-6 text-gray-600" />
                         <div>
-                          <div className="font-semibold text-gray-900">Bezorger Instellingen</div>
-                          <div className="text-xs text-gray-600">Pas je beschikbaarheid aan</div>
+                          <div className="font-semibold text-gray-900">Delivery Settings</div>
+                          <div className="text-xs text-gray-600">Adjust your availability</div>
                         </div>
                       </Link>
                     </div>
@@ -825,10 +1006,10 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div className="bg-white border rounded-xl p-6">
                         <h3 className="font-semibold mb-4 flex items-center gap-2">
                           <Award className="w-5 h-5 text-yellow-600" />
-                          Recente Reviews ({user.DeliveryProfile.reviews.length})
+                          Recent Reviews ({user.DeliveryProfile.reviews.length})
                         </h3>
                         {user.DeliveryProfile.reviews.length === 0 ? (
-                          <p className="text-sm text-gray-500">Nog geen reviews ontvangen</p>
+                          <p className="text-sm text-gray-500">No reviews received yet</p>
                         ) : (
                           <div className="space-y-3">
                             {user.DeliveryProfile.reviews.slice(0, 3).map((review) => (
@@ -842,7 +1023,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                                   <p className="text-sm text-gray-700 line-clamp-2">{review.comment}</p>
                                 )}
                                 <p className="text-xs text-gray-500 mt-1">
-                                  {new Date(review.createdAt).toLocaleDateString('nl-NL')}
+                                  {new Date(review.createdAt).toLocaleDateString('en-US')}
                                 </p>
                               </div>
                             ))}
@@ -851,7 +1032,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                                 onClick={() => setActiveTab('ambassador')}
                                 className="text-xs text-blue-600 hover:underline font-medium"
                               >
-                                Bekijk alle {user.DeliveryProfile.reviews.length} reviews →
+                                View all {user.DeliveryProfile.reviews.length} reviews →
                               </button>
                             )}
                           </div>
@@ -861,17 +1042,17 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div className="bg-white border rounded-xl p-6">
                         <h3 className="font-semibold mb-4 flex items-center gap-2">
                           <Camera className="w-5 h-5 text-blue-600" />
-                          Voertuig Foto's ({user.DeliveryProfile.vehiclePhotos.length})
+                          {t('profilePage.ambassador.vehiclePhotos')} ({user.DeliveryProfile.vehiclePhotos.length})
                         </h3>
                         {user.DeliveryProfile.vehiclePhotos.length === 0 ? (
-                          <p className="text-sm text-gray-500">Nog geen voertuig foto's</p>
+                          <p className="text-sm text-gray-500">{t('profilePage.ambassador.noVehiclePhotos')}</p>
                         ) : (
                           <div className="grid grid-cols-2 gap-2">
                             {user.DeliveryProfile.vehiclePhotos.slice(0, 4).map((photo) => (
                               <div key={photo.id} className="aspect-square rounded-lg overflow-hidden border">
                                 <img
                                   src={photo.fileUrl}
-                                  alt="Voertuig"
+                                  alt="Vehicle"
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -888,18 +1069,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     <div className="flex items-center justify-between">
                       <div>
                         {(() => {
-                          let title = "Mijn Items";
-                          let description = "Beheer je items en producten";
+                          let title = t('profilePage.tabs.myItems');
+                          let description = t('profilePage.tabs.tabDescriptions.manageItems');
                           
                           if (activeTab === 'dishes-chef') {
-                            title = "Mijn Keuken";
-                            description = "Beheer je gerechten en culinaire creaties";
+                            title = t('profilePage.tabs.myKitchen');
+                            description = t('profilePage.tabs.tabDescriptions.kitchen');
                           } else if (activeTab === 'dishes-garden') {
-                            title = "Mijn Tuin";
-                            description = "Beheer je kweken en tuinproducten";
+                            title = t('profilePage.tabs.myGarden');
+                            description = t('profilePage.tabs.tabDescriptions.garden');
                           } else if (activeTab === 'dishes-designer') {
-                            title = "Mijn Atelier";
-                            description = "Beheer je creaties en handgemaakte items";
+                            title = t('profilePage.tabs.myStudio');
+                            description = t('profilePage.tabs.tabDescriptions.studio');
                           }
                           
                           return (
@@ -911,27 +1092,71 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         })()}
                       </div>
                       
-                      {/* Nieuw Product Toevoegen Knop */}
+                      {/* Product op Dorpsplein zetten Knop */}
                       <div className="flex gap-3">
-                        <Link 
-                          href="/sell/new"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span className="hidden sm:inline">Nieuw Product</span>
-                          <span className="sm:hidden">+</span>
-                        </Link>
+                        {(() => {
+                          // Bepaal categorie op basis van activeTab
+                          let category = '';
+                          if (activeTab === 'dishes-chef') {
+                            category = 'CHEFF';
+                          } else if (activeTab === 'dishes-garden') {
+                            category = 'GARDEN';
+                          } else if (activeTab === 'dishes-designer') {
+                            category = 'DESIGNER';
+                          }
+                          
+                          const href = category ? `/sell/new?category=${category}` : '/sell/new';
+                          
+                          return (
+                            <Link 
+                              href={href}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md"
+                            >
+                              <Plus className="w-4 h-4" />
+                              <span className="hidden sm:inline">Add product to Village Square</span>
+                              <span className="sm:hidden">+</span>
+                            </Link>
+                          );
+                        })()}
                       </div>
                     </div>
+                    
+                    {/* Sub-tabs voor Dorpsplein en Inspiratie */}
+                    <div className="flex gap-2 border-b border-gray-200 mb-6">
+                      <button
+                        onClick={() => setContentSubTab('dorpsplein')}
+                        className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                          contentSubTab === 'dorpsplein'
+                            ? 'border-emerald-500 text-emerald-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        {t('profilePage.tabs.subTabs.villageSquare')}
+                      </button>
+                      <button
+                        onClick={() => setContentSubTab('inspiratie')}
+                        className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                          contentSubTab === 'inspiratie'
+                            ? 'border-emerald-500 text-emerald-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        {t('profilePage.tabs.subTabs.inspiration')}
+                      </button>
+                    </div>
+                    
                     <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>
                       <MyDishesManager 
                         onStatsUpdate={fetchStats} 
-                        activeRole={activeTab.replace('dishes-', '')} 
+                        activeRole={activeTab.replace('dishes-', '')}
+                        role={activeTab.replace('dishes-', '')}
+                        isPublic={false}
+                        showOnlyActive={false}
+                        contentSubTab={contentSubTab}
                       />
                     </Suspense>
                   </div>
                 )}
-
 
                 {/* Business Overview tab content */}
                 {activeTab === 'business-overview' && (
@@ -940,9 +1165,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                           <Building className="w-5 h-5 mr-2 text-emerald-600" />
-                          Bedrijfsprofiel
+                          Business Profile
                         </h2>
-                        <p className="text-sm text-gray-500">Beheer je bedrijfsgegevens en branding</p>
+                        <p className="text-sm text-gray-500">Manage your business information and branding</p>
                       </div>
                     </div>
                     
@@ -950,31 +1175,31 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       {/* Bedrijfslogo upload */}
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          🏢 Bedrijfslogo
+                          🏢 Business Logo
                         </h3>
-                        <p className="text-sm text-gray-500 mb-4">Upload je bedrijfslogo voor branding</p>
+                        <p className="text-sm text-gray-500 mb-4">Upload your business logo for branding</p>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-400 transition-colors">
                           <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">Klik om logo te uploaden</p>
+                          <p className="text-sm text-gray-500">Click to upload logo</p>
                         </div>
                       </div>
                       
                       {/* Bedrijfsinfo */}
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          📋 Bedrijfsgegevens
+                          📋 Business Information
                         </h3>
                         <div className="space-y-3">
                           <div>
-                            <label className="text-sm font-medium text-gray-700">Bedrijfsnaam</label>
-                            <p className="text-sm text-gray-500">HomeCheff Bedrijf</p>
+                            <label className="text-sm font-medium text-gray-700">Company Name</label>
+                            <p className="text-sm text-gray-500">HomeCheff Business</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-700">KVK Nummer</label>
+                            <label className="text-sm font-medium text-gray-700">Chamber of Commerce Number</label>
                             <p className="text-sm text-gray-500">12345678</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-700">BTW Nummer</label>
+                            <label className="text-sm font-medium text-gray-700">VAT Number</label>
                             <p className="text-sm text-gray-500">NL123456789B01</p>
                           </div>
                         </div>
@@ -990,43 +1215,43 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                           <Award className="w-5 h-5 mr-2 text-emerald-600" />
-                          Abonnement & Fees
+                          Subscription & Fees
                         </h2>
-                        <p className="text-sm text-gray-500">Beheer je abonnement en bekijk fee structuur</p>
+                        <p className="text-sm text-gray-500">Manage your subscription and view fee structure</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {/* Huidig abonnement */}
                       <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl border border-emerald-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Bedrijf</h3>
-                        <p className="text-2xl font-bold text-emerald-600">€39/maand</p>
-                        <p className="text-sm text-gray-600 mt-2">7% uitbetalingsfee</p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Business</h3>
+                        <p className="text-2xl font-bold text-emerald-600">€39/month</p>
+                        <p className="text-sm text-gray-600 mt-2">7% payout fee</p>
                         <div className="mt-4">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
-                            Actief
+                            Active
                           </span>
                         </div>
                       </div>
                       
                       {/* Fee vergelijking */}
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Fee Vergelijking</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Fee Comparison</h3>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Particulier</span>
+                            <span className="text-sm text-gray-600">Private</span>
                             <span className="text-sm font-medium">12%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-emerald-600">Basic (jouw)</span>
+                            <span className="text-sm text-emerald-600">Basic (yours)</span>
                             <span className="text-sm font-medium text-emerald-600">7%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Pro</span>
+                            <span className="text-sm text-gray-600">{t('profilePage.subscription.pro')}</span>
                             <span className="text-sm font-medium">4%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Premium</span>
+                            <span className="text-sm text-gray-600">{t('profilePage.subscription.premium')}</span>
                             <span className="text-sm font-medium">2%</span>
                           </div>
                         </div>
@@ -1034,10 +1259,13 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       
                       {/* Upgrade optie */}
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Upgrade</h3>
-                        <p className="text-sm text-gray-600 mb-4">Lagere fees voor hogere omzet?</p>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                          Bekijk Pro Plan
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.subscription.upgrade')}</h3>
+                        <p className="text-sm text-gray-600 mb-4">{t('profilePage.subscription.lowerFees')}</p>
+                        <Button
+                          className="w-full bg-primary-brand hover:bg-primary-700 text-white"
+                          onClick={() => router.push('/sell')}
+                        >
+                          {t('profilePage.subscription.viewPlans')}
                         </Button>
                       </div>
                     </div>
@@ -1051,32 +1279,32 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                           <BarChart3 className="w-5 h-5 mr-2 text-emerald-600" />
-                          Bedrijfs Analytics
+                          {t('profilePage.analytics.title')}
                         </h2>
-                        <p className="text-sm text-gray-500">Inzicht in je prestaties en omzet</p>
+                        <p className="text-sm text-gray-500">{t('profilePage.analytics.description')}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Maandomzet</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('profilePage.analytics.monthlyRevenue')}</h3>
                         <p className="text-2xl font-bold text-emerald-600">€2,450</p>
-                        <p className="text-sm text-green-600">+12% vs vorige maand</p>
+                        <p className="text-sm text-green-600">{t('profilePage.analytics.vsLastMonth', { percent: '12' })}</p>
                       </div>
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('profilePage.analytics.orders')}</h3>
                         <p className="text-2xl font-bold text-blue-600">24</p>
-                        <p className="text-sm text-green-600">+8% vs vorige maand</p>
+                        <p className="text-sm text-green-600">{t('profilePage.analytics.vsLastMonth', { percent: '8' })}</p>
                       </div>
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Gem. Rating</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('profilePage.analytics.avgRating')}</h3>
                         <p className="text-2xl font-bold text-yellow-600">4.8</p>
-                        <p className="text-sm text-gray-600">Van 127 reviews</p>
+                        <p className="text-sm text-gray-600">{t('profilePage.analytics.fromReviews', { count: '127' })}</p>
                       </div>
                       <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Fans</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('profilePage.analytics.fans')}</h3>
                         <p className="text-2xl font-bold text-purple-600">156</p>
-                        <p className="text-sm text-green-600">+5 deze week</p>
+                        <p className="text-sm text-green-600">{t('profilePage.analytics.thisWeek', { count: '5' })}</p>
                       </div>
                     </div>
                   </div>
@@ -1087,7 +1315,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Werkruimte</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">{t('profilePage.workspaceTitle')}</h2>
                       </div>
                     </div>
                     
@@ -1097,9 +1325,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                           <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                              👨‍🍳 De Keuken
+                              👨‍🍳 {t('profilePage.tabs.publicTabs.theKitchen')}
                             </h3>
-                            <p className="text-sm text-gray-500">Upload foto's van je keuken en werkplek</p>
+                            <p className="text-sm text-gray-500">{t('profilePage.workspaceDescriptions.kitchen')}</p>
                           </div>
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
@@ -1112,9 +1340,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                           <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                              🌱 De Tuin
+                              🌱 {t('profilePage.tabs.publicTabs.theGarden')}
                             </h3>
-                            <p className="text-sm text-gray-500">Upload foto's van je tuin en kweekruimte</p>
+                            <p className="text-sm text-gray-500">{t('profilePage.workspaceDescriptions.garden')}</p>
                           </div>
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
@@ -1127,9 +1355,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                           <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                              🎨 Het Atelier
+                              🎨 {t('profilePage.tabs.publicTabs.theStudio')}
                             </h3>
-                            <p className="text-sm text-gray-500">Upload foto's van je atelier en creatieve ruimte</p>
+                            <p className="text-sm text-gray-500">{t('profilePage.workspaceDescriptions.studio')}</p>
                           </div>
                           <WorkspacePhotoUpload 
                             maxPhotos={10}
@@ -1142,12 +1370,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 )}
 
                 {/* Fans & Follows Tab */}
+                {activeTab === 'reviews' && (
+                  <div className="space-y-6">
+                    <ItemsWithReviews />
+                  </div>
+                )}
+
                 {activeTab === 'fans' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Fan & Fans</h2>
-                        <p className="text-sm text-gray-500">Beheer je volgers en wie je volgt</p>
+                        <h2 className="text-lg font-semibold text-gray-900">Fans</h2>
+                        <p className="text-sm text-gray-500">Manage your followers and who you follow</p>
                       </div>
                     </div>
                     
@@ -1170,7 +1404,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
                   <Settings className="w-6 h-6 text-primary-brand" />
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Instellingen</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h2>
                 </div>
                 <button
                   onClick={() => setShowSettings(false)}
@@ -1186,9 +1420,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-1 px-4 sm:px-6">
                   {[
-                    { id: 'profile', label: 'Profiel', icon: User },
+                    { id: 'profile', label: 'Profile', icon: User },
                     { id: 'account', label: 'Account', icon: Shield },
-                    { id: 'notifications', label: 'Notificaties', icon: Bell }
+                    { id: 'notifications', label: 'Notifications', icon: Bell }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     return (
@@ -1213,6 +1447,29 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 {renderSettingsContent()}
               </div>
+              
+              {/* Footer with Save Button - Only show when editing profile */}
+              {settingsSection === 'profile' && isProfileEditing && profileSettingsRef.current && (
+                <div className="border-t border-gray-200 bg-white p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row justify-end gap-3">
+                    <button
+                      onClick={() => profileSettingsRef.current?.handleCancel()}
+                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>{t('profileSettings.cancel')}</span>
+                    </button>
+                    <button
+                      onClick={() => profileSettingsRef.current?.handleSave()}
+                      disabled={profileSettingsRef.current?.isLoading}
+                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>{profileSettingsRef.current?.isLoading ? t('profileSettings.saving') : t('profileSettings.save')}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
