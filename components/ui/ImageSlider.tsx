@@ -513,17 +513,40 @@ export default function ImageSlider({
   }, [autoSlideOnScroll, mediaItems.length, startAutoSlide, stopAutoSlide]);
 
   // Auto-play functionality (time-based, regardless of visibility)
+  // But pause when video is playing - let video play to completion
   useEffect(() => {
     if (autoPlay && mediaItems.length > 1) {
-      const interval = setInterval(() => {
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      // Check if current item is a video
+      const currentMedia = mediaItems[currentIndex];
+      const isVideo = currentMedia?.type === 'video';
+      
+      // If current item is a video, don't start interval - wait for video to end
+      if (isVideo) {
+        // Video will trigger next slide via onEnded handler
+        return;
+      }
+
+      // For images, use normal interval
+      intervalRef.current = setInterval(() => {
         setCurrentIndex((prevIndex) => 
           prevIndex === mediaItems.length - 1 ? 0 : prevIndex + 1
         );
       }, autoPlayInterval);
 
-      return () => clearInterval(interval);
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
     }
-  }, [autoPlay, mediaItems.length, autoPlayInterval]);
+  }, [autoPlay, mediaItems.length, autoPlayInterval, currentIndex, mediaItems]);
 
   // Reset to first media item when media array changes
   useEffect(() => {
@@ -531,6 +554,30 @@ export default function ImageSlider({
       setCurrentIndex(0);
     }
   }, [mediaItems.length, currentIndex]);
+
+  // Resume autoPlay interval when navigating to an image (after video ends or manual navigation)
+  useEffect(() => {
+    if (autoPlay && mediaItems.length > 1) {
+      const currentMedia = mediaItems[currentIndex];
+      const isVideo = currentMedia?.type === 'video';
+      
+      // Clear any existing interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // If current item is an image (not a video), start/resume the interval
+      if (!isVideo) {
+        intervalRef.current = setInterval(() => {
+          setCurrentIndex((prevIndex) => 
+            prevIndex === mediaItems.length - 1 ? 0 : prevIndex + 1
+          );
+        }, autoPlayInterval);
+      }
+      // If it's a video, interval will be started when video ends (via onEnded handler)
+    }
+  }, [currentIndex, autoPlay, mediaItems, autoPlayInterval]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -752,6 +799,7 @@ export default function ImageSlider({
               style={{ zIndex: 10, position: 'relative' }}
               onEnded={() => {
                 // After video ends, go to next slide (gallery)
+                // The useEffect hook will automatically resume the interval if next item is an image
                 if (mediaItems.length > 1) {
                   const nextIndex = currentIndex < mediaItems.length - 1 ? currentIndex + 1 : 0;
                   setCurrentIndex(nextIndex);
@@ -957,6 +1005,7 @@ export default function ImageSlider({
                 style={{ zIndex: 10, position: 'relative' }}
                 onEnded={() => {
                   // After video ends, automatically go to next slide (gallery)
+                  // The useEffect hook will automatically resume the interval if next item is an image
                   if (currentIndex < mediaItems.length - 1) {
                     setCurrentIndex(currentIndex + 1);
                   } else {
