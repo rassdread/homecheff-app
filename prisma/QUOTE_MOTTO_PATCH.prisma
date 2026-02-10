@@ -1,0 +1,90 @@
+// Add quote/motto field to User model
+model User {
+  id                                     String                    @id @default(uuid())
+  email                                  String                    @unique
+  createdAt                              DateTime                  @default(now())
+  bio                                    String?
+  quote                                  String?                   // NEW: Personal quote/motto
+  emailVerified                          DateTime?
+  image                                  String?
+  lat                                    Float?
+  lng                                    Float?
+  place                                  String?
+  updatedAt                              DateTime                  @updatedAt
+  role                                   UserRole                  @default(USER)
+  name                                   String?
+  passwordHash                           String?
+  profileImage                           String?
+  username                               String?                   @unique
+  interests                              String[]
+  accountHolderName                      String?
+  bankName                               String?
+  buyerRoles                             String[]                  @default([])
+  displayFullName                        Boolean                   @default(true)
+  gender                                 String?
+  iban                                   String?
+  marketingAccepted                      Boolean                   @default(false)
+  marketingAcceptedAt                    DateTime?
+  privacyPolicyAccepted                  Boolean                   @default(false)
+  privacyPolicyAcceptedAt                DateTime?
+  sellerRoles                            String[]                  @default([])
+  stripeConnectAccountId                 String?
+  stripeConnectOnboardingCompleted       Boolean                   @default(false)
+  taxResponsibilityAccepted              Boolean                   @default(false)
+  taxResponsibilityAcceptedAt            DateTime?
+  termsAccepted                          Boolean                   @default(false)
+  termsAcceptedAt                        DateTime?
+  // Privacy instellingen
+  messagePrivacy                         MessagePrivacy            @default(EVERYONE)
+  fanRequestEnabled                      Boolean                   @default(true)
+  showFansList                           Boolean                   @default(true)
+  showProfileToEveryone                  Boolean                   @default(true)
+  showOnlineStatus                       Boolean                   @default(true)
+  allowProfileViews                       Boolean                   @default(true)
+  showActivityStatus                     Boolean                   @default(true)
+  Account                                Account[]
+  AdminAction                            AdminAction[]
+  AuditLog                               AuditLog[]
+  Business                               Business?
+  ConversationParticipant                ConversationParticipant[]
+  DeviceToken                            DeviceToken[]
+  Dish                                   Dish[]
+  Favorite                               Favorite[]
+  followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
+  followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
+  fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
+  fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
+  Listing                                Listing[]
+  Message                                Message[]
+  Notification                           Notification[]
+  orders                                 Order[]                   @relation("UserOrders")
+  Payout                                 Payout[]
+  productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
+  Report_Report_reporterIdToUser         Report[]                  @relation("Report_reporterIdToUser")
+  Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
+  Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
+  Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
+  reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
+  SellerProfile                          SellerProfile?
+  DeliveryProfile                        DeliveryProfile?
+  deliveryReviewsAsReviewer              DeliveryReview[]             @relation("DeliveryReviewReviewer")
+  Session                                Session[]
+  Transaction                            Transaction[]
+  workspaceContentProps                  WorkspaceContentProp[]
+  workspaceContentComments               WorkspaceContentComment[]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

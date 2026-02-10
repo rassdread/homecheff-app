@@ -6,7 +6,7 @@ import { prisma } from "./prisma";
 
 export async function getCurrentUserWithSeller() {
   const session = await getServerSession(authOptions);
-  const email = session?.user?.email;
+  const email = session?.user?.email || undefined;
   if (!email) return null;
 
   const user = await prisma.user.findUnique({

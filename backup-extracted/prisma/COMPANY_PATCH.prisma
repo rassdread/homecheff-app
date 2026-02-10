@@ -1,0 +1,20 @@
+// --- BEGIN COMPANY PATCH ---
+model Company {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  name        String
+  kvkNumber   String?
+  vatNumber   String?
+  address     String?
+  city        String?
+  country     String?  @default("NL")
+  verified    Boolean  @default(false)
+  verifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Voeg in je User model toe:
+//   company Company?
+// --- END COMPANY PATCH ---

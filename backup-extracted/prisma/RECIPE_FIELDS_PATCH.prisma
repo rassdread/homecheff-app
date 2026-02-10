@@ -1,0 +1,34 @@
+// Add recipe-specific fields to Dish model
+model Dish {
+  id           String        @id @default(uuid())
+  userId       String
+  title        String?
+  description  String?
+  status       DishStatus    @default(PRIVATE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  priceCents   Int?
+  deliveryMode DeliveryMode?
+  lat          Float?
+  lng          Float?
+  place        String?
+  maxStock     Int?
+  stock        Int?          @default(0)
+  category     String?       // "CHEFF", "GROWN", "DESIGNER"
+  subcategory  String?       // Specific subcategory
+  
+  // Recipe-specific fields
+  ingredients  String[]      @default([])
+  instructions String[]      @default([])
+  prepTime     Int?          // in minutes
+  servings     Int?
+  difficulty   String?       // "EASY", "MEDIUM", "HARD"
+  tags         String[]      @default([])
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos       DishPhoto[]
+
+  @@index([userId])
+}
+
+

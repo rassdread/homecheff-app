@@ -1,0 +1,29 @@
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
+import AffiliateDashboardClient from './page-client';
+
+export const dynamic = 'force-dynamic';
+
+export default async function AffiliateDashboardPage() {
+  const session = await auth();
+  
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+    include: {
+      affiliate: true,
+    },
+  });
+
+  // Redirect to signup if no affiliate account
+  if (!user?.affiliate) {
+    redirect('/affiliate');
+  }
+
+  return <AffiliateDashboardClient />;
+}
+

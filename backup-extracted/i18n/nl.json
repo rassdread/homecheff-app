@@ -1,0 +1,104 @@
+{
+  "navigation": {
+    "home": "Home",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "profile": "Profiel",
+    "orders": "Bestellingen",
+    "dashboard": "Dashboard",
+    "cart": "Winkelwagen",
+    "logout": "Uitloggen",
+    "settings": "Instellingen",
+    "help": "Help"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "register": "Registreren",
+    "email": "Email adres",
+    "username": "Gebruikersnaam",
+    "emailOrUsername": "Email of Gebruikersnaam",
+    "password": "Wachtwoord",
+    "rememberMe": "Onthoud mij",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "noAccount": "Nog geen account?",
+    "hasAccount": "Al een account?",
+    "loginMethod": "Inlogmethode",
+    "loginWithEmail": "Inloggen met email",
+    "loginWithUsername": "Inloggen met gebruikersnaam"
+  },
+  "cart": {
+    "title": "Winkelwagen",
+    "empty": "Je winkelwagen staat klaar voor jouw volgende ontdekking",
+    "emptyDescription": "Ontdek wat er nu beschikbaar is in je buurt — van verse oogst tot huisgemaakte gerechten",
+    "continueShopping": "Ontdek meer op het dorpsplein",
+    "checkout": "Naar checkout",
+    "subtotal": "Subtotaal",
+    "stripeFee": "Stripe fee",
+    "total": "Totaal",
+    "quantity": "Aantal",
+    "remove": "Verwijderen",
+    "sellerInfo": "Verkopers informatie",
+    "sellerInfoText": "Verkopers betalen een kleine platform fee bij uitbetaling. Houd hier rekening mee bij het instellen van je verkoopprijzen."
+  },
+  "hero": {
+    "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
+    "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
+    "greeting": "Welkom, {username}! Wat zal het vandaag worden?",
+    "searchPlaceholder": "Zoek naar gerechten, producten of verkopers…",
+    "filters": "Filters",
+    "resetFilters": "Filters resetten",
+    "myProfile": "Mijn profiel"
+  },
+  "categories": {
+    "chef": "Chef",
+    "garden": "Garden", 
+    "designer": "Designer",
+    "all": "Alles"
+  },
+  "messages": {
+    "uploadNoUrl": "🔄 Probeer het opnieuw — soms heeft de upload even tijd nodig",
+    "uploadFailed": "💡 Tip: Check je internetverbinding en probeer het nogmaals",
+    "saved": "💾 Opgeslagen — je kunt het later bewerken",
+    "listingCreated": "✅ Je creatie staat nu op het dorpsplein!",
+    "listingFailed": "🔄 Probeer het opnieuw — soms heeft de upload even tijd nodig"
+  },
+  "buttons": {
+    "addItem": "Deel je creatie",
+    "cancel": "Annuleren",
+    "publish": "Deel met de buurt",
+    "chooseFile": "Kies bestand…",
+    "save": "Opslaan"
+  },
+  "form": {
+    "title": "Titel",
+    "price": "Prijs (€)",
+    "group": "Groep",
+    "photos": "Foto's (max 5)"
+  },
+  "filters": {
+    "radius": "Radius",
+    "km": "km",
+    "searchPlaceholder": "Zoek naar items of verkopers…",
+    "subfilter": "Subfilter",
+    "vertical": {
+      "all": "Alles",
+      "cheff": "Cheff",
+      "garden": "Garden",
+      "designer": "Designer"
+    }
+  },
+  "follow": {
+    "followers": "Fans",
+    "following": "Fan",
+    "follow": "Fan worden",
+    "unfollow": "Fan",
+    "followButton": "Fan worden",
+    "followingButton": "Fan"
+  },
+  "props": {
+    "giveProps": "Props geven",
+    "propsGiven": "Props!",
+    "propsButton": "Props",
+    "propsWithdrawn": "Props ingetrokken"
+  }
+}

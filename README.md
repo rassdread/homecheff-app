@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Platform Setup
+- **Mac users:** See [Mac Setup Guide](docs/MAC_SETUP.md) for detailed instructions
+- **Windows users:** See [Android App Setup](docs/ANDROID_APP_BENODIGDHEDEN.md) for Windows-specific instructions
+
+### Quick Start
+
 First, run the development server:
 
 ```bash
@@ -15,6 +21,8 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+**Production URL**: [https://homecheff.eu](https://homecheff.eu)
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

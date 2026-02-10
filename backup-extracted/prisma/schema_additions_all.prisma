@@ -1,0 +1,112 @@
+// --- PLAK DIT ONDERAAN JE prisma/schema.prisma ---
+// 1) User: voeg gebruikersnaam toe
+//    In je bestaande User-model, voeg dit veld toe:
+//      username String? @unique
+
+// 2) Orders, OrderItems, Follow (optioneel Favorite)
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total     Int?
+  status    String?
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id])
+
+  title     String?
+  price     Int?
+  quantity  Int?     @default(1)
+  image     String?
+
+  @@index([orderId])
+  @@index([listingId])
+  @@map("order_items")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  sellerId    String
+  seller      User     @relation("UserSellers", fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, sellerId], name: "follow_unique")
+  @@index([followerId])
+  @@index([sellerId])
+  @@map("follows")
+}
+
+// Laat dit COMMENTED als je al een Favorite-model hebt om conflicts te voorkomen
+/*
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId], name: "user_listing_unique")
+  @@index([userId])
+  @@index([listingId])
+  @@map("favorites")
+}
+*/
+
+// 3) Dishes en foto's
+enum DishStatus {
+  PRIVATE
+  PUBLISHED
+}
+
+enum DeliveryMode {
+  PICKUP
+  DELIVERY
+  BOTH
+}
+
+model Dish {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  description String?
+  status      DishStatus   @default(PRIVATE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  photos      DishPhoto[]
+
+  // publicatievelden:
+  priceCents   Int?
+  deliveryMode DeliveryMode?
+  lat          Float?
+  lng          Float?
+  place        String?
+
+  @@index([userId])
+  @@map("dishes")
+}
+
+model DishPhoto {
+  id      String @id @default(uuid())
+  dishId  String
+  dish    Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  url     String
+  idx     Int    @default(0)
+
+  @@index([dishId])
+  @@map("dish_photos")
+}

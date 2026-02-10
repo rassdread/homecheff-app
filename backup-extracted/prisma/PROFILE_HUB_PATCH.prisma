@@ -1,0 +1,68 @@
+// --- BEGIN PROFILE HUB PRISMA PATCH ---
+// Plak dit blok in je prisma/schema.prisma ONDER je bestaande modellen/enums.
+// Draai daarna: npx prisma migrate dev -n "profile_hub_models" && npx prisma generate
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id         String       @id @default(uuid())
+  user       User         @relation(fields: [userId], references: [id])
+  userId     String
+  totalCents Int
+  currency   String       @default("EUR")
+  status     OrderStatus  @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  items      OrderItem[]
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  title      String
+  priceCents Int
+  quantity   Int       @default(1)
+
+  @@index([orderId])
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  follower   User     @relation("Follows", fields: [followerId], references: [id])
+  followerId String
+  seller     User     @relation("Followers", fields: [sellerId], references: [id])
+  sellerId   String
+  createdAt  DateTime @default(now())
+
+  @@unique([followerId, sellerId])
+}
+
+// Relaties toevoegen aan User (zet deze regels IN je User model):
+//   orders     Order[]
+//   favorites  Favorite[]
+//   following  Follow[]       @relation("Follows")
+//   followers  Follow[]       @relation("Followers")
+// --- END PROFILE HUB PRISMA PATCH ---

@@ -1,0 +1,33 @@
+{
+  "name": "HomeCheff",
+  "short_name": "HomeCheff",
+  "description": "Thuisgemaakt. Thuisgebracht.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["food", "shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Berichten",
+      "short_name": "Berichten",
+      "description": "Bekijk je berichten",
+      "url": "/messages",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
+}
+
+
+
+

@@ -1,0 +1,45 @@
+// Add encryption fields to Message model
+model Message {
+  id               String        @id @default(uuid())
+  conversationId   String
+  senderId         String
+  text             String?       // Keep original for fallback
+  encryptedText    String?       // New encrypted field
+  encryptionKey    String?       // Key identifier (not the actual key)
+  isEncrypted      Boolean       @default(false)
+  messageType      MessageType   @default(TEXT)
+  attachmentUrl    String?
+  attachmentName   String?
+  attachmentType   String?
+  readAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  conversation     Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User             User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// Add encryption keys table
+model EncryptionKey {
+  id          String   @id @default(uuid())
+  userId      String
+  keyHash     String   // Hashed version of the key
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+}
+
+// Add to User model
+model User {
+  // ... existing fields ...
+  encryptionKeys    EncryptionKey[]
+  hasEncryptionKey  Boolean       @default(false)
+  encryptionEnabled Boolean       @default(false)
+}

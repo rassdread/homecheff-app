@@ -1,115 +1,402 @@
-// HomeCheff – volledige MVP+ datalaag
-// DB: PostgreSQL
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-/* =========================
-   ENUMS
-   ========================= */
-
-enum UserRole {
-  USER
-  ADMIN
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-enum ListingCategory {
-  HOMECHEFF   // huisgemaakte maaltijden
-  HOMEGROWN   // huis-gekweekte/boerderij producten
-  OTHER
+model User {
+  id                                     String                    @id @default(uuid())
+  email                                  String                    @unique
+  createdAt                              DateTime                  @default(now())
+  bio                                    String?
+  emailVerified                          DateTime?
+  image                                  String?
+  lat                                    Float?
+  lng                                    Float?
+  place                                  String?
+  updatedAt                              DateTime                  @updatedAt
+  role                                   UserRole                  @default(USER)
+  name                                   String?
+  passwordHash                           String?
+  profileImage                           String?
+  username                               String?                   @unique
+  interests                              String[]
+  accountHolderName                      String?
+  bankName                               String?
+  buyerRoles                             String[]                  @default([])
+  displayFullName                        Boolean                   @default(true)
+  gender                                 String?
+  iban                                   String?
+  marketingAccepted                      Boolean                   @default(false)
+  marketingAcceptedAt                    DateTime?
+  privacyPolicyAccepted                  Boolean                   @default(false)
+  privacyPolicyAcceptedAt                DateTime?
+  sellerRoles                            String[]                  @default([])
+  stripeConnectAccountId                 String?
+  stripeConnectOnboardingCompleted       Boolean                   @default(false)
+  taxResponsibilityAccepted              Boolean                   @default(false)
+  taxResponsibilityAcceptedAt            DateTime?
+  termsAccepted                          Boolean                   @default(false)
+  termsAcceptedAt                        DateTime?
+  allowProfileViews                      Boolean                   @default(true)
+  fanRequestEnabled                      Boolean                   @default(true)
+  messagePrivacy                         MessagePrivacy            @default(EVERYONE)
+  showActivityStatus                     Boolean                   @default(true)
+  showFansList                           Boolean                   @default(true)
+  showOnlineStatus                       Boolean                   @default(true)
+  showProfileToEveryone                  Boolean                   @default(true)
+  quote                                  String?
+  displayNameOption                      String                    @default("full")
+  encryptionEnabled                      Boolean                   @default(false)
+  hasEncryptionKey                       Boolean                   @default(false)
+  address                                String?
+  city                                   String?
+  postalCode                             String?
+  country                                String?                   @default("NL")
+  state                                  String?
+  timezone                               String?                   @default("Europe/Amsterdam")
+  messageGuidelinesAccepted              Boolean                   @default(false)
+  messageGuidelinesAcceptedAt            DateTime?
+  socialOnboardingCompleted              Boolean                   @default(true)
+  phoneNumber                            String?
+  downloadPermission                     DownloadPermission        @default(EVERYONE)
+  printPermission                        PrintPermission           @default(EVERYONE)
+  lastLocationUpdate                     DateTime?
+  profileViews                           Int                       @default(0)
+  emailVerificationExpires               DateTime?
+  emailVerificationToken                 String?
+  adminRoles                             String[]                  @default([])
+  emailVerificationCode                  String?
+  preferredLanguage                      String?                   @default("nl") // 'nl' or 'en'
+  dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
+  Account                                Account[]
+  AdminAction                            AdminAction[]
+  adminPermissions                       AdminPermissions?
+  adminPreferences                       AdminPreferences?
+  AuditLog                               AuditLog[]
+  Business                               Business?
+  ConversationParticipant                ConversationParticipant[]
+  DeliveryProfile                        DeliveryProfile?
+  deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
+  DeviceToken                            DeviceToken[]
+  Dish                                   Dish[]
+  dynamicSeller                          DynamicSeller?
+  encryptionKeys                         EncryptionKey[]
+  fanRequestsAsRequester                 FanRequest[]              @relation("FanRequestRequester")
+  fanRequestsAsTarget                    FanRequest[]              @relation("FanRequestTarget")
+  Favorite                               Favorite[]
+  followsAsFollower                      Follow[]                  @relation("FollowAsFollower")
+  followsAsSeller                        Follow[]                  @relation("FollowAsSeller")
+  Listing                                Listing[]
+  Message                                Message[]
+  Notification                           Notification[]
+  notificationPreferences                NotificationPreferences?
+  orders                                 Order[]                   @relation("UserOrders")
+  Payout                                 Payout[]
+  paymentEscrows                         PaymentEscrow[]           @relation("PaymentEscrowSeller")
+  productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
+  pushTokens                             PushToken[]
+  Report_Report_reporterIdToUser         Report[]                  @relation("Report_reporterIdToUser")
+  Report_Report_targetUserIdToUser       Report[]                  @relation("Report_targetUserIdToUser")
+  Reservation_Reservation_buyerIdToUser  Reservation[]             @relation("Reservation_buyerIdToUser")
+  Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
+  reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
+  SellerProfile                          SellerProfile?
+  Session                                Session[]
+  Transaction                            Transaction[]
+  workspaceContentComments               WorkspaceContentComment[]
+  workspaceContentProps                  WorkspaceContentProp[]
+  dishReviewsAsReviewer                  DishReview[]              @relation("DishReviewReviewer")
+  affiliate                              Affiliate?
+  attributions                           Attribution[]
+
+  @@index([username])
+  @@index([name])
+  @@index([role])
+  @@index([createdAt])
+  @@index([city])
+  @@index([country])
 }
 
-enum ListingStatus {
-  DRAFT
+model Business {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  name            String
+  kvkNumber       String?
+  vatNumber       String?
+  address         String?
+  city            String?
+  country         String?  @default("NL")
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  workplacePhotos String[]
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================
+// AFFILIATE SYSTEM MODELS
+// ============================================
+
+model Affiliate {
+  id                                String               @id @default(uuid())
+  userId                            String               @unique
+  parentAffiliateId                 String?
+  status                            AffiliateStatus      @default(ACTIVE)
+  stripeConnectAccountId            String?
+  stripeConnectOnboardingCompleted  Boolean              @default(false)
+  // Custom commission percentages (optional, only for sub-affiliates)
+  // If null, uses default percentages from config
+  customUserCommissionPct           Float? // Custom % for user transactions (0-1, e.g. 0.20 = 20%)
+  customBusinessCommissionPct       Float? // Custom % for business subscriptions (0-1, e.g. 0.40 = 40%)
+  customParentUserCommissionPct     Float? // Custom % for parent on user transactions (0-1, e.g. 0.05 = 5%)
+  customParentBusinessCommissionPct Float? // Custom % for parent on business subscriptions (0-1, e.g. 0.10 = 10%)
+  createdAt                         DateTime             @default(now())
+  updatedAt                         DateTime             @updatedAt
+  user                              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentAffiliate                   Affiliate?           @relation("AffiliateHierarchy", fields: [parentAffiliateId], references: [id])
+  childAffiliates                   Affiliate[]          @relation("AffiliateHierarchy")
+  referralLinks                     ReferralLink[]
+  attributions                      Attribution[]
+  promoCodes                        PromoCode[]
+  commissionLedgers                 CommissionLedger[]
+  payouts                           AffiliatePayout[]
+  subAffiliateInvites               SubAffiliateInvite[] @relation("SubAffiliateInvites")
+
+  @@index([userId])
+  @@index([parentAffiliateId])
+  @@index([status])
+}
+
+model ReferralLink {
+  id          String    @id @default(uuid())
+  affiliateId String
+  code        String    @unique
+  createdAt   DateTime  @default(now())
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@index([code])
+}
+
+enum AttributionType {
+  USER_SIGNUP
+  BUSINESS_SIGNUP
+}
+
+enum AttributionSource {
+  REF_LINK
+  PROMO_CODE
+  MANUAL
+}
+
+model Attribution {
+  id                    String                 @id @default(uuid())
+  affiliateId           String
+  userId                String
+  type                  AttributionType
+  startsAt              DateTime
+  endsAt                DateTime
+  source                AttributionSource
+  createdAt             DateTime               @default(now())
+  affiliate             Affiliate              @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessSubscriptions BusinessSubscription[]
+
+  @@index([affiliateId])
+  @@index([userId])
+  @@index([startsAt, endsAt])
+  @@index([type])
+}
+
+model PromoCode {
+  id                    String                 @id @default(uuid())
+  affiliateId           String
+  code                  String                 @unique
+  appliesTo             String                 @default("SUBSCRIPTION_ONLY")
+  discountSharePct      Int                    @default(0) // 0-100, percentage of L1 share
+  startsAt              DateTime
+  endsAt                DateTime?
+  maxRedemptions        Int?
+  redemptionCount       Int                    @default(0)
+  status                PromoCodeStatus        @default(ACTIVE)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  affiliate             Affiliate              @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  businessSubscriptions BusinessSubscription[]
+
+  @@index([affiliateId])
+  @@index([code])
+  @@index([status])
+  @@index([startsAt, endsAt])
+}
+
+enum PromoCodeStatus {
   ACTIVE
-  PAUSED
-  REMOVED      // door eigenaar
-  MODERATED    // door admin
+  DISABLED
 }
 
-enum ReservationStatus {
+model BusinessSubscription {
+  id                   String             @id @default(uuid())
+  businessUserId       String             @unique
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  planId               String
+  priceCents           Int
+  currency             String             @default("eur")
+  status               String
+  promoCodeId          String?
+  attributionId        String?
+  startsAt             DateTime
+  endsAt               DateTime // Revenue share window (startsAt + 365d)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  promoCode            PromoCode?         @relation(fields: [promoCodeId], references: [id])
+  attribution          Attribution?       @relation(fields: [attributionId], references: [id])
+  commissionLedgers    CommissionLedger[]
+
+  @@index([businessUserId])
+  @@index([stripeSubscriptionId])
+  @@index([startsAt, endsAt])
+  @@index([attributionId])
+  @@index([promoCodeId])
+}
+
+enum CommissionLedgerEventType {
+  INVOICE_PAID
+  ORDER_PAID
+  REFUND
+  CHARGEBACK
+}
+
+enum CommissionLedgerStatus {
   PENDING
-  CONFIRMED
-  CANCELLED
-  REJECTED
-  COMPLETED
+  AVAILABLE
+  PAID
+  REVERSED
 }
 
-enum ReportStatus {
-  OPEN
-  UNDER_REVIEW
-  RESOLVED
-  DISMISSED
+model CommissionLedger {
+  id                     String                    @id @default(uuid())
+  eventId                String                    @unique // Stripe invoice id or order id
+  eventType              CommissionLedgerEventType
+  affiliateId            String
+  amountCents            Int // Can be negative for refunds
+  currency               String                    @default("eur")
+  status                 CommissionLedgerStatus    @default(PENDING)
+  availableAt            DateTime? // When commission becomes available
+  meta                   Json? // invoiceId, subscriptionId, buyerId, etc.
+  businessSubscriptionId String?
+  createdAt              DateTime                  @default(now())
+  affiliate              Affiliate                 @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  businessSubscription   BusinessSubscription?     @relation(fields: [businessSubscriptionId], references: [id])
+
+  @@index([affiliateId])
+  @@index([eventId])
+  @@index([status])
+  @@index([availableAt])
+  @@index([eventType])
 }
 
-enum NotificationType {
-  NEW_LISTING_NEARBY
-  RESERVATION_UPDATE
-  MESSAGE_RECEIVED
-  ADMIN_NOTICE
-}
-
-enum TransactionStatus {
+enum AffiliatePayoutStatus {
   CREATED
-  AUTHORIZED
-  CAPTURED
-  CANCELLED
-  REFUNDED
+  SENT
   FAILED
 }
 
-/* =========================
-   AUTH (compatible met NextAuth)
-   ========================= */
+model AffiliatePayout {
+  id               String                @id @default(uuid())
+  affiliateId      String
+  amountCents      Int
+  currency         String                @default("eur")
+  status           AffiliatePayoutStatus @default(CREATED)
+  stripeTransferId String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  affiliate        Affiliate             @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
 
-model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
+  @@index([affiliateId])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+}
 
-  role          UserRole   @default(USER)
-  // Basisprofiel/locatie
-  bio           String?
-  place         String?    // vrije tekst (“Rotterdam, NL”)
-  lat           Float?
-  lng           Float?
+enum AffiliateStatus {
+  ACTIVE
+  SUSPENDED
+}
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+model SubAffiliateInvite {
+  id                String    @id @default(uuid())
+  parentAffiliateId String
+  email             String
+  name              String?
+  inviteToken       String    @unique
+  status            String    @default("PENDING") // PENDING, ACCEPTED, EXPIRED
+  expiresAt         DateTime
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  parentAffiliate   Affiliate @relation("SubAffiliateInvites", fields: [parentAffiliateId], references: [id], onDelete: Cascade)
 
-  accounts      Account[]
-  sessions      Session[]
+  @@index([parentAffiliateId])
+  @@index([inviteToken])
+  @@index([email])
+  @@index([status])
+}
 
-  // App-relaties
-  listings      Listing[]
-  reservations  Reservation[]   @relation("UserReservationsBuyer")
-  sales         Reservation[]   @relation("UserReservationsSeller")
-  conversations ConversationParticipant[]
-  messages      Message[]       @relation("UserMessages")
-  reviewsGiven  Review[]        @relation("UserReviewsGiven")
-  reviewsRecv   Review[]        @relation("UserReviewsRecv")
-  favorites     Favorite[]
-  notifications Notification[]
-  deviceTokens  DeviceToken[]
-  reports       Report[]        @relation("UserReportsReporter")
-  reportedOn    Report[]        @relation("UserReportsTarget")
-  adminActions  AdminAction[]
-  auditLogs     AuditLog[]
-  transactionsSold Transaction[] @relation("UserTransactionsSeller")
-  payoutsReceived Payout[] @relation("UserPayoutsReceived")
-  sellerProfile SellerProfile?
+model Product {
+  id                String             @id @default(uuid())
+  sellerId          String
+  category          ProductCategory
+  title             String
+  description       String
+  priceCents        Int
+  unit              Unit
+  delivery          DeliveryMode
+  createdAt         DateTime           @default(now())
+  isActive          Boolean            @default(true)
+  displayNameType   String             @default("fullname")
+  maxStock          Int?
+  stock             Int                @default(0)
+  availabilityDate  DateTime?
+  isFutureProduct   Boolean            @default(false)
+  subcategory       String?
+  pickupAddress     String?
+  pickupLat         Float?
+  pickupLng         Float?
+  sellerCanDeliver  Boolean            @default(false)
+  deliveryRadiusKm  Float?
+  tags              String[]           @default([])
+  conversations     Conversation[]
+  deliveryOrders    DeliveryOrder[]
+  favorites         Favorite[]
+  Image             Image[]
+  Video             ProductVideo?
+  orderItems        OrderItem[]
+  seller            SellerProfile      @relation("SellerProducts", fields: [sellerId], references: [id])
+  reviews           ProductReview[]
+  stockReservations StockReservation[] @relation("ProductStockReservations")
+
+  @@index([category])
+  @@index([sellerId])
+  @@index([availabilityDate, isFutureProduct])
+  @@index([isActive, createdAt(sort: Desc)])
+  @@index([category, isActive])
+  @@index([subcategory])
+  @@index([delivery])
+  @@index([priceCents])
+  @@index([category], map: "idx_product_category")
+  @@index([sellerId], map: "idx_product_seller")
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id
   userId            String
   type              String
   provider          String
@@ -121,19 +408,440 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
+model AdminAction {
+  id        String   @id
+  adminId   String
+  reportId  String?
+  action    String
+  notes     String?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  Report    Report?  @relation(fields: [reportId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id
+  userId    String?
+  listingId String?
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+  Listing   Listing? @relation(fields: [listingId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+}
+
+model Conversation {
+  id                      String                    @id
+  createdAt               DateTime                  @default(now())
+  reservationId           String?                   @unique
+  isActive                Boolean                   @default(true)
+  lastMessageAt           DateTime?
+  productId               String?
+  title                   String?
+  updatedAt               DateTime                  @updatedAt
+  orderId                 String?
+  Order                   Order?                    @relation(fields: [orderId], references: [id])
+  Product                 Product?                  @relation(fields: [productId], references: [id])
+  Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
+  ConversationKey         ConversationKey?
+  ConversationParticipant ConversationParticipant[]
+  Message                 Message[]
+
+  @@index([productId])
+  @@index([orderId])
+  @@index([lastMessageAt])
+  @@index([lastMessageAt], map: "idx_conversation_last_message")
+}
+
+model ConversationParticipant {
+  id             String       @id
+  conversationId String
+  userId         String
+  joinedAt       DateTime     @default(now())
+  lastSeen       DateTime?
+  isTyping       Boolean      @default(false)
+  lastTypingAt   DateTime?
+  isHidden       Boolean      @default(false)
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([userId], map: "idx_conversation_participant_user")
+  @@index([lastSeen])
+  @@index([isHidden])
+  @@index([isHidden], map: "idx_conversation_participant_hidden")
+}
+
+model ConversationKey {
+  id             String       @id @default(uuid())
+  conversationId String       @unique
+  encryptionKey  String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id              String    @id
+  code            String    @unique
+  description     String?
+  discountCents   Int?
+  discountPercent Int?
+  validFrom       DateTime?
+  validUntil      DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+}
+
+model DeviceToken {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  platform  String?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Favorite {
+  userId    String
+  listingId String?
+  createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  productId String?
+  dishId    String?
+  Listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  Product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  Dish      Dish?    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@unique([userId, productId])
+  @@unique([userId, dishId])
+  @@index([listingId])
+  @@index([productId])
+  @@index([dishId])
+  @@index([productId], map: "idx_favorite_product")
+}
+
+model Image {
+  id        String  @id
+  fileUrl   String
+  sortOrder Int
+  productId String
+  Product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId, sortOrder])
+}
+
+model Listing {
+  id               String          @id
+  ownerId          String
+  title            String
+  description      String
+  priceCents       Int
+  category         ListingCategory
+  status           ListingStatus   @default(DRAFT)
+  place            String?
+  lat              Float?
+  lng              Float?
+  isPublic         Boolean         @default(true)
+  viewCount        Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime
+  availabilityDate DateTime?
+  isFutureProduct  Boolean         @default(false)
+  AuditLog         AuditLog[]
+  Favorite         Favorite[]
+  User             User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ListingMedia     ListingMedia[]
+  ListingTag       ListingTag[]
+  Report           Report[]
+  Reservation      Reservation[]
+
+  @@index([lat, lng])
+  @@index([status, category, createdAt])
+  @@index([availabilityDate, isFutureProduct])
+}
+
+model ListingMedia {
+  id        String   @id
+  listingId String
+  url       String
+  width     Int?
+  height    Int?
+  alt       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  Listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, order])
+}
+
+model ListingTag {
+  listingId String
+  tagId     String
+  Listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  Tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([listingId, tagId])
+  @@index([tagId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  text           String?
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+  attachmentName String?
+  attachmentType String?
+  attachmentUrl  String?
+  deletedAt      DateTime?
+  editedAt       DateTime?
+  messageType    MessageType  @default(TEXT)
+  orderNumber    String?
+  encryptedText  String?
+  encryptionKey  String?
+  isEncrypted    Boolean      @default(false)
+  deliveredAt    DateTime?
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@index([orderNumber])
+  @@index([isEncrypted])
+  @@index([readAt])
+  @@index([deliveredAt])
+  @@index([deletedAt])
+  @@index([senderId], map: "idx_message_sender")
+}
+
+model Notification {
+  id              String           @id
+  userId          String
+  type            NotificationType
+  payload         Json
+  readAt          DateTime?
+  createdAt       DateTime         @default(now())
+  orderId         String?
+  deliveryOrderId String?
+  User            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([deliveryOrderId])
+}
+
+model PaymentEscrow {
+  id            String    @id @default(uuid())
+  orderId       String
+  sellerId      String
+  amountCents   Int // Amount held in escrow
+  payoutTrigger String // 'SHIPPED' or 'DELIVERED'
+  currentStatus String    @default("held") // held, payout_scheduled, paid_out, refunded
+  createdAt     DateTime  @default(now())
+  paidOutAt     DateTime?
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  seller        User      @relation("PaymentEscrowSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([sellerId])
+  @@index([currentStatus])
+}
+
+model ShippingLabel {
+  id                String    @id @default(uuid())
+  orderId           String
+  ectaroShipLabelId String // EctaroShip label ID
+  pdfUrl            String // URL to label PDF
+  trackingNumber    String
+  carrier           String // PostNL, DHL, etc.
+  status            String    @default("pending") // pending, generated, printed, shipped
+  priceCents        Int // Label cost
+  createdAt         DateTime  @default(now())
+  printedAt         DateTime?
+  order             Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([ectaroShipLabelId])
+  @@index([trackingNumber])
+}
+
+model Payout {
+  id            String      @id
+  transactionId String
+  amountCents   Int
+  toUserId      String
+  createdAt     DateTime    @default(now())
+  providerRef   String?
+  User          User        @relation(fields: [toUserId], references: [id], onDelete: Cascade)
+  Transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+}
+
+model Refund {
+  id            String      @id
+  transactionId String
+  amountCents   Int
+  createdAt     DateTime    @default(now())
+  providerRef   String?
+  Transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id                             String        @id
+  listingId                      String?
+  reporterId                     String
+  targetUserId                   String?
+  reason                         String
+  status                         ReportStatus  @default(OPEN)
+  createdAt                      DateTime      @default(now())
+  resolvedAt                     DateTime?
+  AdminAction                    AdminAction[]
+  Listing                        Listing?      @relation(fields: [listingId], references: [id])
+  User_Report_reporterIdToUser   User          @relation("Report_reporterIdToUser", fields: [reporterId], references: [id], onDelete: Cascade)
+  User_Report_targetUserIdToUser User?         @relation("Report_targetUserIdToUser", fields: [targetUserId], references: [id])
+}
+
+model Reservation {
+  id                              String            @id
+  listingId                       String
+  buyerId                         String
+  sellerId                        String
+  status                          ReservationStatus @default(PENDING)
+  message                         String?
+  quantity                        Int               @default(1)
+  createdAt                       DateTime          @default(now())
+  updatedAt                       DateTime
+  Conversation                    Conversation?
+  User_Reservation_buyerIdToUser  User              @relation("Reservation_buyerIdToUser", fields: [buyerId], references: [id], onDelete: Cascade)
+  Listing                         Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  User_Reservation_sellerIdToUser User              @relation("Reservation_sellerIdToUser", fields: [sellerId], references: [id], onDelete: Cascade)
+  Transaction                     Transaction?
+
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+}
+
+model ProductReview {
+  id                 String           @id @default(uuid())
+  productId          String
+  buyerId            String
+  orderId            String?
+  rating             Int
+  title              String?
+  comment            String?
+  isVerified         Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  orderItemId        String?          @unique
+  reviewSubmittedAt  DateTime?
+  reviewToken        String?          @unique
+  reviewTokenExpires DateTime?
+  buyer              User             @relation("ProductReviewBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  order              Order?           @relation(fields: [orderId], references: [id])
+  orderItem          OrderItem?       @relation("OrderItemReview", fields: [orderItemId], references: [id])
+  product            Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images             ReviewImage[]
+  responses          ReviewResponse[]
+
+  @@unique([productId, buyerId])
+  @@index([productId])
+  @@index([buyerId])
+  @@index([rating])
+  @@index([orderId])
+  @@index([orderItemId])
+  @@index([reviewToken])
+  @@index([buyerId], map: "idx_review_buyer")
+  @@index([productId], map: "idx_review_product")
+}
+
+model SellerProfile {
+  id                     String             @id
+  userId                 String             @unique
+  displayName            String?
+  bio                    String?
+  lat                    Float?
+  lng                    Float?
+  btw                    String?
+  companyName            String?
+  kvk                    String?
+  subscriptionId         String?
+  subscriptionValidUntil DateTime?
+  createdAt              DateTime           @default(now())
+  deliveryMode           String             @default("FIXED")
+  deliveryRadius         Float              @default(5.0)
+  deliveryRegions        String[]           @default([])
+  updatedAt              DateTime           @updatedAt
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  products               Product[]          @relation("SellerProducts")
+  Subscription           Subscription?      @relation(fields: [subscriptionId], references: [id])
+  User                   User               @relation(fields: [userId], references: [id])
+  workplacePhotos        WorkplacePhoto[]
+  workspaceContent       WorkspaceContent[]
+
+  @@index([userId])
+}
+
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Subscription {
+  id            String          @id
+  name          String
+  priceCents    Int
+  feeBps        Int
+  durationDays  Int
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  SellerProfile SellerProfile[]
+}
+
+model Tag {
+  id         String       @id
+  slug       String       @unique
+  label      String
+  ListingTag ListingTag[]
+}
+
+model Transaction {
+  id             String            @id
+  reservationId  String            @unique
+  buyerId        String
+  sellerId       String
+  amountCents    Int
+  platformFeeBps Int               @default(0)
+  status         TransactionStatus @default(CREATED)
+  provider       String?
+  providerRef    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime
+  Payout         Payout[]
+  Refund         Refund[]
+  Reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  User           User              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
 }
 
 model VerificationToken {
@@ -144,315 +852,901 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-/* =========================
-   LISTINGS & GERELATEERDE TABELLEN
-   ========================= */
-
-model Listing {
-  id            String          @id @default(cuid())
-  ownerId       String
-  title         String
-  description   String
-  priceCents    Int             // integer in centen
-  category      ListingCategory
-  status        ListingStatus   @default(DRAFT)
-
-  // locatie
-  place         String?
-  lat           Float?
-  lng           Float?
-
-  // zichtbaarheid & meta
-  isPublic      Boolean         @default(true)
-  viewCount     Int             @default(0)
-
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-
-  owner         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  media         ListingMedia[]
-  tags          ListingTag[]
-  reservations  Reservation[]
-  favorites     Favorite[]
-  reports       Report[]        @relation("ListingReports")
-  reviews       Review[]
-  auditLogs     AuditLog[]
-
-  @@index([status, category, createdAt])
-  @@index([lat, lng])
+model Order {
+  id                     String           @id @default(uuid())
+  userId                 String
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  orderNumber            String?
+  status                 OrderStatus      @default(PENDING)
+  totalAmount            Int
+  deliveryAddress        String?
+  deliveryDate           DateTime?
+  deliveryMode           DeliveryMode     @default(PICKUP)
+  notes                  String?
+  pickupAddress          String?
+  pickupDate             DateTime?
+  platformFeeCollected   Boolean          @default(false)
+  stripeSessionId        String?
+  // Shipping fields (EctaroShip)
+  shippingCostCents      Int? // What customer paid for shipping
+  shippingLabelCostCents Int? // What EctaroShip charges for label
+  shippingLabelId        String? // EctaroShip label ID
+  shippingTrackingNumber String? // Tracking number
+  shippingCarrier        String? // PostNL, DHL, DPD, etc.
+  shippingMethod         String? // Standard, Express, etc.
+  shippingStatus         String? // label_created, shipped, in_transit, delivered, etc.
+  shippedAt              DateTime? // When package was shipped
+  deliveredAt            DateTime? // When package was delivered
+  // Escrow fields
+  paymentHeld            Boolean          @default(false) // Is money in escrow?
+  payoutScheduled        Boolean          @default(false) // Is payout scheduled?
+  payoutTrigger          String? // 'SHIPPED' or 'DELIVERED'
+  conversations          Conversation[]
+  deliveryOrder          DeliveryOrder?
+  deliveryReviews        DeliveryReview[]
+  User                   User             @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items                  OrderItem[]
+  reviews                ProductReview[]
+  dishReviews            DishReview[]     @relation("DishReviewOrder")
+  paymentEscrow          PaymentEscrow[]
+  shippingLabels         ShippingLabel[]
 }
 
-model ListingMedia {
-  id        String   @id @default(cuid())
-  listingId String
+model StockReservation {
+  id              String                 @id @default(uuid())
+  productId       String
+  stripeSessionId String                 @unique
+  quantity        Int
+  expiresAt       DateTime
+  status          StockReservationStatus @default(PENDING)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  product         Product                @relation("ProductStockReservations", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, status, expiresAt])
+  @@index([stripeSessionId])
+  @@index([expiresAt])
+}
+
+model OrderItem {
+  id         String         @id @default(uuid())
+  orderId    String
+  productId  String
+  quantity   Int            @default(1)
+  priceCents Int
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  Order      Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  review     ProductReview? @relation("OrderItemReview")
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  sellerId   String
+  createdAt  DateTime @default(now())
+  User       User     @relation("FollowAsFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  Seller     User     @relation("FollowAsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, sellerId])
+  @@index([sellerId])
+  @@index([followerId])
+}
+
+model FanRequest {
+  id          String           @id @default(uuid())
+  requesterId String
+  targetId    String
+  status      FanRequestStatus @default(PENDING)
+  message     String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  requester   User             @relation("FanRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target      User             @relation("FanRequestTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, targetId])
+  @@index([targetId])
+  @@index([status])
+}
+
+model Dish {
+  id                 String              @id @default(uuid())
+  userId             String
+  title              String?
+  description        String?
+  status             DishStatus          @default(PRIVATE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  priceCents         Int?
+  deliveryMode       DeliveryMode?
+  lat                Float?
+  lng                Float?
+  place              String?
+  maxStock           Int?
+  stock              Int?                @default(0)
+  category           String?
+  subcategory        String?
+  difficulty         String?
+  ingredients        String[]            @default([])
+  instructions       String[]            @default([])
+  prepTime           Int?
+  servings           Int?
+  tags               String[]            @default([])
+  growthDuration     Int?
+  harvestDate        String?
+  location           String?
+  notes              String?
+  plantDate          String?
+  plantDistance      String?
+  plantType          String?
+  soilType           String?
+  sunlight           String?
+  waterNeeds         String?
+  dimensions         String?
+  materials          String[]            @default([])
+  downloadPermission DownloadPermission  @default(EVERYONE)
+  printPermission    PrintPermission     @default(EVERYONE)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos             DishPhoto[]
+  videos             DishVideo[]
+  growthPhotos       GardenGrowthPhoto[]
+  stepPhotos         RecipeStepPhoto[]
+  reviews            DishReview[]
+  favorites          Favorite[]
+
+  @@index([userId])
+}
+
+model DishPhoto {
+  id     String  @id @default(uuid())
+  dishId String
+  url    String
+  idx    Int     @default(0)
+  isMain Boolean @default(false)
+  dish   Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@index([dishId])
+}
+
+model DishVideo {
+  id        String   @id @default(uuid())
+  dishId    String
   url       String
-  width     Int?
-  height    Int?
-  alt       String?
-  order     Int      @default(0)
+  thumbnail String?
+  duration  Int? // Duration in seconds
+  fileSize  Int? // File size in bytes
   createdAt DateTime @default(now())
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
 
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-
-  @@index([listingId, order])
+  @@unique([dishId]) // Only one video per dish
+  @@index([dishId])
 }
 
-model Tag {
-  id    String  @id @default(cuid())
-  slug  String  @unique
-  label String
-
-  listings ListingTag[]
-}
-
-model ListingTag {
-  listingId String
-  tagId     String
-
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([listingId, tagId])
-  @@index([tagId])
-}
-
-/* =========================
-   RESERVERINGEN, DM/CHAT, REVIEWS, FAVORIETEN
-   ========================= */
-
-model Reservation {
-  id           String            @id @default(cuid())
-  listingId    String
-  buyerId      String            // aanvrager
-  sellerId     String            // eigenaar listing (denormalized voor makkelijke queries)
-  status       ReservationStatus @default(PENDING)
-  message      String?
-  quantity     Int               @default(1)
-
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-
-  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  buyer    User    @relation("UserReservationsBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
-  seller   User    @relation("UserReservationsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-
-  conversation Conversation?
-  transaction  Transaction? @relation("ReservationTransaction")
-  transactionId String? @unique
-
-  @@index([buyerId, status, createdAt])
-  @@index([sellerId, status, createdAt])
-}
-
-model Conversation {
-  id            String                      @id @default(cuid())
-  reservationId String? @unique
-  createdAt     DateTime                    @default(now())
-
-  participants  ConversationParticipant[]
-  messages      Message[]
-
-  reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
-}
-
-model ConversationParticipant {
-  id             String       @id @default(cuid())
-  conversationId String
-  userId         String
-  joinedAt       DateTime     @default(now())
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([conversationId, userId])
-  @@index([userId])
-}
-
-model Message {
-  id             String   @id @default(cuid())
-  conversationId String
-  senderId       String
-  text           String
-  createdAt      DateTime @default(now())
-  readAt         DateTime?
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User        @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId, createdAt])
-}
-
-model Review {
-  id          String   @id @default(cuid())
-  listingId   String
-  reviewerId  String   // wie geeft review
-  revieweeId  String   // wie ontvangt (meestal verkoper)
-  rating      Int      // 1..5
-  comment     String?
-  createdAt   DateTime @default(now())
-
-  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  reviewer User    @relation("UserReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
-  reviewee User    @relation("UserReviewsRecv", fields: [revieweeId], references: [id], onDelete: Cascade)
-
-  @@index([revieweeId, createdAt])
-  @@index([listingId])
-  @@unique([listingId, reviewerId]) // één review per koper per listing
-}
-
-model Favorite {
-  userId    String
-  listingId String
+model ProductVideo {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  url       String
+  thumbnail String?
+  duration  Int? // Duration in seconds
+  fileSize  Int? // File size in bytes
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
-
-  @@id([userId, listingId])
-  @@index([listingId])
+  @@index([productId])
 }
 
-/* =========================
-   MODERATIE, MELDINGEN, NOTIFICATIES
-   ========================= */
+model RecipeStepPhoto {
+  id          String  @id @default(uuid())
+  dishId      String
+  stepNumber  Int
+  url         String
+  idx         Int     @default(0)
+  description String?
+  dish        Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
 
-model Report {
-  id          String       @id @default(cuid())
-  listingId   String?
-  reporterId  String
-  targetUserId String?
-  reason      String
-  status      ReportStatus @default(OPEN)
-  createdAt   DateTime     @default(now())
-  resolvedAt  DateTime?
-
-  listing   Listing? @relation("ListingReports", fields: [listingId], references: [id], onDelete: SetNull)
-  reporter  User     @relation("UserReportsReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  target    User?    @relation("UserReportsTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
-
-  adminActions AdminAction[]
+  @@index([dishId])
+  @@index([dishId, stepNumber])
 }
 
-model AdminAction {
-  id         String     @id @default(cuid())
-  adminId    String
-  reportId   String?
-  action     String     // e.g. "HIDE_LISTING", "BAN_USER"
-  notes      String?
-  createdAt  DateTime   @default(now())
+model GardenGrowthPhoto {
+  id          String  @id @default(uuid())
+  dishId      String
+  phaseNumber Int
+  url         String
+  idx         Int     @default(0)
+  description String?
+  dish        Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
 
-  admin  User   @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  report Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  @@index([dishId])
+  @@index([dishId, phaseNumber])
 }
 
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
-  payload   Json
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
+model ReviewImage {
+  id        String        @id @default(uuid())
+  reviewId  String
+  url       String
+  sortOrder Int           @default(0)
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
+  @@index([reviewId])
 }
 
-/* =========================
-   BETALINGEN / TRANSACTIES (light, uitbreidbaar)
-   ========================= */
+model DishReview {
+  id         String            @id @default(uuid())
+  dishId     String
+  reviewerId String
+  orderId    String?
+  rating     Int
+  title      String?
+  comment    String
+  isVerified Boolean           @default(false)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @default(now())
+  dish       Dish              @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  reviewer   User              @relation("DishReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  order      Order?            @relation("DishReviewOrder", fields: [orderId], references: [id])
+  images     DishReviewImage[]
 
-model Transaction {
-  id              String            @id @default(cuid())
-  reservationId   String  @unique
-  buyerId         String
-  sellerId        String
-  amountCents     Int               // totaalbedrag
-  platformFeeBps  Int     @default(0)   // basispunten (bijv. 500 = 5.00%)
-  status          TransactionStatus @default(CREATED)
-  provider        String?           // "stripe", "mollie", ...
-  providerRef     String?           // paymentIntent id
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  // ...oude code verwijderd...
-  seller      User        @relation("UserTransactionsSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-  reservation Reservation? @relation("ReservationTransaction", fields: [reservationId], references: [id])
-  payouts     Payout[]
-  refunds     Refund[]
-
-  @@index([buyerId, status, createdAt])
-  @@index([sellerId, status, createdAt])
+  @@unique([dishId, reviewerId])
+  @@index([dishId])
+  @@index([reviewerId])
+  @@index([rating])
+  @@index([orderId])
 }
 
-model Payout {
-  id            String   @id @default(cuid())
-  transactionId String
-  amountCents   Int
-  toUserId      String
-  createdAt     DateTime @default(now())
-  providerRef   String?
+model DishReviewImage {
+  id        String     @id @default(uuid())
+  reviewId  String
+  url       String
+  sortOrder Int        @default(0)
+  review    DishReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
-  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  toUser      User        @relation("UserPayoutsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  @@index([reviewId])
 }
 
-model Refund {
-  id            String   @id @default(cuid())
-  transactionId String
-  amountCents   Int
-  createdAt     DateTime @default(now())
-  providerRef   String?
+model ReviewResponse {
+  id        String        @id @default(uuid())
+  reviewId  String
+  sellerId  String
+  comment   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  seller    User          @relation("ReviewResponseSeller", fields: [sellerId], references: [id], onDelete: Cascade)
 
-  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  @@index([reviewId])
+  @@index([sellerId])
 }
 
-/* =========================
-   PUSH / DEVICES & AUDIT
-   ========================= */
+model DeliveryProfile {
+  id                   String                        @id @default(cuid())
+  userId               String                        @unique
+  age                  Int
+  bio                  String?
+  transportation       TransportationMode[]
+  maxDistance          Float                         @default(3.0)
+  preferredRadius      Float?
+  homeLat              Float?
+  homeLng              Float?
+  homeAddress          String?
+  availableDays        String[]
+  availableTimeSlots   String[]
+  isActive             Boolean                       @default(true)
+  isVerified           Boolean                       @default(false)
+  totalDeliveries      Int                           @default(0)
+  averageRating        Float?
+  totalEarnings        Float                         @default(0)
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+  currentAddress       String?
+  currentLat           Float?
+  currentLng           Float?
+  deliveryMode         String                        @default("FIXED")
+  deliveryRegions      String[]                      @default([])
+  lastLocationUpdate   DateTime?
+  batteryLevel         Int?
+  gpsTrackingEnabled   Boolean                       @default(false)
+  lastGpsUpdate        DateTime?
+  locationAccuracy     Float?
+  isOnline             Boolean                       @default(false)
+  lastOnlineAt         DateTime?
+  lastOfflineAt        DateTime?
+  detailedAvailability DeliveryAvailability[]
+  notificationSettings DeliveryNotificationSettings?
+  deliveryOrders       DeliveryOrder[]
+  user                 User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews              DeliveryReview[]
+  shiftNotifications   ShiftNotification[]
+  vehiclePhotos        VehiclePhoto[]
 
-model DeviceToken {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  platform  String?  // ios/android/web
-  createdAt DateTime @default(now())
+  @@map("DeliveryProfile")
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model DeliveryAvailability {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  dayOfWeek         Int
+  isAvailable       Boolean         @default(true)
+  morningSlot       Boolean         @default(false)
+  afternoonSlot     Boolean         @default(false)
+  eveningSlot       Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  customSlots       Json?
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryProfileId, dayOfWeek])
+  @@index([deliveryProfileId])
+  @@map("DeliveryAvailability")
+}
+
+model DeliveryNotificationSettings {
+  id                       String          @id @default(cuid())
+  deliveryProfileId        String          @unique
+  enablePushNotifications  Boolean         @default(true)
+  enableEmailNotifications Boolean         @default(true)
+  enableSmsNotifications   Boolean         @default(false)
+  autoGoOnline             Boolean         @default(false)
+  quietHoursEnabled        Boolean         @default(false)
+  quietHoursStart          String?
+  quietHoursEnd            String?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  shiftReminders           Json            @default("[60, 30, 5]")
+  deliveryProfile          DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryProfileId])
+  @@map("DeliveryNotificationSettings")
+}
+
+model ShiftNotification {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  scheduledFor      DateTime
+  notifyAt          DateTime
+  minutesBefore     Int
+  status            String          @default("PENDING")
+  channel           String          @default("PUSH")
+  sentAt            DateTime?
+  readAt            DateTime?
+  clickedAt         DateTime?
+  error             String?
+  dayOfWeek         Int
+  timeSlot          String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryProfileId, notifyAt, status])
+  @@index([notifyAt, status])
+  @@index([status])
+  @@map("ShiftNotification")
+}
+
+model PushToken {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  platform   String
+  type       String
+  isActive   Boolean  @default(true)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([token])
+  @@map("PushToken")
 }
 
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  listingId String?
-  action    String   // e.g. "LISTING_CREATE", "LOGIN", "RESERVATION_STATUS_CHANGE"
-  meta      Json?
-  createdAt DateTime @default(now())
+model NotificationPreferences {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  emailNewMessages        Boolean  @default(true)
+  emailNewOrders          Boolean  @default(true)
+  emailOrderUpdates       Boolean  @default(true)
+  emailDeliveryUpdates    Boolean  @default(true)
+  emailMarketing          Boolean  @default(false)
+  emailWeeklyDigest       Boolean  @default(true)
+  emailSecurityAlerts     Boolean  @default(true)
+  pushNewMessages         Boolean  @default(true)
+  pushNewOrders           Boolean  @default(true)
+  pushOrderUpdates        Boolean  @default(true)
+  pushDeliveryUpdates     Boolean  @default(true)
+  pushNearbyProducts      Boolean  @default(false)
+  pushSecurityAlerts      Boolean  @default(true)
+  smsOrderUpdates         Boolean  @default(false)
+  smsDeliveryUpdates      Boolean  @default(false)
+  smsSecurityAlerts       Boolean  @default(true)
+  chatSoundEnabled        Boolean  @default(true)
+  chatNotificationPreview Boolean  @default(true)
+  chatGroupMentionsOnly   Boolean  @default(false)
+  quietHoursEnabled       Boolean  @default(false)
+  quietHoursStart         String?  @default("22:00")
+  quietHoursEnd           String?  @default("08:00")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  listing Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  @@index([userId])
+  @@map("NotificationPreferences")
+}
 
+model DynamicSeller {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  currentLat            Float?
+  currentLng            Float?
+  locationAccuracy      Float?
+  isActive              Boolean   @default(false)
+  deliveryRadius        Float     @default(5.0)
+  availableTimeSlots    String[]  @default([])
+  contactPhone          String?
+  contactEmail          String?
+  specialInstructions   String?
+  estimatedDeliveryTime Int       @default(30)
+  lastLocationUpdate    DateTime?
+  lastGpsUpdate         DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("DynamicSeller")
+}
+
+model DeliveryOrder {
+  id                   String           @id @default(cuid())
+  orderId              String           @unique
+  deliveryProfileId    String?
+  status               String           @default("PENDING")
+  deliveryFee          Float
+  estimatedTime        Int?
+  pickedUpAt           DateTime?
+  deliveredAt          DateTime?
+  currentLat           Float?
+  currentLng           Float?
+  notes                String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deliveryFeeCollected Boolean          @default(false)
+  deliveryAddress      String?
+  deliveryDate         DateTime?
+  deliveryTime         String?
+  productId            String?
+  deliveryProfile      DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
+  order                Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product              Product?         @relation(fields: [productId], references: [id])
+
+  @@map("DeliveryOrder")
+}
+
+model HomeCheffCollection {
+  id                   String   @id @default(cuid())
+  platformFees         Int
+  deliveryFeeCuts      Int
+  totalAmount          Int
+  status               String   @default("PENDING")
+  description          String?
+  processedOrdersCount Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("HomeCheffCollection")
+}
+
+model VehiclePhoto {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  fileUrl           String
+  sortOrder         Int
+  createdAt         DateTime        @default(now())
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryProfileId])
+  @@map("VehiclePhoto")
+}
+
+model DeliveryReview {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  reviewerId        String
+  orderId           String?
+  rating            Int
+  comment           String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  order             Order?          @relation(fields: [orderId], references: [id])
+  reviewer          User            @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryProfileId, reviewerId, orderId])
+  @@index([deliveryProfileId])
+  @@index([reviewerId])
+  @@map("DeliveryReview")
+}
+
+model WorkplacePhoto {
+  id              String        @id @default(cuid())
+  sellerProfileId String
+  role            String
+  fileUrl         String
+  sortOrder       Int
+  createdAt       DateTime      @default(now())
+  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([sellerProfileId])
+  @@index([role])
+  @@map("WorkplacePhoto")
+}
+
+model WorkspaceContent {
+  id              String                    @id @default(cuid())
+  sellerProfileId String
+  type            WorkspaceContentType
+  title           String
+  description     String?
+  isPublic        Boolean                   @default(true)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  designItem      DesignItem?
+  growingProcess  GrowingProcess?
+  recipe          Recipe?
+  sellerProfile   SellerProfile             @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+  comments        WorkspaceContentComment[]
+  photos          WorkspaceContentPhoto[]
+  props           WorkspaceContentProp[]
+
+  @@index([sellerProfileId])
+  @@index([type])
+  @@index([isPublic])
+  @@map("WorkspaceContent")
+}
+
+model WorkspaceContentPhoto {
+  id                 String           @id @default(cuid())
+  workspaceContentId String
+  fileUrl            String
+  sortOrder          Int
+  caption            String?
+  createdAt          DateTime         @default(now())
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceContentId])
+  @@map("WorkspaceContentPhoto")
+}
+
+model WorkspaceContentProp {
+  id                 String           @id @default(cuid())
+  workspaceContentId String
+  userId             String
+  createdAt          DateTime         @default(now())
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceContentId, userId])
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@map("WorkspaceContentProp")
+}
+
+model WorkspaceContentComment {
+  id                 String                    @id @default(cuid())
+  workspaceContentId String
+  userId             String
+  content            String
+  parentId           String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  parent             WorkspaceContentComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies            WorkspaceContentComment[] @relation("CommentReplies")
+  user               User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceContent   WorkspaceContent          @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceContentId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("WorkspaceContentComment")
+}
+
+model Recipe {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  servings           Int?
+  prepTime           Int?
+  cookTime           Int?
+  difficulty         String?
+  ingredients        Json
+  instructions       Json
+  tags               String[]         @default([])
+  source             String?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("Recipe")
+}
+
+model GrowingProcess {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  plantName          String
+  plantType          String?
+  variety            String?
+  startDate          DateTime?
+  expectedHarvest    DateTime?
+  growingMethod      String?
+  soilType           String?
+  wateringSchedule   String?
+  currentStage       String?
+  weeklyUpdates      Json
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("GrowingProcess")
+}
+
+model DesignItem {
+  id                 String           @id @default(cuid())
+  workspaceContentId String           @unique
+  category           String?
+  materials          String[]         @default([])
+  techniques         String[]         @default([])
+  dimensions         String?
+  inspiration        String?
+  process            Json
+  challenges         String?
+  solutions          String?
+  tags               String[]         @default([])
+  isForSale          Boolean          @default(false)
+  priceCents         Int?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  workspaceContent   WorkspaceContent @relation(fields: [workspaceContentId], references: [id], onDelete: Cascade)
+
+  @@map("DesignItem")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  eventType  String
+  entityType String
+  entityId   String
+  userId     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType, entityType])
+  @@index([entityId])
+  @@index([userId])
   @@index([createdAt])
+  @@index([createdAt], map: "idx_analytics_event_created_at")
+  @@index([userId], map: "idx_analytics_event_user")
 }
-// ...existing code...
 
-//
-// ------ AUTH ------
-enum Role {
+model EncryptionKey {
+  id        String    @id @default(uuid())
+  userId    String
+  keyHash   String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@index([isActive])
+}
+
+model AdminPreferences {
+  id                         String   @id @default(uuid())
+  userId                     String   @unique
+  showTotalUsersWidget       Boolean  @default(true)
+  showActiveUsersWidget      Boolean  @default(true)
+  showTotalProductsWidget    Boolean  @default(true)
+  showActiveDeliverersWidget Boolean  @default(true)
+  showTotalOrdersWidget      Boolean  @default(true)
+  showTotalRevenueWidget     Boolean  @default(true)
+  showSystemEventsWidget     Boolean  @default(true)
+  showRecentUsersWidget      Boolean  @default(true)
+  showRecentProductsWidget   Boolean  @default(true)
+  showUsersTab               Boolean  @default(true)
+  showMessagesTab            Boolean  @default(true)
+  showSellersTab             Boolean  @default(true)
+  showProductsTab            Boolean  @default(true)
+  showDeliveryTab            Boolean  @default(true)
+  showLiveLocationsTab       Boolean  @default(true)
+  showAnalyticsTab           Boolean  @default(true)
+  showModerationTab          Boolean  @default(true)
+  showNotificationsTab       Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AdminPermissions {
+  id                        String   @id @default(uuid())
+  userId                    String   @unique
+  canViewRevenue            Boolean  @default(true)
+  canViewUserDetails        Boolean  @default(true)
+  canViewUserEmails         Boolean  @default(true)
+  canViewProductDetails     Boolean  @default(true)
+  canViewOrderDetails       Boolean  @default(true)
+  canViewDeliveryDetails    Boolean  @default(true)
+  canViewAnalytics          Boolean  @default(true)
+  canViewSystemMetrics      Boolean  @default(true)
+  canViewAuditLogs          Boolean  @default(true)
+  canViewPaymentInfo        Boolean  @default(true)
+  canViewPrivateMessages    Boolean  @default(true)
+  // Tab Permissions (optional - will be added via migration)
+  canViewOrdersTab          Boolean?
+  canViewFinancialTab       Boolean?
+  canViewDisputesTab        Boolean?
+  canViewSettingsTab        Boolean?
+  canViewAuditTab           Boolean?
+  canViewUsersTab           Boolean?
+  canViewMessagesTab        Boolean?
+  canViewSellersTab         Boolean?
+  canViewProductsTab        Boolean?
+  canViewDeliveryTab        Boolean?
+  canViewLiveLocationsTab   Boolean?
+  canViewAnalyticsTab       Boolean?
+  canViewVariabelenTab      Boolean?
+  canViewModerationTab      Boolean?
+  canViewNotificationsTab   Boolean?
+  // canViewOverviewTab and canViewAdminManagementTab - will be added via migration later
+  // Action Permissions
+  canDeleteUsers            Boolean  @default(true)
+  canEditUsers              Boolean  @default(true)
+  canDeleteProducts         Boolean  @default(true)
+  canEditProducts           Boolean  @default(true)
+  canModerateContent        Boolean  @default(true)
+  canSendNotifications      Boolean  @default(true)
+  canManageAdminPermissions Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum UserRole {
+  USER
+  ADMIN
   BUYER
   SELLER
-  ADMIN
+  DELIVERY
+  SUPERADMIN
+
+  @@map("UserRole")
 }
 
-// ...existing code...
+enum MessagePrivacy {
+  NOBODY
+  FANS_ONLY
+  EVERYONE
 
-//
-// ------ PRODUCTEN ------
+  @@map("MessagePrivacy")
+}
+
+enum FanRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("FanRequestStatus")
+}
+
+enum DeliveryMode {
+  PICKUP
+  DELIVERY
+  SHIPPING
+  BOTH
+}
+
+enum TransportationMode {
+  BIKE
+  EBIKE
+  SCOOTER
+  CAR
+}
+
+enum ListingCategory {
+  HOMECHEFF
+  HOMEGROWN
+  OTHER
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  REMOVED
+  MODERATED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  PRODUCT_SHARE
+  SYSTEM
+  ORDER_STATUS_UPDATE
+  ORDER_PICKUP_INFO
+  ORDER_DELIVERY_INFO
+  ORDER_ADDRESS_UPDATE
+}
+
+enum NotificationType {
+  NEW_LISTING_NEARBY
+  RESERVATION_UPDATE
+  MESSAGE_RECEIVED
+  ADMIN_NOTICE
+  NEW_CONVERSATION
+  MESSAGE_REACTION
+  FAN_REQUEST
+  PROP_RECEIVED
+  FOLLOW_RECEIVED
+  FAVORITE_RECEIVED
+  REVIEW_RECEIVED
+  ORDER_RECEIVED
+  ORDER_UPDATE
+}
+
 enum ProductCategory {
   CHEFF
   GROWN
   DESIGNER
+}
+
+enum ReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum StockReservationStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  COMPLETED
+}
+
+enum TransactionStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  CANCELLED
+  REFUNDED
+  FAILED
 }
 
 enum Unit {
@@ -467,47 +1761,35 @@ enum Unit {
   M2
 }
 
-enum DeliveryMode {
-  PICKUP
-  DELIVERY
-  BOTH
+enum DishStatus {
+  PRIVATE
+  PUBLISHED
 }
 
-model SellerProfile {
-  id           String    @id @default(cuid())
-  userId       String    @unique
-  displayName  String?
-  bio          String?
-  lat          Float?
-  lng          Float?
-  user         User      @relation(fields: [userId], references: [id])
-  products     Product[]
+enum DownloadPermission {
+  EVERYONE
+  FANS_ONLY
+  FAN_OF_ONLY
+  ASK_PERMISSION
+  NOBODY
 }
 
-
-model Image {
-  id        String   @id @default(cuid())
-  fileUrl   String
-  sortOrder Int
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
+enum PrintPermission {
+  EVERYONE
+  FANS_ONLY
+  FAN_OF_ONLY
+  ASK_PERMISSION
+  NOBODY
 }
 
-model Product {
-  id          String          @id @default(cuid())
-  sellerId    String
-  category    ProductCategory
-  title       String
-  description String
-  priceCents  Int
-  unit        Unit
-  delivery    DeliveryMode
-  createdAt   DateTime        @default(now())
-  isActive    Boolean         @default(true)
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
 
-  seller      SellerProfile   @relation(fields: [sellerId], references: [id])
-  images      Image[]
-
-  @@index([category])
-  @@index([sellerId])
+enum WorkspaceContentType {
+  RECIPE
+  GROWING_PROCESS
+  DESIGN_ITEM
 }
