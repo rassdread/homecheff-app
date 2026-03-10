@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { ChefHat, Sprout, Palette, Filter, Grid, List, TrendingUp, Clock, Eye, Lightbulb, X, ChevronDown, PlayCircle, Star, MessageSquare, MapPin, Navigation, Search, SlidersHorizontal, Globe, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
@@ -100,11 +100,7 @@ export default function InspiratieContent() {
   // Promo modal state
   const [showPromoModal, setShowPromoModal] = useState(false);
   // Welkomstbanner: tonen bij ?welcome=true of ?registered=true (ook als API's falen, bv. Safari CORS)
-  const [showWelcomeBanner, setShowWelcomeBanner] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const p = new URLSearchParams(window.location.search);
-    return p.get('welcome') === 'true' || p.get('registered') === 'true';
-  });
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
   
   // GPS location hook
   const { coords: gpsLocation, loading: locationLoading, getCurrentPosition } = useGeolocation({
@@ -185,11 +181,18 @@ export default function InspiratieContent() {
     setHasMounted(true);
   }, []);
 
-  // Welkomstbanner: toon zodra welcome of registered in URL staat (voor Safari waar API's kunnen falen)
+  // Welkomstbanner: direct bij mount uit echte URL (Safari iPhone vult searchParams soms later)
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('welcome') === 'true' || p.get('registered') === 'true') {
+      setShowWelcomeBanner(true);
+    }
+  }, []);
   useEffect(() => {
-    const welcome = searchParams?.get('welcome');
-    const registered = searchParams?.get('registered');
-    if (welcome || registered) setShowWelcomeBanner(true);
+    if (searchParams?.get('welcome') === 'true' || searchParams?.get('registered') === 'true') {
+      setShowWelcomeBanner(true);
+    }
   }, [searchParams]);
 
   // Force session refresh after login/registration redirect (especially for iOS Safari)
