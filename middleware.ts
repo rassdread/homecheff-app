@@ -35,9 +35,11 @@ export function middleware(request: NextRequest) {
     const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
     const fallbackOrigin = host ? `${proto}://${host.replace(/^https?:\/\//, '').split('/')[0]}` : request.nextUrl.origin;
     const rawOrigin = request.headers.get('origin');
-    // Safari/iOS can send Origin: null or omit it for same-origin; use Host as origin
+    // Safari/iOS can send Origin: null, omit it, or send "" for same-origin; use Host as origin
     const origin =
-      rawOrigin && rawOrigin !== 'null' ? rawOrigin : request.nextUrl.origin || fallbackOrigin;
+      rawOrigin && rawOrigin !== 'null' && rawOrigin !== ''
+        ? rawOrigin
+        : request.nextUrl.origin || fallbackOrigin;
     // Development: localhost, 127.0.0.1, of lokaal netwerk; allow both so 127.0.0.1 ↔ localhost werkt
     const isLocalDevOrigin =
       !origin ||

@@ -22,16 +22,20 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const proto = request.headers.get('x-forwarded-proto') || request.nextUrl?.protocol?.replace(':', '') || 'http';
   const fallbackOrigin = host ? `${proto}://${host.replace(/^https?:\/\//, '').split('/')[0]}` : (request.nextUrl?.origin ?? '');
   const rawOrigin = request.headers.get('origin');
-  // Safari/iOS can send literal "null" or omit Origin for same-origin; use request host as origin
+  // Safari/iOS can send literal "null", omit Origin, or send "" for same-origin; use request host as origin
   const origin =
-    rawOrigin && rawOrigin !== 'null' ? rawOrigin : request.nextUrl?.origin || fallbackOrigin;
+    rawOrigin && rawOrigin !== 'null' && rawOrigin !== ''
+      ? rawOrigin
+      : request.nextUrl?.origin || fallbackOrigin;
 
   const isLocalDevOrigin =
     !origin ||
     origin === 'null' ||
+    origin === '' ||
     origin.includes('localhost') ||
     origin.includes('127.0.0.1') ||
     /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
+  // Same-site on our domain: allow when origin is our domain OR when Origin was missing/empty (Safari same-origin)
   const isOurDomain =
     (origin && OUR_DOMAINS.includes(origin as (typeof OUR_DOMAINS)[number])) ||
     OUR_DOMAINS.some((d) => fallbackOrigin === d);

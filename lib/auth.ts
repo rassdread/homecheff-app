@@ -31,7 +31,8 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax' as const,
         path: '/',
-        secure: process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL?.startsWith('https://'),
+        // Safari/HTTPS: always Secure in production so cookie is sent on same-origin API calls
+        secure: process.env.NODE_ENV === 'production',
         // Edge browser has stricter cookie size limits (4096 bytes)
         // Keep cookie size minimal by storing only essential data in JWT
       },
@@ -42,7 +43,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax' as const,
         path: '/',
-        secure: process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL?.startsWith('https://'),
+        secure: process.env.NODE_ENV === 'production',
         // Keep callback URL short - don't store full URLs
         maxAge: 60 * 10, // 10 minutes - shorter TTL to reduce cookie size
       },
@@ -53,7 +54,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax' as const,
         path: '/',
-        secure: process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL?.startsWith('https://'),
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 60 * 60, // 1 hour - shorter TTL
       },
     },
