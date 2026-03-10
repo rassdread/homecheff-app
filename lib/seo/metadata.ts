@@ -1,6 +1,11 @@
 import { headers, cookies } from 'next/headers';
 
-/** Hoofddomein: altijd .eu. .nl is de Nederlandse variant van de .eu-site. */
+/**
+ * .eu = hoofddomein (canonical, sitemap, SEO).
+ * .nl = Nederlandse variant (zelfde app, andere taal/URL).
+ * Flow: inlog/redirect blijft op hetzelfde domein (.nl → blijft .nl, .eu → blijft .eu).
+ * Geen redirect tussen .eu en .nl (Safari/sessie).
+ */
 export const MAIN_DOMAIN = 'https://homecheff.eu';
 export const NL_DOMAIN = 'https://homecheff.nl';
 

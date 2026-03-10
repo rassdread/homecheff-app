@@ -37,8 +37,12 @@ export function middleware(request: NextRequest) {
       process.env.NODE_ENV === 'development'
         ? isLocalDevOrigin
         : isOurDomain;
-    // Use request origin when allowed; if missing (e.g. same-origin) use Host so CORS header is always set
-    const allowOrigin = allowedOrigins ? (origin || fallbackOrigin) : undefined;
+    // When Origin is literal "null", CORS requires responding with "null"; else use origin or Host
+    const allowOrigin = allowedOrigins
+      ? rawOrigin === 'null'
+        ? 'null'
+        : (origin || fallbackOrigin)
+      : undefined;
     const corsHeaders: Record<string, string> = {};
     if (allowOrigin) {
       corsHeaders['Access-Control-Allow-Origin'] = allowOrigin;

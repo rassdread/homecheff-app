@@ -4,12 +4,18 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });
+}
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -90,7 +96,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
     // Transform conversations - show all conversations (including inactive ones that might have new messages)
     const conversations = user.ConversationParticipant
@@ -132,22 +138,23 @@ export async function GET(req: NextRequest) {
       const bTime = b.lastMessageAt || b.createdAt;
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
-    return NextResponse.json({ conversations });
+    return NextResponse.json({ conversations }, { headers: cors });
 
   } catch (error) {
     console.error('[Conversations API] ❌ Critical error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }
 
 export async function POST(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const { productId, sellerId, message } = await req.json();
@@ -155,7 +162,7 @@ export async function POST(req: NextRequest) {
     if (!productId || !sellerId) {
       return NextResponse.json(
         { error: 'Product ID and seller ID are required' },
-        { status: 400 }
+        { status: 400, headers: cors }
       );
     }
 
@@ -164,7 +171,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     // Check if conversation already exists
@@ -240,19 +247,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (!conversation) {
-      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500, headers: cors });
     }
 
-    return NextResponse.json({
-      conversationId: conversation.id,
-      initialMessage
-    });
-
+    return NextResponse.json(
+      { conversationId: conversation.id, initialMessage },
+      { headers: cors }
+    );
   } catch (error) {
     console.error('Error creating conversation:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }

@@ -522,53 +522,46 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Altijd baseUrl (request host) voorrang geven: gebruiker blijft op het domein waar hij inlogt.
-      // Belangrijk voor iPhone Safari: cookie is first-party op dat domein, geen cross-site redirect naar .eu.
-      // NEXTAUTH_URL als fallback (bijv. server-side zonder Host header).
-      const actualBaseUrl = baseUrl || process.env.NEXTAUTH_URL;
+      // .eu = hoofddomein (SEO/canonical), .nl = Nederlandse variant. Gebruiker blijft op het domein waar hij inlogt.
+      // Geen redirect .nl → .eu of .eu → .nl: voorkomt sessie-/cookie-problemen (o.a. Safari iPhone).
+      const ourDomains = ['https://homecheff.nl', 'https://homecheff.eu', 'https://www.homecheff.nl', 'https://www.homecheff.eu'];
+      const baseUrlNorm = (baseUrl || '').replace(/\/$/, '');
+      const isBaseOurDomain = ourDomains.some((d) => baseUrlNorm === d || baseUrlNorm.startsWith(d + '/'));
+      const actualBaseUrl = (isBaseOurDomain ? baseUrlNorm : baseUrl) || process.env.NEXTAUTH_URL;
+
+      const forceSameDomain = (targetUrl: string): string => {
+        if (!actualBaseUrl || !targetUrl) return targetUrl;
+        try {
+          const target = new URL(targetUrl.startsWith('/') ? actualBaseUrl + targetUrl : targetUrl);
+          const actual = new URL(actualBaseUrl);
+          if (target.origin !== actual.origin && ourDomains.some((d) => target.origin === d || actual.origin === d)) {
+            return actualBaseUrl + target.pathname + target.search;
+          }
+        } catch {
+          // ignore
+        }
+        return targetUrl;
+      };
 
       try {
-        // For social login callback, check if user needs onboarding
         if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/facebook') || url.includes('/api/auth/callback/apple')) {
-          // Check if this is a new social login user who needs onboarding
-          // We need to check the database to see if user has temp username
-          try {
-            // Extract email from callback if possible, or check session
-            // Since we're in redirect callback, we can't easily check DB here
-            // So we'll always go to social-login-success which will check and redirect
-          } catch (error) {
-            console.error('Error in social login redirect check:', error);
-          }
-          
-          // Always go to social-login-success first for social logins
-          // This page will check onboarding status and redirect accordingly
           return actualBaseUrl + '/social-login-success';
         }
-        
-        // If explicitly requesting social-login-success, let it handle the redirect
-        // (Don't redirect it again, let the page component handle it)
         if (url.includes('/social-login-success')) {
           return actualBaseUrl + '/social-login-success';
         }
-        
-        // If url is relative or starts with /, return it with actualBaseUrl
         if (url.startsWith('/')) {
           return actualBaseUrl + url;
         }
-        
-        // If url is absolute and starts with actualBaseUrl, return it
         if (url.startsWith(actualBaseUrl)) {
-          return url;
+          return forceSameDomain(url);
         }
-        
-        // Otherwise, extract path and use actualBaseUrl
-        // Keep URLs short to prevent large callback-url cookie (Edge browser limit)
         const u = new URL(url);
-        const shortUrl = actualBaseUrl + u.pathname; // Don't include search params to keep cookie small
-        return shortUrl.length > 200 ? actualBaseUrl : shortUrl;
+        let res = actualBaseUrl + u.pathname + u.search;
+        if (res.length > 200) res = actualBaseUrl;
+        return forceSameDomain(res);
       } catch (error) {
         console.error('🔍 Redirect error:', error);
-        // On error, default to social-login-success which will check and redirect
         if (url.includes('google') || url.includes('facebook') || url.includes('apple')) {
           return actualBaseUrl + '/social-login-success';
         }

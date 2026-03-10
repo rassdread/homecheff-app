@@ -614,22 +614,24 @@ export default function InspiratieContent() {
             {showWelcomeBanner && (
               <p className="text-2xl md:text-3xl font-semibold text-white mb-3" suppressHydrationWarning>
                 {userFirstName
-                  ? t('inspiratie.greeting', { firstName: userFirstName })
-                  : (t('inspiratie.welcomeBack') || 'Welkom!')}
+                  ? (t('inspiratie.greeting', { firstName: userFirstName }) || (language === 'en' ? `Hey ${userFirstName}, come here to get inspired!` : `Hey ${userFirstName}, kom hier voor inspiratie!`))
+                  : (t('inspiratie.welcomeBack') || (language === 'en' ? 'Welcome back!' : 'Welkom!'))}
               </p>
             )}
             <div className="flex items-center justify-center gap-3 mb-4">
               <Lightbulb className="w-12 h-12" />
-              {/* suppressHydrationWarning: title comes from client i18n; server renders "" until translations load */}
-              <h1 className="text-4xl md:text-5xl font-bold" suppressHydrationWarning>{t('inspiratie.title')}</h1>
+              {/* suppressHydrationWarning: title comes from client i18n; fallback zodat bij EN/taalwissel altijd iets staat (Safari) */}
+              <h1 className="text-4xl md:text-5xl font-bold" suppressHydrationWarning>
+                {t('inspiratie.title') || (language === 'en' ? 'Inspiration' : 'Inspiratie')}
+              </h1>
             </div>
             <p className="text-xl md:text-2xl text-emerald-100 mb-6 max-w-3xl mx-auto" suppressHydrationWarning>
               {userFirstName
-                ? t('inspiratie.greeting', { firstName: userFirstName })
-                : t('inspiratie.subtitle')}
+                ? (t('inspiratie.greeting', { firstName: userFirstName }) || (language === 'en' ? `Hey ${userFirstName}, come here to get inspired!` : `Hey ${userFirstName}, kom hier voor inspiratie!`))
+                : (t('inspiratie.subtitle') || (language === 'en' ? 'Discover delicious recipes, beautiful grows and unique designs from our community.' : 'Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.'))}
             </p>
             <p className="text-sm md:text-base text-emerald-100/90 max-w-3xl mx-auto" suppressHydrationWarning>
-              {t('inspiratie.description')}
+              {t('inspiratie.description') || (language === 'en' ? 'Save your favorites, share your profile — your personal studio, garden or kitchen.' : 'Sla je favorieten op, deel je profiel — jouw persoonlijke atelier, tuin of keuken.')}
             </p>
           </div>
         </div>

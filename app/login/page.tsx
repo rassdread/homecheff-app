@@ -38,7 +38,7 @@ function LoginForm() {
 
   const message = searchParams?.get('message');
   const rawCallbackUrl = searchParams?.get('callbackUrl') || '/';
-  // Alleen relatief pad of same-origin: veilig voor Safari en voorkomt open redirect
+  // Alleen relatief pad of same-origin: .nl blijft .nl, .eu blijft .eu (geen cross-domein redirect)
   const callbackUrl =
     rawCallbackUrl.startsWith('/')
       ? rawCallbackUrl
