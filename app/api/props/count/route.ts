@@ -4,6 +4,11 @@ import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
+export async function OPTIONS(req: NextRequest) {
+  const headers = getCorsHeaders(req);
+  return new NextResponse(null, { status: 204, headers });
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

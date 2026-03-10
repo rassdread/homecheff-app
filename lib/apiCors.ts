@@ -14,9 +14,13 @@ const OUR_DOMAINS = [
  * Safari on iOS can send Origin: null or omit Origin; we treat same-origin using Host.
  */
 export function getCorsHeaders(request: NextRequest): Record<string, string> {
-  const host = request.headers.get('host') || '';
+  // Behind Vercel/proxy the Host can be internal; use x-forwarded-host for the real site
+  const host =
+    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+    request.headers.get('host') ||
+    '';
   const proto = request.headers.get('x-forwarded-proto') || request.nextUrl?.protocol?.replace(':', '') || 'http';
-  const fallbackOrigin = host ? `${proto}://${host}` : (request.nextUrl?.origin ?? '');
+  const fallbackOrigin = host ? `${proto}://${host.replace(/^https?:\/\//, '').split('/')[0]}` : (request.nextUrl?.origin ?? '');
   const rawOrigin = request.headers.get('origin');
   // Safari/iOS can send "null" or omit Origin for same-origin; use request host as origin
   const origin =
@@ -32,6 +36,7 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (origin && OUR_DOMAINS.includes(origin as (typeof OUR_DOMAINS)[number])) ||
     OUR_DOMAINS.some((d) => fallbackOrigin === d);
   const allowed = process.env.NODE_ENV === 'development' ? isLocalDevOrigin : isOurDomain;
+  // When allowed, always send a concrete origin (Safari requires it when credentials are used)
   const allowOrigin = allowed ? (origin || fallbackOrigin) : undefined;
 
   if (!allowOrigin) return {};

@@ -6,6 +6,10 @@ import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });
+}
+
 // Update user online status
 export async function POST(req: NextRequest) {
   const cors = getCorsHeaders(req);

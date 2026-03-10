@@ -7,9 +7,12 @@ export function middleware(request: NextRequest) {
   // CORS voor API en i18n: voorkom "Load failed" / "access control checks" (lokaal + iPhone Safari/PWA)
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
-    const host = request.headers.get('host') || '';
+    const host =
+      request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+      request.headers.get('host') ||
+      '';
     const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
-    const fallbackOrigin = host ? `${proto}://${host}` : request.nextUrl.origin;
+    const fallbackOrigin = host ? `${proto}://${host.replace(/^https?:\/\//, '').split('/')[0]}` : request.nextUrl.origin;
     const rawOrigin = request.headers.get('origin');
     // Safari/iOS can send Origin: null or omit it for same-origin; use Host as origin
     const origin =

@@ -99,6 +99,12 @@ export default function InspiratieContent() {
   
   // Promo modal state
   const [showPromoModal, setShowPromoModal] = useState(false);
+  // Welkomstbanner: tonen bij ?welcome=true of ?registered=true (ook als API's falen, bv. Safari CORS)
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const p = new URLSearchParams(window.location.search);
+    return p.get('welcome') === 'true' || p.get('registered') === 'true';
+  });
   
   // GPS location hook
   const { coords: gpsLocation, loading: locationLoading, getCurrentPosition } = useGeolocation({
@@ -179,6 +185,13 @@ export default function InspiratieContent() {
     setHasMounted(true);
   }, []);
 
+  // Welkomstbanner: toon zodra welcome of registered in URL staat (voor Safari waar API's kunnen falen)
+  useEffect(() => {
+    const welcome = searchParams?.get('welcome');
+    const registered = searchParams?.get('registered');
+    if (welcome || registered) setShowWelcomeBanner(true);
+  }, [searchParams]);
+
   // Force session refresh after login/registration redirect (especially for iOS Safari)
   useEffect(() => {
     const welcome = searchParams?.get('welcome');
@@ -236,12 +249,14 @@ export default function InspiratieContent() {
         // Close promo modal if it was open (user just logged in)
         if (welcome || registered) {
           setShowPromoModal(false);
-          
-          // Clean up URL parameters after refresh
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('welcome');
-          newUrl.searchParams.delete('registered');
-          window.history.replaceState({}, '', newUrl.toString());
+          // Verwijder URL-params pas na 4s zodat de welkomstbanner goed zichtbaar blijft (ook bij CORS-fouten op Safari)
+          setTimeout(() => {
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('welcome');
+            newUrl.searchParams.delete('registered');
+            window.history.replaceState({}, '', newUrl.toString());
+            setShowWelcomeBanner(false);
+          }, 4000);
         }
         
         // Mark session refresh as complete
@@ -593,16 +608,22 @@ export default function InspiratieContent() {
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
+            {showWelcomeBanner && (
+              <p className="text-2xl md:text-3xl font-semibold text-white mb-3" suppressHydrationWarning>
+                {userFirstName
+                  ? t('inspiratie.greeting', { firstName: userFirstName })
+                  : (t('inspiratie.welcomeBack') || 'Welkom!')}
+              </p>
+            )}
             <div className="flex items-center justify-center gap-3 mb-4">
               <Lightbulb className="w-12 h-12" />
               {/* suppressHydrationWarning: title comes from client i18n; server renders "" until translations load */}
               <h1 className="text-4xl md:text-5xl font-bold" suppressHydrationWarning>{t('inspiratie.title')}</h1>
             </div>
             <p className="text-xl md:text-2xl text-emerald-100 mb-6 max-w-3xl mx-auto" suppressHydrationWarning>
-              {userFirstName 
+              {userFirstName
                 ? t('inspiratie.greeting', { firstName: userFirstName })
-                : t('inspiratie.subtitle')
-              }
+                : t('inspiratie.subtitle')}
             </p>
             <p className="text-sm md:text-base text-emerald-100/90 max-w-3xl mx-auto" suppressHydrationWarning>
               {t('inspiratie.description')}
