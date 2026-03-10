@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const type = formData.get("type") as string || "general";
-    
+    const uploadContext = (formData.get("uploadContext") as string) || "";
+
     console.log('📥 Upload request received:', {
       fileName: file?.name,
       fileSize: file ? `${(file.size / (1024 * 1024)).toFixed(2)}MB` : 'N/A',
@@ -65,6 +66,21 @@ export async function POST(req: Request) {
         }, { status: 400 });
       }
     } else if (isVideo) {
+      // Voor dish/recept-video's: alleen MP4/MOV zodat alle items hetzelfde formaat hebben (Safari/iOS compatibel)
+      const isDishVideo = uploadContext === "dish";
+      const dishAllowedTypes = ["video/mp4", "video/quicktime", "video/mov", "video/x-m4v"];
+      if (isDishVideo) {
+        const normalizedType = (file.type || "").toLowerCase();
+        const nameLower = (file.name || "").toLowerCase();
+        const allowedByType = dishAllowedTypes.includes(normalizedType);
+        const allowedByExt = [".mp4", ".m4v", ".mov"].some((e) => nameLower.endsWith(e));
+        if (!allowedByType && !allowedByExt) {
+          return NextResponse.json({
+            error: "Voor recepten en inspiratie alleen MP4 of MOV. Dit formaat werkt op alle apparaten.",
+          }, { status: 400 });
+        }
+      }
+
       // Check video format - comprehensive list for maximum compatibility
       // Includes formats from various phones, apps, and platforms
       // Based on common formats used by: Snapchat, TikTok, Instagram, WhatsApp, iOS, Android, etc.

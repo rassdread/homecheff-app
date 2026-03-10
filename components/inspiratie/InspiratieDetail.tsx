@@ -383,7 +383,15 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                     ) : (
                       <div className="relative h-full w-full">
                         <video
+                          ref={(el) => {
+                            if (el) {
+                              el.playsInline = true;
+                              el.setAttribute('playsinline', '');
+                              el.setAttribute('webkit-playsinline', '');
+                            }
+                          }}
                           src={getVideoUrlWithCors(currentMedia.url)}
+                          poster={currentMedia.thumbnail || undefined}
                           className="h-full w-full rounded-3xl object-contain"
                           controls
                           playsInline
@@ -865,11 +873,21 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
               />
             ) : (
               <video
+                ref={(el) => {
+                  if (el) {
+                    el.playsInline = true;
+                    el.setAttribute('playsinline', '');
+                    el.setAttribute('webkit-playsinline', '');
+                  }
+                }}
                 src={getVideoUrlWithCors(mediaItems[lightboxIndex].url)}
+                poster={mediaItems[lightboxIndex].thumbnail || undefined}
                 className="max-h-[80vh] max-w-[80vw] rounded-2xl"
                 controls
                 autoPlay
                 playsInline
+                muted
+                preload="metadata"
               />
             )}
           </div>

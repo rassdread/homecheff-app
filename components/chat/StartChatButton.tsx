@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface StartChatButtonProps {
   productId?: string; // Optional for general seller contact
@@ -23,6 +24,7 @@ export default function StartChatButton({
   className = '',
   showSuccessMessage = false
 }: StartChatButtonProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [initialMessage, setInitialMessage] = useState('');
@@ -200,7 +202,7 @@ export default function StartChatButton({
         `}
       >
         <MessageCircle className="w-4 h-4" />
-        <span>Laden...</span>
+        <span>{t('common.loadingDots')}</span>
       </button>
     );
   }
@@ -213,13 +215,15 @@ export default function StartChatButton({
           <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
             <span className="text-green-500 text-sm">✓</span>
           </div>
-          <span>Bericht verzonden! Je kunt het gesprek bekijken in je berichten.</span>
+          <span>{t('common.messageSent')}</span>
         </div>
       )}
 
       <button
         onClick={() => setShowModal(true)}
         disabled={isLoading}
+        title={isLoading ? undefined : t('common.startChat')}
+        aria-label={isLoading ? t('common.loadingDots') : t('common.startChat')}
         className={`
           flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200
           transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg
@@ -229,8 +233,8 @@ export default function StartChatButton({
           ${className}
         `}
       >
-        <MessageCircle className="w-4 h-4" />
-        <span>{isLoading ? 'Laden...' : 'Start chat'}</span>
+        <MessageCircle className="w-4 h-4 flex-shrink-0" aria-hidden />
+        <span>{isLoading ? t('common.loadingDots') : t('common.startChat')}</span>
       </button>
 
       {/* Chat Modal */}
@@ -240,7 +244,7 @@ export default function StartChatButton({
             {/* Header */}
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Start chat met {sellerName}</h2>
+                <h2 className="text-lg font-semibold">{t('common.startChatWith').replace('{name}', sellerName)}</h2>
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -253,17 +257,14 @@ export default function StartChatButton({
             {/* Content */}
             <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <p className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                💬 {productId 
-                  ? 'Kies een snelbericht en het wordt direct verzonden, of typ je eigen bericht onderaan.'
-                  : 'Kies een snelbericht of typ je eigen bericht om het gesprek te starten.'
-                }
+                💬 {productId ? t('common.chatIntroProduct') : t('common.chatIntroGeneral')}
               </p>
 
               {/* Quick messages */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  ⚡ Snelle berichten
-                  <span className="text-xs text-gray-500 font-normal">(klik = direct verzenden)</span>
+                  ⚡ {t('common.quickMessages')}
+                  <span className="text-xs text-gray-500 font-normal">{t('common.quickMessagesHint')}</span>
                 </h3>
                 <div className="space-y-2">
                   {quickMessages.map((message, index) => (
@@ -295,13 +296,13 @@ export default function StartChatButton({
               {/* Custom message with send button */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  ✏️ Typ je eigen bericht:
+                  ✏️ {t('common.typeYourMessage')}
                 </label>
                 <div className="space-y-3">
                   <textarea
                     value={initialMessage}
                     onChange={(e) => setInitialMessage(e.target.value)}
-                    placeholder="Typ je bericht hier..."
+                    placeholder={t('common.typeMessagePlaceholder')}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 text-sm"
                     rows={4}
                     disabled={isLoading}
@@ -312,7 +313,7 @@ export default function StartChatButton({
                     className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-95 disabled:transform-none shadow-md hover:shadow-lg"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{isLoading ? 'Verzenden...' : 'Verstuur bericht'}</span>
+                    <span>{isLoading ? t('common.sending') : t('common.sendMessage')}</span>
                   </button>
                 </div>
               </div>

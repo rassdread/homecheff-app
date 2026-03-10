@@ -61,8 +61,8 @@ export default function PropsButton({
           const countData = await countResponse.json();
           setPropsCount(countData.propsCount);
         }
-      } catch (error) {
-        console.error('Error checking props status:', error);
+      } catch {
+        // Silent: CORS or network (e.g. when opening from different host)
       } finally {
         setCheckingStatus(false);
       }

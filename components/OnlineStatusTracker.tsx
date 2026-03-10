@@ -58,8 +58,8 @@ export default function OnlineStatusTracker() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isOnline: online })
         });
-      } catch (error) {
-        console.error('Error updating online status:', error);
+      } catch {
+        // Silent: CORS or network (e.g. when opening from different host)
       }
     };
 

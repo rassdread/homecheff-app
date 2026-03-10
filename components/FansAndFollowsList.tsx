@@ -7,6 +7,7 @@ import { UserPlus, Users, Heart } from "lucide-react";
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
 import { getDisplayName } from '@/lib/displayName';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type Follow = { 
   id: string; 
@@ -54,6 +55,17 @@ type Favorite = {
     description: string;
     category: string;
   } | null;
+  Dish?: {
+    id: string;
+    title: string | null;
+    description: string | null;
+    priceCents: number | null;
+    category: string | null;
+    subcategory: string | null;
+    status: string;
+    createdAt: Date;
+    photos?: Array<{ id: string; url: string; idx: number; isMain?: boolean }>;
+  } | null;
 };
 
 interface FansAndFollowsListProps {
@@ -61,6 +73,8 @@ interface FansAndFollowsListProps {
 }
 
 export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) {
+  const { t, language } = useTranslation();
+  const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const [follows, setFollows] = useState<Follow[]>([]);
   const [fans, setFans] = useState<Follow[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -109,15 +123,11 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
         console.error('Failed to fetch fans:', errorData);
       }
       
-      // Fetch favorites
+      // Favorieten: altijd van ingelogde gebruiker (Product + Listing + Dish)
       const favoritesRes = await fetch("/api/profile/favorites");
       if (favoritesRes.ok) {
         const favoritesData = await favoritesRes.json();
         const favs = favoritesData.items || [];
-        console.log('Favorites API response:', {
-          total: favs.length,
-          sample: favs[0] || null
-        });
         setFavorites(favs);
       } else {
         const errorData = await favoritesRes.json().catch(() => ({}));
@@ -138,7 +148,6 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
   }
 
   const currentItems = activeTab === 'follows' ? follows : activeTab === 'fans' ? fans : [];
-  const currentLabel = activeTab === 'follows' ? 'fan' : activeTab === 'fans' ? 'fans' : 'favorieten';
 
   return (
     <div className="space-y-4">
@@ -199,10 +208,10 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
               <Heart className="w-10 h-10 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Nog geen favorieten
+              {t('common.noFavoritesYet')}
             </h3>
             <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
-              Zodra je een product als favoriet markeert, verschijnt het hier.
+              {t('common.favoritesEmptyHint')}
             </p>
           </div>
         ) : (
@@ -210,14 +219,29 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
               {favorites.map((favorite) => {
                 const product = favorite.Product || favorite.Listing;
-                if (!product) return null;
+                const dish = favorite.Dish;
+                const item = product || dish;
+                if (!item) return null;
 
-                const imageUrl = favorite.Product?.Image?.[0]?.fileUrl || 
-                                (favorite.Listing as any)?.image || 
+                const imageUrl = favorite.Product?.Image?.[0]?.fileUrl ||
+                                (favorite.Listing as any)?.image ||
+                                favorite.Dish?.photos?.[0]?.url ||
                                 "/placeholder.webp";
-                const href = favorite.Product 
-                  ? `/product/${product.id}`
-                  : `/listing/${product.id}`;
+                const href = favorite.Product
+                  ? `/product/${item.id}`
+                  : favorite.Listing
+                    ? `/listing/${item.id}`
+                    : favorite.Dish
+                      ? (favorite.Dish.category === 'CHEFF'
+                          ? `/recipe/${item.id}`
+                          : favorite.Dish.category === 'GROWN'
+                            ? `/garden/${item.id}`
+                            : `/design/${item.id}`)
+                      : "#";
+                const title = (item as any).title || 'Item';
+                const description = (item as any).description ?? null;
+                const priceCents = (item as any).priceCents ?? null;
+                const category = favorite.Product?.category ?? favorite.Dish?.category ?? null;
 
                 return (
                   <Link
@@ -226,12 +250,11 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                     className="group relative bg-gradient-to-br from-white to-gray-50 rounded-xl border-2 border-gray-200 hover:border-pink-400 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                   >
                     <div className="flex flex-col">
-                      {/* Product Image */}
                       <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                         {imageUrl && imageUrl !== "/placeholder.webp" ? (
                           <img
                             src={imageUrl}
-                            alt={product.title || 'Product'}
+                            alt={title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -242,46 +265,40 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                             <div className="text-gray-400 text-4xl">
-                              {favorite.Product?.category === 'CHEFF' ? '👨‍🍳' :
-                               favorite.Product?.category === 'GROWN' ? '🌱' :
-                               favorite.Product?.category === 'DESIGNER' ? '🎨' : '📦'}
+                              {category === 'CHEFF' ? '👨‍🍳' : category === 'GROWN' ? '🌱' : category === 'DESIGNER' ? '🎨' : '📦'}
                             </div>
                           </div>
                         )}
-                        {/* Heart Badge */}
                         <div className="absolute top-3 right-3 w-9 h-9 bg-gradient-to-br from-pink-500 to-red-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
                           <Heart className="w-5 h-5 text-white fill-white" />
                         </div>
-                        {/* Active/Inactive Badge */}
                         {favorite.Product && !favorite.Product.isActive && (
                           <div className="absolute top-3 left-3 bg-gray-800 bg-opacity-75 text-white px-2 py-1 rounded-full text-xs font-medium">
-                            Inactief
+                            {t('common.inactive')}
                           </div>
                         )}
                       </div>
-
-                      {/* Product Info */}
                       <div className="p-5 flex-1">
                         <h3 className="font-semibold text-gray-900 group-hover:text-pink-600 transition-colors text-base mb-2 line-clamp-2 min-h-[3rem]">
-                          {product.title || 'Product'}
+                          {title}
                         </h3>
-                        {product.description && (
+                        {description && (
                           <p className="text-xs text-gray-500 mb-4 line-clamp-2 min-h-[2.5rem]">
-                            {product.description}
+                            {description}
                           </p>
                         )}
                         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                          {product.priceCents ? (
+                          {priceCents != null && priceCents > 0 ? (
                             <span className="font-bold text-emerald-600 text-lg">
-                              €{(product.priceCents / 100).toFixed(2)}
+                              €{(priceCents / 100).toFixed(2)}
                             </span>
                           ) : (
                             <span className="text-sm text-gray-500 font-medium">
-                              Gratis
+                              {t('common.free')}
                             </span>
                           )}
                           <span className="text-xs text-gray-500">
-                            {new Date(favorite.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(favorite.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         </div>
                       </div>
@@ -302,13 +319,10 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
             )}
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            Nog geen {currentLabel}
+            {activeTab === 'follows' ? t('common.noFollowsYet') : t('common.noFansYet')}
           </h3>
           <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
-            {activeTab === 'follows' 
-              ? 'Zodra je fan wordt van iemand, verschijnt het hier.'
-              : 'Zodra iemand fan van je wordt, verschijnt het hier.'
-            }
+            {activeTab === 'follows' ? t('common.followsEmptyHint') : t('common.fansEmptyHint')}
           </p>
         </div>
       ) : (

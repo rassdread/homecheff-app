@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { calculateDistance } from '@/lib/geocoding';
+import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -89,7 +90,9 @@ export async function GET(req: NextRequest) {
                 User: {
                   select: {
                     name: true,
-                    username: true
+                    username: true,
+                    lat: true,
+                    lng: true
                   }
                 }
               }
@@ -644,13 +647,34 @@ export async function GET(req: NextRequest) {
           select: { id: true }
         });
 
+        let currentDistance = 0;
+        let currentEstimatedMin = currentOrder.estimatedTime || 30;
+        const sellerUser = currentOrder.order.items[0]?.Product?.seller?.User;
+        const buyerUser = currentOrder.order.User as { lat?: number | null; lng?: number | null };
+        const dlLat = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLat && deliveryProfile.currentLng)
+          ? deliveryProfile.currentLat
+          : userLocation?.lat;
+        const dlLng = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLng)
+          ? deliveryProfile.currentLng
+          : userLocation?.lng;
+        if (sellerUser?.lat != null && sellerUser?.lng != null && buyerUser?.lat != null && buyerUser?.lng != null && dlLat != null && dlLng != null) {
+          const [r1, r2] = await Promise.all([
+            getRouteDistance({ lat: dlLat, lng: dlLng }, { lat: sellerUser.lat, lng: sellerUser.lng }, 'driving'),
+            getRouteDistance({ lat: sellerUser.lat, lng: sellerUser.lng }, { lat: buyerUser.lat, lng: buyerUser.lng }, 'driving')
+          ]);
+          if ('distance' in r1 && 'distance' in r2) {
+            currentDistance = Math.round((r1.distance + r2.distance) * 10) / 10;
+            currentEstimatedMin = r1.duration + r2.duration;
+          }
+        }
+
         transformedCurrentOrder = {
           id: currentOrder.id,
           orderId: currentOrder.orderId,
           status: currentOrder.status,
           deliveryFee: currentOrder.deliveryFee,
-          estimatedTime: currentOrder.estimatedTime || 30,
-          distance: 5,
+          estimatedTime: currentEstimatedMin,
+          distance: currentDistance || 0,
           customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
           customerAddress: currentOrder.order.deliveryAddress || 'Adres niet beschikbaar',
           customerPhone: '06-12345678',
@@ -682,15 +706,33 @@ export async function GET(req: NextRequest) {
         };
       }
 
-      // Transform recent orders
-      transformedRecentOrders = deliveryProfile.deliveryOrders.slice(0, 5).map(order => ({
-        id: order.id,
-        orderId: order.orderId,
-        status: order.status,
-        deliveryFee: order.deliveryFee,
-        estimatedTime: order.estimatedTime || 30,
-        distance: 5,
-        customerName: order.order.User.name || order.order.User.username || 'Klant',
+      // Transform recent orders (met echte route-afstand waar coördinaten beschikbaar zijn)
+      const recentWithDistance = await Promise.all(
+        deliveryProfile.deliveryOrders.slice(0, 5).map(async (order) => {
+          let dist = 0;
+          let estMin = order.estimatedTime || 30;
+          const sUser = order.order.items[0]?.Product?.seller?.User;
+          const bUser = order.order.User as { lat?: number | null; lng?: number | null };
+          const dLat = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLat && deliveryProfile.currentLng) ? deliveryProfile.currentLat : userLocation?.lat;
+          const dLng = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLng) ? deliveryProfile.currentLng : userLocation?.lng;
+          if (sUser?.lat != null && sUser?.lng != null && bUser?.lat != null && bUser?.lng != null && dLat != null && dLng != null) {
+            const [r1, r2] = await Promise.all([
+              getRouteDistance({ lat: dLat, lng: dLng }, { lat: sUser.lat, lng: sUser.lng }, 'driving'),
+              getRouteDistance({ lat: sUser.lat, lng: sUser.lng }, { lat: bUser.lat, lng: bUser.lng }, 'driving')
+            ]);
+            if ('distance' in r1 && 'distance' in r2) {
+              dist = Math.round((r1.distance + r2.distance) * 10) / 10;
+              estMin = r1.duration + r2.duration;
+            }
+          }
+          return {
+            id: order.id,
+            orderId: order.orderId,
+            status: order.status,
+            deliveryFee: order.deliveryFee,
+            estimatedTime: estMin,
+            distance: dist,
+            customerName: order.order.User.name || order.order.User.username || 'Klant',
         customerAddress: order.order.deliveryAddress || 'Adres niet beschikbaar',
         customerPhone: '06-12345678',
         notes: order.notes || '',
@@ -717,7 +759,10 @@ export async function GET(req: NextRequest) {
             lng: order.order.items[0]?.Product?.seller?.User?.lng || null
           }
         }
-      }));
+        };
+        })
+      );
+      transformedRecentOrders = recentWithDistance;
 
       // Get available TEEN_DELIVERY orders (DeliveryOrders without deliveryProfileId)
       const availableDeliveryOrders = await prisma.deliveryOrder.findMany({
@@ -774,77 +819,69 @@ export async function GET(req: NextRequest) {
         take: 20
       });
 
-      // Filter orders by GPS distance and time availability
+      // Filter orders by distance and time availability (Google Maps route of Haversine)
       // Only show orders if deliverer is online
-      const filteredAvailableOrders = availableDeliveryOrders.filter(deliveryOrder => {
-        if (!deliveryProfile.isOnline) return false;
-        if (!userLocation?.lat || !userLocation?.lng) return false;
-        if (!deliveryOrder.order) return false;
+      const delivererLat = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.isOnline && deliveryProfile.currentLat && deliveryProfile.currentLng)
+        ? deliveryProfile.currentLat
+        : userLocation?.lat;
+      const delivererLng = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.isOnline && deliveryProfile.currentLng)
+        ? deliveryProfile.currentLng
+        : userLocation?.lng;
 
-        const product = deliveryOrder.order.items[0]?.Product;
-        if (!product?.seller?.User?.lat || !product?.seller?.User?.lng) return false;
-        if (!deliveryOrder.order.User?.lat || !deliveryOrder.order.User?.lng) return false;
+      const ordersWithDistance = await Promise.all(
+        availableDeliveryOrders
+          .filter((deliveryOrder) => {
+            if (!deliveryProfile.isOnline || !userLocation?.lat || !userLocation?.lng || !deliveryOrder.order) return false;
+            const product = deliveryOrder.order.items[0]?.Product;
+            if (!product?.seller?.User?.lat || !product?.seller?.User?.lng || !deliveryOrder.order.User?.lat || !deliveryOrder.order.User?.lng) return false;
+            const dSeller = calculateDistance(delivererLat!, delivererLng!, product.seller.User.lat, product.seller.User.lng);
+            const dBuyer = calculateDistance(delivererLat!, delivererLng!, deliveryOrder.order.User.lat, deliveryOrder.order.User.lng);
+            return dSeller <= deliveryProfile.maxDistance * 1.5 && dBuyer <= deliveryProfile.maxDistance * 1.5;
+          })
+          .slice(0, 20)
+          .map(async (deliveryOrder) => {
+            const product = deliveryOrder.order!.items[0]?.Product!;
+            const sellerLat = product.seller.User.lat!;
+            const sellerLng = product.seller.User.lng!;
+            const buyerLat = deliveryOrder.order!.User!.lat!;
+            const buyerLng = deliveryOrder.order!.User!.lng!;
+            const origin = { lat: delivererLat!, lng: delivererLng! };
 
-        const useGpsLocation = deliveryProfile.gpsTrackingEnabled && 
-                                 deliveryProfile.isOnline && 
-                                 deliveryProfile.currentLat && 
-                                 deliveryProfile.currentLng;
-        
-        const delivererLat = useGpsLocation ? deliveryProfile.currentLat! : userLocation.lat!;
-        const delivererLng = useGpsLocation ? deliveryProfile.currentLng! : userLocation.lng!;
+            const [routeToSeller, routeToBuyer] = await Promise.all([
+              getRouteDistance(origin, { lat: sellerLat, lng: sellerLng }, 'driving'),
+              getRouteDistance(origin, { lat: buyerLat, lng: buyerLng }, 'driving')
+            ]);
 
-        const distanceToSeller = calculateDistance(
-          delivererLat,
-          delivererLng,
-          product.seller.User.lat,
-          product.seller.User.lng
-        );
+            const distanceToSeller = 'distance' in routeToSeller ? routeToSeller.distance : calculateDistance(delivererLat!, delivererLng!, sellerLat, sellerLng);
+            const distanceToBuyer = 'distance' in routeToBuyer ? routeToBuyer.distance : calculateDistance(delivererLat!, delivererLng!, buyerLat, buyerLng);
+            const durationToSeller = 'duration' in routeToSeller ? routeToSeller.duration : Math.ceil((distanceToSeller / 50) * 60);
+            const durationToBuyer = 'duration' in routeToBuyer ? routeToBuyer.duration : Math.ceil((distanceToBuyer / 50) * 60);
 
-        const distanceToBuyer = calculateDistance(
-          delivererLat,
-          delivererLng,
-          deliveryOrder.order.User.lat,
-          deliveryOrder.order.User.lng
-        );
+            return {
+              deliveryOrder,
+              distanceToSeller: Math.round(distanceToSeller * 10) / 10,
+              distanceToBuyer: Math.round(distanceToBuyer * 10) / 10,
+              totalDistance: Math.round((distanceToSeller + distanceToBuyer) * 10) / 10,
+              estimatedMinutes: durationToSeller + durationToBuyer
+            };
+          })
+      );
 
-        const withinSellerRadius = distanceToSeller <= deliveryProfile.maxDistance;
-        const withinBuyerRadius = distanceToBuyer <= deliveryProfile.maxDistance;
+      const filteredAvailableOrders = ordersWithDistance.filter(
+        (o) => o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance
+      );
 
-        return withinSellerRadius && withinBuyerRadius;
-      });
-
-      // Transform available orders for frontend
-      transformedAvailableOrders = filteredAvailableOrders.map(deliveryOrder => {
-        const product = deliveryOrder.order.items[0]?.Product;
-        const sellerLat = product?.seller?.User?.lat || 0;
-        const sellerLng = product?.seller?.User?.lng || 0;
-        const buyerLat = deliveryOrder.order.User?.lat || 0;
-        const buyerLng = deliveryOrder.order.User?.lng || 0;
-
-        const useGpsLocation = deliveryProfile.gpsTrackingEnabled && 
-                                 deliveryProfile.isOnline && 
-                                 deliveryProfile.currentLat && 
-                                 deliveryProfile.currentLng;
-        
-        const delivererLat = useGpsLocation ? deliveryProfile.currentLat! : (userLocation?.lat || 0);
-        const delivererLng = useGpsLocation ? deliveryProfile.currentLng! : (userLocation?.lng || 0);
-
-        const distanceToSeller = delivererLat && delivererLng && sellerLat && sellerLng
-          ? calculateDistance(delivererLat, delivererLng, sellerLat, sellerLng)
-          : 0;
-        const distanceToBuyer = delivererLat && delivererLng && buyerLat && buyerLng
-          ? calculateDistance(delivererLat, delivererLng, buyerLat, buyerLng)
-          : 0;
-        const totalDistance = distanceToSeller + distanceToBuyer;
-
+      // Transform available orders for frontend (echte route-afstand en geschatte tijd)
+      transformedAvailableOrders = filteredAvailableOrders.map(({ deliveryOrder, totalDistance, estimatedMinutes }) => {
+        const product = deliveryOrder.order?.items[0]?.Product;
         return {
           id: deliveryOrder.id,
           orderId: deliveryOrder.orderId,
           status: 'PENDING' as const,
           deliveryFee: deliveryOrder.deliveryFee,
-          estimatedTime: Math.round(totalDistance * 5),
+          estimatedTime: estimatedMinutes,
           distance: totalDistance,
-          customerName: deliveryOrder.order.User?.name || deliveryOrder.order.User?.username || 'Klant',
+          customerName: deliveryOrder.order?.User?.name || deliveryOrder.order?.User?.username || 'Klant',
           customerAddress: deliveryOrder.deliveryAddress || 'Bezorgadres',
           customerPhone: '06-12345678',
           notes: deliveryOrder.notes || '',

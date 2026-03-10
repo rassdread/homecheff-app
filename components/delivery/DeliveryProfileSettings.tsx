@@ -46,6 +46,7 @@ interface UserData {
 
 interface EarningsStats {
   totalEarnings: number;
+  paidEarnings?: number;
   todayEarnings: number;
   weekEarnings: number;
   monthEarnings: number;
@@ -270,6 +271,9 @@ export default function DeliveryProfileSettings() {
             </div>
             <p className="text-xs text-gray-500 mt-2">
               {stats.completedDeliveries} voltooide bezorgingen
+              {typeof stats.paidEarnings === 'number' && (
+                <span className="block mt-1 text-emerald-600">Officieel uitbetaald: {formatCurrency(stats.paidEarnings)}</span>
+              )}
             </p>
           </div>
 
@@ -570,6 +574,9 @@ export default function DeliveryProfileSettings() {
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           Order {payout.orderId}
+                          {payout.status === 'PENDING' && (
+                            <span className="ml-1 text-amber-600">(in behandeling)</span>
+                          )}
                         </p>
                       </div>
                       <span className="text-xs text-gray-500">

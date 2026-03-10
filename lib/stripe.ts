@@ -39,6 +39,9 @@ export function matchesCurrentMode(id: string | null | undefined): boolean {
   return isTestId === isTestMode;
 }
 
+/** Prefix voor Stripe Checkout Session IDs in de huidige mode (voor Prisma where) */
+export const STRIPE_SESSION_ID_PREFIX = isTestMode ? 'cs_test_' : 'cs_live_';
+
 export const stripe = STRIPE_SECRET_KEY
   ? new Stripe(STRIPE_SECRET_KEY, {
       apiVersion: '2025-08-27.basil',

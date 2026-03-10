@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useSessionCleanup } from '@/hooks/useSessionCleanup';
 import { useTranslation } from '@/hooks/useTranslation';
 import { 
@@ -31,7 +32,9 @@ import {
   Printer,
   ExternalLink,
   MapPin,
-  LayoutGrid
+  LayoutGrid,
+  ChevronDown,
+  Wallet
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import Link from 'next/link';
@@ -95,16 +98,22 @@ interface Order {
   deliveredAt?: string;
   conversationId?: string;
   shippingLabel?: ShippingLabel | null;
+  /** Alleen bij afhaal (PICKUP) of als verkoper de toegewezen bezorger is */
+  sellerCanSetDelivered?: boolean;
 }
 
 export default function SellerDashboardClient() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { data: session } = useSession();
+  const { t, language } = useTranslation();
+  const hasDeliveryProfile = !!(session?.user as any)?.hasDeliveryProfile;
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
+  const periodDropdownRef = useRef<HTMLDivElement>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'deliveries'>('dashboard');
   
@@ -134,6 +143,18 @@ export default function SellerDashboardClient() {
       filterOrders();
     }
   }, [orders, statusFilter, searchQuery, activeTab]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (periodDropdownRef.current && !periodDropdownRef.current.contains(e.target as Node)) {
+        setPeriodDropdownOpen(false);
+      }
+    }
+    if (periodDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [periodDropdownOpen]);
 
   const loadDashboardData = async () => {
     try {
@@ -277,7 +298,7 @@ export default function SellerDashboardClient() {
     if (statusLower === 'shipped' || statusLower === 'verzonden') return t('seller.shipped');
     if (statusLower === 'delivered' || statusLower === 'voltooid') return t('seller.completed');
     if (statusLower === 'cancelled' || statusLower === 'geannuleerd') return t('seller.cancelled');
-    return 'Wachtend';
+    return t('seller.pending');
   };
 
   const getOrderStatusColor = (status: string) => {
@@ -300,8 +321,9 @@ export default function SellerDashboardClient() {
     return 'bg-yellow-100 text-yellow-800';
   };
 
+  const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const formatOrderDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
+    return new Date(dateString).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -364,14 +386,14 @@ export default function SellerDashboardClient() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR'
     }).format(amount / 100);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
+    return new Date(dateString).toLocaleDateString(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -418,42 +440,83 @@ export default function SellerDashboardClient() {
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Header: titel + beschrijving altijd boven de periode/instellingen, geen overlap */}
         <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">{t('seller.dashboardDescription')}</p>
-            </div>
-            
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Settings Button */}
+          {/* Regel 1: Titel en beschrijving volle breedte, eigen blok - nooit bedekt door periode */}
+          <div className="w-full block mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
+          </div>
+
+          {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}
+          <div className="w-full pt-3 border-t border-gray-200 flex flex-wrap items-center gap-3 sm:gap-4">
+              {activeTab === 'dashboard' && (
+                <div className="relative w-full sm:w-auto flex-shrink-0" ref={periodDropdownRef}>
+                  <div className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm w-full sm:w-auto min-w-[200px] sm:min-w-[240px]">
+                    <Calendar className="w-5 h-5 text-gray-500 flex-shrink-0" aria-hidden />
+                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {t('common.period')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPeriodDropdownOpen((v) => !v)}
+                        className="w-full flex items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-left text-base font-semibold text-gray-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]"
+                        aria-haspopup="listbox"
+                        aria-expanded={periodDropdownOpen}
+                        id="dashboard-period"
+                      >
+                        <span className="truncate">
+                          {selectedPeriod === '7d' && t('common.last7Days')}
+                          {selectedPeriod === '30d' && t('common.last30Days')}
+                          {selectedPeriod === '90d' && t('common.last90Days')}
+                          {selectedPeriod === '1y' && t('common.lastYear')}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+                  {periodDropdownOpen && (
+                    <div
+                      className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-[100] w-full sm:min-w-[240px]"
+                      role="listbox"
+                    >
+                      {[
+                        { value: '7d', label: t('common.last7Days') },
+                        { value: '30d', label: t('common.last30Days') },
+                        { value: '90d', label: t('common.last90Days') },
+                        { value: '1y', label: t('common.lastYear') },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="option"
+                          aria-selected={selectedPeriod === opt.value}
+                          onClick={() => {
+                            setSelectedPeriod(opt.value);
+                            setPeriodDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-base font-medium transition-colors ${
+                            selectedPeriod === opt.value
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-900 hover:bg-gray-50'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <Link
                 href="/verkoper/instellingen"
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
                 <Settings className="w-4 h-4" />
                 <span>{t('common.settings')}</span>
               </Link>
             </div>
-            
-            {/* Period Selector - Moved below header, only show on dashboard tab */}
-            {activeTab === 'dashboard' && (
-              <div className="flex items-center gap-2 mb-4">
-                <label className="text-sm text-gray-600">{t('common.period') || 'Periode:'}</label>
-                <select
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
-                >
-                  <option value="7d">{t('common.last7Days')}</option>
-                  <option value="30d">{t('common.last30Days')}</option>
-                  <option value="90d">{t('common.last90Days')}</option>
-                  <option value="1y">{t('common.lastYear')}</option>
-                </select>
-              </div>
-            )}
-          </div>
 
           {/* Tabs - Responsive for mobile */}
           <div className="border-b border-gray-200 overflow-x-auto -mx-4 sm:mx-0 scrollbar-hide">
@@ -478,7 +541,7 @@ export default function SellerDashboardClient() {
                 } whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-0`}
               >
                 <Package className="w-4 h-4 sm:hidden" />
-                <span>{t('seller.salesOrders') || 'Verkooporders'}</span>
+                <span>{t('seller.salesOrders')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('deliveries')}
@@ -489,7 +552,7 @@ export default function SellerDashboardClient() {
                 } whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-0`}
               >
                 <Truck className="w-4 h-4 sm:hidden" />
-                <span>{t('seller.deliveries') || 'Bezorgingen'}</span>
+                <span>{t('seller.deliveries')}</span>
               </button>
             </nav>
           </div>
@@ -498,6 +561,29 @@ export default function SellerDashboardClient() {
         {/* Dashboard Tab Content */}
         {activeTab === 'dashboard' && (
           <>
+        {/* Link naar Bezorgdashboard voor verkoper-bezorgers */}
+        {hasDeliveryProfile && (
+          <Link
+            href="/delivery/dashboard"
+            className="block mb-6 sm:mb-8 p-4 sm:p-5 rounded-xl bg-slate-50 border-2 border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-colors"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Truck className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="font-semibold text-gray-900">{t('seller.youAlsoDeliver')}</h2>
+                  <p className="text-sm text-gray-600">{t('seller.openDeliveryDashboard')}</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-blue-600 font-medium text-sm">
+                {t('seller.goToDeliveryDashboard')}
+                <ExternalLink className="w-4 h-4" />
+              </span>
+            </div>
+          </Link>
+        )}
         {/* Nieuwe Verkooporders Preview - BOVENAAN */}
         {(() => {
           const newOrders = recentOrders.filter(o => o.status === 'Bevestigd' || o.status === 'Wachtend');
@@ -560,7 +646,7 @@ export default function SellerDashboardClient() {
                     onClick={() => setActiveTab('orders')}
                     className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
-                    {t('seller.viewMoreOrders', { count: newOrders.length - 3 }) || `Bekijk ${newOrders.length - 3} meer →`}
+                    {t('seller.viewMoreOrders', { count: newOrders.length - 3 })}
                   </button>
                 </div>
               )}
@@ -573,12 +659,12 @@ export default function SellerDashboardClient() {
           <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl shadow-sm border border-emerald-200 p-4 sm:p-6 mb-6">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-              <span>Financieel Overzicht</span>
+              <span>{t('seller.financialOverview')}</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Bruto Omzet */}
               <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Bruto Omzet</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">{t('seller.grossRevenue')}</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{formatCurrency(stats.totalRevenue)}</p>
                 <div className={`flex items-center text-xs mt-2 ${stats.revenueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {stats.revenueChange >= 0 ? (
@@ -586,28 +672,37 @@ export default function SellerDashboardClient() {
                   ) : (
                     <TrendingDown className="w-3 h-3 mr-1 flex-shrink-0" />
                   )}
-                  <span className="break-words">{Math.abs(stats.revenueChange).toFixed(1)}% vs vorige periode</span>
+                  <span className="break-words">{Math.abs(stats.revenueChange).toFixed(1)}% {t('seller.vsPreviousPeriod')}</span>
                 </div>
               </div>
 
               {/* Platform Kosten */}
               <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border-l-4 border-orange-500">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Platform Kosten</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">{t('seller.platformCosts')}</p>
                 <p className="text-xl sm:text-2xl font-bold text-orange-600 break-words">{formatCurrency(stats.platformFee || 0)}</p>
                 <p className="text-xs text-gray-500 mt-2 break-words">
-                  {stats.platformFeePercentage ? `${stats.platformFeePercentage}%` : '12%'} HomeCheff fee
+                  {stats.platformFeePercentage ? `${stats.platformFeePercentage}%` : '12%'} {t('seller.homecheffFee')}
                   {stats.platformFeePercentage && stats.platformFeePercentage < 12 && (
-                    <span className="ml-1 text-emerald-600 font-medium">✓ Met abonnement</span>
+                    <span className="ml-1 text-emerald-600 font-medium">✓ {t('seller.withSubscription')}</span>
                   )}
                 </p>
               </div>
 
               {/* Netto Verdiensten - Highlight */}
               <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg p-4 sm:p-5 shadow-lg text-white">
-                <p className="text-xs sm:text-sm font-medium text-emerald-50 mb-2">Jouw Netto Verdiensten</p>
+                <p className="text-xs sm:text-sm font-medium text-emerald-50 mb-2">{t('seller.netEarnings')}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-white break-words">{formatCurrency(stats.netEarnings)}</p>
-                <p className="text-xs text-emerald-50 mt-2">Wordt automatisch uitbetaald</p>
+                <p className="text-xs text-emerald-50 mt-2">{t('seller.paidOutAutomatically')}</p>
               </div>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/verkoper/revenue"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+              >
+                <Wallet className="w-5 h-5 flex-shrink-0" />
+                {t('seller.requestPayout')}
+              </Link>
             </div>
           </div>
         )}
@@ -682,7 +777,7 @@ export default function SellerDashboardClient() {
             <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Weergaven</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t('common.totalViews')}</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.totalViews}</p>
                   <div className={`flex items-center text-xs sm:text-sm mt-1 ${stats.viewsChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {stats.viewsChange >= 0 ? (
@@ -711,7 +806,7 @@ export default function SellerDashboardClient() {
                   onClick={() => setActiveTab('orders')}
                   className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                 >
-                  {t('common.viewAll') || 'Alles bekijken'} →
+                  {t('common.viewAll')} →
                 </button>
               </div>
             </div>
@@ -746,7 +841,7 @@ export default function SellerDashboardClient() {
                     onClick={() => setActiveTab('orders')}
                     className="mt-3 sm:mt-4 text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
-                    {t('seller.manageOrders') || 'Orders beheren'}
+                    {t('seller.manageOrders')}
                   </button>
                 </div>
               )}
@@ -836,6 +931,20 @@ export default function SellerDashboardClient() {
               </div>
             </button>
 
+            {/* Mijn Verdiensten / Uitbetaling aanvragen */}
+            <button
+              onClick={() => router.push('/verdiensten?uitbetaling=1')}
+              className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              </div>
+              <div className="text-left min-w-0 flex-1">
+                <p className="font-medium text-gray-900 text-sm sm:text-base">{t('seller.myEarnings')}</p>
+                <p className="text-xs sm:text-sm text-gray-600">{t('seller.requestPayoutAllRoles')}</p>
+              </div>
+            </button>
+
             {/* Nieuw Product */}
             <button
               onClick={() => router.push('/sell/new')}
@@ -883,7 +992,7 @@ export default function SellerDashboardClient() {
                     <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-neutral-400" />
                     <input
                       type="text"
-                      placeholder={t('seller.searchOrders') || 'Zoek orders...'}
+                      placeholder={t('seller.searchOrders')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border border-neutral-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent"
@@ -1121,7 +1230,7 @@ export default function SellerDashboardClient() {
                             <span>{t('seller.readyForDelivery') || 'Klaar voor bezorging'}</span>
                           </button>
                         )}
-                        {(order.status === 'Verzonden' || order.status === 'SHIPPED') && (
+                        {(order.status === 'Verzonden' || order.status === 'SHIPPED') && order.sellerCanSetDelivered && (
                           <button
                             onClick={() => handleStatusUpdate(order.id, 'DELIVERED')}
                             className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
@@ -1160,6 +1269,18 @@ export default function SellerDashboardClient() {
         {/* Deliveries Tab Content */}
         {activeTab === 'deliveries' && (
           <>
+            {hasDeliveryProfile && (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <p className="text-sm text-gray-700">{t('seller.deliveryDashboardHint')}</p>
+                <Link
+                  href="/delivery/dashboard"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  <Truck className="w-4 h-4" />
+                  {t('navbar.deliveryDashboard')}
+                </Link>
+              </div>
+            )}
             {deliveriesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,36 +35,49 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'No delivery profile found' }, { status: 404 });
     }
 
+    // OrderIds waar deze bezorger een afgeronde bezorging heeft (bezorgkosten uit triggerDeliveryPayout)
+    const deliveredByMe = await prisma.deliveryOrder.findMany({
+      where: {
+        deliveryProfileId: deliveryProfile.id,
+        status: 'DELIVERED'
+      },
+      select: { orderId: true }
+    });
+    const deliveredOrderIds = new Set(deliveredByMe.map(d => d.orderId));
+
     // Get all payouts for this deliverer
     const payouts = await prisma.payout.findMany({
       where: {
         toUserId: user.id
       },
       include: {
-        Transaction: {
-          include: {
-            User: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          }
-        }
+        Transaction: true
       },
       orderBy: {
         createdAt: 'desc'
       }
     });
 
-    // Filter payouts to only include delivery-related ones (based on transaction ID pattern)
+    // Delivery payouts: (1) transactionId bevat 'delivery'/'txn_delivery' (webhook) OF (2) transactionId = orderId van een door mij geleverde order (triggerDeliveryPayout)
     const deliveryPayouts = payouts.filter(payout => 
-      payout.transactionId.includes('delivery') || payout.transactionId.includes('txn_delivery')
+      payout.transactionId.includes('delivery') ||
+      payout.transactionId.includes('txn_delivery') ||
+      deliveredOrderIds.has(payout.transactionId)
     );
 
-    // Calculate stats
-    const totalEarnings = deliveryPayouts.reduce((sum, payout) => sum + payout.amountCents, 0);
+    // Officieel uitbetaald = alleen payouts met providerRef (transfer uitgevoerd)
+    const paidPayouts = deliveryPayouts.filter(p => p.providerRef != null);
+    const paidEarnings = paidPayouts.reduce((sum, p) => sum + p.amountCents, 0);
+    const earningsFromPayouts = deliveryPayouts.reduce((sum, p) => sum + p.amountCents, 0);
+    // Bezorgkosten meenemen: verdiensten uit alle afgeronde bezorgingen (deliveryFee * 88%)
+    const allCompletedDeliveries = await prisma.deliveryOrder.findMany({
+      where: { deliveryProfileId: deliveryProfile.id, status: 'DELIVERED' },
+      select: { deliveryFee: true }
+    });
+    const earnedFromCompletedDeliveries = allCompletedDeliveries
+      .filter(o => o.deliveryFee != null)
+      .reduce((sum, o) => sum + Math.round((o.deliveryFee ?? 0) * DELIVERY_DELIVERER_PERCENT / 100), 0);
+    const totalEarnings = Math.max(earningsFromPayouts, earnedFromCompletedDeliveries);
     
     // Today's earnings
     const today = new Date();
@@ -114,25 +128,29 @@ export async function GET(req: NextRequest) {
       take: 20
     });
 
-    const totalDeliveries = deliveryOrders.length;
-    const completedDeliveries = deliveryOrders.filter(order => order.status === 'DELIVERED').length;
-    const pendingDeliveries = deliveryOrders.filter(order => 
-      ['PENDING', 'ACCEPTED', 'PICKED_UP'].includes(order.status)
-    ).length;
+    const totalDeliveries = await prisma.deliveryOrder.count({ where: { deliveryProfileId: deliveryProfile.id } });
+    const completedDeliveries = allCompletedDeliveries.length;
+    const pendingDeliveries = await prisma.deliveryOrder.count({
+      where: {
+        deliveryProfileId: deliveryProfile.id,
+        status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP'] }
+      }
+    });
 
-    // Transform payouts for frontend
+    // Transform payouts for frontend (status = officieel uitbetaald als providerRef gezet)
     const transformedPayouts = deliveryPayouts.map(payout => ({
       id: payout.id,
       amount: payout.amountCents,
       createdAt: payout.createdAt,
-      status: 'COMPLETED', // Assuming all created payouts are completed
+      status: payout.providerRef ? 'COMPLETED' : 'PENDING',
       transactionId: payout.transactionId,
-      orderId: payout.transactionId.replace('txn_delivery_', '').split('_')[0] || 'Unknown'
+      orderId: payout.transactionId.includes('txn_delivery_') ? payout.transactionId.replace('txn_delivery_', '').split('_')[0] : payout.transactionId
     }));
 
     return NextResponse.json({
       stats: {
         totalEarnings,
+        paidEarnings,
         todayEarnings,
         weekEarnings,
         monthEarnings,

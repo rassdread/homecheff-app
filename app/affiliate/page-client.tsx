@@ -150,35 +150,49 @@ export default function AffiliatePageClient() {
           </div>
         </div>
 
-        {/* Commissions - Simple List */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('affiliate.howEarnCommission')}</h2>
+        {/* Commissions: groter, duidelijker, aansprekender */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-8 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">{t('affiliate.howEarnCommission')}</h2>
           
-          <div className="space-y-4 mb-6">
-            <div className="border-l-4 border-blue-500 pl-4">
-              <h3 className="font-semibold text-gray-900 mb-1">{t('affiliate.usersCommission')}</h3>
-              <p className="text-sm text-gray-600">{t('affiliate.usersCommissionDesc')}</p>
-              <p className="text-xs text-gray-500 mt-1">• {t('affiliate.buyerBringing')} {t('affiliate.buyerBringingDesc')}</p>
-              <p className="text-xs text-gray-500">• {t('affiliate.sellerBringing')} {t('affiliate.sellerBringingDesc')}</p>
-              <p className="text-xs text-gray-500">• {t('affiliate.bothBringing')} {t('affiliate.bothBringingDesc')}</p>
+          <div className="space-y-6 mb-6">
+            <div className="rounded-xl border-2 border-blue-100 bg-blue-50/50 p-5 sm:p-6">
+              <div className="flex gap-3">
+                <div className="w-1 sm:w-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden />
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-2">{t('affiliate.usersCommission')}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4">{t('affiliate.usersCommissionDesc')}</p>
+                  <ul className="space-y-2 text-sm sm:text-base text-gray-700">
+                    <li className="flex gap-2"><span className="text-blue-600 font-medium">•</span> <span><strong>{t('affiliate.buyerBringing')}</strong> {t('affiliate.buyerBringingDesc')}</span></li>
+                    <li className="flex gap-2"><span className="text-blue-600 font-medium">•</span> <span><strong>{t('affiliate.sellerBringing')}</strong> {t('affiliate.sellerBringingDesc')}</span></li>
+                    <li className="flex gap-2"><span className="text-blue-600 font-medium">•</span> <span><strong>{t('affiliate.bothBringing')}</strong> {t('affiliate.bothBringingDesc')}</span></li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <div className="border-l-4 border-emerald-500 pl-4">
-              <h3 className="font-semibold text-gray-900 mb-1">{t('affiliate.businessCommission')}</h3>
-              <p className="text-sm text-gray-600">{t('affiliate.businessCommissionDesc')}</p>
-              <p className="text-xs text-gray-500 mt-1">• {t('affiliate.basicExample')}</p>
-              <p className="text-xs text-gray-500">• {t('affiliate.proExample')}</p>
-              <p className="text-xs text-gray-500">• {t('affiliate.premiumExample')}</p>
-              <p className="text-xs text-gray-500 mt-2">• {t('affiliate.homecheffAlways50')}</p>
-              <p className="text-xs text-gray-500">• {t('affiliate.canGiveDiscount')}</p>
+            <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/50 p-5 sm:p-6">
+              <div className="flex gap-3">
+                <div className="w-1 sm:w-1.5 rounded-full bg-emerald-500 flex-shrink-0" aria-hidden />
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-emerald-900 mb-2">{t('affiliate.businessCommission')}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4">{t('affiliate.businessCommissionDesc')}</p>
+                  <ul className="space-y-2 text-sm sm:text-base text-gray-700">
+                    <li className="flex gap-2"><span className="text-emerald-600 font-medium">•</span> <span>{t('affiliate.basicExample')}</span></li>
+                    <li className="flex gap-2"><span className="text-emerald-600 font-medium">•</span> <span>{t('affiliate.proExample')}</span></li>
+                    <li className="flex gap-2"><span className="text-emerald-600 font-medium">•</span> <span>{t('affiliate.premiumExample')}</span></li>
+                    <li className="flex gap-2 pt-2 border-t border-emerald-200/60"><span className="text-emerald-600 font-medium">•</span> <span>{t('affiliate.homecheffAlways50')}</span></li>
+                    <li className="flex gap-2"><span className="text-emerald-600 font-medium">•</span> <span>{t('affiliate.canGiveDiscount')}</span></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-gray-700 mb-3">
-            <p><strong>💡 {t('affiliate.everyoneWorthMoney')}:</strong> {t('affiliate.everyoneWorthMoneyDesc')}</p>
+          <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-4 sm:p-5 text-sm sm:text-base text-gray-700 mb-4">
+            <p><strong className="text-blue-900">💡 {t('affiliate.everyoneWorthMoney')}:</strong> {t('affiliate.everyoneWorthMoneyDesc')}</p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-200 rounded p-3 text-sm text-gray-700">
-            <p><strong>{t('affiliate.twelveTwelveProgram')}:</strong> {t('affiliate.twelveTwelveFullDescription')}</p>
+          <div className="bg-emerald-50 border-2 border-emerald-100 rounded-xl p-4 sm:p-5 text-sm sm:text-base text-gray-700">
+            <p><strong className="text-emerald-900">{t('affiliate.twelveTwelveProgram')}:</strong> {t('affiliate.twelveTwelveFullDescription')}</p>
           </div>
         </div>
 
@@ -205,25 +219,44 @@ export default function AffiliatePageClient() {
           </ol>
         </div>
 
-        {/* Passive Income - Compact */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">💰 {t('affiliate.passiveIncomeTitle')}</h2>
-          <div className="grid sm:grid-cols-2 gap-4 mb-4">
-            <div className="border rounded p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">{t('affiliate.whatItCosts')}</h3>
-              <p className="text-2xl font-bold text-emerald-600">€0</p>
-              <p className="text-xs text-gray-500 mt-1">{t('affiliate.signupCost')} + {t('affiliate.monthlyCosts')}</p>
+        {/* Passive Income: groter, duidelijker, aansprekender */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-8 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">💰 {t('affiliate.passiveIncomeTitle')}</h2>
+          <div className="grid sm:grid-cols-2 gap-5 mb-6">
+            {/* What you earn - prominent & inviting */}
+            <div className="border-2 border-emerald-200 rounded-xl p-6 sm:p-7 bg-gradient-to-br from-emerald-50 to-white shadow-sm order-2 sm:order-1">
+              <span className="inline-block text-sm font-semibold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full mb-4">
+                {t('affiliate.whatYouEarnBadge')}
+              </span>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('affiliate.whatYouEarn')}</h3>
+              <p className="text-4xl sm:text-5xl font-bold text-emerald-600 mt-3">€1,750{t('affiliate.perMonth')}</p>
+              <p className="text-base text-emerald-800/90 mt-3 font-medium leading-snug">{t('affiliate.whatYouEarnSubline')}</p>
+              <p className="text-sm text-gray-500 mt-3">{t('affiliate.year2Plus')} {t('affiliate.realistic')}</p>
             </div>
-            <div className="border rounded p-4 bg-emerald-50">
-              <h3 className="font-semibold text-gray-900 mb-2">{t('affiliate.whatYouEarn')}</h3>
-              <p className="text-2xl font-bold text-emerald-600">€1,378{t('affiliate.perMonth')}</p>
-              <p className="text-xs text-gray-500 mt-1">{t('affiliate.year2Plus')} ({t('affiliate.realistic')})</p>
+            <div className="border-2 border-gray-100 rounded-xl p-5 order-1 sm:order-2">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('affiliate.whatItCosts')}</h3>
+              <p className="text-3xl font-bold text-emerald-600">€0</p>
+              <p className="text-sm text-gray-500 mt-2">{t('affiliate.signupCost')} + {t('affiliate.monthlyCosts')}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-600 bg-gray-50 rounded p-3">
-            <strong>{t('affiliate.example')}:</strong> {t('affiliate.realisticDesc')} = {t('affiliate.exampleCalculation', { subscriptions: '€1,188', transactions: '€190', total: '€1,378' })}. 
-            {t('affiliate.twelveTwelveExample')} {t('affiliate.financialSecurity.keyPoints.point1Desc')}
-          </p>
+          <div className="bg-gray-50 rounded-xl p-4 sm:p-5 mb-5">
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+              <strong className="text-gray-900">{t('affiliate.example')}:</strong> {t('affiliate.realisticDesc')} = {t('affiliate.exampleCalculation', { subscriptions: '€1,400', transactions: '€350', total: '€1,750' })}.
+            </p>
+            <p className="text-sm sm:text-base text-gray-600 mt-2 leading-relaxed">
+              {t('affiliate.twelveTwelveExample')} {t('affiliate.financialSecurity.keyPoints.point1Desc')}
+            </p>
+          </div>
+          <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-5 sm:p-6 space-y-4">
+            <p className="text-sm sm:text-base font-semibold text-blue-900 leading-relaxed">✓ {t('affiliate.higherConversionStart')}</p>
+            <p className="text-sm sm:text-base font-semibold text-blue-900 leading-relaxed">✓ {t('affiliate.noCeiling')}</p>
+            <p className="text-sm sm:text-base text-blue-800 leading-relaxed">✓ {t('affiliate.guidanceWhenScaling')}</p>
+            <p className="text-sm sm:text-base font-semibold text-emerald-800 leading-relaxed">✓ {t('affiliate.twelveMonthsExtendedForSome')}</p>
+            <div className="border-t-2 border-blue-200 pt-4 mt-4">
+              <p className="text-base sm:text-lg font-bold text-blue-900 mb-2">⏳ {t('affiliate.fixedNumberEnough')}</p>
+              <p className="text-sm sm:text-base text-blue-800 leading-relaxed font-medium">{t('affiliate.everyoneUnderFew')}</p>
+            </div>
+          </div>
         </div>
 
         {/* Sharing - Compact */}
@@ -332,6 +365,7 @@ export default function AffiliatePageClient() {
 
             <div className="mt-4 pt-4 border-t space-y-2 text-xs text-gray-600">
               <p><strong>{t('affiliate.twelveTwelveProgram')} - {t('affiliate.guaranteed12Months')}:</strong> {t('affiliate.twelveTwelveDescription')}. {t('affiliate.guaranteed12MonthsDesc')}</p>
+              <p className="text-emerald-700 font-medium">✨ {t('affiliate.twelveMonthsExtendedForSome')}</p>
               <p><strong>{t('affiliate.contractRenewal')}:</strong> {t('affiliate.contractRenewalDesc')}</p>
               <p className="italic">{t('affiliate.contractTermsDesc')}</p>
             </div>

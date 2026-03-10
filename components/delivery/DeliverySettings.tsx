@@ -95,10 +95,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   }, []);
 
   const transportationOptions = [
-    { id: 'BIKE', label: 'Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 10 },
-    { id: 'EBIKE', label: 'Elektrische Fiets', icon: <Bike className="w-5 h-5" />, maxRange: 20 },
-    { id: 'SCOOTER', label: 'Scooter', icon: <Navigation className="w-5 h-5" />, maxRange: 30 },
-    { id: 'CAR', label: 'Auto', icon: <Navigation className="w-5 h-5" />, maxRange: 50 }
+    { id: 'BIKE', label: t('delivery.transportation.bike'), icon: <Bike className="w-5 h-5" />, maxRange: 10 },
+    { id: 'EBIKE', label: t('delivery.transportation.ebike'), icon: <Bike className="w-5 h-5" />, maxRange: 20 },
+    { id: 'SCOOTER', label: t('delivery.transportation.scooter'), icon: <Navigation className="w-5 h-5" />, maxRange: 30 },
+    { id: 'CAR', label: t('delivery.transportation.car'), icon: <Navigation className="w-5 h-5" />, maxRange: 50 }
   ];
 
   const dayOptions = [
@@ -167,7 +167,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         }, 1500);
       } else {
         const error = await response.json();
-        alert(`Fout: ${error.error}`);
+        alert(`${t('delivery.error')}: ${error.error}`);
       }
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -257,8 +257,8 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
             
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Maximale afstand:</strong> {getMaxDistanceForTransport()}km 
-                (gebaseerd op je vervoersmiddel{formData.transportation.length > 1 ? 'en' : ''})
+                <strong>{t('delivery.maxDistanceLabel')}:</strong> {getMaxDistanceForTransport()}km{' '}
+                ({formData.transportation.length > 1 ? t('delivery.maxDistanceBasedOnTransportPlural') : t('delivery.maxDistanceBasedOnTransport')})
               </p>
             </div>
           </div>
@@ -267,23 +267,23 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center gap-3 mb-6">
               <MapPin className="w-6 h-6 text-primary-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Werkgebied</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('delivery.workAreaTitle')}</h2>
             </div>
 
             <div className="space-y-6">
               <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
-                <h4 className="font-semibold text-green-900 mb-2">✅ Veiligheidsvoordelen</h4>
+                <h4 className="font-semibold text-green-900 mb-2">✅ {t('delivery.safetyBenefits')}</h4>
                 <ul className="text-sm text-green-800 space-y-1">
-                  <li>• Altijd dicht bij huis en bekende omgeving</li>
-                  <li>• Ouders kunnen je route volgen via de app</li>
-                  <li>• Snelle hulp mogelijk bij problemen</li>
-                  <li>• Korte reistijden = minder risico</li>
+                  <li>• {t('delivery.safetyBenefit1')}</li>
+                  <li>• {t('delivery.safetyBenefit2')}</li>
+                  <li>• {t('delivery.safetyBenefit3')}</li>
+                  <li>• {t('delivery.safetyBenefit4')}</li>
                 </ul>
               </div>
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Bezorgmodus
+                  {t('delivery.deliveryModeLabel')}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
@@ -296,7 +296,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   >
                     <div className="flex flex-col items-center gap-2">
                       <MapPin className="w-5 h-5" />
-                      <span className="text-sm font-medium">Vast Gebied</span>
+                      <span className="text-sm font-medium">{t('delivery.fixedArea')}</span>
                       <span className="text-xs text-gray-600">{t('delivery.aroundHouse')}</span>
                     </div>
                   </button>
@@ -310,7 +310,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Navigation className="w-5 h-5" />
-                      <span className="text-sm font-medium">Dynamisch GPS</span>
+                      <span className="text-sm font-medium">{t('delivery.dynamicGps')}</span>
                       <span className="text-xs text-gray-600">{t('delivery.liveLocationTracking')}</span>
                     </div>
                   </button>
@@ -322,13 +322,13 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     <div className="flex items-start gap-3">
                       <Navigation className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-blue-900 mb-2">🛰️ Dynamische GPS Locatie</p>
+                        <p className="text-sm font-medium text-blue-900 mb-2">🛰️ {t('delivery.dynamicGpsTitle')}</p>
                         <ul className="text-xs text-blue-800 space-y-1">
-                          <li>✓ Je locatie wordt continu bijgewerkt tijdens bezorgen</li>
-                          <li>✓ Radius beweegt mee met jouw positie</li>
-                          <li>✓ Ontvang orders in gebieden waar je rijdt</li>
-                          <li>✓ Meer flexibiliteit = meer verdiensten</li>
-                          <li>⚡ GPS actief wanneer je online bent</li>
+                          <li>✓ {t('delivery.dynamicGpsBullet1')}</li>
+                          <li>✓ {t('delivery.dynamicGpsBullet2')}</li>
+                          <li>✓ {t('delivery.dynamicGpsBullet3')}</li>
+                          <li>✓ {t('delivery.dynamicGpsBullet4')}</li>
+                          <li>⚡ {t('delivery.dynamicGpsBullet5')}</li>
                         </ul>
                       </div>
                     </div>
@@ -338,7 +338,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Bezorgradius (maximale afstand)
+                  {t('delivery.deliveryRadiusLabel')}
                 </label>
                 <div className="space-y-2">
                   <input
@@ -357,7 +357,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>2 km</span>
                     <span className="font-bold text-lg text-primary-brand">{formData.maxDistance} km</span>
-                    <span>{getMaxDistanceForTransport()} km max</span>
+                    <span>{getMaxDistanceForTransport()} {t('delivery.kmMax')}</span>
                   </div>
                 </div>
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
@@ -365,16 +365,18 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     <strong>{t('delivery.howItWorks')}:</strong>
                   </p>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>✓ Je moet binnen <strong>{formData.maxDistance}km</strong> van de verkoper zijn (ophalen)</li>
-                    <li>✓ Je moet binnen <strong>{formData.maxDistance}km</strong> van de koper zijn (bezorgen)</li>
-                    <li>✓ Beide afstanden moeten kloppen om de bestelling te zien</li>
+                    <li>✓ {t('delivery.howItWorksBullet1', { km: formData.maxDistance })}</li>
+                    <li>✓ {t('delivery.howItWorksBullet2', { km: formData.maxDistance })}</li>
+                    <li>✓ {t('delivery.howItWorksBullet3')}</li>
                   </ul>
                 </div>
                 {formData.transportation.length > 0 && (
                   <div className="flex items-center gap-2 text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
                     <span>🚴</span>
                     <span>
-                      Met je {formData.transportation.length === 1 ? 'gekozen vervoersmiddel' : 'gekozen vervoersmiddelen'} kun je tot <strong>{getMaxDistanceForTransport()}km</strong> bezorgen
+                      {formData.transportation.length === 1
+                        ? t('delivery.withChosenTransport', { km: getMaxDistanceForTransport() })
+                        : t('delivery.withChosenTransportPlural', { km: getMaxDistanceForTransport() })}
                     </span>
                   </div>
                 )}
@@ -487,7 +489,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   setTimeout(() => setSuccess(false), 3000);
                 } else {
                   const error = await response.json();
-                  alert(`Fout: ${error.error}`);
+                  alert(`${t('delivery.error')}: ${error.error}`);
                 }
               }}
             />
@@ -523,7 +525,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   if (error.details) {
                     alert(`Validatie mislukt:\n${error.details.join('\n')}`);
                   } else {
-                    alert(`Fout: ${error.error}`);
+                    alert(`${t('delivery.error')}: ${error.error}`);
                   }
                 }
               }}

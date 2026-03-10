@@ -52,8 +52,8 @@ export default function UserStatsTile({
           const data = await response.json();
           setStats(data);
         }
-      } catch (error) {
-        console.error("Failed to fetch user stats:", error);
+      } catch {
+        // Silent: CORS or network
       } finally {
         setLoading(false);
       }

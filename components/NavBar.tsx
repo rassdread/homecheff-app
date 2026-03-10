@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
 import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, Gift, TrendingUp, DollarSign } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -25,58 +26,105 @@ export default function NavBar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const DROPDOWN_WIDTH = 224;
+  const DROPDOWN_MARGIN = 16;
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 56, right: 16, openAbove: false });
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
+  const portalContainerRef = useRef<HTMLDivElement | null>(null);
   const { totalItems: cartItemCount } = useCart();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Eigen portal-container (div in body) zodat createPortal altijd een geldig DOM-element krijgt
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.body) return;
+    const el = document.createElement('div');
+    el.id = 'navbar-dropdown-portal-root';
+    document.body.appendChild(el);
+    portalContainerRef.current = el;
+    setPortalContainer(el);
+    return () => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      portalContainerRef.current = null;
+    };
+  }, []);
   const user =
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
 
-  // Calculate dropdown position when opening
-  useEffect(() => {
-    if (isProfileDropdownOpen && profileButtonRef.current && typeof window !== 'undefined') {
-      const updatePosition = () => {
-        if (profileButtonRef.current) {
-          const rect = profileButtonRef.current.getBoundingClientRect();
-          setDropdownPosition({
-            top: rect.bottom + 8,
-            right: window.innerWidth - rect.right
-          });
-        }
-      };
-      
-      updatePosition();
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition, true);
-      
+  // Bereken dropdown-positie binnen viewport (niet buiten beeld)
+  const updateDropdownPosition = () => {
+    if (profileButtonRef.current && typeof window !== 'undefined') {
+      const rect = profileButtonRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw < 768;
+      // Geschatte hoogte dropdown (menu-items + padding)
+      const estimatedHeight = 420;
+      const gap = 8;
+
+      if (isMobile) {
+        setDropdownPosition({ top: 56, right: 16, openAbove: false });
+        return;
+      }
+
+      // Horizontaal: rechterrand dropdown = rechterrand knop, maar binnen viewport
+      let right = vw - rect.right;
+      const leftEdge = vw - right - DROPDOWN_WIDTH;
+      if (leftEdge < DROPDOWN_MARGIN) {
+        right = vw - DROPDOWN_MARGIN - DROPDOWN_WIDTH;
+      }
+      if (right < DROPDOWN_MARGIN) {
+        right = DROPDOWN_MARGIN;
+      }
+
+      // Verticaal: onder knop, tenzij dat buiten beeld valt → dan boven knop
+      let top = rect.bottom + gap;
+      const openAbove = top + estimatedHeight > vh - DROPDOWN_MARGIN;
+      if (openAbove) {
+        top = rect.top - gap - estimatedHeight;
+        if (top < DROPDOWN_MARGIN) top = DROPDOWN_MARGIN;
+      } else if (top < DROPDOWN_MARGIN) {
+        top = DROPDOWN_MARGIN;
+      }
+
+      setDropdownPosition({ top, right, openAbove });
+    }
+  };
+  useLayoutEffect(() => {
+    if (isProfileDropdownOpen) {
+      updateDropdownPosition();
+      window.addEventListener('resize', updateDropdownPosition);
+      window.addEventListener('scroll', updateDropdownPosition, true);
       return () => {
-        window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updateDropdownPosition);
+        window.removeEventListener('scroll', updateDropdownPosition, true);
       };
     }
   }, [isProfileDropdownOpen]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (button of portaled menu)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        profileDropdownRef.current && 
-        !profileDropdownRef.current.contains(event.target as Node) &&
-        dropdownMenuRef.current &&
-        !dropdownMenuRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const isButton = profileButtonRef.current?.contains(target);
+      const isInsideMenu = dropdownMenuRef.current?.contains(target);
+      if (!isButton && !isInsideMenu) {
         setIsProfileDropdownOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside as any);
+    }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside as any);
     };
-  }, []);
+  }, [isProfileDropdownOpen]);
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -88,8 +136,8 @@ export default function NavBar() {
         const data = await response.json();
         setUserProfile(data.user);
       }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
+    } catch {
+      // Silent: network/CORS (e.g. when opening from different host)
     }
   };
 
@@ -129,8 +177,8 @@ export default function NavBar() {
         const data = await response.json();
         setUnreadCount(data.count || 0);
       }
-    } catch (error) {
-      console.error('Error fetching unread count:', error);
+    } catch {
+      // Silent: network/CORS
     }
   };
 
@@ -145,16 +193,16 @@ export default function NavBar() {
   };
 
   return (
-    <header className="w-full border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="flex items-center justify-between h-16">
+    <header className="w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
+        <div className="flex items-center justify-between h-16 min-w-0 gap-2">
           {/* Logo - responsive voor mobiel */}
           <div className="flex-shrink-0 min-w-0">
             <Logo size="md" />
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation - mag inkrimpen zodat rechts in beeld blijft */}
+          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-hidden">
             <Button 
               variant="ghost" 
               className="flex items-center space-x-2"
@@ -204,16 +252,16 @@ export default function NavBar() {
             )}
 
             {user && (
-              <>
+              <div className="hidden md:flex items-center flex-shrink-0 min-w-0 gap-1">
                 <CartIcon />
                 <NotificationBell />
                 
                 {/* Profile Dropdown */}
-                <div className="relative z-[100]" ref={profileDropdownRef}>
+                <div className="relative z-[100] min-w-0" ref={profileDropdownRef}>
                   <button
                     ref={profileButtonRef}
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 min-w-0 max-w-full"
                   >
                     {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
@@ -221,14 +269,14 @@ export default function NavBar() {
                         alt="Profielfoto"
                         width={32}
                         height={32}
-                        className="rounded-full border-2 border-primary-200"
+                        className="rounded-full border-2 border-primary-200 flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 flex-shrink-0 bg-primary-100 rounded-full flex items-center justify-center">
                         <User className="w-4 h-4 text-primary-brand" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-32">
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-[7rem] sm:max-w-32">
                       {userProfile ? getDisplayName(userProfile) : getDisplayName(user)}
                     </span>
                     <ChevronDown 
@@ -238,18 +286,21 @@ export default function NavBar() {
                     />
                   </button>
 
-                  {/* Dropdown Menu */}
-                  {isProfileDropdownOpen && (
+                  {/* Dropdown Menu – via portal zodat overflow header geen invloed heeft */}
+                  {portalContainer && isProfileDropdownOpen && createPortal(
                     <div 
                       ref={dropdownMenuRef}
-                      className="fixed md:fixed right-4 md:right-auto top-[4.5rem] md:top-auto md:mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999] animate-in slide-in-from-top-2 duration-200"
-                      style={typeof window !== 'undefined' && window.innerWidth >= 768 ? {
-                        position: 'fixed',
-                        top: `${dropdownPosition.top}px`,
-                        right: `${dropdownPosition.right}px`,
-                        zIndex: 9999
-                      } : {
-                        zIndex: 9999
+                      className={`fixed w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 overflow-y-auto z-[99999] ${
+                        dropdownPosition.openAbove 
+                          ? 'animate-in slide-in-from-bottom-2 duration-200' 
+                          : 'animate-in slide-in-from-top-2 duration-200'
+                      }`}
+                      style={{
+                        top: typeof window !== 'undefined' && window.innerWidth < 768 ? 56 : dropdownPosition.top,
+                        right: typeof window !== 'undefined' && window.innerWidth < 768 ? 16 : dropdownPosition.right,
+                        left: typeof window !== 'undefined' && window.innerWidth < 768 ? 16 : 'auto',
+                        width: typeof window !== 'undefined' && window.innerWidth < 768 ? 'calc(100vw - 32px)' : DROPDOWN_WIDTH,
+                        maxHeight: typeof window !== 'undefined' ? `calc(100vh - ${dropdownPosition.top}px - 24px)` : 'none'
                       }}
                     >
                       {/* Profile Link - Always goes to normal profile page */}
@@ -355,7 +406,7 @@ export default function NavBar() {
                         </>
                       )}
                       
-                      {/* Delivery Dashboard - Show ONLY for DELIVERY role (ambassadors/bezorgers), NOT for sellers */}
+                      {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel (ook verkoper-bezorgers) */}
                       {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
                         <Link 
                           href="/delivery/dashboard" 
@@ -414,10 +465,11 @@ export default function NavBar() {
                         <LogOut className="w-4 h-4" />
                         <span>{t('navbar.logout')}</span>
                       </button>
-                    </div>
+                    </div>,
+                    portalContainer
                   )}
                 </div>
-              </>
+              </div>
             )}
           </nav>
 
@@ -560,6 +612,25 @@ export default function NavBar() {
                     </Button>
                   )}
                   
+                  <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>{t('navbar.messages')}</span>
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/verdiensten" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Mijn Verdiensten</span>
+                    </Button>
+                  </Link>
+                  
                   <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                       <Package className="w-4 h-4" />
@@ -567,7 +638,14 @@ export default function NavBar() {
                     </Button>
                   </Link>
 
-                  {/* Multi-role Dashboard Links - Based on user roles */}
+                  <Link href="/profile/privacy" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                      <Shield className="w-4 h-4" />
+                      <span>{t('navbar.privacy')}</span>
+                    </Button>
+                  </Link>
+
+                  {/* Multi-role Dashboard Links - Based on user roles (zelfde logica als desktop) */}
                   {/* Admin Dashboard - Show for ADMIN/SUPERADMIN role OR if user has adminRoles */}
                   {(((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') || ((user as any)?.adminRoles && (user as any)?.adminRoles.length > 0)) && (
                     <Link 
@@ -585,8 +663,9 @@ export default function NavBar() {
                     </Link>
                   )}
                   
-                  {/* Seller Dashboard - Show if user has seller roles OR is SELLER role */}
-                  {((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') && (
+                  {/* Seller Dashboard - Show if user has seller roles OR is SELLER role OR admin met seller roles */}
+                  {(((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') || 
+                    (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && (user as any)?.sellerRoles?.length > 0)) && (
                     <Link 
                       href="/verkoper/dashboard" 
                       prefetch={true}
@@ -602,7 +681,7 @@ export default function NavBar() {
                     </Link>
                   )}
                   
-                  {/* Delivery Dashboard - Show ONLY for DELIVERY role (ambassadors/bezorgers), NOT for sellers */}
+                  {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel */}
                   {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
                     <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">

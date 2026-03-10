@@ -133,12 +133,12 @@ export default function DeliveryNotificationListener() {
           const data = await response.json();
           // Show warning if going online outside available times
           if (data.warning) {
-            alert(`⚠️ ${data.warning}\n\nJe kunt nog steeds online gaan, maar je ontvangt mogelijk minder bestellingen.`);
+            alert(`⚠️ ${data.warning}\n\n${t('delivery.warningCanStillGoOnline')}`);
           }
           router.push('/delivery/dashboard');
         } else {
           const error = await response.json();
-          alert(error.error || 'Er is een fout opgetreden bij het online gaan');
+          alert(error.error || t('delivery.onlineGoError'));
         }
       } catch (error) {
         console.error('Failed to go online:', error);

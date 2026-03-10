@@ -492,7 +492,9 @@ function PayoutsTab({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Uitbetalingen</h3>
-          <p className="text-sm text-gray-600">Totaal: {formatCurrency(totalPayouts)}</p>
+          <p className="text-sm text-gray-600">
+            Officiële registratie van wat is uitbetaald. Totaal: {formatCurrency(totalPayouts)}
+          </p>
         </div>
         <div className="flex gap-2">
           <input

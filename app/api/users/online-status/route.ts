@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { pusherServer } from '@/lib/pusher';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
 // Update user online status
 export async function POST(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const { isOnline } = await req.json();
@@ -53,31 +55,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      isOnline: true,
-      lastSeenAt: user.lastLocationUpdate
-    });
-
+    return NextResponse.json(
+      {
+        success: true,
+        isOnline: true,
+        lastSeenAt: user.lastLocationUpdate,
+      },
+      { headers: cors }
+    );
   } catch (error) {
     console.error('Error updating online status:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: cors });
   }
 }
 
 // Get user online status
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 400 });
+      return NextResponse.json({ error: 'User ID required' }, { status: 400, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -85,25 +90,30 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     // 🔒 PRIVACY CHECK: Only return online status if user has it enabled
     if (!user.showOnlineStatus) {
-      return NextResponse.json({
-        isOnline: false, // Always return false if privacy is disabled
-        lastSeenAt: null, // Don't show last seen either
-        privacyEnabled: false
-      });
+      return NextResponse.json(
+        {
+          isOnline: false,
+          lastSeenAt: null,
+          privacyEnabled: false,
+        },
+        { headers: cors }
+      );
     }
 
-    return NextResponse.json({
-      isOnline: (user as any).isOnline || false,
-      lastSeenAt: user.lastLocationUpdate
-    });
-
+    return NextResponse.json(
+      {
+        isOnline: (user as any).isOnline || false,
+        lastSeenAt: user.lastLocationUpdate,
+      },
+      { headers: cors }
+    );
   } catch (error) {
     console.error('Error getting online status:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: cors });
   }
 }

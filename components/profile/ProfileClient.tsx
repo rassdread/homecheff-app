@@ -369,7 +369,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden max-w-[100vw] w-full box-border overflow-hidden">
       {/* Settings Button - Floating */}
       <div className="fixed top-20 right-2 sm:right-4 z-40">
         <button
@@ -407,25 +407,25 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 w-full min-w-0 max-w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8 min-w-0 w-full">
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="lg:col-span-1 min-w-0 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 overflow-hidden">
               {/* Profile Header */}
               <div className="text-center">
                 {/* Quote/Motto als titel boven profielfoto */}
                 {user?.quote && user.quote.trim() && (
-                  <div className="mb-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl border border-emerald-200 shadow-sm">
-                    <div className="flex items-start gap-4">
+                  <div className="mb-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl border border-emerald-200 shadow-sm overflow-hidden">
+                    <div className="flex items-start gap-4 min-w-0">
                       <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-sm">
                         <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
                         </svg>
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0 overflow-wrap-anywhere">
                         <h3 className="text-sm font-semibold text-emerald-800 mb-2 tracking-wide">{t('profilePage.sidebar.myLifeMotto')}</h3>
-                        <blockquote className="text-lg text-gray-800 italic leading-relaxed font-medium">
+                        <blockquote className="text-lg text-gray-800 italic leading-relaxed font-medium break-words">
                           "{user.quote.trim()}"
                         </blockquote>
                       </div>
@@ -823,26 +823,35 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 </div>
               </div>
 
-              {/* Instellingen - Altijd zichtbaar */}
+              {/* Instellingen & Meldingen - Altijd zichtbaar */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.sidebar.settings')}</h3>
-                
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>{t('profilePage.sidebar.profileSettings')}</span>
-                </button>
-                
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => { setSettingsSection('notifications'); setShowSettings(true); }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                  >
+                    <Bell className="w-4 h-4" />
+                    <span>{t('notificationSettings.title') || 'Meldingen'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSettingsSection('profile'); setShowSettings(true); }}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>{t('profilePage.sidebar.profileSettings')}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0 overflow-x-hidden max-w-full">
             {/* Tabs */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden min-w-0">
               {/* Mobile: Grid Layout */}
               <div className="md:hidden p-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -902,10 +911,10 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               {/* Tab Content */}
               <div className="p-4 sm:p-6">
                 {activeTab === 'overview' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-6 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <h2 className="text-lg font-semibold text-gray-900">{t('profilePage.overview')}</h2>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center flex-wrap gap-2">
                         <div className="relative">
                           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                           <input
@@ -1496,18 +1505,20 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
-          <div className="absolute right-0 top-0 h-full w-full sm:max-w-2xl bg-white shadow-2xl">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)} aria-hidden />
+          <div className="absolute right-0 top-0 h-full w-full sm:max-w-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
                   <Settings className="w-6 h-6 text-primary-brand" />
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('navigation.settings') || 'Instellingen'}</h2>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowSettings(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label={t('common.close') || 'Sluiten'}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1519,14 +1530,15 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-1 px-4 sm:px-6">
                   {[
-                    { id: 'profile', label: 'Profile', icon: User },
-                    { id: 'account', label: 'Account', icon: Shield },
-                    { id: 'notifications', label: 'Notifications', icon: Bell }
+                    { id: 'profile', label: t('navbar.myProfile') || 'Profiel', icon: User },
+                    { id: 'account', label: t('settingsMenu.accountTitle') || 'Account', icon: Shield },
+                    { id: 'notifications', label: t('notificationSettings.title') || 'Meldingen', icon: Bell }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     return (
                       <button
                         key={tab.id}
+                        type="button"
                         onClick={() => setSettingsSection(tab.id)}
                         className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
                           settingsSection === tab.id

@@ -92,8 +92,38 @@ const nextConfig = {
   // Powerpack optimizations
   poweredByHeader: false,
   
-  // Headers for better caching
+  // Headers for better caching and CORS (lokaal netwerk / iPhone Safari)
   async headers() {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const corsHeaders = [
+      { key: 'Access-Control-Allow-Origin', value: baseUrl },
+      { key: 'Access-Control-Allow-Credentials', value: 'true' },
+      { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+      { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+    ];
+    // In development, do NOT set static CORS for /api and /i18n so middleware can set
+    // the correct origin (e.g. http://10.29.197.134:3000 when testing on phone). Static
+    // baseUrl (localhost) would cause "access control checks" / Load failed on Safari.
+    const isDev = process.env.NODE_ENV === 'development';
+    const apiAndI18nHeaders = isDev
+      ? [
+          {
+            source: '/i18n/:path*',
+            headers: [
+              { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+            ],
+          },
+        ]
+      : [
+          { source: '/api/:path*', headers: corsHeaders },
+          {
+            source: '/i18n/:path*',
+            headers: [
+              { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+              ...corsHeaders,
+            ],
+          },
+        ];
     return [
       {
         source: '/:path*',
@@ -104,15 +134,7 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/i18n/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, stale-while-revalidate=604800',
-          },
-        ],
-      },
+      ...apiAndI18nHeaders,
       {
         source: '/_next/static/:path*',
         headers: [

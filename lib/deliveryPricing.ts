@@ -1,4 +1,5 @@
 // Delivery Pricing Logic
+import { DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 
 export interface DeliveryPricing {
   baseFee: number;
@@ -50,9 +51,9 @@ export function calculateDeliveryFee(
   // Total delivery fee
   const totalDeliveryFee = baseFee + distanceFee;
 
-  // Split: 88% to deliverer, 12% to platform
-  const delivererCut = Math.round(totalDeliveryFee * 0.88);
-  const platformCut = Math.round(totalDeliveryFee * 0.12);
+  // Split: DELIVERY_DELIVERER_PERCENT to deliverer, DELIVERY_PLATFORM_FEE_PERCENT (12%) to Homecheff
+  const delivererCut = Math.round(totalDeliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
+  const platformCut = Math.round(totalDeliveryFee * DELIVERY_PLATFORM_FEE_PERCENT / 100);
 
   return {
     baseFee,
@@ -90,8 +91,8 @@ export function calculateLongDistanceDeliveryFee(distanceKm: number): DeliveryPr
     totalFee += Math.round((distanceKm - 100) * 30); // €0.30/km for 100km+
   }
 
-  const delivererCut = Math.round(totalFee * 0.88);
-  const platformCut = Math.round(totalFee * 0.12);
+  const delivererCut = Math.round(totalFee * DELIVERY_DELIVERER_PERCENT / 100);
+  const platformCut = Math.round(totalFee * DELIVERY_PLATFORM_FEE_PERCENT / 100);
 
   return {
     baseFee: 500,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,10 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get('userId');
 
     if (!productId && !dishId && !userId) {
-      return NextResponse.json({ error: 'Product ID, Dish ID or User ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Product ID, Dish ID or User ID is required' },
+        { status: 400, headers: getCorsHeaders(req) }
+      );
     }
 
     let propsCount = 0;
@@ -70,15 +74,20 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
-      propsCount,
-      productId: productId || null,
-      dishId: dishId || null,
-      userId: userId || null
-    });
-
+    return NextResponse.json(
+      {
+        propsCount,
+        productId: productId || null,
+        dishId: dishId || null,
+        userId: userId || null,
+      },
+      { headers: getCorsHeaders(req) }
+    );
   } catch (error) {
     console.error('Error getting props count:', error);
-    return NextResponse.json({ error: 'Failed to get props count' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to get props count' },
+      { status: 500, headers: getCorsHeaders(req) }
+    );
   }
 }

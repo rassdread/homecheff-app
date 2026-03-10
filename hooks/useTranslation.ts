@@ -146,8 +146,7 @@ export function useTranslation() {
         } else {
           setUserLanguagePreference(null);
         }
-      } catch (error) {
-        console.error('[i18n] Error fetching user language preference:', error);
+      } catch {
         setUserLanguagePreference(null);
       } finally {
         setUserPreferenceLoaded(true);
@@ -168,62 +167,47 @@ export function useTranslation() {
       return;
     }
     
-    // Priority for authenticated users: User DB preference > localStorage > URL > cookie > domain > default
-    // Priority for non-authenticated: localStorage > URL path > cookie > domain > default
+    // Prioriteit: localStorage/cookie (net gekozen) > API (DB) > URL > domain > default
+    // Zo blijft een net gekozen taal (Engels) staan na reload i.p.v. terug te vallen op DB.
     const pathname = window.location.pathname;
     const isEnglishRoute = pathname.startsWith('/en/') || pathname === '/en';
-    
+    const savedInStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
+    const hasStorage = savedInStorage === 'nl' || savedInStorage === 'en';
+
     let detectedLanguage: Language = 'nl'; // default
-    
-    // For authenticated users, check user preference first (if already loaded)
-    if (sessionStatus === 'authenticated' && session?.user && userPreferenceLoaded && userLanguagePreference) {
+
+    // Altijd eerst localStorage/cookie: zo werkt de language switcher direct na reload
+    if (hasStorage) {
+      detectedLanguage = savedInStorage;
+      safeCookie.set('homecheff-language', savedInStorage);
+    } else if (sessionStatus === 'authenticated' && session?.user && userPreferenceLoaded && userLanguagePreference) {
       detectedLanguage = userLanguagePreference;
-      // Sync localStorage and cookie with user preference
       safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
       safeCookie.set('homecheff-language', userLanguagePreference);
+    } else if (isEnglishRoute) {
+      detectedLanguage = 'en';
+      safeLocalStorage.setItem('homecheff-language', 'en');
+      safeCookie.set('homecheff-language', 'en');
     } else {
-      // Check localStorage (for non-authenticated or while user preference is loading)
-      const savedLanguage = safeLocalStorage.getItem('homecheff-language') as Language;
-      if (savedLanguage && (savedLanguage === 'nl' || savedLanguage === 'en')) {
-        detectedLanguage = savedLanguage;
-        // Sync cookie with localStorage
-        safeCookie.set('homecheff-language', savedLanguage);
-      } else if (isEnglishRoute) {
-        // No localStorage preference, but URL indicates English
-        detectedLanguage = 'en';
-        // Save to localStorage and cookie for consistency
-        safeLocalStorage.setItem('homecheff-language', 'en');
-        safeCookie.set('homecheff-language', 'en');
+      const hostname = window.location.hostname;
+      const domainLanguage = hostname.includes('homecheff.eu') ? 'en' : hostname.includes('homecheff.nl') ? 'nl' : null;
+      if (domainLanguage) {
+        detectedLanguage = domainLanguage;
+        safeLocalStorage.setItem('homecheff-language', domainLanguage);
+        safeCookie.set('homecheff-language', domainLanguage);
+      } else {
+        const cookieLanguage = safeCookie.get('homecheff-language') as Language;
+        if (cookieLanguage && (cookieLanguage === 'nl' || cookieLanguage === 'en')) {
+          detectedLanguage = cookieLanguage;
+          safeLocalStorage.setItem('homecheff-language', cookieLanguage);
         } else {
-          // Check domain first for domain-based language routing
-          const hostname = window.location.hostname;
-          const domainLanguage = hostname.includes('homecheff.eu') ? 'en' : 
-                                 hostname.includes('homecheff.nl') ? 'nl' : null;
-          
-          if (domainLanguage) {
-            // Domain forces a specific language, use it and override cookie/localStorage
-            detectedLanguage = domainLanguage;
-            safeLocalStorage.setItem('homecheff-language', domainLanguage);
-            safeCookie.set('homecheff-language', domainLanguage);
-          } else {
-            // No domain override, check cookie
-            const cookieLanguage = safeCookie.get('homecheff-language') as Language;
-            
-            if (cookieLanguage && (cookieLanguage === 'nl' || cookieLanguage === 'en')) {
-              detectedLanguage = cookieLanguage;
-              // Sync localStorage with cookie
-              safeLocalStorage.setItem('homecheff-language', cookieLanguage);
-            } else {
-              // Fallback to default (nl)
-              detectedLanguage = 'nl';
-              // Save detected language to localStorage and cookie
-              safeLocalStorage.setItem('homecheff-language', detectedLanguage);
-              safeCookie.set('homecheff-language', detectedLanguage);
-            }
-          }
+          detectedLanguage = 'nl';
+          safeLocalStorage.setItem('homecheff-language', detectedLanguage);
+          safeCookie.set('homecheff-language', detectedLanguage);
         }
+      }
     }
-    
+
     // Only re-initialize if language actually changed or if this is the first initialization
     if (lastDetectedLanguage.current === detectedLanguage && hasInitialized.current) {
       return; // No change needed
@@ -243,23 +227,23 @@ export function useTranslation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, session, userPreferenceLoaded, userLanguagePreference]); // Re-run when session or user preference changes
   
-  // Separate effect to update when user preference loads (background update after initial load)
+  // Sync from API only als localStorage geen andere keuze heeft (anders overschrijven we net gekozen taal)
   useEffect(() => {
-    // Only update if user preference is different AND has been loaded
-    if (!userPreferenceLoaded || !userLanguagePreference) {
-      return;
-    }
-    
-    // User preference has loaded and is different from current language
-    // This happens AFTER initial load, so it's a background update
-    if (userLanguagePreference !== language && (userLanguagePreference === 'nl' || userLanguagePreference === 'en')) {
-      console.log(`[i18n] Updating language to user preference: ${userLanguagePreference}`);
-      setLanguage(userLanguagePreference);
-      lastDetectedLanguage.current = userLanguagePreference;
-      loadTranslations(userLanguagePreference);
-      safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
-      safeCookie.set('homecheff-language', userLanguagePreference);
-    }
+    if (!userPreferenceLoaded || !userLanguagePreference) return;
+
+    const fromStorage = safeLocalStorage.getItem('homecheff-language') as Language | null;
+    const storageHasValue = fromStorage === 'nl' || fromStorage === 'en';
+
+    // Als gebruiker net heeft gewisseld staat de keuze in localStorage; niet overschrijven met API
+    if (storageHasValue && fromStorage !== userLanguagePreference) return;
+    if (language === userLanguagePreference) return;
+
+    console.log(`[i18n] Syncing language to user preference: ${userLanguagePreference}`);
+    setLanguage(userLanguagePreference);
+    lastDetectedLanguage.current = userLanguagePreference;
+    loadTranslations(userLanguagePreference);
+    safeLocalStorage.setItem('homecheff-language', userLanguagePreference);
+    safeCookie.set('homecheff-language', userLanguagePreference);
   }, [userLanguagePreference, userPreferenceLoaded, language]);
 
   const loadTranslations = async (lang: Language) => {
@@ -274,7 +258,7 @@ export function useTranslation() {
     const cacheKey = `i18n-${lang}`;
     const cacheTimeKey = `i18n-${lang}-time`;
     const cacheVersionKey = `i18n-${lang}-version`;
-    const CACHE_VERSION = '2.18'; // Increment this to invalidate all caches (browser compatibility update)
+    const CACHE_VERSION = '2.21'; // Increment to invalidate caches when adding/fixing translations
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state
@@ -296,7 +280,7 @@ export function useTranslation() {
           
           // Fetch fresh in background for next time (don't await or block)
           // Use default cache strategy for better cross-browser compatibility
-          fetch(`/i18n/${lang}.json?t=${now}`, {
+          fetch(`/api/i18n/${lang}?t=${now}`, {
             cache: 'default' // Better cross-browser compatibility than force-cache
           }).then(response => {
             if (response.ok) {
@@ -335,7 +319,7 @@ export function useTranslation() {
       
       // Fetch fresh translations with cache-busting query param for better browser compatibility
       // Use default cache strategy (better cross-browser support than force-cache)
-      const response = await fetch(`/i18n/${lang}.json?t=${now}`, {
+      const response = await fetch(`/api/i18n/${lang}?t=${now}`, {
         cache: 'default' // Better cross-browser compatibility than force-cache
       });
       
@@ -375,7 +359,7 @@ export function useTranslation() {
       console.error(`[i18n] ✗ Error loading ${lang} translations:`, error);
       console.error(`[i18n] Error details:`, {
         lang,
-        url: `/i18n/${lang}.json`,
+        url: `/api/i18n/${lang}`,
         isChangingLanguage,
         hasCache: !!safeLocalStorage.getItem(`i18n-${lang}`),
         localStorageAvailable: safeLocalStorage.isAvailable()
@@ -671,21 +655,17 @@ export function useTranslation() {
       return '';
     }
 
-    // Only warn if translations are actually loaded (not loading) AND we have translations
-    // This prevents spam warnings during initial load
-    if (isReady && !isLoading && Object.keys(translations).length > 0) {
-      // Only log warning for missing keys that should exist
+    // Alleen in development waarschuwen, en niet op iOS (iPhone console schoon houden)
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOS && typeof process !== 'undefined' && process.env.NODE_ENV === 'development' && isReady && !isLoading && Object.keys(translations).length > 0) {
       const topLevelKeys = Object.keys(translations).slice(0, 10);
-      console.warn(`[i18n] Translation key not found: ${key}`);
-      console.warn(`[i18n] Available top-level keys:`, topLevelKeys);
-      
-      // Try to find the parent path using getTranslationObject
+      console.warn(`[i18n] Translation key not found: ${key}`, topLevelKeys);
       const keyParts = key.split('.');
       if (keyParts.length > 1) {
         const parentKey = keyParts.slice(0, -1).join('.');
         const parentValue = getTranslationObject(parentKey);
         if (parentValue && typeof parentValue === 'object') {
-          console.warn(`[i18n] Parent path "${parentKey}" exists, available keys:`, Object.keys(parentValue));
+          console.warn(`[i18n] Parent "${parentKey}" keys:`, Object.keys(parentValue));
         }
       }
     }
@@ -703,6 +683,12 @@ export function useTranslation() {
   const getLocalizedPath = (path: string): string => {
     return addLocalePrefix(path, language);
   };
+
+  // Zorg dat <html lang> en document.title basis overeenkomen met gekozen taal (voor toegankelijkheid en consistentie)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = language === 'en' ? 'en' : 'nl';
+  }, [language]);
 
   // Get available languages with translated names (memoized to update when translations change)
   // Note: Language names should NOT be translated - they stay as "Nederlands" and "English" regardless of interface language

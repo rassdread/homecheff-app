@@ -522,7 +522,7 @@ export default function PassiveIncomeCalculator() {
               <p className="text-2xl font-bold mb-4">{t('affiliate.passiveIncomeCalculator.withOnly2')}</p>
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-4xl font-bold">€1,188</p>
+                  <p className="text-4xl font-bold">€1,400</p>
                   <p className="text-lg opacity-90">{t('affiliate.passiveIncomeCalculator.perMonthYear2')}</p>
                 </div>
                 <div>

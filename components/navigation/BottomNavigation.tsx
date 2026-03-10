@@ -57,8 +57,7 @@ export default function BottomNavigation() {
             setUserRoles(data.user?.sellerRoles || []);
             setUserRolesLoaded(true);
           }
-        } catch (error) {
-          console.error('Error fetching user roles:', error);
+        } catch {
           setUserRoles((session?.user as any)?.sellerRoles || []);
           setUserRolesLoaded(true);
         }
@@ -1245,29 +1244,29 @@ export default function BottomNavigation() {
       )}
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-40 shadow-lg">
-        <div className="flex items-center justify-around max-w-4xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 py-2 z-40 shadow-lg">
+        <div className="flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1">
           {/* Home Button */}
           <button
             onClick={homeConfig.onClick}
-            className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            className={`flex flex-col items-center justify-center min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none p-1.5 sm:p-2 rounded-lg transition-colors ${
               isActive(homeConfig.href) ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <div className="text-2xl mb-1">{homeConfig.icon}</div>
-            <span className="text-xs font-medium">{homeConfig.label}</span>
+            <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{homeConfig.icon}</div>
+            <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{homeConfig.label}</span>
           </button>
 
           {/* Dashboard */}
-          <div className="relative group">
+          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleDashboardClick}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
                 isActive('/verkoper') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <div className="text-2xl mb-1">💰</div>
-              <span className="text-xs font-medium">{session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}</span>
+              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💰</div>
+              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}</span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
@@ -1283,10 +1282,10 @@ export default function BottomNavigation() {
           </div>
 
           {/* ADD Button (FAB) */}
-          <div className="relative group">
+          <div className="relative group flex-shrink-0">
             <button
               onClick={handleQuickAddClick}
-              className="relative -top-4 bg-gradient-to-r from-primary-brand to-primary-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95"
+              className="relative -top-4 bg-gradient-to-r from-primary-brand to-primary-600 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
@@ -1306,15 +1305,15 @@ export default function BottomNavigation() {
           </div>
 
           {/* Berichten */}
-          <div className="relative group">
+          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleMessagesClick}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
                 isActive('/messages') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <div className="text-2xl mb-1">💬</div>
-              <span className="text-xs font-medium">{t('bottomNav.messages')}</span>
+              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💬</div>
+              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{t('bottomNav.messages')}</span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
@@ -1330,15 +1329,15 @@ export default function BottomNavigation() {
           </div>
 
           {/* Profiel */}
-          <div className="relative group">
+          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleProfileClick}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
                 isActive('/profile') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <div className="text-2xl mb-1">👤</div>
-              <span className="text-xs font-medium">{session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}</span>
+              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">👤</div>
+              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}</span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">

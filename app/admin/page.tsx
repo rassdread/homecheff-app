@@ -28,7 +28,9 @@ export default async function AdminPage() {
     }
   });
 
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN' as any)) {
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
+  const hasAdminRoles = (user?.adminRoles?.length ?? 0) > 0;
+  if (!user || (!isAdmin && !hasAdminRoles)) {
     redirect('/');
   }
 

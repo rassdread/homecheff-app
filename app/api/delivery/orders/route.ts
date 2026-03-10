@@ -65,90 +65,55 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Create a new delivery order (called when customer places order)
+// Create a new delivery order (unassigned – bezorgers zien hem in dashboard en accepteren daar)
+// Normaal wordt dit gedaan door de Stripe webhook na betaling; deze POST is voor fallback/alternatieve flows.
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, deliveryMode, address, coordinates } = await req.json();
+    const { orderId, deliveryMode, address, deliveryFeeCents, productId } = await req.json();
 
-    // Only create delivery orders for teen delivery mode
-    if (deliveryMode !== 'TEEN_DELIVERY') {
-      return NextResponse.json({ message: 'Geen delivery order nodig' });
+    if (deliveryMode !== 'TEEN_DELIVERY' && deliveryMode !== 'DELIVERY') {
+      return NextResponse.json({ message: 'Geen delivery order nodig voor deze mode' });
     }
 
-    // Find available delivery profiles within radius
-    const availableProfiles = await prisma.deliveryProfile.findMany({
-      where: {
-        isActive: true,
-        // Note: In a real app, you'd calculate distance based on coordinates
-        // For now, we'll just get active profiles
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, userId: true, deliveryAddress: true }
     });
-
-    if (availableProfiles.length === 0) {
-      return NextResponse.json({ 
-        error: 'Geen beschikbare bezorgers gevonden' 
-      }, { status: 404 });
+    if (!order) {
+      return NextResponse.json({ error: 'Order niet gevonden' }, { status: 404 });
     }
 
-    // For demo purposes, assign to the first available profile
-    // In a real app, you'd use more sophisticated matching
-    const assignedProfile = availableProfiles[0];
+    const existing = await prisma.deliveryOrder.findUnique({
+      where: { orderId }
+    });
+    if (existing) {
+      return NextResponse.json({ success: true, deliveryOrder: existing, message: 'DeliveryOrder bestond al' });
+    }
 
-    // Create delivery order
+    // Eén DeliveryOrder per order, ongeassigneed → koppeling aan bezorger gebeurt bij accepteren
     const deliveryOrder = await prisma.deliveryOrder.create({
       data: {
         orderId,
-        deliveryProfileId: assignedProfile.id,
-        deliveryFee: 200, // €2.00 in cents
-        status: 'PENDING'
+        deliveryProfileId: null,
+        deliveryAddress: address ?? order.deliveryAddress ?? '',
+        deliveryFee: deliveryFeeCents ?? 200,
+        status: 'PENDING',
+        ...(productId ? { productId } : {})
       },
       include: {
-        deliveryProfile: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                email: true
-              }
-            }
-          }
-        },
         order: {
           include: {
-            User: {
-              select: {
-                name: true,
-                email: true
-              }
-            }
+            User: { select: { name: true, email: true } }
           }
         }
       }
     });
 
-    // TODO: Send push notification to delivery person
-    // await sendPushNotification(assignedProfile.user.email, {
-    //   title: 'Nieuwe bezorgopdracht!',
-    //   body: 'Er is een nieuwe bestelling beschikbaar in jouw gebied.'
-    // });
-
-    return NextResponse.json({ 
-      success: true, 
-      deliveryOrder 
-    });
-
+    return NextResponse.json({ success: true, deliveryOrder });
   } catch (error) {
     console.error('Delivery order creation error:', error);
-    return NextResponse.json({ 
-      error: 'Er is een fout opgetreden bij het toewijzen van de bezorger' 
+    return NextResponse.json({
+      error: 'Er is een fout opgetreden bij het aanmaken van de bezorgopdracht'
     }, { status: 500 });
   }
 }

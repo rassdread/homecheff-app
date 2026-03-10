@@ -4,13 +4,15 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     // Count unread messages for this user
@@ -36,10 +38,9 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ count: unreadCount });
-
+    return NextResponse.json({ count: unreadCount }, { headers: cors });
   } catch (error) {
     console.error('Error fetching unread count:', error);
-    return NextResponse.json({ error: 'Failed to fetch unread count' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch unread count' }, { status: 500, headers: cors });
   }
 }

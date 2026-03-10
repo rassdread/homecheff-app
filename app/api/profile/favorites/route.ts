@@ -22,33 +22,33 @@ export async function GET() {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       include: {
-        Listing: { 
-          select: { 
-            id: true, 
-            title: true, 
-            priceCents: true, 
-            description: true, 
-            category: true, 
-            status: true, 
-            place: true, 
-            lat: true, 
-            lng: true, 
-            isPublic: true, 
-            viewCount: true, 
-            createdAt: true, 
-            updatedAt: true 
-          } 
+        Listing: {
+          select: {
+            id: true,
+            title: true,
+            priceCents: true,
+            description: true,
+            category: true,
+            status: true,
+            place: true,
+            lat: true,
+            lng: true,
+            isPublic: true,
+            viewCount: true,
+            createdAt: true,
+            updatedAt: true
+          }
         },
-        Product: { 
-          select: { 
-            id: true, 
-            title: true, 
-            priceCents: true, 
-            description: true, 
-            category: true, 
-            unit: true, 
-            delivery: true, 
-            createdAt: true, 
+        Product: {
+          select: {
+            id: true,
+            title: true,
+            priceCents: true,
+            description: true,
+            category: true,
+            unit: true,
+            delivery: true,
+            createdAt: true,
             isActive: true,
             Image: {
               select: {
@@ -61,7 +61,24 @@ export async function GET() {
               },
               take: 1
             }
-          } 
+          }
+        },
+        Dish: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            priceCents: true,
+            category: true,
+            subcategory: true,
+            status: true,
+            createdAt: true,
+            photos: {
+              select: { id: true, url: true, idx: true, isMain: true },
+              orderBy: { idx: 'asc' },
+              take: 1
+            }
+          }
         }
       }
     });

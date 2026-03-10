@@ -326,7 +326,36 @@ if (isHEVC(inputFile)) {
 
 ---
 
-### 9. **Implementatie Checklist**
+### 9. **FFmpeg installeren (optioneel, voor server-side transcoding)**
+
+De app gebruikt standaard **client-side compressie** (MediaRecorder). Voor server-side transcoding (bijv. HEVC → H.264 of consistente kwaliteit) kun je FFmpeg lokaal installeren:
+
+- **macOS (Homebrew):** `brew install ffmpeg`
+- **Windows:** [ffmpeg.org](https://ffmpeg.org/download.html) of `winget install ffmpeg`
+- **Linux:** `sudo apt install ffmpeg` (Debian/Ubuntu) of `sudo dnf install ffmpeg` (Fedora)
+
+De app vereist FFmpeg **niet** voor normaal gebruik; upload en compressie werken in de browser. Safari gebruikt bij upload automatisch MP4/H.264 voor soepele afspeelbaarheid.
+
+#### Bestaande video's in de database transcoderen
+
+Om **alle video's die al in de database staan** naar MP4/H.264 om te zetten (minder opslag, soepel op elke browser):
+
+1. **FFmpeg installeren** (eenmalig): `brew install ffmpeg` (macOS) of zie boven voor Windows/Linux.
+2. **Environment**: Zorg dat `.env.local` (in de projectroot) `DATABASE_URL` en `BLOB_READ_WRITE_TOKEN` bevat (dezelfde als voor de app).
+3. **Dry-run** (alleen rapport, geen wijzigingen):
+   ```bash
+   npm run videos:transcode
+   ```
+4. **Echt transcoderen en database bijwerken**:
+   ```bash
+   npm run videos:transcode:run
+   ```
+
+Het script verwerkt alle `DishVideo`- en `ProductVideo`-records: downloadt de video, transcodeert naar MP4/H.264, uploadt naar Vercel Blob en werkt de URL in de database bij. Oude bestanden in Blob blijven staan (handmatig opruimen indien gewenst).
+
+---
+
+### 10. **Implementatie Checklist**
 
 - [ ] Detecteer browser capabilities
 - [ ] Implementeer MediaRecorder compressie
@@ -341,7 +370,7 @@ if (isHEVC(inputFile)) {
 
 ---
 
-### 10. **Kosten Overwegingen**
+### 11. **Kosten Overwegingen**
 
 **Client-Side:**
 - ✅ Geen server kosten

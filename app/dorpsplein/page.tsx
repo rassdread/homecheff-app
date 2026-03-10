@@ -158,6 +158,7 @@ function DorpspleinContent() {
     fallbackToManual: false // No automatic fallback
   });
   const [openOptionsMenu, setOpenOptionsMenu] = useState<string | null>(null);
+  const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid'); // grid = 2 columns, list = 1 column, map = map view
   const [manualLocationInput, setManualLocationInput] = useState<string>('');
   
@@ -1380,8 +1381,8 @@ function DorpspleinContent() {
                           target.closest('[data-video-controls]')) {
                         return; // Video controls handle their own clicks
                       }
-                      if (target.closest('[data-image-slider]') && session?.user) {
-                        return; // Image slider handles its own clicks for logged in users
+                      if (target.closest('[data-image-slider]')) {
+                        return; // Slider/video eigen taps (ook uitgelogd: video afspelen op iPhone)
                       }
                       if (target.closest('[data-seller-link]')) {
                         return; // Seller name link handles its own navigation
@@ -1398,40 +1399,37 @@ function DorpspleinContent() {
                       viewMode === 'list' ? 'flex flex-row' : ''
                     }`}
                   >
-                    {/* Image with Slider */}
+                    {/* Image with Slider – zelfde video-gedrag als Inspiratie: alleen bij hover deze kaart (desktop), hele video, geen geluid op achtergrond */}
                     <div 
                       className={`relative overflow-hidden ${
                         viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'h-64'
                       }`}
                       data-image-slider
+                      onMouseEnter={() => setHoveredProductId(item.id)}
+                      onMouseLeave={() => setHoveredProductId(null)}
                     >
                       {(item.images && item.images.length > 0) || item.video ? (
                         <ImageSlider 
                           media={[
-                            // Add first image if available
-                            ...(item.images && item.images.length > 0 ? [{
-                              type: 'image' as const,
-                              url: item.images[0]
-                            }] : []),
-                            // Add video if available (after first image)
-                            ...(item.video ? [{
+                            // Video altijd vooraan; bij video als eerste geen auto-slide (blijft hoofd)
+                            ...(item.video?.url ? [{
                               type: 'video' as const,
                               url: item.video.url,
                               thumbnail: item.video.thumbnail || null
                             }] : []),
-                            // Add remaining images
-                            ...(item.images && item.images.length > 1 ? item.images.slice(1).map((img) => ({
+                            ...(item.images?.length ? item.images.map((img) => ({
                               type: 'image' as const,
                               url: img
                             })) : [])
-                          ]}
+                          ].filter(m => m && m.url && String(m.url).trim().length > 0)}
                           alt={item.title}
                           className="w-full h-full"
-                          showDots={session?.user && ((item.images?.length || 0) + (item.video ? 1 : 0)) > 1}
-                          showArrows={session?.user && ((item.images?.length || 0) + (item.video ? 1 : 0)) > 1}
-                          preventClick={!!session?.user}
-                          autoSlideOnScroll={true} // Enable autoplay for all users (including non-logged in)
+                          showDots={((item.images?.length || 0) + (item.video?.url ? 1 : 0)) > 1}
+                          showArrows={((item.images?.length || 0) + (item.video?.url ? 1 : 0)) > 1}
+                          preventClick={true}
+                          autoSlideOnScroll={true}
                           priority={isPriority}
+                          isCardHovered={hoveredProductId === item.id}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">

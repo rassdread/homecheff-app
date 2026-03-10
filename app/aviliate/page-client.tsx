@@ -477,8 +477,8 @@ export default function AffiliatePageClient() {
                   <p className="font-semibold text-lg mb-2">Het Realistische Voordeel</p>
                   <p className="text-sm opacity-90 leading-relaxed">
                     <strong>2 bedrijven per maand is haalbaar:</strong> Dat is 1 bedrijf per 2 weken. 
-                    Na 12 maanden heb je een blijvend passief inkomen van <strong>€1,378/maand</strong> 
-                    (€1,188 subscriptions + €190 transacties) — zelfs als je stopt met nieuwe referrals!
+Na 12 maanden heb je een blijvend passief inkomen van <strong>€1,750/maand</strong>
+                    (€1,400 abonnementen + €350 transacties) — zelfs als je stopt met nieuwe referrals!
                   </p>
                 </div>
               </div>
@@ -519,11 +519,11 @@ export default function AffiliatePageClient() {
                   <div className="border-t border-white/30 pt-3">
                     <div className="flex justify-between items-center text-lg">
                       <span>Jaar 2+ (passief):</span>
-                      <span className="font-bold text-2xl">€16,536/jaar</span>
+                      <span className="font-bold text-2xl">€21,000/jaar</span>
                     </div>
                     <div className="flex justify-between items-center text-lg mt-2">
                       <span>Maandelijks:</span>
-                      <span className="font-bold text-2xl">€1,378</span>
+                      <span className="font-bold text-2xl">€1,750</span>
                     </div>
                   </div>
                   <div className="border-t border-white/30 pt-4 mt-4 bg-yellow-400/20 rounded-lg p-3">
@@ -533,6 +533,20 @@ export default function AffiliatePageClient() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Extra punten: hogere conversie, geen dak, begeleiding, vast aantal, 12 mnd verlenging */}
+            <div className="bg-blue-500/20 rounded-xl p-4 backdrop-blur-sm mb-6 border border-blue-400/30">
+              <div className="text-xs text-blue-900 space-y-1.5">
+                <p className="font-medium">✓ {t('affiliate.higherConversionStart')}</p>
+                <p className="font-medium">✓ {t('affiliate.noCeiling')}</p>
+                <p>✓ {t('affiliate.guidanceWhenScaling')}</p>
+                <p className="font-medium text-emerald-800">✓ {t('affiliate.twelveMonthsExtendedForSome')}</p>
+                <p className="font-semibold border-t border-blue-400/40 pt-2 mt-2">
+                  <span className="block mb-1">⏳ {t('affiliate.fixedNumberEnough')}</span>
+                  <span className="font-medium block">{t('affiliate.everyoneUnderFew')}</span>
+                </p>
               </div>
             </div>
 
@@ -564,15 +578,15 @@ export default function AffiliatePageClient() {
                   <div className="space-y-1">
                     <p className="flex justify-between text-xs">
                       <span>Subscriptions:</span>
-                      <span className="font-semibold">€1,188/maand</span>
+                      <span className="font-semibold">€1,400/maand</span>
                     </p>
                     <p className="flex justify-between text-xs">
                       <span>Transacties:</span>
-                      <span className="font-semibold">€190/maand</span>
+                      <span className="font-semibold">€350/maand</span>
                     </p>
                     <p className="flex justify-between border-t border-white/30 pt-1 font-bold">
                       <span>Totaal:</span>
-                      <span>€1,378/maand</span>
+                      <span>€1,750/maand</span>
                     </p>
                   </div>
                 </div>

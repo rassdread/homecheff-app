@@ -150,15 +150,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="nl">
       <head>
-        {/* Preconnect to external resources for faster loading */}
-        <link rel="preconnect" href="https://*.public.blob.vercel-storage.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://*.public.blob.vercel-storage.com" />
+        {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
-        {/* Preload critical fonts */}
-        <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased">
+      <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-hidden max-w-[100vw] w-full">
         <Providers>
           <PerformanceMonitor />
           <VercelAnalytics />

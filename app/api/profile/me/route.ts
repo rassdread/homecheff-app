@@ -1,10 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { getCorsHeaders } from '@/lib/apiCors';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     // NextAuth v5
     try {
@@ -60,7 +62,7 @@ export async function GET() {
         });
         
         if (!user) {
-          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+          return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
         }
         
         // Fix for social login accounts: prioritize profileImage over image, but handle base64
@@ -84,7 +86,7 @@ export async function GET() {
           image: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.image || rest.profileImage)
         };
         
-        return NextResponse.json({ user: processedUser });
+        return NextResponse.json({ user: processedUser }, { headers: cors });
       }
     } catch {}
 
@@ -143,7 +145,7 @@ export async function GET() {
         });
         
         if (!user) {
-          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+          return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
         }
         
         // Fix for social login accounts: prioritize profileImage over image, but handle base64
@@ -167,14 +169,14 @@ export async function GET() {
           image: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.image || rest.profileImage)
         };
         
-        return NextResponse.json({ user: processedUser });
+        return NextResponse.json({ user: processedUser }, { headers: cors });
       }
     } catch {}
 
     // Dev fallback
-    return NextResponse.json({ user: null });
+    return NextResponse.json({ user: null }, { headers: cors });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500, headers: cors });
   }
 }

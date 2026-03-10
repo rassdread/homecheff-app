@@ -1,12 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Range',
+  'Access-Control-Max-Age': '86400',
+  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+};
+
+/** Detecteert Safari / iOS / mobiel – daar streamen we niet, altijd bufferen voor betrouwbare playback. */
+function isSafariOrMobile(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+  const ua = userAgent.toLowerCase();
+  return (
+    ua.includes('iphone') ||
+    ua.includes('ipad') ||
+    ua.includes('ipod') ||
+    (ua.includes('safari') && !ua.includes('chrome')) ||
+    ua.includes('mobile')
+  );
+}
+
 /**
  * Video Proxy Route
- * 
- * Proxies video requests from Vercel Blob Storage with proper CORS headers
- * to fix CORS errors when loading videos in the browser.
- * 
- * Usage: /api/video-proxy?url=<encoded-video-url>
+ *
+ * Proxies video from Vercel Blob with CORS and byte-range support for Safari iOS.
+ * Safari sends Range requests (e.g. bytes=0-1) and needs 206 + Accept-Ranges for smooth playback.
+ * Op Safari/iOS: altijd bufferen (geen stream) om MEDIA_ERR_SRC_NOT_SUPPORTED (code 4) te voorkomen.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,72 +34,90 @@ export async function GET(request: NextRequest) {
     const videoUrl = searchParams.get('url');
 
     if (!videoUrl) {
-      return NextResponse.json(
-        { error: 'Video URL is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Video URL is required' }, { status: 400 });
     }
 
-    // Decode the URL if it's encoded
     const decodedUrl = decodeURIComponent(videoUrl);
 
-    // Validate that it's a Vercel Blob Storage URL
-    if (!decodedUrl.includes('public.blob.vercel-storage.com')) {
-      return NextResponse.json(
-        { error: 'Invalid video URL' },
-        { status: 400 }
-      );
+    if (!decodedUrl.includes('blob.vercel-storage.com') && !decodedUrl.includes('vercel-storage.com')) {
+      return NextResponse.json({ error: 'Invalid video URL' }, { status: 400 });
     }
 
-    // Fetch the video from Vercel Blob Storage
+    const rangeHeader = request.headers.get('range');
+    const userAgent = request.headers.get('user-agent');
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    const forceBuffer = isSafariOrMobile(userAgent);
+    // Safari/iOS: geen Range doorsturen → één volledige 200 response, dan bufferen. Voorkomt code 4.
+    const passRange = !forceBuffer && rangeHeader;
+
     const videoResponse = await fetch(decodedUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0',
+        'User-Agent': userAgent || 'Mozilla/5.0 (compatible; Homecheff-Video-Proxy/1.0)',
+        ...(passRange ? { Range: rangeHeader } : {}),
+        ...(blobToken ? { Authorization: `Bearer ${blobToken}` } : {}),
       },
     });
 
     if (!videoResponse.ok) {
+      console.error('[video-proxy] Blob fetch failed:', videoResponse.status, decodedUrl.slice(0, 80));
       return NextResponse.json(
         { error: 'Failed to fetch video' },
-        { status: videoResponse.status }
+        { status: videoResponse.status, headers: CORS_HEADERS }
       );
     }
 
-    // Get the video data
-    const videoBuffer = await videoResponse.arrayBuffer();
     const contentType = videoResponse.headers.get('content-type') || 'video/mp4';
+    const contentLength = videoResponse.headers.get('content-length');
+    const contentRange = videoResponse.headers.get('content-range');
+    const size = contentLength ? parseInt(contentLength, 10) : 0;
+    const body = videoResponse.body;
+    if (!body) {
+      console.error('[video-proxy] No response body');
+      return NextResponse.json(
+        { error: 'No video body' },
+        { status: 502, headers: CORS_HEADERS }
+      );
+    }
 
-    // Return the video with proper CORS headers
-    return new NextResponse(videoBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Max-Age': '86400',
-        'Cache-Control': 'public, max-age=31536000, immutable',
-        'Content-Length': videoBuffer.byteLength.toString(),
-      },
+    const headers: Record<string, string> = {
+      'Content-Type': contentType,
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...CORS_HEADERS,
+    };
+    if (contentLength) headers['Content-Length'] = contentLength;
+    if (contentRange) headers['Content-Range'] = contentRange;
+
+    // Bufferen: (1) Safari/iOS altijd (stream geeft daar vaak code 4), (2) anders alleen onder 8MB
+    const bufferThreshold = forceBuffer ? 20 * 1024 * 1024 : 8 * 1024 * 1024;
+    const shouldBuffer = forceBuffer || (size > 0 && size <= bufferThreshold);
+    if (shouldBuffer) {
+      const buffer = await videoResponse.arrayBuffer();
+      return new NextResponse(buffer, {
+        status: videoResponse.status,
+        headers,
+      });
+    }
+
+    return new NextResponse(body, {
+      status: videoResponse.status,
+      headers,
     });
   } catch (error: any) {
     console.error('Video proxy error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to proxy video' },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }
 
-// Handle OPTIONS request for CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
-    status: 200,
+    status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400',
+      ...CORS_HEADERS,
+      'Access-Control-Allow-Headers': 'Content-Type, Range',
     },
   });
 }

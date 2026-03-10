@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import { compressImage } from '@/lib/imageOptimization';
 
 interface Review {
   id: string;
@@ -115,8 +116,17 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
     setUploading(true);
     
     try {
+      let fileToUpload = file;
+      if (file.size > 500 * 1024 && file.type.startsWith('image/')) {
+        try {
+          const blob = await compressImage(file, 1920, 1080, 0.8);
+          fileToUpload = new File([blob], file.name.replace(/\.[^.]+$/i, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+        } catch {
+          // gebruik origineel bij fout
+        }
+      }
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('photo', fileToUpload);
       
       const response = await fetch('/api/delivery/upload-profile-photo', {
         method: 'POST',
@@ -167,11 +177,23 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
     }));
     setUploadingPhotos(tempPhotos);
 
+    // Compressie voor minder opslag en juist formaat (JPEG) op alle browsers
+    const getFileToUpload = async (f: File): Promise<File> => {
+      if (f.size <= 500 * 1024) return f;
+      try {
+        const blob = await compressImage(f, 1920, 1080, 0.8);
+        return new File([blob], f.name.replace(/\.[^.]+$/i, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+      } catch {
+        return f;
+      }
+    };
+
     // Upload all files in parallel using Promise.all for speed
     const uploadPromises = validFiles.map(async (file) => {
       try {
+        const fileToUpload = await getFileToUpload(file);
         const formData = new FormData();
-        formData.append('photos', file);
+        formData.append('photos', fileToUpload);
         
         const response = await fetch('/api/delivery/upload-vehicle-photos', {
           method: 'POST',

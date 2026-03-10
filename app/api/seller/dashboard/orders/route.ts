@@ -118,6 +118,11 @@ export async function GET(request: Request) {
           },
           take: 1,
           orderBy: { createdAt: 'desc' }
+        },
+        deliveryOrder: {
+          select: {
+            deliveryProfile: { select: { userId: true } }
+          }
         }
       }
     });
@@ -156,6 +161,9 @@ export async function GET(request: Request) {
                 order.status === 'SHIPPED' ? 'Verzonden' : 'Wachtend',
         deliveryMode: order.deliveryMode || 'PICKUP',
         deliveryAddress: order.deliveryAddress || undefined,
+        sellerCanSetDelivered:
+          order.deliveryMode === 'PICKUP' ||
+          (order.deliveryOrder?.deliveryProfile?.userId === user.id),
         createdAt: order.createdAt.toISOString(),
         paidAt: order.stripeSessionId ? order.createdAt.toISOString() : undefined,
         // Shipping label information

@@ -14,6 +14,7 @@ type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
 
 export const authOptions: NextAuthOptions = {
+  trustHost: true, // Vereist voor correcte sessie op iPhone Safari / meerdere domeinen (homecheff.eu vs homecheff.nl)
   pages: { signIn: "/login" },
   session: { 
     strategy: "jwt",
@@ -504,6 +505,7 @@ export const authOptions: NextAuthOptions = {
           }
           
           (session.user as any).sellerRoles = []; // Default to empty array
+          (session.user as any).adminRoles = []; // Default to empty array
           (session.user as any).hasDeliveryProfile = false; // Default to false if DB fetch fails
           (session.user as any).hasAffiliate = false; // Default to false if DB fetch fails
           
@@ -520,8 +522,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Use NEXTAUTH_URL from environment, or fallback to baseUrl
-      const actualBaseUrl = process.env.NEXTAUTH_URL || baseUrl;
+      // In development: use baseUrl (request host) so redirects stay on same host (Chrome op telefoon via 192.168.x).
+      // Anders na inloggen redirect naar localhost → telefoon laadt verkeerde host → herladen.
+      const actualBaseUrl =
+        process.env.NODE_ENV === 'development'
+          ? baseUrl || process.env.NEXTAUTH_URL
+          : (process.env.NEXTAUTH_URL || baseUrl);
 
       try {
         // For social login callback, check if user needs onboarding

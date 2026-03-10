@@ -17,6 +17,7 @@ import {
   Printer,
   QrCode,
   Trash2,
+  Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -420,6 +421,14 @@ export default function AffiliateDashboardClient() {
               <p className="text-sm sm:text-base text-gray-600">{t('affiliate.dashboard.manageAccount')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <Link
+                href="/verdiensten?uitbetaling=1"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+              >
+                <Wallet className="w-4 h-4" />
+                <span className="hidden sm:inline">Mijn Verdiensten</span>
+                <span className="sm:hidden">Verdiensten</span>
+              </Link>
               <Link
                 href="/affiliate/promo-codes"
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"

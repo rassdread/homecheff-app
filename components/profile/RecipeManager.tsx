@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, X, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
+import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 // Lazy load heavy components for better performance
 const RecipePhotoUpload = dynamic(() => import("./RecipePhotoUpload"), {
@@ -1041,6 +1042,7 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                     setFormData(prev => ({ ...prev, video: video || null }));
                   }}
                   maxDuration={30}
+                  uploadContext="dish"
                 />
               </div>
 
@@ -1388,7 +1390,7 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                         }}
                       >
                         <video
-                          src={recipe.video.url}
+                          src={getVideoUrlWithCors(recipe.video.url)}
                           poster={recipe.video.thumbnail || recipe.photos[0]?.url}
                           className="w-full h-full object-cover"
                           controls

@@ -8,6 +8,7 @@ import { normalizeSubscriptionName, PLAN_TO_PRICE } from "@/lib/stripe";
 import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
+import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -877,6 +878,17 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // Bij bezorging: bewaar aflevercoördinaten op de koper zodat dashboard/bezorgers die kunnen gebruiken
+        if ((deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') && createdOrder.userId) {
+          const coords = session.metadata?.coordinates ? JSON.parse(session.metadata.coordinates as string) : null;
+          if (coords?.lat != null && coords?.lng != null) {
+            await prisma.user.update({
+              where: { id: createdOrder.userId },
+              data: { lat: coords.lat, lng: coords.lng }
+            }).catch(() => {});
+          }
+        }
+
         // Send notification to ALL available deliverers if delivery mode
         if (deliveryMode === 'DELIVERY' || deliveryMode === 'TEEN_DELIVERY') {
           try {
@@ -927,54 +939,46 @@ export async function POST(req: NextRequest) {
                 }
               });
 
-
-              // Create delivery orders for each product and notify available deliverers
-              for (const item of items) {
+              // Eén DeliveryOrder per order (orderId is @unique): ongeassigneed, bezorgers zien hem in dashboard en kunnen accepteren
+              const firstItemWithSellerLocation = items.find((item: any) => {
                 const product = orderProducts.find(p => p.id === item.productId);
-                if (!product?.seller?.User?.lat || !product?.seller?.User?.lng) continue;
+                return product?.seller?.User?.lat && product?.seller?.User?.lng;
+              });
+              const firstProduct = firstItemWithSellerLocation
+                ? orderProducts.find(p => p.id === firstItemWithSellerLocation.productId)
+                : null;
 
-                // Create a single delivery order for this product (unassigned)
+              if (firstProduct?.seller?.User?.lat && firstProduct?.seller?.User?.lng) {
                 const deliveryOrder = await prisma.deliveryOrder.create({
                   data: {
-                    id: `delivery_${createdOrder.id}_${item.productId}_${Date.now()}`,
-                    order: {
-                      connect: { id: createdOrder.id }
-                    },
-                    ...(item.productId
-                      ? {
-                          product: { connect: { id: item.productId } }
-                        }
-                      : {}),
+                    orderId: createdOrder.id,
+                    productId: firstProduct.id,
                     status: 'PENDING',
                     deliveryAddress: address || '',
                     deliveryFee: deliveryFeeCents || 200,
                     estimatedTime: deliveryDate ? 60 : null,
+                    deliveryProfileId: null, // ongeassigneed → verschijnt bij beschikbare orders voor bezorgers
                   }
                 });
 
-                // Filter deliverers who are within range of BOTH seller and buyer
+                // Filter deliverers within range of BOTH (first product) seller and buyer
                 const eligibleDeliverers = availableDeliverers.filter(deliverer => {
                   if (!deliverer.user.lat || !deliverer.user.lng) return false;
-
                   const distanceToSeller = calculateDistance(
                     deliverer.user.lat,
                     deliverer.user.lng,
-                    product.seller.User.lat!,
-                    product.seller.User.lng!
+                    firstProduct.seller.User.lat!,
+                    firstProduct.seller.User.lng!
                   );
-
                   const distanceToBuyer = calculateDistance(
                     deliverer.user.lat,
                     deliverer.user.lng,
                     coordinates.lat,
                     coordinates.lng
                   );
-
-                  return distanceToSeller <= deliverer.maxDistance && 
-                         distanceToBuyer <= deliverer.maxDistance;
+                  return distanceToSeller <= deliverer.maxDistance && distanceToBuyer <= deliverer.maxDistance;
                 });
 
-                // Notify ALL eligible deliverers using new notification service
                 for (const deliverer of eligibleDeliverers) {
                   const distanceToBuyer = calculateDistance(
                     deliverer.user.lat!,
@@ -982,7 +986,6 @@ export async function POST(req: NextRequest) {
                     coordinates.lat,
                     coordinates.lng
                   );
-                  
                   await NotificationService.sendDeliveryOrderAvailableNotification(
                     deliverer.user.id,
                     deliveryOrder.id,
@@ -993,7 +996,6 @@ export async function POST(req: NextRequest) {
                     deliveryOrder.estimatedTime || 60
                   );
                 }
-
               }
             } else {
               console.warn('⚠️ No coordinates available for deliverer matching');
@@ -1515,18 +1517,16 @@ export async function POST(req: NextRequest) {
             if (!deliveryProfileId) continue;
 
             // Calculate deliverer payout (prefer detailed breakdown when available)
-            const deliveryPlatformFee = deliveryFeeBreakdown?.homecheffCut ?? Math.round(deliveryFeeCents * 0.12);
+            const deliveryPlatformFee = deliveryFeeBreakdown?.homecheffCut ?? Math.round(deliveryFeeCents * DELIVERY_PLATFORM_FEE_PERCENT / 100);
             const delivererPayoutCents = deliveryFeeCents - deliveryPlatformFee;
 
-            // Create transaction for delivery
-            // Note: Delivery payouts are created when deliverer accepts and completes order
-            // This is just a placeholder - actual payout happens in delivery status update                                                                                           
+            // Create transaction for delivery (12% Homecheff fee on delivery costs)
             const deliveryTransactionData: any = {
               id: `txn_delivery_${deliveryOrder.id}_${Date.now()}`,
               buyerId: buyerId,
               sellerId: deliveryOrder.deliveryProfile.user.id,
               amountCents: deliveryFeeCents,
-              platformFeeBps: 1200, // 12% in basis points
+              platformFeeBps: DELIVERY_PLATFORM_FEE_PERCENT * 100, // 12% in basis points
               status: 'CAPTURED',
               provider: 'STRIPE',
               providerRef: session.id,

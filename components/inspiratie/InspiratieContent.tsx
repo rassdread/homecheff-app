@@ -11,16 +11,16 @@ import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import ClientOnly from '@/components/util/ClientOnly';
 import UserStatsTile from '@/components/ui/UserStatsTile';
-import ImageSlider from '@/components/ui/ImageSlider';
 import SafeImage from '@/components/ui/SafeImage';
+import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { calculateDistance } from '@/lib/geocoding';
-import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import PropsButton from '@/components/props/PropsButton';
 import PromoModal from '@/components/promo/PromoModal';
+import InspirationItemListView from '@/components/inspiratie/InspirationItemListView';
 
-type InspirationItem = {
+export type InspirationItem = {
   id: string;
   title: string | null;
   description: string | null;
@@ -49,6 +49,7 @@ type InspirationItem = {
     id: string;
     url: string;
     thumbnail?: string | null;
+    duration?: number | null;
     autoplay?: boolean;
   }>;
   user: {
@@ -76,6 +77,8 @@ export default function InspiratieContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'distance' | 'views' | 'rating' | 'props'>('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [filtersLabelMounted, setFiltersLabelMounted] = useState(false); // avoid hydration mismatch: server "" vs client "Filters"
+  const [hasMounted, setHasMounted] = useState(false); // avoid hydration: translations/data kunnen server vs client verschillen
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   
@@ -168,113 +171,13 @@ export default function InspiratieContent() {
     return subcategory;
   };
 
-  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  const registerVideoRef = useCallback(
-    (id: string) => (element: HTMLVideoElement | null) => {
-      const observer = observerRef.current;
-      if (element) {
-        // Default to muted for autoplay compliance, but allow child components to override
-        // The child component will manage the muted state via its own state
-        element.playsInline = true;
-        videoRefs.current[id] = element;
-        if (observer) {
-          observer.observe(element);
-        }
-      } else {
-        const existing = videoRefs.current[id];
-        if (existing && observer) {
-          observer.unobserve(existing);
-        }
-        delete videoRefs.current[id];
-      }
-    },
-    []
-  );
-
-  const currentlyPlayingVideoRef = useRef<HTMLVideoElement | null>(null);
-  const isMobileRef = useRef(false);
-  // Global ref to track all video elements for non-logged users (similar to ImageSlider)
-  const allVideoRefs = useRef<Set<HTMLVideoElement>>(new Set());
-
   useEffect(() => {
-    isMobileRef.current = window.innerWidth < 768 || 'ontouchstart' in window;
-  }, []);
-
-  const stopAllVideosExcept = (exceptVideo: HTMLVideoElement | null) => {
-    Object.values(videoRefs.current).forEach((video) => {
-      if (video && video !== exceptVideo) {
-        video.pause();
-        video.currentTime = 0;
-      }
-    });
-    // Also stop all videos from non-logged users
-    allVideoRefs.current.forEach((video) => {
-      if (video && video !== exceptVideo) {
-        video.pause();
-        video.currentTime = 0;
-      }
-    });
-    currentlyPlayingVideoRef.current = exceptVideo;
-  };
-
-  useEffect(() => {
-    // Only use intersection observer on mobile
-    if (!isMobileRef.current) {
-      return;
-    }
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const videoElement = entry.target as HTMLVideoElement;
-          // Only play when fully visible (100% in viewport) on mobile
-          if (entry.isIntersecting && entry.intersectionRatio >= 1.0) {
-            // Stop all other videos first
-            stopAllVideosExcept(videoElement);
-            // Play this video
-            videoElement.muted = true;
-            videoElement
-              .play()
-              .catch(() => {
-                // Ignore autoplay errors (browser restrictions)
-              });
-          } else {
-            // Pause when not fully visible
-            videoElement.pause();
-            videoElement.currentTime = 0;
-            if (currentlyPlayingVideoRef.current === videoElement) {
-              stopAllVideosExcept(null);
-            }
-          }
-        });
-      },
-      { threshold: 1.0 } // Only trigger when 100% visible
-    );
-
-    return () => {
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-    };
+    setFiltersLabelMounted(true);
   }, []);
 
   useEffect(() => {
-    const observer = observerRef.current;
-    if (!observer) {
-      return;
-    }
-
-    const videos = Object.values(videoRefs.current).filter(
-      (video): video is HTMLVideoElement => Boolean(video)
-    );
-
-    videos.forEach((video) => observer.observe(video));
-
-    return () => {
-      videos.forEach((video) => observer.unobserve(video));
-    };
-  }, [items]);
+    setHasMounted(true);
+  }, []);
 
   // Force session refresh after login/registration redirect (especially for iOS Safari)
   useEffect(() => {
@@ -395,8 +298,10 @@ export default function InspiratieContent() {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Received inspiration items:', data.items?.length || 0);
-        setItems(data.items || []);
+        const list = data.items || [];
+        const withVideo = list.filter((it: { videos?: Array<{ url?: string }> }) => it.videos?.length && it.videos[0]?.url).length;
+        console.log('✅ Received inspiration items:', list.length, list.length ? `(${withVideo} met video)` : '');
+        setItems(list);
         setError(null);
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -690,15 +595,16 @@ export default function InspiratieContent() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Lightbulb className="w-12 h-12" />
-              <h1 className="text-4xl md:text-5xl font-bold">{t('inspiratie.title')}</h1>
+              {/* suppressHydrationWarning: title comes from client i18n; server renders "" until translations load */}
+              <h1 className="text-4xl md:text-5xl font-bold" suppressHydrationWarning>{t('inspiratie.title')}</h1>
             </div>
-            <p className="text-xl md:text-2xl text-emerald-100 mb-6 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-emerald-100 mb-6 max-w-3xl mx-auto" suppressHydrationWarning>
               {userFirstName 
                 ? t('inspiratie.greeting', { firstName: userFirstName })
                 : t('inspiratie.subtitle')
               }
             </p>
-            <p className="text-sm md:text-base text-emerald-100/90 max-w-3xl mx-auto">
+            <p className="text-sm md:text-base text-emerald-100/90 max-w-3xl mx-auto" suppressHydrationWarning>
               {t('inspiratie.description')}
             </p>
           </div>
@@ -714,6 +620,13 @@ export default function InspiratieContent() {
         </ClientOnly>
       </div>
 
+      {/* Filters + content: alleen na mount om hydration mismatch (server vs client i18n) te voorkomen */}
+      {!hasMounted ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600" />
+        </div>
+      ) : (
+      <>
       {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mobile Filter Toggle */}
@@ -724,7 +637,7 @@ export default function InspiratieContent() {
           >
             <div className="flex items-center gap-3">
               <Filter className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">{t('inspiratie.filters')}</span>
+              <span className="font-medium text-gray-900">{filtersLabelMounted ? t('inspiratie.filters') : ''}</span>
               {activeFiltersCount > 0 && (
                 <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                   {activeFiltersCount}
@@ -1197,13 +1110,11 @@ export default function InspiratieContent() {
                     handleItemClick={handleItemClick}
                     session={session}
                     mainPhoto={mainPhoto}
-                    registerVideoRef={registerVideoRef}
                     categories={CATEGORIES}
                     translateSubcategory={translateSubcategory}
                     t={t}
                     getItemDetailUrl={getItemDetailUrl}
-                    priority={index < 2} // Priority loading for first 2 items only
-                    allVideoRefs={allVideoRefs}
+                    priority={index < 2}
                   />
                 ))}
               </div>
@@ -1219,12 +1130,10 @@ export default function InspiratieContent() {
                     handleItemClick={handleItemClick}
                     session={session}
                     mainPhoto={mainPhoto}
-                    registerVideoRef={registerVideoRef}
                     categories={CATEGORIES}
                     translateSubcategory={translateSubcategory}
                     t={t}
                     getItemDetailUrl={getItemDetailUrl}
-                    allVideoRefs={allVideoRefs}
                   />
                 ))}
               </div>
@@ -1240,6 +1149,8 @@ export default function InspiratieContent() {
           </>
         )}
       </div>
+      </>
+      )}
 
       {/* Promo Modal for non-logged users */}
       {/* Don't show promo modal if session is loading or being refreshed after login */}
@@ -1297,8 +1208,8 @@ function PropsButtonWrapper({
           setPropsCount(count);
           onCountChange(count);
         }
-      } catch (error) {
-        console.error('Error checking props count:', error);
+      } catch {
+        // Silent: CORS or network; avoid console spam
       } finally {
         setCheckingStatus(false);
       }
@@ -1415,34 +1326,29 @@ function InspirationItemWithTracking({
   handleItemClick,
   session,
   mainPhoto,
-  registerVideoRef,
   categories,
   translateSubcategory,
   t,
   getItemDetailUrl,
-  priority = false,
-  allVideoRefs
+  priority = false
 }: { 
   item: InspirationItem; 
   viewMode: 'grid' | 'list';
   handleItemClick: (item: InspirationItem) => void;
   session: any;
   mainPhoto: (item: InspirationItem) => { id: string; url: string; isMain: boolean } | undefined;
-  registerVideoRef: (id: string) => (element: HTMLVideoElement | null) => void;
   categories: Array<{ id: string; label: string; icon: any; color: string }>;
   translateSubcategory: (category: string, subcategory: string) => string;
   t: (key: string, params?: Record<string, string | number>) => string;
   getItemDetailUrl: (item: InspirationItem) => string;
   priority?: boolean;
-  allVideoRefs: React.MutableRefObject<Set<HTMLVideoElement>>;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
-  const videoElementRef = useRef<HTMLVideoElement | null>(null);
   const [hasTrackedView, setHasTrackedView] = useState(false);
   const [localPropsCount, setLocalPropsCount] = useState(item.propsCount || 0);
   const [isHighlighted, setIsHighlighted] = useState(false);
-  const [isVideoMuted, setIsVideoMuted] = useState(true); // Start muted for autoplay compliance
-  
+  const [cardHovered, setCardHovered] = useState(false);
+
   // Update local props count when item changes
   useEffect(() => {
     setLocalPropsCount(item.propsCount || 0);
@@ -1529,215 +1435,36 @@ function InspirationItemWithTracking({
   }, [item.id, hasTrackedView, session]);
 
   const photo = mainPhoto(item);
+  const primaryVideo = item.videos?.[0];
   const categoryInfo = categories.find(c => c.id === item.category);
   const CategoryIcon = categoryInfo?.icon || Lightbulb;
-  const primaryVideo = item.videos?.[0];
-  const videoRefId = `${viewMode}-${item.id}`;
 
-  // Update video muted state when it changes
-  useEffect(() => {
-    if (videoElementRef.current && primaryVideo) {
-      videoElementRef.current.muted = isVideoMuted;
-    }
-  }, [isVideoMuted, primaryVideo]);
-
-  // Setup intersection observer for video autoplay (for non-logged users)
-  // Similar to ImageSlider - plays video when fully visible, pauses when not
-  useEffect(() => {
-    if (!videoElementRef.current || !primaryVideo) return;
-
-    const video = videoElementRef.current;
-    
-    // Add to global video refs set (for stopping other videos)
-    allVideoRefs.current.add(video);
-    
-    // Ensure video attributes are set for autoplay
-    video.muted = true; // Start muted for autoplay compliance
-    video.loop = true;
-    video.playsInline = true;
-    video.setAttribute('playsinline', 'true');
-    video.setAttribute('webkit-playsinline', 'true');
-    video.preload = 'metadata';
-    
-    // Create intersection observer for autoplay (same as ImageSlider)
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const videoElement = entry.target as HTMLVideoElement;
-          if (entry.isIntersecting && entry.intersectionRatio >= 1.0) {
-            // Video is fully visible - play it
-            // Stop all other videos first (same as ImageSlider)
-            allVideoRefs.current.forEach((v) => {
-              if (v && v !== videoElement) {
-                v.pause();
-                v.currentTime = 0;
-              }
-            });
-            
-            // Ensure all attributes are set
-            videoElement.muted = true; // Keep muted for autoplay compliance
-            videoElement.loop = true;
-            videoElement.playsInline = true;
-            videoElement.setAttribute('playsinline', 'true');
-            videoElement.setAttribute('webkit-playsinline', 'true');
-            
-            // Try to play - catch errors silently (browser may block autoplay)
-            const playPromise = videoElement.play();
-            if (playPromise !== undefined) {
-              playPromise.catch((error) => {
-                // Autoplay was prevented - this is normal in some browsers
-                // User can still click play button
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('Video autoplay prevented by browser:', error);
-                }
-              });
-            }
-          } else {
-            // Video is not fully visible - pause it
-            videoElement.pause();
-            videoElement.currentTime = 0;
-          }
-        });
-      },
-      { 
-        threshold: 1.0, // Only trigger when 100% visible (same as ImageSlider)
-        rootMargin: '0px' // No margin for precise detection
-      }
-    );
-
-    observer.observe(video);
-
-    return () => {
-      observer.disconnect();
-      allVideoRefs.current.delete(video);
-    };
-  }, [primaryVideo]);
-
-  
   // Grid view layout
-  if (viewMode === 'grid') {
-    return (
+  const gridEl = (
       <div
         ref={itemRef}
         className={`group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer active:scale-[0.98] ${
           isHighlighted ? 'ring-4 ring-emerald-400 shadow-2xl shadow-emerald-200/50 scale-[1.02]' : ''
         }`}
+        onMouseEnter={() => setCardHovered(true)}
+        onMouseLeave={() => setCardHovered(false)}
         onClick={(e) => {
-          // Don't navigate if clicking on image slider (when logged in), video controls, or other interactive elements
           const target = e.target as HTMLElement;
-          // Allow video controls to work - check for video element or controls
-          if (target.closest('video') || target.tagName === 'VIDEO' || 
-              target.closest('video')?.querySelector('*')?.contains(target) ||
-              target.closest('.video-controls') || 
-              target.closest('[data-video-controls]')) {
-            return; // Video controls handle their own clicks
-          }
-          if (target.closest('[data-image-slider]') && session?.user) {
-            return; // Image slider handles its own clicks for logged in users
-          }
-          if (target.closest('button')) {
-            return; // Buttons handle their own actions
-          }
+          if (target.closest('video') || target.tagName === 'VIDEO' || target.closest('.video-controls') || target.closest('[data-video-controls]')) return;
+          if (target.closest('[data-inspiration-card-media]')) return;
+          if (target.closest('button')) return;
           handleItemClick(item);
         }}
       >
-        {/* Image with Slider */}
-        <div 
-          className="relative aspect-square overflow-hidden bg-gray-100"
-          data-image-slider
-        >
-          {/* Gradient overlay at bottom to prevent text overlap on portrait images */}
-          {/* Lower z-index to ensure video controls are always clickable */}
+        <div className="relative aspect-square overflow-hidden bg-gray-100">
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none z-0" />
-                        {((item.photos && item.photos.length > 0) || primaryVideo) ? (
-                          session?.user ? (
-                            <ImageSlider
-                              media={[
-                                // Put video first so it's shown by default and autoplays
-                                ...(primaryVideo && primaryVideo.url ? [{
-                                  type: 'video' as const,
-                                  url: primaryVideo.url,
-                                  thumbnail: primaryVideo.thumbnail || photo?.url || null
-                                }] : []),
-                                ...(item.photos || []).filter(p => p && p.url).map(p => ({ type: 'image' as const, url: p.url }))
-                              ].filter(m => m && m.url && m.url.trim().length > 0)}
-                              alt={item.title || 'Inspiration item'}
-                              className="w-full h-full"
-                              showDots={((item.photos?.filter(p => p && p.url).length || 0) + (primaryVideo && primaryVideo.url ? 1 : 0)) > 1}
-                              showArrows={((item.photos?.filter(p => p && p.url).length || 0) + (primaryVideo && primaryVideo.url ? 1 : 0)) > 1}
-                              preventClick={true}
-                              autoSlideOnScroll={true}
-                              scrollSlideInterval={3000}
-                              priority={priority} // Priority is already set based on index in parent
-                              objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
-                            />
-                          ) : (
-                            // For non-logged in users, show only the main photo
-                            photo && photo.url ? (
-                              <SafeImage
-                                src={photo.url}
-                                alt={item.title || 'Inspiration item'}
-                                fill
-                                className={item.category === 'GROWN' ? 'object-contain' : 'object-cover'}
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority={priority}
-                                quality={priority ? 70 : 60} // Lower quality for faster loading
-                                loading={priority ? undefined : "lazy"}
-                              />
-                            ) : primaryVideo && primaryVideo.url ? (
-                              <div className="relative w-full h-full" style={{ zIndex: 10 }}>
-                                <video
-                                  ref={(el) => {
-                                    if (el) {
-                                      videoElementRef.current = el;
-                                      // Register in global video refs set (for stopping other videos)
-                                      allVideoRefs.current.add(el);
-                                      // Start muted for autoplay compliance
-                                      el.muted = true;
-                                      el.loop = true;
-                                      el.playsInline = true;
-                                      el.setAttribute('playsinline', 'true');
-                                      el.setAttribute('webkit-playsinline', 'true');
-                                      el.preload = 'metadata';
-                                    } else if (videoElementRef.current) {
-                                      // Cleanup when video is removed
-                                      allVideoRefs.current.delete(videoElementRef.current);
-                                    }
-                                  }}
-                                  src={getVideoUrlWithCors(primaryVideo.url)}
-                                  className={`w-full h-full ${item.category === 'GROWN' ? 'object-contain' : 'object-cover'}`}
-                                  controls
-                                  controlsList="nodownload"
-                                  playsInline
-                                  webkit-playsinline="true"
-                                  preload="metadata"
-                                  loop
-                                  style={{ zIndex: 10, position: 'relative' }}
-                                  onClick={(e) => {
-                                    // Allow video controls to work - don't propagate to parent
-                                    e.stopPropagation();
-                                  }}
-                                  onMouseDown={(e) => {
-                                    // Allow video controls to work - don't propagate to parent
-                                    e.stopPropagation();
-                                  }}
-                                  onTouchStart={(e) => {
-                                    // Allow video controls to work on touch devices
-                                    e.stopPropagation();
-                                  }}
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                <CategoryIcon className="w-12 h-12 text-gray-400" />
-                              </div>
-                            )
-                          )
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <CategoryIcon className="w-12 h-12 text-gray-400" />
-                          </div>
-                        )}
+          <InspirationCardMedia
+            item={item}
+            priority={priority}
+            objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
+            alt={item.title || 'Inspiration item'}
+            isCardHovered={cardHovered}
+          />
                         
                         {/* Category Badge */}
                         <div className="absolute top-3 left-3 z-10 pointer-events-none">
@@ -1875,188 +1602,34 @@ function InspirationItemWithTracking({
                         </div>
         </div>
       </div>
-    );
-  }
-  
-  // List view layout
-  return (
-    <div
-      ref={itemRef}
-      className={`group flex gap-4 bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden p-4 cursor-pointer active:scale-[0.98] ${
-        isHighlighted ? 'ring-4 ring-emerald-400 shadow-2xl shadow-emerald-200/50 scale-[1.01]' : ''
-      }`}
-      onClick={(e) => {
-        // Don't navigate if clicking on image slider (when logged in), video controls, or other interactive elements
-        const target = e.target as HTMLElement;
-        // Allow video controls to work - check for video element or controls
-        if (target.closest('video') || target.tagName === 'VIDEO' || 
-            target.closest('video')?.querySelector('*')?.contains(target) ||
-            target.closest('.video-controls') || 
-            target.closest('[data-video-controls]')) {
-          return; // Video controls handle their own clicks
-        }
-        if (target.closest('[data-image-slider]') && session?.user) {
-          return; // Image slider handles its own clicks for logged in users
-        }
-        if (target.closest('button')) {
-          return; // Buttons handle their own actions
-        }
-        handleItemClick(item);
-      }}
-    >
-      {/* Image with Slider */}
-      <div 
-        className="relative w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100"
-        data-image-slider
-      >
-        {((item.photos && item.photos.length > 0) || primaryVideo) ? (
-          session?.user ? (
-            <ImageSlider
-              media={[
-                // Put video first so it's shown by default and autoplays
-                ...(primaryVideo && primaryVideo.url ? [{
-                  type: 'video' as const,
-                  url: primaryVideo.url,
-                  thumbnail: primaryVideo.thumbnail || photo?.url || null
-                }] : []),
-                ...(item.photos || []).filter(p => p && p.url).map(p => ({ type: 'image' as const, url: p.url }))
-              ].filter(m => m && m.url && m.url.trim().length > 0)}
-              alt={item.title || 'Inspiration item'}
-              className="w-full h-full"
-              showDots={((item.photos?.filter(p => p && p.url).length || 0) + (primaryVideo && primaryVideo.url ? 1 : 0)) > 1}
-              showArrows={true}
-              preventClick={true}
-              autoSlideOnScroll={true}
-              scrollSlideInterval={3000}
-              objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
-            />
-          ) : (
-            // For non-logged in users, show only the main photo
-            photo && photo.url ? (
-              <SafeImage
-                src={photo.url}
-                alt={item.title || 'Inspiration item'}
-                fill
-                className={item.category === 'GROWN' ? 'object-contain' : 'object-cover'}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                quality={85}
-              />
-            ) : primaryVideo && primaryVideo.url ? (
-              <div className="relative w-full h-full" style={{ zIndex: 10 }}>
-                <video
-                  ref={(el) => {
-                    if (el) {
-                      videoElementRef.current = el;
-                      // Register in global video refs set (for stopping other videos)
-                      allVideoRefs.current.add(el);
-                      // Start muted for autoplay compliance
-                      el.muted = true;
-                      el.loop = true;
-                      el.playsInline = true;
-                      el.setAttribute('playsinline', 'true');
-                      el.setAttribute('webkit-playsinline', 'true');
-                      // Only preload when video is about to be visible (better performance)
-                      el.preload = 'none';
-                    } else if (videoElementRef.current) {
-                      // Cleanup when video is removed
-                      allVideoRefs.current.delete(videoElementRef.current);
-                    }
-                  }}
-                  src={getVideoUrlWithCors(primaryVideo.url)}
-                  className={`w-full h-full ${item.category === 'GROWN' ? 'object-contain' : 'object-cover'}`}
-                  controls
-                  controlsList="nodownload"
-                  playsInline
-                  webkit-playsinline="true"
-                  preload="none"
-                  loop
-                  style={{ zIndex: 10, position: 'relative' }}
-                  onClick={(e) => {
-                    // Allow video controls to work - don't propagate to parent
-                    e.stopPropagation();
-                  }}
-                  onMouseDown={(e) => {
-                    // Allow video controls to work - don't propagate to parent
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    // Allow video controls to work on touch devices
-                    e.stopPropagation();
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <CategoryIcon className="w-8 h-8 text-gray-400" />
-              </div>
-            )
-          )
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <CategoryIcon className="w-8 h-8 text-gray-400" />
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <CategoryIcon className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">{categoryInfo?.label}</span>
-            {item.subcategory && (
-              <>
-                <span className="text-gray-400">•</span>
-                <span className="text-sm text-blue-600">{translateSubcategory(item.category, item.subcategory)}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <Link
-          href={session?.user ? getItemDetailUrl(item) : '#'}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!session?.user) {
-              e.preventDefault();
-              handleItemClick(item);
-            }
-          }}
-        >
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-primary-600 transition-colors cursor-pointer">
-            {item.title}
-          </h3>
-        </Link>
-        
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {item.description}
-        </p>
-
-        {/* User Info and Props Button */}
-        <div className="flex items-center justify-between">
-          {item.user?.id && (
-            <UserStatsTile
-              userId={item.user.id}
-              userName={item.user.name || null}
-              userUsername={item.user.username || null}
-              userAvatar={item.user.profileImage || null}
-              displayFullName={item.user.displayFullName}
-              displayNameOption={item.user.displayNameOption}
-            />
-          )}
-                          {/* Props Button */}
-                          {session?.user && (
-                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                              <PropsButtonWrapper
-                                dishId={item.id}
-                                productTitle={item.title || 'dit item'}
-                                onCountChange={setLocalPropsCount}
-                                onPropsClick={handlePropsClick}
-                              />
-                            </div>
-                          )}
-        </div>
-      </div>
-    </div>
   );
+
+  return viewMode === 'list' ? (
+    <InspirationItemListView
+      item={item}
+      itemRef={itemRef}
+      session={session}
+      handleItemClick={handleItemClick}
+      photo={photo}
+      primaryVideo={primaryVideo}
+      categoryInfo={categoryInfo}
+      translateSubcategory={translateSubcategory}
+      getItemDetailUrl={getItemDetailUrl}
+      localPropsCount={localPropsCount}
+      setLocalPropsCount={setLocalPropsCount}
+      handlePropsClick={handlePropsClick}
+      isHighlighted={isHighlighted}
+      isCardHovered={cardHovered}
+      onCardHoverChange={setCardHovered}
+      t={t}
+      propsButtonSlot={
+        <PropsButtonWrapper
+          dishId={item.id}
+          productTitle={item.title || 'dit item'}
+          onCountChange={setLocalPropsCount}
+          onPropsClick={handlePropsClick}
+        />
+      }
+    />
+  ) : gridEl;
 }

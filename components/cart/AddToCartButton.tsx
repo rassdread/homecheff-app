@@ -95,16 +95,21 @@ export default function AddToCartButton({
     router.push('/checkout');
   };
 
+  // Expliciete tekstkleur zodat labels zichtbaar blijven in een witte/gradient-kaart (text-white parent)
+  const outlineTextClass = variant === 'outline' ? '!text-gray-900' : '';
+
   const renderCartShortcut = () => (
     <Button
       type="button"
       variant="outline"
       onClick={goToCheckout}
-      className={`${buttonSizes[size]} w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-primary-brand text-primary-brand bg-white hover:bg-primary-50`}
+      title="Ga naar afrekenen"
+      aria-label="Ga naar afrekenen"
+      className={`${buttonSizes[size]} w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-primary-brand bg-white hover:bg-primary-50 !text-gray-900`}
     >
-      <ShoppingCart className={`${iconSizes[size]}`} />
-      Ga naar afrekenen
-      <ArrowRight className={`${iconSizes[size]}`} />
+      <ShoppingCart className={`${iconSizes[size]} flex-shrink-0`} aria-hidden />
+      <span className="font-medium">Ga naar afrekenen</span>
+      <ArrowRight className={`${iconSizes[size]} flex-shrink-0`} aria-hidden />
     </Button>
   );
 
@@ -114,22 +119,24 @@ export default function AddToCartButton({
         onClick={handleAddToCart}
         disabled={isAdding}
         variant={variant}
-        className={`${buttonSizes[size]} ${className}`}
+        title={isAdded ? 'Toegevoegd aan winkelwagen' : 'Voeg toe aan winkelwagen'}
+        aria-label={isAdded ? 'Toegevoegd aan winkelwagen' : 'Voeg toe aan winkelwagen'}
+        className={`${buttonSizes[size]} ${outlineTextClass} ${className}`}
       >
         {isAdding ? (
           <>
-            <div className={`${iconSizes[size]} mr-2 animate-spin rounded-full border-2 border-current border-t-transparent`} />
-            Toevoegen...
+            <div className={`${iconSizes[size]} mr-2 animate-spin rounded-full border-2 border-current border-t-transparent flex-shrink-0`} aria-hidden />
+            <span>Toevoegen...</span>
           </>
         ) : isAdded ? (
           <>
-            <Check className={`${iconSizes[size]} mr-2`} />
-            Toegevoegd!
+            <Check className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
+            <span>Toegevoegd aan winkelwagen</span>
           </>
         ) : (
           <>
-            <ShoppingCart className={`${iconSizes[size]} mr-2`} />
-            In winkelwagen
+            <ShoppingCart className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
+            <span className="font-medium">In winkelwagen</span>
           </>
         )}
       </Button>

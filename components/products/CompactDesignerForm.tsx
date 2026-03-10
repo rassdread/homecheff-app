@@ -475,6 +475,7 @@ export default function CompactDesignerForm({
               setVideo(videoData || null);
             }}
             maxDuration={30}
+            uploadContext="dish"
           />
         </div>
 

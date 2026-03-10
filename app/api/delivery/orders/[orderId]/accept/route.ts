@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { getRouteDistance } from '@/lib/google-maps-distance';
 
 const prisma = new PrismaClient();
 
@@ -20,9 +21,10 @@ export async function POST(
 
     const { orderId } = params;
 
-    // Get user's delivery profile
+    // Get user's delivery profile (incl. user location for distance)
     const profile = await prisma.deliveryProfile.findUnique({
-      where: { userId: (session.user as any).id }
+      where: { userId: (session.user as any).id },
+      include: { user: { select: { lat: true, lng: true } } }
     });
 
     if (!profile) {
@@ -234,13 +236,33 @@ export async function POST(
       updatedOrder.order.User?.city
     ].filter(Boolean).join(', ') || updatedOrder.deliveryAddress || 'Bezorgadres niet beschikbaar';
 
+    let distanceKm = 0;
+    let estimatedMin = updatedOrder.estimatedTime || 30;
+    const sellerUser = product?.seller?.User as { lat?: number | null; lng?: number | null } | undefined;
+    const buyerUser = updatedOrder.order.User as { lat?: number | null; lng?: number | null } | undefined;
+    const delivererOrigin = (profile.currentLat != null && profile.currentLng != null)
+      ? { lat: profile.currentLat, lng: profile.currentLng }
+      : (profile.user?.lat != null && profile.user?.lng != null)
+        ? { lat: profile.user.lat, lng: profile.user.lng }
+        : null;
+    if (delivererOrigin && sellerUser?.lat != null && sellerUser?.lng != null && buyerUser?.lat != null && buyerUser?.lng != null) {
+      const [r1, r2] = await Promise.all([
+        getRouteDistance(delivererOrigin, { lat: sellerUser.lat, lng: sellerUser.lng }, 'driving'),
+        getRouteDistance({ lat: sellerUser.lat, lng: sellerUser.lng }, { lat: buyerUser.lat, lng: buyerUser.lng }, 'driving')
+      ]);
+      if ('distance' in r1 && 'distance' in r2) {
+        distanceKm = Math.round((r1.distance + r2.distance) * 10) / 10;
+        estimatedMin = r1.duration + r2.duration;
+      }
+    }
+
     const transformedOrder = {
       id: updatedOrder.id,
       orderId: updatedOrder.orderId,
       status: 'ACCEPTED' as const,
       deliveryFee: updatedOrder.deliveryFee,
-      estimatedTime: updatedOrder.estimatedTime || 30,
-      distance: 5, // Would calculate from GPS
+      estimatedTime: estimatedMin,
+      distance: distanceKm,
       customerName: updatedOrder.order.User?.name || updatedOrder.order.User?.username || 'Klant',
       customerAddress: customerAddress,
       customerPhone: updatedOrder.order.User?.phoneNumber || 'Niet beschikbaar',

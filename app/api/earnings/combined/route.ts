@@ -10,6 +10,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CommissionLedgerStatus } from "@prisma/client";
 import { matchesCurrentMode } from "@/lib/stripe";
+import { getSellerRequestablePayout } from "@/lib/sellerPayouts";
+import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +56,7 @@ export async function GET(req: NextRequest) {
       };
       delivery?: {
         totalEarnings: number;
+        paidPayout: number;
         totalDeliveries: number;
         completedDeliveries: number;
       };
@@ -127,23 +130,28 @@ export async function GET(req: NextRequest) {
       const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
       const netEarnings = totalEarnings - platformFee;
 
-      // Get payouts
+      // Officieel aanvraagbaar bedrag (zelfde logica als payout-request) → geen mismatch met UI
+      const { requestableCents } = await getSellerRequestablePayout(
+        prisma,
+        user.id,
+        platformFeePercentage,
+        matchesCurrentMode
+      );
+      const pendingPayout = requestableCents;
+      const availablePayout = requestableCents;
+
+      // Officieel uitbetaald: alleen payouts met providerRef (Stripe-transfer gedaan)
       const payouts = await prisma.payout.findMany({
         where: {
           toUserId: user.id,
-          transactionId: {
-            not: {
-              contains: 'delivery'
-            }
-          }
+          transactionId: { not: { contains: 'delivery' } },
+          providerRef: { not: null }
         },
-        orderBy: { createdAt: 'desc' },
-        take: 100
+        select: { amountCents: true, providerRef: true }
       });
-
-      const paidPayout = payouts.reduce((sum, p) => sum + p.amountCents, 0);
-      const pendingPayout = Math.max(0, netEarnings - paidPayout);
-      const availablePayout = pendingPayout; // Available for payout
+      const paidPayout = payouts
+        .filter((p) => p.providerRef && matchesCurrentMode(p.providerRef))
+        .reduce((sum, p) => sum + p.amountCents, 0);
 
       earnings.seller = {
         totalEarnings,
@@ -156,35 +164,49 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    // Calculate delivery earnings
+    // Calculate delivery earnings (incl. bezorgkosten: webhook txn_delivery_* én triggerDeliveryPayout per orderId)
     if (user.DeliveryProfile) {
       const deliveryProfile = user.DeliveryProfile;
-      
-      // Get delivery payouts
-      const payouts = await prisma.payout.findMany({
-        where: {
-          toUserId: user.id,
-          OR: [
-            { transactionId: { contains: 'delivery' } },
-            { transactionId: { contains: 'txn_delivery' } }
-          ]
-        },
+
+      const deliveredOrderIds = await prisma.deliveryOrder
+        .findMany({
+          where: { deliveryProfileId: deliveryProfile.id, status: 'DELIVERED' },
+          select: { orderId: true }
+        })
+        .then((rows) => rows.map((r) => r.orderId));
+
+      const allPayoutsToUser = await prisma.payout.findMany({
+        where: { toUserId: user.id },
+        select: { amountCents: true, providerRef: true, transactionId: true },
         orderBy: { createdAt: 'desc' }
       });
 
-      const totalEarnings = payouts.reduce((sum, p) => sum + p.amountCents, 0);
+      const deliveryPayouts = allPayoutsToUser.filter(
+        (p) =>
+          p.transactionId.includes('delivery') ||
+          p.transactionId.includes('txn_delivery') ||
+          deliveredOrderIds.includes(p.transactionId)
+      );
 
-      // Get delivery orders count
+      const totalEarnings = deliveryPayouts.reduce((sum, p) => sum + p.amountCents, 0);
+      const paidPayout = deliveryPayouts
+        .filter((p) => p.providerRef != null)
+        .reduce((sum, p) => sum + p.amountCents, 0);
+
       const deliveryOrders = await prisma.deliveryOrder.findMany({
-        where: {
-          deliveryProfileId: deliveryProfile.id
-        }
+        where: { deliveryProfileId: deliveryProfile.id },
+        select: { status: true, deliveryFee: true }
       });
 
-      const completedDeliveries = deliveryOrders.filter(o => o.status === 'DELIVERED').length;
+      const completedDeliveries = deliveryOrders.filter((o) => o.status === 'DELIVERED').length;
+      const earnedFromCompleted = deliveryOrders
+        .filter((o) => o.status === 'DELIVERED' && o.deliveryFee != null)
+        .reduce((sum, o) => sum + Math.round((o.deliveryFee ?? 0) * DELIVERY_DELIVERER_PERCENT / 100), 0);
+      const totalEarningsInclDelivery = Math.max(totalEarnings, earnedFromCompleted);
 
       earnings.delivery = {
-        totalEarnings,
+        totalEarnings: totalEarningsInclDelivery,
+        paidPayout,
         totalDeliveries: deliveryOrders.length,
         completedDeliveries
       };
@@ -223,18 +245,21 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    // Calculate totals
-    const totalEarnings = (earnings.seller?.totalEarnings || 0) + 
-                         (earnings.delivery?.totalEarnings || 0) + 
-                         (earnings.affiliate?.totalEarnings || 0);
-    
-    const totalAvailable = (earnings.seller?.availablePayout || 0) + 
-                          (earnings.delivery?.totalEarnings || 0) + 
-                          (earnings.affiliate?.availableCents || 0);
-    
-    const totalPaid = (earnings.seller?.paidPayout || 0) + 
-                     (earnings.delivery?.totalEarnings || 0) + 
-                     (earnings.affiliate?.paidCents || 0);
+    // Totals: available = aanvraagbaar, paid = officieel uitbetaald (per rol)
+    const totalEarnings = (earnings.seller?.totalEarnings || 0) +
+      (earnings.delivery?.totalEarnings || 0) +
+      (earnings.affiliate?.totalEarnings || 0);
+
+    const totalAvailable =
+      (earnings.seller?.availablePayout || 0) +
+      (earnings.delivery?.totalEarnings || 0) -
+      (earnings.delivery?.paidPayout ?? 0) +
+      (earnings.affiliate?.availableCents || 0);
+
+    const totalPaid =
+      (earnings.seller?.paidPayout || 0) +
+      (earnings.delivery?.paidPayout ?? 0) +
+      (earnings.affiliate?.paidCents || 0);
 
     return NextResponse.json({
       earnings,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
+import { DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -121,8 +122,8 @@ export async function POST(req: NextRequest) {
         const internationalSurcharge = 500; // €5.00
         pricing.totalDeliveryFee += internationalSurcharge;
         pricing.distanceFee += internationalSurcharge;
-        pricing.delivererCut = Math.round(pricing.totalDeliveryFee * 0.88);
-        pricing.platformCut = Math.round(pricing.totalDeliveryFee * 0.12);
+        pricing.delivererCut = Math.round(pricing.totalDeliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
+        pricing.platformCut = Math.round(pricing.totalDeliveryFee * DELIVERY_PLATFORM_FEE_PERCENT / 100);
       }
     } else {
       pricing = calculateDeliveryFee(totalDistance, deliveryType);
@@ -138,6 +139,9 @@ export async function POST(req: NextRequest) {
         baseFee: pricing.baseFee,
         distanceFee: pricing.distanceFee,
         totalDeliveryFee: pricing.totalDeliveryFee,
+        delivererCut: pricing.delivererCut,
+        homecheffCut: pricing.platformCut,
+        homecheffFeePercent: DELIVERY_PLATFORM_FEE_PERCENT,
         distance: totalDistance
       }
     });

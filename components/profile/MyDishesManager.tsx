@@ -224,6 +224,27 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
     setLoading(true);
     
     try {
+      // Openbaar profiel met subtabs Dorpsplein/Inspiratie (zelfde data als privé)
+      if (isPublic && contentSubTab && userId) {
+        const apiUrl = `/api/profile/dishes?userId=${userId}`;
+        const dishesRes = await safeFetch(apiUrl);
+        if (dishesRes.ok) {
+          const dishesData = await dishesRes.json();
+          let filtered = (dishesData.items || []).filter((item: any) => item.status === 'PUBLISHED');
+          if (contentSubTab === 'dorpsplein') {
+            filtered = filtered.filter((item: any) => item.priceCents && item.priceCents > 0);
+          } else {
+            filtered = filtered.filter((item: any) => !item.priceCents || item.priceCents === 0);
+          }
+          if (activeRole === 'chef') filtered = filtered.filter((item: any) => item.category === 'CHEFF');
+          else if (activeRole === 'garden') filtered = filtered.filter((item: any) => item.category === 'GROWN');
+          else if (activeRole === 'designer') filtered = filtered.filter((item: any) => item.category === 'DESIGNER');
+          setItems(filtered);
+        }
+        setLoading(false);
+        return;
+      }
+
       // Check if contentSubTab is provided (works for overview and category tabs)
       if (contentSubTab) {
         if (contentSubTab === 'dorpsplein') {

@@ -413,7 +413,7 @@ export default function PassiveIncomeCalculator() {
                 <p>• <strong>Maand 1:</strong> 2 nieuwe → €99/maand passief inkomen</p>
                 <p>• <strong>Maand 2:</strong> 2 nieuwe → €198/maand passief inkomen (4 actief)</p>
                 <p>• <strong>Maand 3:</strong> 2 nieuwe → €297/maand passief inkomen (6 actief)</p>
-                <p>• <strong>Maand 12:</strong> 2 nieuwe → €1,188/maand passief inkomen (24 actief)</p>
+                <p>• <strong>Maand 12:</strong> 2 nieuwe → €1,400/maand passief inkomen (24 actief)</p>
               </div>
             </div>
 
@@ -527,7 +527,7 @@ export default function PassiveIncomeCalculator() {
               <p className="text-2xl font-bold mb-4">📊 Met Slechts 2 Abonnementen per Maand:</p>
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-4xl font-bold">€1,188</p>
+                  <p className="text-4xl font-bold">€1,400</p>
                   <p className="text-lg opacity-90">per maand (jaar 2+)</p>
                 </div>
                 <div>

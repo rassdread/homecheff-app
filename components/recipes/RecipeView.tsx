@@ -13,6 +13,7 @@ import BackButton from '@/components/navigation/BackButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type RecipePhoto = {
   id: string;
@@ -483,13 +484,12 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
               
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <video
-                  src={recipe.video.url}
+                  src={getVideoUrlWithCors(recipe.video.url)}
                   controls
                   className="w-full h-full object-cover"
                   poster={recipe.video.thumbnail || undefined}
                   preload="metadata"
                   playsInline
-                  webkit-playsinline="true"
                 >
                   Je browser ondersteunt geen video element.
                 </video>

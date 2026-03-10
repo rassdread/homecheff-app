@@ -22,18 +22,13 @@ export default async function DeliveryDashboardPage() {
     redirect(`/verify-email?email=${encodeURIComponent(session.user.email || '')}`);
   }
 
-  // Check if user is a deliverer (ambassador) - NOT for sellers
+  // Toegang: rol DELIVERY of iedereen met een actief bezorgerprofiel (incl. verkoper-bezorgers)
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { 
-      id: true, 
-      role: true 
-    }
+    select: { id: true, role: true },
   });
 
-  // Only allow DELIVERY role (ambassadors/bezorgers), not sellers
   if (user?.role !== 'DELIVERY') {
-    // Check if user has delivery profile (for ambassadors)
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { userId: userId },
       select: { id: true, isActive: true }

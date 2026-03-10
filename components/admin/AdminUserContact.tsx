@@ -58,7 +58,7 @@ export default function AdminUserContact() {
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    alert(`${label} gekopieerd naar klembord!`);
+    alert(t('common.copiedToClipboard', { label }));
   };
 
   const maskSensitiveData = (data: string | null) => {
@@ -72,7 +72,7 @@ export default function AdminUserContact() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <User className="w-6 h-6" />
-          Gebruiker Contactgegevens
+          {t('admin.userContactTitle')}
         </h2>
         <p className="text-gray-600">{t('admin.searchUsersContactInfo')}</p>
       </div>

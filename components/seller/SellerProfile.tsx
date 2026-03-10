@@ -36,6 +36,7 @@ import ShareButton from '@/components/ui/ShareButton';
 import Image from 'next/image';
 import SellerDeliverySettings from './SellerDeliverySettings';
 import { useTranslation } from '@/hooks/useTranslation';
+import { compressImage } from '@/lib/imageOptimization';
 
 // Reviews removed for now - can be added later if needed
 
@@ -243,8 +244,17 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
     setUploading(true);
     
     try {
+      let fileToUpload = file;
+      if (file.size > 500 * 1024 && file.type.startsWith('image/')) {
+        try {
+          const blob = await compressImage(file, 1920, 1080, 0.8);
+          fileToUpload = new File([blob], file.name.replace(/\.[^.]+$/i, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+        } catch {
+          // gebruik origineel bij fout
+        }
+      }
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('photo', fileToUpload);
       
       const response = await fetch('/api/seller/upload-profile-photo', {
         method: 'POST',
@@ -272,9 +282,18 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
     
     try {
       const formData = new FormData();
-      Array.from(files).forEach((file, index) => {
-        formData.append(`photos`, file);
-      });
+      for (const file of Array.from(files)) {
+        let fileToUpload: File = file;
+        if (file.size > 500 * 1024 && file.type.startsWith('image/')) {
+          try {
+            const blob = await compressImage(file, 1920, 1080, 0.8);
+            fileToUpload = new File([blob], file.name.replace(/\.[^.]+$/i, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+          } catch {
+            // gebruik origineel bij fout
+          }
+        }
+        formData.append('photos', fileToUpload);
+      }
       formData.append('role', selectedRole);
       
       const response = await fetch('/api/seller/upload-workplace-photos', {

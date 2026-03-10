@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     const { searchParams } = new URL(req.url);
@@ -112,25 +114,25 @@ export async function GET(req: NextRequest) {
     // Calculate unread count
     const unreadCount = transformedNotifications.filter(n => !n.isRead).length;
 
-    return NextResponse.json({ 
-      notifications: transformedNotifications,
-      unreadCount 
-    });
-
+    return NextResponse.json(
+      { notifications: transformedNotifications, unreadCount },
+      { headers: cors }
+    );
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }
 
 export async function PATCH(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -139,7 +141,7 @@ export async function PATCH(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     const { notificationIds, markAllAsRead } = await req.json();
@@ -164,13 +166,12 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true });
-
+    return NextResponse.json({ success: true }, { headers: cors });
   } catch (error) {
     console.error('Error updating notifications:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }

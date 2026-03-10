@@ -26,7 +26,8 @@ import {
   ExternalLink,
   Package,
   Printer,
-  Download
+  Download,
+  Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -423,11 +424,9 @@ export default function DeliveryDashboard() {
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    if (language === 'en') {
-      return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-    } else {
-      return hours > 0 ? `${hours}u ${mins}m` : `${mins}m`;
-    }
+    const h = t('delivery.hoursUnit');
+    const m = t('delivery.minutesUnit');
+    return hours > 0 ? `${hours}${h} ${mins}${m}` : `${mins}${m}`;
   };
 
   const getStatusLabel = (status: string) => {
@@ -521,6 +520,14 @@ export default function DeliveryDashboard() {
                   <span className="hidden sm:inline">{t('delivery.myProfile')}</span>
                   <span className="sm:hidden">{t('delivery.profile')}</span>
                 </a>
+                <Link
+                  href="/verdiensten?uitbetaling=1"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('delivery.myEarnings')}</span>
+                  <span className="sm:hidden">{t('delivery.earningsShort')}</span>
+                </Link>
                 <a
                   href="/delivery/settings"
                   className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"

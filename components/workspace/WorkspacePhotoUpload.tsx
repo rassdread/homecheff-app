@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Camera, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { compressImage } from '@/lib/imageOptimization';
 
 interface WorkspacePhotoUploadProps {
   maxPhotos?: number;
@@ -111,14 +112,25 @@ export default function WorkspacePhotoUpload({
 
     setPhotos(prevPhotos => [...prevPhotos, ...tempPhotos]);
 
+    // Compressie voor minder opslag en juist formaat (JPEG) op alle browsers
+    const getFileToUpload = async (file: File): Promise<File> => {
+      if (file.size <= 500 * 1024) return file;
+      try {
+        const blob = await compressImage(file, 1920, 1080, 0.8);
+        return new File([blob], file.name.replace(/\.[^.]+$/i, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() });
+      } catch {
+        return file;
+      }
+    };
+
     // Upload all files in parallel using Promise.all for speed
     const uploadPromises = validFiles.map(async (file, i) => {
       const tempId = tempPhotos[i].id;
       
       try {
-        // Upload file directly to database
+        const fileToUpload = await getFileToUpload(file);
         const formData = new FormData();
-        formData.append('photos', file);
+        formData.append('photos', fileToUpload);
         formData.append('role', userType);
         
         const response = await fetch('/api/seller/upload-workplace-photos', {

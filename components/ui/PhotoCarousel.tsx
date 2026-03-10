@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn, Volume2, VolumeX } from 'lucide-react';
 import SafeImage from './SafeImage';
-import { checkVideoHasAudio } from '@/lib/videoUtils';
+import { checkVideoHasAudio, getVideoUrlWithCors } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
 interface Photo {
@@ -103,48 +103,49 @@ export default function PhotoCarousel({
 
     intersectionObserverRef.current = new IntersectionObserver(
       (entries) => {
+        const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
         entries.forEach((entry) => {
           const videoElement = entry.target as HTMLVideoElement;
-          const videoIndex = Array.from(videoRefs.current.entries()).find(
-            ([_, v]) => v === videoElement
-          )?.[0];
-
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            // Video is visible - play it with sound
-            if (videoElement && videoElement.paused) {
-              // Stop all other videos first (using global video manager)
-              videoManager.stopAllExcept(videoElement);
-              // Start muted for autoplay compliance, then unmute immediately after play starts
-              videoElement.muted = true;
-              const playPromise = videoElement.play();
-              if (playPromise !== undefined) {
-                playPromise
-                  .then(() => {
-                    // Unmute immediately after play starts (with sound)
-                    if (videoElement && !videoElement.paused) {
-                      const userMuted = videoMutedStates.get(videoIndex ?? currentIndex);
-                      if (userMuted === undefined || userMuted === false) {
-                        videoElement.muted = false;
-                        if (videoIndex !== undefined) {
-                          setVideoMutedStates((prev) => {
-                            const newMap = new Map(prev);
-                            newMap.set(videoIndex, false);
-                            return newMap;
-                          });
-                        }
-                      }
-                    }
-                  })
-                  .catch(() => {
-                    // Autoplay was prevented - this is normal in some browsers
-                  });
-              }
+          if (!entry.isIntersecting || entry.intersectionRatio < 1.0) {
+            if (isMobile) {
+              try {
+                videoElement.muted = true;
+                videoElement.pause();
+                videoElement.currentTime = 0;
+              } catch {}
             }
+            return;
           }
-          // Don't pause when out of view - let video play to completion
         });
+        if (!isMobile) return; // Desktop: alleen bij hover/keuze spelen, niet pauzeren vanuit observer
+        const toPlay = entries.find((e) => e.isIntersecting && e.intersectionRatio >= 1.0);
+        if (!toPlay) return;
+        const videoElement = toPlay.target as HTMLVideoElement;
+        const videoIndex = Array.from(videoRefs.current.entries()).find(
+          ([_, v]) => v === videoElement
+        )?.[0];
+        if (videoElement && videoElement.paused) {
+          videoManager.stopAllExcept(videoElement);
+          videoElement.muted = true;
+          const playPromise = videoElement.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                if (videoElement && !videoElement.paused && videoIndex !== undefined) {
+                  const wantMuted = videoManager.getUserPrefersMuted() === true;
+                  videoElement.muted = wantMuted;
+                  setVideoMutedStates((prev) => {
+                    const newMap = new Map(prev);
+                    newMap.set(videoIndex, wantMuted);
+                    return newMap;
+                  });
+                }
+              })
+              .catch(() => {});
+          }
+        }
       },
-      { threshold: 0.5 }
+      { threshold: 1.0 }
     );
 
     // Observe all videos
@@ -240,33 +241,43 @@ export default function PhotoCarousel({
         {/* Main Media Container */}
         <div className="relative aspect-video bg-gray-100 rounded-xl overflow-hidden">
           {currentMedia.type === 'video' ? (
-            <div className="relative w-full h-full">
+            <div className="video-smooth relative w-full h-full">
               <video
                 ref={(el) => {
                   if (el) {
                     videoRefs.current.set(currentIndex, el);
-                    // Start muted for autoplay compliance, will unmute after play starts
-                    el.muted = true;
+                    videoManager.register(el);
+                    videoManager.stopAllExcept(el);
+                    el.muted = true; // Bij start altijd mute; unmute pas na start afspelen (onPlaying)
                     el.playsInline = true;
                     el.setAttribute('playsinline', 'true');
                     el.setAttribute('webkit-playsinline', 'true');
-                    el.preload = 'metadata';
+                    el.preload = 'auto';
                     el.loop = false; // Don't loop - go to next slide after video ends
-                    
-                    // Observe with intersection observer
                     if (intersectionObserverRef.current) {
                       intersectionObserverRef.current.observe(el);
                     }
                   }
                 }}
-                src={currentMedia.url}
+                src={getVideoUrlWithCors(currentMedia.url ?? '')}
                 controls
                 className="w-full h-full object-cover"
                 poster={currentMedia.thumbnail || undefined}
                 playsInline
                 autoPlay
-                onEnded={() => {
-                  // After video ends, automatically go to next slide (gallery)
+                  onPlaying={() => {
+                    const v = videoRefs.current.get(currentIndex);
+                    if (v) {
+                      const wantMuted = videoManager.shouldStartMuted();
+                      v.muted = wantMuted;
+                      setVideoMutedStates((prev) => {
+                        const next = new Map(prev);
+                        next.set(currentIndex, wantMuted);
+                        return next;
+                      });
+                    }
+                  }}
+                  onEnded={() => {
                   if (currentIndex < mediaItems.length - 1) {
                     setCurrentIndex(currentIndex + 1);
                   } else {
@@ -285,6 +296,8 @@ export default function PhotoCarousel({
               {/* Mute/Unmute Button - Only show if video has audio */}
               {videoHasAudio.get(currentIndex) !== false && (
                 <button
+                  type="button"
+                  data-video-mute-button
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -292,6 +305,7 @@ export default function PhotoCarousel({
                     if (video) {
                       const newMutedState = !video.muted;
                       video.muted = newMutedState;
+                      videoManager.setUserPrefersMuted(newMutedState);
                       setVideoMutedStates((prev) => {
                         const newMap = new Map(prev);
                         newMap.set(currentIndex, newMutedState);
@@ -299,13 +313,13 @@ export default function PhotoCarousel({
                       });
                     }
                   }}
-                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-30 transition-all duration-200"
-                  aria-label={videoMutedStates.get(currentIndex) ? "Unmute video" : "Mute video"}
+                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
+                  aria-label={videoMutedStates.get(currentIndex) !== false ? "Unmute video" : "Mute video"}
                 >
-                  {videoMutedStates.get(currentIndex) ? (
-                    <VolumeX className="w-5 h-5" />
+                  {videoMutedStates.get(currentIndex) !== false ? (
+                    <VolumeX className="w-5 h-5" aria-hidden />
                   ) : (
-                    <Volume2 className="w-5 h-5" />
+                    <Volume2 className="w-5 h-5" aria-hidden />
                   )}
                 </button>
               )}
@@ -454,47 +468,59 @@ export default function PhotoCarousel({
 
           <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
             {currentMedia.type === 'video' ? (
-              <div className="relative w-full h-full flex items-center justify-center">
+              <div className="video-smooth relative w-full h-full flex items-center justify-center">
                 <video
                   ref={(el) => {
                     if (el) {
                       videoRefs.current.set(currentIndex, el);
-                      // Register with global video manager
                       videoManager.register(el);
-                      // Start muted for autoplay compliance, will unmute after play starts
-                      el.muted = true;
+                      videoManager.stopAllExcept(el);
+                      el.muted = true; // Altijd mute tot video start; unmute in onPlaying
                       el.playsInline = true;
                       el.setAttribute('playsinline', 'true');
                       el.setAttribute('webkit-playsinline', 'true');
-                      el.preload = 'metadata';
+                      el.preload = 'auto';
                       el.loop = false; // Don't loop - go to next slide after video ends
                     }
                   }}
-                  src={currentMedia.url}
+                  src={getVideoUrlWithCors(currentMedia.url ?? '')}
                   controls
                   autoPlay
                   className="max-w-full max-h-full object-contain rounded-lg"
                   poster={currentMedia.thumbnail || undefined}
                   playsInline
-                  onEnded={() => {
-                    // After video ends, automatically go to next slide (gallery)
-                    if (currentIndex < mediaItems.length - 1) {
-                      setCurrentIndex(currentIndex + 1);
+                onPlaying={() => {
+                  const v = videoRefs.current.get(currentIndex);
+                  if (v) {
+                    const wantMuted = videoManager.shouldStartMuted();
+                    v.muted = wantMuted;
+                    setVideoMutedStates((prev) => {
+                      const next = new Map(prev);
+                      next.set(currentIndex, wantMuted);
+                      return next;
+                    });
+                  }
+                }}
+                onEnded={() => {
+                  if (currentIndex < mediaItems.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                  } else {
+                    const firstImageIndex = mediaItems.findIndex(m => m.type === 'image');
+                    if (firstImageIndex >= 0) {
+                      setCurrentIndex(firstImageIndex);
                     } else {
-                      const firstImageIndex = mediaItems.findIndex(m => m.type === 'image');
-                      if (firstImageIndex >= 0) {
-                        setCurrentIndex(firstImageIndex);
-                      } else {
-                        setCurrentIndex(0);
-                      }
+                      setCurrentIndex(0);
                     }
-                  }}
-                >
-                  Je browser ondersteunt geen video element.
-                </video>
-                {/* Mute/Unmute Button - Only show if video has audio */}
+                  }
+                }}
+              >
+                Je browser ondersteunt geen video element.
+              </video>
+              {/* Mute/Unmute Button - Only show if video has audio */}
                 {videoHasAudio.get(currentIndex) !== false && (
                   <button
+                    type="button"
+                    data-video-mute-button
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -502,6 +528,7 @@ export default function PhotoCarousel({
                       if (video) {
                         const newMutedState = !video.muted;
                         video.muted = newMutedState;
+                        videoManager.setUserPrefersMuted(newMutedState);
                         setVideoMutedStates((prev) => {
                           const newMap = new Map(prev);
                           newMap.set(currentIndex, newMutedState);
@@ -509,13 +536,13 @@ export default function PhotoCarousel({
                         });
                       }
                     }}
-                    className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-30 transition-all duration-200"
-                    aria-label={videoMutedStates.get(currentIndex) ? "Unmute video" : "Mute video"}
+                    className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
+                    aria-label={videoMutedStates.get(currentIndex) !== false ? "Unmute video" : "Mute video"}
                   >
-                    {videoMutedStates.get(currentIndex) ? (
-                      <VolumeX className="w-5 h-5" />
+                    {videoMutedStates.get(currentIndex) !== false ? (
+                      <VolumeX className="w-5 h-5" aria-hidden />
                     ) : (
-                      <Volume2 className="w-5 h-5" />
+                      <Volume2 className="w-5 h-5" aria-hidden />
                     )}
                   </button>
                 )}

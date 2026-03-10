@@ -21,12 +21,20 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    if (!user || !user.SellerProfile) {
-      return NextResponse.json({ error: "User or seller profile not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get user roles from the user object
     const userRoles = user.sellerRoles || [];
+
+    // Geen SellerProfile → lege werkruimte (geen 404, zodat openbaar profiel netjes toont)
+    if (!user.SellerProfile) {
+      return NextResponse.json({
+        success: true,
+        photos: {} as Record<string, any[]>,
+        userRoles
+      });
+    }
 
     // Get workplace photos
     const workplacePhotos = await prisma.workplacePhoto.findMany({

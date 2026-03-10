@@ -797,6 +797,7 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
                         setFormData(prev => ({ ...prev, video: video || null }));
                       }}
                       maxDuration={30}
+                      uploadContext="dish"
                     />
                   </div>
 

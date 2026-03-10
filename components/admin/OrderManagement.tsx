@@ -157,12 +157,21 @@ export default function OrderManagement() {
         body: JSON.stringify({ status: newStatus })
       });
 
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
+        if (newStatus === 'DELIVERED' && data.escrowReleased > 0) {
+          alert(`Status bijgewerkt naar Bezorgd. Betaling uit escrow vrijgegeven: ${data.escrowReleased} uitbetaling(en) naar de verkoper.`);
+        } else if (newStatus === 'DELIVERED' && data.escrowErrors?.length) {
+          alert(`Status bijgewerkt. Escrow kon niet volledig worden vrijgegeven: ${data.escrowErrors.join(' ')}`);
+        }
         fetchOrders();
         setSelectedOrder(null);
+      } else {
+        alert(data.error || 'Status bijwerken mislukt');
       }
     } catch (error) {
       console.error('Error updating order status:', error);
+      alert('Status bijwerken mislukt');
     }
   };
 
@@ -246,7 +255,7 @@ export default function OrderManagement() {
           <h2 className="text-2xl font-bold text-gray-900">Order Beheer</h2>
           <p className="text-gray-600">{t('admin.orderManagementDescription')}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={exportToCSV}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -260,6 +269,32 @@ export default function OrderManagement() {
           >
             <RefreshCw className="w-4 h-4" />
             Ververs
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/admin/orders/release-escrow', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                const data = await res.json();
+                if (data.success) {
+                  const released = data.totalReleased ?? data.released ?? 0;
+                  const processed = data.ordersProcessed ?? 0;
+                  if (released === 0 && processed === 0) {
+                    alert('Geen openstaande escrows gevonden.\n\nBij verzendbestellingen (SHIPPING) wordt escrow automatisch vrijgegeven zodra je de status op Bezorgd zet. Deze knop is alleen voor herstel van oude bestellingen waar dat destijds niet gebeurde.');
+                  } else {
+                    alert(data.message || `${released} escrow(s) vrijgegeven voor ${processed} bestelling(en).`);
+                  }
+                } else {
+                  alert(data.error || 'Mislukt');
+                }
+              } catch (e) {
+                alert('Escrow vrijgeven mislukt');
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition-colors"
+            title="Alleen voor herstel: escrow vrijgeven voor bestellingen die al Bezorgd zijn. Normaal gebeurt dit automatisch bij status Bezorgd (verzendbestellingen)."
+          >
+            <DollarSign className="w-4 h-4" />
+            Escrow vrijgeven
           </button>
         </div>
       </div>

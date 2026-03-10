@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
-import { createTransfer } from '@/lib/stripe';
+import { DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 
 export async function POST(
   req: NextRequest,
@@ -155,7 +155,18 @@ export async function POST(
           where: { id: updatedOrder.order.id },
           data: { status: 'DELIVERED' }
         });
-        
+
+        // Release seller escrow so payout is sent to Stripe Connect (verzendbestellingen)
+        try {
+          const { releaseEscrowForOrder } = await import('@/lib/releaseEscrowOnDelivered');
+          const result = await releaseEscrowForOrder(prisma, updatedOrder.order.id);
+          if (result.released > 0) {
+            console.log(`✅ [Delivery] Escrow released for order ${updatedOrder.order.id}: ${result.released} payout(s)`);
+          }
+        } catch (e) {
+          console.error(`[Delivery] Escrow release for ${updatedOrder.order.id}:`, e);
+        }
+
         // Trigger review requests (same logic as in orders/[orderId]/update)
         try {
           const { sendReviewRequestEmail } = await import('@/lib/email');
@@ -279,49 +290,21 @@ export async function POST(
 
 async function triggerDeliveryPayout(deliveryOrder: any, profile: any) {
   try {
-    // Calculate delivery person's cut (88% of delivery fee)
-    const deliveryPersonCut = Math.round(deliveryOrder.deliveryFee * 0.88);
-    const homecheffCut = deliveryOrder.deliveryFee - deliveryPersonCut;
+    // 12% Homecheff fee on delivery costs; 88% to deliverer (fee already deducted)
+    const deliveryPersonCut = Math.round(deliveryOrder.deliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
 
-    // Create payout record
+    // Create payout record with providerRef null – wordt meegenomen in gecombineerde
+    // uitbetaling (verkoop + bezorging) wanneer gebruiker "Uitbetaling aanvragen" gebruikt
     await prisma.payout.create({
       data: {
-        id: `payout_${Date.now()}`,
+        id: `payout_delivery_${deliveryOrder.id}_${Date.now()}`,
         toUserId: profile.userId,
         amountCents: deliveryPersonCut,
-        transactionId: deliveryOrder.orderId
+        transactionId: deliveryOrder.orderId,
+        providerRef: null,
       }
     });
-
-    // Create Stripe transfer for delivery person payout (if Stripe Connect account exists)
-    if (profile.stripeConnectAccountId && process.env.STRIPE_SECRET_KEY) {
-      try {
-        const transfer = await createTransfer(
-          deliveryPersonCut / 100, // Convert cents to euros
-          profile.stripeConnectAccountId,
-          {
-            deliveryOrderId: deliveryOrder.id,
-            type: 'delivery_fee',
-            userId: profile.userId
-          }
-        );
-        
-        // Update payout record with Stripe transfer ID (using providerRef field)
-        await prisma.payout.updateMany({
-          where: {
-            transactionId: deliveryOrder.orderId,
-            toUserId: profile.userId
-          },
-          data: {
-            providerRef: transfer.id
-          }
-        });
-      } catch (stripeError) {
-        console.error('Stripe transfer failed:', stripeError);
-        // Continue even if Stripe transfer fails - payout record is still created
-      }
-    }
-
+    // Geen directe Stripe-transfer meer: alles gaat in één keer mee bij "Uitbetaling aanvragen"
   } catch (error) {
     console.error('Error triggering delivery payout:', error);
   }

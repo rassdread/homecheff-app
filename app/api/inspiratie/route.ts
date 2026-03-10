@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
@@ -92,10 +94,7 @@ export async function GET(req: NextRequest) {
     // If no dishes, return empty array early
     if (dishIds.length === 0) {
       console.log('⚠️ No published dishes found, returning empty array');
-      return NextResponse.json({
-        items: [],
-        total: 0,
-      });
+      return NextResponse.json({ items: [], total: 0 }, { headers: cors });
     }
     
     const [viewCounts, propsCounts, reviewCounts, avgRatings] = await Promise.all([
@@ -201,11 +200,13 @@ export async function GET(req: NextRequest) {
         url: photo.url,
         isMain: photo.idx === 0,
       })),
+      // Video volledig uit database: id, url, thumbnail, duration (werkt op desktop + mobiel via video-proxy)
       videos: dish.videos && dish.videos.length > 0 ? dish.videos.map((video) => ({
         id: video.id,
         url: video.url,
-        thumbnail: video.thumbnail,
-        autoplay: true, // Videos should autoplay on inspiratie page
+        thumbnail: video.thumbnail ?? null,
+        duration: video.duration ?? null,
+        autoplay: true,
       })) : [],
     }));
     
@@ -228,15 +229,12 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    return NextResponse.json({
-      items,
-      total: items.length,
-    });
+    return NextResponse.json({ items, total: items.length }, { headers: cors });
   } catch (error) {
     console.error('❌ Error fetching inspiration items:', error);
     return NextResponse.json(
       { error: 'Failed to fetch inspiration items' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }

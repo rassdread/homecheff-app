@@ -43,6 +43,7 @@ export default function ProductMapView({
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ProductLocation | null>(null);
 
   // Load Google Maps script
@@ -51,6 +52,7 @@ export default function ProductMapView({
     
     if (!apiKey) {
       console.warn('Google Maps API key not found');
+      setApiKeyMissing(true);
       return;
     }
 
@@ -253,10 +255,22 @@ export default function ProductMapView({
     };
   }, [items, onMarkerClick]);
 
+  if (apiKeyMissing) {
+    return (
+      <div style={{ height }} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
+        <div className="text-center px-4">
+          <MapPin className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <p className="text-gray-700 font-medium">Kaart niet beschikbaar</p>
+          <p className="text-sm text-gray-500 mt-1">Google Maps API-key is niet geconfigureerd.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!mapLoaded) {
     return (
-      <div 
-        style={{ height }} 
+      <div
+        style={{ height }}
         className="flex items-center justify-center bg-gray-100 rounded-lg"
       >
         <div className="text-center">

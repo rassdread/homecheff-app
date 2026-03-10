@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Voorkom horizontaal scrollen / content buiten scherm */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Profiel en app content binnen viewport houden */
+body > * {
+  max-width: 100%;
+  min-width: 0;
+}
+
 @layer utilities {
   @keyframes fadeIn {
     from {
@@ -48,6 +60,15 @@
     word-break: break-word;
   }
 
+  /* Soepel video afspelen (Safari/iOS): eigen compositor layer, minder schokken */
+  .video-smooth video,
+  video.video-smooth {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
   /* Ensure video controls are always visible for non-logged users */
   video[controls] {
     cursor: pointer;
@@ -72,6 +93,19 @@
   video[controls]:focus,
   video[controls]:active {
     cursor: pointer;
+  }
+
+  /* Verkoper dashboard: periode-select en opties goed leesbaar */
+  #dashboard-period {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  #dashboard-period option {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem;
+    background: white;
+    color: #111827;
   }
 
   .word-break-break-all {

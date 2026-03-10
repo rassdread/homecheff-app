@@ -5,6 +5,7 @@ import { X, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { validateVideoFile, validateVideo, generateVideoThumbnail, MAX_VIDEO_DURATION, isLikelyHEVCVideo, compressVideo, COMPRESSION_SETTINGS } from '@/lib/videoUtils';
 import { useTranslation } from '@/hooks/useTranslation';
 
+/** Voor recepten/dishes: alleen MP4 of MOV, zodat alle inspiratie-items hetzelfde formaat hebben (Safari/iOS compatibel). */
 interface VideoUploaderProps {
   value?: {
     url: string;
@@ -17,7 +18,12 @@ interface VideoUploaderProps {
   maxDuration?: number; // in seconds, default 30
   disabled?: boolean;
   className?: string;
+  /** 'dish' = alleen MP4/MOV toegestaan (recepten, inspiratie) voorzelfde formaat op alle items */
+  uploadContext?: 'dish' | 'general';
 }
+
+const DISH_ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-m4v'];
+const DISH_ALLOWED_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
 
 export default function VideoUploader({
   value,
@@ -26,7 +32,8 @@ export default function VideoUploader({
   onUploadEnd,
   maxDuration = MAX_VIDEO_DURATION,
   disabled = false,
-  className = ''
+  className = '',
+  uploadContext = 'general'
 }: VideoUploaderProps) {
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
@@ -70,7 +77,8 @@ export default function VideoUploader({
           fileName: file.name,
           fileType: file.type,
           fileSize: file.size,
-          totalChunks
+          totalChunks,
+          ...(uploadContext === 'dish' ? { uploadContext: 'dish' } : {}),
         }),
         signal
       });
@@ -140,6 +148,9 @@ export default function VideoUploader({
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', 'video');
+    if (uploadContext === 'dish') {
+      formData.append('uploadContext', 'dish');
+    }
 
     return fetch('/api/upload', {
       method: 'POST',
@@ -161,6 +172,20 @@ export default function VideoUploader({
     const timeoutId = setTimeout(() => abortController.abort(), 120000); // 2 minutes timeout
 
     try {
+      // Voor recepten/dishes: alleen MP4 of MOV (zelfde formaat op alle items, Safari compatibel)
+      if (uploadContext === 'dish') {
+        const typeOk = DISH_ALLOWED_VIDEO_TYPES.includes(file.type?.toLowerCase() || '');
+        const nameLower = (file.name || '').toLowerCase();
+        const extOk = DISH_ALLOWED_EXTENSIONS.some((e) => nameLower.endsWith(e));
+        if (!typeOk && !extOk) {
+          setError('Voor recepten alleen MP4 of MOV. Dit formaat werkt op alle apparaten.');
+          setUploading(false);
+          onUploadEnd?.();
+          clearTimeout(timeoutId);
+          return;
+        }
+      }
+
       // Validate video - very tolerant for edited/compressed videos
       // First do basic validation (format and size) - this is required
       const basicValidation = validateVideo(file);
@@ -211,7 +236,7 @@ export default function VideoUploader({
           setCompressionProgress(0);
         }
       } else {
-        console.log(`📹 Video is small (${(file.size / (1024 * 1024)).toFixed(2)}MB), skipping compression`);
+        console.log(`📹 Video onder 2MB, geen encoding nodig`);
       }
       
       // For videos larger than 3.5MB, use chunked upload to bypass serverless function limit (4.5MB)

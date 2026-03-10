@@ -48,10 +48,12 @@ interface Order {
   deliveredAt?: string;
   conversationId?: string;
   shippingLabel?: ShippingLabel | null;
+  /** Alleen bij afhaal (PICKUP) of als verkoper de toegewezen bezorger is */
+  sellerCanSetDelivered?: boolean;
 }
 
 export default function SellerOrdersPageClient() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
@@ -152,7 +154,7 @@ export default function SellerOrdersPageClient() {
     if (statusLower === 'shipped' || statusLower === 'verzonden') return t('seller.shipped');
     if (statusLower === 'delivered' || statusLower === 'voltooid') return t('seller.completed');
     if (statusLower === 'cancelled' || statusLower === 'geannuleerd') return t('seller.cancelled');
-    return 'Wachtend';
+    return t('seller.pending');
   };
 
   const getStatusColor = (status: string) => {
@@ -175,15 +177,16 @@ export default function SellerOrdersPageClient() {
     return 'bg-yellow-100 text-yellow-800';
   };
 
+  const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR'
     }).format(amount / 100);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
+    return new Date(dateString).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -534,7 +537,7 @@ export default function SellerOrdersPageClient() {
                       {t('seller.readyForDelivery')}
                     </Button>
                   )}
-                  {(order.status === 'Verzonden' || order.status === 'SHIPPED') && (
+                  {(order.status === 'Verzonden' || order.status === 'SHIPPED') && order.sellerCanSetDelivered && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'DELIVERED')}
                       className="px-4 py-2 bg-green-600 text-white hover:bg-green-700"

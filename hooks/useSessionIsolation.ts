@@ -5,21 +5,20 @@
 
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearAllUserData, setupSessionIsolation, clearNextAuthData } from '@/lib/session-cleanup';
+import { clearAllUserData, setupSessionIsolation } from '@/lib/session-cleanup';
 
 export function useSessionIsolation() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    // Setup session isolation on component mount
     setupSessionIsolation();
   }, []);
 
   useEffect(() => {
-    // Only clear user data when definitely unauthenticated (not loading)
+    // Clear only local/session storage when unauthenticated (no cookie wipe + reload).
+    // Avoids reload loop in Chrome when session refetch fails temporarily.
     if (status === 'unauthenticated') {
       clearAllUserData();
-      clearNextAuthData();
     }
   }, [status]);
 

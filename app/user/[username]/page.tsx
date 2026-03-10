@@ -291,7 +291,7 @@ export default async function PublicProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full min-w-0 max-w-[100vw] overflow-x-auto overflow-y-visible">
       <PublicProfileClient user={user as any} openNewProducts={false} />
     </div>
   );

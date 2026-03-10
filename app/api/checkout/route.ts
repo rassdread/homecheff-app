@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { stripe } from '@/lib/stripe';
-import { calculateStripeFeeForBuyer } from '@/lib/fees';
+import { calculateStripeFeeForBuyer, DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
@@ -285,8 +285,8 @@ export async function POST(req: NextRequest) {
             const internationalSurcharge = 500; // €5.00 surcharge for international delivery
             pricing.totalDeliveryFee += internationalSurcharge;
             pricing.distanceFee += internationalSurcharge;
-            pricing.delivererCut = Math.round(pricing.totalDeliveryFee * 0.88);
-            pricing.platformCut = Math.round(pricing.totalDeliveryFee * 0.12);
+            pricing.delivererCut = Math.round(pricing.totalDeliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
+            pricing.platformCut = Math.round(pricing.totalDeliveryFee * DELIVERY_PLATFORM_FEE_PERCENT / 100);
           }
         } else {
           pricing = calculateDeliveryFee(totalDistance, deliveryType);
@@ -312,8 +312,8 @@ export async function POST(req: NextRequest) {
           baseFee: 250,
           distanceFee: 0,
           totalDeliveryFee: 250,
-          deliveryPersonCut: Math.round(250 * 0.88),
-          homecheffCut: Math.round(250 * 0.12),
+          deliveryPersonCut: Math.round(250 * DELIVERY_DELIVERER_PERCENT / 100),
+          homecheffCut: Math.round(250 * DELIVERY_PLATFORM_FEE_PERCENT / 100),
           isInternational: false
         };
       }

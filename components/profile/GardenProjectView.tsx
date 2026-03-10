@@ -14,6 +14,7 @@ import BackButton from '@/components/navigation/BackButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type GardenPhoto = {
   id: string;
@@ -554,13 +555,12 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
               
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <video
-                  src={project.video.url}
+                  src={getVideoUrlWithCors(project.video.url)}
                   controls
                   className="w-full h-full object-cover"
                   poster={project.video.thumbnail || undefined}
                   preload="metadata"
                   playsInline
-                  webkit-playsinline="true"
                 >
                   Je browser ondersteunt geen video element.
                 </video>

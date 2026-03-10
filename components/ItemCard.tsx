@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
-import { MoreHorizontal, Star, Clock, Truck, Package, MapPin, Volume2, VolumeX } from 'lucide-react';
+import { MoreHorizontal, Star, Clock, Truck, Package, MapPin } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
 import ImageSlider from '@/components/ui/ImageSlider';
-import { checkVideoHasAudio } from '@/lib/videoUtils';
-import { videoManager } from '@/lib/videoManager';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -67,14 +65,9 @@ interface ItemCardProps {
 
 export default function ItemCard({ item, priority = false }: ItemCardProps) {
   const [hasProps, setHasProps] = useState(false);
+  const [cardHovered, setCardHovered] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-  const [videoHasAudio, setVideoHasAudio] = useState<boolean | null>(null); // null = checking, true = has audio, false = no audio
-  const videoElementRef = useRef<HTMLVideoElement | null>(null);
-  
-  // Global ref to track all video elements (for stopping other videos)
-  const allVideoRefs = useRef<Set<HTMLVideoElement>>(new Set());
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -116,90 +109,6 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
     router.push(`/product/${item.id}`);
   };
   
-  // Check if video has audio (only for logged-in users)
-  useEffect(() => {
-    if (session?.user && item.video && item.video.url && videoHasAudio === null) {
-      checkVideoHasAudio(item.video.url).then((hasAudio) => {
-        setVideoHasAudio(hasAudio);
-        if (!hasAudio) {
-          console.warn('⚠️ Video has no audio track:', item.video?.url);
-        }
-      }).catch(() => {
-        // Default to true (assume audio exists)
-        setVideoHasAudio(true);
-      });
-    }
-  }, [session?.user, item.video, videoHasAudio]);
-
-  // Setup intersection observer for video autoplay (for non-logged users)
-  useEffect(() => {
-    if (!videoElementRef.current || !item.video || !item.video.url) return;
-    
-    const video = videoElementRef.current;
-    
-    // Add to global video refs set (for stopping other videos)
-    allVideoRefs.current.add(video);
-    // Register with global video manager
-    videoManager.register(video);
-    
-    // Ensure video attributes are set for autoplay
-    // Start muted for autoplay compliance, will unmute after play starts
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.setAttribute('playsinline', 'true');
-    video.setAttribute('webkit-playsinline', 'true');
-    video.preload = 'metadata';
-    
-    // Intersection observer for autoplay when visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const videoElement = entry.target as HTMLVideoElement;
-          if (entry.isIntersecting && entry.intersectionRatio >= 1.0) {
-            // Video is fully visible - play it
-            // Stop all other videos first (using global video manager)
-            videoManager.stopAllExcept(videoElement);
-            
-            // Start muted for autoplay compliance, then unmute after play starts
-            videoElement.muted = true;
-            videoElement.loop = true;
-            videoElement.playsInline = true;
-            videoElement.setAttribute('playsinline', 'true');
-            videoElement.setAttribute('webkit-playsinline', 'true');
-            
-            const playPromise = videoElement.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  // After video starts playing, unmute immediately (with sound)
-                  if (videoElement && !videoElement.paused && !isVideoMuted) {
-                    videoElement.muted = false;
-                    setIsVideoMuted(false);
-                  }
-                })
-                .catch((error) => {
-                  // Ignore autoplay errors (browser restrictions)
-                  console.log('Video autoplay prevented by browser:', error);
-                });
-            }
-          } else {
-            // Don't pause - let video play to completion
-            // Video will continue playing even when scrolled out of view
-          }
-        });
-      },
-      { threshold: 1.0 } // Only trigger when 100% visible
-    );
-    
-    observer.observe(video);
-    
-    return () => {
-      observer.disconnect();
-      allVideoRefs.current.delete(video);
-    };
-  }, [item.video]);
-  
   // Prepare media items for ImageSlider (images + video)
   const allImages = item.images || (item.image ? [item.image] : []);
   const primaryVideo = item.video;
@@ -208,14 +117,16 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
     <article 
       className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-md transition-shadow duration-200 group cursor-pointer"
       onClick={handleCardClick}
+      onMouseEnter={() => setCardHovered(true)}
+      onMouseLeave={() => setCardHovered(false)}
     >
       {/* Image/Video */}
       <div className="relative h-48 bg-neutral-100" data-image-slider>
         {((allImages.length > 0) || primaryVideo) ? (
-          session?.user ? (
+          (primaryVideo?.url || allImages.length > 0) ? (
             <ImageSlider
               media={[
-                // Put video first so it's shown by default and autoplays
+                // Video eerst; afspelen bij hover (desktop) of grotendeels in beeld/tap (mobiel).
                 ...(primaryVideo && primaryVideo.url ? [{
                   type: 'video' as const,
                   url: primaryVideo.url,
@@ -232,76 +143,9 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
               scrollSlideInterval={3000}
               priority={priority}
               objectFit="cover"
+              isCardHovered={cardHovered}
             />
-          ) : (
-            // For non-logged in users, show video if available, otherwise first image
-            primaryVideo && primaryVideo.url ? (
-              <div className="relative w-full h-full" style={{ zIndex: 10 }}>
-                <video
-                  ref={(el) => {
-                    if (el) {
-                      videoElementRef.current = el;
-                      allVideoRefs.current.add(el);
-                      // Register with global video manager
-                      videoManager.register(el);
-                      // Start muted for autoplay compliance, will unmute after play starts
-                      el.muted = true;
-                      el.loop = true;
-                      el.playsInline = true;
-                      el.setAttribute('playsinline', 'true');
-                      el.setAttribute('webkit-playsinline', 'true');
-                      // Only preload metadata when video is about to be visible
-                      el.preload = 'none';
-                    } else if (videoElementRef.current) {
-                      allVideoRefs.current.delete(videoElementRef.current);
-                      if (videoElementRef.current) {
-                        videoManager.unregister(videoElementRef.current);
-                      }
-                    }
-                  }}
-                  src={primaryVideo.url}
-                  className="w-full h-full object-cover"
-                  controls
-                  controlsList="nodownload"
-                  playsInline
-                  webkit-playsinline="true"
-                  preload="none"
-                  loop
-                  style={{ zIndex: 10, position: 'relative' }}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                />
-                {/* Mute/Unmute Button - Only show if logged in and video has audio */}
-                {session?.user && videoHasAudio !== false && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      if (videoElementRef.current) {
-                        const newMutedState = !isVideoMuted;
-                        setIsVideoMuted(newMutedState);
-                        videoElementRef.current.muted = newMutedState;
-                      }
-                    }}
-                    className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-30 transition-all duration-200"
-                    aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
-                  >
-                    {isVideoMuted ? (
-                      <VolumeX className="w-5 h-5" />
-                    ) : (
-                      <Volume2 className="w-5 h-5" />
-                    )}
-                  </button>
-                )}
-                {/* Warning if video has no audio - Only for logged-in users */}
-                {session?.user && videoHasAudio === false && (
-                  <div className="absolute bottom-3 right-3 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded z-30">
-                    Geen audio
-                  </div>
-                )}
-              </div>
-            ) : allImages[0] ? (
+          ) : allImages[0] ? (
               <SafeImage
                 src={allImages[0]}
                 alt={item.title || 'Item afbeelding'}
@@ -321,7 +165,6 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
                 </div>
               </div>
             )
-          )
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
             <div className="text-neutral-400">

@@ -36,7 +36,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get order with seller info
+    // Get order with seller info, deliveryMode and assigned deliverer
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -48,7 +48,13 @@ export async function PATCH(
               }
             }
           }
-        }
+        },
+        deliveryOrder: {
+          select: {
+            deliveryProfileId: true,
+            deliveryProfile: { select: { userId: true } },
+          },
+        },
       }
     });
 
@@ -58,9 +64,28 @@ export async function PATCH(
 
     // Check if user is the seller for this order
     const isSeller = order.items.some(item => item.Product.seller.userId === user.id);
-    
-    if (!isSeller && user.role !== 'ADMIN') {
+    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+
+    if (!isSeller && !isAdmin) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    // Verkoper mag alleen op Bezorgd zetten bij afhaal (PICKUP) of als verkoper zelf de toegewezen bezorger is
+    if (isSeller && !isAdmin && status === 'DELIVERED') {
+      const deliveryMode = order.deliveryMode;
+      const assignedDelivererUserId = order.deliveryOrder?.deliveryProfile?.userId ?? null;
+      const sellerCanSetDelivered =
+        deliveryMode === 'PICKUP' ||
+        assignedDelivererUserId === user.id;
+      if (!sellerCanSetDelivered) {
+        return NextResponse.json(
+          {
+            error:
+              'Alleen bij afhaalbestellingen of als je de toegewezen bezorger bent kun je de status op Bezorgd zetten. Bij verzending of platformbezorging moet de bezorger of admin dit doen.',
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Update order
@@ -248,6 +273,22 @@ export async function PATCH(
       } catch (notificationError) {
         console.error(`❌ Notification failed for order ${orderId}:`, notificationError);
         // Don't fail the order update if notifications fail
+      }
+    }
+
+    // If order is marked as DELIVERED, release escrow (verzendbestellingen) zodat verkoper kan uitbetalen
+    if (status === 'DELIVERED') {
+      try {
+        const { releaseEscrowForOrder } = await import('@/lib/releaseEscrowOnDelivered');
+        const result = await releaseEscrowForOrder(prisma, orderId);
+        if (result.released > 0) {
+          console.log(`✅ Escrow released for order ${orderId}: ${result.released} payout(s)`);
+        }
+        if (result.errors.length > 0) {
+          console.warn(`Escrow release warnings for ${orderId}:`, result.errors);
+        }
+      } catch (escrowError) {
+        console.error(`Escrow release failed for order ${orderId}:`, escrowError);
       }
     }
 

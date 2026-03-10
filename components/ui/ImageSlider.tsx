@@ -1,10 +1,15 @@
 'use client';
 
+/**
+ * ImageSlider: media carousel met video eerst.
+ * Regels: video's starten altijd muted. Desktop: alleen afspelen bij hover op item. Mobiel: alleen wanneer in beeld.
+ * Geen session-check; CORS/video-proxy zorgt dat video’s ook uitgelogd laden.
+ */
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
 import { isIntersectionObserverSupported, createSafeIntersectionObserver } from '@/lib/browser-utils';
-import { checkVideoHasAudio, getVideoUrlWithCors } from '@/lib/videoUtils';
+import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
 type MediaItem = {
@@ -27,6 +32,8 @@ interface ImageSliderProps {
   preventClick?: boolean; // Prevent click from propagating to parent
   priority?: boolean; // Priority loading for above-the-fold items
   objectFit?: 'cover' | 'contain'; // Control how images fit: cover (crop) or contain (fit)
+  /** Bij Dorpsplein e.d.: parent zet dit bij hover op hele kaart, dan speelt alleen deze video (desktop). */
+  isCardHovered?: boolean;
 }
 
 export default function ImageSlider({
@@ -42,7 +49,8 @@ export default function ImageSlider({
   scrollSlideInterval = 2500, // 2.5 seconds per image during scroll
   preventClick = false,
   priority = false,
-  objectFit = 'cover' // Default to cover for grid items, can be set to 'contain' for detail pages
+  objectFit = 'cover', // Default to cover for grid items, can be set to 'contain' for detail pages
+  isCardHovered
 }: ImageSliderProps) {
   // Convert images array to media format if media is not provided (backward compatibility)
   const mediaItems = useMemo(() => {
@@ -56,6 +64,9 @@ export default function ImageSlider({
     }
     return [];
   }, [images, media]);
+
+  /** Eerste item is video → geen auto-rotatie; video blijft hoofd, gebruiker kiest zelf om naar foto's te gaan */
+  const firstItemIsVideo = mediaItems.length > 0 && mediaItems[0]?.type === 'video';
 
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const currentlyPlayingVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -76,11 +87,19 @@ export default function ImageSlider({
   const [videoMutedStates, setVideoMutedStates] = useState<Map<number, boolean>>(new Map());
   // Track whether videos have audio
   const [videoHasAudio, setVideoHasAudio] = useState<Map<number, boolean>>(new Map());
+  // Track if current video is paused (for click-to-play overlay; hover is not a user gesture in Safari)
+  const [currentVideoPaused, setCurrentVideoPaused] = useState(true);
   
   // Detect mobile vs desktop
   useEffect(() => {
     isMobileRef.current = window.innerWidth < 768 || 'ontouchstart' in window;
   }, []);
+
+  // Sync currentVideoPaused when slide or play state changes
+  useEffect(() => {
+    const video = mediaItems[currentIndex]?.type === 'video' ? videoRefs.current.get(currentIndex) : null;
+    setCurrentVideoPaused(video ? video.paused : true);
+  }, [currentIndex, mediaItems]);
   
   // Stop all videos except the one specified (using global video manager)
   const stopAllVideosExcept = (exceptVideo: HTMLVideoElement | null) => {
@@ -88,6 +107,60 @@ export default function ImageSlider({
     videoManager.stopAllExcept(exceptVideo);
     currentlyPlayingVideoRef.current = exceptVideo;
   };
+
+  /** Play video; retry on canplay only if not NotSupportedError/AbortError (browser autoplay policy or aborted). */
+  const playWithRetry = useCallback((video: HTMLVideoElement): Promise<void> => {
+    const p = video.play();
+    if (p === undefined) return Promise.resolve();
+    return p.catch((err: unknown) => {
+      const name = err && typeof err === 'object' && 'name' in err ? (err as { name: string }).name : '';
+      const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : '';
+      const isBlocked = name === 'NotSupportedError' || name === 'AbortError' || msg.includes('not supported') || msg.includes('aborted');
+      if (isBlocked) return Promise.resolve();
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+        console.warn('[ImageSlider] video.play() failed, will retry on canplay:', err);
+      }
+      return new Promise<void>((resolve) => {
+        let done = false;
+        const retry = () => {
+          if (done) return;
+          done = true;
+          video.removeEventListener('canplay', retry);
+          video.removeEventListener('loadeddata', retry);
+          clearTimeout(tid);
+          video.play().then(resolve).catch(() => resolve());
+        };
+        video.addEventListener('canplay', retry, { once: true });
+        video.addEventListener('loadeddata', retry, { once: true });
+        const tid = window.setTimeout(retry, 8000);
+      });
+    });
+  }, []);
+
+  /** Start video; wacht op canplay/loadeddata als nog niet klaar. Geen video.load() – dat reset de video en geeft een zwart scherm. */
+  const ensureReadyThenPlay = useCallback((video: HTMLVideoElement, onPlaying?: () => void) => {
+    const doPlay = () => {
+      playWithRetry(video).then(() => onPlaying?.());
+    };
+    if (video.readyState >= 2) {
+      doPlay();
+      return;
+    }
+    doPlay();
+    const onReady = () => {
+      video.removeEventListener('canplay', onReady);
+      video.removeEventListener('loadeddata', onReady);
+      clearTimeout(tid);
+      doPlay();
+    };
+    video.addEventListener('canplay', onReady, { once: true });
+    video.addEventListener('loadeddata', onReady, { once: true });
+    const tid = window.setTimeout(() => {
+      video.removeEventListener('canplay', onReady);
+      video.removeEventListener('loadeddata', onReady);
+      doPlay();
+    }, 6000);
+  }, [playWithRetry]);
 
   // Preload next image for smoother transitions
   useEffect(() => {
@@ -108,87 +181,59 @@ export default function ImageSlider({
     }
   }, [currentIndex, mediaItems]);
 
-  // Setup intersection observer for video playback (all browsers, all users)
+  // Video in beeld: alleen op mobiel afspelen bij percentage in beeld. Desktop: alleen start bij hover op card.
+  const IN_VIEW_PLAY_THRESHOLD = 0.75; // 75% zichtbaar = afspelen (alleen mobiel)
   useEffect(() => {
     const observer = createSafeIntersectionObserver(
       (entries) => {
+        const isMobile = isMobileRef.current;
         entries.forEach((entry) => {
           const video = entry.target as HTMLVideoElement;
-          // Only play when fully visible (100% in viewport)
-          if (entry.isIntersecting && entry.intersectionRatio >= 1.0) {
-            // Stop all other videos first
-            stopAllVideosExcept(video);
-            // Play this video
-            // Respect user's mute preference - only set to muted if not already set by user
-            // Find the video index
-            let videoIndex = -1;
-            videoRefs.current.forEach((v, idx) => {
-              if (v === video) videoIndex = idx;
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.5) {
+            if (isMobile) {
+              try {
+                video.muted = true;
+                video.pause();
+                video.currentTime = 0;
+              } catch {}
+            }
+          }
+        });
+        // Alleen mobiel: speel wanneer voldoende in beeld; desktop start alleen bij hover
+        if (!isMobile) return;
+        const fullVisible = entries.find((e) => e.isIntersecting && e.intersectionRatio >= IN_VIEW_PLAY_THRESHOLD);
+        if (!fullVisible) return;
+        const video = fullVisible.target as HTMLVideoElement;
+        stopAllVideosExcept(video);
+        let videoIndex = -1;
+        videoRefs.current.forEach((v, idx) => { if (v === video) videoIndex = idx; });
+        const wantMuted = videoManager.shouldStartMuted();
+        if (videoIndex >= 0) {
+          video.muted = true;
+          setVideoMutedStates((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(videoIndex, wantMuted);
+            return newMap;
+          });
+        } else {
+          video.muted = true;
+        }
+        video.loop = false;
+        video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        ensureReadyThenPlay(video, () => {
+          if (video && !video.paused) {
+            video.muted = wantMuted;
+            setVideoMutedStates((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(videoIndex, wantMuted);
+              return newMap;
             });
-            if (videoIndex >= 0) {
-              const userMutedState = videoMutedStates.get(videoIndex);
-              // Start muted for autoplay compliance, then unmute after play starts
-              video.muted = userMutedState !== undefined ? userMutedState : true;
-              if (userMutedState === undefined) {
-                setVideoMutedStates((prev) => {
-                  const newMap = new Map(prev);
-                  newMap.set(videoIndex, true); // Start muted
-                  return newMap;
-                });
-              }
-            } else {
-              // Fallback: start muted for autoplay
-              video.muted = true;
-            }
-            
-            // Ensure all browser-specific attributes are set for autoplay
-            // Don't loop - after video ends, go to next slide (gallery)
-            video.loop = false;
-            video.playsInline = true;
-            video.setAttribute('playsinline', 'true'); // iOS Safari
-            video.setAttribute('webkit-playsinline', 'true'); // Older iOS Safari
-            
-            // Try to play - catch errors silently (browser may block autoplay)
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  // After video starts playing, unmute immediately (with sound)
-                  const currentMutedState = videoMutedStates.get(videoIndex);
-                  if (currentMutedState === undefined || currentMutedState === true) {
-                    // Only unmute if it was auto-muted (not user-muted)
-                    if (video && !video.paused) {
-                      const userMuted = videoMutedStates.get(videoIndex);
-                      // Only unmute if user hasn't explicitly set it to muted
-                      if (userMuted === undefined || userMuted === true) {
-                        video.muted = false;
-                        setVideoMutedStates((prev) => {
-                          const newMap = new Map(prev);
-                          newMap.set(videoIndex, false);
-                          return newMap;
-                        });
-                      }
-                    }
-                  }
-                })
-                .catch((error) => {
-                  // Autoplay was prevented - this is normal in some browsers
-                  // User can still click play button
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('Video autoplay prevented by browser:', error);
-                  }
-                });
-            }
-          } else {
-            // Don't pause - let video play to completion
-            // Only stop if user explicitly navigates away
           }
         });
       },
-      { 
-        threshold: 1.0, // Only trigger when 100% visible
-        rootMargin: '0px' // No margin for precise detection
-      }
+      { threshold: [0.5, 0.75, 1.0], rootMargin: '0px' }
     );
     
     intersectionObserverRef.current = observer;
@@ -198,37 +243,40 @@ export default function ImageSlider({
     if (!observer) {
       // Use scroll-based fallback for very old browsers
       const handleScroll = () => {
-        videoRefs.current.forEach((video, index) => {
-          if (video) {
-            const rect = video.getBoundingClientRect();
-            const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-            const isFullyVisible = rect.top >= 0 && 
-                                  rect.left >= 0 && 
-                                  rect.bottom <= windowHeight && 
-                                  rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-            
-            if (isFullyVisible && video.paused) {
-              // Start with sound ON (user can mute if needed)
-              const videoIndex = Array.from(videoRefs.current.entries()).find(([_, v]) => v === video)?.[0];
-              if (videoIndex !== undefined) {
-                const userMutedState = videoMutedStates.get(videoIndex);
-                video.muted = userMutedState !== undefined ? userMutedState : false;
-              } else {
-                video.muted = false;
-              }
-              video.loop = false; // Don't loop - go to next slide after video ends
-              video.playsInline = true;
-              video.setAttribute('playsinline', 'true');
-              video.setAttribute('webkit-playsinline', 'true');
-              
-              stopAllVideosExcept(video);
-              video.play().catch(() => {
-                // Autoplay might be blocked
-              });
-            }
-            // Don't pause when not fully visible - let video play to completion
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        if (!isMobile) return;
+        videoRefs.current.forEach((video) => {
+          if (!video) return;
+          const rect = video.getBoundingClientRect();
+          const wh = window.innerHeight || document.documentElement.clientHeight;
+          const ww = window.innerWidth || document.documentElement.clientWidth;
+          const isFullyVisible = rect.top >= 0 && rect.left >= 0 && rect.bottom <= wh && rect.right <= ww;
+          if (!isFullyVisible) {
+            try {
+              video.muted = true;
+              video.pause();
+              video.currentTime = 0;
+            } catch {}
           }
         });
+        let onlyOne: HTMLVideoElement | null = null;
+        videoRefs.current.forEach((video: HTMLVideoElement | undefined) => {
+          if (!video) return;
+          const rect = video.getBoundingClientRect();
+          const wh = window.innerHeight || document.documentElement.clientHeight;
+          const ww = window.innerWidth || document.documentElement.clientWidth;
+          const isFullyVisible = rect.top >= 0 && rect.left >= 0 && rect.bottom <= wh && rect.right <= ww;
+          if (isFullyVisible && !onlyOne) onlyOne = video;
+        });
+        const videoToPlay = onlyOne as HTMLVideoElement | null;
+        if (videoToPlay && videoToPlay.paused) {
+          stopAllVideosExcept(videoToPlay);
+          videoToPlay.muted = true;
+          videoToPlay.playsInline = true;
+          videoToPlay.setAttribute('playsinline', 'true');
+          videoToPlay.setAttribute('webkit-playsinline', 'true');
+          ensureReadyThenPlay(videoToPlay);
+        }
       };
       
       // Throttle scroll events for performance
@@ -252,7 +300,7 @@ export default function ImageSlider({
         intersectionObserverRef.current.disconnect();
       }
     };
-  }, [videoMutedStates, stopAllVideosExcept]);
+  }, [videoMutedStates, stopAllVideosExcept, ensureReadyThenPlay]);
 
   // Sync video muted state with state when video element changes
   useEffect(() => {
@@ -297,36 +345,8 @@ export default function ImageSlider({
     return () => clearInterval(interval);
   }, [videoMutedStates]);
 
-  // Check if videos have audio when they're loaded
-  useEffect(() => {
-    const currentMedia = mediaItems[currentIndex];
-    if (currentMedia?.type === 'video' && currentMedia.url) {
-      // Check if we already know about this video's audio status
-      if (!videoHasAudio.has(currentIndex)) {
-        // Check if video has audio
-        checkVideoHasAudio(currentMedia.url).then((hasAudio) => {
-          setVideoHasAudio((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(currentIndex, hasAudio);
-            return newMap;
-          });
-          
-          // If video has no audio, log a warning
-          if (!hasAudio) {
-            console.warn('⚠️ Video has no audio track:', currentMedia.url);
-          }
-        }).catch((error) => {
-          console.warn('Could not check video audio:', error);
-          // Default to true (assume audio exists)
-          setVideoHasAudio((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(currentIndex, true);
-            return newMap;
-          });
-        });
-      }
-    }
-  }, [mediaItems, currentIndex, videoHasAudio]);
+  // Geen checkVideoHasAudio meer: voorkomt console-spam en extra requests; badge "Geen audio" niet meer getoond.
+  // Video's starten altijd muted; gebruiker kan unmute proberen.
 
   // Observe videos when they're added (for all users - autoplay on homepage)
   useEffect(() => {
@@ -339,67 +359,97 @@ export default function ImageSlider({
       });
     }
     
-    // Also try to play current video if it's visible and a video
-    const currentMedia = mediaItems[currentIndex];
-    if (currentMedia?.type === 'video') {
-      const video = videoRefs.current.get(currentIndex);
-      if (video) {
-        // Check if video is already visible
-        const checkAndPlay = () => {
-          const rect = video.getBoundingClientRect();
-          const isVisible = rect.top >= 0 && rect.left >= 0 && 
-                           rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                           rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-          
-          if (isVisible && video.paused) {
-            // Video is visible and paused, trigger play
-            stopAllVideosExcept(video);
-            const userMutedState = videoMutedStates.get(currentIndex);
-            video.muted = userMutedState !== undefined ? userMutedState : true;
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  // Unmute immediately after play starts (with sound)
-                  if (video && !video.paused) {
-                    const userMuted = videoMutedStates.get(currentIndex);
-                    if (userMuted === undefined || userMuted === false) {
-                      video.muted = false;
-                      setVideoMutedStates((prev) => {
-                        const newMap = new Map(prev);
-                        newMap.set(currentIndex, false);
-                        return newMap;
-                      });
-                    }
-                  }
-                })
-                .catch(() => {});
-            }
-          }
-        };
-        
-        // Check immediately and after a short delay
-        setTimeout(checkAndPlay, 100);
-      }
+    // Alleen mobiel: als huidige slide een video is, na korte delay(s) checken of in beeld en dan starten. Desktop start alleen bij hover.
+    if (!isMobileRef.current) {
+      return;
     }
-  }, [mediaItems, currentIndex, videoMutedStates, stopAllVideosExcept]);
+    const currentMedia = mediaItems[currentIndex];
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    if (currentMedia?.type === 'video') {
+      const checkAndPlay = () => {
+        const video = videoRefs.current.get(currentIndex);
+        if (!video) return;
+        const rect = video.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const vw = window.innerWidth || document.documentElement.clientWidth;
+        const isVisible = rect.top < vh && rect.left < vw && rect.bottom > 0 && rect.right > 0;
+        if (isVisible && video.paused) {
+          stopAllVideosExcept(video);
+          const wantMuted = videoManager.shouldStartMuted();
+          video.muted = true;
+          ensureReadyThenPlay(video, () => {
+            if (video && !video.paused) {
+              video.muted = wantMuted;
+              setVideoMutedStates((prev) => {
+                const newMap = new Map(prev);
+                newMap.set(currentIndex, wantMuted);
+                return newMap;
+              });
+            }
+          });
+        }
+      };
+      [100, 250, 500].forEach((ms) => timeouts.push(setTimeout(checkAndPlay, ms)));
+    }
+    return () => timeouts.forEach((t) => clearTimeout(t));
+  }, [mediaItems, currentIndex, videoMutedStates, stopAllVideosExcept, ensureReadyThenPlay]);
 
   // Handle video playback when slide changes (desktop behavior)
   useEffect(() => {
     if (isMobileRef.current) {
-      // On mobile, intersection observer handles playback
       return;
     }
-
     const currentMedia = mediaItems[currentIndex];
     if (currentMedia?.type === 'video') {
-      // Stop all videos first
       stopAllVideosExcept(null);
     } else {
-      // Pause all videos when showing an image
       stopAllVideosExcept(null);
     }
   }, [currentIndex, mediaItems]);
+
+  // Dorpsplein e.d.: wanneer parent isCardHovered zet (hover op hele kaart), alleen dan deze video afspelen op desktop
+  useEffect(() => {
+    if (isMobileRef.current || isCardHovered === undefined) return;
+    const currentMedia = mediaItems[currentIndex];
+    if (currentMedia?.type !== 'video') return;
+
+    const tryPlay = () => {
+      const video = videoRefs.current.get(currentIndex);
+      if (!isCardHovered || !video) return;
+      stopAllVideosExcept(video);
+      const wantMuted = videoManager.shouldStartMuted();
+      video.muted = true;
+      ensureReadyThenPlay(video, () => {
+        if (video && !video.paused) {
+          video.muted = wantMuted;
+          setVideoMutedStates((prev) => {
+            const m = new Map(prev);
+            m.set(currentIndex, wantMuted);
+            return m;
+          });
+        }
+      });
+    };
+
+    if (!isCardHovered) {
+      const video = videoRefs.current.get(currentIndex);
+      if (video) {
+        video.muted = true;
+        video.pause();
+        video.currentTime = 0;
+      }
+      stopAllVideosExcept(null);
+      return;
+    }
+
+    tryPlay();
+    const t1 = setTimeout(tryPlay, 100);
+    const t2 = setTimeout(tryPlay, 350);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [isCardHovered, currentIndex, mediaItems, stopAllVideosExcept, ensureReadyThenPlay]);
 
   // Handle video ended event - automatically go to next slide after video finishes
   useEffect(() => {
@@ -439,12 +489,9 @@ export default function ImageSlider({
   }, []);
 
   const startAutoSlide = useCallback(() => {
-    // Don't start if there's only 1 or no media items
-    if (mediaItems.length <= 1) {
+    if (mediaItems.length <= 1 || firstItemIsVideo) {
       return;
     }
-
-    // Clear any existing interval
     stopAutoSlide();
 
     // Only auto-slide if user hasn't interacted recently (within last 5 seconds)
@@ -462,14 +509,16 @@ export default function ImageSlider({
         );
       }
     }, scrollSlideInterval);
-  }, [mediaItems.length, scrollSlideInterval, stopAutoSlide]);
+  }, [mediaItems, firstItemIsVideo, scrollSlideInterval, stopAutoSlide]);
 
-  // Intersection Observer for scroll-based auto-slide
+  // Scroll-based auto-slide: niet als firstItemIsVideo (video blijft hoofd)
   useEffect(() => {
     if (!autoSlideOnScroll || mediaItems.length <= 1) {
       return;
     }
-
+    if (firstItemIsVideo) {
+      stopAutoSlide();
+    }
     const currentRef = sliderRef.current;
     if (!currentRef) {
       return;
@@ -480,12 +529,9 @@ export default function ImageSlider({
         entries.forEach((entry) => {
           const isVisible = entry.isIntersecting && entry.intersectionRatio > 0.3;
           isVisibleRef.current = isVisible;
-
-          if (isVisible) {
-            // Start auto-sliding when visible
+          if (isVisible && !firstItemIsVideo) {
             startAutoSlide();
           } else {
-            // Stop auto-sliding when not visible
             stopAutoSlide();
           }
         });
@@ -500,8 +546,8 @@ export default function ImageSlider({
     // start auto-slide immediately - this is acceptable fallback behavior
     // Modern browsers (Chrome, Firefox, Edge, Safari 12.1+) will use IntersectionObserver
     if (!observer) {
-      startAutoSlide();
-      return;
+      if (!firstItemIsVideo) startAutoSlide();
+      return () => stopAutoSlide();
     }
 
     observer.observe(currentRef);
@@ -510,23 +556,19 @@ export default function ImageSlider({
       observer.disconnect();
       stopAutoSlide();
     };
-  }, [autoSlideOnScroll, mediaItems.length, startAutoSlide, stopAutoSlide]);
+  }, [autoSlideOnScroll, mediaItems, firstItemIsVideo, startAutoSlide, stopAutoSlide]);
 
-  // Auto-play functionality (time-based, regardless of visibility)
-  // But pause when video is playing - let video play to completion
+  // Time-based autoPlay: niet als firstItemIsVideo (video blijft hoofd)
   useEffect(() => {
-    if (autoPlay && mediaItems.length > 1) {
-      // Clear any existing interval
+    if (autoPlay && mediaItems.length > 1 && !firstItemIsVideo) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
 
-      // Check if current item is a video
       const currentMedia = mediaItems[currentIndex];
       const isVideo = currentMedia?.type === 'video';
-      
-      // If current item is a video, don't start interval - wait for video to end
+
       if (isVideo) {
         // Video will trigger next slide via onEnded handler
         return;
@@ -546,7 +588,7 @@ export default function ImageSlider({
         }
       };
     }
-  }, [autoPlay, mediaItems.length, autoPlayInterval, currentIndex, mediaItems]);
+  }, [autoPlay, mediaItems, firstItemIsVideo, autoPlayInterval, currentIndex]);
 
   // Reset to first media item when media array changes
   useEffect(() => {
@@ -555,19 +597,17 @@ export default function ImageSlider({
     }
   }, [mediaItems.length, currentIndex]);
 
-  // Resume autoPlay interval when navigating to an image (after video ends or manual navigation)
+  // Resume time-based interval op image (niet als firstItemIsVideo)
   useEffect(() => {
-    if (autoPlay && mediaItems.length > 1) {
+    if (autoPlay && mediaItems.length > 1 && !firstItemIsVideo) {
       const currentMedia = mediaItems[currentIndex];
       const isVideo = currentMedia?.type === 'video';
-      
-      // Clear any existing interval first
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      
-      // If current item is an image (not a video), start/resume the interval
+
       if (!isVideo) {
         intervalRef.current = setInterval(() => {
           setCurrentIndex((prevIndex) => 
@@ -577,7 +617,14 @@ export default function ImageSlider({
       }
       // If it's a video, interval will be started when video ends (via onEnded handler)
     }
-  }, [currentIndex, autoPlay, mediaItems, autoPlayInterval]);
+  }, [currentIndex, autoPlay, mediaItems, firstItemIsVideo, autoPlayInterval]);
+
+  // Zodra firstItemIsVideo: geen auto-slide (video blijft hoofd)
+  useEffect(() => {
+    if (firstItemIsVideo) {
+      stopAutoSlide();
+    }
+  }, [firstItemIsVideo, stopAutoSlide]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -670,9 +717,13 @@ export default function ImageSlider({
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    // Don't block clicks on video controls or any element inside a video
     const target = e.target as HTMLElement;
-    // Check if click is on video element, video controls, or any child of video
+    if (target.closest('[data-video-mute-button]') || target.hasAttribute('data-video-mute-button') ||
+        target.closest('[data-play-overlay]') || target.hasAttribute('data-play-overlay')) {
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
     const isVideoClick = target.closest('video') || 
                          target.tagName === 'VIDEO' || 
                          target.closest('.video-controls') ||
@@ -697,8 +748,8 @@ export default function ImageSlider({
   const handleMouseDown = (e: React.MouseEvent) => {
     // Don't block clicks on mute button, video controls, or any element inside a video
     const target = e.target as HTMLElement;
-    // Check if click is on mute button
-    if (target.closest('[data-video-mute-button]') || target.hasAttribute('data-video-mute-button')) {
+    if (target.closest('[data-video-mute-button]') || target.hasAttribute('data-video-mute-button') ||
+        target.closest('[data-play-overlay]') || target.hasAttribute('data-play-overlay')) {
       e.stopPropagation();
       return;
     }
@@ -723,29 +774,7 @@ export default function ImageSlider({
     }
   };
 
-  // Check if single video has audio
-  useEffect(() => {
-    if (mediaItems.length === 1 && mediaItems[0]?.type === 'video' && mediaItems[0].url) {
-      if (!videoHasAudio.has(0)) {
-        checkVideoHasAudio(mediaItems[0].url).then((hasAudio) => {
-          setVideoHasAudio((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(0, hasAudio);
-            return newMap;
-          });
-          if (!hasAudio) {
-            console.warn('⚠️ Single video has no audio track:', mediaItems[0].url);
-          }
-        }).catch(() => {
-          setVideoHasAudio((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(0, true);
-            return newMap;
-          });
-        });
-      }
-    }
-  }, [mediaItems, videoHasAudio]);
+  // Geen audio-check voor single video (zelfde reden als carousel).
 
   if (!mediaItems || mediaItems.length === 0) {
     return (
@@ -762,27 +791,23 @@ export default function ImageSlider({
     return (
       <div className={`relative w-full h-full overflow-hidden ${className}`} style={{ position: 'relative', minHeight: '100%' }}>
         {singleMedia.type === 'video' ? (
-          <div style={{ zIndex: 10, position: 'relative' }}>
+          <div className="video-smooth absolute inset-0 w-full h-full bg-gray-200" style={{ zIndex: 10 }}>
             <video
               ref={(el) => {
                 if (el) {
                   videoRefs.current.set(0, el);
-                  // Register with global video manager
                   videoManager.register(el);
-                  // Cross-browser compatibility: ensure all attributes are set
-                    // Start with sound ON (user can mute if needed)
-                    const isMuted = videoMutedStates.get(0) ?? false;
-                    el.muted = isMuted;
-                  el.loop = false; // Don't loop - go to next slide after video ends
+                  // Start muted voor autoplay (browser policy); unmute na play in observer
+                  el.muted = true;
+                  el.loop = false;
                   
                   // iOS Safari compatibility
                   el.playsInline = true;
                   el.setAttribute('playsinline', 'true'); // Standard attribute
                   el.setAttribute('webkit-playsinline', 'true'); // WebKit prefix for older iOS
                   
-                  // Preload strategy - only metadata for better performance
-                  // Videos will be loaded when they become visible via Intersection Observer
-                  el.preload = 'none';
+                  // preload=auto: betere buffering voor Safari mobile (volledig afspelen, soepeler geluid)
+                  el.preload = 'auto';
                   
                   // Observe with intersection observer (for autoplay on all browsers)
                   if (intersectionObserverRef.current) {
@@ -791,58 +816,65 @@ export default function ImageSlider({
                 }
               }}
               src={getVideoUrlWithCors(singleMedia.url)}
+              poster={singleMedia.thumbnail || undefined}
               className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
               controls
               playsInline
-              webkit-playsinline="true"
-              preload="none"
+              muted
+              preload="auto"
               style={{ zIndex: 10, position: 'relative' }}
+              onPlay={() => setCurrentVideoPaused(false)}
+              onPause={() => setCurrentVideoPaused(true)}
+              onError={() => setCurrentVideoPaused(true)}
               onEnded={() => {
-                // After video ends, go to next slide (gallery)
-                // The useEffect hook will automatically resume the interval if next item is an image
+                setCurrentVideoPaused(true);
                 if (mediaItems.length > 1) {
                   const nextIndex = currentIndex < mediaItems.length - 1 ? currentIndex + 1 : 0;
                   setCurrentIndex(nextIndex);
                 }
               }}
               onClick={(e) => {
-                // Allow video controls to work - don't propagate to parent
                 e.stopPropagation();
+                const video = videoRefs.current.get(0);
+                if (video?.paused) {
+                  stopAllVideosExcept(video);
+                  const wantMuted = videoManager.shouldStartMuted();
+                  video.muted = true;
+                  ensureReadyThenPlay(video, () => {
+                    if (video && !video.paused) {
+                      video.muted = wantMuted;
+                      setVideoMutedStates((prev) => {
+                        const m = new Map(prev);
+                        m.set(0, wantMuted);
+                        return m;
+                      });
+                    }
+                  });
+                }
               }}
-              onMouseDown={(e) => {
-                // Allow video controls to work - don't propagate to parent
-                e.stopPropagation();
-              }}
-              onTouchStart={(e) => {
-                // Allow video controls to work on touch devices
-                e.stopPropagation();
-              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onMouseEnter={() => {
-                // Desktop: Play on hover
                 if (!isMobileRef.current && videoRefs.current.get(0)) {
                   const video = videoRefs.current.get(0);
-                  if (video) {
+                  if (video?.paused) {
                     stopAllVideosExcept(video);
-                    // Respect user's mute preference
-                    const userMutedState = videoMutedStates.get(0);
-                    if (userMutedState === undefined) {
-                      // First time - start with sound ON
-                      video.muted = false;
-                      setVideoMutedStates((prev) => {
-                        const newMap = new Map(prev);
-                        newMap.set(0, false);
-                        return newMap;
-                      });
-                    } else {
-                      // Respect user's choice
-                      video.muted = userMutedState;
-                    }
-                    video.play().catch(() => {});
+                    const wantMuted = videoManager.shouldStartMuted();
+                    video.muted = true;
+                    ensureReadyThenPlay(video, () => {
+                      if (video && !video.paused) {
+                        video.muted = wantMuted;
+                        setVideoMutedStates((prev) => {
+                          const m = new Map(prev);
+                          m.set(0, wantMuted);
+                          return m;
+                        });
+                      }
+                    });
                   }
                 }
               }}
               onMouseLeave={() => {
-                // Desktop: Pause when mouse leaves
                 if (!isMobileRef.current && videoRefs.current.get(0)) {
                   const video = videoRefs.current.get(0);
                   if (video) {
@@ -853,34 +885,83 @@ export default function ImageSlider({
                 }
               }}
             />
-            {/* Mute/Unmute Button - Only show if video has audio */}
-            {videoHasAudio.get(0) !== false && (
+            {currentVideoPaused && (
               <button
-                data-video-mute-button
+                type="button"
+                data-play-overlay
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                   const video = videoRefs.current.get(0);
-                  if (video) {
-                    const newMutedState = !video.muted;
-                    video.muted = newMutedState;
-                    setVideoMutedStates((prev) => {
-                      const newMap = new Map(prev);
-                      newMap.set(0, newMutedState);
-                      return newMap;
+                  if (video?.paused) {
+                    stopAllVideosExcept(video);
+                    const wantMuted = videoManager.shouldStartMuted();
+                    video.muted = true;
+                    ensureReadyThenPlay(video, () => {
+                      if (video && !video.paused) {
+                        video.muted = wantMuted;
+                        setVideoMutedStates((prev) => {
+                          const m = new Map(prev);
+                          m.set(0, wantMuted);
+                          return m;
+                        });
+                      }
                     });
                   }
                 }}
-                className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-30 transition-all duration-200"
-                aria-label={videoMutedStates.get(0) ? "Unmute video" : "Mute video"}
+                onMouseEnter={() => {
+                  if (isMobileRef.current) return;
+                  const video = videoRefs.current.get(0);
+                  if (video?.paused) {
+                    stopAllVideosExcept(video);
+                    const wantMuted = videoManager.shouldStartMuted();
+                    video.muted = true;
+                    ensureReadyThenPlay(video, () => {
+                      if (video && !video.paused) {
+                        video.muted = wantMuted;
+                        setVideoMutedStates((prev) => {
+                          const m = new Map(prev);
+                          m.set(0, wantMuted);
+                          return m;
+                        });
+                      }
+                    });
+                  }
+                }}
+                className="absolute inset-0 flex items-center justify-center z-[35] cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded pointer-events-auto"
+                aria-label="Afspelen"
               >
-                {videoMutedStates.get(0) ? (
-                  <VolumeX className="w-5 h-5" />
-                ) : (
-                  <Volume2 className="w-5 h-5" />
-                )}
+                <PlayCircle className="w-16 h-16 text-white/90 drop-shadow-lg" aria-hidden />
               </button>
             )}
+            {/* Mute/Unmute – direct; voorkeur geldt voor alle volgende video's */}
+            <button
+              type="button"
+              data-video-mute-button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const video = videoRefs.current.get(0);
+                if (video) {
+                  const newMutedState = !video.muted;
+                  video.muted = newMutedState;
+                  videoManager.setUserPrefersMuted(newMutedState);
+                  setVideoMutedStates((prev) => {
+                    const newMap = new Map(prev);
+                    newMap.set(0, newMutedState);
+                    return newMap;
+                  });
+                }
+              }}
+              className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
+              aria-label={videoMutedStates.get(0) !== false ? "Unmute video" : "Mute video"}
+            >
+              {videoMutedStates.get(0) !== false ? (
+                <VolumeX className="w-5 h-5" aria-hidden />
+              ) : (
+                <Volume2 className="w-5 h-5" aria-hidden />
+              )}
+            </button>
             {/* Warning if video has no audio */}
             {videoHasAudio.get(0) === false && (
               <div className="absolute bottom-3 right-3 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded z-30">
@@ -915,48 +996,43 @@ export default function ImageSlider({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => {
-        // Pause auto-slide on hover (desktop)
         lastUserInteractionRef.current = Date.now();
         stopAutoSlide();
-        
-        // Desktop: Play video on hover
         if (!isMobileRef.current) {
           const currentMedia = mediaItems[currentIndex];
           if (currentMedia?.type === 'video') {
             const video = videoRefs.current.get(currentIndex);
             if (video) {
               stopAllVideosExcept(video);
-              // Respect user's mute preference
-              const userMutedState = videoMutedStates.get(currentIndex);
-              if (userMutedState === undefined) {
-                // First time - start with sound ON
-                video.muted = false;
-                setVideoMutedStates((prev) => {
-                  const newMap = new Map(prev);
-                  newMap.set(currentIndex, false);
-                  return newMap;
-                });
-              } else {
-                // Respect user's choice
-                video.muted = userMutedState;
-              }
-              video.loop = false; // Don't loop - go to next slide after video ends
-              video.play().catch(() => {
-                // Autoplay might be blocked
+              const wantMuted = videoManager.shouldStartMuted();
+              video.muted = true;
+              ensureReadyThenPlay(video, () => {
+                if (video && !video.paused) {
+                  video.muted = wantMuted;
+                  setVideoMutedStates((prev) => {
+                    const m = new Map(prev);
+                    m.set(currentIndex, wantMuted);
+                    return m;
+                  });
+                }
               });
             }
           }
         }
       }}
       onMouseLeave={() => {
-        // Resume auto-slide when mouse leaves (desktop)
         if (isVisibleRef.current) {
-          setTimeout(() => {
-            startAutoSlide();
-          }, 1000); // Wait 1 second after mouse leave
+          setTimeout(() => startAutoSlide(), 1000);
         }
-        
-        // Don't pause video on mouse leave - let it play to completion
+        // Desktop: stop video als muis van kaart afgaat
+        if (!isMobileRef.current) {
+          const video = videoRefs.current.get(currentIndex);
+          if (video && mediaItems[currentIndex]?.type === 'video') {
+            video.pause();
+            video.currentTime = 0;
+            stopAllVideosExcept(null);
+          }
+        }
       }}
       data-image-slider
     >
@@ -964,7 +1040,7 @@ export default function ImageSlider({
       <div className="absolute inset-0">
         {mediaItems[currentIndex] ? (
           mediaItems[currentIndex].type === 'video' ? (
-            <div className="relative w-full h-full" style={{ zIndex: 10, position: 'relative' }}>
+            <div className="video-smooth absolute inset-0 w-full h-full bg-gray-200" style={{ zIndex: 10 }}>
               <video
                 ref={(el) => {
                   if (el) {
@@ -972,18 +1048,16 @@ export default function ImageSlider({
                     // Register with global video manager
                     videoManager.register(el);
                     // Cross-browser compatibility: ensure all attributes are set
-                    // Start with sound ON (user can mute if needed)
-                    const isMuted = videoMutedStates.get(currentIndex) ?? false;
-                    el.muted = isMuted;
-                    el.loop = false; // Don't loop - go to next slide after video ends
+                    // Start muted voor autoplay; unmute na play in observer
+                    el.muted = true;
+                    el.loop = false;
                     
                     // iOS Safari compatibility
                     el.playsInline = true;
                     el.setAttribute('playsinline', 'true'); // Standard attribute
                     el.setAttribute('webkit-playsinline', 'true'); // WebKit prefix for older iOS
                     
-                    // Preload strategy for better performance
-                    el.preload = currentIndex === 0 ? 'metadata' : 'none';
+                    el.preload = 'auto';
                     
                     // Observe with intersection observer (for autoplay on all browsers)
                     if (intersectionObserverRef.current) {
@@ -999,66 +1073,154 @@ export default function ImageSlider({
                 className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
                 controls
                 playsInline
-                webkit-playsinline="true"
-                preload={currentIndex === 0 ? "metadata" : "none"}
-                autoPlay
+                muted
+                preload="auto"
                 style={{ zIndex: 10, position: 'relative' }}
+                onPlay={() => setCurrentVideoPaused(false)}
+                onPause={() => setCurrentVideoPaused(true)}
+                onError={() => setCurrentVideoPaused(true)}
                 onEnded={() => {
-                  // After video ends, automatically go to next slide (gallery)
-                  // The useEffect hook will automatically resume the interval if next item is an image
+                  setCurrentVideoPaused(true);
                   if (currentIndex < mediaItems.length - 1) {
                     setCurrentIndex(currentIndex + 1);
                   } else {
-                    // If video is last item, go to first image (skip video if it's not first)
                     const firstImageIndex = mediaItems.findIndex(m => m.type === 'image');
                     if (firstImageIndex >= 0) {
                       setCurrentIndex(firstImageIndex);
                     } else {
-                      setCurrentIndex(0); // Fallback to first item
+                      setCurrentIndex(0);
                     }
                   }
                 }}
                 onClick={(e) => {
-                  // Allow video controls to work - don't propagate to parent
                   e.stopPropagation();
+                  const video = videoRefs.current.get(currentIndex);
+                  if (video?.paused) {
+                    stopAllVideosExcept(video);
+                    const wantMuted = videoManager.shouldStartMuted();
+                    video.muted = true;
+                    ensureReadyThenPlay(video, () => {
+                      if (video && !video.paused) {
+                        video.muted = wantMuted;
+                        setVideoMutedStates((prev) => {
+                          const m = new Map(prev);
+                          m.set(currentIndex, wantMuted);
+                          return m;
+                        });
+                      }
+                    });
+                  }
                 }}
-                onMouseDown={(e) => {
-                  // Allow video controls to work - don't propagate to parent
-                  e.stopPropagation();
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onMouseEnter={() => {
+                  if (!isMobileRef.current) {
+                    const v = videoRefs.current.get(currentIndex);
+                    if (v?.paused) {
+                      stopAllVideosExcept(v);
+                      v.muted = true;
+                      ensureReadyThenPlay(v, () => {
+                        if (v && !v.paused) {
+                          const wantMuted = videoManager.shouldStartMuted();
+                          v.muted = wantMuted;
+                          setVideoMutedStates((prev) => {
+                            const m = new Map(prev);
+                            m.set(currentIndex, wantMuted);
+                            return m;
+                          });
+                        }
+                      });
+                    }
+                  }
                 }}
-                onTouchStart={(e) => {
-                  // Allow video controls to work on touch devices
-                  e.stopPropagation();
+                onMouseLeave={() => {
+                  if (!isMobileRef.current) {
+                    const v = videoRefs.current.get(currentIndex);
+                    if (v) {
+                      v.pause();
+                      v.currentTime = 0;
+                      stopAllVideosExcept(null);
+                    }
+                  }
                 }}
               />
-              {/* Mute/Unmute Button - Only show if video has audio */}
-              {videoHasAudio.get(currentIndex) !== false && (
+              {currentVideoPaused && (
                 <button
-                  data-video-mute-button
+                  type="button"
+                  data-play-overlay
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     const video = videoRefs.current.get(currentIndex);
-                    if (video) {
-                      const newMutedState = !video.muted;
-                      video.muted = newMutedState;
-                      setVideoMutedStates((prev) => {
-                        const newMap = new Map(prev);
-                        newMap.set(currentIndex, newMutedState);
-                        return newMap;
+                    if (video?.paused) {
+                      stopAllVideosExcept(video);
+                      const wantMuted = videoManager.shouldStartMuted();
+                      video.muted = true;
+                      ensureReadyThenPlay(video, () => {
+                        if (video && !video.paused) {
+                          video.muted = wantMuted;
+                          setVideoMutedStates((prev) => {
+                            const m = new Map(prev);
+                            m.set(currentIndex, wantMuted);
+                            return m;
+                          });
+                        }
                       });
                     }
                   }}
-                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-30 transition-all duration-200"
-                  aria-label={videoMutedStates.get(currentIndex) ? "Unmute video" : "Mute video"}
+                  onMouseEnter={() => {
+                    if (isMobileRef.current) return;
+                    const video = videoRefs.current.get(currentIndex);
+                    if (video?.paused) {
+                      stopAllVideosExcept(video);
+                      const wantMuted = videoManager.shouldStartMuted();
+                      video.muted = true;
+                      ensureReadyThenPlay(video, () => {
+                        if (video && !video.paused) {
+                          video.muted = wantMuted;
+                          setVideoMutedStates((prev) => {
+                            const m = new Map(prev);
+                            m.set(currentIndex, wantMuted);
+                            return m;
+                          });
+                        }
+                      });
+                    }
+                  }}
+                  className="absolute inset-0 flex items-center justify-center z-[35] cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded pointer-events-auto"
+                  aria-label="Afspelen"
                 >
-                  {videoMutedStates.get(currentIndex) ? (
-                    <VolumeX className="w-5 h-5" />
-                  ) : (
-                    <Volume2 className="w-5 h-5" />
-                  )}
+                  <PlayCircle className="w-16 h-16 text-white/90 drop-shadow-lg" aria-hidden />
                 </button>
               )}
+              {/* Mute/Unmute – direct; voorkeur geldt voor alle volgende video's */}
+              <button
+                type="button"
+                data-video-mute-button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  const video = videoRefs.current.get(currentIndex);
+                  if (video) {
+                    const newMutedState = !video.muted;
+                    video.muted = newMutedState;
+                    videoManager.setUserPrefersMuted(newMutedState);
+                    setVideoMutedStates((prev) => {
+                      const newMap = new Map(prev);
+                      newMap.set(currentIndex, newMutedState);
+                      return newMap;
+                    });
+                  }
+                }}
+                className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
+                aria-label={videoMutedStates.get(currentIndex) !== false ? "Unmute video" : "Mute video"}
+              >
+                {videoMutedStates.get(currentIndex) !== false ? (
+                  <VolumeX className="w-5 h-5" aria-hidden />
+                ) : (
+                  <Volume2 className="w-5 h-5" aria-hidden />
+                )}
+              </button>
               {/* Warning if video has no audio */}
               {videoHasAudio.get(currentIndex) === false && (
                 <div className="absolute bottom-3 right-3 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded z-30">

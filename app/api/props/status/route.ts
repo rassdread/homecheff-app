@@ -46,8 +46,7 @@ export async function GET(req: NextRequest) {
       dishId: dishId || null
     });
 
-  } catch (error) {
-    console.error('Error checking props status:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to check props status' }, { status: 500 });
   }
 }

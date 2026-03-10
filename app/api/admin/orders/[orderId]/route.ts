@@ -268,13 +268,34 @@ export async function PATCH(
       }
     });
 
-    // Log admin action
+    // Bij DELIVERED: officieel escrow vrijgeven – betaling naar Stripe Connect (verkoper)
+    let escrowReleased = 0;
+    const escrowErrors: string[] = [];
+    if (status === 'DELIVERED' && status !== oldStatus) {
+      try {
+        const { releaseEscrowForOrder } = await import('@/lib/releaseEscrowOnDelivered');
+        const result = await releaseEscrowForOrder(prisma, orderId);
+        escrowReleased = result.released;
+        if (result.errors.length > 0) escrowErrors.push(...result.errors);
+        if (result.released > 0) {
+          console.log(`✅ [Admin] Escrow released for order ${orderId}: ${result.released} payout(s)`);
+        }
+      } catch (e) {
+        console.error(`[Admin] Escrow release for ${orderId}:`, e);
+        escrowErrors.push((e as Error).message);
+      }
+    }
+
+    // Log admin action (inclusief escrow-resultaat voor traceerbaarheid)
+    const escrowNote = escrowReleased > 0
+      ? ` Escrow vrijgegeven: ${escrowReleased} uitbetaling(en) naar verkoper.`
+      : (escrowErrors.length > 0 ? ` Escrow: ${escrowErrors.join('; ')}` : '');
     await prisma.adminAction.create({
       data: {
         id: `admin_action_${Date.now()}`,
         adminId: user.id,
         action: `ORDER_STATUS_UPDATE`,
-        notes: `Order ${order.orderNumber} status changed from ${oldStatus} to ${status || oldStatus}${adminNotes ? `. Notes: ${adminNotes}` : ''}`
+        notes: `Order ${order.orderNumber} status changed from ${oldStatus} to ${status || oldStatus}.${escrowNote}${adminNotes ? ` ${adminNotes}` : ''}`
       }
     });
 
@@ -298,7 +319,11 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({ order: updatedOrder });
+    return NextResponse.json({
+      order: updatedOrder,
+      escrowReleased,
+      escrowErrors: escrowErrors.length > 0 ? escrowErrors : undefined,
+    });
   } catch (error) {
     console.error('Error updating order:', error);
     return NextResponse.json(

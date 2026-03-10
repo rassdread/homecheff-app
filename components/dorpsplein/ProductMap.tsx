@@ -38,6 +38,7 @@ export default function ProductMap({ products, height = '600px' }: ProductMapPro
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
@@ -47,6 +48,7 @@ export default function ProductMap({ products, height = '600px' }: ProductMapPro
     
     if (!apiKey) {
       console.warn('Google Maps API key not found');
+      setApiKeyMissing(true);
       return;
     }
 
@@ -215,6 +217,18 @@ export default function ProductMap({ products, height = '600px' }: ProductMapPro
       }
     }
   }, [mapLoaded, products]);
+
+  if (apiKeyMissing) {
+    return (
+      <div className="bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200" style={{ height }}>
+        <div className="text-center px-4">
+          <MapPin className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <p className="text-gray-700 font-medium">Kaart niet beschikbaar</p>
+          <p className="text-sm text-gray-500 mt-1">Google Maps API-key is niet geconfigureerd. Productlocaties: {products.filter(p => p.lat && p.lng).length} met coördinaten.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!mapLoaded) {
     return (

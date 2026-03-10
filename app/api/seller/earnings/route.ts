@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { matchesCurrentMode } from '@/lib/stripe';
+import { stripe, matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
+import { getSellerRequestablePayout } from '@/lib/sellerPayouts';
+import { getCombinedRequestablePayout } from '@/lib/combinedPayouts';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +75,7 @@ export async function GET(req: NextRequest) {
     // IMPORTANT: Only include orders that match current Stripe mode (test/live)
     const allOrders = await prisma.order.findMany({
       where: {
-        stripeSessionId: { not: null },
+        stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
         NOT: {
           orderNumber: {
             startsWith: 'SUB-'
@@ -134,74 +136,47 @@ export async function GET(req: NextRequest) {
     // Net earnings (what seller should receive = gross - platform fees)
     const netEarnings = totalEarnings - platformFee;
 
-    // Calculate pending payout correctly:
-    // Only count CAPTURED transactions that don't have a payout yet OR have payout with providerRef: null
-    // Exclude transactions with active escrow (shipping orders - handled separately)
-    const pendingTransactions = await prisma.transaction.findMany({
-      where: {
-        sellerId: user.id,
-        status: 'CAPTURED',
-        providerRef: { not: null },
-        OR: [
-          { Payout: { none: {} } },
-          { Payout: { some: { providerRef: null } } }
-        ]
-      },
-      select: {
-        id: true,
-        amountCents: true,
-        platformFeeBps: true,
-        providerRef: true
-      },
-      take: 1000
+    // Gecombineerd aanvraagbaar (verkoop + bezorging) als gebruiker ook bezorger is
+    const hasDeliveryProfile = await prisma.deliveryProfile.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
     });
 
-    // Filter to only include transactions matching current Stripe mode
-    const validPendingTransactions = pendingTransactions.filter(tx => 
-      tx.providerRef && matchesCurrentMode(tx.providerRef)
-    );
+    let requestableCents: number;
+    let canRequestPayout: boolean;
+    let payoutBlockedReason: string | undefined;
+    let sellerRequestableCents: number;
+    let deliveryRequestableCents: number;
 
-    // Get providerRefs to check for active escrows
-    const providerRefs = validPendingTransactions
-      .map(tx => tx.providerRef)
-      .filter((ref): ref is string => ref !== null);
+    if (hasDeliveryProfile) {
+      const combined = await getCombinedRequestablePayout(
+        prisma,
+        user.id,
+        platformFeePercentage,
+        matchesCurrentMode
+      );
+      requestableCents = combined.totalRequestableCents;
+      canRequestPayout = combined.canRequestPayout;
+      payoutBlockedReason = combined.payoutBlockedReason;
+      sellerRequestableCents = combined.sellerCents;
+      deliveryRequestableCents = combined.deliveryCents;
+    } else {
+      const sellerResult = await getSellerRequestablePayout(
+        prisma,
+        user.id,
+        platformFeePercentage,
+        matchesCurrentMode
+      );
+      requestableCents = sellerResult.requestableCents;
+      canRequestPayout = sellerResult.canRequestPayout;
+      payoutBlockedReason = sellerResult.payoutBlockedReason;
+      sellerRequestableCents = sellerResult.requestableCents;
+      deliveryRequestableCents = 0;
+    }
 
-    // Check for active escrows (shipping orders)
-    const ordersWithEscrows = providerRefs.length > 0 ? await prisma.order.findMany({
-      where: {
-        stripeSessionId: { in: providerRefs }
-      },
-      select: {
-        stripeSessionId: true,
-        paymentEscrow: {
-          where: { currentStatus: 'held' },
-          select: { currentStatus: true }
-        }
-      }
-    }) : [];
+    const pendingPayout = requestableCents;
 
-    const escrowMap = new Map<string, boolean>();
-    ordersWithEscrows.forEach(order => {
-      if (order.stripeSessionId) {
-        escrowMap.set(order.stripeSessionId, order.paymentEscrow.length > 0);
-      }
-    });
-
-    // Calculate pending payout: sum of transactions without active escrow
-    const pendingPayout = validPendingTransactions
-      .filter(tx => {
-        if (!tx.providerRef) return false;
-        const hasActiveEscrow = escrowMap.get(tx.providerRef) || false;
-        return !hasActiveEscrow; // Exclude transactions with active escrow
-      })
-      .reduce((sum, tx) => {
-        // Calculate net amount (with platform fee)
-        const platformFeeBps = tx.platformFeeBps || (platformFeePercentage * 100);
-        const platformFee = Math.round((tx.amountCents * platformFeeBps) / 10000);
-        return sum + (tx.amountCents - platformFee);
-      }, 0);
-    
-    // Total payouts (what has actually been paid out - only payouts with providerRef)
+    // Total payouts (wat officieel is uitbetaald: alleen payouts met providerRef)
     const totalPayouts = payouts
       .filter(p => p.providerRef && matchesCurrentMode(p.providerRef))
       .reduce((sum, payout) => sum + payout.amountCents, 0);
@@ -218,40 +193,23 @@ export async function GET(req: NextRequest) {
 
     const [todayEarningsResult, weekEarningsResult, monthEarningsResult, completedOrdersCount] = await Promise.all([
       // Today's earnings
-      prisma.orderItem.aggregate({
+      prisma.orderItem.findMany({
         where: {
-          Product: {
-            sellerId: sellerProfile.id
-          },
+          Product: { sellerId: sellerProfile.id },
           Order: {
-            stripeSessionId: { not: null },
+            stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
             createdAt: { gte: today }
           }
         },
-        _sum: {
-          priceCents: true
-        }
-      }).then(result => {
-        // We need to calculate with quantity, so fetch items for today
-        return prisma.orderItem.findMany({
-          where: {
-            Product: { sellerId: sellerProfile.id },
-            Order: {
-              stripeSessionId: { not: null },
-              NOT: { orderNumber: { startsWith: 'SUB-' } },
-              createdAt: { gte: today }
-            }
-          },
-          select: { priceCents: true, quantity: true }
-        }).then(items => items.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0));
-      }),
+        select: { priceCents: true, quantity: true }
+      }).then(items => items.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0)),
       // Week earnings
       prisma.orderItem.findMany({
         where: {
           Product: { sellerId: sellerProfile.id },
           Order: {
-            stripeSessionId: { not: null },
+            stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
             createdAt: { gte: weekAgo }
           }
@@ -263,7 +221,7 @@ export async function GET(req: NextRequest) {
         where: {
           Product: { sellerId: sellerProfile.id },
           Order: {
-            stripeSessionId: { not: null },
+            stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
             createdAt: { gte: monthStart }
           }
@@ -273,7 +231,7 @@ export async function GET(req: NextRequest) {
       // Completed orders count
       prisma.order.count({
         where: {
-          stripeSessionId: { not: null },
+          stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
           NOT: { orderNumber: { startsWith: 'SUB-' } },
           status: { in: ['CONFIRMED', 'DELIVERED'] },
           items: {
@@ -294,19 +252,12 @@ export async function GET(req: NextRequest) {
     const completedOrders = completedOrdersCount;
 
     // Get recent orders for display (only non-subscription orders with Stripe payment)
-    // This can be done in parallel with other queries
     const recentOrderItems = await prisma.orderItem.findMany({
       where: {
-        Product: {
-          sellerId: sellerProfile.id
-        },
+        Product: { sellerId: sellerProfile.id },
         Order: {
-          stripeSessionId: { not: null },
-          NOT: {
-            orderNumber: {
-              startsWith: 'SUB-'
-            }
-          }
+          stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
+          NOT: { orderNumber: { startsWith: 'SUB-' } }
         }
       },
       include: {
@@ -345,16 +296,85 @@ export async function GET(req: NextRequest) {
       buyer: payout.Transaction.User?.name || payout.Transaction.User?.email || 'Unknown'
     }));
 
+    const stripeConnected = !!(user.stripeConnectAccountId && user.stripeConnectOnboardingCompleted);
+
+    // Hoeveel staat er écht nog in escrow (alleen 'held') – voor correcte UI-melding
+    const escrowSum = await prisma.paymentEscrow.aggregate({
+      where: { sellerId: user.id, currentStatus: 'held' },
+      _sum: { amountCents: true },
+    });
+    const amountInEscrowCents = escrowSum._sum.amountCents ?? 0;
+
+    // Optioneel: bezorgverdiensten als deze gebruiker ook bezorger is (voor op dezelfde pagina)
+    let delivery: { totalEarningsCents: number; paidCents: number } | undefined;
+    const deliveryProfile = await prisma.deliveryProfile.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    if (deliveryProfile) {
+      const deliveredByMe = await prisma.deliveryOrder.findMany({
+        where: { deliveryProfileId: deliveryProfile.id, status: 'DELIVERED' },
+        select: { orderId: true, deliveryFee: true },
+      });
+      const deliveredOrderIds = new Set(deliveredByMe.map((d) => d.orderId));
+      const deliveryPayouts = await prisma.payout.findMany({
+        where: { toUserId: user.id },
+        select: { amountCents: true, providerRef: true, transactionId: true },
+      });
+      const deliveryPayoutsFiltered = deliveryPayouts.filter(
+        (p) =>
+          p.transactionId.includes('delivery') ||
+          p.transactionId.includes('txn_delivery') ||
+          deliveredOrderIds.has(p.transactionId)
+      );
+      const totalDeliveryCents = deliveryPayoutsFiltered.reduce((s, p) => s + p.amountCents, 0);
+      const deliveryPaidCents = deliveryPayoutsFiltered
+        .filter((p) => p.providerRef != null)
+        .reduce((s, p) => s + p.amountCents, 0);
+      delivery = { totalEarningsCents: totalDeliveryCents, paidCents: deliveryPaidCents };
+    }
+
+    // Totaal net (verkoop + bezorging) voor één overzicht
+    const combinedNetCents = netEarnings + (delivery?.totalEarningsCents ?? 0);
+
+    // Saldo op Stripe Connect-account (zodat gebruiker ziet wat er op Stripe staat, zonder in te loggen)
+    let stripeBalanceAvailableCents: number | undefined;
+    let stripeBalancePendingCents: number | undefined;
+    if (stripeConnected && user.stripeConnectAccountId && stripe) {
+      try {
+        const balance = await stripe.balance.retrieve(
+          {},
+          { stripeAccount: user.stripeConnectAccountId }
+        );
+        const eurAvailable = balance.available?.find((b: { currency: string }) => b.currency === 'eur');
+        const eurPending = balance.pending?.find((b: { currency: string }) => b.currency === 'eur');
+        stripeBalanceAvailableCents = eurAvailable?.amount ?? 0;
+        stripeBalancePendingCents = eurPending?.amount ?? 0;
+      } catch (e) {
+        console.warn('Could not fetch Connect balance for user', user.id, e);
+      }
+    }
+
     return NextResponse.json({
       totalEarnings,
-      pendingPayout: Math.max(0, pendingPayout), // Ensure non-negative
+      pendingPayout: Math.max(0, pendingPayout),
+      requestableAmountCents: Math.max(0, requestableCents),
+      sellerRequestableCents: Math.max(0, sellerRequestableCents),
+      deliveryRequestableCents: Math.max(0, deliveryRequestableCents),
+      canRequestPayout: canRequestPayout && stripeConnected,
+      payoutBlockedReason: payoutBlockedReason ?? undefined,
+      amountInEscrowCents,
+      delivery,
+      combinedNetCents,
       lastPayout: lastPayoutAmount,
       lastPayoutDate,
       platformFee,
-      platformFeePercentage, // Add platform fee percentage
+      platformFeePercentage,
       netEarnings,
-      stripeConnected: !!(user.stripeConnectAccountId && user.stripeConnectOnboardingCompleted),
+      stripeConnected,
       stripeAccountId: user.stripeConnectAccountId,
+      stripeBalanceAvailableCents: stripeBalanceAvailableCents ?? undefined,
+      stripeBalancePendingCents: stripeBalancePendingCents ?? undefined,
       stats: {
         totalEarnings,
         todayEarnings,

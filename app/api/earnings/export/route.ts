@@ -10,6 +10,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CommissionLedgerStatus } from "@prisma/client";
 import { matchesCurrentMode } from "@/lib/stripe";
+import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
 
 export const dynamic = 'force-dynamic';
 
@@ -175,19 +176,24 @@ export async function GET(req: NextRequest) {
     if (user.DeliveryProfile) {
       exportData.roles.push('Bezorger');
       const deliveryProfile = user.DeliveryProfile;
-      
-      const payouts = await prisma.payout.findMany({
-        where: {
-          toUserId: user.id,
-          OR: [
-            { transactionId: { contains: 'delivery' } },
-            { transactionId: { contains: 'txn_delivery' } }
-          ]
-        },
+
+      const deliveredOrderIds = await prisma.deliveryOrder
+        .findMany({
+          where: { deliveryProfileId: deliveryProfile.id, status: 'DELIVERED' },
+          select: { orderId: true }
+        })
+        .then(rows => rows.map(r => r.orderId));
+
+      const allPayouts = await prisma.payout.findMany({
+        where: { toUserId: user.id },
+        select: { amountCents: true, transactionId: true },
         orderBy: { createdAt: 'desc' }
       });
+      const deliveryPayouts = allPayouts.filter(
+        p => p.transactionId.includes('delivery') || p.transactionId.includes('txn_delivery') || deliveredOrderIds.includes(p.transactionId)
+      );
 
-      const totalEarnings = payouts.reduce((sum, p) => sum + p.amountCents, 0);
+      const earningsFromPayouts = deliveryPayouts.reduce((sum, p) => sum + p.amountCents, 0);
 
       const deliveryOrders = await prisma.deliveryOrder.findMany({
         where: {
@@ -205,6 +211,11 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { createdAt: 'desc' }
       });
+
+      const earnedFromCompleted = deliveryOrders
+        .filter(o => o.status === 'DELIVERED' && o.deliveryFee != null)
+        .reduce((sum, o) => sum + Math.round((o.deliveryFee ?? 0) * DELIVERY_DELIVERER_PERCENT / 100), 0);
+      const totalEarnings = Math.max(earningsFromPayouts, earnedFromCompleted);
 
       exportData.delivery = {
         totalEarnings,

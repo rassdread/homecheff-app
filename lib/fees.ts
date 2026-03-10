@@ -4,6 +4,10 @@ export const STRIPE_FEE_PERCENTAGE = 0.014; // 1.4%
 export const STRIPE_FIXED_FEE_CENTS = 25; // €0.25
 export const DEFAULT_PLATFORM_FEE_PERCENT = 12; // 12% for individual sellers
 
+/** 12% Homecheff fee on delivery costs (bezorgkosten); 88% goes to deliverer */
+export const DELIVERY_PLATFORM_FEE_PERCENT = 12;
+export const DELIVERY_DELIVERER_PERCENT = 88;
+
 export function calculateStripeFeeForBuyer(subtotalCents: number) {
   if (subtotalCents <= 0) {
     return {

@@ -3,6 +3,16 @@
  * Handle video validation, compression, and thumbnail generation
  */
 
+/** Detect iOS Safari for video preload/playback tweaks */
+export function isIOSSafari(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua);
+  return !!(isIOS && isSafari);
+}
+
+
 /**
  * Get video URL with CORS proxy if needed
  * Fixes CORS errors when loading videos from Vercel Blob Storage
@@ -11,14 +21,11 @@
  * @returns Video URL (proxied if from Vercel Blob Storage)
  */
 export function getVideoUrlWithCors(videoUrl: string): string {
-  // Check if it's a Vercel Blob Storage URL
-  if (videoUrl && videoUrl.includes('public.blob.vercel-storage.com')) {
-    // Use proxy to fix CORS issues
+  // Alle Vercel Blob-URLs via proxy (CORS + range voor Safari)
+  if (videoUrl && (videoUrl.includes('blob.vercel-storage.com') || videoUrl.includes('vercel-storage.com'))) {
     const encodedUrl = encodeURIComponent(videoUrl);
     return `/api/video-proxy?url=${encodedUrl}`;
   }
-  
-  // For other URLs, return as-is
   return videoUrl;
 }
 
@@ -46,11 +53,16 @@ export async function checkVideoHasAudio(videoUrl: string): Promise<boolean> {
   return new Promise((resolve) => {
     try {
       const video = document.createElement('video');
-      video.src = videoUrl;
+      // Use CORS proxy for blob storage so iOS Safari can load metadata
+      video.src = getVideoUrlWithCors(videoUrl);
       video.muted = true; // Start muted to allow autoplay
       video.playsInline = true;
       video.preload = 'metadata';
-      video.crossOrigin = 'anonymous';
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      if (videoUrl && (videoUrl.includes('blob.vercel') || videoUrl.startsWith('http'))) {
+        video.crossOrigin = 'anonymous';
+      }
       
       // Hide video element
       video.style.position = 'fixed';
@@ -174,13 +186,14 @@ export async function checkVideoHasAudio(videoUrl: string): Promise<boolean> {
 }
 
 // Compression settings for client-side video compression
+// Encoding vermindert opslag en levert MP4/H.264 voor soepele weergave op alle browsers/apparaten
 export const COMPRESSION_SETTINGS = {
   maxWidth: 1920,        // Full HD
   maxHeight: 1080,       // Full HD
-  bitrate: 2500000,      // 2.5 Mbps (good balance between quality and size)
-  codec: 'h264',         // Universally supported
-  maxFileSize: 10 * 1024 * 1024, // 10MB after compression
-  compressionThreshold: 5 * 1024 * 1024, // Compress files larger than 5MB
+  bitrate: 2500000,      // 2.5 Mbps (balans kwaliteit/opslag)
+  codec: 'h264',         // Universeel ondersteund (Safari, Chrome, Firefox, Edge)
+  maxFileSize: 10 * 1024 * 1024, // 10MB na compressie
+  compressionThreshold: 2 * 1024 * 1024, // Encoding voor bestanden > 2MB (minder opslag, juiste formaat)
 };
 
 /**
@@ -195,9 +208,9 @@ export async function compressVideo(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<File> {
-  // Only compress if file is larger than threshold
+  // Encoding toepassen boven drempel: minder opslag + MP4/H.264 voor alle browsers
   if (file.size < COMPRESSION_SETTINGS.compressionThreshold) {
-    console.log('📹 Video is small enough, skipping compression');
+    console.log('📹 Video onder drempel, geen encoding (blijft origineel)');
     return file;
   }
 
@@ -216,7 +229,7 @@ export async function compressVideo(
       video.src = url;
       video.muted = true; // Mute to allow autoplay
       video.playsInline = true;
-      video.preload = 'metadata';
+      video.preload = 'auto'; // Laad data zodat loadeddata (en audiotrack) beschikbaar zijn voor captureStream
       video.crossOrigin = 'anonymous';
       // Hide video element completely - don't add to DOM, make it invisible
       video.style.position = 'fixed';
@@ -268,13 +281,13 @@ export async function compressVideo(
         }
       };
 
-      video.onloadedmetadata = () => {
+      const startCompression = () => {
         onProgress?.(10);
 
         // Calculate new dimensions maintaining aspect ratio
         let width = video.videoWidth;
         let height = video.videoHeight;
-        
+
         if (width > COMPRESSION_SETTINGS.maxWidth || height > COMPRESSION_SETTINGS.maxHeight) {
           const ratio = Math.min(
             COMPRESSION_SETTINGS.maxWidth / width,
@@ -291,11 +304,9 @@ export async function compressVideo(
         console.log(`📹 Compressing video: ${video.videoWidth}x${video.videoHeight} → ${width}x${height}`);
 
         // Create canvas to capture video frames
-        // Hide it completely so it doesn't affect page layout or scrolling
         canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        // Hide canvas element completely - don't add to DOM
         canvas.style.position = 'fixed';
         canvas.style.top = '-9999px';
         canvas.style.left = '-9999px';
@@ -304,7 +315,6 @@ export async function compressVideo(
         canvas.style.opacity = '0';
         canvas.style.pointerEvents = 'none';
         canvas.style.zIndex = '-1';
-        // Don't add to DOM to avoid any layout/scroll issues
         ctx = canvas.getContext('2d', { willReadFrequently: false });
         if (!ctx) {
           console.warn('⚠️ Could not get canvas context, using original file');
@@ -313,64 +323,42 @@ export async function compressVideo(
           return;
         }
 
-        // Determine best MIME type for MediaRecorder
-        let mimeType = 'video/webm;codecs=vp9';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'video/webm;codecs=vp8';
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = 'video/webm';
-            if (!MediaRecorder.isTypeSupported(mimeType)) {
-              // Fallback: try MP4 if supported (Safari)
-              if (MediaRecorder.isTypeSupported('video/mp4')) {
-                mimeType = 'video/mp4';
-              } else {
-                console.warn('⚠️ No suitable MediaRecorder codec found, using original file');
-                cleanup();
-                resolve(file);
-                return;
-              }
-            }
-          }
+        // Alleen MP4 gebruiken: werkt op alle browsers (desktop + mobiel, incl. Safari/iOS).
+        // WebM wordt niet ondersteund in Safari; comprimeren naar WebM zou video op iPhone/iPad breken.
+        let mimeType: string;
+        if (MediaRecorder.isTypeSupported('video/mp4')) {
+          mimeType = 'video/mp4';
+        } else {
+          console.warn('⚠️ MediaRecorder ondersteunt geen video/mp4 (bijv. Safari); gebruik origineel bestand voor compatibiliteit.');
+          cleanup();
+          resolve(file);
+          return;
         }
 
-        console.log(`📹 Using codec: ${mimeType}`);
+        console.log(`📹 Comprimeren naar ${mimeType} (geschikt voor alle browsers)`);
 
-        // Create MediaStream that includes both video and audio
-        // First, try to get stream directly from video element (preserves audio)
+        // Create MediaStream: wacht tot video (en audio) geladen zijn zodat captureStream() audiotrack kan leveren
         let stream: MediaStream;
         let useCanvasForVideo = false;
-        
+
         try {
-          // Try to use video element's captureStream (preserves audio if available)
           if ((video as any).captureStream) {
             stream = (video as any).captureStream(30);
             const audioTracks = stream.getAudioTracks();
             if (audioTracks.length > 0) {
               console.log(`📹 Using video.captureStream with ${audioTracks.length} audio track(s)`);
-              // We have audio, but we still need to resize video via canvas
-              // So we'll replace the video track with canvas track but keep audio
               const canvasStream = canvas.captureStream(30);
               const videoTracks = canvasStream.getVideoTracks();
               const combinedStream = new MediaStream();
-              
-              // Add resized video track from canvas
-              videoTracks.forEach(track => {
-                combinedStream.addTrack(track);
-              });
-              
-              // Add original audio tracks
-              audioTracks.forEach(track => {
-                combinedStream.addTrack(track);
-              });
-              
+              videoTracks.forEach((track: MediaStreamTrack) => combinedStream.addTrack(track));
+              audioTracks.forEach((track: MediaStreamTrack) => combinedStream.addTrack(track));
               stream = combinedStream;
             } else {
-              console.log('📹 Video has no audio track, using canvas stream only');
               stream = canvas.captureStream(30);
               useCanvasForVideo = true;
+              console.warn('⚠️ Geen audiotrack in captureStream (browser/format); gecomprimeerde video heeft geen geluid.');
             }
           } else {
-            // Fallback: use canvas stream (no audio)
             console.warn('⚠️ captureStream not supported, using canvas only (no audio)');
             stream = canvas.captureStream(30);
             useCanvasForVideo = true;
@@ -508,6 +496,10 @@ export async function compressVideo(
           }
         }, (MAX_VIDEO_DURATION + 5) * 1000); // Max duration + 5 seconds buffer
       };
+
+      // Start compressie na loadeddata (niet alleen loadedmetadata), zodat de audiotrack
+      // bij captureStream() beschikbaar is in meer browsers.
+      video.onloadeddata = () => startCompression();
 
       video.onerror = (error) => {
         console.error('❌ Error loading video for compression:', error);

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useMemo } from 'react';
 import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-import MyDishesManager from '@/components/profile/MyDishesManager';
 import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
 import FollowButton from '@/components/follow/FollowButton';
 import StartChatButton from '@/components/chat/StartChatButton';
@@ -33,7 +33,8 @@ interface User {
   showFansList: boolean;
   createdAt: string;
   profileViews?: number;
-  Dish: any[];
+  Dish?: any[];
+  dish?: any[]; // fallback bij serialization
   SellerProfile?: {
     id: string;
     kvk?: string | null;
@@ -109,6 +110,8 @@ interface PublicProfileClientProps {
 export default function PublicProfileClient({ user, openNewProducts, isOwnProfile = false }: PublicProfileClientProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
+  const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
+  const [workspaceSubTab, setWorkspaceSubTab] = useState<'chef' | 'garden' | 'designer'>('chef');
   const [ambassadorSubTab, setAmbassadorSubTab] = useState<'overview' | 'reviews' | 'vehicle'>('overview');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,31 +136,85 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     props: 0
   });
 
-  // Combineer Dish en Product data
-  const allProducts = [
-    ...(user.Dish || []).map(dish => {
-      const reviewCount = dish._count?.reviews || 0;
-      const averageRating = dish.reviews && dish.reviews.length > 0
-        ? Math.round((dish.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / dish.reviews.length) * 10) / 10
-        : 0;
-      
-      return {
-        ...dish,
-        type: 'dish',
-        photos: dish.photos || [],
-        reviewCount,
-        averageRating
-      };
-    }),
-    ...(user.SellerProfile?.products || []).map(product => ({
-      ...product,
-      type: 'product',
-      subcategory: null, // Product heeft geen subcategory
-      photos: product.Image?.map(img => ({ url: img.fileUrl, idx: 0 })) || []
-    }))
-  ];
-  
-  const [products, setProducts] = useState(allProducts);
+  // Opgehaalde items via API (fallback als server geen data meegaf)
+  const [fetchedProducts, setFetchedProducts] = useState<Array<any>>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  // Serverdata: Dish + SellerProfile.products (ondersteun zowel Dish als dish)
+  const serverProducts = useMemo(() => {
+    const dishes = user.Dish ?? user.dish ?? [];
+    const products = user.SellerProfile?.products ?? [];
+    return [
+      ...dishes.map((dish: any) => {
+        const reviewCount = dish._count?.reviews || 0;
+        const averageRating = dish.reviews?.length
+          ? Math.round((dish.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / dish.reviews.length) * 10) / 10
+          : 0;
+        return {
+          ...dish,
+          type: 'dish',
+          photos: dish.photos || [],
+          reviewCount,
+          averageRating
+        };
+      }),
+      ...products.map((product: any) => ({
+        ...product,
+        type: 'product',
+        subcategory: product.subcategory || null,
+        photos: product.Image?.map((img: any) => ({ url: img.fileUrl, idx: 0 })) || [],
+        reviewCount: 0,
+        averageRating: 0
+      }))
+    ];
+  }, [user.Dish, user.dish, user.SellerProfile?.products]);
+
+  // Haal items op via API als serverdata leeg is
+  useEffect(() => {
+    if (!user?.id) return;
+    if (serverProducts.length > 0) return; // server heeft al data
+    setLoadingProducts(true);
+    const load = async () => {
+      try {
+        const [dishesRes, productsRes] = await Promise.all([
+          fetch(`/api/profile/dishes?userId=${user.id}`),
+          fetch(`/api/seller/products?userId=${user.id}`)
+        ]);
+        const dishesData = dishesRes.ok ? await dishesRes.json() : { items: [] };
+        const productsData = productsRes.ok ? await productsRes.json() : { products: [] };
+        const items: any[] = [];
+        (dishesData.items || []).forEach((d: any) => {
+          items.push({
+            ...d,
+            type: 'dish',
+            photos: d.photos || [],
+            reviewCount: 0,
+            averageRating: 0
+          });
+        });
+        (productsData.products || []).forEach((p: any) => {
+          items.push({
+            ...p,
+            type: 'product',
+            subcategory: p.subcategory || null,
+            photos: (p.Image || []).map((img: any) => ({ url: img.fileUrl, idx: 0 })),
+            reviewCount: 0,
+            averageRating: 0
+          });
+        });
+        setFetchedProducts(items);
+      } catch (e) {
+        console.error('Error loading profile items:', e);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    load();
+  }, [user?.id, serverProducts.length]);
+
+  // Toon serverdata als die er is, anders API-data
+  const allProducts = serverProducts.length > 0 ? serverProducts : fetchedProducts;
+
   const [filter, setFilter] = useState<'both' | 'gedeeld' | 'show'>('both');
 
   // Groepeer producten per categorie
@@ -245,6 +302,15 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
 
   const tabs = getTabs();
 
+  // Werkruimte: standaard sub-tab op eerste beschikbare rol
+  useEffect(() => {
+    if (activeTab === 'workspace' && user?.sellerRoles?.length) {
+      if (user.sellerRoles.includes('chef')) setWorkspaceSubTab('chef');
+      else if (user.sellerRoles.includes('garden')) setWorkspaceSubTab('garden');
+      else if (user.sellerRoles.includes('designer')) setWorkspaceSubTab('designer');
+    }
+  }, [activeTab, user?.sellerRoles]);
+
   useEffect(() => {
     const fetchUserStats = async () => {
       try {
@@ -303,19 +369,30 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     trackView();
   }, [user.id]);
 
+  // Reset contentSubTab bij wisselen van tab (zoals op privéprofiel)
+  useEffect(() => {
+    if (activeTab.startsWith('dishes-') || activeTab === 'dishes') {
+      setContentSubTab('dorpsplein');
+    }
+  }, [activeTab]);
+
   const getDisplayName = () => {
-    if (!user.displayFullName) return user.username || 'Gebruiker';
-    
-    switch (user.displayNameOption) {
-      case 'first':
-        return user.name?.split(' ')[0] || user.username || 'Gebruiker';
-      case 'last':
-        return user.name?.split(' ').pop() || user.username || 'Gebruiker';
-      case 'username':
-        return `@${user.username || 'gebruiker'}`;
-      case 'full':
-      default:
-        return user.name || user.username || 'Gebruiker';
+    try {
+      if (!user?.username && !user?.name) return 'Gebruiker';
+      if (!user.displayFullName) return user.username || user.name || 'Gebruiker';
+      switch (user.displayNameOption) {
+        case 'first':
+          return (user.name && user.name.split(' ')[0]) || user.username || 'Gebruiker';
+        case 'last':
+          return (user.name && user.name.split(' ').pop()) || user.username || 'Gebruiker';
+        case 'username':
+          return `@${user.username || 'gebruiker'}`;
+        case 'full':
+        default:
+          return user.name || user.username || 'Gebruiker';
+      }
+    } catch {
+      return user?.username || user?.name || 'Gebruiker';
     }
   };
 
@@ -334,23 +411,37 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   const getFilteredProducts = () => {
     switch (filter) {
       case 'gedeeld':
-        return products.filter(p => p.priceCents && p.priceCents > 0);
+        return allProducts.filter(p => p.priceCents && p.priceCents > 0);
       case 'show':
-        return products.filter(p => !p.priceCents || p.priceCents === 0);
+        return allProducts.filter(p => !p.priceCents || p.priceCents === 0);
       case 'both':
       default:
-        return products;
+        return allProducts;
     }
   };
 
-  // Voor het overzicht tab: alleen betaalde producten
-  const getOverviewProducts = () => {
-    return products.filter(p => p.priceCents && p.priceCents > 0);
-  };
+  // Overzicht: alle items (zoals privéprofiel – zowel dorpsplein als inspiratie)
+  const getOverviewProducts = () => allProducts;
+
+  // Alleen betaalde items (dorpsplein)
+  const getPaidProducts = () => allProducts.filter(p => p.priceCents && p.priceCents > 0);
+
+  // Alleen inspiratie-items (zonder prijs)
+  const getInspiratieProducts = () => allProducts.filter(p => !p.priceCents || p.priceCents === 0);
 
   const getProductsByCategory = (category: string) => {
     const filteredProducts = getFilteredProducts();
     return filteredProducts.filter(p => p.category === category);
+  };
+
+  /** Items voor de rol-tabs (Keuken/Tuin/Atelier) – gefilterd op categorie en dorpsplein/inspiratie, uit serverdata */
+  const getProductsForRoleTab = (tabId: string, subTab: 'dorpsplein' | 'inspiratie') => {
+    let list = allProducts;
+    if (tabId === 'dishes-chef') list = list.filter(p => p.category === 'CHEFF');
+    else if (tabId === 'dishes-garden') list = list.filter(p => p.category === 'GROWN');
+    else if (tabId === 'dishes-designer') list = list.filter(p => p.category === 'DESIGNER');
+    if (subTab === 'dorpsplein') return list.filter(p => p.priceCents && p.priceCents > 0);
+    return list.filter(p => !p.priceCents || p.priceCents === 0);
   };
 
   const formatPrice = (priceCents: number) => {
@@ -361,20 +452,22 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <ErrorBoundary>
+    <div className="w-full min-w-0 box-border" style={{ maxWidth: '100%' }}>
+      <div className="w-full max-w-6xl mx-auto px-4 py-8" style={{ minWidth: 0 }}>
       {/* Profile Header - Strak en Gelikt */}
-      <div className="bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-3xl shadow-lg border-2 border-emerald-100 overflow-hidden mb-8">
+      <div className="bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-3xl shadow-lg border-2 border-emerald-100 overflow-hidden mb-8 min-w-0">
         {/* Cover Image Effect */}
         <div className="h-32 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 relative">
           <div className="absolute inset-0 bg-black/10"></div>
         </div>
         
-        <div className="px-4 sm:px-6 lg:px-8 pb-6 -mt-16 relative">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="px-4 sm:px-6 lg:px-8 pb-6 -mt-16 relative min-w-0 w-full">
+          <div className="flex flex-col items-center lg:items-start gap-6 min-w-0 w-full max-w-full">
             {/* Profile Photo */}
             <div className="flex-shrink-0 mx-auto lg:mx-0">
               <div 
-                className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white cursor-pointer hover:scale-105 transition-transform duration-200"
+                className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white cursor-pointer hover:scale-105 transition-transform duration-200 flex-shrink-0"
                 onClick={() => setShowProfileImageModal(true)}
               >
                 <SafeImage
@@ -394,8 +487,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
               </div>
             </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 text-center lg:text-left mt-4">
+            {/* Profile Info - volle breedte binnen container */}
+            <div className="flex-1 min-w-0 w-full max-w-full text-center lg:text-left mt-4">
               {/* Business Badge - exclusief bovenaan voor KVK bedrijven */}
               {user?.SellerProfile?.kvk && user?.SellerProfile?.companyName && (
                 <div className="mb-4 flex justify-center lg:justify-start">
@@ -420,8 +513,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                 )}
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Lid sinds {new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}</span>
-                  <span className="sm:hidden">{new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'short', year: 'numeric' })}</span>
+                  <span className="hidden sm:inline">Lid sinds {user.createdAt ? new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' }) : '—'}</span>
+                  <span className="sm:hidden">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'short', year: 'numeric' }) : '—'}</span>
                 </div>
               </div>
 
@@ -484,7 +577,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-6">
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100">
                   <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                  <span className="font-medium text-gray-900">{products.length}</span>
+                  <span className="font-medium text-gray-900">{allProducts.length}</span>
                   <span className="hidden sm:inline">items</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-2 rounded-lg border border-yellow-100">
@@ -589,21 +682,63 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
         <div className="p-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Overzicht</h2>
-              
-              {/* Recente Items - Alleen betaalde producten */}
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('profilePage.overview')}</h2>
+
+              {/* Sub-tabs Dorpsplein / Inspiratie (zelfde als privéprofiel) */}
+              <div className="flex gap-2 border-b border-gray-200 mb-6">
+                <button
+                  onClick={() => setContentSubTab('dorpsplein')}
+                  className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                    contentSubTab === 'dorpsplein'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {t('profilePage.tabs.subTabs.villageSquare')}
+                </button>
+                <button
+                  onClick={() => setContentSubTab('inspiratie')}
+                  className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                    contentSubTab === 'inspiratie'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {t('profilePage.tabs.subTabs.inspiration')}
+                </button>
+              </div>
+
+              {/* Content per sub-tab: Dorpsplein = betaalde items, Inspiratie = alleen inspiratie */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recente Items</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  {contentSubTab === 'dorpsplein'
+                    ? (t('profilePage.tabs.dorpspleinItems') || 'Mijn dorpsplein items')
+                    : (t('profilePage.tabs.inspiratieItems') || 'Mijn inspiratie items')}
+                </h3>
                 {(() => {
-                  const filteredProducts = getOverviewProducts();
+                  const filteredProducts = contentSubTab === 'dorpsplein' ? getPaidProducts() : getInspiratieProducts();
+                  if (loadingProducts && allProducts.length === 0) {
+                    return (
+                      <div className="text-center py-12 text-gray-500">
+                        <div className="animate-pulse flex flex-col items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gray-200" />
+                          <p>Items laden...</p>
+                        </div>
+                      </div>
+                    );
+                  }
                   return filteredProducts.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>Nog geen items gedeeld</p>
+                      <p>
+                        {contentSubTab === 'dorpsplein'
+                          ? (t('profilePage.tabs.noDorpspleinItems') || 'Nog geen dorpsplein items')
+                          : (t('profilePage.tabs.noInspiratieItems') || 'Nog geen inspiratie items')}
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredProducts.slice(0, 6).map((product) => {
+                      {filteredProducts.map((product) => {
                       const mainPhoto = product.photos?.[0];
                       return (
                         <div
@@ -628,9 +763,11 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                             <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="font-semibold text-emerald-600">
-                                {formatPrice(product.priceCents)}
-                              </span>
+                              {product.priceCents && product.priceCents > 0 ? (
+                                <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
+                              ) : (
+                                <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
+                              )}
                               <span className="text-xs text-gray-500">
                                 {getFilteredCategories('')[product.category]?.label || product.category}
                               </span>
@@ -902,92 +1039,215 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
             </div>
           )}
 
-          {/* Category-specific tabs */}
+          {/* Category-specific tabs (Keuken, Tuin, Atelier) – met subtabs Dorpsplein / Inspiratie zoals privéprofiel */}
           {(activeTab.startsWith('dishes-') || activeTab === 'dishes') && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  {(() => {
-                    let title = t('profilePage.tabs.myItems');
-                    let description = t('profilePage.tabs.tabDescriptions.manageItems');
-                    
-                    if (activeTab === 'dishes-chef') {
-                      title = t('profilePage.tabs.publicTabs.theKitchen');
-                      description = t('profilePage.tabs.tabDescriptions.kitchen');
-                    } else if (activeTab === 'dishes-garden') {
-                      title = t('profilePage.tabs.publicTabs.theGarden');
-                      description = t('profilePage.tabs.tabDescriptions.garden');
-                    } else if (activeTab === 'dishes-designer') {
-                      title = t('profilePage.tabs.publicTabs.theStudio');
-                      description = t('profilePage.tabs.tabDescriptions.studio');
-                    }
-                    
-                    return (
-                      <>
-                        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-                        <p className="text-sm text-gray-500">{description}</p>
-                      </>
-                    );
-                  })()}
-                </div>
+              {/* Tabtitel: De Keuken / De Tuin / Het Atelier */}
+              <div>
+                {(() => {
+                  let title = t('profilePage.tabs.myItems');
+                  let description = t('profilePage.tabs.tabDescriptions.manageItems');
+                  if (activeTab === 'dishes-chef') {
+                    title = t('profilePage.tabs.publicTabs.theKitchen');
+                    description = t('profilePage.tabs.tabDescriptions.kitchen');
+                  } else if (activeTab === 'dishes-garden') {
+                    title = t('profilePage.tabs.publicTabs.theGarden');
+                    description = t('profilePage.tabs.tabDescriptions.garden');
+                  } else if (activeTab === 'dishes-designer') {
+                    title = t('profilePage.tabs.publicTabs.theStudio');
+                    description = t('profilePage.tabs.tabDescriptions.studio');
+                  }
+                  return (
+                    <>
+                      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                      <p className="text-sm text-gray-500">{description}</p>
+                    </>
+                  );
+                })()}
               </div>
-              <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>
-                <MyDishesManager 
-                  onStatsUpdate={() => {}} 
-                  activeRole={activeTab.replace('dishes-', '')} 
-                  userId={user.id}
-                  isPublic={true}
-                  role={activeTab.replace('dishes-', '')}
-                />
-              </Suspense>
+
+              {/* Sub-tabs Dorpsplein | Inspiratie (zelfde als privéprofiel) */}
+              <div className="flex gap-2 border-b border-gray-200 pb-2">
+                <button
+                  onClick={() => setContentSubTab('dorpsplein')}
+                  className={`px-4 py-2.5 border-b-2 font-medium transition-colors rounded-t ${
+                    contentSubTab === 'dorpsplein'
+                      ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {t('profilePage.tabs.subTabs.villageSquare') || 'Dorpsplein'}
+                </button>
+                <button
+                  onClick={() => setContentSubTab('inspiratie')}
+                  className={`px-4 py-2.5 border-b-2 font-medium transition-colors rounded-t ${
+                    contentSubTab === 'inspiratie'
+                      ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {t('profilePage.tabs.subTabs.inspiration') || 'Inspiratie'}
+                </button>
+              </div>
+
+              {/* Sectiekop per sub-tab (zoals privé: "Mijn dorpsplein items" / "Mijn inspiratie items") */}
+              <h3 className="text-base font-medium text-gray-800">
+                {contentSubTab === 'dorpsplein'
+                  ? (t('profilePage.tabs.dorpspleinItems') || 'Mijn dorpsplein items')
+                  : (t('profilePage.tabs.inspiratieItems') || 'Mijn inspiratie items')}
+              </h3>
+
+              {/* Grid met items uit serverdata of API (zelfde als privéprofiel) */}
+              {(() => {
+                const roleProducts = getProductsForRoleTab(activeTab, contentSubTab);
+                if (loadingProducts && allProducts.length === 0) {
+                  return (
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="animate-pulse flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gray-200" />
+                        <p>Items laden...</p>
+                      </div>
+                    </div>
+                  );
+                }
+                if (roleProducts.length === 0) {
+                  return (
+                    <div className="text-center py-12 text-gray-500">
+                      <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>{t('profilePage.tabs.noItemsYet') || 'Nog geen items in deze categorie'}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {roleProducts.map((product: any) => {
+                      const mainPhoto = product.photos?.[0];
+                      return (
+                        <div
+                          key={product.id}
+                          className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                        >
+                          {mainPhoto && (
+                            <div
+                              className="relative h-48 cursor-pointer"
+                              onClick={() => {
+                                setCurrentPhotos(product.photos?.map((p: any) => ({ id: p.id || '', fileUrl: p.url })) || []);
+                                setSelectedImageIndex(0);
+                                setSelectedImage(mainPhoto.url);
+                              }}
+                            >
+                              <SafeImage
+                                src={mainPhoto.url}
+                                alt={product.title}
+                                fill
+                                className="object-cover hover:opacity-90 transition-opacity"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                            <div className="flex items-center justify-between mb-2">
+                              {product.priceCents && product.priceCents > 0 ? (
+                                <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
+                              ) : (
+                                <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {getFilteredCategories('')[product.category]?.label || product.category}
+                              </span>
+                            </div>
+                            {(product.reviewCount > 0 || product.averageRating > 0) && (
+                              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                {product.averageRating > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                    <span className="text-xs font-medium text-gray-700">{product.averageRating.toFixed(1)}</span>
+                                  </div>
+                                )}
+                                {product.reviewCount > 0 && (
+                                  <span className="text-xs text-gray-500">({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
-          {/* Werkruimte tab content */}
+          {/* Werkruimte tab content – met subtabs Keuken / Tuin / Atelier en items */}
           {activeTab === 'workspace' && (
             <div className="space-y-6">
-              {/* Werkruimte secties onder elkaar */}
-              <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('profilePage.workspaceTitle') || 'Werkruimte'}</h2>
+                <p className="text-sm text-gray-500">{t('profilePage.workspaceSubtitle') || 'Waar het gemaakt wordt'}</p>
+              </div>
+
+              {/* Sub-tabs: De Keuken | De Tuin | Het Atelier */}
+              <div className="flex gap-2 border-b border-gray-200">
                 {user?.sellerRoles?.includes('chef') && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        👨‍🍳 De Keuken
-                      </h3>
-                                </div>
-                    <WorkspacePhotosDisplay 
-                      userId={user.id}
-                      userRoles={['CHEFF']}
-                                />
-                              </div>
-                            )}
-                
-                {user?.sellerRoles?.includes('garden') && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        🌱 De Tuin
-                      </h3>
-                              </div>
-                    <WorkspacePhotosDisplay 
-                      userId={user.id}
-                      userRoles={['GROWN']}
-                    />
-                            </div>
+                  <button
+                    onClick={() => setWorkspaceSubTab('chef')}
+                    className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                      workspaceSubTab === 'chef'
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    👨‍🍳 {t('profilePage.tabs.publicTabs.theKitchen')}
+                  </button>
                 )}
-                
+                {user?.sellerRoles?.includes('garden') && (
+                  <button
+                    onClick={() => setWorkspaceSubTab('garden')}
+                    className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                      workspaceSubTab === 'garden'
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    🌱 {t('profilePage.tabs.publicTabs.theGarden')}
+                  </button>
+                )}
                 {user?.sellerRoles?.includes('designer') && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        🎨 Het Atelier
-                      </h3>
-                    </div>
-                    <WorkspacePhotosDisplay 
-                      userId={user.id}
-                      userRoles={['DESIGNER']}
-                    />
-                  </div>
+                  <button
+                    onClick={() => setWorkspaceSubTab('designer')}
+                    className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                      workspaceSubTab === 'designer'
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    🎨 {t('profilePage.tabs.publicTabs.theStudio')}
+                  </button>
+                )}
+              </div>
+
+              {/* Content per sub-tab: foto's uit API */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                {workspaceSubTab === 'chef' && user?.sellerRoles?.includes('chef') && (
+                  <>
+                    <p className="text-sm text-gray-500 mb-4">{t('profilePage.workspaceDescriptions.kitchen') || 'Waar de magie van koken gebeurt'}</p>
+                    <WorkspacePhotosDisplay userId={user.id} userRoles={['CHEFF']} />
+                  </>
+                )}
+                {workspaceSubTab === 'garden' && user?.sellerRoles?.includes('garden') && (
+                  <>
+                    <p className="text-sm text-gray-500 mb-4">{t('profilePage.workspaceDescriptions.garden') || 'Waar groenten en kruiden groeien'}</p>
+                    <WorkspacePhotosDisplay userId={user.id} userRoles={['GROWN']} />
+                  </>
+                )}
+                {workspaceSubTab === 'designer' && user?.sellerRoles?.includes('designer') && (
+                  <>
+                    <p className="text-sm text-gray-500 mb-4">{t('profilePage.workspaceDescriptions.studio') || 'Waar creativiteit tot leven komt'}</p>
+                    <WorkspacePhotosDisplay userId={user.id} userRoles={['DESIGNER']} />
+                  </>
                 )}
               </div>
             </div>
@@ -1132,6 +1392,8 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
           </div>
         </div>
       )}
+      </div>
     </div>
+    </ErrorBoundary>
   );
 }

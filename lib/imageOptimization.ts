@@ -1,6 +1,7 @@
 /**
  * Image Optimization Utilities
- * Compress and resize images before upload
+ * Compress and resize images before upload.
+ * Output: JPEG voor alle browsers/apparaten (universeel ondersteund, minder opslag).
  */
 
 export async function compressImage(
@@ -40,6 +41,7 @@ export async function compressImage(
         
         ctx.drawImage(img, 0, 0, width, height);
         
+        // JPEG: soepel op alle browsers en machines, minder opslag
         canvas.toBlob(
           (blob) => {
             if (blob) {

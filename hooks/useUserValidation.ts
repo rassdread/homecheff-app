@@ -30,9 +30,8 @@ export function useUserValidation() {
             // Other error, but don't sign out immediately
             console.warn('Failed to validate user:', response.status);
           }
-        } catch (error) {
-          console.error('Error validating user:', error);
-          // Don't sign out on network errors
+        } catch {
+          // Don't sign out on network errors (silent)
         }
       }
     };
