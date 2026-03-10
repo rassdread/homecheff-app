@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { geocodeAddress, getCountryConfig, getAddressFormat } from '@/lib/global-geocoding';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function POST(request: NextRequest) {
+  const cors = getCorsHeaders(request);
   try {
     const { address, city, countryCode, googleMapsApiKey } = await request.json();
 
     if (!address || !city || !countryCode) {
       return NextResponse.json(
         { error: 'Address, city, and country code are required' },
-        { status: 400 }
+        { status: 400, headers: cors }
       );
     }
 
@@ -34,18 +36,19 @@ export async function POST(request: NextRequest) {
       addressFormat,
       countryName: country?.name || countryCode,
       region: country?.region || 'Unknown'
-    });
+    }, { headers: cors });
 
   } catch (error) {
     console.error('Global geocoding error:', error);
     return NextResponse.json(
       { error: 'Geocoding failed' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }
 
 export async function GET(request: NextRequest) {
+  const cors = getCorsHeaders(request);
   try {
     const { searchParams } = new URL(request.url);
     const address = searchParams.get('address');
@@ -56,7 +59,7 @@ export async function GET(request: NextRequest) {
     if (!address || !city || !countryCode) {
       return NextResponse.json(
         { error: 'Address, city, and country code are required' },
-        { status: 400 }
+        { status: 400, headers: cors }
       );
     }
 
@@ -77,13 +80,13 @@ export async function GET(request: NextRequest) {
       addressFormat,
       countryName: country?.name || countryCode,
       region: country?.region || 'Unknown'
-    });
+    }, { headers: cors });
 
   } catch (error) {
     console.error('Global geocoding error:', error);
     return NextResponse.json(
       { error: 'Geocoding failed' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }

@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function POST(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const { productId, dishId, userId, type = 'product', entityType = 'PRODUCT' } = await req.json();
 
@@ -12,7 +14,7 @@ export async function POST(req: NextRequest) {
     const entityId = productId || dishId;
     
     if (!entityId) {
-      return NextResponse.json({ error: 'Product ID or Dish ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Product ID or Dish ID is required' }, { status: 400, headers: cors });
     }
 
     // Determine entity type: if dishId is provided, use DISH, otherwise use provided entityType or default to PRODUCT
@@ -37,9 +39,9 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: cors });
   } catch (error) {
     console.error('Error tracking view:', error);
-    return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to track view' }, { status: 500, headers: cors });
   }
 }

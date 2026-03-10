@@ -1,22 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getCorsHeaders } from '@/lib/apiCors';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ items: [] });
+      return NextResponse.json({ items: [] }, { headers: cors });
     }
 
     const user = await prisma.user.findUnique({ 
       where: { email: session.user.email! }, 
       select: { id: true } 
     });
-    if (!user) return NextResponse.json({ items: [] });
+    if (!user) return NextResponse.json({ items: [] }, { headers: cors });
 
     const items = await prisma.favorite.findMany({
       where: { userId: user.id },
@@ -83,9 +85,9 @@ export async function GET() {
       }
     });
     
-    return NextResponse.json({ items });
+    return NextResponse.json({ items }, { headers: cors });
   } catch (e) {
     console.error("Error in /api/profile/favorites:", e);
-    return NextResponse.json({ items: [] });
+    return NextResponse.json({ items: [] }, { headers: cors });
   }
 }

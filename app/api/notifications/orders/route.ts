@@ -5,12 +5,14 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401, headers: cors });
     }
 
     const user = await prisma.user.findUnique({
@@ -19,7 +21,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404, headers: cors });
     }
 
     // Check if user is a seller
@@ -127,12 +129,12 @@ export async function GET(req: NextRequest) {
       unreadCount: transformed.filter(n => !n.isRead).length,
       buyerUnreadCount: buyerNotifications.filter(n => !n.isRead).length,
       sellerUnreadCount: sellerNotifications.filter(n => !n.isRead).length
-    });
+    }, { headers: cors });
   } catch (error) {
     console.error('Error fetching order notifications:', error);
     return NextResponse.json(
       { error: 'Er is een fout opgetreden bij het ophalen van notificaties' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }

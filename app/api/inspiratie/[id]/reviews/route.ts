@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -8,9 +9,10 @@ export const maxDuration = 30; // 30 seconds max duration
 
 // GET - Haal reviews op voor een inspiratie item (dish)
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const cors = getCorsHeaders(request);
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -24,7 +26,7 @@ export async function GET(
     });
 
     if (!dish) {
-      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404 });
+      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404, headers: cors });
     }
 
     // Get reviews with reviewer info - gracefully handle if table doesn't exist
@@ -61,10 +63,10 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({ reviews });
+    return NextResponse.json({ reviews }, { headers: cors });
   } catch (error) {
     console.error('Error fetching dish reviews:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error' }, { status: 500, headers: cors });
   }
 }
 
@@ -73,10 +75,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const cors = getCorsHeaders(request);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401, headers: cors });
     }
 
     const { id } = await params;
@@ -92,7 +95,7 @@ export async function POST(
           details: process.env.NODE_ENV === 'development' 
             ? 'Tip: Voeg BLOB_READ_WRITE_TOKEN toe aan .env.local om Vercel Blob storage te gebruiken.' 
             : undefined
-        }, { status: 413 });
+        }, { status: 413, headers: cors });
       }
       throw error;
     }
@@ -101,11 +104,11 @@ export async function POST(
 
     // Validate input
     if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: 'Ongeldige rating (moet tussen 1 en 5 zijn)' }, { status: 400 });
+      return NextResponse.json({ error: 'Ongeldige rating (moet tussen 1 en 5 zijn)' }, { status: 400, headers: cors });
     }
 
     if (!comment || comment.trim().length === 0) {
-      return NextResponse.json({ error: 'Commentaar is verplicht' }, { status: 400 });
+      return NextResponse.json({ error: 'Commentaar is verplicht' }, { status: 400, headers: cors });
     }
 
     // Get user
@@ -115,7 +118,7 @@ export async function POST(
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404, headers: cors });
     }
 
     // Check if dish exists
@@ -125,7 +128,7 @@ export async function POST(
     });
 
     if (!dish) {
-      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404 });
+      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404, headers: cors });
     }
 
     // Check if user already reviewed this dish - gracefully handle if table doesn't exist
@@ -139,7 +142,7 @@ export async function POST(
     }).catch(() => null);
 
     if (existingReview) {
-      return NextResponse.json({ error: 'Je hebt dit item al beoordeeld' }, { status: 400 });
+      return NextResponse.json({ error: 'Je hebt dit item al beoordeeld' }, { status: 400, headers: cors });
     }
 
     // Create review (iedereen kan posten, geen purchase check nodig)
@@ -201,14 +204,14 @@ export async function POST(
         }
       });
 
-      return NextResponse.json({ review }, { status: 201 });
+      return NextResponse.json({ review }, { status: 201, headers: cors });
     } catch (createError: any) {
       // Check if it's a table doesn't exist error
       if (createError.code === 'P2021' || createError.message?.includes('does not exist')) {
         console.error('❌ DishReview table does not exist yet:', createError);
         return NextResponse.json({ 
           error: 'Review functionaliteit is nog niet beschikbaar. De database tabel moet nog worden aangemaakt.' 
-        }, { status: 503 });
+        }, { status: 503, headers: cors });
       }
       throw createError;
     }
@@ -227,27 +230,27 @@ export async function POST(
         details: process.env.NODE_ENV === 'development' 
           ? 'Tip: Voeg BLOB_READ_WRITE_TOKEN toe aan .env.local om Vercel Blob storage te gebruiken in plaats van base64 encoding.' 
           : undefined
-      }, { status: 413 });
+      }, { status: 413, headers: cors });
     }
     
     if (error.code === 'P2002') {
-      return NextResponse.json({ error: 'Je hebt dit item al beoordeeld' }, { status: 400 });
+      return NextResponse.json({ error: 'Je hebt dit item al beoordeeld' }, { status: 400, headers: cors });
     }
     if (error.code === 'P2021' || error.message?.includes('does not exist')) {
       return NextResponse.json({ 
         error: 'Review functionaliteit is nog niet beschikbaar. De database tabel moet nog worden aangemaakt.' 
-      }, { status: 503 });
+      }, { status: 503, headers: cors });
     }
     if (error.code === 'P2003') {
       return NextResponse.json({ 
         error: 'Database constraint error. Controleer of alle relaties correct zijn.',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      }, { status: 400 });
+      }, { status: 400, headers: cors });
     }
     return NextResponse.json({ 
       error: 'Server error', 
       details: process.env.NODE_ENV === 'development' ? `${error.message || 'Unknown error'} (Code: ${error.code || 'N/A'})` : undefined 
-    }, { status: 500 });
+    }, { status: 500, headers: cors });
   }
 }
 

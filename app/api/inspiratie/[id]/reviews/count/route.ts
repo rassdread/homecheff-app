@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
 // GET - Haal review count en gemiddelde rating op voor een inspiratie item
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const cors = getCorsHeaders(request);
   try {
     const { id } = await params;
 
@@ -18,7 +20,7 @@ export async function GET(
     });
 
     if (!dish) {
-      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404 });
+      return NextResponse.json({ error: 'Inspiratie item niet gevonden' }, { status: 404, headers: cors });
     }
 
     // Get review count and average rating - gracefully handle if table doesn't exist
@@ -35,10 +37,10 @@ export async function GET(
     return NextResponse.json({
       count,
       averageRating: avgRating._avg.rating ? Math.round(avgRating._avg.rating * 10) / 10 : 0
-    });
+    }, { headers: cors });
   } catch (error) {
     console.error('Error fetching dish review count:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error' }, { status: 500, headers: cors });
   }
 }
 
