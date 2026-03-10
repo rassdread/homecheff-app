@@ -10,10 +10,14 @@ export function middleware(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
     const fallbackOrigin = host ? `${proto}://${host}` : request.nextUrl.origin;
-    const origin = request.headers.get('origin') || request.nextUrl.origin || fallbackOrigin;
+    const rawOrigin = request.headers.get('origin');
+    // Safari/iOS can send Origin: null or omit it for same-origin; use Host as origin
+    const origin =
+      rawOrigin && rawOrigin !== 'null' ? rawOrigin : request.nextUrl.origin || fallbackOrigin;
     // Development: localhost, 127.0.0.1, of lokaal netwerk; allow both so 127.0.0.1 ↔ localhost werkt
     const isLocalDevOrigin =
       !origin ||
+      origin === 'null' ||
       origin.includes('localhost') ||
       origin.includes('127.0.0.1') ||
       /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
@@ -21,7 +25,11 @@ export function middleware(request: NextRequest) {
       origin === 'https://homecheff.eu' ||
       origin === 'https://homecheff.nl' ||
       origin === 'https://www.homecheff.eu' ||
-      origin === 'https://www.homecheff.nl';
+      origin === 'https://www.homecheff.nl' ||
+      fallbackOrigin === 'https://homecheff.eu' ||
+      fallbackOrigin === 'https://homecheff.nl' ||
+      fallbackOrigin === 'https://www.homecheff.eu' ||
+      fallbackOrigin === 'https://www.homecheff.nl';
     const allowedOrigins =
       process.env.NODE_ENV === 'development'
         ? isLocalDevOrigin

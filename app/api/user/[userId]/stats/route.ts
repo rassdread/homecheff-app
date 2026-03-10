@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCorsHeaders } from "@/lib/apiCors";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
+  const cors = getCorsHeaders(request);
   try {
     const { userId } = await params;
 
@@ -22,7 +24,7 @@ export async function GET(
         averageRating: 0,
         totalViews: 0,
         totalProps: 0
-      }, { status: 400 });
+      }, { status: 400, headers: cors });
     }
 
     // Get all product IDs for this user (via seller)
@@ -133,7 +135,7 @@ export async function GET(
       averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
       totalViews: totalViews || 0,
       totalProps: totalProps || 0
-    });
+    }, { headers: cors });
   } catch (error) {
     console.error("Error in /api/user/[userId]/stats:", error);
     return NextResponse.json({
@@ -143,7 +145,7 @@ export async function GET(
       averageRating: 0,
       totalViews: 0,
       totalProps: 0
-    });
+    }, { headers: cors });
   }
 }
 
