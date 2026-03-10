@@ -53,14 +53,26 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl');
   const isOurDomainByUrl =
     process.env.NODE_ENV === 'production' && urlOrigin && OUR_DOMAINS.includes(urlOrigin as (typeof OUR_DOMAINS)[number]);
-  const isOurDomain = isOurDomainByOrigin || isOurDomainByHost || isOurDomainByUrl;
+  // Production: also allow when request URL hostname is our domain (request.url may be the only reliable source in serverless)
+  const urlHost = typeof request.url === 'string' ? (() => { try { return new URL(request.url).hostname; } catch { return ''; } })() : '';
+  const isOurDomainByUrlHost =
+    process.env.NODE_ENV === 'production' &&
+    (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl');
+  const isOurDomain = isOurDomainByOrigin || isOurDomainByHost || isOurDomainByUrl || isOurDomainByUrlHost;
   const allowed = process.env.NODE_ENV === 'development' ? isLocalDevOrigin : isOurDomain;
   // When Origin is the literal "null", CORS spec requires responding with "null" for browser to accept
-  const allowOrigin = allowed
+  let allowOrigin: string | undefined = allowed
     ? rawOrigin === 'null'
       ? 'null'
-      : (origin || fallbackOrigin)
+      : (origin || fallbackOrigin || urlOrigin)
     : undefined;
+  // Production last resort: if request.url points to our host but we still have no origin, allow with canonical origin (Safari same-origin)
+  if (process.env.NODE_ENV === 'production' && !allowOrigin && isOurDomainByUrlHost)
+    allowOrigin = urlOrigin || `https://${urlHost}`;
+  // Final fallback for production /api: always send CORS so Safari never gets a response without headers (avoids "access control checks")
+  const pathname = typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '';
+  if (process.env.NODE_ENV === 'production' && !allowOrigin && (pathname.startsWith('/api/') || pathname.startsWith('/i18n/')))
+    allowOrigin = rawOrigin === 'null' ? 'null' : (urlOrigin || 'https://homecheff.eu');
 
   if (!allowOrigin) return {};
   return {
