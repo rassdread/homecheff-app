@@ -2010,7 +2010,7 @@
       },
       "4": {
         "question": "Hoe kan ik contact opnemen met HomeCheff?",
-        "answer": "Je kunt ons bereiken via support@homecheff.nl, onze helpdesk in de app, of via de contactpagina. We reageren meestal binnen 24 uur."
+        "answer": "Je kunt ons bereiken via support@homecheff.eu, onze helpdesk in de app, of via de contactpagina. We reageren meestal binnen 24 uur."
       },
       "5": {
         "question": "Kan ik bijverdienen naast mijn uitkering?",
@@ -2677,11 +2677,11 @@
       "contact": "Contact",
       "contactDesc": "Heb je vragen over dit privacybeleid of wil je je rechten uitoefenen? Neem dan contact met ons op:",
       "contactEmail": "E-mail:",
-      "contactEmailValue": "privacy@homecheff.nl",
+      "contactEmailValue": "privacy@homecheff.eu",
       "contactSupportEmail": "Support:",
-      "contactSupportEmailValue": "support@homecheff.nl",
+      "contactSupportEmailValue": "support@homecheff.eu",
       "contactInfoEmail": "Info:",
-      "contactInfoEmailValue": "info@homecheff.nl",
+      "contactInfoEmailValue": "info@homecheff.eu",
       "lastUpdated": "Laatst bijgewerkt:"
     },
     "privacyFullStatement": "Voor de volledige privacyverklaring, zie:",
@@ -4052,7 +4052,7 @@
     "successTitle": "Bericht verzonden!",
     "successMessage": "We hebben je bericht ontvangen en zullen zo snel mogelijk reageren, meestal binnen 24 uur.",
     "errorTitle": "Fout bij verzenden",
-    "errorMessage": "Er is een fout opgetreden bij het verzenden van je bericht. Probeer het later opnieuw of stuur een e-mail naar support@homecheff.nl",
+    "errorMessage": "Er is een fout opgetreden bij het verzenden van je bericht. Probeer het later opnieuw of stuur een e-mail naar support@homecheff.eu",
     "backToFAQ": "Terug naar FAQ",
     "alternativeTitle": "Andere manieren om contact op te nemen",
     "supportDescription": "Algemene vragen en support",

@@ -230,7 +230,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Get base URL - use NEXT_PUBLIC_BASE_URL if available, otherwise default to localhost
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://homecheff.nl';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://homecheff.eu';
     
     console.log('🔍 Creating Stripe account link:', {
       accountId,

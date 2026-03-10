@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
     const emailSubject = `${subjectText} - ${name}`;
 
     const { data, error } = await resend.emails.send({
-      from: 'HomeCheff Contact <noreply@homecheff.nl>',
-      to: ['support@homecheff.nl'],
+      from: 'HomeCheff Contact <noreply@homecheff.eu>',
+      to: ['support@homecheff.eu'],
       replyTo: email,
       subject: emailSubject,
       html: `
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     // Send confirmation email to user
     try {
       await resend.emails.send({
-        from: 'HomeCheff <noreply@homecheff.nl>',
+        from: 'HomeCheff <noreply@homecheff.eu>',
         to: [email],
         subject: isEnglish ? 'Your message has been received - HomeCheff' : 'Je bericht is ontvangen - HomeCheff',
         html: `
@@ -154,14 +154,14 @@ export async function POST(req: NextRequest) {
                 <p>${isEnglish ? 'We have received your message and will respond as soon as possible, usually within 24 hours.' : 'We hebben je bericht ontvangen en zullen zo snel mogelijk reageren, meestal binnen 24 uur.'}</p>
                 
                 <div class="highlight">
-                  <p>📧 ${isEnglish ? 'You can also reach us directly at support@homecheff.nl' : 'Je kunt ons ook direct bereiken via support@homecheff.nl'}</p>
+                  <p>📧 ${isEnglish ? 'You can also reach us directly at support@homecheff.eu' : 'Je kunt ons ook direct bereiken via support@homecheff.eu'}</p>
                 </div>
                 
                 <p>${isEnglish ? 'Best regards,<br>The HomeCheff Team' : 'Met vriendelijke groet,<br>Het HomeCheff Team'}</p>
               </div>
               
               <div class="footer">
-                <p>HomeCheff B.V. | <a href="mailto:support@homecheff.nl" style="color: #006D52;">support@homecheff.nl</a></p>
+                <p>HomeCheff B.V. | <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a></p>
               </div>
             </div>
           </body>

@@ -276,7 +276,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 await resend.emails.send({
-  from: 'HomeCheff <notificaties@homecheff.nl>',
+  from: 'HomeCheff <notificaties@homecheff.eu>',
   to: recipientEmail,
   subject: getShiftReminderSubject(minutesBefore),
   html: renderShiftReminderEmail({

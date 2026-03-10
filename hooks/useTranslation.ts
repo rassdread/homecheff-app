@@ -538,16 +538,17 @@ export function useTranslation() {
       const isEnglishDomain = currentDomain.includes('homecheff.eu');
       
       if (newLanguage === 'en' && !isEnglishDomain) {
-        // Switch to English domain
+        // Switch to English: go to .eu (hoofddomein)
         const newUrl = `https://homecheff.eu${currentPath}`;
         console.log(`[i18n] Navigating from ${currentDomain}${currentPath} to ${newUrl}`);
         window.location.href = newUrl;
         return;
-      } else if (newLanguage === 'nl' && isEnglishDomain) {
-        // Switch to Dutch domain
-        const newUrl = `https://homecheff.nl${currentPath}`;
-        console.log(`[i18n] Navigating from ${currentDomain}${currentPath} to ${newUrl}`);
-        window.location.href = newUrl;
+      }
+      // Op .eu: nooit naar .nl redirecten (Safari sessie/cookies). Taal NL op .eu = cookie + reload.
+      if (newLanguage === 'nl' && isEnglishDomain) {
+        console.log('[i18n] Staying on .eu with Dutch language (no redirect to .nl for Safari)');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        window.location.reload();
         return;
       }
       

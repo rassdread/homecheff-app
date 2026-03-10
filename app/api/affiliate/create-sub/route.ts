@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingInvite) {
-      const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.nl'}/affiliate/sub-affiliate-signup?token=${existingInvite.inviteToken}`;
+      const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.eu'}/affiliate/sub-affiliate-signup?token=${existingInvite.inviteToken}`;
       return NextResponse.json({
         subAffiliate: null,
         invite: {
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.nl'}/affiliate/sub-affiliate-signup?token=${inviteToken}`;
+    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.eu'}/affiliate/sub-affiliate-signup?token=${inviteToken}`;
 
     return NextResponse.json({
       subAffiliate: null,

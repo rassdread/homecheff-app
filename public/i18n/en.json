@@ -1624,7 +1624,7 @@
       },
       "4": {
         "question": "How can I contact HomeCheff?",
-        "answer": "You can reach us via support@homecheff.nl, our helpdesk in the app, or via the contact page. We usually respond within 24 hours."
+        "answer": "You can reach us via support@homecheff.eu, our helpdesk in the app, or via the contact page. We usually respond within 24 hours."
       },
       "5": {
         "question": "Can I earn extra income alongside my benefits?",
@@ -2794,11 +2794,11 @@
       "contact": "Contact",
       "contactDesc": "Do you have questions about this privacy policy or want to exercise your rights? Contact us:",
       "contactEmail": "Email:",
-      "contactEmailValue": "privacy@homecheff.nl",
+      "contactEmailValue": "privacy@homecheff.eu",
       "contactSupportEmail": "Support:",
-      "contactSupportEmailValue": "support@homecheff.nl",
+      "contactSupportEmailValue": "support@homecheff.eu",
       "contactInfoEmail": "Info:",
-      "contactInfoEmailValue": "info@homecheff.nl",
+      "contactInfoEmailValue": "info@homecheff.eu",
       "lastUpdated": "Last updated:"
     },
     "privacyFullStatement": "For the full privacy policy, see:",
@@ -3834,7 +3834,7 @@
     "successTitle": "Message sent!",
     "successMessage": "We've received your message and will respond as soon as possible, usually within 24 hours.",
     "errorTitle": "Error sending",
-    "errorMessage": "An error occurred while sending your message. Please try again later or send an email to support@homecheff.nl",
+    "errorMessage": "An error occurred while sending your message. Please try again later or send an email to support@homecheff.eu",
     "backToFAQ": "Back to FAQ",
     "alternativeTitle": "Other ways to contact us",
     "supportDescription": "General questions and support",

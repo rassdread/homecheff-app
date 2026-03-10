@@ -527,7 +527,8 @@ export const authOptions: NextAuthOptions = {
       const ourDomains = ['https://homecheff.nl', 'https://homecheff.eu', 'https://www.homecheff.nl', 'https://www.homecheff.eu'];
       const baseUrlNorm = (baseUrl || '').replace(/\/$/, '');
       const isBaseOurDomain = ourDomains.some((d) => baseUrlNorm === d || baseUrlNorm.startsWith(d + '/'));
-      const actualBaseUrl = (isBaseOurDomain ? baseUrlNorm : baseUrl) || process.env.NEXTAUTH_URL;
+      // Fallback naar .eu zodat Safari/redirects altijd op hoofddomein blijven (.eu/login, .eu/profile)
+      const actualBaseUrl = (isBaseOurDomain ? baseUrlNorm : baseUrl) || process.env.NEXTAUTH_URL || 'https://homecheff.eu';
 
       const forceSameDomain = (targetUrl: string): string => {
         if (!actualBaseUrl || !targetUrl) return targetUrl;

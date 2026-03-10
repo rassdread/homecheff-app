@@ -1,8 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const EU_HOST = 'homecheff.eu';
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // .nl → .eu: alles op één domein (Safari/sessie). Bezoeker landt op .eu in het Nederlands.
+  const requestHost =
+    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+    request.headers.get('host') ||
+    '';
+  const isNlDomain = requestHost === 'homecheff.nl' || requestHost === 'www.homecheff.nl';
+  if (isNlDomain) {
+    const search = request.nextUrl.search || '';
+    const redirectUrl = `https://${EU_HOST}${pathname}${search}`;
+    const redirectResponse = NextResponse.redirect(redirectUrl, 307);
+    redirectResponse.cookies.set('homecheff-language', 'nl', {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+      secure: true,
+    });
+    return redirectResponse;
+  }
 
   // CORS voor API en i18n: voorkom "Load failed" / "access control checks" (lokaal + iPhone Safari/PWA)
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
@@ -58,11 +79,13 @@ export function middleware(request: NextRequest) {
     return res;
   }
 
-  // Taal per domein doorgeven ( .nl = nl, .eu = en ) zodat layout/main page niet in conflict komen
+  // Taal: cookie heeft voorrang (zo kan .eu ook NL tonen zonder redirect naar .nl → Safari-safe)
   const host = request.headers.get('host') || '';
   const domainLang = host.includes('homecheff.eu') ? 'en' : 'nl';
+  const langCookie = request.cookies.get('homecheff-language')?.value;
+  const lang = (langCookie === 'nl' || langCookie === 'en') ? langCookie : domainLang;
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('X-HomeCheff-Language', domainLang);
+  requestHeaders.set('X-HomeCheff-Language', lang);
 
   // Check for referral parameter on any page
   const refCode = searchParams.get('ref');

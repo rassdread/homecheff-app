@@ -418,7 +418,7 @@ export class NotificationService {
             </div>
             <div class="content">
               ${formattedBody}
-              ${message.data?.link ? `<a href="${process.env.NEXTAUTH_URL || 'https://homecheff.nl'}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
+              ${message.data?.link ? `<a href="${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
             </div>
             <div class="footer">
               <p>Met vriendelijke groet,<br>Het HomeCheff Team</p>
@@ -429,7 +429,7 @@ export class NotificationService {
       `;
       
       await resend.emails.send({
-        from: 'HomeCheff <noreply@homecheff.nl>',
+        from: 'HomeCheff <noreply@homecheff.eu>',
         to: email,
         subject: message.title,
         html: htmlEmail

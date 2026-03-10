@@ -155,7 +155,7 @@ export default function HomePage() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
-      email: 'support@homecheff.nl',
+      email: 'support@homecheff.eu',
       availableLanguage: ['Dutch', 'English'],
     },
     areaServed: {

@@ -11,10 +11,10 @@ export interface EmailVerificationData {
 
 export async function sendVerificationEmail({ email, name, verificationToken, verificationCode }: EmailVerificationData) {
   try {
-    const verificationUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.nl'}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/verify-email?token=${verificationToken}`;
     
     const { data, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.nl>',
+      from: 'HomeCheff <noreply@homecheff.eu>',
       to: [email],
       subject: 'Bevestig je e-mailadres - HomeCheff',
       html: `
@@ -91,7 +91,7 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
               <p>Met vriendelijke groet,<br>Het HomeCheff Team</p>
               <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
                 Als je deze e-mail niet hebt aangevraagd, kun je deze negeren.<br>
-                HomeCheff B.V. | <a href="mailto:support@homecheff.nl" style="color: #006D52;">support@homecheff.nl</a>
+                HomeCheff B.V. | <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a>
               </p>
             </div>
           </div>
@@ -126,10 +126,10 @@ export async function sendReviewRequestEmail(data: {
 }) {
   try {
     const { renderReviewRequestEmail, getReviewRequestSubject } = await import('./email-templates/review-request');
-    const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.nl'}/review/${data.reviewToken}`;
+    const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/review/${data.reviewToken}`;
     
     const { data: emailData, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.nl>',
+      from: 'HomeCheff <noreply@homecheff.eu>',
       to: [data.email],
       subject: getReviewRequestSubject(data.buyerName, data.productTitle),
       html: renderReviewRequestEmail({
@@ -159,7 +159,7 @@ export async function sendReviewRequestEmail(data: {
 export async function sendWelcomeEmail({ email, name }: { email: string; name: string }) {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.nl>',
+      from: 'HomeCheff <noreply@homecheff.eu>',
       to: [email],
       subject: 'Welkom bij HomeCheff! Je account is geactiveerd 🎉',
       html: `
@@ -231,16 +231,16 @@ export async function sendWelcomeEmail({ email, name }: { email: string; name: s
               </div>
               
               <div style="text-align: center;">
-                <a href="${process.env.NEXTAUTH_URL || 'https://homecheff.nl'}" class="button">Start Verkennen</a>
+                <a href="${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}" class="button">Start Verkennen</a>
               </div>
               
-              <p>Heb je vragen? Neem gerust contact met ons op via <a href="mailto:support@homecheff.nl" style="color: #006D52;">support@homecheff.nl</a></p>
+              <p>Heb je vragen? Neem gerust contact met ons op via <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a></p>
             </div>
             
             <div class="footer">
               <p>Veel plezier op HomeCheff!<br>Het HomeCheff Team</p>
               <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                HomeCheff B.V. | <a href="mailto:support@homecheff.nl" style="color: #006D52;">support@homecheff.nl</a>
+                HomeCheff B.V. | <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a>
               </p>
             </div>
           </div>

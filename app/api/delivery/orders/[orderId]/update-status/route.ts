@@ -226,7 +226,7 @@ export async function POST(
                                 item.Product.seller?.User?.username || 
                                 'Verkoper';
               const productImage = item.Product.Image[0]?.fileUrl || undefined;
-              const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.nl'}/review/${review.reviewToken}`;
+              const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/review/${review.reviewToken}`;
 
               // Send email
               try {

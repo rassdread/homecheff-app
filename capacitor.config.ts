@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
     // For production, point to your Vercel URL:
-    url: process.env.CAPACITOR_SERVER_URL || 'https://homecheff.nl',
+    url: process.env.CAPACITOR_SERVER_URL || 'https://homecheff.eu',
     // For development, uncomment this and comment the url above:
     // url: 'http://localhost:3000',
     // cleartext: true

@@ -79,7 +79,7 @@ async function checkWebhookStatus() {
       console.log(`   - This means the webhook was NOT called or FAILED`);
       console.log(`   - Check Vercel logs for webhook errors`);
       console.log(`   - Verify Stripe webhook is configured: https://dashboard.stripe.com/webhooks`);
-      console.log(`   - Webhook endpoint should be: https://homecheff.nl/api/stripe/webhook`);
+      console.log(`   - Webhook endpoint should be: https://homecheff.eu/api/stripe/webhook`);
     }
 
     // Check for Eric's orders

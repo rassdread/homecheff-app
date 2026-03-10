@@ -89,7 +89,7 @@ async function main() {
   const users: any[] = [];
   
   const userData = [
-    { name: 'Admin User', username: 'admin', email: 'admin@homecheff.nl', role: UserRole.ADMIN, bio: 'Platform administrator', place: 'Amsterdam', interests: ['management', 'platform'] },
+    { name: 'Admin User', username: 'admin', email: 'admin@homecheff.eu', role: UserRole.ADMIN, bio: 'Platform administrator', place: 'Amsterdam', interests: ['management', 'platform'] },
     { name: 'Maria Rodriguez', username: 'maria_cooks', email: 'maria@test.nl', role: UserRole.SELLER, bio: 'Passionate home cook from Spain specializing in authentic Mediterranean cuisine', place: 'Amsterdam', interests: ['spanish', 'mediterranean', 'seafood', 'paella', 'tapas'] },
     { name: 'Ahmed Hassan', username: 'ahmed_kitchen', email: 'ahmed@test.nl', role: UserRole.SELLER, bio: 'Middle Eastern cuisine specialist with 15 years of experience in traditional recipes', place: 'Utrecht', interests: ['middle_eastern', 'spices', 'grilled', 'shawarma', 'hummus'] },
     { name: 'Lisa Chen', username: 'lisa_food', email: 'lisa@test.nl', role: UserRole.SELLER, bio: 'Asian fusion cooking expert creating healthy and delicious meals', place: 'Rotterdam', interests: ['asian', 'fusion', 'healthy', 'ramen', 'sushi'] },

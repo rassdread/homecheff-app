@@ -157,7 +157,7 @@ export default function TermsPage() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-4">Voor vragen over deze voorwaarden:</p>
                 <p className="text-gray-700 mb-2"><strong>HomeCheff B.V.</strong></p>
-                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> info@homecheff.nl</p>
+                <p className="text-gray-700 mb-2"><strong>E-mail:</strong> info@homecheff.eu</p>
                 <p className="text-gray-700 mb-2"><strong>Telefoon:</strong> [Telefoonnummer]</p>
                 <p className="text-gray-700"><strong>Adres:</strong> [Bedrijfsadres]</p>
               </div>

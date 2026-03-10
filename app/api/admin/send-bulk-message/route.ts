@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       .filter(user => user.email)
       .map(user => 
         resend.emails.send({
-          from: 'HomeCheff <noreply@homecheff.nl>',
+          from: 'HomeCheff <noreply@homecheff.eu>',
           to: [user.email!],
           subject: subject || 'Bericht van HomeCheff Admin',
           html: `

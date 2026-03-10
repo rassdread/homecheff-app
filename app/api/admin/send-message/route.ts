@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (deliveryProfile.user.email) {
       try {
         await resend.emails.send({
-          from: 'HomeCheff <noreply@homecheff.nl>',
+          from: 'HomeCheff <noreply@homecheff.eu>',
           to: [deliveryProfile.user.email],
           subject: subject || 'Bericht van HomeCheff Admin',
           html: `

@@ -340,7 +340,7 @@ export default function FAQPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <a
-                        href="mailto:support@homecheff.nl"
+                        href="mailto:support@homecheff.eu"
                         className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         {t('faq.emailUs')}

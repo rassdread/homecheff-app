@@ -273,7 +273,7 @@ function VerifyEmailContent() {
             <ul className="text-xs text-gray-600 space-y-1">
               <li>• Controleer je spam/junk folder</li>
               <li>• Verificatielinks zijn 24 uur geldig</li>
-              <li>• Neem contact op via <a href="mailto:support@homecheff.nl" className="text-emerald-600 hover:text-emerald-700">support@homecheff.nl</a></li>
+              <li>• Neem contact op via <a href="mailto:support@homecheff.eu" className="text-emerald-600 hover:text-emerald-700">support@homecheff.eu</a></li>
             </ul>
           </div>
         </div>
