@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
+import { MAIN_DOMAIN, NL_DOMAIN } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -14,8 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     lang = languageCookie.value as 'nl' | 'en';
   }
   
-  const hostname = headersList.get('host') || '';
-  const currentDomain = hostname.includes('homecheff.eu') ? 'https://homecheff.eu' : 'https://homecheff.nl';
+  const currentDomain = MAIN_DOMAIN;
   
   if (lang === 'en') {
     return {
@@ -30,8 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
       alternates: {
         canonical: `${currentDomain}/privacy`,
         languages: {
-          'nl-NL': 'https://homecheff.nl/privacy',
-          'en-US': 'https://homecheff.eu/privacy',
+          'nl-NL': `${NL_DOMAIN}/privacy`,
+          'en-US': `${MAIN_DOMAIN}/privacy`,
         },
       },
       robots: {
@@ -53,8 +53,8 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: `${currentDomain}/privacy`,
       languages: {
-        'nl-NL': 'https://homecheff.nl/privacy',
-        'en-US': 'https://homecheff.eu/privacy',
+        'nl-NL': `${NL_DOMAIN}/privacy`,
+        'en-US': `${MAIN_DOMAIN}/privacy`,
       },
     },
     robots: {

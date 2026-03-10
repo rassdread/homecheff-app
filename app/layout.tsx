@@ -31,23 +31,28 @@ const BottomNavigation = dynamic(() => import('@/components/navigation/BottomNav
   ssr: false,
 });
 
+// Hoofddomein is .eu; .nl is de Nederlandse variant
+const MAIN_DOMAIN = 'https://homecheff.eu';
+const NL_DOMAIN = 'https://homecheff.nl';
+
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
+  const hostname = headersList.get('host') || '';
+  const isEnglishDomain = hostname.includes('homecheff.eu');
+  const currentDomain = MAIN_DOMAIN;
+  const alternateDomain = NL_DOMAIN;
+
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
   const languageCookie = cookieStore.get('homecheff-language');
-  
-  let lang = 'nl';
+  let lang: 'nl' | 'en' = 'nl';
   if (languageHeader === 'nl' || languageHeader === 'en') {
     lang = languageHeader;
   } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
-    lang = languageCookie.value;
+    lang = languageCookie.value as 'nl' | 'en';
+  } else {
+    lang = isEnglishDomain ? 'en' : 'nl';
   }
-
-  const hostname = headersList.get('host') || '';
-  const isEnglishDomain = hostname.includes('homecheff.eu');
-  const currentDomain = isEnglishDomain ? 'https://homecheff.eu' : 'https://homecheff.nl';
-  const alternateDomain = isEnglishDomain ? 'https://homecheff.nl' : 'https://homecheff.eu';
 
   if (lang === 'en') {
     return {
@@ -77,8 +82,8 @@ export async function generateMetadata(): Promise<Metadata> {
       alternates: {
         canonical: currentDomain,
         languages: {
-          'nl-NL': alternateDomain,
-          'en-US': currentDomain,
+          'nl-NL': NL_DOMAIN,
+          'en-US': MAIN_DOMAIN,
         },
       },
       robots: {
@@ -121,8 +126,8 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: currentDomain,
       languages: {
-        'nl-NL': currentDomain,
-        'en-US': alternateDomain,
+        'nl-NL': NL_DOMAIN,
+        'en-US': MAIN_DOMAIN,
       },
     },
     robots: {
@@ -146,9 +151,12 @@ export const viewport = {
   userScalable: true, // Allow zoom - false can cause scroll issues on mobile Chrome
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers();
+  const hostname = headersList.get('host') || '';
+  const htmlLang = hostname.includes('homecheff.eu') ? 'en' : 'nl';
   return (
-    <html lang="nl">
+    <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />

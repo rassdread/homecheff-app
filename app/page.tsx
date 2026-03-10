@@ -12,13 +12,22 @@ import { useSession } from "next-auth/react";
 export default function HomePage() {
   const { t, language, changeLanguage, isReady } = useTranslation();
   const { data: session } = useSession();
-  const [currentDomain, setCurrentDomain] = useState('https://homecheff.nl');
+  // Domein uit server (data-domain) of window, zodat .nl en .eu niet conflicteren
+  const [currentDomain, setCurrentDomain] = useState(() => {
+    if (typeof document !== 'undefined') {
+      const fromHtml = document.documentElement.getAttribute('data-domain');
+      if (fromHtml) return fromHtml;
+      return window.location.origin;
+    }
+    return typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
+  });
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [affiliateCheckComplete, setAffiliateCheckComplete] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setCurrentDomain(window.location.origin);
+      const fromHtml = document.documentElement.getAttribute('data-domain');
+      setCurrentDomain(fromHtml || window.location.origin);
     }
   }, []);
 

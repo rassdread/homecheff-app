@@ -1,5 +1,9 @@
 import { headers, cookies } from 'next/headers';
 
+/** Hoofddomein: altijd .eu. .nl is de Nederlandse variant van de .eu-site. */
+export const MAIN_DOMAIN = 'https://homecheff.eu';
+export const NL_DOMAIN = 'https://homecheff.nl';
+
 export async function getCurrentLanguage(): Promise<'nl' | 'en'> {
   const headersList = await headers();
   const languageHeader = headersList.get('X-HomeCheff-Language');
@@ -15,9 +19,7 @@ export async function getCurrentLanguage(): Promise<'nl' | 'en'> {
   return 'nl';
 }
 
+/** Geeft altijd het hoofddomein .eu terug (canonical, OG, structured data). */
 export async function getCurrentDomain(): Promise<string> {
-  const headersList = await headers();
-  const hostname = headersList.get('host') || '';
-  const isEnglishDomain = hostname.includes('homecheff.eu');
-  return isEnglishDomain ? 'https://homecheff.eu' : 'https://homecheff.nl';
+  return MAIN_DOMAIN;
 }

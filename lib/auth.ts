@@ -522,12 +522,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // In development: use baseUrl (request host) so redirects stay on same host (Chrome op telefoon via 192.168.x).
-      // Anders na inloggen redirect naar localhost → telefoon laadt verkeerde host → herladen.
-      const actualBaseUrl =
-        process.env.NODE_ENV === 'development'
-          ? baseUrl || process.env.NEXTAUTH_URL
-          : (process.env.NEXTAUTH_URL || baseUrl);
+      // Altijd baseUrl (request host) voorrang geven: gebruiker blijft op het domein waar hij inlogt.
+      // Belangrijk voor iPhone Safari: cookie is first-party op dat domein, geen cross-site redirect naar .eu.
+      // NEXTAUTH_URL als fallback (bijv. server-side zonder Host header).
+      const actualBaseUrl = baseUrl || process.env.NEXTAUTH_URL;
 
       try {
         // For social login callback, check if user needs onboarding

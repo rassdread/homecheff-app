@@ -51,6 +51,12 @@ export function middleware(request: NextRequest) {
     return res;
   }
 
+  // Taal per domein doorgeven ( .nl = nl, .eu = en ) zodat layout/main page niet in conflict komen
+  const host = request.headers.get('host') || '';
+  const domainLang = host.includes('homecheff.eu') ? 'en' : 'nl';
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('X-HomeCheff-Language', domainLang);
+
   // Check for referral parameter on any page
   const refCode = searchParams.get('ref');
   if (refCode) {
@@ -70,7 +76,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 }
 
 export const config = {

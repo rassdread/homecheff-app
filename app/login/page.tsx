@@ -37,7 +37,14 @@ function LoginForm() {
   });
 
   const message = searchParams?.get('message');
-  const callbackUrl = searchParams?.get('callbackUrl') || '/';
+  const rawCallbackUrl = searchParams?.get('callbackUrl') || '/';
+  // Alleen relatief pad of same-origin: veilig voor Safari en voorkomt open redirect
+  const callbackUrl =
+    rawCallbackUrl.startsWith('/')
+      ? rawCallbackUrl
+      : typeof window !== 'undefined' && rawCallbackUrl.startsWith(window.location.origin)
+        ? rawCallbackUrl.slice(window.location.origin.length) || '/'
+        : '/';
   const oauthError = searchParams?.get('error');
   const prefillEmail = searchParams?.get('email');
   

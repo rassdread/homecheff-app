@@ -9,7 +9,7 @@ const getBaseUrl = () => {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return 'https://homecheff.nl';
+  return 'https://homecheff.eu';
 };
 
 const baseUrl = getBaseUrl();
@@ -17,7 +17,7 @@ const baseUrl = getBaseUrl();
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Generate URLs for both languages
   const nlBaseUrl = 'https://homecheff.nl';
-  const enBaseUrl = 'https://homecheff.eu';
+  const enBaseUrl = 'https://homecheff.eu'; // hoofddomein
   
   const baseUrls = [
     // Dutch URLs
