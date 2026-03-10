@@ -32,8 +32,14 @@ export function middleware(request: NextRequest) {
       request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
       request.headers.get('host') ||
       '';
+    const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
     const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
-    const fallbackOrigin = host ? `${proto}://${host.replace(/^https?:\/\//, '').split('/')[0]}` : request.nextUrl.origin;
+    const effectiveProto =
+      process.env.NODE_ENV === 'production' &&
+      (hostOnly === 'homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.eu' || hostOnly === 'www.homecheff.nl')
+        ? 'https'
+        : proto;
+    const fallbackOrigin = hostOnly ? `${effectiveProto}://${hostOnly}` : request.nextUrl.origin;
     const rawOrigin = request.headers.get('origin');
     // Safari/iOS can send Origin: null, omit it, or send "" for same-origin; use Host as origin
     const origin =
@@ -47,7 +53,7 @@ export function middleware(request: NextRequest) {
       origin.includes('localhost') ||
       origin.includes('127.0.0.1') ||
       /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
-    const isOurDomain =
+    const isOurDomainByOrigin =
       origin === 'https://homecheff.eu' ||
       origin === 'https://homecheff.nl' ||
       origin === 'https://www.homecheff.eu' ||
@@ -56,6 +62,10 @@ export function middleware(request: NextRequest) {
       fallbackOrigin === 'https://homecheff.nl' ||
       fallbackOrigin === 'https://www.homecheff.eu' ||
       fallbackOrigin === 'https://www.homecheff.nl';
+    const isOurDomainByHost =
+      process.env.NODE_ENV === 'production' &&
+      (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl');
+    const isOurDomain = isOurDomainByOrigin || isOurDomainByHost;
     const allowedOrigins =
       process.env.NODE_ENV === 'development'
         ? isLocalDevOrigin
