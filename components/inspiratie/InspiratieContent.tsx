@@ -626,9 +626,7 @@ export default function InspiratieContent() {
               </h1>
             </div>
             <p className="text-xl md:text-2xl text-emerald-100 mb-6 max-w-3xl mx-auto" suppressHydrationWarning>
-              {userFirstName
-                ? (t('inspiratie.greeting', { firstName: userFirstName }) || (language === 'en' ? `Hey ${userFirstName}, come here to get inspired!` : `Hey ${userFirstName}, kom hier voor inspiratie!`))
-                : (t('inspiratie.subtitle') || (language === 'en' ? 'Discover delicious recipes, beautiful grows and unique designs from our community.' : 'Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.'))}
+              {t('inspiratie.subtitle') || (language === 'en' ? 'Discover delicious recipes, beautiful grows and unique designs from our community.' : 'Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.')}
             </p>
             <p className="text-sm md:text-base text-emerald-100/90 max-w-3xl mx-auto" suppressHydrationWarning>
               {t('inspiratie.description') || (language === 'en' ? 'Save your favorites, share your profile — your personal studio, garden or kitchen.' : 'Sla je favorieten op, deel je profiel — jouw persoonlijke atelier, tuin of keuken.')}

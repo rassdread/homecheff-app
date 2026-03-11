@@ -73,11 +73,12 @@ export default function OnlineStatusTracker() {
     // Start heartbeat
     startHeartbeat();
 
-    // Set initial online status
-    updateOnlineStatus(true);
+    // Delay initial online-status so page layout is stable first (reduces Safari "scherm verspringt" when fetch fails)
+    const initialDelay = setTimeout(() => updateOnlineStatus(true), 2000);
 
     // Cleanup
     return () => {
+      clearTimeout(initialDelay);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
