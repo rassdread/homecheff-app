@@ -33,8 +33,11 @@ export function middleware(request: NextRequest) {
     const rawOrigin = request.headers.get('origin');
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
-      // Safari/PWA stuurt soms Origin: "null" – CORS vereist dan exact "null" in de response.
-      allowOrigin = rawOrigin === 'null' ? 'null' : productionOrigin;
+      // Safari/PWA stuurt soms Origin: "null" of stuurt geen Origin (opaque origin) – CORS vereist dan "null" in de response.
+      allowOrigin =
+        rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
+          ? 'null'
+          : productionOrigin;
     } else {
       const host =
         request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
