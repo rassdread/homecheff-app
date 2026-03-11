@@ -13,6 +13,8 @@ import { UserRole } from "@prisma/client";
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
 
+// In productie (Vercel): zet NEXTAUTH_URL=https://homecheff.eu (zonder trailing slash).
+// Anders kan de sessie-cookie voor het verkeerde domein worden gezet en Safari stuurt hem niet mee.
 export const authOptions: NextAuthOptions = {
   trustHost: true, // Vereist voor correcte sessie op iPhone Safari / meerdere domeinen (homecheff.eu vs homecheff.nl)
   pages: { signIn: "/login" },

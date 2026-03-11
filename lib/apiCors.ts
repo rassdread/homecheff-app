@@ -10,10 +10,33 @@ const OUR_DOMAINS = [
 /**
  * CORS headers for API responses. Use in route handlers so the response
  * always has the correct Access-Control-Allow-Origin (Safari/iOS + lokaal IP).
- * Middleware may not always merge headers into the final response.
- * Safari on iOS can send Origin: null or omit Origin; we treat same-origin using Host.
+ * Safari on iOS often omits Origin on same-origin requests; in production we
+ * always return fixed CORS for /api and /i18n so Safari never fails "access control checks".
  */
+const CANONICAL_ORIGIN = 'https://homecheff.eu';
+
+function corsHeadersFor(allowOrigin: string, isApiOrI18n: boolean): Record<string, string> {
+  const h: Record<string, string> = {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+  if (isApiOrI18n) h['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+  return h;
+}
+
 export function getCorsHeaders(request: NextRequest): Record<string, string> {
+  const pathname =
+    (typeof request.nextUrl !== 'undefined' && request.nextUrl?.pathname) ||
+    (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
+  const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
+
+  // Production: ALWAYS return CORS for /api and /i18n with canonical origin (Safari same-origin from homecheff.eu).
+  // This avoids any dependency on Origin/Host which Safari may omit or send differently.
+  if (process.env.NODE_ENV === 'production' && isApiOrI18n)
+    return corsHeadersFor(CANONICAL_ORIGIN, true);
+
   // Behind Vercel/proxy the Host can be internal; use x-forwarded-host for the real site
   const host =
     request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
@@ -22,7 +45,7 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
   // In Route Handlers request.nextUrl may be undefined; fallback to request.url
   const urlOrigin = typeof request.url === 'string' ? (() => { try { return new URL(request.url).origin; } catch { return ''; } })() : '';
-  const proto = request.headers.get('x-forwarded-proto') || request.nextUrl?.protocol?.replace(':', '') || (urlOrigin ? new URL(urlOrigin).protocol?.replace(':', '') : '') || 'http';
+  const proto = request.headers.get('x-forwarded-proto') || request.nextUrl?.protocol?.replace(':', '') || (urlOrigin ? (() => { try { return new URL(urlOrigin).protocol.replace(':', ''); } catch { return 'https'; } })() : '') || 'http';
   // Production: always use https for our domains (Vercel may omit x-forwarded-proto in some paths)
   const effectiveProto =
     process.env.NODE_ENV === 'production' &&
@@ -60,32 +83,14 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl');
   const isOurDomain = isOurDomainByOrigin || isOurDomainByHost || isOurDomainByUrl || isOurDomainByUrlHost;
   const allowed = process.env.NODE_ENV === 'development' ? isLocalDevOrigin : isOurDomain;
-  // When Origin is the literal "null", CORS spec requires responding with "null" for browser to accept
   let allowOrigin: string | undefined = allowed
     ? rawOrigin === 'null'
       ? 'null'
       : (origin || fallbackOrigin || urlOrigin)
     : undefined;
-  // Production last resort: if request.url points to our host but we still have no origin, allow with canonical origin (Safari same-origin)
   if (process.env.NODE_ENV === 'production' && !allowOrigin && isOurDomainByUrlHost)
     allowOrigin = urlOrigin || `https://${urlHost}`;
-  // Final fallback for production /api and /i18n: always send CORS so Safari never gets a response without headers (avoids "access control checks").
-  // Use Host-based origin or canonical .eu; never use urlOrigin here as it can be Vercel-internal and would mismatch the browser origin.
-  const pathname = typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : (request.nextUrl?.pathname ?? '');
-  const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
-  if (process.env.NODE_ENV === 'production' && !allowOrigin && isApiOrI18n) {
-    const canonicalOrigin =
-      hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl'
-        ? `${effectiveProto}://${hostOnly}`
-        : 'https://homecheff.eu';
-    allowOrigin = rawOrigin === 'null' ? 'null' : canonicalOrigin;
-  }
 
   if (!allowOrigin) return {};
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  return corsHeadersFor(allowOrigin, isApiOrI18n);
 }

@@ -25,64 +25,38 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // CORS voor API en i18n: voorkom "Load failed" / "access control checks" (lokaal + iPhone Safari/PWA)
+  // CORS voor API en i18n: voorkom "Load failed" / "access control checks" (Safari/PWA).
+  // In productie altijd vaste origin zodat Safari nooit CORS mist (Origin wordt vaak niet meegestuurd).
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
-    const host =
-      request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
-      request.headers.get('host') ||
-      '';
-    const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
-    const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
-    const effectiveProto =
-      process.env.NODE_ENV === 'production' &&
-      (hostOnly === 'homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.eu' || hostOnly === 'www.homecheff.nl')
-        ? 'https'
-        : proto;
-    const fallbackOrigin = hostOnly ? `${effectiveProto}://${hostOnly}` : request.nextUrl.origin;
-    const rawOrigin = request.headers.get('origin');
-    // Safari/iOS can send Origin: null, omit it, or send "" for same-origin; use Host as origin
-    const origin =
-      rawOrigin && rawOrigin !== 'null' && rawOrigin !== ''
-        ? rawOrigin
-        : request.nextUrl.origin || fallbackOrigin;
-    // Development: localhost, 127.0.0.1, of lokaal netwerk; allow both so 127.0.0.1 ↔ localhost werkt
-    const isLocalDevOrigin =
-      !origin ||
-      origin === 'null' ||
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1') ||
-      /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
-    const isOurDomainByOrigin =
-      origin === 'https://homecheff.eu' ||
-      origin === 'https://homecheff.nl' ||
-      origin === 'https://www.homecheff.eu' ||
-      origin === 'https://www.homecheff.nl' ||
-      fallbackOrigin === 'https://homecheff.eu' ||
-      fallbackOrigin === 'https://homecheff.nl' ||
-      fallbackOrigin === 'https://www.homecheff.eu' ||
-      fallbackOrigin === 'https://www.homecheff.nl';
-    const isOurDomainByHost =
-      process.env.NODE_ENV === 'production' &&
-      (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl');
-    const isOurDomain = isOurDomainByOrigin || isOurDomainByHost;
-    const allowedOrigins =
-      process.env.NODE_ENV === 'development'
-        ? isLocalDevOrigin
-        : isOurDomain;
-    // When Origin is literal "null", CORS requires responding with "null"; else use origin or Host
-    const allowOrigin = allowedOrigins
-      ? rawOrigin === 'null'
-        ? 'null'
-        : (origin || fallbackOrigin)
-      : undefined;
-    const corsHeaders: Record<string, string> = {};
-    if (allowOrigin) {
-      corsHeaders['Access-Control-Allow-Origin'] = allowOrigin;
-      corsHeaders['Access-Control-Allow-Credentials'] = 'true';
-      corsHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-      corsHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    const productionOrigin = 'https://homecheff.eu';
+    let allowOrigin: string;
+    if (process.env.NODE_ENV === 'production') {
+      allowOrigin = productionOrigin;
+    } else {
+      const host =
+        request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+        request.headers.get('host') ||
+        '';
+      const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
+      const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
+      const fallbackOrigin = hostOnly ? `${proto}://${hostOnly}` : request.nextUrl.origin;
+      const rawOrigin = request.headers.get('origin');
+      const origin =
+        rawOrigin && rawOrigin !== 'null' && rawOrigin !== ''
+          ? rawOrigin
+          : request.nextUrl.origin || fallbackOrigin;
+      const isLocal =
+        !origin || origin === 'null' || origin.includes('localhost') || origin.includes('127.0.0.1') ||
+        /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
+      allowOrigin = isLocal ? (rawOrigin === 'null' ? 'null' : (origin || fallbackOrigin)) : productionOrigin;
     }
+    const corsHeaders: Record<string, string> = {
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, { status: 204, headers: corsHeaders });
     }
