@@ -262,7 +262,7 @@ export default function ShiftNotificationSettings({
           <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
             <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Herinnering Toevoegen
+              {t('common.addReminder')}
             </h4>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-3">
               {PRESET_TIMES.filter(t => !reminders.includes(t)).map((time) => (
@@ -381,7 +381,7 @@ export default function ShiftNotificationSettings({
             disabled={loading}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 rounded-xl shadow-lg"
           >
-            {loading ? 'Opslaan...' : 'Notificatie Instellingen Opslaan'}
+            {loading ? t('common.saving') : t('common.notificationSettingsSave')}
           </Button>
         </div>
       </div>

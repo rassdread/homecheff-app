@@ -9,6 +9,7 @@ import RecipeManager from "./RecipeManager";
 import RecipeViewer from "./RecipeViewer";
 import GardenManager from "./GardenManager";
 import DesignManager from "../designs/DesignManager";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Dish = {
   id: string;
@@ -161,6 +162,7 @@ interface MyDishesManagerProps {
 }
 
 export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic', userId, isPublic = false, role, showOnlyActive = false, contentSubTab = 'dorpsplein', userSellerRoles = [] }: MyDishesManagerProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const safeFetch = useSafeFetch();
   const [loading, setLoading] = useState(true);
@@ -531,7 +533,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
         onStatsUpdate?.();
       } else {
         const j = await res.json().catch(() => ({} as any));
-        setMessage({type: 'error', text: j?.error ?? "Opslaan mislukt"});
+        setMessage({type: 'error', text: j?.error ?? t('common.saveFailed')});
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -607,7 +609,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand mx-auto"></div>
-              <p className="mt-2 text-gray-600">Laden...</p>
+              <p className="mt-2 text-gray-600">{t('common.loading')}</p>
             </div>
           ) : contentSubTab === 'dorpsplein' ? (
             // Dorpsplein: show ProductManagement (products with price > 0)
@@ -764,7 +766,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand mx-auto"></div>
-              <p className="mt-2 text-gray-600">Laden...</p>
+              <p className="mt-2 text-gray-600">{t('common.loading')}</p>
             </div>
           ) : (() => {
             // Filter items by current role category

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ShoppingCart, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AddToCartButtonProps {
   product: {
@@ -31,6 +32,7 @@ export default function AddToCartButton({
   quantity = 1,
   onAdded,
 }: AddToCartButtonProps) {
+  const { t } = useTranslation();
   const { addItem, totalItems } = useCart();
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
@@ -119,24 +121,24 @@ export default function AddToCartButton({
         onClick={handleAddToCart}
         disabled={isAdding}
         variant={variant}
-        title={isAdded ? 'Toegevoegd aan winkelwagen' : 'Voeg toe aan winkelwagen'}
-        aria-label={isAdded ? 'Toegevoegd aan winkelwagen' : 'Voeg toe aan winkelwagen'}
+        title={isAdded ? t('cart.addedToCart') : t('cart.addToCart')}
+        aria-label={isAdded ? t('cart.addedToCart') : t('cart.addToCart')}
         className={`${buttonSizes[size]} ${outlineTextClass} ${className}`}
       >
         {isAdding ? (
           <>
             <div className={`${iconSizes[size]} mr-2 animate-spin rounded-full border-2 border-current border-t-transparent flex-shrink-0`} aria-hidden />
-            <span>Toevoegen...</span>
+            <span>{t('cart.adding')}</span>
           </>
         ) : isAdded ? (
           <>
             <Check className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
-            <span>Toegevoegd aan winkelwagen</span>
+            <span>{t('cart.addedToCart')}</span>
           </>
         ) : (
           <>
             <ShoppingCart className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
-            <span className="font-medium">In winkelwagen</span>
+            <span className="font-medium">{t('cart.inCart')}</span>
           </>
         )}
       </Button>

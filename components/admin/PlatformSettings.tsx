@@ -149,7 +149,7 @@ export default function PlatformSettings() {
           className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
-          {saving ? 'Opslaan...' : 'Opslaan'}
+          {saving ? t('common.saving') : t('common.save')}
         </button>
       </div>
 

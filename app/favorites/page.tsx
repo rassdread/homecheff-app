@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import FansAndFollowsList from "@/components/FansAndFollowsList";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function FollowsPage() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ export default function FollowsPage() {
         <div className="mb-4 text-sm text-gray-600 bg-blue-50 border-l-4 p-3 rounded" style={{ borderColor: "var(--accent)" }}>
           Hier zie je alle verkopers waarvan je fan bent en je eigen fans. Je krijgt notificaties wanneer verkopers waarvan je fan bent nieuwe producten plaatsen!
         </div>
-        {loading && <div>Bezig met laden...</div>}
+        {loading && <div>{t('common.loading')}</div>}
         <FansAndFollowsList />
       </section>
     </main>

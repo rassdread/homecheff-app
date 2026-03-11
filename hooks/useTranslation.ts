@@ -397,16 +397,23 @@ export function useTranslation() {
           setIsReady(false);
         }
       } else if (lang !== 'nl') {
-        // English failed on initial load - fallback to Dutch
+        // English failed on initial load - only fallback to Dutch if user didn't explicitly choose English
+        const stored = safeLocalStorage.getItem('homecheff-language') || safeCookie.get('homecheff-language');
+        const userChoseEn = stored === 'en';
+        if (userChoseEn) {
+          console.log(`[i18n] Keeping English (user choice) despite load error`);
+          setIsReady(false);
+          setIsLoading(false);
+          return;
+        }
         console.log(`[i18n] Falling back to Dutch due to error...`);
         try {
           await loadTranslations('nl');
           setLanguage('nl');
           lastDetectedLanguage.current = 'nl';
-          // Update localStorage and cookie to match fallback
           safeLocalStorage.setItem('homecheff-language', 'nl');
           safeCookie.set('homecheff-language', 'nl');
-          return; // Don't set isLoading to false here, let the recursive call handle it
+          return;
         } catch (fallbackError) {
           console.error('[i18n] CRITICAL: Fallback to Dutch also failed!', fallbackError);
           // Try to use cached Dutch translations as last resort
@@ -487,7 +494,8 @@ export function useTranslation() {
       // This must happen before any navigation or state updates
       safeLocalStorage.setItem('homecheff-language', newLanguage);
       
-      // Update cookie immediately to ensure middleware sees the correct value
+      // Update cookie immediately to ensure middleware sees the correct value.
+      // Only sets homecheff-language; we never touch NextAuth/session cookies (Safari login safe).
       safeCookie.set('homecheff-language', newLanguage);
       
       // Save to database if user is logged in
@@ -680,6 +688,13 @@ export function useTranslation() {
     return '';
   };
 
+  /** Use when you need a fallback if the key is missing: returns t(key) or the correct fallback for current language. */
+  const tOr = (key: string, fallbackEn: string, fallbackNl: string): string => {
+    const val = t(key);
+    if (val) return val;
+    return language === 'en' ? fallbackEn : fallbackNl;
+  };
+
   /**
    * Get a localized path for navigation
    * @param path - The path without locale prefix (e.g., '/inspiratie')
@@ -714,6 +729,7 @@ export function useTranslation() {
 
   return {
     t,
+    tOr,
     language,
     changeLanguage,
     isLoading,

@@ -319,7 +319,7 @@ export default function AdminManagement() {
                           className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
                         >
                           <Save className="w-4 h-4" />
-                          {saving === admin.id ? t('common.saving') || 'Opslaan...' : t('common.save')}
+                          {saving === admin.id ? t('common.saving') : t('common.save')}
                         </button>
                       </>
                     )}

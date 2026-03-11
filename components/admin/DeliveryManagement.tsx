@@ -24,6 +24,7 @@ import {
   Mail,
   User
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface DeliveryProfile {
   id: string;
@@ -78,6 +79,7 @@ interface DeliveryManagementProps {
 }
 
 export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagementProps) {
+  const { t } = useTranslation();
   const [profiles, setProfiles] = useState<DeliveryProfile[]>(deliveryProfiles);
   const [filteredProfiles, setFilteredProfiles] = useState<DeliveryProfile[]>(deliveryProfiles);
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,7 +280,7 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Zoeken</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.search')}</label>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input

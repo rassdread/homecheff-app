@@ -120,7 +120,7 @@ export default function MessageEncryption({
           onClick={() => setShowKeyInput(!showKeyInput)}
           className="text-xs px-2 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded transition-colors"
         >
-          {showKeyInput ? 'Annuleren' : 'Ontsleutelen'}
+          {showKeyInput ? t('common.cancel') : t('common.decrypt')}
         </button>
         
         {showKeyInput && (
@@ -173,7 +173,7 @@ export default function MessageEncryption({
           className="flex-1 flex items-center justify-center gap-2 text-xs px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors disabled:opacity-50"
         >
           <Shield className="w-3 h-3" />
-          {isLoading ? 'Bezig...' : 'Automatisch Versleutelen'}
+          {isLoading ? t('common.loading') : t('common.autoEncrypt')}
         </button>
         
         <button
@@ -253,7 +253,7 @@ export default function MessageEncryption({
             disabled={isLoading}
             className="w-full text-xs px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
           >
-            {isLoading ? 'Bezig...' : 'Versleutelen'}
+            {isLoading ? t('common.loading') : t('common.encrypt')}
           </button>
         </div>
       )}

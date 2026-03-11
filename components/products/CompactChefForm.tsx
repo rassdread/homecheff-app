@@ -734,7 +734,7 @@ export default function CompactChefForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('productForm.delivery') || 'Bezorgopties'}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('productForm.delivery')}</label>
             <div className="space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
                 <input
@@ -751,7 +751,7 @@ export default function CompactChefForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  {t('productForm.deliveryOptions.pickup') || 'Afhalen'}
+                  {t('productForm.deliveryOptions.pickup')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -769,7 +769,7 @@ export default function CompactChefForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Truck className="w-4 h-4" />
-                  {t('productForm.deliveryOptions.delivery') || 'Bezorgen'}
+                  {t('productForm.deliveryOptions.delivery')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -787,7 +787,7 @@ export default function CompactChefForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  {t('productForm.deliveryOptions.shipping') || 'Verzenden'}
+                  {t('productForm.deliveryOptions.shipping')}
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
@@ -888,13 +888,13 @@ export default function CompactChefForm({
         {hasDeliveryOption('SHIPPING') && (
           <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📦 {t('productForm.shippingInfo.title') || 'Verzenden'}
+              📦 {t('productForm.shippingInfo.title')}
             </label>
             <p className="text-xs text-gray-600 mb-2">
-              {t('productForm.shippingInfo.description') || 'Dit product kan via pakketpost worden verzonden. De verzendkosten worden automatisch berekend op basis van het adres van de koper.'}
+              {t('productForm.shippingInfo.description')}
             </p>
             <p className="text-xs text-gray-500">
-              {t('productForm.shippingInfo.addressNote') || 'Je adres wordt automatisch gebruikt als verzendadres. Zorg dat je adres compleet is in je profiel.'}
+              {t('productForm.shippingInfo.addressNote')}
             </p>
           </div>
         )}
@@ -948,7 +948,7 @@ export default function CompactChefForm({
         {/* Status Toggle - Altijd beschikbaar */}
         <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-4 border-2 border-emerald-200">
           <label className="block text-sm font-semibold text-gray-900 mb-3">
-            👁️ {t('productForm.status') || 'Zichtbaarheid op Dorpsplein'}
+            👁️ {t('productForm.status')}
           </label>
           <div className="flex items-center justify-between">
             <div className="flex-1">

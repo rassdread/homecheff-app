@@ -17,6 +17,7 @@ import {
   CreditCard,
   ExternalLink
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface DeliveryProfile {
   id: string;
@@ -82,6 +83,7 @@ const VEHICLE_TYPES = [
 ];
 
 export default function DeliveryProfileSettings() {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<DeliveryProfile | null>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const [stats, setStats] = useState<EarningsStats | null>(null);
@@ -531,7 +533,7 @@ export default function DeliveryProfileSettings() {
                   className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <CreditCard className="w-4 h-4" />
-                  {stripeLoading ? 'Bezig...' : 'Stripe Connect Opzetten'}
+                  {stripeLoading ? t('common.loading') : t('common.stripeConnectSetup')}
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </div>
@@ -547,12 +549,12 @@ export default function DeliveryProfileSettings() {
             {saving ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Opslaan...
+                {t('common.saving')}
               </>
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Instellingen Opslaan
+                {t('common.saveSettings')}
               </>
             )}
           </button>
@@ -561,7 +563,7 @@ export default function DeliveryProfileSettings() {
         {/* Recent Payouts Sidebar */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recente Uitbetalingen</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('common.recentPayouts')}</h3>
             
             {payouts.length > 0 ? (
               <div className="space-y-3">

@@ -212,7 +212,7 @@ export default function EmailVerificationModal({
                     {t('emailVerification.verifying') || 'Verifiëren...'}
                   </>
                 ) : (
-                  t('emailVerification.verify') || 'Verifiëren'
+                  t('emailVerification.verify')
                 )}
               </button>
 
@@ -224,7 +224,7 @@ export default function EmailVerificationModal({
                 {isResending ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    {t('emailVerification.resending') || 'Verzenden...'}
+                    {t('emailVerification.resending')}
                   </>
                 ) : (
                   <>

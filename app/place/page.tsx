@@ -81,7 +81,7 @@ export default function PlacePage() {
             rows={4}
           />
           <button className="px-4 py-2 rounded text-white" style={{ background: "var(--primary)" }} onClick={handleSave}>
-            {t('common.save') || 'Opslaan'}
+            {t('common.save')}
           </button>
           {state.error && <div className="mt-2 text-red-600">{state.error}</div>}
           {state.success && <div className="mt-2 text-green-600">{t('place.locationSavedSuccess') || 'Locatie succesvol opgeslagen!'}</div>}

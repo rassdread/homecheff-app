@@ -532,12 +532,12 @@ export default function UserManagement() {
                   {isSendingBulkMessage ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline mr-2"></div>
-                      Verzenden...
+                      {t('common.sending')}
                     </>
                   ) : (
                     <>
                       <MessageSquare className="w-4 h-4 inline mr-2" />
-                      Verzenden
+                      {t('common.send')}
                     </>
                   )}
                 </button>

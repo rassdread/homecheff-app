@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { X, User, Eye, EyeOff, Upload, Camera } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 // Define UserRole enum manually since Prisma client might not be available
 type UserRole = 'ADMIN' | 'BUYER' | 'SELLER' | 'USER' | 'DELIVERY';
 
@@ -27,6 +28,7 @@ interface EditUserModalProps {
 }
 
 export default function EditUserModal({ user, onClose, onUserUpdated }: EditUserModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: getDisplayName(user),
     email: user.email,
@@ -149,7 +151,7 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
             <div className="p-2 bg-blue-100 rounded-lg">
               <User className="w-5 h-5 text-blue-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Gebruiker Bewerken</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('admin.editUser')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -367,7 +369,7 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
               onClick={onClose}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
-              Annuleren
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -377,7 +379,7 @@ export default function EditUserModal({ user, onClose, onUserUpdated }: EditUser
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                'Gebruiker Bijwerken'
+                t('admin.updateUser')
               )}
             </button>
           </div>

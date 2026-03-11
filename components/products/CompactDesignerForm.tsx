@@ -457,7 +457,7 @@ export default function CompactDesignerForm({
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-2xl">🎨</span>
           <h2 className="text-xl font-bold text-gray-900">
-            {editMode ? 'Designer Product Bewerken' : 'Nieuw Designer Product'}
+            {editMode ? t('design.editDesignerProduct') : t('design.newDesignerProduct')}
           </h2>
         </div>
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
@@ -610,7 +610,7 @@ export default function CompactDesignerForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  Verzenden
+                  {t('productForm.shippingInfo.title')}
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
@@ -711,7 +711,7 @@ export default function CompactDesignerForm({
         {hasDeliveryOption('SHIPPING') && (
           <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📦 {t('productForm.shippingInfo.title') || 'Verzenden'}
+              📦 {t('productForm.shippingInfo.title')}
             </label>
             <p className="text-xs text-gray-600 mb-2">
               {t('productForm.shippingInfo.description') || 'Dit product kan via pakketpost worden verzonden. De verzendkosten worden automatisch berekend op basis van het adres van de koper.'}

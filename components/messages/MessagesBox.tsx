@@ -450,7 +450,7 @@ export default function MessagesBox({ className = '' }: MessagesBoxProps) {
                         onClick={() => sendMessage(currentConversation.otherUserId, newMessage)}
                         disabled={!newMessage.trim() || sendingMessage}
                         className="p-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
-                        aria-label="Verzenden"
+                        aria-label={t('common.send')}
                       >
                         {sendingMessage ? (
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

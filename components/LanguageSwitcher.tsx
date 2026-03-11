@@ -6,7 +6,7 @@ import { Globe, ChevronDown } from 'lucide-react';
 import { useTranslation, type Language } from '@/hooks/useTranslation';
 
 export default function LanguageSwitcher() {
-  const { language, changeLanguage, availableLanguages } = useTranslation();
+  const { language, changeLanguage, availableLanguages, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [mounted, setMounted] = useState(false);
@@ -105,8 +105,8 @@ export default function LanguageSwitcher() {
           setIsOpen(!isOpen);
         }}
         className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-gray-700 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
-        title="Taal wijzigen"
-        aria-label="Taal wijzigen"
+        title={t('changeLanguage') || (language === 'en' ? 'Change language' : 'Taal wijzigen')}
+        aria-label={t('changeLanguage') || (language === 'en' ? 'Change language' : 'Taal wijzigen')}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >

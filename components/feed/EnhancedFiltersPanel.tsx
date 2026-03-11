@@ -216,7 +216,7 @@ export default function EnhancedFiltersPanel({
             className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
           >
             <Save className="w-4 h-4" />
-            Opslaan
+            {t('buttons.save')}
           </button>
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -232,7 +232,7 @@ export default function EnhancedFiltersPanel({
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-2 mb-3">
             <Star className="w-4 h-4 text-yellow-500" />
-            <h4 className="text-sm font-medium text-gray-700">Opgeslagen Zoekopdrachten</h4>
+            <h4 className="text-sm font-medium text-gray-700">{t('filters.savedSearches')}</h4>
           </div>
           <div className="flex flex-wrap gap-2">
             {savedSearches.map((search) => (
@@ -260,7 +260,7 @@ export default function EnhancedFiltersPanel({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Target className="w-4 h-4 inline mr-1" />
-                Zoeken
+                {t('filters.search')}
               </label>
               <input
                 type="text"
@@ -650,7 +650,7 @@ export default function EnhancedFiltersPanel({
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('filters.saveSearchTitle')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('common.saveSearch')}</h3>
             <input
               type="text"
               value={searchName}

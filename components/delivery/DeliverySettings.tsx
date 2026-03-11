@@ -186,11 +186,11 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
             <Link href="/delivery/dashboard">
               <Button variant="ghost">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Terug
+                {t('common.back')}
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Bezorger Instellingen</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('delivery.deliverySettings')}</h1>
               <p className="text-gray-600">{t('delivery.adjustWorkArea')}</p>
             </div>
           </div>
@@ -540,14 +540,14 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               className="flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Opslaan...' : 'Instellingen Opslaan'}
+              {loading ? t('common.saving') : t('common.saveSettings')}
             </Button>
           </div>
 
           {/* Success Message */}
           {success && (
             <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
-              Instellingen opgeslagen!
+              {t('common.settingsSaved')}
             </div>
           )}
         </div>

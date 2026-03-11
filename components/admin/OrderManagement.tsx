@@ -850,7 +850,7 @@ function OrderDetailModal({
                   }}
                   className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                  Status Bijwerken
+                  {t('common.updateStatus')}
                 </button>
                 {displayOrder.status !== 'CANCELLED' && displayOrder.status !== 'REFUNDED' && (
                   <button
@@ -866,7 +866,7 @@ function OrderDetailModal({
                     }}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                   >
-                    Annuleren
+                    {t('common.cancel')}
                   </button>
                 )}
               </div>

@@ -633,7 +633,7 @@ export default function CompactGardenForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  Verzenden
+                  {t('productForm.shippingInfo.title')}
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
@@ -734,13 +734,13 @@ export default function CompactGardenForm({
         {hasDeliveryOption('SHIPPING') && (
           <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📦 {t('productForm.shippingInfo.title') || 'Verzenden'}
+              📦 {t('productForm.shippingInfo.title')}
             </label>
             <p className="text-xs text-gray-600 mb-2">
-              {t('productForm.shippingInfo.description') || 'Dit product kan via pakketpost worden verzonden. De verzendkosten worden automatisch berekend op basis van het adres van de koper.'}
+              {t('productForm.shippingInfo.description')}
             </p>
             <p className="text-xs text-gray-500">
-              {t('productForm.shippingInfo.addressNote') || 'Je adres wordt automatisch gebruikt als verzendadres. Zorg dat je adres compleet is in je profiel.'}
+              {t('productForm.shippingInfo.addressNote')}
             </p>
           </div>
         )}
@@ -748,7 +748,7 @@ export default function CompactGardenForm({
         {/* Status Toggle - Altijd beschikbaar */}
         <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-4 border-2 border-emerald-200">
           <label className="block text-sm font-semibold text-gray-900 mb-3">
-            👁️ {t('productForm.status') || 'Zichtbaarheid op Dorpsplein'}
+            👁️ {t('productForm.status')}
           </label>
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -877,10 +877,10 @@ export default function CompactGardenForm({
             {submitting ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                {editMode ? 'Bijwerken...' : 'Opslaan...'}
+                {editMode ? t('common.saving') : t('common.saving')}
               </div>
             ) : (
-              editMode ? '✅ Bijwerken' : '🚀 Publiceren'
+              editMode ? `✅ ${t('common.update')}` : `🚀 ${t('buttons.publish')}`
             )}
           </button>
           
@@ -890,7 +890,7 @@ export default function CompactGardenForm({
               onClick={onCancel}
               className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Annuleren
+              {t('common.cancel')}
             </button>
           )}
         </div>

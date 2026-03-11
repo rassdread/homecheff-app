@@ -97,7 +97,7 @@ export default function AdminUserContact() {
             className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold flex items-center gap-2"
           >
             <Search className="w-5 h-5" />
-            {isSearching ? 'Zoeken...' : 'Zoeken'}
+            {isSearching ? t('common.searchEllipsis') : t('common.search')}
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function AdminUserContact() {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-900">
-              Zoekresultaten ({searchResults.length})
+              {t('common.searchResults', { count: searchResults.length })}
             </h3>
           </div>
           <div className="divide-y divide-gray-200">

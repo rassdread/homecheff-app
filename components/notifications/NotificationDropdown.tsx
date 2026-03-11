@@ -356,12 +356,13 @@ interface MessagesTabContentProps {
 }
 
 function MessagesTabContent({ messages, loading, onMessageClick }: MessagesTabContentProps) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 py-12">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mb-3"></div>
-          <p className="text-sm text-gray-500">Laden...</p>
+          <p className="text-sm text-gray-500">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -372,10 +373,10 @@ function MessagesTabContent({ messages, loading, onMessageClick }: MessagesTabCo
       <div className="flex flex-col items-center justify-center h-64 text-center p-8">
         <MessageCircle className="w-16 h-16 text-gray-300 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Geen berichten
+          {t('messages.noMessages')}
         </h3>
         <p className="text-gray-500 text-sm">
-          Je hebt nog geen berichten ontvangen.
+          {t('messages.noMessagesReceived')}
         </p>
       </div>
     );

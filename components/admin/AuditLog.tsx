@@ -10,6 +10,7 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AuditAction {
   id: string;
@@ -30,6 +31,7 @@ interface AuditAction {
 }
 
 export default function AuditLog() {
+  const { t } = useTranslation();
   const [actions, setActions] = useState<AuditAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -165,7 +167,7 @@ export default function AuditLog() {
         {loading ? (
           <div className="p-12 text-center">
             <RefreshCw className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Laden...</p>
+            <p className="text-gray-600">{t('common.loading')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

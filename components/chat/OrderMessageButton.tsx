@@ -90,7 +90,7 @@ export default function OrderMessageButton({
         `}
       >
         <MessageCircle className="w-4 h-4" />
-        <span>{isLoading ? 'Laden...' : `Bericht over ${displayOrderNumber}`}</span>
+        <span>{isLoading ? t('common.loading') : t('messages.messageAboutOrderNumber', { orderNumber: displayOrderNumber })}</span>
       </button>
 
       {/* Chat Modal */}
@@ -166,14 +166,14 @@ export default function OrderMessageButton({
                 onClick={() => setShowModal(false)}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition-colors"
               >
-                Annuleren
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleStartChat}
                 disabled={isLoading}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none"
               >
-                {isLoading ? 'Laden...' : 'Verstuur'}
+                {isLoading ? t('common.loading') : t('common.send')}
               </button>
             </div>
           </div>

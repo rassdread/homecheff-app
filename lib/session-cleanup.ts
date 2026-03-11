@@ -12,10 +12,14 @@ export function clearAllUserData(): void {
   // Clear all localStorage items related to the app
   const keysToRemove: string[] = [];
   
-  // Check localStorage for all possible user-related keys
+  // Check localStorage for all possible user-related keys.
+  // Preserve language preference and i18n cache so Safari "unauthenticated" flicker doesn't reset taal,
+  // and so taalaanpassingen (i18n refactor) never cause or worsen logout issues on Safari/iPhone.
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && (
+    if (!key) continue;
+    if (key === 'homecheff-language' || key.startsWith('i18n-')) continue; // keep language + translation cache
+    if (
       key.startsWith('homecheff_') ||
       key.startsWith('user_') ||
       key.startsWith('delivery_') ||
@@ -32,7 +36,7 @@ export function clearAllUserData(): void {
       key.includes('auth') ||
       key.includes('session') ||
       key.includes('token')
-    )) {
+    ) {
       keysToRemove.push(key);
     }
   }

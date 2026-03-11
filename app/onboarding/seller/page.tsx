@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import WorkspacePhotoUpload from "@/components/workspace/WorkspacePhotoUpload";
 import { uploadProfilePhoto } from "@/lib/upload";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SellerOnboardingPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [bio, setBio] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -128,7 +130,7 @@ export default function SellerOnboardingPage() {
               disabled={uploading}
               className={uploading ? 'opacity-50 cursor-not-allowed' : ''}
             >
-              {uploading ? 'Opslaan...' : 'Opslaan en afronden'}
+              {uploading ? t('common.saving') : t('common.saveAndFinish')}
             </Button>
           </div>
         </div>

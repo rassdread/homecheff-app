@@ -73,7 +73,7 @@ interface DesignManagerProps {
 }
 
 export default function DesignManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: DesignManagerProps) {
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -654,7 +654,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                   <Palette className="w-6 h-6 text-yellow-600" />
-                  {editingDesign ? 'Design Bewerken' : 'Nieuw Design'}
+                  {editingDesign ? t('design.editDesign') : t('design.newDesign')}
                 </h2>
                 <button
                   onClick={() => {
@@ -907,7 +907,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
                     }}
                     className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    Annuleren
+                    {t('common.cancel')}
                   </button>
                   <button
                     onClick={handleSaveDesign}
@@ -915,7 +915,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
                     className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Palette className="w-4 h-4" />
-                    {editingDesign ? 'Bijwerken' : 'Opslaan'}
+                    {editingDesign ? t('common.update') : t('common.save')}
                   </button>
                 </div>
               </div>
@@ -928,8 +928,8 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
       {filteredDesigns.length === 0 ? (
         <div className="text-center py-12">
           <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen designs</h3>
-          <p className="text-gray-500 mb-4">Begin met het toevoegen van je eerste creatie</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{tOr('design.noDesigns', 'No designs yet', 'Nog geen designs')}</h3>
+          <p className="text-gray-500 mb-4">{tOr('design.noDesignsHint', 'Start by adding your first creation', 'Begin met het toevoegen van je eerste creatie')}</p>
           {!isPublic && (
             <button
               onClick={() => setShowForm(true)}

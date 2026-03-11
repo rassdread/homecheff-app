@@ -8,6 +8,7 @@ import {
   Bell, Activity, Save, AlertCircle, Check, Home, ArrowLeft
 } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PrivacySettings {
   messagePrivacy: 'NOBODY' | 'FANS_ONLY' | 'EVERYONE';
@@ -26,6 +27,7 @@ interface PrivacySettingsProps {
 }
 
 export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
+  const { t } = useTranslation();
   const { data: session } = useSession();
   const [settings, setSettings] = useState<PrivacySettings>({
     messagePrivacy: 'EVERYONE',
@@ -376,7 +378,7 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Save className="w-4 h-4" />
-            {saving ? 'Opslaan...' : 'Instellingen Opslaan'}
+            {saving ? t('common.saving') : t('common.saveSettings')}
           </button>
         </div>
       </div>

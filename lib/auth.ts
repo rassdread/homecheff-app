@@ -525,13 +525,17 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // .eu = hoofddomein (SEO/canonical), .nl = Nederlandse variant. Gebruiker blijft op het domein waar hij inlogt.
-      // Geen redirect .nl → .eu of .eu → .nl: voorkomt sessie-/cookie-problemen (o.a. Safari iPhone).
+      // .eu = enige auth-domein: sessie-cookie altijd op .eu, anders .nl/.eu glitch (Safari uitlog na inlog).
+      // Middleware stuurt .nl → .eu; OAuth callback moet altijd naar .eu gaan zodat cookie op .eu staat.
+      const canonicalAuthOrigin = process.env.NEXTAUTH_URL?.replace(/\/$/, '') || 'https://homecheff.eu';
       const ourDomains = ['https://homecheff.nl', 'https://homecheff.eu', 'https://www.homecheff.nl', 'https://www.homecheff.eu'];
       const baseUrlNorm = (baseUrl || '').replace(/\/$/, '');
       const isBaseOurDomain = ourDomains.some((d) => baseUrlNorm === d || baseUrlNorm.startsWith(d + '/'));
-      // Fallback naar .eu zodat Safari/redirects altijd op hoofddomein blijven (.eu/login, .eu/profile)
-      const actualBaseUrl = (isBaseOurDomain ? baseUrlNorm : baseUrl) || process.env.NEXTAUTH_URL || 'https://homecheff.eu';
+      // In productie: altijd .eu gebruiken voor redirects (NEXTAUTH_URL), geen .nl – voorkomt cookie op verkeerd domein.
+      const actualBaseUrl =
+        process.env.NODE_ENV === 'production'
+          ? (ourDomains.includes(canonicalAuthOrigin as any) ? canonicalAuthOrigin : 'https://homecheff.eu')
+          : (isBaseOurDomain ? baseUrlNorm : baseUrl) || baseUrl || 'http://localhost:3000';
 
       const forceSameDomain = (targetUrl: string): string => {
         if (!actualBaseUrl || !targetUrl) return targetUrl;

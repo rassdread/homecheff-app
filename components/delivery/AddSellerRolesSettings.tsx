@@ -347,14 +347,14 @@ export default function AddSellerRolesSettings({ currentRoles, age, onSave }: Ad
               }}
               className="flex-1"
             >
-              Annuleren
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleSave}
               disabled={!allAgreed || loading}
               className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Opslaan...' : 'Rollen Activeren'}
+              {loading ? t('common.saving') : t('common.activateRoles')}
             </Button>
           </div>
         </div>

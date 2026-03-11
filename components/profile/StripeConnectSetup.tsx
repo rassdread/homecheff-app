@@ -130,7 +130,7 @@ export default function StripeConnectSetup({
         className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-sm py-2 px-4"
       >
         <CreditCard className="h-3 w-3 mr-2" />
-        {loading ? 'Bezig...' : 'Stripe Connect Opzetten'}
+        {loading ? t('common.loading') : t('common.stripeConnectSetup')}
       </Button>
     </div>
   );

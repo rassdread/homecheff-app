@@ -68,6 +68,10 @@
   },
   "cart": {
     "title": "Shopping Cart",
+    "addToCart": "Add to cart",
+    "adding": "Adding...",
+    "addedToCart": "Added to cart",
+    "inCart": "In cart",
     "empty": "Your shopping cart is empty",
     "emptyDescription": "Discabout delicious local products and add them to your cart",
     "continueShopping": "Continue Shopping",
@@ -100,6 +104,8 @@
     "all": "All"
   },
   "messages": {
+    "messageAboutOrder": "Message about order",
+    "messageAboutOrderNumber": "Message about {orderNumber}",
     "uploadNoUrl": "Could not get upload URL",
     "uploadFailed": "Upload failed",
     "saved": "Saved",
@@ -377,6 +383,8 @@
     "financial": "Financial",
     "disputes": "Disputes",
     "settings": "Settings",
+    "editUser": "Edit user",
+    "updateUser": "Update user",
     "auditLog": {
       "title": "Audit Log",
       "subtitle": "Overview of all admin actions",
@@ -1273,6 +1281,16 @@
     "group": "Group",
     "photos": "Photos (max 5)"
   },
+  "design": {
+    "noDesigns": "No designs yet",
+    "noDesignsHint": "Start by adding your first creation",
+    "editDesign": "Edit design",
+    "newDesign": "New design",
+    "editDesignerProduct": "Edit designer product",
+    "newDesignerProduct": "New designer product",
+    "editChefProduct": "Edit chef product",
+    "newChefProduct": "New chef product"
+  },
   "filters": {
     "all": "All",
     "allDelivery": "All",
@@ -1280,6 +1298,7 @@
     "delivery": "Delivery",
     "both": "Both",
     "search": "Search",
+    "savedSearches": "Saved searches",
     "searchProducts": "Search products...",
     "searchUsers": "Search users...",
     "searchProductsButton": "Search products",
@@ -1969,6 +1988,31 @@
     }
   },
   "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "update": "Update",
+    "send": "Send",
+    "loadingEllipsis": "Loading...",
+    "add": "Add",
+    "addEllipsis": "Adding...",
+    "activateRoles": "Activate roles",
+    "saveSettings": "Save settings",
+    "settingsSaved": "Settings saved!",
+    "stripeConnectSetup": "Stripe Connect setup",
+    "saveFailed": "Save failed",
+    "saveAndFinish": "Save and finish",
+    "searchEllipsis": "Searching...",
+    "searchResults": "Search results ({count})",
+    "saveSearch": "Save search",
+    "addReminder": "Add reminder",
+    "notificationSettingsSave": "Save notification settings",
+    "updateStatus": "Update status",
+    "recentPayouts": "Recent payouts",
+    "encrypt": "Encrypt",
+    "autoEncrypt": "Auto encrypt",
+    "decrypt": "Decrypt",
+    "close": "Close",
     "loading": "Loading",
     "loadingDots": "Loading...",
     "gridView": "Grid view",
@@ -2428,8 +2472,10 @@
     "moneyBackGuarantee": "Money back guarantee",
     "priceLabel": "Price",
     "editProduct": "Edit product",
+    "editProductDescription": "Edit your product details",
     "viewProfile": "View profile",
     "deleteTitle": "Delete item",
+    "deleting": "Deleting...",
     "deleteConfirm": "Are you sure you want to delete <strong>{title}</strong>? This action cannot be undone.",
     "deleteConfirmButton": "Yes, delete",
     "backToOverview": "Back to aboutview",
@@ -3810,7 +3856,7 @@
     "emailUpdated": "Email successfully updated",
     "errorUpdatingEmail": "Error updating email",
     "updateEmail": "Update email",
-    "saving": "Opslaan..."
+    "saving": "Saving..."
   },
   "contact": {
     "title": "Contact Us",

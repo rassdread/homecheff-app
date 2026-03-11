@@ -100,12 +100,14 @@ export function validateRequest(request: NextRequest) {
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');
   
-  // Basic origin validation
+  // Basic origin validation. .eu = canonical (middleware redirects .nl → .eu); both listed for CORS/API.
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'https://homecheff.vercel.app',
     'https://homecheff-app.vercel.app',
+    'https://homecheff.eu',
+    'https://www.homecheff.eu',
     'https://homecheff.nl',
     'https://www.homecheff.nl'
   ];
