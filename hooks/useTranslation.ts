@@ -133,7 +133,8 @@ export function useTranslation() {
       // For authenticated users, fetch in background (don't block translation loading)
       try {
         const response = await fetch('/api/user/language', {
-          cache: 'no-store' // Always fetch fresh preference
+          cache: 'no-store',
+          credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
@@ -281,7 +282,8 @@ export function useTranslation() {
           // Fetch fresh in background for next time (don't await or block)
           // Use default cache strategy for better cross-browser compatibility
           fetch(`/api/i18n/${lang}?t=${now}`, {
-            cache: 'default' // Better cross-browser compatibility than force-cache
+            cache: 'default',
+            credentials: 'include'
           }).then(response => {
             if (response.ok) {
               return response.json().then(newTranslations => {
@@ -320,7 +322,8 @@ export function useTranslation() {
       // Fetch fresh translations with cache-busting query param for better browser compatibility
       // Use default cache strategy (better cross-browser support than force-cache)
       const response = await fetch(`/api/i18n/${lang}?t=${now}`, {
-        cache: 'default' // Better cross-browser compatibility than force-cache
+        cache: 'default',
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -493,7 +496,8 @@ export function useTranslation() {
           const response = await fetch('/api/user/language', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ language: newLanguage })
+            body: JSON.stringify({ language: newLanguage }),
+            credentials: 'include'
           });
           if (response.ok) {
             console.log(`[i18n] Saved user language preference to database: ${newLanguage}`);

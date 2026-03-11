@@ -56,7 +56,8 @@ export default function OnlineStatusTracker() {
         await fetch('/api/users/online-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isOnline: online })
+          body: JSON.stringify({ isOnline: online }),
+          credentials: 'include'
         });
       } catch {
         // Silent: CORS or network (e.g. when opening from different host)

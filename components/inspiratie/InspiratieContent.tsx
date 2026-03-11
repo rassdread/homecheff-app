@@ -1227,7 +1227,7 @@ function PropsButtonWrapper({
 
     const checkPropsCount = async () => {
       try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`);
+        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
         if (countResponse.ok) {
           const countData = await countResponse.json();
           const count = countData.propsCount || 0;
@@ -1251,7 +1251,7 @@ function PropsButtonWrapper({
     // Refresh count after initial load
     const refreshCount = async () => {
       try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`);
+        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
         if (countResponse.ok) {
           const countData = await countResponse.json();
           const count = countData.propsCount || 0;
@@ -1282,7 +1282,7 @@ function PropsButtonWrapper({
       // Refresh count after a short delay to allow API to update
       setTimeout(async () => {
         try {
-          const countResponse = await fetch(`/api/props/count?dishId=${dishId}`);
+          const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
           if (countResponse.ok) {
             const countData = await countResponse.json();
             const count = countData.propsCount || 0;
@@ -1301,7 +1301,7 @@ function PropsButtonWrapper({
     // Also poll periodically as backup
     const interval = setInterval(async () => {
       try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`);
+        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
         if (countResponse.ok) {
           const countData = await countResponse.json();
           const count = countData.propsCount || 0;

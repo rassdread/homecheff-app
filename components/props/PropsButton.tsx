@@ -48,8 +48,8 @@ export default function PropsButton({
           : `/api/props/count?dishId=${dishId}`;
         
         const [statusResponse, countResponse] = await Promise.all([
-          fetch(statusUrl),
-          fetch(countUrl)
+          fetch(statusUrl, { credentials: 'include' }),
+          fetch(countUrl, { credentials: 'include' })
         ]);
         
         if (statusResponse.ok) {
@@ -86,6 +86,7 @@ export default function PropsButton({
     try {
       const response = await fetch('/api/props/toggle', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -103,7 +104,7 @@ export default function PropsButton({
         const countUrl = productId
           ? `/api/props/count?productId=${productId}`
           : `/api/props/count?dishId=${dishId}`;
-        const countResponse = await fetch(countUrl);
+        const countResponse = await fetch(countUrl, { credentials: 'include' });
         let newCount = propsCount;
         if (countResponse.ok) {
           const countData = await countResponse.json();

@@ -47,7 +47,7 @@ export default function UserStatsTile({
 
     const fetchStats = async () => {
       try {
-        const response = await fetch(`/api/user/${userId}/stats`);
+        const response = await fetch(`/api/user/${userId}/stats`, { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
           setStats(data);

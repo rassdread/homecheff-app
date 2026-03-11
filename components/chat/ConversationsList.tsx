@@ -87,6 +87,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
       const response = await fetch('/api/conversations-fast', {
         cache: 'no-store',
+        credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache'
         }
@@ -100,6 +101,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
         const fallbackResponse = await fetch('/api/conversations', {
           cache: 'no-store',
+          credentials: 'include',
           headers: {
             'Cache-Control': 'no-cache'
           }

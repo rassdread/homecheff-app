@@ -69,10 +69,16 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   // Production last resort: if request.url points to our host but we still have no origin, allow with canonical origin (Safari same-origin)
   if (process.env.NODE_ENV === 'production' && !allowOrigin && isOurDomainByUrlHost)
     allowOrigin = urlOrigin || `https://${urlHost}`;
-  // Final fallback for production /api: always send CORS so Safari never gets a response without headers (avoids "access control checks")
+  // Final fallback for production /api: always send CORS so Safari never gets a response without headers (avoids "access control checks").
+  // Use Host-based origin or canonical .eu; never use urlOrigin here as it can be Vercel-internal and would mismatch the browser origin.
   const pathname = typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '';
-  if (process.env.NODE_ENV === 'production' && !allowOrigin && (pathname.startsWith('/api/') || pathname.startsWith('/i18n/')))
-    allowOrigin = rawOrigin === 'null' ? 'null' : (urlOrigin || 'https://homecheff.eu');
+  if (process.env.NODE_ENV === 'production' && !allowOrigin && (pathname.startsWith('/api/') || pathname.startsWith('/i18n/'))) {
+    const canonicalOrigin =
+      hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl'
+        ? `${effectiveProto}://${hostOnly}`
+        : 'https://homecheff.eu';
+    allowOrigin = rawOrigin === 'null' ? 'null' : canonicalOrigin;
+  }
 
   if (!allowOrigin) return {};
   return {

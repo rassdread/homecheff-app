@@ -57,7 +57,7 @@ export default function NotificationDropdown() {
     try {
       // Fetch both conversations and chat notifications
       const [conversationsResponse, notificationsResponse] = await Promise.all([
-        fetch('/api/conversations'),
+        fetch('/api/conversations', { credentials: 'include' }),
         fetch('/api/notifications?limit=50')
       ]);
 

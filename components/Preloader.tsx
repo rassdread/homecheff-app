@@ -60,7 +60,7 @@ export default function Preloader() {
         
         // Preload conversations (if logged in)
         if (pathname !== '/login' && pathname !== '/register') {
-          fetch('/api/conversations', { method: 'HEAD' }).catch(() => {});
+          fetch('/api/conversations', { method: 'HEAD', credentials: 'include' }).catch(() => {});
         }
         
         // Preload products (for dorpsplein/inspiratie)
