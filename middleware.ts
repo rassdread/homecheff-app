@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // CORS voor API en i18n: bij ontbrekende Origin (Safari same-origin) Host gebruiken zodat Allow-Origin klopt.
+  // CORS voor API en i18n (o.a. /api/i18n/nl en /api/i18n/en voor taalwisselaar): bij ontbrekende Origin (Safari) Host gebruiken.
   const OUR_DOMAINS = ['https://homecheff.eu', 'https://homecheff.nl', 'https://www.homecheff.eu', 'https://www.homecheff.nl'];
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {

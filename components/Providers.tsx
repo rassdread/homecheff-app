@@ -11,11 +11,11 @@ function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider 
-      // Refresh session every 5 minutes to keep it fresh (especially important for iOS Safari)
+    <SessionProvider
+      // Refresh session every 5 minutes while tab is active
       refetchInterval={5 * 60}
-      // Also refetch when window gets focus (user comes back to tab)
-      refetchOnWindowFocus={true}
+      // Uit: refetch bij tab-focus kan op Safari falen (CORS/cookie) en dan status 'unauthenticated' geven – blijf ingelogd.
+      refetchOnWindowFocus={false}
     >
       <SessionGuard />
       <SessionIsolationWrapper>

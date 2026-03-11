@@ -34,27 +34,27 @@ export const authOptions: NextAuthOptions = {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        // Safari/PWA: SameSite=None + Secure so cookie is sent even with opaque/null origin (e.g. PWA, ITP)
-        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+        // SameSite=Lax: same-origin (homecheff.eu) – Safari houdt sessie beter vast dan None; cookie wordt meegestuurd bij navigatie en fetch naar eigen domein.
+        sameSite: 'lax' as const,
         path: '/',
         secure: process.env.NODE_ENV === 'production',
       },
     },
     callbackUrl: {
-      name: `next-auth.callback-url`, // Explicit name without prefix
+      name: `next-auth.callback-url`,
       options: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+        sameSite: 'lax' as const,
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 60 * 10, // 10 minutes
       },
     },
     csrfToken: {
-      name: `next-auth.csrf-token`, // Explicit name without prefix (not __Host- prefix)
+      name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+        sameSite: 'lax' as const,
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 60 * 60, // 1 hour

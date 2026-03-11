@@ -12,6 +12,7 @@ const OUR_DOMAINS = [
  * always has the correct Access-Control-Allow-Origin (Safari/iOS + lokaal IP).
  * Safari on iOS often omits Origin on same-origin requests; in production we
  * always return fixed CORS for /api and /i18n so Safari never fails "access control checks".
+ * /api/i18n/[lang] serves nl/en translations for the language switcher (homecheff-language cookie).
  */
 const CANONICAL_ORIGIN = 'https://homecheff.eu';
 
@@ -32,7 +33,12 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (typeof request.nextUrl !== 'undefined' && request.nextUrl?.pathname) ||
     (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
   const pathForApiCheck = pathname || (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
-  const isApiOrI18n = pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/');
+  // Safari/Vercel: in serverless pathname can be empty; fallback to request.url path or substring check
+  const urlPath = pathForApiCheck || (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
+  const isApiOrI18n =
+    (pathForApiCheck && (pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/'))) ||
+    (urlPath && (urlPath.startsWith('/api/') || urlPath.startsWith('/i18n/'))) ||
+    (typeof request.url === 'string' && (request.url.includes('/api/') || request.url.includes('/i18n/')));
 
   // Production: ALWAYS return CORS for /api and /i18n.
   // - When Origin is "null" or missing/empty: echo "null". Safari often sends Origin: null (opaque) or

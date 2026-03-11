@@ -5,7 +5,7 @@ import { getCorsHeaders } from '@/lib/apiCors';
 
 export const dynamic = 'force-dynamic';
 
-/** Serve i18n JSON with CORS so Safari/lokaal IP (192.168.x) kan vertalingen laden. */
+/** Serve i18n JSON (nl/en) with CORS so Safari/lokaal IP kan vertalingen laden; gekoppeld aan taalwisselaar en homecheff-language cookie. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ lang: string }> }
