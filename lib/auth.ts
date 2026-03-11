@@ -15,6 +15,10 @@ type AppUser = { id: string; email: string; role: Role; name?: string; image?: s
 
 // In productie (Vercel): zet NEXTAUTH_URL=https://homecheff.eu (zonder trailing slash).
 // Anders kan de sessie-cookie voor het verkeerde domein worden gezet en Safari stuurt hem niet mee.
+// Controleer in Vercel: Project → Settings → Environment Variables.
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
+  console.warn('[auth] NEXTAUTH_URL niet gezet in productie – zet in Vercel op https://homecheff.eu');
+}
 export const authOptions: NextAuthOptions = {
   trustHost: true, // Vereist voor correcte sessie op iPhone Safari / meerdere domeinen (homecheff.eu vs homecheff.nl)
   pages: { signIn: "/login" },
@@ -31,33 +35,30 @@ export const authOptions: NextAuthOptions = {
       name: `next-auth.session-token`, // Explicit name without prefix
       options: {
         httpOnly: true,
-        sameSite: 'lax' as const,
+        // Safari/PWA: SameSite=None + Secure so cookie is sent even with opaque/null origin (e.g. PWA, ITP)
+        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
         path: '/',
-        // Safari/HTTPS: always Secure in production so cookie is sent on same-origin API calls
         secure: process.env.NODE_ENV === 'production',
-        // Edge browser has stricter cookie size limits (4096 bytes)
-        // Keep cookie size minimal by storing only essential data in JWT
       },
     },
     callbackUrl: {
       name: `next-auth.callback-url`, // Explicit name without prefix
       options: {
         httpOnly: true,
-        sameSite: 'lax' as const,
+        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // Keep callback URL short - don't store full URLs
-        maxAge: 60 * 10, // 10 minutes - shorter TTL to reduce cookie size
+        maxAge: 60 * 10, // 10 minutes
       },
     },
     csrfToken: {
       name: `next-auth.csrf-token`, // Explicit name without prefix (not __Host- prefix)
       options: {
         httpOnly: true,
-        sameSite: 'lax' as const,
+        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60, // 1 hour - shorter TTL
+        maxAge: 60 * 60, // 1 hour
       },
     },
   },

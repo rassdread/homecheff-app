@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
   const body = {
     hasSession: !!session?.user,
     cookiePresent: sessionCookiePresent,
+    origin: req.headers.get('origin') ?? '(missing)',
     cookieNames: cookieNames.filter((n) => n.includes('next-auth') || n.includes('session')),
     NEXTAUTH_URL: nextAuthUrlSet ? nextAuthUrlMatch : 'niet gezet',
     hint: sessionCookiePresent && !session?.user
