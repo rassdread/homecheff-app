@@ -93,13 +93,25 @@ const nextConfig = {
   poweredByHeader: false,
   
   // Headers for better caching and CORS (lokaal netwerk / iPhone Safari)
-  // No static CORS for /api or /i18n: route handlers set CORS via getCorsHeaders(req)
-  // so both homecheff.eu and homecheff.nl (and local IPs in dev) work.
+  // Static CORS fallback for /api and /i18n so Safari always gets headers even if route response loses them.
   async headers() {
+    const corsHeaders = [
+      { key: 'Access-Control-Allow-Origin', value: 'https://homecheff.eu' },
+      { key: 'Access-Control-Allow-Credentials', value: 'true' },
+      { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+      { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+      { key: 'Access-Control-Max-Age', value: '86400' },
+      { key: 'Vary', value: 'Origin' },
+    ];
     const apiAndI18nHeaders = [
+      {
+        source: '/api/:path*',
+        headers: corsHeaders,
+      },
       {
         source: '/i18n/:path*',
         headers: [
+          ...corsHeaders,
           { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
         ],
       },

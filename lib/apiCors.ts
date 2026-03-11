@@ -129,6 +129,10 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   if (process.env.NODE_ENV === 'production' && !allowOrigin && isOurDomainByUrlHost)
     allowOrigin = urlOrigin || `https://${urlHost}`;
 
+  // Production: never return empty CORS for /api or /i18n (Safari shows "access control" when response has no CORS headers)
+  if (process.env.NODE_ENV === 'production' && !allowOrigin && isApiOrI18n)
+    return corsHeadersFor(CANONICAL_ORIGIN, true);
+
   if (!allowOrigin) return {};
   return corsHeadersFor(allowOrigin, isApiOrI18n);
 }
