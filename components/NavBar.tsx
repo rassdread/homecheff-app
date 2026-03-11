@@ -159,9 +159,10 @@ export default function NavBar() {
       // Fetch user profile data
       fetchUserProfile();
     } else {
-      // No session - clear all user data to prevent data leakage
+      // No session: clear only UI state. Do NOT call clearNextAuthData() here –
+      // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
+      // wiping cookies would log the user out. clearNextAuthData() is only for explicit logout (handleLogout).
       setCartUserId(null);
-      clearNextAuthData();
       setUnreadCount(0);
       setUserProfile(null);
     }
