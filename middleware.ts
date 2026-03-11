@@ -25,20 +25,23 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // CORS voor API en i18n: echo request Origin (bijv. www vs non-www) zodat Safari geen "access control checks" krijgt.
+  // CORS voor API en i18n: bij ontbrekende Origin (Safari same-origin) Host gebruiken zodat Allow-Origin klopt.
   const OUR_DOMAINS = ['https://homecheff.eu', 'https://homecheff.nl', 'https://www.homecheff.eu', 'https://www.homecheff.nl'];
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
     const productionOrigin = 'https://homecheff.eu';
     const rawOrigin = request.headers.get('origin');
+    const reqHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
+    const hostOnly = reqHost.replace(/^https?:\/\//, '').split('/')[0] || '';
+    const derivedOrigin = hostOnly && OUR_DOMAINS.some(d => d.includes(hostOnly)) ? `https://${hostOnly}` : null;
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
       allowOrigin =
         rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
-          ? 'null'
+          ? (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : 'null')
           : OUR_DOMAINS.includes(rawOrigin)
             ? rawOrigin
-            : productionOrigin;
+            : (derivedOrigin || productionOrigin);
     } else {
       const host =
         request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||

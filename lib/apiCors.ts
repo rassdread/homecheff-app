@@ -34,15 +34,20 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const pathForApiCheck = pathname || (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
   const isApiOrI18n = pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/');
 
-  // Production: ALWAYS return CORS for /api and /i18n. Echo request Origin when it's one of our domains (e.g. www vs non-www), else "null" when Safari sends null/empty/missing (opaque origin).
+  // Production: ALWAYS return CORS for /api and /i18n. When Origin is missing (Safari same-origin), use Host so the response matches the page origin.
   if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
     const rawOrigin = request.headers.get('origin');
-    const allowOrigin =
-      rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
-        ? 'null'
-        : OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number])
-          ? rawOrigin
-          : CANONICAL_ORIGIN;
+    const host = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
+    const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
+    const derivedOrigin = hostOnly && (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl')
+      ? `https://${hostOnly}`
+      : null;
+    let allowOrigin: string;
+    if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
+      allowOrigin = (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin as (typeof OUR_DOMAINS)[number])) ? derivedOrigin : 'null';
+    } else {
+      allowOrigin = OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number]) ? rawOrigin : (derivedOrigin || CANONICAL_ORIGIN);
+    }
     return corsHeadersFor(allowOrigin, true);
   }
 
