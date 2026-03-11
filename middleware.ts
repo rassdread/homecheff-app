@@ -36,12 +36,13 @@ export function middleware(request: NextRequest) {
     const derivedOrigin = hostOnly && OUR_DOMAINS.some(d => d.includes(hostOnly)) ? `https://${hostOnly}` : null;
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
-      if (rawOrigin === 'null') {
-        allowOrigin = 'null'; // Opaque origin: echo "null" so Safari passes CORS
-      } else if (rawOrigin === '' || rawOrigin == null) {
-        allowOrigin = derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : productionOrigin;
+      // Safari: Origin often "null" or missing (stripped); only "null" passes access control.
+      if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
+        allowOrigin = 'null';
+      } else if (OUR_DOMAINS.includes(rawOrigin)) {
+        allowOrigin = rawOrigin;
       } else {
-        allowOrigin = OUR_DOMAINS.includes(rawOrigin) ? rawOrigin : (derivedOrigin || productionOrigin);
+        allowOrigin = derivedOrigin || productionOrigin;
       }
     } else {
       const host =

@@ -35,8 +35,9 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const isApiOrI18n = pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/');
 
   // Production: ALWAYS return CORS for /api and /i18n.
-  // - When Origin is the string "null" (Safari opaque origin): echo "null" so CORS passes.
-  // - When Origin is missing/empty (Safari same-origin): use Host or CANONICAL_ORIGIN.
+  // - When Origin is "null" or missing/empty: echo "null". Safari often sends Origin: null (opaque) or
+  //   the header is stripped before it reaches the serverless function; returning anything else fails "access control checks".
+  // - When Origin is a valid our-domain URL: echo it.
   if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
     const rawOrigin = request.headers.get('origin');
     const host = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
@@ -45,14 +46,13 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
       ? `https://${hostOnly}`
       : null;
     let allowOrigin: string;
-    if (rawOrigin === 'null') {
-      // Opaque origin (PWA, redirects, etc.): server must echo "null" or browser fails access control.
+    if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
+      // Safari opaque origin or header not forwarded: only "null" is accepted by the browser.
       allowOrigin = 'null';
-    } else if (rawOrigin === '' || rawOrigin == null) {
-      // Safari often omits Origin for same-origin; use Host. If Host is internal (e.g. Vercel), fallback to canonical.
-      allowOrigin = (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin as (typeof OUR_DOMAINS)[number])) ? derivedOrigin : CANONICAL_ORIGIN;
+    } else if (OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number])) {
+      allowOrigin = rawOrigin;
     } else {
-      allowOrigin = OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number]) ? rawOrigin : (derivedOrigin || CANONICAL_ORIGIN);
+      allowOrigin = derivedOrigin || CANONICAL_ORIGIN;
     }
     return corsHeadersFor(allowOrigin, true);
   }
