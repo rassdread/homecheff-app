@@ -25,19 +25,20 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // CORS voor API en i18n: voorkom "Load failed" / "access control checks" (Safari/PWA).
-  // In productie altijd vaste origin zodat Safari nooit CORS mist (Origin wordt vaak niet meegestuurd).
+  // CORS voor API en i18n: echo request Origin (bijv. www vs non-www) zodat Safari geen "access control checks" krijgt.
+  const OUR_DOMAINS = ['https://homecheff.eu', 'https://homecheff.nl', 'https://www.homecheff.eu', 'https://www.homecheff.nl'];
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
     const productionOrigin = 'https://homecheff.eu';
     const rawOrigin = request.headers.get('origin');
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
-      // Safari/PWA stuurt soms Origin: "null" of stuurt geen Origin (opaque origin) – CORS vereist dan "null" in de response.
       allowOrigin =
         rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
           ? 'null'
-          : productionOrigin;
+          : OUR_DOMAINS.includes(rawOrigin)
+            ? rawOrigin
+            : productionOrigin;
     } else {
       const host =
         request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
@@ -61,6 +62,7 @@ export function middleware(request: NextRequest) {
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Vary': 'Origin',
     };
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, { status: 204, headers: corsHeaders });

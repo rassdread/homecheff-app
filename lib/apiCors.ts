@@ -21,6 +21,7 @@ function corsHeadersFor(allowOrigin: string, isApiOrI18n: boolean): Record<strin
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
   };
   if (isApiOrI18n) h['Cache-Control'] = 'no-store, no-cache, must-revalidate';
   return h;
@@ -30,15 +31,18 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const pathname =
     (typeof request.nextUrl !== 'undefined' && request.nextUrl?.pathname) ||
     (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
-  const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
+  const pathForApiCheck = pathname || (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
+  const isApiOrI18n = pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/');
 
-  // Production: ALWAYS return CORS for /api and /i18n. Safari/PWA can send Origin: "null" or omit Origin (opaque origin) – CORS requires echoing "null" back when origin is null or missing, else "access control checks" fail.
+  // Production: ALWAYS return CORS for /api and /i18n. Echo request Origin when it's one of our domains (e.g. www vs non-www), else "null" when Safari sends null/empty/missing (opaque origin).
   if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
     const rawOrigin = request.headers.get('origin');
     const allowOrigin =
       rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
         ? 'null'
-        : CANONICAL_ORIGIN;
+        : OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number])
+          ? rawOrigin
+          : CANONICAL_ORIGIN;
     return corsHeadersFor(allowOrigin, true);
   }
 
