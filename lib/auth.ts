@@ -26,13 +26,12 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  // Fix cookie issues - disable automatic secure cookie prefixes
-  // NextAuth automatically adds __Secure- or __Host- prefixes when useSecureCookies is true
-  // We disable this to have full control over cookie names and prevent prefix errors
-  useSecureCookies: false, // Disable automatic prefix handling
+  // In productie moet useSecureCookies true zijn zodat NextAuth de cookie als __Secure-next-auth.session-token
+  // zet én leest; Safari stuurt die naam mee – bij false zocht NextAuth naar next-auth.session-token en vond niets.
+  useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`, // Explicit name without prefix
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         // Safari/PWA: SameSite=None + Secure so cookie is sent even with opaque/null origin (e.g. PWA, ITP)

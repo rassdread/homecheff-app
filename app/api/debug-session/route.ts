@@ -17,7 +17,10 @@ export async function GET(req: NextRequest) {
   const cookieNames = cookieHeader.split(';').map((c) => c.trim().split('=')[0]).filter(Boolean);
   const sessionCookiePresent =
     cookieNames.some(
-      (n) => n === 'next-auth.session-token' || n.startsWith('__Host-next-auth.session-token')
+      (n) =>
+        n === 'next-auth.session-token' ||
+        n.startsWith('__Host-next-auth.session-token') ||
+        n.startsWith('__Secure-next-auth.session-token')
     );
   const session = await auth();
   const nextAuthUrlSet = !!process.env.NEXTAUTH_URL;
