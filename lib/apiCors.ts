@@ -34,7 +34,9 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
   const pathForApiCheck = pathname || (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
   const isApiOrI18n = pathForApiCheck.startsWith('/api/') || pathForApiCheck.startsWith('/i18n/');
 
-  // Production: ALWAYS return CORS for /api and /i18n. When Origin is missing (Safari same-origin), use Host so the response matches the page origin.
+  // Production: ALWAYS return CORS for /api and /i18n.
+  // - When Origin is the string "null" (Safari opaque origin): echo "null" so CORS passes.
+  // - When Origin is missing/empty (Safari same-origin): use Host or CANONICAL_ORIGIN.
   if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
     const rawOrigin = request.headers.get('origin');
     const host = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
@@ -43,8 +45,11 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
       ? `https://${hostOnly}`
       : null;
     let allowOrigin: string;
-    if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
-      // Safari often omits Origin for same-origin; use Host. If Host is internal (e.g. Vercel), fallback to canonical so response is accepted.
+    if (rawOrigin === 'null') {
+      // Opaque origin (PWA, redirects, etc.): server must echo "null" or browser fails access control.
+      allowOrigin = 'null';
+    } else if (rawOrigin === '' || rawOrigin == null) {
+      // Safari often omits Origin for same-origin; use Host. If Host is internal (e.g. Vercel), fallback to canonical.
       allowOrigin = (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin as (typeof OUR_DOMAINS)[number])) ? derivedOrigin : CANONICAL_ORIGIN;
     } else {
       allowOrigin = OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number]) ? rawOrigin : (derivedOrigin || CANONICAL_ORIGIN);

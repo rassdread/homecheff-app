@@ -36,12 +36,13 @@ export function middleware(request: NextRequest) {
     const derivedOrigin = hostOnly && OUR_DOMAINS.some(d => d.includes(hostOnly)) ? `https://${hostOnly}` : null;
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
-      allowOrigin =
-        rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
-          ? (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : productionOrigin)
-          : OUR_DOMAINS.includes(rawOrigin)
-            ? rawOrigin
-            : (derivedOrigin || productionOrigin);
+      if (rawOrigin === 'null') {
+        allowOrigin = 'null'; // Opaque origin: echo "null" so Safari passes CORS
+      } else if (rawOrigin === '' || rawOrigin == null) {
+        allowOrigin = derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : productionOrigin;
+      } else {
+        allowOrigin = OUR_DOMAINS.includes(rawOrigin) ? rawOrigin : (derivedOrigin || productionOrigin);
+      }
     } else {
       const host =
         request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
