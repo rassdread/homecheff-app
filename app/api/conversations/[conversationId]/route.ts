@@ -4,15 +4,17 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { conversationId: string } }
 ) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const { conversationId } = params;
@@ -22,7 +24,7 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     // Check if user is participant in conversation
@@ -34,7 +36,7 @@ export async function GET(
     });
 
     if (!participant) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Access denied' }, { status: 403, headers: cors });
     }
 
     // Fetch conversation with all details
@@ -73,7 +75,7 @@ export async function GET(
     });
 
     if (!conversation) {
-      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404, headers: cors });
     }
 
     // Get other participant (not the current user) with consistent data structure
@@ -105,13 +107,13 @@ export async function GET(
       createdAt: conversation.createdAt
     };
 
-    return NextResponse.json({ conversation: conversationData });
+    return NextResponse.json({ conversation: conversationData }, { headers: cors });
 
   } catch (error) {
     console.error('Error fetching conversation:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: cors }
     );
   }
 }

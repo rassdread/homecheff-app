@@ -6,8 +6,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function GET(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await getServerSession(authOptions as any);
     const { searchParams } = new URL(req.url);
@@ -250,10 +252,10 @@ export async function GET(req: NextRequest) {
       recommendations: recommendations.slice(0, 4), // Limit to 4 recommendations
       userId,
       timestamp: new Date().toISOString(),
-    });
+    }, { headers: cors });
 
   } catch (error) {
     console.error('Error generating smart recommendations:', error);
-    return NextResponse.json({ error: 'Failed to generate recommendations' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate recommendations' }, { status: 500, headers: cors });
   }
 }

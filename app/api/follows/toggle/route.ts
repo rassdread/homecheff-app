@@ -4,17 +4,23 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getCorsHeaders } from "@/lib/apiCors";
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });
+}
 
 export async function POST(req: NextRequest) {
+  const cors = getCorsHeaders(req);
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
     const { sellerId } = await req.json();
     if (!sellerId) {
-      return NextResponse.json({ error: 'Seller ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Seller ID is required' }, { status: 400, headers: cors });
     }
 
     // Get user from database
@@ -24,14 +30,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
     const followerId = user.id;
 
     // Check if user is trying to follow themselves
     if (followerId === sellerId) {
-      return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 });
+      return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400, headers: cors });
     }
 
     // Check if follow relationship already exists
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
         success: true, 
         following: false,
         message: 'Unfollowed successfully'
-      });
+      }, { headers: cors });
     } else {
       // Follow
       await prisma.follow.create({
@@ -68,11 +74,11 @@ export async function POST(req: NextRequest) {
         success: true, 
         following: true,
         message: 'Followed successfully'
-      });
+      }, { headers: cors });
     }
   } catch (error) {
     console.error('Follow toggle error:', error);
-    return NextResponse.json({ error: 'Failed to toggle follow' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to toggle follow' }, { status: 500, headers: cors });
   }
 }
 

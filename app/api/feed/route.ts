@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { getCorsHeaders } from "@/lib/apiCors";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -496,9 +497,10 @@ export async function GET(req: NextRequest) {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   ).slice(0, 30);
 
+  const cors = getCorsHeaders(req);
   return NextResponse.json({
     filters: { q, vertical, subfilters, radius, lat: lat ? Number(lat) : null, lng: lng ? Number(lng) : null },
     count: sortedItems.length,
     items: sortedItems,
-  });
+  }, { headers: cors });
 }
