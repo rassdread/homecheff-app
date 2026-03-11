@@ -32,10 +32,12 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (typeof request.url === 'string' ? (() => { try { return new URL(request.url).pathname; } catch { return ''; } })() : '');
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
 
-  // Production: ALWAYS return CORS for /api and /i18n with canonical origin (Safari same-origin from homecheff.eu).
-  // This avoids any dependency on Origin/Host which Safari may omit or send differently.
-  if (process.env.NODE_ENV === 'production' && isApiOrI18n)
-    return corsHeadersFor(CANONICAL_ORIGIN, true);
+  // Production: ALWAYS return CORS for /api and /i18n. Safari/PWA can send Origin: "null" – CORS requires echoing "null" back, else "access control checks" fail.
+  if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
+    const rawOrigin = request.headers.get('origin');
+    const allowOrigin = rawOrigin === 'null' ? 'null' : CANONICAL_ORIGIN;
+    return corsHeadersFor(allowOrigin, true);
+  }
 
   // Behind Vercel/proxy the Host can be internal; use x-forwarded-host for the real site
   const host =

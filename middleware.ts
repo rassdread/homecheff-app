@@ -30,9 +30,11 @@ export function middleware(request: NextRequest) {
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
     const productionOrigin = 'https://homecheff.eu';
+    const rawOrigin = request.headers.get('origin');
     let allowOrigin: string;
     if (process.env.NODE_ENV === 'production') {
-      allowOrigin = productionOrigin;
+      // Safari/PWA stuurt soms Origin: "null" – CORS vereist dan exact "null" in de response.
+      allowOrigin = rawOrigin === 'null' ? 'null' : productionOrigin;
     } else {
       const host =
         request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
