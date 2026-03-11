@@ -43,8 +43,10 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     (typeof request.url === 'string' && (request.url.includes('/api/') || request.url.includes('/i18n/')));
 
   // Production: ALWAYS return CORS for /api and /i18n.
-  // - When Origin is "null" or missing/empty: echo "null". Safari often sends Origin: null (opaque) or
-  //   the header is stripped before it reaches the serverless function; returning anything else fails "access control checks".
+  // - When Origin is missing/empty: Safari and Vercel often omit or strip it for same-origin requests.
+  //   Use derived origin from Host/request URL so the response matches the real page origin (homecheff.eu).
+  //   Returning "null" when the page is actually https://homecheff.eu causes Safari "access control checks" failure.
+  // - When Origin is literal "null" (opaque): echo "null".
   // - When Origin is a valid our-domain URL: echo it.
   if (process.env.NODE_ENV === 'production' && isApiOrI18n) {
     const rawOrigin = request.headers.get('origin');
@@ -57,14 +59,18 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     const urlHost = typeof request.url === 'string' ? (() => { try { return new URL(request.url).hostname; } catch { return ''; } })() : '';
     const urlDerived = (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl')
       ? `https://${urlHost}` : null;
+    const siteOrigin = derivedOrigin || urlDerived || CANONICAL_ORIGIN;
     let allowOrigin: string;
-    if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
-      // Safari opaque origin or header not forwarded: only "null" is accepted by the browser.
+    if (rawOrigin === 'null') {
+      // Truly opaque origin (e.g. sandboxed iframe): only "null" is valid.
       allowOrigin = 'null';
+    } else if (rawOrigin === '' || rawOrigin == null) {
+      // Missing/empty Origin: same-origin or stripped by proxy. Use site origin so Safari accepts the response.
+      allowOrigin = siteOrigin;
     } else if (OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number])) {
       allowOrigin = rawOrigin;
     } else {
-      allowOrigin = derivedOrigin || urlDerived || CANONICAL_ORIGIN;
+      allowOrigin = siteOrigin;
     }
     return corsHeadersFor(allowOrigin, true);
   }
