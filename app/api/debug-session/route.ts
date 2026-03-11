@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       : process.env.NEXTAUTH_URL
         ? 'gezet maar niet https://homecheff.eu'
         : 'niet gezet (Vercel: NEXTAUTH_URL=https://homecheff.eu)';
+  const hasSecret = !!process.env.NEXTAUTH_SECRET;
 
   const body = {
     hasSession: !!session?.user,
@@ -37,8 +38,11 @@ export async function GET(req: NextRequest) {
     origin: req.headers.get('origin') ?? '(missing)',
     cookieNames: cookieNames.filter((n) => n.includes('next-auth') || n.includes('session')),
     NEXTAUTH_URL: nextAuthUrlSet ? nextAuthUrlMatch : 'niet gezet',
+    NEXTAUTH_SECRET: hasSecret ? 'gezet' : 'niet gezet (Vercel: verplicht voor JWT)',
     hint: sessionCookiePresent && !session?.user
-      ? 'Cookie wordt meegestuurd maar sessie is ongeldig of verlopen.'
+      ? (hasSecret
+          ? 'Cookie wordt meegestuurd maar sessie ongeldig/verlopen – log uit en opnieuw in voor nieuwe cookie.'
+          : 'NEXTAUTH_SECRET ontbreekt in Vercel – zet in Env Vars, daarna opnieuw inloggen.')
       : !sessionCookiePresent && !session?.user
         ? 'Geen sessie-cookie in request (Safari stuurt cookie niet mee?).'
         : session?.user
