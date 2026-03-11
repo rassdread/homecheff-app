@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getCorsHeaders } from '@/lib/apiCors';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -25,56 +26,18 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // CORS voor API en i18n (o.a. /api/i18n/nl en /api/i18n/en voor taalwisselaar): bij ontbrekende Origin (Safari) Host gebruiken.
-  const OUR_DOMAINS = ['https://homecheff.eu', 'https://homecheff.nl', 'https://www.homecheff.eu', 'https://www.homecheff.nl'];
+  // CORS voor API en i18n: één bron van waarheid via getCorsHeaders (Safari preflight + credentials).
   const isApiOrI18n = pathname.startsWith('/api/') || pathname.startsWith('/i18n/');
   if (isApiOrI18n) {
-    const productionOrigin = 'https://homecheff.eu';
-    const rawOrigin = request.headers.get('origin');
-    const reqHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
-    const hostOnly = reqHost.replace(/^https?:\/\//, '').split('/')[0] || '';
-    const derivedOrigin = hostOnly && OUR_DOMAINS.some(d => d.includes(hostOnly)) ? `https://${hostOnly}` : null;
-    let allowOrigin: string;
-    if (process.env.NODE_ENV === 'production') {
-      // Safari: Origin often "null" or missing (stripped); only "null" passes access control.
-      if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
-        allowOrigin = 'null';
-      } else if (OUR_DOMAINS.includes(rawOrigin)) {
-        allowOrigin = rawOrigin;
-      } else {
-        allowOrigin = derivedOrigin || productionOrigin;
+    const corsHeaders = getCorsHeaders(request);
+    if (Object.keys(corsHeaders).length > 0) {
+      if (request.method === 'OPTIONS') {
+        return new NextResponse(null, { status: 204, headers: corsHeaders });
       }
-    } else {
-      const host =
-        request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
-        request.headers.get('host') ||
-        '';
-      const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
-      const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol?.replace(':', '') || 'http';
-      const fallbackOrigin = hostOnly ? `${proto}://${hostOnly}` : request.nextUrl.origin;
-      const rawOrigin = request.headers.get('origin');
-      const origin =
-        rawOrigin && rawOrigin !== 'null' && rawOrigin !== ''
-          ? rawOrigin
-          : request.nextUrl.origin || fallbackOrigin;
-      const isLocal =
-        !origin || origin === 'null' || origin.includes('localhost') || origin.includes('127.0.0.1') ||
-        /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
-      allowOrigin = isLocal ? (rawOrigin === 'null' ? 'null' : (origin || fallbackOrigin)) : productionOrigin;
+      const res = NextResponse.next();
+      Object.entries(corsHeaders).forEach(([k, v]) => res.headers.set(k, v));
+      return res;
     }
-    const corsHeaders: Record<string, string> = {
-      'Access-Control-Allow-Origin': allowOrigin,
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Vary': 'Origin',
-    };
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, { status: 204, headers: corsHeaders });
-    }
-    const res = NextResponse.next();
-    Object.entries(corsHeaders).forEach(([k, v]) => res.headers.set(k, v));
-    return res;
   }
 
   // Taal: cookie heeft voorrang (zo kan .eu ook NL tonen zonder redirect naar .nl → Safari-safe)

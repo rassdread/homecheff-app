@@ -23,6 +23,8 @@ function corsHeadersFor(allowOrigin: string, isApiOrI18n: boolean): Record<strin
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Vary': 'Origin',
+    // Safari: cache preflight 24h so reload doesn't re-trigger OPTIONS and fail
+    'Access-Control-Max-Age': '86400',
   };
   if (isApiOrI18n) h['Cache-Control'] = 'no-store, no-cache, must-revalidate';
   return h;
@@ -51,6 +53,10 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     const derivedOrigin = hostOnly && (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl')
       ? `https://${hostOnly}`
       : null;
+    // When Host is internal (e.g. Vercel serverless), use request URL hostname as fallback
+    const urlHost = typeof request.url === 'string' ? (() => { try { return new URL(request.url).hostname; } catch { return ''; } })() : '';
+    const urlDerived = (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl')
+      ? `https://${urlHost}` : null;
     let allowOrigin: string;
     if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
       // Safari opaque origin or header not forwarded: only "null" is accepted by the browser.
@@ -58,7 +64,7 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     } else if (OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number])) {
       allowOrigin = rawOrigin;
     } else {
-      allowOrigin = derivedOrigin || CANONICAL_ORIGIN;
+      allowOrigin = derivedOrigin || urlDerived || CANONICAL_ORIGIN;
     }
     return corsHeadersFor(allowOrigin, true);
   }
