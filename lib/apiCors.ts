@@ -44,7 +44,8 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
       : null;
     let allowOrigin: string;
     if (rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null) {
-      allowOrigin = (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin as (typeof OUR_DOMAINS)[number])) ? derivedOrigin : 'null';
+      // Safari often omits Origin for same-origin; use Host. If Host is internal (e.g. Vercel), fallback to canonical so response is accepted.
+      allowOrigin = (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin as (typeof OUR_DOMAINS)[number])) ? derivedOrigin : CANONICAL_ORIGIN;
     } else {
       allowOrigin = OUR_DOMAINS.includes(rawOrigin as (typeof OUR_DOMAINS)[number]) ? rawOrigin : (derivedOrigin || CANONICAL_ORIGIN);
     }

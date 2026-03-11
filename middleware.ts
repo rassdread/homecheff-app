@@ -38,7 +38,7 @@ export function middleware(request: NextRequest) {
     if (process.env.NODE_ENV === 'production') {
       allowOrigin =
         rawOrigin === 'null' || rawOrigin === '' || rawOrigin == null
-          ? (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : 'null')
+          ? (derivedOrigin && OUR_DOMAINS.includes(derivedOrigin) ? derivedOrigin : productionOrigin)
           : OUR_DOMAINS.includes(rawOrigin)
             ? rawOrigin
             : (derivedOrigin || productionOrigin);
