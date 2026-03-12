@@ -1,0 +1,17 @@
+---
+description: BCPD = Build, Commit, Push, Deploy. Workflow wanneer de gebruiker "bcpd" of "doe bcpd" zegt.
+alwaysApply: true
+---
+
+# BCPD
+
+**BCPD** staat voor: **B**uild → **C**ommit → **P**ush → **D**eploy.
+
+Wanneer de gebruiker "bcpd", "doe bcpd", "build commit push deploy" of vergelijkbaar vraagt:
+
+1. **Build** – `npm run build` (in projectroot).
+2. **Commit** – `git add -A` en `git commit` met een duidelijke message (bijv. samenvatting van de wijzigingen).
+3. **Push** – `git push origin main` (of de actuele branch).
+4. **Deploy** – Na push expliciet production deploy doen: `npx vercel --prod` (of `npm run deploy` als dat script `vercel --prod` aanroept).
+
+Voer de stappen in deze volgorde uit. Bij build- of git-fouten stoppen en de foutmelding rapporteren.
