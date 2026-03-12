@@ -295,7 +295,7 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
   }
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full bg-gray-200" data-inspiration-card-media>
+    <div ref={containerRef} className="video-smooth absolute inset-0 w-full h-full bg-gray-200" data-inspiration-card-media>
       <video
         ref={setVideoRef}
         src={videoSrc}
@@ -307,6 +307,7 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
         muted={isMuted}
         controls
         controlsList="nodownload"
+        style={{ display: 'block' }}
         onPlay={() => {
           setIsPaused(false);
           setVideoError(false);
@@ -332,7 +333,6 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
-        style={{ display: 'block' }}
       />
       {/* Play-knop alleen zichtbaar als gepauzeerd én niet gehoverd (bij hover start video automatisch) */}
       {isPaused && !isCardHovered && (

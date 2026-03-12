@@ -181,63 +181,110 @@ export default function ImageSlider({
     }
   }, [currentIndex, mediaItems]);
 
-  // Video in beeld: alleen op mobiel afspelen bij percentage in beeld. Desktop: alleen start bij hover op card.
-  const IN_VIEW_PLAY_THRESHOLD = 0.75; // 75% zichtbaar = afspelen (alleen mobiel)
+  // Video in beeld:zelfde regels als inspiratie (InspirationCardMedia) – 50% in beeld = afspelen, <20% = pauzeren.
+  const PLAY_THRESHOLD = 0.5;
+  const PAUSE_THRESHOLD = 0.2;
   useEffect(() => {
     const observer = createSafeIntersectionObserver(
       (entries) => {
         const isMobile = isMobileRef.current;
         entries.forEach((entry) => {
           const video = entry.target as HTMLVideoElement;
-          if (!entry.isIntersecting || entry.intersectionRatio < 0.5) {
-            if (isMobile) {
-              try {
-                video.muted = true;
-                video.pause();
-                video.currentTime = 0;
-              } catch {}
-            }
+          const ratio = entry.intersectionRatio;
+          const outOfViewForPause = !entry.isIntersecting || ratio < PAUSE_THRESHOLD;
+          if (outOfViewForPause && isMobile) {
+            try {
+              video.muted = true;
+              video.pause();
+              video.currentTime = 0;
+            } catch {}
           }
         });
-        // Alleen mobiel: speel wanneer voldoende in beeld; desktop start alleen bij hover
+        // Alleen mobiel: speel bij 50%+ in beeld (zoals inspiratie); desktop alleen bij hover
         if (!isMobile) return;
-        const fullVisible = entries.find((e) => e.isIntersecting && e.intersectionRatio >= IN_VIEW_PLAY_THRESHOLD);
-        if (!fullVisible) return;
-        const video = fullVisible.target as HTMLVideoElement;
-        stopAllVideosExcept(video);
-        let videoIndex = -1;
-        videoRefs.current.forEach((v, idx) => { if (v === video) videoIndex = idx; });
-        const wantMuted = videoManager.shouldStartMuted();
-        if (videoIndex >= 0) {
-          video.muted = true;
-          setVideoMutedStates((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(videoIndex, wantMuted);
-            return newMap;
-          });
-        } else {
-          video.muted = true;
-        }
-        video.loop = false;
-        video.playsInline = true;
-        video.setAttribute('playsinline', 'true');
-        video.setAttribute('webkit-playsinline', 'true');
-        ensureReadyThenPlay(video, () => {
-          if (video && !video.paused) {
-            video.muted = wantMuted;
+        const inViewForPlay = entries.find((e) => e.isIntersecting && e.intersectionRatio >= PLAY_THRESHOLD);
+        if (!inViewForPlay) return;
+        const video = inViewForPlay.target as HTMLVideoElement;
+        // Chrome iOS: play() buiten scroll/intersection-stack aanroepen (zoals InspirationCardMedia)
+        const startPlay = () => {
+          stopAllVideosExcept(video);
+          let videoIndex = -1;
+          videoRefs.current.forEach((v, idx) => { if (v === video) videoIndex = idx; });
+          const wantMuted = videoManager.shouldStartMuted();
+          if (videoIndex >= 0) {
+            video.muted = true;
             setVideoMutedStates((prev) => {
               const newMap = new Map(prev);
               newMap.set(videoIndex, wantMuted);
               return newMap;
             });
+          } else {
+            video.muted = true;
           }
-        });
+          video.loop = false;
+          video.playsInline = true;
+          video.setAttribute('playsinline', 'true');
+          video.setAttribute('webkit-playsinline', 'true');
+          ensureReadyThenPlay(video, () => {
+            if (video && !video.paused) {
+              video.muted = wantMuted;
+              setVideoMutedStates((prev) => {
+                const newMap = new Map(prev);
+                newMap.set(videoIndex, wantMuted);
+                return newMap;
+              });
+            }
+          });
+        };
+        setTimeout(() => startPlay(), 0);
       },
-      { threshold: [0.5, 0.75, 1.0], rootMargin: '0px' }
+      { threshold: [0, 0.2, 0.5, 0.75, 1], rootMargin: '0px' }
     );
     
     intersectionObserverRef.current = observer;
-    
+
+    // Initiële check na 150ms (zoals InspirationCardMedia): als kaart al in beeld bij load, start video op mobiel
+    const initialCheckId = setTimeout(() => {
+      if (!isMobileRef.current) return;
+      const container = sliderRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const h = window.innerHeight;
+      if (h <= 0 || rect.height <= 0) return;
+      const visible = rect.top < h * 0.85 && rect.bottom > h * 0.15;
+      if (!visible) return;
+      const ratio = Math.max(0, Math.min(1, (Math.min(rect.bottom, h) - Math.max(rect.top, 0)) / rect.height));
+      if (ratio >= PLAY_THRESHOLD) {
+        const video = videoRefs.current.get(0);
+        if (video && mediaItems[0]?.type === 'video') {
+          setTimeout(() => {
+            stopAllVideosExcept(video);
+            video.muted = true;
+            const wantMuted = videoManager.shouldStartMuted();
+            setVideoMutedStates((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(0, wantMuted);
+              return newMap;
+            });
+            video.loop = false;
+            video.playsInline = true;
+            video.setAttribute('playsinline', 'true');
+            video.setAttribute('webkit-playsinline', 'true');
+            ensureReadyThenPlay(video, () => {
+              if (video && !video.paused) {
+                video.muted = wantMuted;
+                setVideoMutedStates((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(0, wantMuted);
+                  return newMap;
+                });
+              }
+            });
+          }, 0);
+        }
+      }
+    }, 150);
+
     // Fallback for browsers without IntersectionObserver (very old browsers only)
     // Modern browsers (Chrome 51+, Firefox 55+, Edge 15+, Safari 12.1+) all support it
     if (!observer) {
@@ -296,11 +343,12 @@ export default function ImageSlider({
     }
 
     return () => {
+      clearTimeout(initialCheckId);
       if (intersectionObserverRef.current) {
         intersectionObserverRef.current.disconnect();
       }
     };
-  }, [videoMutedStates, stopAllVideosExcept, ensureReadyThenPlay]);
+  }, [videoMutedStates, stopAllVideosExcept, ensureReadyThenPlay, mediaItems]);
 
   // Sync video muted state with state when video element changes
   useEffect(() => {
@@ -407,7 +455,7 @@ export default function ImageSlider({
     }
   }, [currentIndex, mediaItems]);
 
-  // Dorpsplein e.d.: wanneer parent isCardHovered zet (hover op hele kaart), alleen dan deze video afspelen op desktop
+  // Dorpsplein e.d.:zelfde als inspiratie – bij hover op kaart (desktop) video afspelen + direct unmute
   useEffect(() => {
     if (isMobileRef.current || isCardHovered === undefined) return;
     const currentMedia = mediaItems[currentIndex];
@@ -417,7 +465,8 @@ export default function ImageSlider({
       const video = videoRefs.current.get(currentIndex);
       if (!isCardHovered || !video) return;
       stopAllVideosExcept(video);
-      const wantMuted = videoManager.shouldStartMuted();
+      // Zoals InspirationCardMedia: desktop hover = unmute
+      const wantMuted = isCardHovered ? false : videoManager.shouldStartMuted();
       video.muted = true;
       ensureReadyThenPlay(video, () => {
         if (video && !video.paused) {

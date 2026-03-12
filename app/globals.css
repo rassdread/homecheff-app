@@ -60,9 +60,11 @@ body > * {
     word-break: break-word;
   }
 
-  /* Soepel video afspelen (Safari/iOS): eigen compositor layer, minder schokken */
+  /* Soepel video afspelen (Safari/iOS): eigen compositor layer, minder schokken.
+   * Zelfde regels voor inspiratie en dorpsplein (ImageSlider, PhotoCarousel, InspirationCardMedia). */
   .video-smooth video,
-  video.video-smooth {
+  video.video-smooth,
+  [data-image-slider] video {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;

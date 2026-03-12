@@ -261,6 +261,8 @@ export default function PhotoCarousel({
                 }}
                 src={getVideoUrlWithCors(currentMedia.url ?? '')}
                 controls
+                muted
+                preload="auto"
                 className="w-full h-full object-cover"
                 poster={currentMedia.thumbnail || undefined}
                 playsInline
@@ -486,6 +488,8 @@ export default function PhotoCarousel({
                   src={getVideoUrlWithCors(currentMedia.url ?? '')}
                   controls
                   autoPlay
+                  muted
+                  preload="auto"
                   className="max-w-full max-h-full object-contain rounded-lg"
                   poster={currentMedia.thumbnail || undefined}
                   playsInline
