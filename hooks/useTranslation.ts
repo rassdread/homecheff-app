@@ -95,9 +95,16 @@ const safeCookie = {
   }
 };
 
+// Initial language: match server html lang so header/logo subtitle is correct from first paint (e.g. EN on homecheff.eu)
+function getInitialLanguage(): Language {
+  if (typeof window === 'undefined') return 'nl';
+  const lang = document.documentElement.getAttribute('lang');
+  return lang === 'en' ? 'en' : 'nl';
+}
+
 export function useTranslation() {
   const { data: session, status: sessionStatus } = useSession();
-  const [language, setLanguage] = useState<Language>('nl');
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const [isLoading, setIsLoading] = useState(true); // Start as loading
   const [isReady, setIsReady] = useState(false);
   const [updateKey, setUpdateKey] = useState(0);

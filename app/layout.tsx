@@ -154,7 +154,17 @@ export const viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const hostname = headersList.get('host') || '';
-  const htmlLang = hostname.includes('homecheff.eu') ? 'en' : 'nl';
+  const languageHeader = headersList.get('X-HomeCheff-Language');
+  const cookieStore = await cookies();
+  const languageCookie = cookieStore.get('homecheff-language');
+  const isEnglishDomain = hostname.includes('homecheff.eu');
+  // Cookie/header overrides domain so header and logo subtitle match chosen language (EN vs NL)
+  let htmlLang: 'en' | 'nl' = isEnglishDomain ? 'en' : 'nl';
+  if (languageHeader === 'nl' || languageHeader === 'en') {
+    htmlLang = languageHeader;
+  } else if (languageCookie?.value === 'nl' || languageCookie?.value === 'en') {
+    htmlLang = languageCookie.value as 'en' | 'nl';
+  }
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
