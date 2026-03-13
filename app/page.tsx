@@ -2,16 +2,21 @@
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/Button";
-import { Lightbulb, Home, Users } from "lucide-react";
+import { Lightbulb, Home, Users, X } from "lucide-react";
 import type { Language } from "@/hooks/useTranslation";
 import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Suspense } from "react";
+import InspiratieContent from "@/components/inspiratie/InspiratieContent";
+
+const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
 
 export default function HomePage() {
   const { t, language, changeLanguage, isReady } = useTranslation();
   const { data: session } = useSession();
+  const [splashDismissed, setSplashDismissed] = useState(false);
   // Domein uit server (data-domain) of window, zodat .nl en .eu niet conflicteren
   const [currentDomain, setCurrentDomain] = useState(() => {
     if (typeof document !== 'undefined') {
@@ -23,6 +28,22 @@ export default function HomePage() {
   });
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [affiliateCheckComplete, setAffiliateCheckComplete] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = typeof window !== 'undefined' ? sessionStorage.getItem(SPLASH_STORAGE_KEY) : null;
+      setSplashDismissed(stored === '1');
+    } catch {
+      setSplashDismissed(false);
+    }
+  }, []);
+
+  const dismissSplash = () => {
+    setSplashDismissed(true);
+    try {
+      sessionStorage.setItem(SPLASH_STORAGE_KEY, '1');
+    } catch {}
+  };
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -240,91 +261,86 @@ export default function HomePage() {
     <>
       <StructuredData data={structuredData} />
       <StructuredData data={websiteStructuredData} />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-8 sm:py-12">
-      <div className="absolute inset-0 bg-black/10"></div>
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
-        {/* Logo */}
-        <div className="flex justify-center mb-4 sm:mb-8 pointer-events-none">
-          <div className="[&_span]:!text-white [&_span]:!drop-shadow-lg [&_svg_path]:drop-shadow-md [&_svg_circle]:drop-shadow-md [&_svg_rect]:drop-shadow-md">
-            <Logo 
-              size="lg" 
-              showText={true} 
-              className="pointer-events-none" 
-            />
-          </div>
-        </div>
-        
-        {/* Language Selector */}
-        <div className="flex justify-center gap-2 sm:gap-3 mb-4 sm:mb-8">
+      {/* Dismissible splash block: compact hero boven de feed, met kruisje om weg te klikken */}
+      {!splashDismissed && (
+        <section className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-6 sm:py-8 px-4 sm:px-6 shadow-lg">
           <button
-            onClick={() => handleLanguageChange('nl')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold text-sm sm:text-lg transition-all duration-300 ${
-              language === 'nl'
-                ? 'bg-white text-primary-brand shadow-2xl scale-105 ring-4 ring-white/50'
-                : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border-2 border-white/30'
-            }`}
+            type="button"
+            onClick={dismissSplash}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            aria-label={language === 'nl' ? 'Welkomstblok sluiten' : 'Close welcome block'}
           >
-            🇳🇱 Nederlands
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <button
-            onClick={() => handleLanguageChange('en')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold text-sm sm:text-lg transition-all duration-300 ${
-              language === 'en'
-                ? 'bg-white text-primary-brand shadow-2xl scale-105 ring-4 ring-white/50'
-                : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border-2 border-white/30'
-            }`}
-          >
-            🇬🇧 English
-          </button>
-        </div>
-        
-        {/* Splash Text */}
-        <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 animate-fade-in leading-tight px-2">
-          {splashTitle}
-        </h1>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-primary-100 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
-          {splashSubtitle}
-        </p>
-        
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mt-6 sm:mt-10 px-4">
-          <Link href="/inspiratie" className="w-full sm:w-auto">
-            <Button 
-              variant="primary" 
-              className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 text-base sm:text-lg py-3 sm:py-4"
-            >
-              <Lightbulb className="w-5 h-5" />
-              {inspiratieText}
-            </Button>
-          </Link>
-          <Link href="/dorpsplein" className="w-full sm:w-auto">
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 text-base sm:text-lg py-3 sm:py-4 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-            >
-              <Home className="w-5 h-5" />
-              {dorpspleinText}
-            </Button>
-          </Link>
-          {(!isSubAffiliate || !affiliateCheckComplete) && (
-            <Link href="/affiliate" className="w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="!flex !flex-col !items-center !justify-center gap-1 w-full sm:w-auto min-w-[200px] text-base sm:text-lg py-3 sm:py-4 !bg-orange-500/90 backdrop-blur-sm !border-2 !border-orange-300 !text-white hover:!bg-orange-600 shadow-lg hover:shadow-xl relative font-semibold"
+          <div className="relative max-w-4xl mx-auto text-center">
+            <div className="flex justify-center mb-3 sm:mb-4 pointer-events-none">
+              <div className="[&_span]:!text-white [&_span]:!drop-shadow-lg [&_svg_path]:drop-shadow-md [&_svg_circle]:drop-shadow-md [&_svg_rect]:drop-shadow-md">
+                <Logo size="lg" showText={true} className="pointer-events-none" />
+              </div>
+            </div>
+            <div className="flex justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <button
+                onClick={() => handleLanguageChange('nl')}
+                className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${
+                  language === 'nl'
+                    ? 'bg-white text-primary-brand shadow-lg'
+                    : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'
+                }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Users className="w-5 h-5 text-white" />
-                  <span className="text-white whitespace-nowrap font-semibold">{affiliateText}</span>
-                </div>
-                <span className="text-white text-xs font-normal opacity-95 text-center whitespace-normal px-1">
-                  {affiliateTemporaryText}
-                </span>
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
+                🇳🇱 NL
+              </button>
+              <button
+                onClick={() => handleLanguageChange('en')}
+                className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${
+                  language === 'en'
+                    ? 'bg-white text-primary-brand shadow-lg'
+                    : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'
+                }`}
+              >
+                🇬🇧 EN
+              </button>
+            </div>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 leading-tight px-2">
+              {splashTitle}
+            </h1>
+            <p className="text-sm sm:text-base text-primary-100 mb-4 sm:mb-5 max-w-2xl mx-auto px-2">
+              {splashSubtitle}
+            </p>
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+              <Link href="/inspiratie">
+                <Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3">
+                  <Lightbulb className="w-4 h-4" />
+                  {inspiratieText}
+                </Button>
+              </Link>
+              <Link href="/dorpsplein">
+                <Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                  <Home className="w-4 h-4" />
+                  {dorpspleinText}
+                </Button>
+              </Link>
+              {(!isSubAffiliate || !affiliateCheckComplete) && (
+                <Link href="/affiliate">
+                  <Button className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600">
+                    <Users className="w-4 h-4" />
+                    {affiliateText}
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+      {/* Feed direct zichtbaar onder het splashblok (of direct als splash is weggeklikt) */}
+      <main className="min-h-[60vh]">
+        <Suspense fallback={
+          <div className="min-h-[40vh] bg-gray-50 flex items-center justify-center">
+            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
+          <InspiratieContent />
+        </Suspense>
+      </main>
     </>
   );
 }
