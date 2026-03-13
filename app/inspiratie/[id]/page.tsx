@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
+import { getCurrentDomain } from '@/lib/seo/metadata';
 import InspiratieDetail from '@/components/inspiratie/InspiratieDetail';
 
 const CATEGORY_VALUES = ['CHEFF', 'GROWN', 'DESIGNER'] as const;
@@ -140,6 +141,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const mainPhoto = item.photos[0];
+  const imageUrl = mainPhoto?.url
+    ? (mainPhoto.url.startsWith('http') ? mainPhoto.url : (await getCurrentDomain()) + mainPhoto.url)
+    : undefined;
 
   return {
     title: item.title ? `${item.title} - HomeCheff Inspiratie` : 'Inspiratie-item',
@@ -147,7 +151,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: item.title ?? 'Inspiratie-item',
       description: item.description ?? undefined,
-      images: mainPhoto?.url ? [mainPhoto.url] : [],
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: item.title ?? 'Inspiratie' }] : [],
     },
   };
 }

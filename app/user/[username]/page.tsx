@@ -1,9 +1,64 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { getCurrentDomain } from "@/lib/seo/metadata";
 import PublicProfileClient from "./PublicProfileClient";
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const currentDomain = await getCurrentDomain();
+
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      name: true,
+      username: true,
+      profileImage: true,
+      bio: true,
+      showProfileToEveryone: true,
+    },
+  });
+
+  if (!user || !user.showProfileToEveryone) {
+    return { title: "Profiel" };
+  }
+
+  const displayName = user.name || user.username || "Profiel";
+  const description = user.bio
+    ? user.bio.substring(0, 155) + (user.bio.length > 155 ? "..." : "")
+    : `${displayName} op HomeCheff`;
+  const imageUrl =
+    user.profileImage?.startsWith("http")
+      ? user.profileImage
+      : user.profileImage
+        ? `${currentDomain}${user.profileImage}`
+        : null;
+
+  return {
+    title: `${displayName} | HomeCheff`,
+    description,
+    openGraph: {
+      type: "profile",
+      title: `${displayName} | HomeCheff`,
+      description,
+      url: `${currentDomain}/user/${username}`,
+      siteName: "HomeCheff",
+      ...(imageUrl && {
+        images: [{ url: imageUrl, width: 400, height: 400, alt: displayName }],
+      }),
+    },
+    twitter: imageUrl
+      ? { card: "summary_large_image", images: [imageUrl] }
+      : undefined,
+  };
+}
 
 export default async function PublicProfilePage({
   params,

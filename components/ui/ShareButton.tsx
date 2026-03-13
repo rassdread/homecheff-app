@@ -17,7 +17,7 @@ export default function ShareButton({ url, title, description, className }: Shar
   const [copied, setCopied] = useState(false);
   const { addAffiliateToUrl, isAffiliate } = useAffiliateLink();
 
-  // Get URL with affiliate code if user is affiliate
+  // Beleid: bij delen van profielen of items altijd de affiliate link meesturen (ref-parameter).
   const shareUrl = addAffiliateToUrl(url);
 
   const handleCopyLink = async () => {

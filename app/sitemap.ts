@@ -69,6 +69,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     },
+    {
+      url: `${nlBaseUrl}/over-ons`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
     // English URLs
     {
       url: enBaseUrl,
@@ -114,6 +120,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${enBaseUrl}/werken-bij`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${enBaseUrl}/over-ons`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.7,

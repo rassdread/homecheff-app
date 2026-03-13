@@ -3889,7 +3889,55 @@
     "reachabilityNote": "We aim to respond within a few working days. For urgent technical issues you can also use the contact form.",
     "teamTitle": "Team and collaboration",
     "teamText": "The team behind HomeCheff works daily on a reliable and user-friendly platform. For partnerships, press or jobs: use the matching email address above. We look forward to hearing from you.",
-    "contactCta": "Go to contact form"
+    "contactCta": "Go to contact form",
+    "companyDetailsTitle": "Company details",
+    "companyUnder": "HomeCheff is part of Arrias Beheer.",
+    "companyName": "Arrias Beheer B.V.",
+    "companyAddress": "Vlaardingen",
+    "kvkNumber": "Chamber of Commerce: 80532829",
+    "vatNumber": "VAT number: NL861704782B01"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content"
+  },
+  "siteFooter": {
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "overOns": "About us",
+    "faq": "FAQ",
+    "companyLine": "Arrias Beheer B.V. · Chamber of Commerce 80532829 · Vlaardingen · Contact via contact form"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "home": "To homepage",
+    "inspiratie": "To inspiration"
+  },
+  "termsPage": {
+    "title": "HomeCheff Terms and Conditions",
+    "subtitle": "Use of the platform is subject to these terms.",
+    "lastUpdated": "Last updated",
+    "version": "Version",
+    "footerNote": "These terms and conditions are drawn up in accordance with Dutch law and European consumer legislation.",
+    "contactTitle": "Contact",
+    "contactIntro": "For questions about these terms:",
+    "privacyLinkText": "Privacy Statement"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "An error occurred. Please try again or go back to the homepage.",
+    "retry": "Try again",
+    "home": "To homepage"
+  },
+  "cookieBanner": {
+    "title": "Your privacy matters",
+    "point1": "All data is stored securely and encrypted",
+    "point2": "Your data is never shared with third parties",
+    "point3": "You have full control over your data",
+    "cookieNote": "We only use essential cookies for the app to work. No tracking or advertising.",
+    "accept": "Accept",
+    "moreInfo": "More info"
   },
   "contact": {
     "title": "Contact Us",

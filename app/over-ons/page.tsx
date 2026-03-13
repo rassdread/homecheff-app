@@ -2,7 +2,7 @@
 
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Users, Heart, Target, Leaf } from 'lucide-react';
+import { ArrowLeft, Mail, Users, Heart, Target, Leaf, Building2 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
 const EMAILS = [
@@ -145,6 +145,23 @@ export default function OverOnsPage() {
           <p className="text-gray-700">
             {t('overOns.teamText')}
           </p>
+        </section>
+
+        {/* Bedrijfsgegevens */}
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <Building2 className="w-8 h-8 text-emerald-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              {t('overOns.companyDetailsTitle')}
+            </h2>
+          </div>
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-gray-700 space-y-2">
+            <p className="text-emerald-700 font-medium">{t('overOns.companyUnder')}</p>
+            <p className="font-semibold text-gray-900">{t('overOns.companyName')}</p>
+            <p>{t('overOns.companyAddress')}</p>
+            <p>{t('overOns.kvkNumber')}</p>
+            <p>{t('overOns.vatNumber')}</p>
+          </div>
         </section>
 
         <div className="pt-8 border-t border-gray-200">

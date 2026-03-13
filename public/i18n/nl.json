@@ -4107,7 +4107,55 @@
     "reachabilityNote": "We streven ernaar binnen enkele werkdagen te reageren. Voor dringende technische problemen kun je ook het contactformulier gebruiken.",
     "teamTitle": "Team en samenwerking",
     "teamText": "Het team achter HomeCheff werkt dagelijks aan een betrouwbaar en gebruiksvriendelijk platform. Voor samenwerkingen, pers of vacatures: gebruik het bijpassende e-mailadres hierboven. We kijken ernaar uit om van je te horen.",
-    "contactCta": "Naar contactformulier"
+    "contactCta": "Naar contactformulier",
+    "companyDetailsTitle": "Bedrijfsgegevens",
+    "companyUnder": "HomeCheff valt onder Arrias Beheer.",
+    "companyName": "Arrias Beheer B.V.",
+    "companyAddress": "Vlaardingen",
+    "kvkNumber": "KvK-nummer: 80532829",
+    "vatNumber": "BTW-nummer: NL861704782B01"
+  },
+  "a11y": {
+    "skipToContent": "Ga naar inhoud"
+  },
+  "siteFooter": {
+    "privacy": "Privacy",
+    "terms": "Voorwaarden",
+    "contact": "Contact",
+    "overOns": "Over ons",
+    "faq": "FAQ",
+    "companyLine": "Arrias Beheer B.V. · KvK 80532829 · Vlaardingen · Contact via contactformulier"
+  },
+  "notFound": {
+    "title": "Pagina niet gevonden",
+    "description": "De pagina die je zoekt bestaat niet of is verplaatst.",
+    "home": "Naar homepage",
+    "inspiratie": "Naar inspiratie"
+  },
+  "termsPage": {
+    "title": "Algemene Voorwaarden HomeCheff",
+    "subtitle": "Gebruik van het platform valt onder deze voorwaarden.",
+    "lastUpdated": "Laatst bijgewerkt",
+    "version": "Versie",
+    "footerNote": "Deze algemene voorwaarden zijn opgesteld in overeenstemming met het Nederlandse recht en de Europese consumentenwetgeving.",
+    "contactTitle": "Contact",
+    "contactIntro": "Voor vragen over deze voorwaarden:",
+    "privacyLinkText": "Privacy Statement"
+  },
+  "errorPage": {
+    "title": "Er is een fout opgetreden",
+    "description": "Er is iets misgegaan. Probeer het opnieuw of ga terug naar de homepage.",
+    "retry": "Probeer opnieuw",
+    "home": "Naar homepage"
+  },
+  "cookieBanner": {
+    "title": "Jouw privacy is belangrijk",
+    "point1": "Alle data wordt veilig versleuteld opgeslagen",
+    "point2": "Jouw gegevens worden nooit gedeeld met derden",
+    "point3": "Je hebt volledige controle over je data",
+    "cookieNote": "We gebruiken alleen essentiële cookies voor de werking van de app. Geen tracking of advertenties.",
+    "accept": "Accepteren",
+    "moreInfo": "Meer info"
   },
   "contact": {
     "title": "Neem Contact Op",

@@ -74,6 +74,15 @@ const nextConfig = {
     },
   },
   
+  // Redirects: aviliate (typo) → affiliate
+  async redirects() {
+    return [
+      { source: '/aviliate', destination: '/affiliate', permanent: true },
+      { source: '/aviliate/', destination: '/affiliate/', permanent: true },
+      { source: '/aviliate/:path*', destination: '/affiliate/:path*', permanent: true },
+    ];
+  },
+
   // Enable static optimization
   swcMinify: true,
   

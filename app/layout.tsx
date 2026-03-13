@@ -30,6 +30,12 @@ const OnlineStatusTracker = dynamic(() => import('@/components/OnlineStatusTrack
 const BottomNavigation = dynamic(() => import('@/components/navigation/BottomNavigation'), {
   ssr: false,
 });
+const Footer = dynamic(() => import('@/components/Footer'), {
+  ssr: false,
+});
+const SkipLink = dynamic(() => import('@/components/SkipLink'), {
+  ssr: false,
+});
 
 // Hoofddomein is .eu; .nl is de Nederlandse variant
 const MAIN_DOMAIN = 'https://homecheff.eu';
@@ -78,6 +84,11 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
+        images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
+      },
+      icons: {
+        icon: '/logo.png',
+        apple: '/logo.png',
       },
       alternates: {
         canonical: currentDomain,
@@ -122,6 +133,11 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
+      images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
+    },
+    icons: {
+      icon: '/logo.png',
+      apple: '/logo.png',
     },
     alternates: {
       canonical: currentDomain,
@@ -174,6 +190,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-hidden max-w-[100vw] w-full">
         <Providers>
+          <SkipLink />
           <PerformanceMonitor />
           <VercelAnalytics />
           <Preloader />
@@ -181,7 +198,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <UserValidation />
           <OnlineStatusTracker />
           <NavBar />
-          {children}
+          <main id="main-content" tabIndex={-1}>
+            {children}
+          </main>
+          <Footer />
           <BottomNavigation />
           <PrivacyNotice />
         </Providers>

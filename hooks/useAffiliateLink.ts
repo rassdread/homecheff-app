@@ -38,9 +38,10 @@ export function useAffiliateLink() {
   }, [session]);
 
   /**
-   * Add affiliate referral code to a URL
+   * Add affiliate referral code to a URL. Gebruik dit bij élke share (profiel, product, recept, design, tuin, inspiratie)
+   * zodat de affiliate link altijd wordt meegestuurd.
    * @param url The original URL
-   * @returns URL with affiliate referral code added
+   * @returns URL with affiliate referral code added (ref=)
    */
   const addAffiliateToUrl = (url: string): string => {
     if (!referralCode) return url;

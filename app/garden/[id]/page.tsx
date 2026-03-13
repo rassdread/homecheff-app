@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { getCurrentDomain } from '@/lib/seo/metadata';
 import GardenProjectView from '@/components/profile/GardenProjectView';
 import InspirationNormalView from '@/components/inspiratie/InspirationNormalView';
 import { getServerSession } from 'next-auth';
@@ -193,13 +194,17 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
+  const imageUrl = project.photos[0]?.url
+    ? (project.photos[0].url.startsWith('http') ? project.photos[0].url : (await getCurrentDomain()) + project.photos[0].url)
+    : undefined;
+
   return {
     title: `${project.title} - HomeCheff Mijn Tuin`,
     description: project.description || `Bekijk dit kweekproject: ${project.title}`,
     openGraph: {
       title: project.title || 'Kweekproject',
       description: project.description || undefined,
-      images: project.photos[0]?.url ? [project.photos[0].url] : [],
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: project.title || 'Kweekproject' }] : [],
     },
   };
 }
