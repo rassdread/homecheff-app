@@ -15,9 +15,9 @@ export default function PrivacyPage() {
             <div className="flex items-center space-x-4 mb-4">
               <Shield className="w-12 h-12" />
               <div>
-                <h1 className="text-3xl font-bold">{t('privacyPage.title')}</h1>
+                <h1 className="text-3xl font-bold">{t('register.privacyPage.title')}</h1>
                 <p className="text-blue-100 mt-2">
-                  {t('privacyPage.subtitle')}
+                  {t('register.privacyPage.subtitle')}
                 </p>
               </div>
             </div>
@@ -30,185 +30,185 @@ export default function PrivacyPage() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                   <Lock className="w-8 h-8 text-green-600 mb-4" />
                   <h3 className="text-xl font-semibold text-green-900 mb-2">
-                    {t('privacyPage.safeDataStorage')}
+                    {t('register.privacyPage.safeDataStorage')}
                   </h3>
                   <p className="text-green-700">
-                    {t('privacyPage.safeDataStorageDesc')}
+                    {t('register.privacyPage.safeDataStorageDesc')}
                   </p>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                   <Eye className="w-8 h-8 text-blue-600 mb-4" />
                   <h3 className="text-xl font-semibold text-blue-900 mb-2">
-                    {t('privacyPage.noDataSharing')}
+                    {t('register.privacyPage.noDataSharing')}
                   </h3>
                   <p className="text-blue-700">
-                    {t('privacyPage.noDataSharingDesc')}
+                    {t('register.privacyPage.noDataSharingDesc')}
                   </p>
                 </div>
 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
                   <Database className="w-8 h-8 text-purple-600 mb-4" />
                   <h3 className="text-xl font-semibold text-purple-900 mb-2">
-                    {t('privacyPage.fullControl')}
+                    {t('register.privacyPage.fullControl')}
                   </h3>
                   <p className="text-purple-700">
-                    {t('privacyPage.fullControlDesc')}
+                    {t('register.privacyPage.fullControlDesc')}
                   </p>
                 </div>
 
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
                   <Users className="w-8 h-8 text-orange-600 mb-4" />
                   <h3 className="text-xl font-semibold text-orange-900 mb-2">
-                    {t('privacyPage.transparency')}
+                    {t('register.privacyPage.transparency')}
                   </h3>
                   <p className="text-orange-700">
-                    {t('privacyPage.transparencyDesc')}
+                    {t('register.privacyPage.transparencyDesc')}
                   </p>
                 </div>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('privacyPage.whatWeCollect')}
+                {t('register.privacyPage.whatWeCollect')}
               </h2>
               
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('privacyPage.essentialData')}
+                  {t('register.privacyPage.essentialData')}
                 </h3>
                 <ul className="space-y-2 text-gray-700">
-                  <li>• <strong>{t('privacyPage.essentialDataEmail')}</strong></li>
-                  <li>• <strong>{t('privacyPage.essentialDataName')}</strong></li>
-                  <li>• <strong>{t('privacyPage.essentialDataPassword')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.essentialDataEmail')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.essentialDataName')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.essentialDataPassword')}</strong></li>
                 </ul>
               </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('privacyPage.optionalData')}
+                  {t('register.privacyPage.optionalData')}
                 </h3>
                 <ul className="space-y-2 text-gray-700">
-                  <li>• <strong>{t('privacyPage.optionalDataPhoto')}</strong></li>
-                  <li>• <strong>{t('privacyPage.optionalDataLocation')}</strong></li>
-                  <li>• <strong>{t('privacyPage.optionalDataPhone')}</strong></li>
-                  <li>• <strong>{t('privacyPage.optionalDataAddress')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataPhoto')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataLocation')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataPhone')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataAddress')}</strong></li>
                 </ul>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('privacyPage.howWeProtect')}
+                {t('register.privacyPage.howWeProtect')}
               </h2>
               
               <div className="space-y-6 mb-8">
                 <div className="border-l-4 border-green-500 pl-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {t('privacyPage.encryption')}
+                    {t('register.privacyPage.encryption')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.encryptionDesc')}
+                    {t('register.privacyPage.encryptionDesc')}
                   </p>
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {t('privacyPage.secureServers')}
+                    {t('register.privacyPage.secureServers')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.secureServersDesc')}
+                    {t('register.privacyPage.secureServersDesc')}
                   </p>
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {t('privacyPage.accessControl')}
+                    {t('register.privacyPage.accessControl')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.accessControlDesc')}
+                    {t('register.privacyPage.accessControlDesc')}
                   </p>
                 </div>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('privacyPage.yourRights')}
+                {t('register.privacyPage.yourRights')}
               </h2>
               
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    {t('privacyPage.rightToAccess')}
+                    {t('register.privacyPage.rightToAccess')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.rightToAccessDesc')}
+                    {t('register.privacyPage.rightToAccessDesc')}
                   </p>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    {t('privacyPage.rightToCorrection')}
+                    {t('register.privacyPage.rightToCorrection')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.rightToCorrectionDesc')}
+                    {t('register.privacyPage.rightToCorrectionDesc')}
                   </p>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    {t('privacyPage.rightToDeletion')}
+                    {t('register.privacyPage.rightToDeletion')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.rightToDeletionDesc')}
+                    {t('register.privacyPage.rightToDeletionDesc')}
                   </p>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    {t('privacyPage.rightToPortability')}
+                    {t('register.privacyPage.rightToPortability')}
                   </h3>
                   <p className="text-gray-700">
-                    {t('privacyPage.rightToPortabilityDesc')}
+                    {t('register.privacyPage.rightToPortabilityDesc')}
                   </p>
                 </div>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('privacyPage.cookiesAndTracking')}
+                {t('register.privacyPage.cookiesAndTracking')}
               </h2>
               
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-yellow-900 mb-3">
-                  {t('privacyPage.minimalCookieUse')}
+                  {t('register.privacyPage.minimalCookieUse')}
                 </h3>
                 <p className="text-yellow-800 mb-4">
-                  {t('privacyPage.minimalCookieUseDesc')}
+                  {t('register.privacyPage.minimalCookieUseDesc')}
                 </p>
                 <ul className="space-y-2 text-yellow-800">
-                  <li>• <strong>{t('privacyPage.sessionCookies')}</strong></li>
-                  <li>• <strong>{t('privacyPage.preferenceCookies')}</strong></li>
-                  <li>• <strong>{t('privacyPage.securityCookies')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.sessionCookies')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.preferenceCookies')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.securityCookies')}</strong></li>
                 </ul>
                 <p className="text-yellow-800 mt-4">
-                  <strong>{t('privacyPage.noTrackingCookies')}</strong>
+                  <strong>{t('register.privacyPage.noTrackingCookies')}</strong>
                 </p>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('privacyPage.contact')}
+                {t('register.privacyPage.contact')}
               </h2>
               
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <p className="text-gray-700 mb-4">
-                  {t('privacyPage.contactDesc')}
+                  {t('register.privacyPage.contactDesc')}
                 </p>
                 <div className="space-y-2 text-gray-700">
-                  <p>📧 {t('privacyPage.contactEmail')} <a href={`mailto:${t('privacyPage.contactEmailValue')}`} className="text-blue-600 hover:underline">{t('privacyPage.contactEmailValue')}</a></p>
-                  <p>📧 {t('privacyPage.contactSupportEmail')} <a href={`mailto:${t('privacyPage.contactSupportEmailValue')}`} className="text-blue-600 hover:underline">{t('privacyPage.contactSupportEmailValue')}</a></p>
-                  <p>📧 {t('privacyPage.contactInfoEmail')} <a href={`mailto:${t('privacyPage.contactInfoEmailValue')}`} className="text-blue-600 hover:underline">{t('privacyPage.contactInfoEmailValue')}</a></p>
+                  <p>📧 {t('register.privacyPage.contactEmail')} <a href={`mailto:${t('register.privacyPage.contactEmailValue')}`} className="text-blue-600 hover:underline">{t('register.privacyPage.contactEmailValue')}</a></p>
+                  <p>📧 {t('register.privacyPage.contactSupportEmail')} <a href={`mailto:${t('register.privacyPage.contactSupportEmailValue')}`} className="text-blue-600 hover:underline">{t('register.privacyPage.contactSupportEmailValue')}</a></p>
+                  <p>📧 {t('register.privacyPage.contactInfoEmail')} <a href={`mailto:${t('register.privacyPage.contactInfoEmailValue')}`} className="text-blue-600 hover:underline">{t('register.privacyPage.contactInfoEmailValue')}</a></p>
                 </div>
               </div>
 
               <div className="mt-8 pt-8 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  {t('privacyPage.lastUpdated')} {new Date().toLocaleDateString()}
+                  {t('register.privacyPage.lastUpdated')} {new Date().toLocaleDateString()}
                 </p>
               </div>
             </div>

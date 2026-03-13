@@ -222,22 +222,22 @@ export default function ContactPage() {
           </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:support@homecheff.eu"
+              href={`mailto:${t('contact.supportEmail')}`}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors"
             >
               <Mail className="w-5 h-5 text-emerald-600" />
               <div className="flex flex-col">
-                <span className="text-emerald-700 font-medium">support@homecheff.eu</span>
+                <span className="text-emerald-700 font-medium">{t('contact.supportEmail')}</span>
                 <span className="text-xs text-gray-500">{t('contact.supportDescription')}</span>
               </div>
             </a>
             <a
-              href="mailto:info@homecheff.eu"
+              href={`mailto:${t('contact.infoEmail')}`}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors"
             >
               <Mail className="w-5 h-5 text-emerald-600" />
               <div className="flex flex-col">
-                <span className="text-emerald-700 font-medium">info@homecheff.eu</span>
+                <span className="text-emerald-700 font-medium">{t('contact.infoEmail')}</span>
                 <span className="text-xs text-gray-500">{t('contact.infoDescription')}</span>
               </div>
             </a>

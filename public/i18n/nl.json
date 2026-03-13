@@ -426,6 +426,7 @@
     "dorpsplein": "Dorpsplein",
     "inspiratie": "Inspiratie",
     "faq": "FAQ",
+    "overOns": "Over ons",
     "login": "Inloggen",
     "register": "Aanmelden",
     "myProfile": "Mijn Profiel",
@@ -2723,7 +2724,7 @@
       "contact": "Contact",
       "contactDesc": "Heb je vragen over dit privacybeleid of wil je je rechten uitoefenen? Neem dan contact met ons op:",
       "contactEmail": "E-mail:",
-      "contactEmailValue": "privacy@homecheff.eu",
+      "contactEmailValue": "info@homecheff.eu",
       "contactSupportEmail": "Support:",
       "contactSupportEmailValue": "support@homecheff.eu",
       "contactInfoEmail": "Info:",
@@ -4076,6 +4077,38 @@
     "estimatedTime1_5hours": "~1.5 uur",
     "estimatedTime2hours": "~2 uur"
   },
+  "overOns": {
+    "title": "Over ons",
+    "subtitle": "Wie we zijn, wat we doen en hoe je ons bereikt.",
+    "whoWeAreTitle": "Wie we zijn",
+    "whoWeAre1": "HomeCheff is het platform waar je buurt samenkomt: makers, koks, tuiniers en ontwerpers delen hun creaties, recepten en oogst. Wij geloven dat de beste smaken en ideeën vaak om de hoek te vinden zijn — en dat iedereen iets te delen heeft.",
+    "whoWeAre2": "We bouwen een plek waar je inspiratie opdoet op ons Inspiratie-plein en waar je lokaal kunt kopen en verkopen op het Dorpsplein. Alles draait om eerlijke handel, directe uitbetalingen en een community die elkaar versterkt.",
+    "whoWeAre3": "Of je nu thuis kookt, in de tuin kweekt of met je handen ontwerpt: op HomeCheff geef je je creaties een plek en bereik je mensen in je eigen regio.",
+    "missionTitle": "Onze missie",
+    "mission1": "We willen lokaal maken en kopen weer vanzelfsprekend maken. Door verkopers en kopers direct met elkaar te verbinden, houden we transacties eenvoudig en eerlijk. Verkopers ontvangen hun uitbetaling snel en transparant; kopers ontdekken unieke producten van mensen uit de buurt.",
+    "mission2": "Daarnaast willen we een plek bieden waar je ideeën en recepten deelt zonder meteen te hoeven verkopen — ons Inspiratie-gedeelte is er voor iedereen die wil inspireren en geïnspireerd worden.",
+    "whatWeDoTitle": "Wat we doen",
+    "whatWeDo1": "Inspiratie: recepten, kweektips en ontwerpen delen met de community.",
+    "whatWeDo2": "Dorpsplein: producten lokaal aanbieden en kopen, met veilige betalingen en duidelijke afspraken.",
+    "whatWeDo3": "Directe uitbetalingen voor verkopers, zonder onnodige tussenlagen.",
+    "whatWeDo4": "Een platform dat zowel voor hobbyisten als voor kleine ondernemers werkt.",
+    "reachabilityTitle": "Bereikbaarheid — voor wie naar waar",
+    "reachabilityIntro": "We willen graag dat je op de juiste plek terechtkomt. Gebruik onderstaande e-mailadressen zodat je bericht snel bij het juiste team landt.",
+    "tableFor": "Voor",
+    "tableEmail": "E-mailadres",
+    "emailFor": {
+      "info": "Algemene vragen, zakelijk, informatie over HomeCheff",
+      "support": "Technische hulp, account, betalingen, gebruik van het platform",
+      "partners": "Samenwerkingen, partnerships, B2B",
+      "press": "Pers, media, persberichten",
+      "jobs": "Vacatures, werken bij HomeCheff",
+      "team": "Intern team, organisatie"
+    },
+    "reachabilityNote": "We streven ernaar binnen enkele werkdagen te reageren. Voor dringende technische problemen kun je ook het contactformulier gebruiken.",
+    "teamTitle": "Team en samenwerking",
+    "teamText": "Het team achter HomeCheff werkt dagelijks aan een betrouwbaar en gebruiksvriendelijk platform. Voor samenwerkingen, pers of vacatures: gebruik het bijpassende e-mailadres hierboven. We kijken ernaar uit om van je te horen.",
+    "contactCta": "Naar contactformulier"
+  },
   "contact": {
     "title": "Neem Contact Op",
     "description": "Heb je een vraag of opmerking? We helpen je graag verder. Vul het formulier in en we reageren zo snel mogelijk.",
@@ -4101,8 +4134,10 @@
     "errorMessage": "Er is een fout opgetreden bij het verzenden van je bericht. Probeer het later opnieuw of stuur een e-mail naar support@homecheff.eu",
     "backToFAQ": "Terug naar FAQ",
     "alternativeTitle": "Andere manieren om contact op te nemen",
-    "supportDescription": "Algemene vragen en support",
-    "infoDescription": "Speciale aanvragen en zakelijke vragen"
+    "supportEmail": "support@homecheff.eu",
+    "infoEmail": "info@homecheff.eu",
+    "supportDescription": "Technische hulp, account, betalingen, gebruik van het platform",
+    "infoDescription": "Algemene vragen, zakelijk, informatie over HomeCheff"
   },
   "feed": {
     "noResultsInRadius": "Geen resultaten in deze straal. Probeer een grotere straal of wis de zoekterm.",

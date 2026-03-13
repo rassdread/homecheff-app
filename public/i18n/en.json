@@ -1546,6 +1546,7 @@
     "dorpsplein": "Village Square",
     "inspiratie": "Inspiration",
     "faq": "FAQ",
+    "overOns": "About us",
     "login": "Login",
     "register": "Sign Up",
     "myProfile": "My Profile",
@@ -2840,7 +2841,7 @@
       "contact": "Contact",
       "contactDesc": "Do you have questions about this privacy policy or want to exercise your rights? Contact us:",
       "contactEmail": "Email:",
-      "contactEmailValue": "privacy@homecheff.eu",
+      "contactEmailValue": "info@homecheff.eu",
       "contactSupportEmail": "Support:",
       "contactSupportEmailValue": "support@homecheff.eu",
       "contactInfoEmail": "Info:",
@@ -3858,6 +3859,38 @@
     "updateEmail": "Update email",
     "saving": "Saving..."
   },
+  "overOns": {
+    "title": "About us",
+    "subtitle": "Who we are, what we do and how to reach us.",
+    "whoWeAreTitle": "Who we are",
+    "whoWeAre1": "HomeCheff is the platform where your neighborhood comes together: makers, cooks, gardeners and designers share their creations, recipes and harvest. We believe the best flavours and ideas are often right around the corner — and that everyone has something to share.",
+    "whoWeAre2": "We're building a place where you get inspiration on our Inspiration square and where you can buy and sell locally on the Village Square. It's all about fair trade, direct payouts and a community that supports each other.",
+    "whoWeAre3": "Whether you cook at home, grow in the garden or design with your hands: on HomeCheff your creations have a place and you reach people in your own region.",
+    "missionTitle": "Our mission",
+    "mission1": "We want to make local making and buying natural again. By connecting sellers and buyers directly, we keep transactions simple and fair. Sellers receive their payouts quickly and transparently; buyers discover unique products from people nearby.",
+    "mission2": "We also want to offer a place where you share ideas and recipes without having to sell — our Inspiration section is for everyone who wants to inspire and be inspired.",
+    "whatWeDoTitle": "What we do",
+    "whatWeDo1": "Inspiration: sharing recipes, growing tips and designs with the community.",
+    "whatWeDo2": "Village Square: offering and buying products locally, with secure payments and clear agreements.",
+    "whatWeDo3": "Direct payouts for sellers, without unnecessary middlemen.",
+    "whatWeDo4": "A platform that works for both hobbyists and small businesses.",
+    "reachabilityTitle": "Reachability — who to contact for what",
+    "reachabilityIntro": "We want you to reach the right place. Use the email addresses below so your message gets to the right team quickly.",
+    "tableFor": "For",
+    "tableEmail": "Email address",
+    "emailFor": {
+      "info": "General enquiries, business, information about HomeCheff",
+      "support": "Technical support, account, payments, platform use",
+      "partners": "Partnerships, B2B collaboration",
+      "press": "Press, media, press releases",
+      "jobs": "Jobs, working at HomeCheff",
+      "team": "Internal team, organisation"
+    },
+    "reachabilityNote": "We aim to respond within a few working days. For urgent technical issues you can also use the contact form.",
+    "teamTitle": "Team and collaboration",
+    "teamText": "The team behind HomeCheff works daily on a reliable and user-friendly platform. For partnerships, press or jobs: use the matching email address above. We look forward to hearing from you.",
+    "contactCta": "Go to contact form"
+  },
   "contact": {
     "title": "Contact Us",
     "description": "Have a question or comment? We're here to help. Fill out the form and we'll get back to you as soon as possible.",
@@ -3883,8 +3916,10 @@
     "errorMessage": "An error occurred while sending your message. Please try again later or send an email to support@homecheff.eu",
     "backToFAQ": "Back to FAQ",
     "alternativeTitle": "Other ways to contact us",
-    "supportDescription": "General questions and support",
-    "infoDescription": "Special requests and business inquiries"
+    "supportEmail": "support@homecheff.eu",
+    "infoEmail": "info@homecheff.eu",
+    "supportDescription": "Technical support, account, payments, platform use",
+    "infoDescription": "General enquiries, business, information about HomeCheff"
   },
   "notificationSettings": {
     "title": "Notification Settings",

@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, Gift, TrendingUp, DollarSign } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, Gift, TrendingUp, DollarSign, Info } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -224,6 +224,13 @@ export default function NavBar() {
               <Button variant="ghost" className="flex items-center space-x-2">
                 <HelpCircle className="w-4 h-4" />
                 <span>{t('navbar.faq')}</span>
+              </Button>
+            </Link>
+
+            <Link href="/over-ons">
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <Info className="w-4 h-4" />
+                <span>{t('navbar.overOns')}</span>
               </Button>
             </Link>
 
@@ -514,6 +521,13 @@ export default function NavBar() {
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                   <HelpCircle className="w-4 h-4" />
                   <span>{t('navbar.faq')}</span>
+                </Button>
+              </Link>
+
+              <Link href="/over-ons" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                  <Info className="w-4 h-4" />
+                  <span>{t('navbar.overOns')}</span>
                 </Button>
               </Link>
 
