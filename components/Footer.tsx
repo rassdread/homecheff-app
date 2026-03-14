@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare } from 'lucide-react';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -14,6 +14,7 @@ export default function Footer() {
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
     { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/faq', label: t('siteFooter.faq'), icon: HelpCircle },
+    { href: '/contact?subject=feedback', label: t('siteFooter.feedback'), icon: MessageSquare },
   ];
 
   return (

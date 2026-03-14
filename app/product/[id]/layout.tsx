@@ -3,6 +3,11 @@ import Script from 'next/script';
 import { prisma } from '@/lib/prisma';
 import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
 
+const BREADCRUMB_HOME_NL = 'Home';
+const BREADCRUMB_HOME_EN = 'Home';
+const BREADCRUMB_SQUARE_NL = 'Dorpsplein';
+const BREADCRUMB_SQUARE_EN = 'Village Square';
+
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(
@@ -132,9 +137,11 @@ export default async function ProductLayout({
 }) {
   const { id } = await params;
   const currentDomain = await getCurrentDomain();
+  const lang = await getCurrentLanguage();
 
   // Fetch product data for structured data
   let structuredData: any = null;
+  let breadcrumbData: any = null;
   try {
     const product = await prisma.product.findUnique({
       where: { id },
@@ -213,6 +220,19 @@ export default async function ProductLayout({
           }))
         })
       };
+
+      // BreadcrumbList for SEO
+      const homeLabel = lang === 'en' ? BREADCRUMB_HOME_EN : BREADCRUMB_HOME_NL;
+      const squareLabel = lang === 'en' ? BREADCRUMB_SQUARE_EN : BREADCRUMB_SQUARE_NL;
+      breadcrumbData = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: homeLabel, item: `${currentDomain}/` },
+          { '@type': 'ListItem', position: 2, name: squareLabel, item: `${currentDomain}/dorpsplein` },
+          { '@type': 'ListItem', position: 3, name: product.title, item: `${currentDomain}/product/${id}` }
+        ]
+      };
     }
   } catch (error) {
     console.error('Error generating structured data:', error);
@@ -225,6 +245,13 @@ export default async function ProductLayout({
           id="product-structured-data"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
+      {breadcrumbData && (
+        <Script
+          id="product-breadcrumb-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
         />
       )}
       {children}

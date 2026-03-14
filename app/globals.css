@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Toegankelijkheid: duidelijke focus voor toetsenbord (niet voor muis-klik) */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid theme('colors.emerald.500');
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid theme('colors.emerald.500');
+  outline-offset: 2px;
+}
+
 /* Voorkom horizontaal scrollen / content buiten scherm */
 html, body {
   overflow-x: hidden;

@@ -15,12 +15,17 @@ const PrivacyNotice: React.FC = () => {
     }
   }, []);
 
-  const handleAccept = () => {
+  const handleAcceptAll = () => {
     localStorage.setItem('privacy-notice-accepted', 'true');
     setIsVisible(false);
   };
 
-  const handleDecline = () => {
+  const handleOnlyNecessary = () => {
+    localStorage.setItem('privacy-notice-accepted', 'necessary');
+    setIsVisible(false);
+  };
+
+  const handleMoreInfo = () => {
     window.location.href = '/privacy';
   };
 
@@ -61,22 +66,28 @@ const PrivacyNotice: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <button
-            onClick={handleAccept}
-            className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-          >
-            {t('cookieBanner.accept')}
-          </button>
-          <button
-            onClick={handleDecline}
+            onClick={handleOnlyNecessary}
+            type="button"
             className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
           >
-            {t('cookieBanner.moreInfo')}
+            {t('cookieBanner.onlyNecessary')}
+          </button>
+          <button
+            onClick={handleAcceptAll}
+            type="button"
+            className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+          >
+            {t('cookieBanner.acceptAll')}
           </button>
         </div>
 
         <p className="text-xs text-gray-500 mt-3 text-center">
+          <button type="button" onClick={handleMoreInfo} className="text-emerald-600 hover:underline">
+            {t('cookieBanner.moreInfo')}
+          </button>
+          {' · '}
           <a href="/privacy" className="text-emerald-600 hover:underline">
             {t('register.privacyPage.title')}
           </a>

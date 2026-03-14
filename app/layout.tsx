@@ -15,7 +15,7 @@ const UserValidation = dynamic(() => import('@/components/UserValidation'), {
 const PerformanceMonitor = dynamic(() => import('@/components/PerformanceMonitor'), {
   ssr: false,
 });
-const VercelAnalytics = dynamic(() => import('@/components/VercelAnalytics'), {
+const ConsentAwareAnalytics = dynamic(() => import('@/components/ConsentAwareAnalytics'), {
   ssr: false,
 });
 const Preloader = dynamic(() => import('@/components/Preloader'), {
@@ -184,6 +184,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
+        <link rel="manifest" href="/manifest.json" />
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
@@ -192,7 +193,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers>
           <SkipLink />
           <PerformanceMonitor />
-          <VercelAnalytics />
+          <ConsentAwareAnalytics />
           <Preloader />
           <ToastNotification />
           <UserValidation />

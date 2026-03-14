@@ -1143,8 +1143,11 @@ export default function CheckoutPage() {
                     )}
                   </Button>
 
-                  <p className="text-xs text-gray-500 text-center mt-4">
-                    Je wordt doorgestuurd naar Stripe voor veilige betaling
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    {t('checkout.redirectingToStripe') || 'Je wordt doorgestuurd naar Stripe voor veilige betaling'}
+                  </p>
+                  <p className="text-xs text-emerald-700 text-center mt-1 font-medium">
+                    {t('checkout.trustLine')}
                   </p>
                 </div>
               </div>

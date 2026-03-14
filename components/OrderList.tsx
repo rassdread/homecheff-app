@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
+import EmptyState from "@/components/ui/EmptyState";
+import { Package } from "lucide-react";
 
 type Order = {
   id: string;
@@ -12,6 +16,7 @@ type Order = {
 };
 
 export default function OrderList() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -40,11 +45,19 @@ export default function OrderList() {
   useEffect(() => { load(page); }, [page]);
 
   if (loading) {
-    return <div className="rounded-xl border p-4 bg-white animate-pulse h-32" />;
+    return <div className="rounded-xl border p-4 bg-white animate-pulse h-32" aria-busy="true" />;
   }
 
   if (!orders.length) {
-    return <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">Nog geen bestellingen.</div>;
+    return (
+      <EmptyState
+        icon={<Package />}
+        title={t('emptyState.ordersTitle')}
+        description={t('emptyState.ordersDesc')}
+        actionLabel={t('emptyState.ordersAction')}
+        actionHref="/dorpsplein"
+      />
+    );
   }
 
   return (

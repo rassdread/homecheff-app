@@ -303,8 +303,11 @@ export default function HomePage() {
             <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 leading-tight px-2">
               {splashTitle}
             </h1>
-            <p className="text-sm sm:text-base text-primary-100 mb-4 sm:mb-5 max-w-2xl mx-auto px-2">
+            <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">
               {splashSubtitle}
+            </p>
+            <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">
+              {t('hero.valueProposition')}
             </p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
               <Link href="/inspiratie">
@@ -328,6 +331,13 @@ export default function HomePage() {
                 </Link>
               )}
             </div>
+            <p className="text-xs text-white/80 mt-4">
+              <Link href="/dorpsplein" className="underline hover:text-white">{dorpspleinText}</Link>
+              {' · '}
+              <Link href="/inspiratie" className="underline hover:text-white">{inspiratieText}</Link>
+              {' · '}
+              <Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
+            </p>
           </div>
         </section>
       )}

@@ -717,22 +717,13 @@ export function useTranslation() {
     document.documentElement.lang = language === 'en' ? 'en' : 'nl';
   }, [language]);
 
-  // Get available languages with translated names (memoized to update when translations change)
-  // Note: Language names should NOT be translated - they stay as "Nederlands" and "English" regardless of interface language
+  // Available languages; bij uitbreiding: sync met SUPPORTED_LOCALES in lib/locale.ts + nieuwe i18n JSON
   const availableLanguages = useMemo(() => {
     return [
-      { 
-        code: 'nl' as Language, 
-        name: 'Nederlands', // Always "Nederlands" regardless of interface language
-        flag: '🇳🇱' 
-      },
-      { 
-        code: 'en' as Language, 
-        name: 'English', // Always "English" regardless of interface language
-        flag: '🇬🇧' 
-      }
+      { code: 'nl' as Language, name: 'Nederlands', flag: '🇳🇱' },
+      { code: 'en' as Language, name: 'English', flag: '🇬🇧' }
     ];
-  }, []); // No dependencies - language names never change
+  }, []);
 
   return {
     t,

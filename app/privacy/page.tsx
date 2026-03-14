@@ -206,9 +206,12 @@ export default function PrivacyPage() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-8 border-t border-gray-200">
+              <div className="mt-8 pt-8 border-t border-gray-200 space-y-3">
                 <p className="text-sm text-gray-500">
                   {t('register.privacyPage.lastUpdated')} {new Date().toLocaleDateString()}
+                </p>
+                <p className="text-xs text-amber-700 italic">
+                  {t('register.privacyPage.legalDisclaimer')}
                 </p>
               </div>
             </div>

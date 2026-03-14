@@ -416,10 +416,12 @@ export default function GeoFeed() {
         <div className="h-32 rounded-xl bg-gray-100 animate-pulse" />
       ) : !filteredAndSortedItems.length ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
-          {items.length === 0 
-            ? t('feed.noResultsInRadius')
-            : t('feed.noProductsWithFilters')
-          }
+          <p>
+            {items.length === 0
+              ? t('feed.noResultsInRadius')
+              : t('feed.noProductsWithFilters')}
+          </p>
+          <p className="mt-2 text-xs text-gray-500">{t('emptyState.noResultsHint')}</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
