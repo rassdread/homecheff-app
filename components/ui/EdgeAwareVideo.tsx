@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Edge: video alleen via blob-URL (fetch proxy → blob) zodat het inline op de pagina afspeelt.
- * Geen directe URL; blob van proxy werkt wel in Edge.
+ * Video met Edge-ondersteuning. Na security/cookie-patches faalde video in Edge;
+ * eerst proxy-URL direct (zelfde als andere browsers), bij fout blob-fallback.
  */
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { isEdgeBrowser } from '@/lib/videoUtils';
@@ -27,6 +27,7 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
   function EdgeAwareVideo({ src, fallbackSrc, onError, ...props }, ref) {
     const [effectiveSrc, setEffectiveSrc] = useState<string | undefined>(undefined);
     const blobUrlRef = useRef<string | null>(null);
+    const triedBlobRef = useRef(false);
 
     const doFetchBlob = useCallback((proxyUrl: string, cancelled: { v: boolean }) => {
       const url = absoluteUrl(proxyUrl);
@@ -47,47 +48,48 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
     useEffect(() => {
       if (!src) {
         setEffectiveSrc(undefined);
+        triedBlobRef.current = false;
         return;
       }
-      if (!isEdgeBrowser() || !isProxyUrl(src)) {
-        setEffectiveSrc(src);
-        return;
-      }
-      const cancelled = { v: false };
-      // Edge: altijd proxy fetchen en blob-URL gebruiken (geen directe URL) zodat video inline speelt
-      const run = (retry = false) => {
-        doFetchBlob(src, cancelled)
-          .then((objectUrl) => {
-            if (!objectUrl || cancelled.v) return;
-            blobUrlRef.current = objectUrl;
-            setEffectiveSrc(objectUrl);
-          })
-          .catch(() => {
-            if (cancelled.v) return;
-            if (retry) {
-              if (fallbackSrc) setEffectiveSrc(fallbackSrc);
-              else setEffectiveSrc(src);
-            } else {
-              setTimeout(() => run(true), 500);
-            }
-          });
-      };
-      run();
-
+      // Alle browsers: proxy-URL direct (proxy geeft voor Edge 200 gebufferd)
+      setEffectiveSrc(src);
+      triedBlobRef.current = false;
       return () => {
-        cancelled.v = true;
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
           blobUrlRef.current = null;
         }
       };
-    }, [src, fallbackSrc, doFetchBlob]);
+    }, [src]);
 
     const handleError = useCallback(
       (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+        if (
+          isEdgeBrowser() &&
+          effectiveSrc &&
+          isProxyUrl(src) &&
+          !triedBlobRef.current
+        ) {
+          triedBlobRef.current = true;
+          const cancelled = { v: false };
+          doFetchBlob(src, cancelled)
+            .then((objectUrl) => {
+              if (objectUrl && !cancelled.v) {
+                if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = objectUrl;
+                setEffectiveSrc(objectUrl);
+              } else if (!cancelled.v && fallbackSrc) {
+                setEffectiveSrc(fallbackSrc);
+              }
+            })
+            .catch(() => {
+              if (fallbackSrc) setEffectiveSrc(fallbackSrc);
+            });
+          return;
+        }
         onError?.(e);
       },
-      [onError]
+      [effectiveSrc, fallbackSrc, src, onError, doFetchBlob]
     );
 
     return <video ref={ref} src={effectiveSrc} onError={handleError} {...props} />;
