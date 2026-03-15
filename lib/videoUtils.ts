@@ -13,28 +13,17 @@ export function isIOSSafari(): boolean {
 }
 
 
-/** Edge (Chromium) herkennen: proxy geeft daar vaak playback errors, directe Blob-URL wel. */
-export function isEdgeBrowser(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  return /edg\/|edge\//i.test(navigator.userAgent);
-}
-
 /**
  * Get video URL with CORS proxy if needed
  * Fixes CORS errors when loading videos from Vercel Blob Storage.
- * Edge: directe Blob-URL gebruiken (proxy faalt daar; Vercel Blob staat CORS toe).
+ * Alle browsers (incl. Edge) via proxy; SW slaat video-proxy over zodat response goed aankomt.
  *
  * @param videoUrl Original video URL
- * @returns Video URL (proxied, of direct voor Edge)
+ * @returns Video URL (proxied voor Vercel Blob)
  */
 export function getVideoUrlWithCors(videoUrl: string): string {
   if (!videoUrl) return videoUrl;
-  const isBlob = videoUrl.includes('blob.vercel-storage.com') || videoUrl.includes('vercel-storage.com');
-  // Edge: direct van Blob laden (geen proxy) – werkt betrouwbaarder
-  if (typeof navigator !== 'undefined' && isEdgeBrowser() && isBlob) {
-    return videoUrl;
-  }
-  if (isBlob) {
+  if (videoUrl.includes('blob.vercel-storage.com') || videoUrl.includes('vercel-storage.com')) {
     const encodedUrl = encodeURIComponent(videoUrl);
     return `/api/video-proxy?url=${encodedUrl}`;
   }

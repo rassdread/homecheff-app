@@ -59,6 +59,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Video-proxy: nooit door SW – direct netwerk (Edge en andere browsers falen anders met video)
+  if (url.pathname.includes('video-proxy')) {
+    return;
+  }
+
   // Skip non-GET requests
   if (request.method !== 'GET') {
     return;
