@@ -12,11 +12,10 @@ export function isIOSSafari(): boolean {
   return !!(isIOS && isSafari);
 }
 
-
 /**
  * Get video URL with CORS proxy if needed
  * Fixes CORS errors when loading videos from Vercel Blob Storage.
- * Alle browsers (incl. Edge) via proxy; SW slaat video-proxy over zodat response goed aankomt.
+ * Alle browsers (incl. Edge) via proxy; proxy stuurt Edge-specifieke headers (nosniff, Content-Disposition).
  *
  * @param videoUrl Original video URL
  * @returns Video URL (proxied voor Vercel Blob)

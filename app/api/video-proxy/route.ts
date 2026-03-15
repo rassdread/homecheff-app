@@ -92,10 +92,12 @@ export async function GET(request: NextRequest) {
       // Voor 200 full-body: geen Content-Range (alleen bij 206). Edge is strikt op headers.
       const bufLen = buffer.byteLength;
       const headersBuffered: Record<string, string> = {
-        'Content-Type': contentType,
+        'Content-Type': contentType.split(';')[0].trim() || 'video/mp4',
         'Content-Length': String(bufLen),
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Disposition': 'inline; filename="video.mp4"',
         ...CORS_HEADERS,
       };
       return new NextResponse(buffer, {
@@ -105,9 +107,10 @@ export async function GET(request: NextRequest) {
     }
 
     const headers: Record<string, string> = {
-      'Content-Type': contentType,
+      'Content-Type': (contentType || 'video/mp4').split(';')[0].trim(),
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
       ...CORS_HEADERS,
     };
     if (contentLength) headers['Content-Length'] = contentLength;
