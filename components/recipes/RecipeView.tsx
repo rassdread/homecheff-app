@@ -485,7 +485,6 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <video
                   src={getVideoUrlWithCors(recipe.video.url)}
-                  crossOrigin="anonymous"
                   controls
                   className="w-full h-full object-cover"
                   poster={recipe.video.thumbnail || undefined}

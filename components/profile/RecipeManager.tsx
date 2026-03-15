@@ -1393,7 +1393,6 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                           src={getVideoUrlWithCors(recipe.video.url)}
                           poster={recipe.video.thumbnail || recipe.photos[0]?.url}
                           className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
                           controls
                           playsInline
                           preload="metadata"

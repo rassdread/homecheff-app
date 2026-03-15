@@ -301,7 +301,6 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
         src={videoSrc}
         poster={posterUrl || undefined}
         className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} bg-black`}
-        crossOrigin="anonymous"
         playsInline
         preload="auto"
         loop

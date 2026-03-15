@@ -470,7 +470,6 @@ export default function DesignView({ design, isOwner, ownerPermissions, currentU
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <video
                   src={getVideoUrlWithCors(design.video.url)}
-                  crossOrigin="anonymous"
                   controls
                   className="w-full h-full object-cover"
                   poster={design.video.thumbnail || undefined}
