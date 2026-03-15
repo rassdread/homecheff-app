@@ -8,8 +8,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const subcategory = searchParams.get('subcategory');
-    const region = searchParams.get('region'); // New: region filter
+    const region = searchParams.get('region');
     const sortBy = searchParams.get('sortBy') || 'newest';
+    const takeParam = searchParams.get('take');
+    const take = Math.min(Math.max(parseInt(takeParam || '24', 10) || 24, 1), 100);
+    const skipParam = searchParams.get('skip');
+    const skip = Math.max(parseInt(skipParam || '0', 10) || 0, 0);
 
     // Build where clause
     const where: any = {
@@ -82,8 +86,9 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: 'desc' }, // We'll sort by popularity after fetching view counts
-      take: 100,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
 
     console.log(`📊 Found ${dishes.length} dishes with status PUBLISHED`);

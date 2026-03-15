@@ -21,9 +21,10 @@ function shouldForceBuffer(userAgent: string | null): boolean {
     ua.includes('ipod') ||
     (ua.includes('safari') && !ua.includes('chrome')) ||
     ua.includes('mobile');
-  // Edge (Chromium) heeft soms problemen met 206 Range via proxy; bufferen voorkomt dat
+  // Edge (Chromium) en Samsung Internet: 206 Range via proxy geeft problemen; bufferen
   const isEdge = ua.includes('edg/') || ua.includes('edge/');
-  return safariOrMobile || isEdge;
+  const isSamsung = ua.includes('samsungbrowser');
+  return safariOrMobile || isEdge || isSamsung;
 }
 
 /**

@@ -70,7 +70,10 @@ export default function InspiratieContent() {
   const [isRefreshingSession, setIsRefreshingSession] = useState(false);
   const [items, setItems] = useState<InspirationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string>('all'); // New: region filter
@@ -301,40 +304,73 @@ export default function InspiratieContent() {
     fetchInspirationItems();
   }, [selectedCategory, selectedSubcategory, selectedRegion, sortBy]);
 
-  const fetchInspirationItems = async () => {
+  const PAGE_SIZE = 24;
+
+  const fetchInspirationItems = async (append = false) => {
+    const skip = append ? items.length : 0;
     try {
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setHasMore(true);
+      }
       setError(null);
       const params = new URLSearchParams();
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
       if (selectedSubcategory) params.append('subcategory', selectedSubcategory);
       if (selectedRegion !== 'all') params.append('region', selectedRegion);
       params.append('sortBy', sortBy);
-      
-      console.log('🔍 Fetching inspiration items with params:', params.toString());
+      params.append('take', String(PAGE_SIZE));
+      params.append('skip', String(skip));
       const response = await fetch(`/api/inspiratie?${params.toString()}`);
       
       if (response.ok) {
         const data = await response.json();
         const list = data.items || [];
-        const withVideo = list.filter((it: { videos?: Array<{ url?: string }> }) => it.videos?.length && it.videos[0]?.url).length;
-        console.log('✅ Received inspiration items:', list.length, list.length ? `(${withVideo} met video)` : '');
-        setItems(list);
+        if (append) {
+          setItems((prev) => [...prev, ...list]);
+        } else {
+          setItems(list);
+        }
         setError(null);
+        if (list.length < PAGE_SIZE) setHasMore(false);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Error fetching inspiration:', response.status, errorData);
-        setItems([]);
-        setError(errorData.error || `${t('inspiratie.error')} (${response.status})`);
+        if (!append) {
+          const errorData = await response.json().catch(() => ({}));
+          setItems([]);
+          setError(errorData.error || `${t('inspiratie.error')} (${response.status})`);
+        }
       }
-    } catch (error) {
-      console.error('❌ Error fetching inspiration:', error);
-      setItems([]);
-      setError(t('inspiratie.error'));
+    } catch (err) {
+      if (!append) {
+        setItems([]);
+        setError(t('inspiratie.error'));
+      }
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
+
+  useEffect(() => {
+    if (!hasMounted || loading || loadingMore || !hasMore) return;
+    const el = loadMoreSentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !loading && !loadingMore && hasMore) {
+          fetchInspirationItems(true);
+        }
+      },
+      { rootMargin: '200px', threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMounted, loading, loadingMore, hasMore, items.length, selectedCategory, selectedSubcategory, selectedRegion, sortBy]);
 
   // Get available subcategories for current category with translations
   const availableSubcategories = selectedCategory !== 'all' 
@@ -644,10 +680,20 @@ export default function InspiratieContent() {
         </ClientOnly>
       </div>
 
-      {/* Filters + content: alleen na mount om hydration mismatch (server vs client i18n) te voorkomen */}
+      {/* Filters + content: na mount om hydration mismatch te voorkomen; tot die tijd skeleton */}
       {!hasMounted ? (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm animate-pulse">
+                <div className="aspect-[4/3] bg-gray-200" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
       <>
@@ -1095,11 +1141,19 @@ export default function InspiratieContent() {
           )}
         </div>
 
-        {/* Loading State */}
+        {/* Loading State: skeleton grid zodat de pagina niet lang leeg voelt */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-            <span className="ml-3 text-gray-600">{t('inspiratie.loading')}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden>
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm animate-pulse">
+                <div className="aspect-[4/3] bg-gray-200" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  <div className="h-3 bg-gray-100 rounded w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="text-center py-12">
@@ -1160,6 +1214,18 @@ export default function InspiratieContent() {
                     getItemDetailUrl={getItemDetailUrl}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Oneindig scroll: sentinel onderaan triggert automatisch meer laden */}
+            {filteredItems.length > 0 && hasMore && (
+              <div ref={loadMoreSentinelRef} className="h-4 w-full flex justify-center py-6" aria-hidden>
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm">{t('inspiratie.loading')}</span>
+                  </div>
+                )}
               </div>
             )}
 

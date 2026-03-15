@@ -341,11 +341,21 @@ export default function HomePage() {
           </div>
         </section>
       )}
-      {/* Feed direct zichtbaar onder het splashblok (of direct als splash is weggeklikt) */}
+      {/* Feed direct zichtbaar onder het splashblok; skeleton zodat het niet lang leeg oogt */}
       <main className="min-h-[60vh]">
         <Suspense fallback={
-          <div className="min-h-[40vh] bg-gray-50 flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm animate-pulse">
+                  <div className="aspect-[4/3] bg-gray-200" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         }>
           <InspiratieContent />

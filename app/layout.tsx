@@ -87,8 +87,11 @@ export async function generateMetadata(): Promise<Metadata> {
         images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
       },
       icons: {
-        icon: '/logo.png',
-        apple: '/logo.png',
+        icon: [
+          { url: `${currentDomain}/logo.png`, sizes: '48x48', type: 'image/png' },
+          { url: `${currentDomain}/logo.png`, sizes: '512x512', type: 'image/png' },
+        ],
+        apple: `${currentDomain}/logo.png`,
       },
       alternates: {
         canonical: currentDomain,
@@ -136,8 +139,11 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
     },
     icons: {
-      icon: '/logo.png',
-      apple: '/logo.png',
+      icon: [
+        { url: `${currentDomain}/logo.png`, sizes: '48x48', type: 'image/png' },
+        { url: `${currentDomain}/logo.png`, sizes: '512x512', type: 'image/png' },
+      ],
+      apple: `${currentDomain}/logo.png`,
     },
     alternates: {
       canonical: currentDomain,
@@ -185,6 +191,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        {/* Favicon / logo naast link in zoekresultaten (Google, Bing): absolute URL + meerdere formaten */}
+        <link rel="icon" type="image/png" sizes="48x48" href={`${MAIN_DOMAIN}/logo.png`} />
+        <link rel="icon" type="image/png" sizes="512x512" href={`${MAIN_DOMAIN}/logo.png`} />
+        <link rel="apple-touch-icon" href={`${MAIN_DOMAIN}/logo.png`} />
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />

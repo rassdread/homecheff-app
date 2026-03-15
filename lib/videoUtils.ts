@@ -26,14 +26,20 @@ export function isEdgeAndroid(): boolean {
   return (/Edg\//.test(ua) || /Edge\//.test(ua)) && /Android/i.test(ua);
 }
 
+/** Samsung Internet (standaard op Samsung Android): video via proxy faalt vaak. */
+export function isSamsungBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}
+
 /**
  * Get video URL with CORS proxy if needed
- * Edge Android: directe Blob-URL (geen proxy) – proxy laadt daar vaak niet.
+ * Edge Android + Samsung Internet: directe Blob-URL eerst, proxy als fallback.
  */
 export function getVideoUrlWithCors(videoUrl: string): string {
   if (!videoUrl) return videoUrl;
   if (videoUrl.includes('blob.vercel-storage.com') || videoUrl.includes('vercel-storage.com')) {
-    if (isEdgeAndroid()) return videoUrl;
+    if (isEdgeAndroid() || isSamsungBrowser()) return videoUrl;
     const encodedUrl = encodeURIComponent(videoUrl);
     return `/api/video-proxy?url=${encodedUrl}`;
   }

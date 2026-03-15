@@ -66,21 +66,22 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
 
     const handleError = useCallback(
       (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-        if (!effectiveSrc || !isEdgeBrowser()) {
+        if (!effectiveSrc) {
           onError?.(e);
           return;
         }
-        // Edge Android: eerst directe URL, bij fout proxy proberen
+        // Directe URL gefaald (Edge Android, Samsung): proxy als fallback proberen
         if (fallbackSrc && effectiveSrc !== fallbackSrc && !triedFallbackRef.current) {
           triedFallbackRef.current = true;
           setEffectiveSrc(fallbackSrc);
           return;
         }
-        // Edge + proxy-URL: bij fout blob van proxy proberen
-        if (isProxyUrl(src) && !triedBlobRef.current) {
+        // Proxy-URL gefaald (Edge of Samsung fallback): blob van proxy proberen
+        const proxyUrl = isProxyUrl(effectiveSrc) ? effectiveSrc : isProxyUrl(src) ? src : null;
+        if (proxyUrl && !triedBlobRef.current) {
           triedBlobRef.current = true;
           const cancelled = { v: false };
-          doFetchBlob(src!, cancelled)
+          doFetchBlob(proxyUrl, cancelled)
             .then((objectUrl) => {
               if (objectUrl && !cancelled.v) {
                 if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);

@@ -15,7 +15,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import SafeImage from '@/components/ui/SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
-import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser } from '@/lib/videoUtils';
+import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser, isSamsungBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { PlayCircle, Volume2, VolumeX } from 'lucide-react';
 
@@ -62,7 +62,8 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
   const proxyFallback = primaryVideo?.url && (primaryVideo.url.includes('vercel-storage.com') || primaryVideo.url.includes('blob.vercel'))
     ? `/api/video-proxy?url=${encodeURIComponent(primaryVideo.url)}`
     : undefined;
-  const fallbackSrc = isEdgeAndroid() ? proxyFallback : primaryVideo?.url;
+  const useProxyFallback = isEdgeAndroid() || isSamsungBrowser();
+  const fallbackSrc = useProxyFallback ? proxyFallback : primaryVideo?.url;
 
   const handlePlayClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
