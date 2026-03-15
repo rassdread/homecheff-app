@@ -14,6 +14,7 @@
  */
 import { useRef, useState, useCallback, useEffect } from 'react';
 import SafeImage from '@/components/ui/SafeImage';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { PlayCircle, Volume2, VolumeX } from 'lucide-react';
@@ -296,9 +297,10 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
 
   return (
     <div ref={containerRef} className="video-smooth absolute inset-0 w-full h-full bg-gray-200" data-inspiration-card-media>
-      <video
+      <EdgeAwareVideo
         ref={setVideoRef}
         src={videoSrc}
+        fallbackSrc={primaryVideo?.url}
         poster={posterUrl || undefined}
         className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} bg-black`}
         playsInline

@@ -27,6 +27,7 @@ import clsx from 'clsx';
 import DishReviewSection from './DishReviewSection';
 import ShareButton from '@/components/ui/ShareButton';
 import { useTranslation } from '@/hooks/useTranslation';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type InspirationCategory = 'CHEFF' | 'GROWN' | 'DESIGNER';
@@ -382,7 +383,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                       </>
                     ) : (
                       <div className="relative h-full w-full">
-                        <video
+                        <EdgeAwareVideo
                           ref={(el) => {
                             if (el) {
                               el.playsInline = true;
@@ -391,6 +392,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                             }
                           }}
                           src={getVideoUrlWithCors(currentMedia.url)}
+                          fallbackSrc={currentMedia.url}
                           poster={currentMedia.thumbnail || undefined}
                           className="h-full w-full rounded-3xl object-contain"
                           controls
@@ -872,7 +874,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                 className="max-h-[80vh] max-w-[80vw] rounded-2xl object-contain"
               />
             ) : (
-              <video
+              <EdgeAwareVideo
                 ref={(el) => {
                   if (el) {
                     el.playsInline = true;
@@ -881,6 +883,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                   }
                 }}
                 src={getVideoUrlWithCors(mediaItems[lightboxIndex].url)}
+                fallbackSrc={mediaItems[lightboxIndex].url}
                 poster={mediaItems[lightboxIndex].thumbnail || undefined}
                 className="max-h-[80vh] max-w-[80vw] rounded-2xl"
                 controls

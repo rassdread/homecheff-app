@@ -13,6 +13,7 @@ import BackButton from '@/components/navigation/BackButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type RecipePhoto = {
@@ -483,8 +484,9 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
               <div className="culinary-corner culinary-corner-br"></div>
               
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
-                <video
+                <EdgeAwareVideo
                   src={getVideoUrlWithCors(recipe.video.url)}
+                  fallbackSrc={recipe.video.url}
                   controls
                   className="w-full h-full object-cover"
                   poster={recipe.video.thumbnail || undefined}
@@ -492,7 +494,7 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
                   playsInline
                 >
                   Je browser ondersteunt geen video element.
-                </video>
+                </EdgeAwareVideo>
                 {/* Video label */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                   <p className="cookbook-subtitle text-white text-base text-center">

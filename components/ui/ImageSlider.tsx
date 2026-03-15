@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { isIntersectionObserverSupported, createSafeIntersectionObserver } from '@/lib/browser-utils';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
@@ -841,7 +842,7 @@ export default function ImageSlider({
       <div className={`relative w-full h-full overflow-hidden ${className}`} style={{ position: 'relative', minHeight: '100%' }}>
         {singleMedia.type === 'video' ? (
           <div className="video-smooth absolute inset-0 w-full h-full bg-gray-200" style={{ zIndex: 10 }}>
-            <video
+            <EdgeAwareVideo
               ref={(el) => {
                 if (el) {
                   videoRefs.current.set(0, el);
@@ -865,6 +866,7 @@ export default function ImageSlider({
                 }
               }}
               src={getVideoUrlWithCors(singleMedia.url)}
+              fallbackSrc={singleMedia.url}
               poster={singleMedia.thumbnail || undefined}
               className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
               controls
@@ -1090,7 +1092,7 @@ export default function ImageSlider({
         {mediaItems[currentIndex] ? (
           mediaItems[currentIndex].type === 'video' ? (
             <div className="video-smooth absolute inset-0 w-full h-full bg-gray-200" style={{ zIndex: 10 }}>
-              <video
+              <EdgeAwareVideo
                 ref={(el) => {
                   if (el) {
                     videoRefs.current.set(currentIndex, el);
@@ -1118,6 +1120,7 @@ export default function ImageSlider({
                   }
                 }}
                 src={getVideoUrlWithCors(mediaItems[currentIndex].url)}
+                fallbackSrc={mediaItems[currentIndex].url}
                 poster={mediaItems[currentIndex].thumbnail || undefined}
                 className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
                 controls

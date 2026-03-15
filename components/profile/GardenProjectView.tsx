@@ -14,6 +14,7 @@ import BackButton from '@/components/navigation/BackButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type GardenPhoto = {
@@ -554,8 +555,9 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
               <div className="botanical-corner botanical-corner-br"></div>
               
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
-                <video
+                <EdgeAwareVideo
                   src={getVideoUrlWithCors(project.video.url)}
+                  fallbackSrc={project.video.url}
                   controls
                   className="w-full h-full object-cover"
                   poster={project.video.thumbnail || undefined}
@@ -563,7 +565,7 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
                   playsInline
                 >
                   Je browser ondersteunt geen video element.
-                </video>
+                </EdgeAwareVideo>
                 {/* Video label */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                   <p className="botanical-subtitle text-white text-lg text-center">

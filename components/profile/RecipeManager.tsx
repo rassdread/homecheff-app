@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, X, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 // Lazy load heavy components for better performance
@@ -1389,8 +1390,9 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
                           e.stopPropagation();
                         }}
                       >
-                        <video
+                        <EdgeAwareVideo
                           src={getVideoUrlWithCors(recipe.video.url)}
+                          fallbackSrc={recipe.video.url}
                           poster={recipe.video.thumbnail || recipe.photos[0]?.url}
                           className="w-full h-full object-cover"
                           controls

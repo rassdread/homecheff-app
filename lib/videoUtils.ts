@@ -12,6 +12,13 @@ export function isIOSSafari(): boolean {
   return !!(isIOS && isSafari);
 }
 
+/** Microsoft Edge (Chromium) – gebruikt blob-URL workaround voor proxy-video */
+export function isEdgeBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /Edg\//.test(ua) || /Edge\//.test(ua);
+}
+
 /**
  * Get video URL with CORS proxy if needed
  * Fixes CORS errors when loading videos from Vercel Blob Storage.

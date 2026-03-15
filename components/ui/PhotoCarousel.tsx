@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn, Volume2, VolumeX } from 'lucide-react';
 import SafeImage from './SafeImage';
+import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { checkVideoHasAudio, getVideoUrlWithCors } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
@@ -242,7 +243,7 @@ export default function PhotoCarousel({
         <div className="relative aspect-video bg-gray-100 rounded-xl overflow-hidden">
           {currentMedia.type === 'video' ? (
             <div className="video-smooth relative w-full h-full">
-              <video
+              <EdgeAwareVideo
                 ref={(el) => {
                   if (el) {
                     videoRefs.current.set(currentIndex, el);
@@ -260,6 +261,7 @@ export default function PhotoCarousel({
                   }
                 }}
                 src={getVideoUrlWithCors(currentMedia.url ?? '')}
+                fallbackSrc={currentMedia.url ?? undefined}
                 controls
                 muted
                 preload="auto"
@@ -294,7 +296,7 @@ export default function PhotoCarousel({
                 }}
               >
                 Je browser ondersteunt geen video element.
-              </video>
+              </EdgeAwareVideo>
               {/* Mute/Unmute Button - Only show if video has audio */}
               {videoHasAudio.get(currentIndex) !== false && (
                 <button
@@ -471,7 +473,7 @@ export default function PhotoCarousel({
           <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
             {currentMedia.type === 'video' ? (
               <div className="video-smooth relative w-full h-full flex items-center justify-center">
-                <video
+                <EdgeAwareVideo
                   ref={(el) => {
                     if (el) {
                       videoRefs.current.set(currentIndex, el);
@@ -486,6 +488,7 @@ export default function PhotoCarousel({
                     }
                   }}
                   src={getVideoUrlWithCors(currentMedia.url ?? '')}
+                  fallbackSrc={currentMedia.url ?? undefined}
                   controls
                   autoPlay
                   muted
@@ -519,7 +522,7 @@ export default function PhotoCarousel({
                 }}
               >
                 Je browser ondersteunt geen video element.
-              </video>
+              </EdgeAwareVideo>
               {/* Mute/Unmute Button - Only show if video has audio */}
                 {videoHasAudio.get(currentIndex) !== false && (
                   <button
