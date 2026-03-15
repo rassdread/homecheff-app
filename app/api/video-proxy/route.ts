@@ -8,17 +8,19 @@ const CORS_HEADERS = {
   'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
 };
 
-/** Detecteert Safari / iOS / mobiel – daar streamen we niet, altijd bufferen voor betrouwbare playback. */
-function isSafariOrMobile(userAgent: string | null): boolean {
+/** Browsers waarbij we niet streamen maar altijd bufferen (200 + full body) voor betrouwbare playback. */
+function shouldForceBuffer(userAgent: string | null): boolean {
   if (!userAgent) return false;
   const ua = userAgent.toLowerCase();
-  return (
+  const safariOrMobile =
     ua.includes('iphone') ||
     ua.includes('ipad') ||
     ua.includes('ipod') ||
     (ua.includes('safari') && !ua.includes('chrome')) ||
-    ua.includes('mobile')
-  );
+    ua.includes('mobile');
+  // Edge (Chromium) heeft soms problemen met 206 Range via proxy; bufferen voorkomt dat
+  const isEdge = ua.includes('edg/') || ua.includes('edge/');
+  return safariOrMobile || isEdge;
 }
 
 /**
@@ -46,8 +48,8 @@ export async function GET(request: NextRequest) {
     const rangeHeader = request.headers.get('range');
     const userAgent = request.headers.get('user-agent');
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
-    const forceBuffer = isSafariOrMobile(userAgent);
-    // Safari/iOS: geen Range doorsturen → één volledige 200 response, dan bufferen. Voorkomt code 4.
+    const forceBuffer = shouldForceBuffer(userAgent);
+    // Bij forceBuffer: geen Range doorsturen → één volledige 200 response, dan bufferen.
     const passRange = !forceBuffer && rangeHeader;
 
     const videoResponse = await fetch(decodedUrl, {
@@ -88,7 +90,7 @@ export async function GET(request: NextRequest) {
     if (contentLength) headers['Content-Length'] = contentLength;
     if (contentRange) headers['Content-Range'] = contentRange;
 
-    // Bufferen: (1) Safari/iOS altijd (stream geeft daar vaak code 4), (2) anders alleen onder 8MB
+    // Bufferen: (1) Safari/iOS/Edge altijd (stream/206 geeft daar soms problemen), (2) anders alleen onder 8MB
     const bufferThreshold = forceBuffer ? 20 * 1024 * 1024 : 8 * 1024 * 1024;
     const shouldBuffer = forceBuffer || (size > 0 && size <= bufferThreshold);
     if (shouldBuffer) {
