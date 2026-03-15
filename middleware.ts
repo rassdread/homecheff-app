@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { getSecurityHeaders } from '@/lib/security';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -67,9 +68,15 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next({
+  const res = NextResponse.next({
     request: { headers: requestHeaders },
   });
+  // Security headers alleen op pagina's, nooit op /api (video-proxy mag geen CSP krijgen, anders laadt video niet in Edge)
+  if (!pathname.startsWith('/api/')) {
+    const security = getSecurityHeaders();
+    Object.entries(security).forEach(([key, value]) => res.headers.set(key, value));
+  }
+  return res;
 }
 
 export const config = {
