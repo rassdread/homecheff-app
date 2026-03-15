@@ -62,17 +62,23 @@ export type InspirationItem = {
   };
 };
 
-export default function InspiratieContent() {
+type InspiratieContentProps = {
+  /** Server-side geladen items (homepage): direct tonen, geen skeleton */
+  initialItems?: InspirationItem[];
+};
+
+export default function InspiratieContent({ initialItems = [] }: InspiratieContentProps) {
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, language, getTranslationObject, isReady } = useTranslation();
   const [isRefreshingSession, setIsRefreshingSession] = useState(false);
-  const [items, setItems] = useState<InspirationItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<InspirationItem[]>(initialItems);
+  const [loading, setLoading] = useState(initialItems.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(initialItems.length >= 24);
   const [error, setError] = useState<string | null>(null);
+  const skippedInitialFetchRef = useRef(initialItems.length > 0);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -301,6 +307,10 @@ export default function InspiratieContent() {
   }, [selectedCategory]);
 
   useEffect(() => {
+    if (skippedInitialFetchRef.current && selectedCategory === 'all' && !selectedSubcategory && selectedRegion === 'all' && sortBy === 'newest') {
+      skippedInitialFetchRef.current = false;
+      return;
+    }
     fetchInspirationItems();
   }, [selectedCategory, selectedSubcategory, selectedRegion, sortBy]);
 
