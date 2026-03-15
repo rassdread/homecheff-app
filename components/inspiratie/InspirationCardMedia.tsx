@@ -17,7 +17,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser, isSamsungBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
-import { PlayCircle, Volume2, VolumeX } from 'lucide-react';
+import { Pause, PlayCircle, Volume2, VolumeX } from 'lucide-react';
 
 export type InspirationItemMedia = {
   id: string;
@@ -129,6 +129,16 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
     applyMuteToggle(!video.muted);
   }, [applyMuteToggle]);
 
+  const handlePauseClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const video = videoRef.current;
+    if (!video) return;
+    if (!video.paused) {
+      video.pause();
+    }
+  }, []);
+
   // Desktop: bij hover direct starten (geen rAF als video al klaar), bij leave pauzeren.
   // Edge: nooit unmuten op hover (autoplay policy – "user didn't interact"); alleen via mute-knop.
   useEffect(() => {
@@ -231,7 +241,7 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
           if (ratio >= PLAY_THRESHOLD) setTimeout(() => startPlay(video), 0);
         }
       }
-    }, 150);
+    }, 50);
 
     return () => {
       clearTimeout(t);
@@ -305,7 +315,14 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
   }
 
   return (
-    <div ref={containerRef} className="video-smooth absolute inset-0 w-full h-full bg-gray-200" data-inspiration-card-media>
+    <div
+      ref={containerRef}
+      className="video-smooth absolute inset-0 w-full h-full bg-gray-200"
+      data-inspiration-card-media
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
       <EdgeAwareVideo
         ref={setVideoRef}
         src={videoSrc}
@@ -356,6 +373,19 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
           aria-label="Afspelen"
         >
           <PlayCircle className="w-16 h-16 text-white drop-shadow-lg" aria-hidden />
+        </button>
+      )}
+      {/* Pauze-knop zichtbaar wanneer video speelt, zodat je op de tegel kunt pauzeren */}
+      {!isPaused && (
+        <button
+          type="button"
+          onClick={handlePauseClick}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          className="absolute left-3 bottom-3 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center pointer-events-auto transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 touch-manipulation"
+          aria-label="Pauzeren"
+        >
+          <Pause className="w-6 h-6" aria-hidden />
         </button>
       )}
       <button

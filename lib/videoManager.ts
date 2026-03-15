@@ -109,8 +109,7 @@ class VideoManager {
 
   /**
    * Start playing a video (stops all others first).
-   * Safari iOS: wacht op canplay/loadeddata voor soepele start; start altijd muted i.v.m. autoplay-beleid.
-   * Chrome/Firefox: idem; retry bij gefaalde play() voor betere betrouwbaarheid op mobiel.
+   * Probeer direct play() voor snellere start; bij niet-bereid wacht op canplay en retry.
    */
   playVideo(video: HTMLVideoElement) {
     this.stopAllExcept(video);
@@ -122,24 +121,22 @@ class VideoManager {
         const p = video.play();
         if (p != null && typeof p.catch === 'function') {
           p.catch(() => {
-            // Chrome iOS e.d.: play() kan falen; tot 2× retry met oplopende delay
             if (retryCount >= 2) return;
-            const delay = retryCount === 0 ? 300 : 600;
+            const delay = retryCount === 0 ? 200 : 400;
             setTimeout(() => {
-              if (video.paused && video.readyState >= 1) {
-                tryPlay(retryCount + 1);
-              }
+              if (video.paused && video.readyState >= 1) tryPlay(retryCount + 1);
             }, delay);
           });
         }
       } catch {
         if (retryCount < 2) {
-          setTimeout(() => { try { if (video.paused) video.play(); } catch { /* noop */ } }, 300);
+          setTimeout(() => { try { if (video.paused) video.play(); } catch { /* noop */ } }, 200);
         }
       }
     };
 
-    if (video.readyState >= 2) {
+    // Direct proberen voor snellere start; alleen wachten als nog geen metadata
+    if (video.readyState >= 1) {
       tryPlay();
     } else {
       const onCanPlay = () => {
