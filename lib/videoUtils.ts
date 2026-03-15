@@ -12,24 +12,28 @@ export function isIOSSafari(): boolean {
   return !!(isIOS && isSafari);
 }
 
-/** Microsoft Edge (Chromium) – gebruikt blob-URL workaround voor proxy-video */
+/** Microsoft Edge (Chromium) – desktop en mobiel */
 export function isEdgeBrowser(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent;
   return /Edg\//.test(ua) || /Edge\//.test(ua);
 }
 
+/** Edge op Android: video via proxy faalt vaak; directe Blob-URL proberen. */
+export function isEdgeAndroid(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return (/Edg\//.test(ua) || /Edge\//.test(ua)) && /Android/i.test(ua);
+}
+
 /**
  * Get video URL with CORS proxy if needed
- * Fixes CORS errors when loading videos from Vercel Blob Storage.
- * Alle browsers (incl. Edge) via proxy; proxy stuurt Edge-specifieke headers (nosniff, Content-Disposition).
- *
- * @param videoUrl Original video URL
- * @returns Video URL (proxied voor Vercel Blob)
+ * Edge Android: directe Blob-URL (geen proxy) – proxy laadt daar vaak niet.
  */
 export function getVideoUrlWithCors(videoUrl: string): string {
   if (!videoUrl) return videoUrl;
   if (videoUrl.includes('blob.vercel-storage.com') || videoUrl.includes('vercel-storage.com')) {
+    if (isEdgeAndroid()) return videoUrl;
     const encodedUrl = encodeURIComponent(videoUrl);
     return `/api/video-proxy?url=${encodedUrl}`;
   }

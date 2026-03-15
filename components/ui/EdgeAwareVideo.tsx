@@ -28,6 +28,7 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
     const [effectiveSrc, setEffectiveSrc] = useState<string | undefined>(undefined);
     const blobUrlRef = useRef<string | null>(null);
     const triedBlobRef = useRef(false);
+    const triedFallbackRef = useRef(false);
 
     const doFetchBlob = useCallback((proxyUrl: string, cancelled: { v: boolean }) => {
       const url = absoluteUrl(proxyUrl);
@@ -49,11 +50,12 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
       if (!src) {
         setEffectiveSrc(undefined);
         triedBlobRef.current = false;
+        triedFallbackRef.current = false;
         return;
       }
-      // Alle browsers: proxy-URL direct (proxy geeft voor Edge 200 gebufferd)
       setEffectiveSrc(src);
       triedBlobRef.current = false;
+      triedFallbackRef.current = false;
       return () => {
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
@@ -64,23 +66,27 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
 
     const handleError = useCallback(
       (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-        if (
-          isEdgeBrowser() &&
-          effectiveSrc &&
-          isProxyUrl(src) &&
-          !triedBlobRef.current
-        ) {
+        if (!effectiveSrc || !isEdgeBrowser()) {
+          onError?.(e);
+          return;
+        }
+        // Edge Android: eerst directe URL, bij fout proxy proberen
+        if (fallbackSrc && effectiveSrc !== fallbackSrc && !triedFallbackRef.current) {
+          triedFallbackRef.current = true;
+          setEffectiveSrc(fallbackSrc);
+          return;
+        }
+        // Edge + proxy-URL: bij fout blob van proxy proberen
+        if (isProxyUrl(src) && !triedBlobRef.current) {
           triedBlobRef.current = true;
           const cancelled = { v: false };
-          doFetchBlob(src, cancelled)
+          doFetchBlob(src!, cancelled)
             .then((objectUrl) => {
               if (objectUrl && !cancelled.v) {
                 if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
                 blobUrlRef.current = objectUrl;
                 setEffectiveSrc(objectUrl);
-              } else if (!cancelled.v && fallbackSrc) {
-                setEffectiveSrc(fallbackSrc);
-              }
+              } else if (!cancelled.v && fallbackSrc) setEffectiveSrc(fallbackSrc);
             })
             .catch(() => {
               if (fallbackSrc) setEffectiveSrc(fallbackSrc);

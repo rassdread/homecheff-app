@@ -15,7 +15,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import SafeImage from '@/components/ui/SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
-import { getVideoUrlWithCors, isEdgeBrowser } from '@/lib/videoUtils';
+import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { PlayCircle, Volume2, VolumeX } from 'lucide-react';
 
@@ -59,6 +59,10 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
   const firstPhoto = item.photos?.[0];
   const posterUrl = primaryVideo?.thumbnail || firstPhoto?.url || undefined;
   const videoSrc = primaryVideo?.url ? getVideoUrlWithCors(primaryVideo.url) : '';
+  const proxyFallback = primaryVideo?.url && (primaryVideo.url.includes('vercel-storage.com') || primaryVideo.url.includes('blob.vercel'))
+    ? `/api/video-proxy?url=${encodeURIComponent(primaryVideo.url)}`
+    : undefined;
+  const fallbackSrc = isEdgeAndroid() ? proxyFallback : primaryVideo?.url;
 
   const handlePlayClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -304,7 +308,7 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
       <EdgeAwareVideo
         ref={setVideoRef}
         src={videoSrc}
-        fallbackSrc={primaryVideo?.url}
+        fallbackSrc={fallbackSrc}
         poster={posterUrl || undefined}
         className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} bg-black`}
         playsInline
