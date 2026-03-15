@@ -81,6 +81,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Bufferen: (1) Safari/iOS/Edge altijd (stream/206 geeft daar soms problemen), (2) anders alleen onder 8MB
+    const bufferThreshold = forceBuffer ? 20 * 1024 * 1024 : 8 * 1024 * 1024;
+    const shouldBuffer = forceBuffer || (size > 0 && size <= bufferThreshold);
+    if (shouldBuffer) {
+      const buffer = await videoResponse.arrayBuffer();
+      // Voor 200 full-body: geen Content-Range (alleen bij 206). Edge is strikt op headers.
+      const bufLen = buffer.byteLength;
+      const headersBuffered: Record<string, string> = {
+        'Content-Type': contentType,
+        'Content-Length': String(bufLen),
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        ...CORS_HEADERS,
+      };
+      return new NextResponse(buffer, {
+        status: 200,
+        headers: headersBuffered,
+      });
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': contentType,
       'Accept-Ranges': 'bytes',
@@ -89,17 +109,6 @@ export async function GET(request: NextRequest) {
     };
     if (contentLength) headers['Content-Length'] = contentLength;
     if (contentRange) headers['Content-Range'] = contentRange;
-
-    // Bufferen: (1) Safari/iOS/Edge altijd (stream/206 geeft daar soms problemen), (2) anders alleen onder 8MB
-    const bufferThreshold = forceBuffer ? 20 * 1024 * 1024 : 8 * 1024 * 1024;
-    const shouldBuffer = forceBuffer || (size > 0 && size <= bufferThreshold);
-    if (shouldBuffer) {
-      const buffer = await videoResponse.arrayBuffer();
-      return new NextResponse(buffer, {
-        status: videoResponse.status,
-        headers,
-      });
-    }
 
     return new NextResponse(body, {
       status: videoResponse.status,

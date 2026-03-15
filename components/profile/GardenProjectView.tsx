@@ -556,6 +556,7 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <video
                   src={getVideoUrlWithCors(project.video.url)}
+                  crossOrigin="anonymous"
                   controls
                   className="w-full h-full object-cover"
                   poster={project.video.thumbnail || undefined}

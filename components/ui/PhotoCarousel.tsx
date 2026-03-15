@@ -260,6 +260,7 @@ export default function PhotoCarousel({
                   }
                 }}
                 src={getVideoUrlWithCors(currentMedia.url ?? '')}
+                crossOrigin="anonymous"
                 controls
                 muted
                 preload="auto"
@@ -486,6 +487,7 @@ export default function PhotoCarousel({
                     }
                   }}
                   src={getVideoUrlWithCors(currentMedia.url ?? '')}
+                  crossOrigin="anonymous"
                   controls
                   autoPlay
                   muted

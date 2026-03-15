@@ -867,6 +867,7 @@ export default function ImageSlider({
               src={getVideoUrlWithCors(singleMedia.url)}
               poster={singleMedia.thumbnail || undefined}
               className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
+              crossOrigin="anonymous"
               controls
               playsInline
               muted
@@ -1120,6 +1121,7 @@ export default function ImageSlider({
                 src={getVideoUrlWithCors(mediaItems[currentIndex].url)}
                 poster={mediaItems[currentIndex].thumbnail || undefined}
                 className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
+                crossOrigin="anonymous"
                 controls
                 playsInline
                 muted

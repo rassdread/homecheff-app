@@ -393,6 +393,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                           src={getVideoUrlWithCors(currentMedia.url)}
                           poster={currentMedia.thumbnail || undefined}
                           className="h-full w-full rounded-3xl object-contain"
+                          crossOrigin="anonymous"
                           controls
                           playsInline
                           preload="metadata"
@@ -883,6 +884,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                 src={getVideoUrlWithCors(mediaItems[lightboxIndex].url)}
                 poster={mediaItems[lightboxIndex].thumbnail || undefined}
                 className="max-h-[80vh] max-w-[80vw] rounded-2xl"
+                crossOrigin="anonymous"
                 controls
                 autoPlay
                 playsInline
