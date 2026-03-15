@@ -1,9 +1,8 @@
 'use client';
 
 /**
- * Video that works on Edge: we avoid giving Edge the proxy URL.
- * On Edge we fetch the proxy response, build a Blob with explicit video/mp4 type,
- * and set a blob: URL. If that still fails, we try the direct URL (fallbackSrc) if provided.
+ * Video that works on Edge: try direct URL first, then fetch proxy and use blob URL.
+ * Edge often fails on proxy response; fetch with absolute URL + retry and explicit blob type.
  */
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { isEdgeBrowser } from '@/lib/videoUtils';
@@ -12,10 +11,15 @@ function isProxyUrl(s: string | undefined): boolean {
   return typeof s === 'string' && (s.startsWith('/api/video-proxy') || s.includes('video-proxy'));
 }
 
+function absoluteUrl(url: string): string {
+  if (typeof window === 'undefined' || url.startsWith('http')) return url;
+  return new URL(url, window.location.origin).href;
+}
+
 export interface EdgeAwareVideoProps extends React.ComponentPropsWithoutRef<'video'> {
-  /** Same-origin proxy URL (e.g. from getVideoUrlWithCors). */
+  /** Same-origin proxy URL or direct URL (e.g. from getVideoUrlWithCors). */
   src?: string | undefined;
-  /** Optional: direct Vercel Blob URL. On Edge, used as fallback if blob-URL fails. */
+  /** Optional: direct Vercel Blob URL. On Edge tried first, then blob from proxy on error. */
   fallbackSrc?: string | undefined;
 }
 
@@ -23,57 +27,104 @@ export const EdgeAwareVideo = forwardRef<HTMLVideoElement, EdgeAwareVideoProps>(
   function EdgeAwareVideo({ src, fallbackSrc, onError, ...props }, ref) {
     const [effectiveSrc, setEffectiveSrc] = useState<string | undefined>(undefined);
     const blobUrlRef = useRef<string | null>(null);
-    const usedFallbackRef = useRef(false);
+    const triedBlobRef = useRef(false);
 
-    useEffect(() => {
-      if (!src) {
-        setEffectiveSrc(undefined);
-        return;
-      }
-      usedFallbackRef.current = false;
-      if (!isEdgeBrowser() || !isProxyUrl(src)) {
-        setEffectiveSrc(src);
-        return;
-      }
-      let cancelled = false;
-      fetch(src, { credentials: 'same-origin', cache: 'no-store' })
+    const doFetchBlob = useCallback((proxyUrl: string, cancelled: { v: boolean }) => {
+      const url = absoluteUrl(proxyUrl);
+      return fetch(url, { credentials: 'same-origin', cache: 'no-store' })
         .then((r) => {
-          if (!r.ok || cancelled) return null;
+          if (!r.ok || cancelled.v) return null;
           const contentType = r.headers.get('content-type') || 'video/mp4';
           const type = contentType.split(';')[0].trim() || 'video/mp4';
           return r.arrayBuffer().then((buf) => ({ buf, type }));
         })
         .then((result) => {
-          if (!result || cancelled) return;
+          if (!result || cancelled.v) return null;
           const blob = new Blob([result.buf], { type: result.type });
-          const url = URL.createObjectURL(blob);
-          blobUrlRef.current = url;
-          setEffectiveSrc(url);
-        })
-        .catch(() => {
-          if (fallbackSrc && !cancelled) setEffectiveSrc(fallbackSrc);
-          else setEffectiveSrc(src);
+          return URL.createObjectURL(blob);
         });
+    }, []);
+
+    useEffect(() => {
+      if (!src) {
+        setEffectiveSrc(undefined);
+        triedBlobRef.current = false;
+        return;
+      }
+      if (!isEdgeBrowser() || !isProxyUrl(src)) {
+        setEffectiveSrc(src);
+        triedBlobRef.current = false;
+        return;
+      }
+      const cancelled = { v: false };
+      triedBlobRef.current = false;
+      // Edge: try direct URL first if we have it (no proxy round-trip)
+      if (fallbackSrc && fallbackSrc !== src) {
+        setEffectiveSrc(fallbackSrc);
+        return () => {
+          cancelled.v = true;
+          if (blobUrlRef.current) {
+            URL.revokeObjectURL(blobUrlRef.current);
+            blobUrlRef.current = null;
+          }
+        };
+      }
+      // No fallback: fetch proxy with absolute URL and optional retry
+      const run = (retry = false) => {
+        doFetchBlob(src, cancelled)
+          .then((objectUrl) => {
+            if (!objectUrl || cancelled.v) return;
+            blobUrlRef.current = objectUrl;
+            setEffectiveSrc(objectUrl);
+          })
+          .catch(() => {
+            if (cancelled.v) return;
+            if (retry) {
+              if (fallbackSrc) setEffectiveSrc(fallbackSrc);
+              else setEffectiveSrc(src);
+            } else {
+              setTimeout(() => run(true), 400);
+            }
+          });
+      };
+      run();
 
       return () => {
-        cancelled = true;
+        cancelled.v = true;
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
           blobUrlRef.current = null;
         }
       };
-    }, [src, fallbackSrc]);
+    }, [src, fallbackSrc, doFetchBlob]);
 
     const handleError = useCallback(
       (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-        if (isEdgeBrowser() && effectiveSrc && fallbackSrc && !usedFallbackRef.current) {
-          usedFallbackRef.current = true;
-          setEffectiveSrc(fallbackSrc);
+        if (!isEdgeBrowser()) {
+          onError?.(e);
+          return;
+        }
+        if (!effectiveSrc || !src) {
+          onError?.(e);
+          return;
+        }
+        if (effectiveSrc === fallbackSrc && isProxyUrl(src) && !triedBlobRef.current) {
+          triedBlobRef.current = true;
+          const cancelled = { v: false };
+          doFetchBlob(src, cancelled).then((objectUrl) => {
+            if (objectUrl && !cancelled.v) {
+              if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+              blobUrlRef.current = objectUrl;
+              setEffectiveSrc(objectUrl);
+            } else if (!cancelled.v) {
+              setEffectiveSrc(src);
+            }
+          }).catch(() => setEffectiveSrc(src));
           return;
         }
         onError?.(e);
       },
-      [effectiveSrc, fallbackSrc, onError]
+      [effectiveSrc, fallbackSrc, src, onError, doFetchBlob]
     );
 
     return <video ref={ref} src={effectiveSrc} onError={handleError} {...props} />;
