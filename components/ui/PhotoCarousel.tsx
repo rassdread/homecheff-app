@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn, Volume2, VolumeX } from 'lucide-react';
 import SafeImage from './SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
-import { checkVideoHasAudio, getVideoUrlWithCors } from '@/lib/videoUtils';
+import { checkVideoHasAudio, getVideoUrlWithCors, isEdgeBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
 interface Photo {
@@ -272,7 +272,7 @@ export default function PhotoCarousel({
                   onPlaying={() => {
                     const v = videoRefs.current.get(currentIndex);
                     if (v) {
-                      const wantMuted = videoManager.shouldStartMuted();
+                      const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                       v.muted = wantMuted;
                       setVideoMutedStates((prev) => {
                         const next = new Map(prev);
@@ -499,7 +499,7 @@ export default function PhotoCarousel({
                 onPlaying={() => {
                   const v = videoRefs.current.get(currentIndex);
                   if (v) {
-                    const wantMuted = videoManager.shouldStartMuted();
+                    const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                     v.muted = wantMuted;
                     setVideoMutedStates((prev) => {
                       const next = new Map(prev);

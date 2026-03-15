@@ -15,7 +15,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import SafeImage from '@/components/ui/SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
-import { getVideoUrlWithCors } from '@/lib/videoUtils';
+import { getVideoUrlWithCors, isEdgeBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { PlayCircle, Volume2, VolumeX } from 'lucide-react';
 
@@ -124,15 +124,17 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
     applyMuteToggle(!video.muted);
   }, [applyMuteToggle]);
 
-  // Desktop: bij hover direct starten (geen rAF als video al klaar), bij leave pauzeren
+  // Desktop: bij hover direct starten (geen rAF als video al klaar), bij leave pauzeren.
+  // Edge: nooit unmuten op hover (autoplay policy – "user didn't interact"); alleen via mute-knop.
   useEffect(() => {
     if (isMobile() || !primaryVideo?.url) return;
     const video = videoRef.current;
     if (!video) return;
     if (isCardHovered) {
       videoManager.stopAllExcept(video);
-      video.muted = false;
-      setIsMuted(false);
+      // Edge: altijd muted op hover (geen user gesture). Andere browsers: ongewijzigd, altijd unmute op hover.
+      video.muted = isEdgeBrowser();
+      setIsMuted(video.muted);
       if (video.readyState >= 2) {
         videoManager.playVideo(video);
       } else {
@@ -162,6 +164,8 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
       v.muted = true;
       if (videoManager.shouldStartMuted()) setIsMuted(true);
       videoManager.playVideo(v);
+      // Edge: nooit programmatisch unmuten na autoplay (IntersectionObserver) – alleen via mute-knop (user gesture).
+      if (isEdgeBrowser()) return;
       if (!videoManager.shouldStartMuted()) {
         const applyUnmute = () => {
           v.muted = false;

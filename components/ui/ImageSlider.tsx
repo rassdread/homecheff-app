@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from 'lucide-
 import SafeImage from '@/components/ui/SafeImage';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { isIntersectionObserverSupported, createSafeIntersectionObserver } from '@/lib/browser-utils';
-import { getVideoUrlWithCors } from '@/lib/videoUtils';
+import { getVideoUrlWithCors, isEdgeBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
 type MediaItem = {
@@ -211,7 +211,7 @@ export default function ImageSlider({
           stopAllVideosExcept(video);
           let videoIndex = -1;
           videoRefs.current.forEach((v, idx) => { if (v === video) videoIndex = idx; });
-          const wantMuted = videoManager.shouldStartMuted();
+          const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
           if (videoIndex >= 0) {
             video.muted = true;
             setVideoMutedStates((prev) => {
@@ -261,7 +261,7 @@ export default function ImageSlider({
           setTimeout(() => {
             stopAllVideosExcept(video);
             video.muted = true;
-            const wantMuted = videoManager.shouldStartMuted();
+            const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
             setVideoMutedStates((prev) => {
               const newMap = new Map(prev);
               newMap.set(0, wantMuted);
@@ -424,7 +424,7 @@ export default function ImageSlider({
         const isVisible = rect.top < vh && rect.left < vw && rect.bottom > 0 && rect.right > 0;
         if (isVisible && video.paused) {
           stopAllVideosExcept(video);
-          const wantMuted = videoManager.shouldStartMuted();
+          const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
           video.muted = true;
           ensureReadyThenPlay(video, () => {
             if (video && !video.paused) {
@@ -466,8 +466,8 @@ export default function ImageSlider({
       const video = videoRefs.current.get(currentIndex);
       if (!isCardHovered || !video) return;
       stopAllVideosExcept(video);
-      // Zoals InspirationCardMedia: desktop hover = unmute
-      const wantMuted = isCardHovered ? false : videoManager.shouldStartMuted();
+      // Edge: geen unmute op hover (autoplay policy); alleen via mute-knop
+      const wantMuted = isCardHovered && !isEdgeBrowser() ? false : videoManager.shouldStartMuted();
       video.muted = true;
       ensureReadyThenPlay(video, () => {
         if (video && !video.paused) {
@@ -910,7 +910,7 @@ export default function ImageSlider({
                   const video = videoRefs.current.get(0);
                   if (video?.paused) {
                     stopAllVideosExcept(video);
-                    const wantMuted = videoManager.shouldStartMuted();
+                    const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                     video.muted = true;
                     ensureReadyThenPlay(video, () => {
                       if (video && !video.paused) {
@@ -965,7 +965,7 @@ export default function ImageSlider({
                   const video = videoRefs.current.get(0);
                   if (video?.paused) {
                     stopAllVideosExcept(video);
-                    const wantMuted = videoManager.shouldStartMuted();
+                    const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                     video.muted = true;
                     ensureReadyThenPlay(video, () => {
                       if (video && !video.paused) {
@@ -1055,7 +1055,7 @@ export default function ImageSlider({
             const video = videoRefs.current.get(currentIndex);
             if (video) {
               stopAllVideosExcept(video);
-              const wantMuted = videoManager.shouldStartMuted();
+              const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
               video.muted = true;
               ensureReadyThenPlay(video, () => {
                 if (video && !video.paused) {
@@ -1173,7 +1173,7 @@ export default function ImageSlider({
                       v.muted = true;
                       ensureReadyThenPlay(v, () => {
                         if (v && !v.paused) {
-                          const wantMuted = videoManager.shouldStartMuted();
+                          const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                           v.muted = wantMuted;
                           setVideoMutedStates((prev) => {
                             const m = new Map(prev);
@@ -1225,7 +1225,7 @@ export default function ImageSlider({
                     const video = videoRefs.current.get(currentIndex);
                     if (video?.paused) {
                       stopAllVideosExcept(video);
-                      const wantMuted = videoManager.shouldStartMuted();
+                      const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
                       video.muted = true;
                       ensureReadyThenPlay(video, () => {
                         if (video && !video.paused) {
