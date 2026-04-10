@@ -84,10 +84,12 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       icons: {
         icon: [
-          { url: `${currentDomain}/logo.png`, sizes: '48x48', type: 'image/png' },
-          { url: `${currentDomain}/logo.png`, sizes: '512x512', type: 'image/png' },
+          { url: `${currentDomain}/favicon.ico`, sizes: 'any' },
+          { url: `${currentDomain}/favicon-32.png`, sizes: '32x32', type: 'image/png' },
+          { url: `${currentDomain}/favicon-48.png`, sizes: '48x48', type: 'image/png' },
+          { url: `${currentDomain}/icon-192.png`, sizes: '192x192', type: 'image/png' },
         ],
-        apple: `${currentDomain}/logo.png`,
+        apple: `${currentDomain}/apple-touch-icon.png`,
       },
       alternates: {
         canonical: currentDomain,
@@ -133,10 +135,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: `${currentDomain}/logo.png`, sizes: '48x48', type: 'image/png' },
-        { url: `${currentDomain}/logo.png`, sizes: '512x512', type: 'image/png' },
+        { url: `${currentDomain}/favicon.ico`, sizes: 'any' },
+        { url: `${currentDomain}/favicon-32.png`, sizes: '32x32', type: 'image/png' },
+        { url: `${currentDomain}/favicon-48.png`, sizes: '48x48', type: 'image/png' },
+        { url: `${currentDomain}/icon-192.png`, sizes: '192x192', type: 'image/png' },
       ],
-      apple: `${currentDomain}/logo.png`,
+      apple: `${currentDomain}/apple-touch-icon.png`,
     },
     alternates: {
       canonical: currentDomain,
@@ -181,10 +185,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        {/* Favicon / logo naast link in zoekresultaten (Google, Bing): absolute URL + meerdere formaten */}
-        <link rel="icon" type="image/png" sizes="48x48" href={`${MAIN_DOMAIN}/logo.png`} />
-        <link rel="icon" type="image/png" sizes="512x512" href={`${MAIN_DOMAIN}/logo.png`} />
-        <link rel="apple-touch-icon" href={`${MAIN_DOMAIN}/logo.png`} />
+        {/* Favicon afgeleid van logo.png (vierkant uitgesneden + schaal) */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href={`${MAIN_DOMAIN}/favicon-32.png`} />
+        <link rel="icon" type="image/png" sizes="48x48" href={`${MAIN_DOMAIN}/favicon-48.png`} />
+        <link rel="apple-touch-icon" href={`${MAIN_DOMAIN}/apple-touch-icon.png`} />
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
