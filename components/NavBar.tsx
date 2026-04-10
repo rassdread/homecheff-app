@@ -204,39 +204,30 @@ export default function NavBar() {
 
           {/* Desktop Navigation - mag inkrimpen zodat rechts in beeld blijft */}
           <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-hidden">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="flex items-center space-x-2"
-              onClick={() => router.push('/dorpsplein')}
+              onClick={() => router.push('/')}
             >
               <Home className="w-4 h-4" />
-              <span>{t('navbar.dorpsplein')}</span>
+              <span>Home</span>
             </Button>
-            
-            <Link href="/inspiratie">
+            <Link href="/sell/new">
               <Button variant="ghost" className="flex items-center space-x-2">
-                <Lightbulb className="w-4 h-4" />
-                <span>{t('navbar.inspiratie')}</span>
+                <DollarSign className="w-4 h-4" />
+                <span>Verdienen</span>
               </Button>
             </Link>
-            
-            <Link href="/faq">
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <HelpCircle className="w-4 h-4" />
-                <span>{t('navbar.faq')}</span>
-              </Button>
-            </Link>
-
-            <Link href="/over-ons">
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <Info className="w-4 h-4" />
-                <span>{t('navbar.overOns')}</span>
-              </Button>
-            </Link>
-
             <Link href="/werken-bij">
               <Button variant="ghost" className="flex items-center space-x-2">
-                <span>{t('navbar.werkenBij')}</span>
+                <Lightbulb className="w-4 h-4" />
+                <span>Ontdekken</span>
+              </Button>
+            </Link>
+            <Link href={user ? "/profile" : "/login"}>
+              <Button variant="ghost" className="flex items-center space-x-2">
+                <User className="w-4 h-4" />
+                <span>Profiel</span>
               </Button>
             </Link>
 
@@ -503,37 +494,31 @@ export default function NavBar() {
                 className="w-full justify-start flex items-center space-x-2"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  router.push('/dorpsplein');
+                  router.push('/');
                 }}
               >
                 <Home className="w-4 h-4" />
-                <span>{t('navbar.dorpsplein')}</span>
+                <span>Home</span>
               </Button>
               
-              <Link href="/inspiratie" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link href="/sell/new" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <Lightbulb className="w-4 h-4" />
-                  <span>{t('navbar.inspiratie')}</span>
+                  <DollarSign className="w-4 h-4" />
+                  <span>Verdienen</span>
                 </Button>
               </Link>
               
-              <Link href="/faq" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <HelpCircle className="w-4 h-4" />
-                  <span>{t('navbar.faq')}</span>
-                </Button>
-              </Link>
-
-              <Link href="/over-ons" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <Info className="w-4 h-4" />
-                  <span>{t('navbar.overOns')}</span>
-                </Button>
-              </Link>
-
               <Link href="/werken-bij" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <span>{t('navbar.werkenBij')}</span>
+                  <Lightbulb className="w-4 h-4" />
+                  <span>Ontdekken</span>
+                </Button>
+              </Link>
+
+              <Link href={user ? "/profile" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>Profiel</span>
                 </Button>
               </Link>
 

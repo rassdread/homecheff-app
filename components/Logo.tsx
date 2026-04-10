@@ -16,13 +16,6 @@ export default function Logo({ size = 'md', showText = true, className = '', log
   const router = useRouter();
   const { t, isReady } = useTranslation();
   
-  // Logo afmetingen op basis van size (aangepast voor betere verhouding met tekst)
-  const logoDimensions = {
-    sm: { width: 40, height: 40 },
-    md: { width: 48, height: 48 },
-    lg: { width: 56, height: 56 }
-  };
-
   const textSizes = {
     sm: 'text-base sm:text-lg',
     md: 'text-lg sm:text-xl',
@@ -74,14 +67,12 @@ export default function Logo({ size = 'md', showText = true, className = '', log
           <Image
             src={useImageLogo}
             alt="HomeCheff Logo"
-            width={logoDimensions[size].width}
-            height={logoDimensions[size].height}
-            className="object-contain w-full h-full"
+            fill
+            className="object-contain"
             unoptimized={process.env.NODE_ENV === 'development'}
             priority
             sizes="(max-width: 640px) 40px, 48px"
             onError={(e) => {
-              // Als afbeelding niet laadt, verberg het en gebruik fallback SVG
               e.currentTarget.style.display = 'none';
             }}
           />

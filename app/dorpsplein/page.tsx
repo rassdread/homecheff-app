@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X, Eye } from "lucide-react";
+import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X, Eye, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import SafeImage from "@/components/ui/SafeImage";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
@@ -1155,6 +1155,8 @@ function DorpspleinContent() {
       <div data-tour="filters">
             <ImprovedFilterBar
               useDorpspleinLabels={true}
+              initialMobileFiltersOpen
+              desktopLayoutFromMd
         category={category}
         subcategory={subcategory}
         deliveryMode={deliveryMode}
@@ -1482,6 +1484,14 @@ function DorpspleinContent() {
                           €{(item.priceCents / 100).toFixed(2)}
                         </span>
                       </div>
+                      {item.video?.url && (
+                        <div className="absolute top-4 right-4 z-[2] pointer-events-none">
+                          <span className="inline-flex items-center gap-1 bg-black/55 text-white text-xs px-2 py-1 rounded-full">
+                            <PlayCircle className="w-3 h-3" />
+                            Video
+                          </span>
+                        </div>
+                      )}
 
                     </div>
 
@@ -1573,6 +1583,19 @@ function DorpspleinContent() {
                       
                       {item.subcategory && (
                         <p className="text-sm text-primary-brand font-medium mb-2">{item.subcategory}</p>
+                      )}
+
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xl font-bold text-gray-900">€{(item.priceCents / 100).toFixed(2)}</p>
+                        {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
+                          <p className="text-sm font-medium text-emerald-700">{item.location.distanceKm.toFixed(1)} km</p>
+                        )}
+                      </div>
+                      {item.location?.place && (
+                        <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          {item.location.place}
+                        </p>
                       )}
                       
                       <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>

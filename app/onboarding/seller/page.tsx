@@ -1,138 +1,47 @@
 'use client';
-
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import WorkspacePhotoUpload from "@/components/workspace/WorkspacePhotoUpload";
-import { uploadProfilePhoto } from "@/lib/upload";
-import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SellerOnboardingPage() {
-  const { t } = useTranslation();
   const router = useRouter();
-  const [bio, setBio] = useState("");
-  const [image, setImage] = useState<string | null>(null);
-  const [workplacePhotos, setWorkplacePhotos] = useState<string[]>([]);
-  const [error, setError] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const userId = 'anon'; // TODO: vervang met echte sessie userId
-
-  async function onPickProfile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setUploading(true);
-    try {
-      const result = await uploadProfilePhoto(file);
-      if (result.success) {
-        setImage(result.url);
-      } else {
-        setError(`Profielfoto upload mislukt: ${result.error}`);
-      }
-    } catch (error) {
-      setError(`Profielfoto upload mislukt: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function save() {
-    setError("");
-    if (workplacePhotos.length < 1) {
-      setError("Upload minstens één foto van je werkplek.");
-      return;
-    }
-    
-    setUploading(true);
-    try {
-      const res = await fetch("/api/profile/seller", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, bio, image, workplacePhotos })
-      });
-      
-      if (res.ok) {
-        router.push("/");
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Opslaan mislukt");
-      }
-    } catch (error) {
-      setError("Er is een fout opgetreden bij het opslaan");
-    } finally {
-      setUploading(false);
-    }
-  }
 
   return (
-    <main className="min-h-screen p-4 max-w-4xl mx-auto space-y-6">
-      <section className="bg-white rounded-2xl p-6 shadow">
-        <h1 className="text-2xl font-bold mb-4">Verkoper Profiel</h1>
-        <div className="grid gap-4">
-          <div>
-            <label className="block font-medium mb-1">Bio</label>
-            <textarea
-              className="w-full border rounded p-2"
-              rows={5}
-              placeholder="Vertel iets over jezelf en je werkplek."
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-            />
-          </div>
+    <main className="min-h-screen p-4 max-w-3xl mx-auto space-y-6">
+      <section className="bg-white rounded-2xl p-6 shadow border border-gray-200">
+        <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-2">Stap 2 van 3</p>
+        <h1 className="text-2xl font-bold mb-2">Wat wil je aanbieden?</h1>
+        <p className="text-gray-600 mb-6">Kies wat je als eerste wilt verkopen.</p>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-medium mb-2">Profielfoto</label>
-              <div className="flex flex-col items-center space-y-3">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={onPickProfile}
-                  className="hidden"
-                  id="profile-photo"
-                  disabled={uploading}
-                />
-                <label 
-                  htmlFor="profile-photo"
-                  className={`cursor-pointer px-4 py-2 rounded-lg border-2 border-dashed transition-colors ${
-                    uploading 
-                      ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
-                      : 'border-primary-300 hover:border-primary-400 hover:bg-primary-50'
-                  }`}
-                >
-                  {uploading ? 'Uploaden...' : 'Kies profielfoto'}
-                </label>
-                {image && (
-                  <img 
-                    src={image} 
-                    alt="Profielfoto" 
-                    className="w-32 h-32 object-cover rounded-full border-2 border-primary-200" 
-                  />
-                )}
-              </div>
-            </div>
+        <div className="grid gap-3">
+          <button
+            type="button"
+            onClick={() => router.push('/sell/new?category=CHEFF')}
+            className="text-left p-4 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 transition-colors"
+          >
+            <p className="font-semibold text-gray-900">Eten</p>
+            <p className="text-sm text-gray-600">Kook je? Start met je eerste gerecht.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/sell/new?category=GARDEN')}
+            className="text-left p-4 rounded-xl border border-green-200 bg-green-50 hover:bg-green-100 transition-colors"
+          >
+            <p className="font-semibold text-gray-900">Producten</p>
+            <p className="text-sm text-gray-600">Verkoop lokale producten uit jouw buurt.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/sell/new?category=DESIGNER')}
+            className="text-left p-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
+          >
+            <p className="font-semibold text-gray-900">Creatief</p>
+            <p className="text-sm text-gray-600">Toon je design en vind direct klanten.</p>
+          </button>
+        </div>
 
-            <div>
-              <WorkspacePhotoUpload
-                maxPhotos={10}
-                initialPhotos={workplacePhotos}
-                onPhotosChange={setWorkplacePhotos}
-                userType="SELLER"
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-
-          <div className="flex justify-end">
-            <Button 
-              onClick={save}
-              disabled={uploading}
-              className={uploading ? 'opacity-50 cursor-not-allowed' : ''}
-            >
-              {uploading ? t('common.saving') : t('common.saveAndFinish')}
-            </Button>
-          </div>
+        <div className="mt-6 flex justify-between">
+          <Button onClick={() => router.push('/onboarding/buyer')} variant="outline">Vorige stap</Button>
+          <Button onClick={() => router.push('/sell/new')}>Stap 3: Start met verkopen</Button>
         </div>
       </section>
     </main>

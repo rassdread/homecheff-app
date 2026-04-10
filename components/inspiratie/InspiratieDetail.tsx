@@ -887,9 +887,7 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                 poster={mediaItems[lightboxIndex].thumbnail || undefined}
                 className="max-h-[80vh] max-w-[80vw] rounded-2xl"
                 controls
-                autoPlay
                 playsInline
-                muted
                 preload="metadata"
               />
             )}

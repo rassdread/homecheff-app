@@ -105,8 +105,8 @@ export default function LanguageSwitcher() {
           setIsOpen(!isOpen);
         }}
         className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-gray-700 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
-        title={t('changeLanguage') || (language === 'en' ? 'Change language' : 'Taal wijzigen')}
-        aria-label={t('changeLanguage') || (language === 'en' ? 'Change language' : 'Taal wijzigen')}
+        title={t('common.changeLanguage')}
+        aria-label={t('common.changeLanguage')}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >

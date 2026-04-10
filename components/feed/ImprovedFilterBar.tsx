@@ -53,7 +53,11 @@ interface ImprovedFilterBarProps {
   validatedAddress?: string; // NEW: Validated full address to display
   selectedRegion?: string; // NEW: Region filter
   useDorpspleinLabels?: boolean; // NEW: Use dorpsplein-specific category labels
-  
+  /** Mobiel: filterpaneel standaard uitgeklapt (Dorpsplein). */
+  initialMobileFiltersOpen?: boolean;
+  /** Volledige desktop-filterbalk vanaf md i.p.v. lg (tablet). */
+  desktopLayoutFromMd?: boolean;
+
   // Callbacks
   onCategoryChange: (category: string) => void;
   onSubcategoryChange: (subcategory: string) => void;
@@ -91,6 +95,8 @@ export default function ImprovedFilterBar({
   validatedAddress,
   selectedRegion = 'all',
   useDorpspleinLabels = false,
+  initialMobileFiltersOpen = false,
+  desktopLayoutFromMd = false,
   onCategoryChange,
   onSubcategoryChange,
   onDeliveryModeChange,
@@ -128,7 +134,7 @@ export default function ImprovedFilterBar({
     { id: 'Noord-Amerikaans', label: t('inspiratie.region.northAmerican') || 'Noord-Amerikaans', icon: Globe },
     { id: 'Mediterraans', label: t('inspiratie.region.mediterranean') || 'Mediterraans', icon: Globe },
   ];
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(initialMobileFiltersOpen);
   const [localPriceMin, setLocalPriceMin] = useState(priceRange.min);
   const [localPriceMax, setLocalPriceMax] = useState(priceRange.max);
   const [isValidating, setIsValidating] = useState(false);
@@ -208,10 +214,16 @@ export default function ImprovedFilterBar({
     onSearchTypeChange(nextType);
   };
 
+  const stickyClasses = desktopLayoutFromMd
+    ? 'sticky top-0 md:top-[64px] z-50 md:z-40'
+    : 'sticky top-0 lg:top-[64px] z-50 lg:z-40';
+  const mobileOnlyClass = desktopLayoutFromMd ? 'md:hidden' : 'lg:hidden';
+  const desktopOnlyClass = desktopLayoutFromMd ? 'hidden md:block' : 'hidden lg:block';
+
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 lg:top-[64px] z-50 lg:z-40 shadow-sm">
+    <div className={`bg-white border-b border-gray-200 ${stickyClasses} shadow-sm`}>
       {/* Mobile: Collapsible Filter Bar */}
-      <div className="lg:hidden">
+      <div className={mobileOnlyClass}>
         <div className="px-4 py-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -614,7 +626,7 @@ export default function ImprovedFilterBar({
       </div>
 
       {/* Desktop: Full Filter Bar */}
-      <div className="hidden lg:block">
+      <div className={desktopOnlyClass}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Search Bar & Controls */}
         <div className="mb-4 flex gap-3">

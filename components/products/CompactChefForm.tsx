@@ -517,8 +517,8 @@ export default function CompactChefForm({
 
         {/* Foto Upload - Compact */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📸 {t('productForm.photos')}
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+            📸 Laat zien wat je aanbiedt (foto/video)
           </label>
           <SimpleImageUploader
             value={images}
@@ -531,16 +531,16 @@ export default function CompactChefForm({
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('productForm.title')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Wat ga je verkopen?</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('common.exampleRecipe')}
+              placeholder="Bijv. Verse lasagne voor 2 personen"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('productForm.price')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Prijs</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               value={price}
@@ -554,7 +554,7 @@ export default function CompactChefForm({
         {/* Beschrijving - Compact */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">{t('productForm.description')}</label>
+            <label className="block text-sm font-medium text-gray-700">Vertel wat je aanbiedt</label>
             <EmojiPickerButton
               onEmojiClick={(emoji) => {
                 setDescription(prev => prev + emoji);
@@ -573,7 +573,7 @@ export default function CompactChefForm({
             className="w-full rounded-md border border-gray-300 px-3 py-2 h-20 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('product.describeDish')}
+            placeholder="Wat maak je, voor wie, en waarom is het lekker of bijzonder?"
           />
         </div>
 
@@ -1026,7 +1026,7 @@ export default function CompactChefForm({
                 {editMode ? t('productForm.updating') : t('productForm.saving')}
               </div>
             ) : (
-              editMode ? t('productForm.update') : t('productForm.publish')
+              editMode ? 'Bijwerken' : 'Publiceer & begin met verdienen'
             )}
           </button>
           

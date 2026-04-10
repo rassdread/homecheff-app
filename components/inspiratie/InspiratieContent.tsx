@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { getDisplayName } from '@/lib/displayName';
-import { ChefHat, Sprout, Palette, Filter, Grid, List, TrendingUp, Clock, Eye, Lightbulb, X, ChevronDown, PlayCircle, Star, MessageSquare, MapPin, Navigation, Search, SlidersHorizontal, Globe, ThumbsUp } from 'lucide-react';
+import { ChefHat, Sprout, Palette, Filter, Grid, List, TrendingUp, Eye, Lightbulb, X, ChevronDown, PlayCircle, Star, MessageSquare, MapPin, Navigation, Search, SlidersHorizontal, Globe } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -10,15 +10,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import ClientOnly from '@/components/util/ClientOnly';
-import UserStatsTile from '@/components/ui/UserStatsTile';
 import SafeImage from '@/components/ui/SafeImage';
-import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { calculateDistance } from '@/lib/geocoding';
-import PropsButton from '@/components/props/PropsButton';
 import PromoModal from '@/components/promo/PromoModal';
-import InspirationItemListView from '@/components/inspiratie/InspirationItemListView';
+import InspirationCard from '@/components/inspiratie/InspirationCard';
 
 export type InspirationItem = {
   id: string;
@@ -611,10 +608,6 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
     }
   };
 
-  const mainPhoto = (item: InspirationItem) => {
-    return item.photos.find(p => p.isMain) || item.photos[0];
-  };
-
   // Helper function to get the correct detail page URL based on category
   const getItemDetailUrl = (item: InspirationItem): string => {
     if (item.category === 'CHEFF') {
@@ -1197,10 +1190,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
                     viewMode="grid"
                     handleItemClick={handleItemClick}
                     session={session}
-                    mainPhoto={mainPhoto}
-                    categories={CATEGORIES}
                     translateSubcategory={translateSubcategory}
-                    t={t}
                     getItemDetailUrl={getItemDetailUrl}
                     priority={index < 2}
                   />
@@ -1217,10 +1207,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
                     viewMode="list"
                     handleItemClick={handleItemClick}
                     session={session}
-                    mainPhoto={mainPhoto}
-                    categories={CATEGORIES}
                     translateSubcategory={translateSubcategory}
-                    t={t}
                     getItemDetailUrl={getItemDetailUrl}
                   />
                 ))}
@@ -1276,189 +1263,27 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
   );
 }
 
-// Wrapper component for PropsButton that handles count updates
-function PropsButtonWrapper({ 
-  dishId, 
-  productTitle, 
-  onCountChange,
-  onPropsClick
-}: { 
-  dishId: string; 
-  productTitle: string; 
-  onCountChange: (count: number) => void;
-  onPropsClick?: () => void;
-}) {
-  const { data: session } = useSession();
-  const [propsCount, setPropsCount] = useState(0);
-  const [checkingStatus, setCheckingStatus] = useState(true);
-
-  // Check props count on mount
-  useEffect(() => {
-    if (!session?.user || !dishId) {
-      setCheckingStatus(false);
-      return;
-    }
-
-    const checkPropsCount = async () => {
-      try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
-        if (countResponse.ok) {
-          const countData = await countResponse.json();
-          const count = countData.propsCount || 0;
-          setPropsCount(count);
-          onCountChange(count);
-        }
-      } catch {
-        // Silent: CORS or network; avoid console spam
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-
-    checkPropsCount();
-  }, [dishId, session?.user, onCountChange]);
-
-  // Refresh count when component becomes visible or after a delay
-  useEffect(() => {
-    if (!session?.user || !dishId || checkingStatus) return;
-
-    // Refresh count after initial load
-    const refreshCount = async () => {
-      try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
-        if (countResponse.ok) {
-          const countData = await countResponse.json();
-          const count = countData.propsCount || 0;
-          setPropsCount(count);
-          onCountChange(count);
-        }
-      } catch (error) {
-        // Silent fail
-      }
-    };
-
-    // Refresh immediately and then periodically
-    refreshCount();
-    const interval = setInterval(refreshCount, 5000); // Refresh every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [dishId, session?.user, checkingStatus, onCountChange]);
-
-  if (!session?.user) {
-    return null;
-  }
-
-  // Refresh count when PropsButton is clicked (via custom event or polling)
-  useEffect(() => {
-    if (!session?.user || !dishId || checkingStatus) return;
-
-    const handlePropsToggle = () => {
-      // Refresh count after a short delay to allow API to update
-      setTimeout(async () => {
-        try {
-          const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
-          if (countResponse.ok) {
-            const countData = await countResponse.json();
-            const count = countData.propsCount || 0;
-            setPropsCount(count);
-            onCountChange(count);
-          }
-        } catch (error) {
-          // Silent fail
-        }
-      }, 500);
-    };
-
-    // Listen for custom events or use polling as fallback
-    window.addEventListener('propsToggled', handlePropsToggle);
-    
-    // Also poll periodically as backup
-    const interval = setInterval(async () => {
-      try {
-        const countResponse = await fetch(`/api/props/count?dishId=${dishId}`, { credentials: 'include' });
-        if (countResponse.ok) {
-          const countData = await countResponse.json();
-          const count = countData.propsCount || 0;
-          if (count !== propsCount) {
-            setPropsCount(count);
-            onCountChange(count);
-          }
-        }
-      } catch (error) {
-        // Silent fail
-      }
-    }, 3000); // Poll every 3 seconds
-
-    return () => {
-      window.removeEventListener('propsToggled', handlePropsToggle);
-      clearInterval(interval);
-    };
-  }, [dishId, session?.user, propsCount, checkingStatus, onCountChange]);
-
-  const handlePropsClick = () => {
-    onPropsClick?.();
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <div onClick={handlePropsClick}>
-        <PropsButton
-          dishId={dishId}
-          productTitle={productTitle}
-          size="sm"
-          variant="thumbs"
-          className=""
-        />
-      </div>
-      {propsCount > 0 && (
-        <span className="text-sm text-gray-600 font-medium">
-          {propsCount > 1000 ? `${(propsCount / 1000).toFixed(1)}k` : propsCount}
-        </span>
-      )}
-    </div>
-  );
-}
-
 // Component to track inspiration item views when visible
-function InspirationItemWithTracking({ 
-  item, 
+function InspirationItemWithTracking({
+  item,
   viewMode,
   handleItemClick,
   session,
-  mainPhoto,
-  categories,
   translateSubcategory,
-  t,
   getItemDetailUrl,
-  priority = false
-}: { 
-  item: InspirationItem; 
+  priority = false,
+}: {
+  item: InspirationItem;
   viewMode: 'grid' | 'list';
   handleItemClick: (item: InspirationItem) => void;
   session: any;
-  mainPhoto: (item: InspirationItem) => { id: string; url: string; isMain: boolean } | undefined;
-  categories: Array<{ id: string; label: string; icon: any; color: string }>;
   translateSubcategory: (category: string, subcategory: string) => string;
-  t: (key: string, params?: Record<string, string | number>) => string;
   getItemDetailUrl: (item: InspirationItem) => string;
   priority?: boolean;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
   const [hasTrackedView, setHasTrackedView] = useState(false);
-  const [localPropsCount, setLocalPropsCount] = useState(item.propsCount || 0);
-  const [isHighlighted, setIsHighlighted] = useState(false);
   const [cardHovered, setCardHovered] = useState(false);
-
-  // Update local props count when item changes
-  useEffect(() => {
-    setLocalPropsCount(item.propsCount || 0);
-  }, [item.propsCount]);
-
-  // Handle props click highlight
-  const handlePropsClick = () => {
-    setIsHighlighted(true);
-    setTimeout(() => setIsHighlighted(false), 1000); // Highlight for 1 second
-  };
 
   // Track view when inspiration item becomes visible
   useEffect(() => {
@@ -1486,7 +1311,7 @@ function InspirationItemWithTracking({
                   console.error('Failed to track inspiration view:', error);
                 }
               };
-              
+
               trackView();
               setHasTrackedView(true);
               if (observer) {
@@ -1534,202 +1359,18 @@ function InspirationItemWithTracking({
     }
   }, [item.id, hasTrackedView, session]);
 
-  const photo = mainPhoto(item);
-  const primaryVideo = item.videos?.[0];
-  const categoryInfo = categories.find(c => c.id === item.category);
-  const CategoryIcon = categoryInfo?.icon || Lightbulb;
-
-  // Grid view layout
-  const gridEl = (
-      <div
-        ref={itemRef}
-        className={`group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 cursor-pointer active:scale-[0.98] ${
-          isHighlighted ? 'ring-4 ring-emerald-400 shadow-2xl shadow-emerald-200/50 scale-[1.02]' : ''
-        }`}
-        onMouseEnter={() => setCardHovered(true)}
-        onMouseLeave={() => setCardHovered(false)}
-        onClick={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest('video') || target.tagName === 'VIDEO' || target.closest('.video-controls') || target.closest('[data-video-controls]')) return;
-          if (target.closest('[data-inspiration-card-media]')) return;
-          if (target.closest('button')) return;
-          handleItemClick(item);
-        }}
-      >
-        <div className="relative aspect-square overflow-hidden bg-gray-100">
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none z-0" />
-          <InspirationCardMedia
-            item={item}
-            priority={priority}
-            objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
-            alt={item.title || 'Inspiration item'}
-            isCardHovered={cardHovered}
-          />
-                        
-                        {/* Category Badge */}
-                        <div className="absolute top-3 left-3 z-10 pointer-events-none">
-                          <div className="flex items-center gap-2 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium">
-                            <CategoryIcon className="w-4 h-4" />
-                            {categoryInfo?.label}
-                          </div>
-                        </div>
-
-                        {/* Subcategory Badge */}
-                        {item.subcategory && (
-                          <div className="absolute top-3 right-3 z-10 pointer-events-none">
-                            <div className="px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white rounded-full text-sm font-medium">
-                              {translateSubcategory(item.category, item.subcategory)}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Item Stats - Item-specific stats (for THIS item only) */}
-                        {(typeof item.viewCount === 'number') || 
-                         (typeof item.propsCount === 'number' && item.propsCount > 0) || 
-                         (typeof item.reviewCount === 'number' && item.reviewCount > 0) ? (
-                        <div className="absolute bottom-3 left-3 right-3 z-10 pointer-events-none">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {typeof item.viewCount === 'number' && (
-                                <div 
-                                  className="flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs"
-                                  title={`${item.viewCount || 0} ${t('inspiratie.views')}`}
-                                >
-                                  <Eye className="w-3 h-3" />
-                                  <span>{(item.viewCount || 0) > 1000 ? `${((item.viewCount || 0) / 1000).toFixed(1)}k` : (item.viewCount || 0)}</span>
-                                </div>
-                              )}
-                              {localPropsCount > 0 && (
-                                <div 
-                                  className="flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs"
-                                  title={`${localPropsCount} ${t('inspiratie.props')}`}
-                                >
-                                  <ThumbsUp className="w-3 h-3 text-blue-600 fill-blue-600" />
-                                  <span>{localPropsCount > 1000 ? `${(localPropsCount / 1000).toFixed(1)}k` : localPropsCount}</span>
-                                </div>
-                              )}
-                              {typeof item.reviewCount === 'number' && item.reviewCount > 0 && (
-                                <div 
-                                  className="flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs"
-                                  title={`${item.reviewCount} ${t('inspiratie.reviews')}`}
-                                >
-                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                  <span>{item.reviewCount}</span>
-                                  {typeof item.averageRating === 'number' && item.averageRating > 0 && (
-                                    <span className="ml-1">({item.averageRating.toFixed(1)})</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        ) : null}
-                      </div>
-
-                      {/* Content - Separated from image with clear spacing */}
-                      <div className="p-4 bg-white relative z-10">
-                        <Link
-                          href={session?.user ? getItemDetailUrl(item) : '#'}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!session?.user) {
-                              e.preventDefault();
-                              handleItemClick(item);
-                            }
-                          }}
-                        >
-                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-primary-600 transition-colors cursor-pointer">
-                            {item.title}
-                          </h3>
-                        </Link>
-                        
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                          {item.description}
-                        </p>
-
-                        {/* Item Meta Info */}
-                        <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
-                          </div>
-                          {typeof item.viewCount === 'number' && (
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-3 h-3" />
-                              <span>{item.viewCount || 0}</span>
-                            </div>
-                          )}
-                          {localPropsCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <ThumbsUp className="w-3 h-3 text-blue-600 fill-blue-600" />
-                              <span>{localPropsCount}</span>
-                            </div>
-                          )}
-                          {typeof item.reviewCount === 'number' && item.reviewCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                              <span>{item.reviewCount}</span>
-                              {typeof item.averageRating === 'number' && item.averageRating > 0 && (
-                                <span className="ml-1">({item.averageRating.toFixed(1)})</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* User Stats Tile and Props Button */}
-                        <div className="flex items-center justify-between">
-                          {item.user?.id && (
-                            <UserStatsTile
-                              userId={item.user.id}
-                              userName={item.user.name || null}
-                              userUsername={item.user.username || null}
-                              userAvatar={item.user.profileImage || null}
-                              displayFullName={item.user.displayFullName}
-                              displayNameOption={item.user.displayNameOption}
-                            />
-                          )}
-                          {/* Props Button */}
-                          {session?.user && (
-                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                              <PropsButtonWrapper
-                                dishId={item.id}
-                                productTitle={item.title || 'dit item'}
-                                onCountChange={setLocalPropsCount}
-                                onPropsClick={handlePropsClick}
-                              />
-                            </div>
-                          )}
-                        </div>
-        </div>
-      </div>
-  );
-
-  return viewMode === 'list' ? (
-    <InspirationItemListView
+  return (
+    <InspirationCard
       item={item}
-      itemRef={itemRef}
+      variant={viewMode === 'grid' ? 'grid' : 'list'}
       session={session}
-      handleItemClick={handleItemClick}
-      photo={photo}
-      primaryVideo={primaryVideo}
-      categoryInfo={categoryInfo}
+      detailHref={getItemDetailUrl(item)}
+      onCardClick={handleItemClick}
       translateSubcategory={translateSubcategory}
-      getItemDetailUrl={getItemDetailUrl}
-      localPropsCount={localPropsCount}
-      setLocalPropsCount={setLocalPropsCount}
-      handlePropsClick={handlePropsClick}
-      isHighlighted={isHighlighted}
+      itemRef={itemRef}
       isCardHovered={cardHovered}
       onCardHoverChange={setCardHovered}
-      t={t}
-      propsButtonSlot={
-        <PropsButtonWrapper
-          dishId={item.id}
-          productTitle={item.title || 'dit item'}
-          onCountChange={setLocalPropsCount}
-          onPropsClick={handlePropsClick}
-        />
-      }
+      priority={priority}
     />
-  ) : gridEl;
+  );
 }

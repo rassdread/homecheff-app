@@ -505,7 +505,7 @@ export default function CompactGardenForm({
         {/* Foto Upload - Compact */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            📸 Foto's
+            📸 Laat zien wat je aanbiedt (foto/video)
           </label>
           <SimpleImageUploader
             value={images}
@@ -518,7 +518,7 @@ export default function CompactGardenForm({
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titel</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Wat ga je verkopen?</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={title}
@@ -541,7 +541,7 @@ export default function CompactGardenForm({
         {/* Beschrijving - Compact */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">Beschrijving</label>
+            <label className="block text-sm font-medium text-gray-700">Vertel wat je aanbiedt</label>
             <EmojiPickerButton
               onEmojiClick={(emoji) => {
                 setDescription(prev => prev + emoji);
@@ -560,7 +560,7 @@ export default function CompactGardenForm({
             className="w-full rounded-md border border-gray-300 px-3 py-2 h-20 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Beschrijf je product: herkomst, kwaliteit, biologisch, seizoen..."
+            placeholder="Omschrijf je aanbod: kwaliteit, herkomst, seizoen en wat mensen krijgen."
           />
         </div>
 
@@ -880,7 +880,7 @@ export default function CompactGardenForm({
                 {editMode ? t('common.saving') : t('common.saving')}
               </div>
             ) : (
-              editMode ? `✅ ${t('common.update')}` : `🚀 ${t('buttons.publish')}`
+              editMode ? `✅ ${t('common.update')}` : 'Publiceer & begin met verdienen'
             )}
           </button>
           
