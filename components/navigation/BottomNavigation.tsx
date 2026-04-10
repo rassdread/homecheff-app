@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import { Home, Briefcase, Plus, MessageCircle, User, Upload } from 'lucide-react
 import PromoModal from '@/components/promo/PromoModal';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
+import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -17,7 +18,7 @@ type Location = 'keuken' | 'tuin' | 'atelier' | 'recepten' | 'kweken' | 'designs
 export default function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { t } = useTranslation();
   
   // Hide on certain pages (admin, delivery dashboard, verkoper, login, register, etc.)
@@ -216,9 +217,11 @@ export default function BottomNavigation() {
     return pathname.startsWith(href);
   };
 
-  const handleQuickAddClick = () => {
-    if (!session?.user) {
-      setActivePromoModal('add');
+  /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
+  const openQuickAddFlow = useCallback(() => {
+    if (sessionStatus !== 'authenticated' || !session?.user) return;
+    if (shouldHide) {
+      router.push('/sell/new');
       return;
     }
     setShowQuickAddMenu(true);
@@ -226,10 +229,25 @@ export default function BottomNavigation() {
     sessionStorage.setItem('quickAddStep', 'platform');
     setSelectedPlatform(null);
     setCapturedPhoto(null);
-    // Clean up any leftover flags from previous sessions
     sessionStorage.removeItem('quickAddShouldGoToCategory');
     sessionStorage.removeItem('quickAddShouldGoToLocation');
+  }, [session?.user, sessionStatus, shouldHide, router]);
+
+  const handleQuickAddClick = () => {
+    if (!session?.user) {
+      setActivePromoModal('add');
+      return;
+    }
+    openQuickAddFlow();
   };
+
+  useEffect(() => {
+    const onOpenQuickAdd = () => {
+      openQuickAddFlow();
+    };
+    window.addEventListener(QUICK_ADD_OPEN_EVENT, onOpenQuickAdd);
+    return () => window.removeEventListener(QUICK_ADD_OPEN_EVENT, onOpenQuickAdd);
+  }, [openQuickAddFlow]);
 
   // Prefetch routes on hover for faster navigation
   useEffect(() => {

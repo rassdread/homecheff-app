@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import Link from 'next/link';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -947,7 +948,8 @@ export default function SellerDashboardClient() {
 
             {/* Nieuw Product */}
             <button
-              onClick={() => router.push('/sell/new')}
+              type="button"
+              onClick={openCreateFlow}
               className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="p-1.5 sm:p-2 bg-yellow-100 rounded-lg flex-shrink-0">

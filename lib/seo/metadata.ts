@@ -1,13 +1,33 @@
 import { headers, cookies } from 'next/headers';
 
 /**
- * .eu = hoofddomein (canonical, sitemap, SEO).
- * .nl = Nederlandse variant (zelfde app, andere taal/URL).
- * Flow: inlog/redirect blijft op hetzelfde domein (.nl → blijft .nl, .eu → blijft .eu).
- * Geen redirect tussen .eu en .nl (Safari/sessie).
+ * homecheff.eu = enige canonieke basis voor metadata (canonical, OG, hreflang, sitemap).
+ * homecheff.nl = redirect naar .eu; niet gebruiken in canonicals of hreflang.
+ * (NL/EN op dezelfde .eu-URL via cookie/header waar van toepassing.)
  */
 export const MAIN_DOMAIN = 'https://homecheff.eu';
+
+/** Alleen voor CORS, allowed origins, e-mail — niet voor canonical SEO. */
 export const NL_DOMAIN = 'https://homecheff.nl';
+
+/**
+ * hreflang voor routes die één URL op .eu delen (taal via cookie/header).
+ * nl-NL en en-US wijzen naar dezelfde canonieke URL; x-default = homepage .eu.
+ */
+export function seoHreflangLanguagesOnEu(path: string): Record<string, string> {
+  const normalized =
+    path === "" || path === "/"
+      ? ""
+      : path.startsWith("/")
+        ? path
+        : `/${path}`;
+  const pageUrl = normalized === "" ? MAIN_DOMAIN : `${MAIN_DOMAIN}${normalized}`;
+  return {
+    "nl-NL": pageUrl,
+    "en-US": pageUrl,
+    "x-default": `${MAIN_DOMAIN}/`,
+  };
+}
 
 export async function getCurrentLanguage(): Promise<'nl' | 'en'> {
   const headersList = await headers();

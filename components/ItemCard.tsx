@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ClickableName from '@/components/ui/ClickableName';
 import BusinessBadge from '@/components/ui/BusinessBadge';
+import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
 type HomeItem = {
   id: string;
@@ -105,8 +106,10 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
       return;
     }
     
-    // Navigate to product page
-    router.push(`/product/${item.id}`);
+    const path = item.title?.trim()
+      ? `/product/${buildProductSlugPath(item.title, item.place, item.id)}`
+      : `/product/${item.id}`;
+    router.push(path);
   };
   
   // Prepare media items for ImageSlider (images + video)

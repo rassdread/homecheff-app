@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
-import { MAIN_DOMAIN, NL_DOMAIN } from '@/lib/seo/metadata';
+import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -29,10 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/terms`,
-        languages: {
-          'nl-NL': `${NL_DOMAIN}/terms`,
-          'en-US': `${MAIN_DOMAIN}/terms`,
-        },
+        languages: seoHreflangLanguagesOnEu('/terms'),
       },
       robots: {
         index: true,
@@ -52,10 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/terms`,
-      languages: {
-        'nl-NL': 'https://homecheff.nl/terms',
-        'en-US': 'https://homecheff.eu/terms',
-      },
+      languages: seoHreflangLanguagesOnEu('/terms'),
     },
     robots: {
       index: true,

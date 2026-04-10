@@ -56,13 +56,13 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillEmail]);
 
-  // Redirect if already logged in
+  // Al ingelogd: naar expliciete callback of standaard home (niet inspiratie)
   useEffect(() => {
     if (sessionStatus === 'authenticated' && session?.user) {
-      // Already logged in, redirect to home
-      router.push('/inspiratie');
+      const target = callbackUrl && callbackUrl !== '/' ? callbackUrl : '/';
+      router.push(target);
     }
-  }, [sessionStatus, session, router]);
+  }, [sessionStatus, session, router, callbackUrl]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,7 +202,7 @@ function LoginForm() {
           console.warn('⚠️ [LOGIN] No session found after retries on iOS, using refresh redirect');
           const finalRedirectUrl = callbackUrl && callbackUrl !== '/' 
             ? callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'welcome=true&_refresh=1'
-            : '/inspiratie?welcome=true&_refresh=1';
+            : '/?welcome=true&_refresh=1';
           
           // Use window.location.replace to avoid back button issues
           window.location.replace(finalRedirectUrl);
@@ -224,11 +224,10 @@ function LoginForm() {
       const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
       await new Promise(resolve => setTimeout(resolve, redirectDelay));
       
-      // Force session refresh and redirect
-      // Use callbackUrl if provided, otherwise default to inspiratie
-      const finalRedirectUrl = callbackUrl && callbackUrl !== '/' 
+      // callbackUrl expliciet → daarheen; anders home
+      const finalRedirectUrl = callbackUrl && callbackUrl !== '/'
         ? callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'welcome=true'
-        : '/inspiratie?welcome=true';
+        : '/?welcome=true';
       
       // Gebruik window.location.href voor betere Safari-compatibiliteit
       // Op iOS Safari: gebruik replace om back button issues te voorkomen

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 
 import dynamic from 'next/dynamic';
 import PhotoUploader from './PhotoUploader';
@@ -36,16 +37,6 @@ const FansAndFollowsList = dynamic(() => import('../FansAndFollowsList'), {
 
 const ItemsWithReviews = dynamic(() => import('./ItemsWithReviews'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-xl" />,
-  ssr: false
-});
-
-const QuickAddHandler = dynamic(() => import('../products/QuickAddHandler'), {
-  loading: () => null,
-  ssr: false
-});
-
-const CategoryLocationSelector = dynamic(() => import('../products/CategoryLocationSelector'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-xl" />,
   ssr: false
 });
 
@@ -127,6 +118,7 @@ interface ProfileClientProps {
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
   const { t } = useTranslation();
+  const { openCreateFlow } = useCreateFlow();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
@@ -159,12 +151,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   const [loadingStats, setLoadingStats] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
-  const [quickAddLocation, setQuickAddLocation] = useState<'recepten' | 'kweken' | 'designs' | null>(null);
-  const [quickAddCategory, setQuickAddCategory] = useState<'CHEFF' | 'GARDEN' | 'DESIGNER' | null>(null);
-  const [showCategorySelector, setShowCategorySelector] = useState(false);
-  const [categorySelectorPlatform, setCategorySelectorPlatform] = useState<'dorpsplein' | 'inspiratie' | null>(null);
-  const [quickAddPlatform, setQuickAddPlatform] = useState<'dorpsplein' | 'inspiratie' | null>(null);
 
   const handlePhotoChange = async (newPhotoUrl: string | null) => {
     try {
@@ -970,10 +956,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           {/* Toevoeg knop voor Dorpsplein - alleen bij dorpsplein tab */}
                           {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
                             <button
-                              onClick={() => {
-                                setCategorySelectorPlatform('dorpsplein');
-                                setShowCategorySelector(true);
-                              }}
+                              type="button"
+                              onClick={openCreateFlow}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                             >
                               <Plus className="w-4 h-4" />
@@ -985,10 +969,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           {/* Toevoeg knop voor Inspiratie - alleen bij inspiratie tab */}
                           {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
                             <button
-                              onClick={() => {
-                                setCategorySelectorPlatform('inspiratie');
-                                setShowCategorySelector(true);
-                              }}
+                              type="button"
+                              onClick={openCreateFlow}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                             >
                               <Plus className="w-4 h-4" />
@@ -1215,10 +1197,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       {/* Toevoeg knop voor Inspiratie - alleen bij inspiratie tab en als er opties beschikbaar zijn */}
                       {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
                         <button
-                          onClick={() => {
-                            setCategorySelectorPlatform('inspiratie');
-                            setShowCategorySelector(true);
-                          }}
+                          type="button"
+                          onClick={openCreateFlow}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                         >
                           <Plus className="w-4 h-4" />
@@ -1561,65 +1541,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
             </div>
           </div>
         </div>
-      )}
-      
-      {/* Category/Location Selector Modal */}
-      {showCategorySelector && categorySelectorPlatform && (
-        <CategoryLocationSelector
-          platform={categorySelectorPlatform}
-          userSellerRoles={user.sellerRoles || []}
-          onSelect={(categoryOrLocation) => {
-            setShowCategorySelector(false);
-            const platform = categorySelectorPlatform;
-            setCategorySelectorPlatform(null);
-            
-            if (platform === 'dorpsplein') {
-              // Voor dorpsplein: gebruik category
-              setQuickAddCategory(categoryOrLocation as 'CHEFF' | 'GARDEN' | 'DESIGNER');
-              setQuickAddPlatform('dorpsplein');
-              setShowQuickAddModal(true);
-            } else if (platform === 'inspiratie') {
-              // Voor inspiratie: gebruik location
-              setQuickAddLocation(categoryOrLocation as 'recepten' | 'kweken' | 'designs');
-              setQuickAddPlatform('inspiratie');
-              setShowQuickAddModal(true);
-            }
-          }}
-          onClose={() => {
-            setShowCategorySelector(false);
-            setCategorySelectorPlatform(null);
-          }}
-        />
-      )}
-
-      {/* QuickAddHandler Modal */}
-      {showQuickAddModal && (
-        <>
-          {quickAddPlatform === 'dorpsplein' && quickAddCategory && (
-            <QuickAddHandler
-              platform="dorpsplein"
-              category={quickAddCategory}
-              onClose={() => {
-                setShowQuickAddModal(false);
-                setQuickAddCategory(null);
-                setQuickAddPlatform(null);
-                fetchStats();
-              }}
-            />
-          )}
-          {quickAddPlatform === 'inspiratie' && quickAddLocation && (
-            <QuickAddHandler
-              platform="inspiratie"
-              location={quickAddLocation}
-              onClose={() => {
-                setShowQuickAddModal(false);
-                setQuickAddLocation(null);
-                setQuickAddPlatform(null);
-                fetchStats();
-              }}
-            />
-          )}
-        </>
       )}
     </div>
   );

@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { prisma } from '@/lib/prisma';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +15,6 @@ export async function generateMetadata(
   const { sellerId } = await params;
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
 
   try {
     const seller = await prisma.sellerProfile.findUnique({
@@ -97,10 +100,7 @@ export async function generateMetadata(
       },
       alternates: {
         canonical: `${currentDomain}/seller/${sellerId}`,
-        languages: {
-          'nl-NL': `${alternateDomain}/seller/${sellerId}`,
-          'en-US': `${currentDomain}/seller/${sellerId}`,
-        },
+        languages: seoHreflangLanguagesOnEu(`/seller/${sellerId}`),
       },
       robots: {
         index: true,

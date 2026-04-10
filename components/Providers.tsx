@@ -2,6 +2,7 @@
 import { SessionProvider } from 'next-auth/react';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
+import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
 
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   // This hook ensures session isolation
@@ -19,7 +20,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     >
       <SessionGuard />
       <SessionIsolationWrapper>
-        {children}
+        <CreateFlowProvider>{children}</CreateFlowProvider>
       </SessionIsolationWrapper>
     </SessionProvider>
   );

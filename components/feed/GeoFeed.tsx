@@ -27,6 +27,7 @@ import {
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
+import { useCreateFlow } from "@/components/create/CreateFlowContext";
 
 type FeedItem = {
   id: string;
@@ -1000,12 +1001,13 @@ export default function GeoFeed({
             {t("emptyState.noResultsHint")}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <a
-              href="/sell/new"
+            <button
+              type="button"
+              onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Start met verkopen
-            </a>
+            </button>
             <button
               type="button"
               onClick={() => setFeedChip("inspiration")}
@@ -1042,12 +1044,13 @@ export default function GeoFeed({
             Deel een recept, idee of voorbeeld en inspireer anderen.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <a
-              href="/sell/new"
+            <button
+              type="button"
+              onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Deel inspiratie
-            </a>
+            </button>
           </div>
         </div>
       ) : emptyAll ? (
@@ -1069,18 +1072,20 @@ export default function GeoFeed({
             >
               Filters wissen
             </button>
-            <a
-              href="/sell/new"
+            <button
+              type="button"
+              onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Start met verkopen
-            </a>
-            <a
-              href="/sell/new"
+            </button>
+            <button
+              type="button"
+              onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
               Deel inspiratie
-            </a>
+            </button>
           </div>
         </div>
       ) : (

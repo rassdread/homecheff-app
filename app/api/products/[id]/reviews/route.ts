@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 
 // GET - Haal reviews op voor een product
 export async function GET(
@@ -11,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const id = resolveProductIdFromParam((await params).id);
     const { searchParams } = new URL(request.url);
     const sortBy = searchParams.get('sortBy') || 'newest';
     const filterBy = searchParams.get('filterBy') || 'all';
@@ -99,7 +100,7 @@ export async function POST(
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const id = resolveProductIdFromParam((await params).id);
     const { rating, title, comment, images = [], orderId } = await request.json();
 
     // Validate input

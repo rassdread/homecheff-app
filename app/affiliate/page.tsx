@@ -1,14 +1,17 @@
 import AffiliatePageClient from './page-client';
 import type { Metadata } from 'next';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
-  
+
   if (lang === 'en') {
     return {
       title: 'Affiliate 12-12 Program - HomeCheff',
@@ -29,10 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/affiliate`,
-        languages: {
-          'nl-NL': `${alternateDomain}/affiliate`,
-          'en-US': `${currentDomain}/affiliate`,
-        },
+        languages: seoHreflangLanguagesOnEu('/affiliate'),
       },
       robots: {
         index: true,
@@ -60,10 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/affiliate`,
-      languages: {
-        'nl-NL': `${currentDomain}/affiliate`,
-        'en-US': `${alternateDomain}/affiliate`,
-      },
+      languages: seoHreflangLanguagesOnEu('/affiliate'),
     },
     robots: {
       index: true,

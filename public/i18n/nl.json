@@ -460,7 +460,9 @@
     "cart": "Winkelwagen",
     "profileImage": "Profielfoto",
     "werkenBij": "Werken bij",
-    "affiliateDashboard": "Affiliate Dashboard"
+    "affiliateDashboard": "Affiliate Dashboard",
+    "verdienenGuestTitle": "Log in om iets te plaatsen",
+    "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd."
   },
   "admin": {
     "chatArchiving": "Chat Archivering",

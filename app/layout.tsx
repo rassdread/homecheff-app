@@ -4,6 +4,7 @@ import NavBar from '@/components/NavBar';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 
 // Lazy load non-critical components for faster initial page load
 const PrivacyNotice = dynamic(() => import('@/components/PrivacyNotice'), {
@@ -37,16 +38,11 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
-// Hoofddomein is .eu; .nl is de Nederlandse variant
-const MAIN_DOMAIN = 'https://homecheff.eu';
-const NL_DOMAIN = 'https://homecheff.nl';
-
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
   const hostname = headersList.get('host') || '';
   const isEnglishDomain = hostname.includes('homecheff.eu');
   const currentDomain = MAIN_DOMAIN;
-  const alternateDomain = NL_DOMAIN;
 
   const languageHeader = headersList.get('X-HomeCheff-Language');
   const cookieStore = await cookies();
@@ -95,10 +91,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: currentDomain,
-        languages: {
-          'nl-NL': NL_DOMAIN,
-          'en-US': MAIN_DOMAIN,
-        },
+        languages: seoHreflangLanguagesOnEu(''),
       },
       robots: {
         index: true,
@@ -147,10 +140,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: currentDomain,
-      languages: {
-        'nl-NL': NL_DOMAIN,
-        'en-US': MAIN_DOMAIN,
-      },
+      languages: seoHreflangLanguagesOnEu(''),
     },
     robots: {
       index: true,

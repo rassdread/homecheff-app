@@ -1,13 +1,16 @@
 import { Suspense } from 'react';
 import InspiratieContent from '@/components/inspiratie/InspiratieContent';
 import type { Metadata } from 'next';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
-  
+
   if (lang === 'en') {
     return {
       title: 'Inspiration - HomeCheff',
@@ -29,10 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/inspiratie`,
-        languages: {
-          'nl-NL': `${alternateDomain}/inspiratie`,
-          'en-US': `${currentDomain}/inspiratie`,
-        },
+        languages: seoHreflangLanguagesOnEu('/inspiratie'),
       },
       robots: {
         index: true,
@@ -61,10 +61,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/inspiratie`,
-      languages: {
-        'nl-NL': `${currentDomain}/inspiratie`,
-        'en-US': `${alternateDomain}/inspiratie`,
-      },
+      languages: seoHreflangLanguagesOnEu('/inspiratie'),
     },
     robots: {
       index: true,

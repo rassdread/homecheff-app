@@ -264,8 +264,8 @@ function RegisterPageContent() {
             // Verwijder pending registration
             sessionStorage.removeItem('pendingRegistration');
             
-            // Redirect direct naar opgeslagen url (fallback inspiratie)
-            window.location.href = redirectUrl || "/inspiratie";
+            // Redirect direct naar opgeslagen url (fallback home)
+            window.location.href = redirectUrl || "/";
           } catch (error: any) {
             if (error?.message?.includes('NEXT_REDIRECT')) {
               throw error;
@@ -316,8 +316,8 @@ function RegisterPageContent() {
           
           // If user has completed onboarding, redirect immediately
           if (!hasTempUsername && onboardingCompleted === true) {
-            console.log('🔍 [REGISTER] User already completed onboarding, redirecting to inspiratie');
-            window.location.replace('/inspiratie');
+            console.log('🔍 [REGISTER] User already completed onboarding, redirecting to home');
+            window.location.replace('/');
             return;
           }
         } else {
@@ -328,8 +328,8 @@ function RegisterPageContent() {
           
           // If user has completed onboarding, redirect immediately
           if (!hasTempUsername && onboardingCompleted === true) {
-            console.log('🔍 [REGISTER] User already completed onboarding (session check), redirecting to inspiratie');
-            window.location.replace('/inspiratie');
+            console.log('🔍 [REGISTER] User already completed onboarding (session check), redirecting to home');
+            window.location.replace('/');
             return;
           }
         }
@@ -366,7 +366,7 @@ function RegisterPageContent() {
             // If onboarding is complete, don't load form data, just redirect
             if (!hasTempUsername && onboardingCompleted === true) {
               console.log('🔍 [REGISTER] Onboarding complete, redirecting before loading form');
-              window.location.replace('/inspiratie');
+              window.location.replace('/');
               return;
             }
           }
@@ -1561,7 +1561,7 @@ function RegisterPageContent() {
         }
 
         // Gebruik window.location.replace voor clean redirect (geen back button issues)
-        window.location.replace("/inspiratie?welcome=true&onboarding=completed");
+        window.location.replace("/?welcome=true&onboarding=completed");
         return;
       }
 
@@ -1735,7 +1735,7 @@ function RegisterPageContent() {
       if (data?.needsVerification) {
         // Show verification modal instead of auto-login
         const returnUrl = searchParams?.get('returnUrl');
-        const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/inspiratie");
+        const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/");
         
         setState(prev => ({
           ...prev,
@@ -1754,9 +1754,9 @@ function RegisterPageContent() {
         success: true,
       }));
       
-      // Bepaal redirect URL op basis van returnUrl parameter, response of default - focus op inspiratie
+      // Bepaal redirect URL op basis van returnUrl parameter, response of default (home)
       const returnUrl = searchParams?.get('returnUrl');
-      const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/inspiratie");
+      const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/");
       
       // Probeer automatisch in te loggen - Safari-compatibele versie
       // Gebruik redirect: false eerst om te controleren of login werkt
@@ -3443,7 +3443,7 @@ function RegisterPageContent() {
           // Auto-login after verification
           if (state.registrationPassword && state.verificationEmail) {
             try {
-              const redirectUrl = state.registrationRedirectUrl || "/inspiratie";
+              const redirectUrl = state.registrationRedirectUrl || "/";
               
               // iOS Safari needs more time for cookies
               const isIOSDevice = isIOS();

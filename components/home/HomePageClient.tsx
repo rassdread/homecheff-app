@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import GeoFeed from "@/components/feed/GeoFeed";
+import { useCreateFlow } from "@/components/create/CreateFlowContext";
 
 const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
 
@@ -20,6 +21,7 @@ type Props = {
 export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
   const { t, language, changeLanguage, isReady } = useTranslation();
   const { data: session } = useSession();
+  const { openCreateFlow } = useCreateFlow();
   const [splashDismissed, setSplashDismissed] = useState(false);
   const [currentDomain, setCurrentDomain] = useState(() => {
     if (typeof document !== 'undefined') {
@@ -145,9 +147,11 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
             </div>
             <p className="uppercase tracking-wide text-xs sm:text-sm text-white/80 mb-2">Verdien geld met wat je al kunt — gewoon in jouw buurt.</p>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">Verdien geld met wat je al kunt</h1>
-            <p className="text-base sm:text-lg text-emerald-100 mb-7 max-w-3xl mx-auto">Kook, maak of verkoop — en vind direct klanten in jouw buurt.</p>
+            <p className="text-base sm:text-lg text-emerald-100 mb-7 max-w-3xl mx-auto">Kook, maak en verkoop — en vind direct klanten in jouw buurt.</p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <Link href="/sell/new"><Button variant="primary" className="text-sm sm:text-base py-3 px-6">Start met verkopen</Button></Link>
+              <Button type="button" variant="primary" className="text-sm sm:text-base py-3 px-6" onClick={openCreateFlow}>
+                Start met verkopen
+              </Button>
               <a href="#homecheff-feed" className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium border border-white/30 bg-white/10 text-white hover:bg-white/20">Ontdek aanbod</a>
               {(!isSubAffiliate || !affiliateCheckComplete) && (
                 <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-3 px-6 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
@@ -204,7 +208,9 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
           <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-7 text-white text-center shadow-lg">
             <h3 className="text-2xl font-bold mb-2">Start met verkopen</h3>
             <p className="text-emerald-100 mb-5">Laat mensen in jouw buurt ontdekken wat jij maakt.</p>
-            <Link href="/sell/new"><Button variant="primary" className="py-3 px-6">Start met verkopen</Button></Link>
+            <Button type="button" variant="primary" className="py-3 px-6" onClick={openCreateFlow}>
+              Start met verkopen
+            </Button>
           </div>
         </section>
       </main>

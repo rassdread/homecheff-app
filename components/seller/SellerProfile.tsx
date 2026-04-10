@@ -37,6 +37,7 @@ import Image from 'next/image';
 import SellerDeliverySettings from './SellerDeliverySettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import { compressImage } from '@/lib/imageOptimization';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 
 // Reviews removed for now - can be added later if needed
 
@@ -182,6 +183,7 @@ interface SellerProfileProps {
 
 export default function SellerProfile({ sellerProfile, isOwner = false }: SellerProfileProps) {
   const { t } = useTranslation();
+  const { openCreateFlow } = useCreateFlow();
   const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products' | 'workspace' | 'delivery'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -1192,7 +1194,7 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen producten</h3>
                         <p className="text-gray-500 mb-6">Begin met het toevoegen van je eerste product</p>
                         {isOwner && (
-                          <Button className="flex items-center gap-2">
+                          <Button type="button" className="flex items-center gap-2" onClick={openCreateFlow}>
                             <Plus className="w-4 h-4" />
                             Eerste Product Toevoegen
                           </Button>

@@ -1580,7 +1580,9 @@
     "logout": "Logout",
     "cart": "Shopping Cart",
     "profileImage": "Profile Picture",
-    "werkenBij": "Work at"
+    "werkenBij": "Careers",
+    "verdienenGuestTitle": "Log in to post something",
+    "verdienenGuestBody": "You can only post something when you are logged in."
   },
   "earningsPage": {
     "title": "My Earnings",

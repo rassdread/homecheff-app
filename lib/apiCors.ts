@@ -5,7 +5,16 @@ const OUR_DOMAINS = [
   'https://homecheff.nl',
   'https://www.homecheff.eu',
   'https://www.homecheff.nl',
+  'https://growth.homecheff.eu',
 ] as const;
+
+function isHomecheffEuHost(hostname: string): boolean {
+  return (
+    hostname === 'homecheff.eu' ||
+    hostname === 'www.homecheff.eu' ||
+    hostname.endsWith('.homecheff.eu')
+  );
+}
 
 /**
  * CORS headers for API responses. Use in route handlers so the response
@@ -52,13 +61,21 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     const rawOrigin = request.headers.get('origin');
     const host = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host') || '';
     const hostOnly = host.replace(/^https?:\/\//, '').split('/')[0] || '';
-    const derivedOrigin = hostOnly && (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl')
-      ? `https://${hostOnly}`
-      : null;
+    const derivedOrigin =
+      hostOnly &&
+      (isHomecheffEuHost(hostOnly) ||
+        hostOnly === 'homecheff.nl' ||
+        hostOnly === 'www.homecheff.nl')
+        ? `https://${hostOnly}`
+        : null;
     // When Host is internal (e.g. Vercel serverless), use request URL hostname as fallback
     const urlHost = typeof request.url === 'string' ? (() => { try { return new URL(request.url).hostname; } catch { return ''; } })() : '';
-    const urlDerived = (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl')
-      ? `https://${urlHost}` : null;
+    const urlDerived =
+      isHomecheffEuHost(urlHost) ||
+      urlHost === 'homecheff.nl' ||
+      urlHost === 'www.homecheff.nl'
+        ? `https://${urlHost}`
+        : null;
     const siteOrigin = derivedOrigin || urlDerived || CANONICAL_ORIGIN;
     let allowOrigin: string;
     if (rawOrigin === 'null') {
@@ -111,14 +128,18 @@ export function getCorsHeaders(request: NextRequest): Record<string, string> {
     OUR_DOMAINS.some((d) => fallbackOrigin === d);
   const isOurDomainByHost =
     process.env.NODE_ENV === 'production' &&
-    (hostOnly === 'homecheff.eu' || hostOnly === 'www.homecheff.eu' || hostOnly === 'homecheff.nl' || hostOnly === 'www.homecheff.nl');
+    (isHomecheffEuHost(hostOnly) ||
+      hostOnly === 'homecheff.nl' ||
+      hostOnly === 'www.homecheff.nl');
   const isOurDomainByUrl =
     process.env.NODE_ENV === 'production' && urlOrigin && OUR_DOMAINS.includes(urlOrigin as (typeof OUR_DOMAINS)[number]);
   // Production: also allow when request URL hostname is our domain (request.url may be the only reliable source in serverless)
   const urlHost = typeof request.url === 'string' ? (() => { try { return new URL(request.url).hostname; } catch { return ''; } })() : '';
   const isOurDomainByUrlHost =
     process.env.NODE_ENV === 'production' &&
-    (urlHost === 'homecheff.eu' || urlHost === 'www.homecheff.eu' || urlHost === 'homecheff.nl' || urlHost === 'www.homecheff.nl');
+    (isHomecheffEuHost(urlHost) ||
+      urlHost === 'homecheff.nl' ||
+      urlHost === 'www.homecheff.nl');
   const isOurDomain = isOurDomainByOrigin || isOurDomainByHost || isOurDomainByUrl || isOurDomainByUrlHost;
   const allowed = process.env.NODE_ENV === 'development' ? isLocalDevOrigin : isOurDomain;
   let allowOrigin: string | undefined = allowed

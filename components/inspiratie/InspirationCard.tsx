@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import UserStatsTile from '@/components/ui/UserStatsTile';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import type { InspirationItem } from './InspiratieContent';
 
@@ -50,6 +51,7 @@ export default function InspirationCard({
   onCardHoverChange,
   priority = false,
 }: InspirationCardProps) {
+  const { openCreateFlow } = useCreateFlow();
   const categoryLabel = inspirationContentLabel(item);
   const desc = snippet(item.description);
 
@@ -73,13 +75,16 @@ export default function InspirationCard({
         >
           Bekijk
         </Link>
-        <Link
-          href="/sell/new"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            openCreateFlow();
+          }}
           className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
         >
           Start met verkopen
-        </Link>
+        </button>
       </div>
     </div>
   );

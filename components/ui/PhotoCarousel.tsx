@@ -417,6 +417,7 @@ export default function PhotoCarousel({
                         alt={`Video thumbnail ${index + 1}`}
                         width={64}
                         height={64}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -434,6 +435,7 @@ export default function PhotoCarousel({
                     alt={`Thumbnail ${index + 1}`}
                     width={64}
                     height={64}
+                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
                 )}

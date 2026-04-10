@@ -17,11 +17,13 @@ import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, force
 import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation();
+  const { openCreateFlow } = useCreateFlow();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -193,6 +195,11 @@ export default function NavBar() {
     forceSessionReset();
   };
 
+  const handleVerdienenClick = () => {
+    setIsMobileMenuOpen(false);
+    openCreateFlow();
+  };
+
   return (
     <header className="w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
@@ -212,16 +219,19 @@ export default function NavBar() {
               <Home className="w-4 h-4" />
               <span>Home</span>
             </Button>
-            <Link href="/sell/new">
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <DollarSign className="w-4 h-4" />
-                <span>Verdienen</span>
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex items-center space-x-2"
+              onClick={handleVerdienenClick}
+            >
+              <DollarSign className="w-4 h-4" />
+              <span>Verdienen</span>
+            </Button>
             <Link href="/werken-bij">
               <Button variant="ghost" className="flex items-center space-x-2">
                 <Lightbulb className="w-4 h-4" />
-                <span>Ontdekken</span>
+                <span>{t("navbar.werkenBij")}</span>
               </Button>
             </Link>
             <Link href={user ? "/profile" : "/login"}>
@@ -501,17 +511,20 @@ export default function NavBar() {
                 <span>Home</span>
               </Button>
               
-              <Link href="/sell/new" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Verdienen</span>
-                </Button>
-              </Link>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full justify-start flex items-center space-x-2"
+                onClick={handleVerdienenClick}
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>Verdienen</span>
+              </Button>
               
               <Link href="/werken-bij" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                   <Lightbulb className="w-4 h-4" />
-                  <span>Ontdekken</span>
+                  <span>{t("navbar.werkenBij")}</span>
                 </Button>
               </Link>
 

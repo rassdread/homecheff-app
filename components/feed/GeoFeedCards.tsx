@@ -17,6 +17,7 @@ import {
   getInspirationFeedItemHref,
   getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
+import { useCreateFlow } from "@/components/create/CreateFlowContext";
 
 export type GeoFeedCardItem = {
   id: string;
@@ -90,7 +91,7 @@ export function FeedSaleCard({
   baseUrl: string;
   t: TFn;
 }) {
-  const listingHref = getSaleItemHref(it.id);
+  const listingHref = getSaleItemHref(it);
   const hasPrice =
     it.priceCents != null && Number(it.priceCents) > 0;
   const priceLabel = hasPrice
@@ -197,6 +198,7 @@ export function FeedInspirationCardFeed({
   item: GeoFeedCardItem;
   t: TFn;
 }) {
+  const { openCreateFlow } = useCreateFlow();
   const detailHref = getInspirationFeedItemHref(it);
   const desc = snippet(it.description);
 
@@ -244,12 +246,16 @@ export function FeedInspirationCardFeed({
             >
               Bekijk
             </Link>
-            <Link
-              href="/sell/new"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openCreateFlow();
+              }}
               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
             >
               Start met verkopen
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -265,6 +271,7 @@ export function FeedInspirationCardApi({
   item: InspirationItem;
   t: TFn;
 }) {
+  const { openCreateFlow } = useCreateFlow();
   const detailHref = inspirationDetailHrefApi(item);
   const desc = snippet(item.description);
   const label = inspirationContentLabel(item);
@@ -334,12 +341,16 @@ export function FeedInspirationCardApi({
             >
               Bekijk
             </Link>
-            <Link
-              href="/sell/new"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openCreateFlow();
+              }}
               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
             >
               Start met verkopen
-            </Link>
+            </button>
           </div>
         </div>
       </div>

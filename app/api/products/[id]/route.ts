@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { randomUUID } from 'crypto';
+import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const raw = (await params).id;
+    const id = resolveProductIdFromParam(raw);
     
     // Try new Product model first
     let product = await prisma.product.findUnique({
@@ -254,7 +256,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const raw = (await params).id;
+    const id = resolveProductIdFromParam(raw);
     const body = await request.json();
     
     // NextAuth v5
@@ -572,7 +575,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const raw = (await params).id;
+    const id = resolveProductIdFromParam(raw);
     
     // NextAuth v5
     try {

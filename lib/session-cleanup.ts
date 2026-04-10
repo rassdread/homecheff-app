@@ -181,13 +181,22 @@ export function clearNextAuthData(): void {
     '__Secure-next-auth.callback-url'
   ];
 
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isHomecheffEuTree =
+    host === 'homecheff.eu' || host.endsWith('.homecheff.eu');
+
   cookiesToClear.forEach(cookieName => {
-    // Clear cookie for current domain
-    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    // Clear cookie for parent domain
-    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-    // Clear cookie for .domain (subdomains)
-    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+    const securePart =
+      window.location.protocol === 'https:' ? '; Secure' : '';
+    const base = `expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax${securePart}`;
+    document.cookie = `${cookieName}=; ${base}`;
+    if (host) {
+      document.cookie = `${cookieName}=; ${base}; domain=${host}`;
+    }
+    // SSO: NextAuth session op .homecheff.eu (growth ↔ apex)
+    if (isHomecheffEuTree) {
+      document.cookie = `${cookieName}=; ${base}; domain=.homecheff.eu`;
+    }
   });
 
   // Clear any remaining localStorage keys that might contain session data

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
 
 // Helper to get FAQ data for structured data
 // Note: We'll generate basic structured data without importing JSON files
@@ -14,8 +18,7 @@ async function getFAQStructuredData(lang: 'nl' | 'en') {
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
-  
+
   // Extract keywords from FAQ questions
   const keywords = lang === 'en' ? [
     'HomeCheff FAQ', 'homecheff questions', 'homecheff answers',
@@ -44,10 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/faq`,
-        languages: {
-          'nl-NL': `${alternateDomain}/faq`,
-          'en-US': `${currentDomain}/faq`,
-        },
+        languages: seoHreflangLanguagesOnEu('/faq'),
       },
       robots: {
         index: true,
@@ -68,10 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/faq`,
-      languages: {
-        'nl-NL': `${currentDomain}/faq`,
-        'en-US': `${alternateDomain}/faq`,
-      },
+      languages: seoHreflangLanguagesOnEu('/faq'),
     },
     robots: {
       index: true,

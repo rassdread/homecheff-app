@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
-  
+
   if (lang === 'en') {
     return {
       title: 'Village Square - HomeCheff',
@@ -25,10 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/dorpsplein`,
-        languages: {
-          'nl-NL': `${alternateDomain}/dorpsplein`,
-          'en-US': `${currentDomain}/dorpsplein`,
-        },
+        languages: seoHreflangLanguagesOnEu('/dorpsplein'),
       },
       robots: {
         index: true,
@@ -55,10 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/dorpsplein`,
-      languages: {
-        'nl-NL': `${currentDomain}/dorpsplein`,
-        'en-US': `${alternateDomain}/dorpsplein`,
-      },
+      languages: seoHreflangLanguagesOnEu('/dorpsplein'),
     },
     robots: {
       index: true,

@@ -9,6 +9,7 @@ import FacebookProvider from "next-auth/providers/facebook";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
+import { getNextAuthSharedCookieDomain } from "./auth-cookie-domain";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -19,6 +20,16 @@ type AppUser = { id: string; email: string; role: Role; name?: string; image?: s
 if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
   console.warn('[auth] NEXTAUTH_URL niet gezet in productie – zet in Vercel op https://homecheff.eu');
 }
+
+const sharedSessionCookieDomain = getNextAuthSharedCookieDomain();
+const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  path: '/',
+  secure: process.env.NODE_ENV === 'production',
+  ...(sharedSessionCookieDomain ? { domain: sharedSessionCookieDomain } : {}),
+};
+
 export const authOptions: NextAuthOptions = {
   trustHost: true, // Vereist voor correcte sessie op iPhone Safari / meerdere domeinen (homecheff.eu vs homecheff.nl)
   pages: { signIn: "/login" },
@@ -32,31 +43,19 @@ export const authOptions: NextAuthOptions = {
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        // SameSite=Lax: same-origin (homecheff.eu) – Safari houdt sessie beter vast dan None; cookie wordt meegestuurd bij navigatie en fetch naar eigen domein.
-        sameSite: 'lax' as const,
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
+      options: sessionCookieOptions,
     },
     callbackUrl: {
       name: `next-auth.callback-url`,
       options: {
-        httpOnly: true,
-        sameSite: 'lax' as const,
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        ...sessionCookieOptions,
         maxAge: 60 * 10, // 10 minutes
       },
     },
     csrfToken: {
       name: `next-auth.csrf-token`,
       options: {
-        httpOnly: true,
-        sameSite: 'lax' as const,
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        ...sessionCookieOptions,
         maxAge: 60 * 60, // 1 hour
       },
     },
@@ -118,6 +117,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials): Promise<AppUser | null> {
         try {
+          // Failsafe: no account creation here — unknown user/password → null (no duplicates).
           if (!credentials?.emailOrUsername || !credentials?.password) {
 
             return null;
@@ -179,6 +179,7 @@ export const authOptions: NextAuthOptions = {
             where: { email: user.email }
           });
 
+          // Single account per email: update existing row only; never second user for same email.
           if (existingUser) {
             // Update existing user with latest social data
             // BUT preserve custom uploaded photos - only use social image if user has no custom photo
@@ -528,7 +529,13 @@ export const authOptions: NextAuthOptions = {
       // .eu = enige auth-domein: sessie-cookie altijd op .eu, anders .nl/.eu glitch (Safari uitlog na inlog).
       // Middleware stuurt .nl → .eu; OAuth callback moet altijd naar .eu gaan zodat cookie op .eu staat.
       const canonicalAuthOrigin = process.env.NEXTAUTH_URL?.replace(/\/$/, '') || 'https://homecheff.eu';
-      const ourDomains = ['https://homecheff.nl', 'https://homecheff.eu', 'https://www.homecheff.nl', 'https://www.homecheff.eu'];
+      const ourDomains = [
+        'https://homecheff.nl',
+        'https://homecheff.eu',
+        'https://www.homecheff.nl',
+        'https://www.homecheff.eu',
+        'https://growth.homecheff.eu',
+      ];
       const baseUrlNorm = (baseUrl || '').replace(/\/$/, '');
       const isBaseOurDomain = ourDomains.some((d) => baseUrlNorm === d || baseUrlNorm.startsWith(d + '/'));
       // In productie: altijd .eu gebruiken voor redirects (NEXTAUTH_URL), geen .nl – voorkomt cookie op verkeerd domein.
@@ -573,7 +580,7 @@ export const authOptions: NextAuthOptions = {
         if (url.includes('google') || url.includes('facebook') || url.includes('apple')) {
           return actualBaseUrl + '/social-login-success';
         }
-        return actualBaseUrl + '/dorpsplein';
+        return actualBaseUrl + '/';
       }
     },
   },

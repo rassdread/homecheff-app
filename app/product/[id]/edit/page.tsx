@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
+import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
 export default function EditProductPage() {
   const { t } = useTranslation();
@@ -35,6 +36,7 @@ export default function EditProductPage() {
         const category = data.product.category === 'GROWN' ? 'GARDEN' : data.product.category;
         const transformedProduct = {
           id: data.product.id,
+          sellerPlace: data.product.seller?.User?.place ?? null,
           title: data.product.title,
           description: data.product.description,
           priceCents: data.product.priceCents,
@@ -73,8 +75,14 @@ export default function EditProductPage() {
   }, [params?.id, router]);
 
   const handleSave = () => {
-    // Redirect to product page after save
-    router.push(`/product/${params?.id}`);
+    if (!product) return;
+    router.push(
+      `/product/${buildProductSlugPath(
+        product.title,
+        product.sellerPlace,
+        product.id
+      )}`
+    );
   };
   
   const handleCancel = () => {

@@ -160,7 +160,7 @@ export default function SocialLoginSuccessPage() {
       // 1. User has a real username (not temp)
       // 2. Onboarding is completed
       if (!hasTempUsername && onboardingCompleted === true) {
-        console.log('🔍 [SOCIAL-LOGIN-SUCCESS] Onboarding completed, redirecting to inspiratie');
+        console.log('🔍 [SOCIAL-LOGIN-SUCCESS] Onboarding completed, redirecting to home');
         setHasRedirected(true);
         setIsChecking(false);
         
@@ -169,7 +169,7 @@ export default function SocialLoginSuccessPage() {
         await new Promise(resolve => setTimeout(resolve, redirectDelay));
         
         // Use window.location.href for iOS Safari compatibility (better than replace for session persistence)
-        window.location.href = '/inspiratie';
+        window.location.href = '/';
         return;
       }
 

@@ -1,9 +1,11 @@
 'use client';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { useCreateFlow } from "@/components/create/CreateFlowContext";
 
 export default function SellerOnboardingPage() {
   const router = useRouter();
+  const { openCreateFlow } = useCreateFlow();
 
   return (
     <main className="min-h-screen p-4 max-w-3xl mx-auto space-y-6">
@@ -41,7 +43,7 @@ export default function SellerOnboardingPage() {
 
         <div className="mt-6 flex justify-between">
           <Button onClick={() => router.push('/onboarding/buyer')} variant="outline">Vorige stap</Button>
-          <Button onClick={() => router.push('/sell/new')}>Stap 3: Start met verkopen</Button>
+          <Button type="button" onClick={openCreateFlow}>Stap 3: Start met verkopen</Button>
         </div>
       </section>
     </main>

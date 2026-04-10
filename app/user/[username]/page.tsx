@@ -1,8 +1,9 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { prisma } from "@/lib/prisma";
 import { getCurrentDomain } from "@/lib/seo/metadata";
+import { formatCityLabel } from "@/lib/seo/productSlug";
 import PublicProfileClient from "./PublicProfileClient";
 
 export const revalidate = 0;
@@ -22,6 +23,7 @@ export async function generateMetadata({
       username: true,
       profileImage: true,
       bio: true,
+      place: true,
       showProfileToEveryone: true,
     },
   });
@@ -42,11 +44,11 @@ export async function generateMetadata({
         : null;
 
   return {
-    title: `${displayName} | HomeCheff`,
+    title,
     description,
     openGraph: {
       type: "profile",
-      title: `${displayName} | HomeCheff`,
+      title,
       description,
       url: `${currentDomain}/user/${username}`,
       siteName: "HomeCheff",
@@ -345,10 +347,36 @@ export default async function PublicProfilePage({
     notFound(); // Return 404 to hide that the profile exists
   }
 
+  const currentDomain = await getCurrentDomain();
+  const profileDisplay = user.name || user.username || "Profiel";
+  const locality = formatCityLabel(user.place);
+  const profileUrl = `${currentDomain}/user/${username}`;
+  const personLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profileDisplay,
+    url: profileUrl,
+    ...(locality
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: locality,
+          },
+        }
+      : {}),
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 w-full min-w-0 max-w-[100vw] overflow-x-auto overflow-y-visible">
-      <PublicProfileClient user={user as any} openNewProducts={false} />
-    </div>
+    <>
+      <Script
+        id="profile-person-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
+      />
+      <div className="min-h-screen bg-gray-50 w-full min-w-0 max-w-[100vw] overflow-x-auto overflow-y-visible">
+        <PublicProfileClient user={user as any} openNewProducts={false} />
+      </div>
+    </>
   );
 }
 

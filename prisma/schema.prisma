@@ -2,6 +2,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Growth + HomeCheff: dezelfde DATABASE_URL en hetzelfde User-model voor één account (geen tweede DB zonder afgesproken migraties).
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")

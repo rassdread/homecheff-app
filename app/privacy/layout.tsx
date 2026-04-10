@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
-import { MAIN_DOMAIN, NL_DOMAIN } from '@/lib/seo/metadata';
+import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -29,10 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       alternates: {
         canonical: `${currentDomain}/privacy`,
-        languages: {
-          'nl-NL': `${NL_DOMAIN}/privacy`,
-          'en-US': `${MAIN_DOMAIN}/privacy`,
-        },
+        languages: seoHreflangLanguagesOnEu('/privacy'),
       },
       robots: {
         index: true,
@@ -52,10 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: `${currentDomain}/privacy`,
-      languages: {
-        'nl-NL': `${NL_DOMAIN}/privacy`,
-        'en-US': `${MAIN_DOMAIN}/privacy`,
-      },
+      languages: seoHreflangLanguagesOnEu('/privacy'),
     },
     robots: {
       index: true,

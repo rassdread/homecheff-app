@@ -23,6 +23,12 @@ import FavoriteButton from "@/components/favorite/FavoriteButton";
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
 import { getDisplayName as getDisplayNameUtil } from "@/lib/displayName";
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  buildProductSlugPath,
+  formatCityLabel,
+  maaltijdenPathFromPlace,
+  resolveProductIdFromParam,
+} from '@/lib/seo/productSlug';
 
 type Product = {
   id: string;
@@ -336,7 +342,11 @@ export default function ProductPage() {
 
     if (params.id) {
       fetchProduct();
-      trackView(Array.isArray(params.id) ? params.id[0] : params.id);
+      trackView(
+        resolveProductIdFromParam(
+          Array.isArray(params.id) ? params.id[0] : params.id
+        )
+      );
     }
   }, [params.id]);
 
@@ -1254,7 +1264,7 @@ export default function ProductPage() {
                 if (isOwner) {
                   return (
                     <Link
-                      href={`/product/${product.id}/edit`}
+                      href={`/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}/edit`}
                       className="block w-full bg-white text-gray-900 py-4 px-6 rounded-2xl text-center font-bold transition-all hover:scale-105 shadow-xl"
                     >
                       <Edit3 className="w-5 h-5 inline mr-2" />
@@ -1334,11 +1344,11 @@ export default function ProductPage() {
                     <button
                       onClick={() => {
                         if (dishInfo.category === 'CHEFF') {
-                          router.push(`/recipe/${params.id}`);
+                          router.push(`/recipe/${product.id}`);
                         } else if (dishInfo.category === 'GROWN') {
-                          router.push(`/garden/${params.id}`);
+                          router.push(`/garden/${product.id}`);
                         } else if (dishInfo.category === 'DESIGNER') {
-                          router.push(`/design/${params.id}`);
+                          router.push(`/design/${product.id}`);
                         }
                       }}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
@@ -1349,11 +1359,11 @@ export default function ProductPage() {
                     <button
                       onClick={() => {
                         if (dishInfo.category === 'CHEFF') {
-                          router.push(`/recipe/${params.id}`);
+                          router.push(`/recipe/${product.id}`);
                         } else if (dishInfo.category === 'GROWN') {
-                          router.push(`/garden/${params.id}`);
+                          router.push(`/garden/${product.id}`);
                         } else if (dishInfo.category === 'DESIGNER') {
-                          router.push(`/design/${params.id}`);
+                          router.push(`/design/${product.id}`);
                         }
                       }}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
@@ -1374,7 +1384,7 @@ export default function ProductPage() {
                       variant="star"
                     />
                     <ShareButton
-                      url={`${baseUrl}/product/${product.id}`}
+                      url={`${baseUrl}/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}`}
                       title={product.title}
                       description={product.description || ''}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
@@ -1398,6 +1408,7 @@ export default function ProductPage() {
                         alt={getDisplayName(product)}
                         width={80}
                         height={80}
+                        loading="lazy"
                         className="w-20 h-20 rounded-full object-cover border-4 border-emerald-100 shadow-lg"
                     />
                   ) : (
@@ -1454,6 +1465,46 @@ export default function ProductPage() {
                     <div className="text-xs text-gray-600">Favoriet</div>
                   </div>
                 </div>
+
+                <nav
+                  className="mb-6 space-y-2 rounded-2xl border border-gray-100 bg-gray-50/80 p-4 text-sm"
+                  aria-label="Gerelateerde pagina's"
+                >
+                  <p className="font-semibold text-gray-800">Verder ontdekken</p>
+                  <ul className="flex flex-col gap-2 text-emerald-700">
+                    <li>
+                      <Link href="/dorpsplein" className="hover:underline">
+                        Ontdek het dorpsplein
+                      </Link>
+                    </li>
+                    {product.seller?.User?.username ? (
+                      <li>
+                        <Link
+                          href={`/user/${product.seller.User.username}`}
+                          className="hover:underline"
+                        >
+                          Meer van deze maker
+                        </Link>
+                      </li>
+                    ) : null}
+                    {maaltijdenPathFromPlace(product.seller?.User?.place) ? (
+                      <li>
+                        <Link
+                          href={maaltijdenPathFromPlace(product.seller?.User?.place)!}
+                          className="hover:underline"
+                        >
+                          Maaltijden in{" "}
+                          {formatCityLabel(product.seller?.User?.place)}
+                        </Link>
+                      </li>
+                    ) : null}
+                    <li>
+                      <Link href="/inspiratie" className="hover:underline">
+                        Inspiratie en recepten
+                      </Link>
+                    </li>
+                  </ul>
+                </nav>
 
                 <Link
                   href={`/user/${product.seller?.User?.username || product.seller?.User?.id}`}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   useEffect,
@@ -143,6 +143,14 @@ function HomeCheffProductNieuwPageContent() {
 
     setCategory("CHEFF");
   }, [categoryParam, searchParams, skipWizard]);
+
+  if (sessionStatus === "loading" || sessionStatus === "unauthenticated") {
+    return (
+      <main className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
+        <div className="text-center text-gray-600">Laden...</div>
+      </main>
+    );
+  }
 
   const handleSave = (product: { id?: string } | null) => {
     if (product?.id) {

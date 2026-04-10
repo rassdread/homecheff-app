@@ -1,7 +1,18 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { getCurrentDomain, getCurrentLanguage } from '@/lib/seo/metadata';
+import {
+  getCurrentDomain,
+  getCurrentLanguage,
+  seoHreflangLanguagesOnEu,
+} from '@/lib/seo/metadata';
+import {
+  buildProductSlugPath,
+  formatCityLabel,
+  isBareProductUuidParam,
+  resolveProductIdFromParam,
+} from '@/lib/seo/productSlug';
 
 const BREADCRUMB_HOME_NL = 'Home';
 const BREADCRUMB_HOME_EN = 'Home';
@@ -13,10 +24,10 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
-  const { id } = await params;
+  const routeParam = (await params).id;
+  const id = resolveProductIdFromParam(routeParam);
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
-  const alternateDomain = currentDomain === 'https://homecheff.eu' ? 'https://homecheff.nl' : 'https://homecheff.eu';
 
   try {
     const product = await prisma.product.findUnique({
@@ -28,58 +39,84 @@ export async function generateMetadata(
               select: {
                 name: true,
                 username: true,
-              }
-            }
-          }
+                place: true,
+              },
+            },
+          },
         },
         Image: {
           select: { fileUrl: true },
           orderBy: { sortOrder: 'asc' },
-          take: 1
+          take: 1,
         },
         reviews: {
           select: { rating: true },
-          where: { reviewSubmittedAt: { not: null } }
-        }
-      }
+          where: { reviewSubmittedAt: { not: null } },
+        },
+      },
     });
 
     if (!product || !product.isActive) {
       return {
         title: lang === 'en' ? 'Product Not Found' : 'Product Niet Gevonden',
-        robots: { index: false, follow: false }
+        robots: { index: false, follow: false },
       };
     }
 
-    const sellerName = product.seller?.User?.name || product.seller?.User?.username || '';
-    const price = (product.priceCents / 100).toFixed(2);
-    const averageRating = product.reviews.length > 0
-      ? (product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length).toFixed(1)
-      : null;
-    
-    const description = product.description
-      ? product.description.substring(0, 155) + (product.description.length > 155 ? '...' : '')
-      : (lang === 'en' 
-        ? `Buy ${product.title} from ${sellerName} on HomeCheff. ${product.category === 'CHEFF' ? 'Homemade meals' : product.category === 'GROWN' ? 'Fresh produce' : 'Handmade products'} delivered to your door.`
-        : `Koop ${product.title} van ${sellerName} op HomeCheff. ${product.category === 'CHEFF' ? 'Thuisgemaakte maaltijden' : product.category === 'GROWN' ? 'Verse producten' : 'Handgemaakte producten'} thuis bezorgd.`);
+    const slugSegment = buildProductSlugPath(
+      product.title,
+      product.seller?.User?.place,
+      product.id
+    );
+    const canonicalPath = `/product/${slugSegment}`;
+    const canonicalUrl = `${currentDomain}${canonicalPath}`;
 
-    const title = lang === 'en'
-      ? `${product.title} - €${price} | HomeCheff`
-      : `${product.title} - €${price} | HomeCheff`;
+    const sellerName =
+      product.seller?.User?.name || product.seller?.User?.username || '';
+    const city = formatCityLabel(product.seller?.User?.place);
+    const price = (product.priceCents / 100).toFixed(2);
+    const averageRating =
+      product.reviews.length > 0
+        ? (
+            product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+            product.reviews.length
+          ).toFixed(1)
+        : null;
+
+    const title =
+      lang === 'en'
+        ? city
+          ? `${product.title} in ${city} | Buy on HomeCheff`
+          : `${product.title} | Buy local on HomeCheff`
+        : city
+          ? `${product.title} in ${city} kopen | HomeCheff`
+          : `${product.title} lokaal kopen | HomeCheff`;
+
+    const description =
+      lang === 'en'
+        ? city
+          ? `Order ${product.title} from local makers in ${city} on HomeCheff.`
+          : `Order ${product.title} from local makers on HomeCheff.`
+        : city
+          ? `Bestel ${product.title} van lokale makers in ${city} via HomeCheff.`
+          : `Bestel ${product.title} van lokale makers via HomeCheff.`;
 
     const keywords = [
       product.title,
       sellerName,
+      city,
       product.category.toLowerCase(),
       product.subcategory || '',
       lang === 'en' ? 'homemade' : 'thuisgemaakt',
       lang === 'en' ? 'local' : 'lokaal',
       lang === 'en' ? 'buy online' : 'online kopen',
-      'homecheff'
+      'homecheff',
     ].filter(Boolean);
 
-    const imageUrl = product.Image?.[0]?.fileUrl 
-      ? (product.Image[0].fileUrl.startsWith('http') ? product.Image[0].fileUrl : `${currentDomain}${product.Image[0].fileUrl}`)
+    const imageUrl = product.Image?.[0]?.fileUrl
+      ? product.Image[0].fileUrl.startsWith('http')
+        ? product.Image[0].fileUrl
+        : `${currentDomain}${product.Image[0].fileUrl}`
       : `${currentDomain}/og-image.jpg`;
 
     return {
@@ -90,7 +127,7 @@ export async function generateMetadata(
         type: 'website',
         title,
         description,
-        url: `${currentDomain}/product/${id}`,
+        url: canonicalUrl,
         images: [
           {
             url: imageUrl,
@@ -108,11 +145,8 @@ export async function generateMetadata(
         images: [imageUrl],
       },
       alternates: {
-        canonical: `${currentDomain}/product/${id}`,
-        languages: {
-          'nl-NL': `${alternateDomain}/product/${id}`,
-          'en-US': `${currentDomain}/product/${id}`,
-        },
+        canonical: canonicalUrl,
+        languages: seoHreflangLanguagesOnEu(canonicalPath),
       },
       robots: {
         index: true,
@@ -123,7 +157,7 @@ export async function generateMetadata(
     console.error('Error generating product metadata:', error);
     return {
       title: lang === 'en' ? 'Product - HomeCheff' : 'Product - HomeCheff',
-      robots: { index: false, follow: false }
+      robots: { index: false, follow: false },
     };
   }
 }
@@ -135,52 +169,102 @@ export default async function ProductLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const routeParam = (await params).id;
+  const resolvedId = resolveProductIdFromParam(routeParam);
   const currentDomain = await getCurrentDomain();
   const lang = await getCurrentLanguage();
 
-  // Fetch product data for structured data
-  let structuredData: any = null;
-  let breadcrumbData: any = null;
+  let structuredData: Record<string, unknown> | null = null;
+  let breadcrumbData: Record<string, unknown> | null = null;
+
+  const productForLayout = await prisma.product.findUnique({
+    where: { id: resolvedId },
+    include: {
+      seller: {
+        include: {
+          User: {
+            select: {
+              name: true,
+              username: true,
+              place: true,
+            },
+          },
+        },
+      },
+      Image: {
+        select: { fileUrl: true },
+        orderBy: { sortOrder: 'asc' },
+        take: 1,
+      },
+      reviews: {
+        where: { reviewSubmittedAt: { not: null } },
+        select: {
+          rating: true,
+          comment: true,
+          title: true,
+          buyer: { select: { name: true } },
+        },
+        take: 10,
+      },
+    },
+  });
+
+  if (productForLayout?.isActive && isBareProductUuidParam(routeParam)) {
+    redirect(
+      `/product/${buildProductSlugPath(
+        productForLayout.title,
+        productForLayout.seller?.User?.place,
+        productForLayout.id
+      )}`
+    );
+  }
+
   try {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        seller: {
-          include: {
-            User: {
-              select: {
-                name: true,
-                username: true,
-              }
-            }
-          }
-        },
-        Image: {
-          select: { fileUrl: true },
-          orderBy: { sortOrder: 'asc' },
-          take: 1
-        },
-        reviews: {
-          where: { reviewSubmittedAt: { not: null } },
-          select: { rating: true, comment: true, title: true, buyer: { select: { name: true } } },
-          take: 10
-        }
-      }
-    });
+    const product = productForLayout;
 
     if (product && product.isActive) {
-      const sellerName = product.seller?.User?.name || product.seller?.User?.username || '';
+      const slugSegment = buildProductSlugPath(
+        product.title,
+        product.seller?.User?.place,
+        product.id
+      );
+      const productUrl = `${currentDomain}/product/${slugSegment}`;
+
+      const sellerName =
+        product.seller?.User?.name || product.seller?.User?.username || '';
+      const city = formatCityLabel(product.seller?.User?.place);
+      const username = product.seller?.User?.username;
       const price = (product.priceCents / 100).toFixed(2);
-      const averageRating = product.reviews.length > 0
-        ? (product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length).toFixed(1)
-        : null;
+      const averageRating =
+        product.reviews.length > 0
+          ? (
+              product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+              product.reviews.length
+            ).toFixed(1)
+          : null;
       const reviewCount = product.reviews.length;
-      const imageUrl = product.Image?.[0]?.fileUrl 
-        ? (product.Image[0].fileUrl.startsWith('http') ? product.Image[0].fileUrl : `${currentDomain}${product.Image[0].fileUrl}`)
+      const imageUrl = product.Image?.[0]?.fileUrl
+        ? product.Image[0].fileUrl.startsWith('http')
+          ? product.Image[0].fileUrl
+          : `${currentDomain}${product.Image[0].fileUrl}`
         : `${currentDomain}/og-image.jpg`;
 
-      // Product structured data (Schema.org)
+      const sellerPerson: Record<string, unknown> = {
+        '@type': 'Person',
+        name: sellerName || 'Maker',
+        ...(username
+          ? { url: `${currentDomain}/user/${username}` }
+          : {}),
+        ...(city
+          ? {
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: city,
+              },
+            }
+          : {}),
+      };
+
       structuredData = {
         '@context': 'https://schema.org',
         '@type': 'Product',
@@ -189,49 +273,67 @@ export default async function ProductLayout({
         image: imageUrl,
         brand: {
           '@type': 'Brand',
-          name: sellerName
+          name: sellerName || 'HomeCheff',
         },
+        seller: sellerPerson,
         offers: {
           '@type': 'Offer',
-          price: price,
+          price,
           priceCurrency: 'EUR',
-          availability: product.stock && product.stock > 0 
-            ? 'https://schema.org/InStock' 
-            : 'https://schema.org/OutOfStock',
-          url: `${currentDomain}/product/${id}`,
+          availability:
+            product.stock && product.stock > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          url: productUrl,
         },
-        ...(averageRating && reviewCount > 0 && {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: averageRating,
-            reviewCount: reviewCount,
-          },
-          review: product.reviews.slice(0, 5).map(review => ({
-            '@type': 'Review',
-            author: {
-              '@type': 'Person',
-              name: review.buyer?.name || 'Anonymous'
+        ...(averageRating &&
+          reviewCount > 0 && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: averageRating,
+              reviewCount,
             },
-            reviewRating: {
-              '@type': 'Rating',
-              ratingValue: review.rating,
-            },
-            reviewBody: review.comment || review.title || '',
-          }))
-        })
+            review: product.reviews.slice(0, 5).map((review) => ({
+              '@type': 'Review',
+              author: {
+                '@type': 'Person',
+                name: review.buyer?.name || 'Anonymous',
+              },
+              reviewRating: {
+                '@type': 'Rating',
+                ratingValue: review.rating,
+              },
+              reviewBody: review.comment || review.title || '',
+            })),
+          }),
       };
 
-      // BreadcrumbList for SEO
       const homeLabel = lang === 'en' ? BREADCRUMB_HOME_EN : BREADCRUMB_HOME_NL;
-      const squareLabel = lang === 'en' ? BREADCRUMB_SQUARE_EN : BREADCRUMB_SQUARE_NL;
+      const squareLabel =
+        lang === 'en' ? BREADCRUMB_SQUARE_EN : BREADCRUMB_SQUARE_NL;
       breadcrumbData = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: homeLabel, item: `${currentDomain}/` },
-          { '@type': 'ListItem', position: 2, name: squareLabel, item: `${currentDomain}/dorpsplein` },
-          { '@type': 'ListItem', position: 3, name: product.title, item: `${currentDomain}/product/${id}` }
-        ]
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: homeLabel,
+            item: `${currentDomain}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: squareLabel,
+            item: `${currentDomain}/dorpsplein`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.title,
+            item: productUrl,
+          },
+        ],
       };
     }
   } catch (error) {
@@ -258,4 +360,3 @@ export default async function ProductLayout({
     </>
   );
 }
-
