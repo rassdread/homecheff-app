@@ -174,48 +174,27 @@ export default function BottomNavigation() {
   // Promo modals state
   const [activePromoModal, setActivePromoModal] = useState<'dashboard' | 'add' | 'messages' | 'profile' | 'dorpsplein-product' | 'inspiratie-item' | null>(null);
 
-  // Home button config
-  const getHomeButtonConfig = () => {
-    if (pathname === '/inspiratie') {
-      return {
-        href: '/dorpsplein',
-        label: t('bottomNav.dorpsplein'),
-        icon: '🏪',
-        onClick: () => {
-          router.prefetch('/dorpsplein');
-          router.push('/dorpsplein');
-        }
-      };
-    } else if (pathname === '/' || pathname === '/dorpsplein') {
-      return {
-        href: '/inspiratie',
-        label: t('bottomNav.inspiratie'),
-        icon: '✨',
-        onClick: () => {
-          router.prefetch('/inspiratie');
-          router.push('/inspiratie');
-        }
-      };
-    } else {
-      return {
-        href: '/inspiratie',
-        label: t('bottomNav.inspiratie'),
-        icon: '✨',
-        onClick: () => {
-          router.prefetch('/inspiratie');
-          router.push('/inspiratie');
-        }
-      };
-    }
-  };
-
-  const homeConfig = useMemo(getHomeButtonConfig, [pathname, router, t]);
+  /** Hoofdfeed staat op `/` (HomeCheff feed + GeoFeed); geen toggle meer naar losse dorpsplein-/inspiratie-hoofdroutes. */
+  const feedDiscoverConfig = useMemo(
+    () => ({
+      href: '/',
+      label: t('bottomNav.discoverTab'),
+      icon: '🧭',
+      onClick: () => {
+        router.prefetch('/');
+        router.push('/#homecheff-feed');
+      },
+    }),
+    [router, t]
+  );
 
   const isActive = (href: string) => {
     if (!pathname) return false;
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
+
+  const isFeedDiscoverActive = pathname === '/';
 
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const openQuickAddFlow = useCallback(() => {
@@ -255,18 +234,22 @@ export default function BottomNavigation() {
     
     // Prefetch common routes when component mounts
     const routesToPrefetch = [
-      '/messages', 
-      '/profile', 
-      '/verkoper', 
+      '/messages',
+      '/profile',
       '/verkoper/dashboard',
       '/admin',
-      '/dorpsplein', 
-      '/inspiratie'
+      '/',
+      '/inspiratie',
     ];
-    routesToPrefetch.forEach(route => {
-      if (pathname !== route && !pathname?.startsWith(route)) {
-        router.prefetch(route);
+    routesToPrefetch.forEach((route) => {
+      if (!pathname) return;
+      if (pathname === route) return;
+      if (route === '/') {
+        if (pathname === '/') return;
+      } else if (pathname.startsWith(route)) {
+        return;
       }
+      router.prefetch(route);
     });
   }, [session, router, pathname]);
 
@@ -275,10 +258,8 @@ export default function BottomNavigation() {
       setActivePromoModal('dashboard');
       return;
     }
-    // Prefetch before navigation for instant feel
-    router.prefetch('/verkoper');
     router.prefetch('/verkoper/dashboard');
-    router.push('/verkoper');
+    router.push('/verkoper/dashboard');
   };
 
   const handleMessagesClick = () => {
@@ -1266,13 +1247,13 @@ export default function BottomNavigation() {
         <div className="flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1">
           {/* Home Button */}
           <button
-            onClick={homeConfig.onClick}
+            onClick={feedDiscoverConfig.onClick}
             className={`flex flex-col items-center justify-center min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none p-1.5 sm:p-2 rounded-lg transition-colors ${
-              isActive(homeConfig.href) ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
+              isFeedDiscoverActive ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{homeConfig.icon}</div>
-            <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{homeConfig.label}</span>
+            <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{feedDiscoverConfig.icon}</div>
+            <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{feedDiscoverConfig.label}</span>
           </button>
 
           {/* Dashboard */}
@@ -1280,7 +1261,7 @@ export default function BottomNavigation() {
             <button
               onClick={handleDashboardClick}
               className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
-                isActive('/verkoper') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
+                pathname?.startsWith('/verkoper') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💰</div>

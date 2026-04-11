@@ -23,11 +23,13 @@ import {
 type Props = {
   initialInspiratieItems?: InspirationItem[];
   initialHomeUiFromServer?: InitialHomeUiFromServer;
+  initialFeedChip?: "all" | "sale" | "inspiration";
 };
 
 export default function HomePageClient({
   initialInspiratieItems = [],
   initialHomeUiFromServer = null,
+  initialFeedChip,
 }: Props) {
   const { t, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
@@ -373,7 +375,18 @@ export default function HomePageClient({
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 text-center sm:text-left">
             HomeCheff feed
           </h2>
-          <GeoFeed initialInspiratieItems={initialInspiratieItems} />
+          <p className="text-sm text-gray-600 mb-4 text-center sm:text-left">
+            <Link
+              href="/seo-hub"
+              className="font-medium text-emerald-700 underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+            >
+              {t('home.seoHubLink')}
+            </Link>
+          </p>
+          <GeoFeed
+            initialInspiratieItems={initialInspiratieItems}
+            initialFeedChip={initialFeedChip}
+          />
         </section>
 
         <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-14">

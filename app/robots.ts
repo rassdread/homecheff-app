@@ -1,17 +1,11 @@
 import { MetadataRoute } from 'next';
+import { MAIN_DOMAIN } from '@/lib/seo/metadata';
 
-// Get base URL from environment or default
-const getBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return 'https://homecheff.eu';
-};
-
-const baseUrl = getBaseUrl();
+/**
+ * Sitemap-URL altijd canoniek op homecheff.eu zodat Google Search Console
+ * (productie) niet naar preview-VERCEL_URL of verkeerde NEXT_PUBLIC_BASE_URL wijst.
+ */
+const SITEMAP_URL = `${MAIN_DOMAIN}/sitemap.xml`;
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -67,7 +61,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: SITEMAP_URL,
   };
 }
 

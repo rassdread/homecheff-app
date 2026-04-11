@@ -2804,6 +2804,7 @@
     "addressLookupFailed": "Adres lookup mislukt"
   },
   "bottomNav": {
+    "discoverTab": "Ontdekken",
     "dorpsplein": "Dorpsplein",
     "inspiratie": "Inspiratie",
     "sellProducts": "Producten verkopen",
@@ -3973,6 +3974,7 @@
   },
   "home": {
     "loading": "Laden...",
+    "seoHubLink": "Alle gidsen en onderwerpen (SEO-hub)",
     "productsFound": "producten gevonden",
     "usersFound": "gebruikers gevonden",
     "resultsFor": "Resultaten voor",
@@ -4141,6 +4143,7 @@
     "skipToContent": "Ga naar inhoud"
   },
   "siteFooter": {
+    "seoHub": "SEO-hub",
     "privacy": "Privacy",
     "terms": "Voorwaarden",
     "contact": "Contact",

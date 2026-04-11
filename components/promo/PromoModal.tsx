@@ -43,7 +43,7 @@ export default function PromoModal({
   // Build callback URL for login - return to current page after login
   const currentUrl = typeof window !== 'undefined' 
     ? `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`
-    : '/inspiratie';
+    : '/';
   const loginUrl = `/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
   
   // Build register URL with returnUrl parameter to return to current page after registration

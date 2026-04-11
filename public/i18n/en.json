@@ -3092,6 +3092,7 @@
   },
   "home": {
     "loading": "Loading...",
+    "seoHubLink": "All guides and topics (SEO hub)",
     "productsFound": "Products found",
     "usersFound": "Users found",
     "resultsFor": "Results for",
@@ -3310,6 +3311,7 @@
     "maxPrice": "Max €"
   },
   "bottomNav": {
+    "discoverTab": "Discover",
     "dorpsplein": "Village Square",
     "inspiratie": "Inspiration",
     "sellProducts": "Sell products",
@@ -3923,6 +3925,7 @@
     "skipToContent": "Skip to main content"
   },
   "siteFooter": {
+    "seoHub": "SEO hub",
     "privacy": "Privacy",
     "terms": "Terms",
     "contact": "Contact",

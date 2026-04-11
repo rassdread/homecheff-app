@@ -368,10 +368,13 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
 
 type GeoFeedProps = {
   initialInspiratieItems?: InspirationItem[];
+  /** Optioneel: startfilter vanuit URL (bv. `/?feed=inspiration`) of server searchParams. */
+  initialFeedChip?: FeedChip;
 };
 
 export default function GeoFeed({
   initialInspiratieItems = [],
+  initialFeedChip,
 }: GeoFeedProps) {
   const { t } = useTranslation();
   const { data: session } = useSession();
@@ -398,7 +401,9 @@ export default function GeoFeed({
     lng?: number;
   } | null>(null);
 
-  const [feedChip, setFeedChip] = useState<FeedChip>("all");
+  const [feedChip, setFeedChip] = useState<FeedChip>(
+    initialFeedChip ?? "all"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
     "newest" | "price" | "views" | "distance"
@@ -420,6 +425,10 @@ export default function GeoFeed({
   useEffect(() => {
     setInspiratiePool(initialInspiratieItems);
   }, [initialInspiratieItems]);
+
+  useEffect(() => {
+    if (initialFeedChip != null) setFeedChip(initialFeedChip);
+  }, [initialFeedChip]);
 
   useEffect(() => {
     let cancel = false;

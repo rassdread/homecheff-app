@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen } from 'lucide-react';
 
 export default function Footer() {
   const { t } = useTranslation();
 
   const links = [
+    { href: '/seo-hub', label: t('siteFooter.seoHub'), icon: BookOpen },
     { href: '/privacy', label: t('siteFooter.privacy'), icon: Shield },
     { href: '/terms', label: t('siteFooter.terms'), icon: FileText },
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
