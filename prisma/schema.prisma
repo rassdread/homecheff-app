@@ -73,6 +73,10 @@ model User {
   adminRoles                             String[]                  @default([])
   emailVerificationCode                  String?
   preferredLanguage                      String?                   @default("nl") // 'nl' or 'en'
+  /// Homepage: gebruiker heeft de hero (welkomstblok) gesloten
+  hideHomeHero                           Boolean                   @default(false)
+  /// Homepage: gebruiker heeft de sectie "Hoe het werkt" gesloten
+  hideHowItWorks                         Boolean                   @default(false)
   dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
   Account                                Account[]
   AdminAction                            AdminAction[]

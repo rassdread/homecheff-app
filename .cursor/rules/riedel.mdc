@@ -1,0 +1,19 @@
+---
+description: Riedel = Add, Commit, Build, Push (geen deploy). Wanneer de gebruiker "riedel" of "doe riedel" zegt.
+alwaysApply: true
+---
+
+# Riedel
+
+**Riedel** is de vaste workflow: **A**dd → **C**ommit → **B**uild → **P**ush (geen Vercel CLI-deploy).
+
+Wanneer de gebruiker **"riedel"**, **"doe riedel"**, **"add commit build push"** of duidelijk hetzelfde bedoelt:
+
+1. **Add** – `git add -A` (in projectroot).
+2. **Commit** – `git commit` met een duidelijke message (samenvatting van de wijzigingen).
+3. **Build** – `npm run build` (in projectroot).
+4. **Push** – `git push origin main` (of de actuele branch).
+
+Voer de stappen in **deze volgorde** uit. Bij git- of build-fouten stoppen en de foutmelding rapporteren.
+
+Voor build → commit → push → deploy gebruik je **BCPD** (`.cursor/rules/bcpd.mdc`), niet Riedel.

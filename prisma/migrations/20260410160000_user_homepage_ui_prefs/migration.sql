@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "hideHomeHero" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "hideHowItWorks" BOOLEAN NOT NULL DEFAULT false;

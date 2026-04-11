@@ -1,35 +1,28 @@
-// Ignore Build Step Script voor Vercel (Node.js versie)
-// Dit script bepaalt of een build moet worden uitgevoerd
+// Vercel "Ignored Build Step" (vercel.json → ignoreCommand)
+// Exit 0 = skip build, exit 1 (non-zero) = run build
+//
+// Bron van waarheid voor production: Vercel native Git integration (push naar main).
+// Gebruik [SKIP_DEPLOY] in de commit message alleen als je deze push bewust géén build/deploy wilt.
 
-// Check commit message voor [DEPLOY] flag
 const commitMessage = process.env.VERCEL_GIT_COMMIT_MESSAGE || '';
 const forceDeploy = process.env.FORCE_DEPLOY === 'true';
 
-if (commitMessage.includes('[DEPLOY]') || commitMessage.includes('[deploy]')) {
-  console.log('✅ - Build wordt uitgevoerd (DEPLOY flag gevonden)');
-  process.exit(1); // Voer build uit
+if (/\[SKIP_DEPLOY\]/i.test(commitMessage)) {
+  console.log('🛑 Build overgeslagen ([SKIP_DEPLOY] in commit message)');
+  process.exit(0);
 }
 
 if (forceDeploy) {
-  console.log('✅ - Build wordt uitgevoerd (FORCE_DEPLOY=true)');
-  process.exit(1); // Voer build uit
+  console.log('✅ Build wordt uitgevoerd (FORCE_DEPLOY=true)');
+  process.exit(1);
 }
 
-// Standaard: negeer de build
-console.log('🛑 - Build genegeerd (gebruik [DEPLOY] in commit message of FORCE_DEPLOY=true om te deployen)');
-process.exit(0); // Negeer build
+// Legacy: expliciet forceren (niet meer nodig voor normale main-deploys, blijft ondersteund)
+if (/\[DEPLOY\]/i.test(commitMessage)) {
+  console.log('✅ Build wordt uitgevoerd ([DEPLOY] in commit message)');
+  process.exit(1);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Standaard: altijd builden zodat push naar main (en previews) betrouwbaar deployen
+console.log('✅ Build wordt uitgevoerd (standaard: geen [SKIP_DEPLOY])');
+process.exit(1);

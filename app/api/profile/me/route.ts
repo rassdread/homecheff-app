@@ -57,7 +57,9 @@ export async function GET(req: NextRequest) {
               }
             },
             privacyPolicyAccepted: true,
-            termsAccepted: true
+            termsAccepted: true,
+            hideHomeHero: true,
+            hideHowItWorks: true,
           },
         });
         
@@ -140,7 +142,9 @@ export async function GET(req: NextRequest) {
               }
             },
             privacyPolicyAccepted: true,
-            termsAccepted: true
+            termsAccepted: true,
+            hideHomeHero: true,
+            hideHowItWorks: true,
           },
         });
         

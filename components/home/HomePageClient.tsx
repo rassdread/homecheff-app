@@ -6,23 +6,189 @@ import { Lightbulb, Home, Users, X, Store, Sprout, Palette, CheckCircle2 } from 
 import type { Language } from "@/hooks/useTranslation";
 import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import GeoFeed from "@/components/feed/GeoFeed";
 import { useCreateFlow } from "@/components/create/CreateFlowContext";
-
-const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
+import type { InitialHomeUiFromServer } from "@/lib/homeUiPreferences";
+import {
+  devHomeUiLog,
+  LS_HIDE_HOME_HERO,
+  LS_HIDE_HOW_IT_WORKS,
+  readLsBool,
+  writeLsBool,
+} from "@/lib/homeUiPreferences";
 
 type Props = {
   initialInspiratieItems?: InspirationItem[];
+  initialHomeUiFromServer?: InitialHomeUiFromServer;
 };
 
-export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
-  const { t, language, changeLanguage, isReady } = useTranslation();
+export default function HomePageClient({
+  initialInspiratieItems = [],
+  initialHomeUiFromServer = null,
+}: Props) {
+  const { t, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
   const { openCreateFlow } = useCreateFlow();
-  const [splashDismissed, setSplashDismissed] = useState(false);
+
+  const [hideHero, setHideHero] = useState(
+    () => !!initialHomeUiFromServer?.hideHomeHero
+  );
+  const [hideHowItWorks, setHideHowItWorks] = useState(
+    () => !!initialHomeUiFromServer?.hideHowItWorks
+  );
+
+  const pendingHomeUiPatch = useRef<{
+    hideHomeHero: boolean;
+    hideHowItWorks: boolean;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const localH = readLsBool(LS_HIDE_HOME_HERO);
+    const localW = readLsBool(LS_HIDE_HOW_IT_WORKS);
+
+    if (initialHomeUiFromServer) {
+      const dbH = initialHomeUiFromServer.hideHomeHero;
+      const dbW = initialHomeUiFromServer.hideHowItWorks;
+      const mergedH = dbH || localH;
+      const mergedW = dbW || localW;
+      setHideHero(mergedH);
+      setHideHowItWorks(mergedW);
+      writeLsBool(LS_HIDE_HOME_HERO, mergedH);
+      writeLsBool(LS_HIDE_HOW_IT_WORKS, mergedW);
+
+      if (mergedH !== dbH || mergedW !== dbW) {
+        pendingHomeUiPatch.current = {
+          hideHomeHero: mergedH,
+          hideHowItWorks: mergedW,
+        };
+        devHomeUiLog("layout merge: verschil local vs server → PATCH wacht op session", {
+          mergedH,
+          mergedW,
+          dbH,
+          dbW,
+          localH,
+          localW,
+        });
+      } else {
+        pendingHomeUiPatch.current = null;
+        devHomeUiLog("layout merge: server + local gelijk", {
+          dbH,
+          dbW,
+          localH,
+          localW,
+        });
+      }
+    } else {
+      setHideHero(localH);
+      setHideHowItWorks(localW);
+      pendingHomeUiPatch.current = null;
+      devHomeUiLog("layout: alleen localStorage (geen SSR user-prefs)", {
+        localH,
+        localW,
+      });
+    }
+  }, [
+    initialHomeUiFromServer?.hideHomeHero,
+    initialHomeUiFromServer?.hideHowItWorks,
+  ]);
+
+  useEffect(() => {
+    const uid = (session?.user as { id?: string })?.id;
+    if (!uid) return;
+
+    if (initialHomeUiFromServer !== null) {
+      if (pendingHomeUiPatch.current) {
+        const body = pendingHomeUiPatch.current;
+        pendingHomeUiPatch.current = null;
+        devHomeUiLog("sync: PATCH merge (bron: localStorage + user DB)", body);
+        void fetch("/api/user/home-ui", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      }
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      devHomeUiLog("sync: GET /api/user/home-ui (ingelogd zonder SSR prefs)", {});
+      const r = await fetch("/api/user/home-ui");
+      if (cancelled || !r.ok) return;
+      const j = (await r.json()) as {
+        hideHomeHero?: boolean;
+        hideHowItWorks?: boolean;
+      };
+      const dbH = !!j.hideHomeHero;
+      const dbW = !!j.hideHowItWorks;
+      const localH = readLsBool(LS_HIDE_HOME_HERO);
+      const localW = readLsBool(LS_HIDE_HOW_IT_WORKS);
+      const mergedH = dbH || localH;
+      const mergedW = dbW || localW;
+      setHideHero(mergedH);
+      setHideHowItWorks(mergedW);
+      writeLsBool(LS_HIDE_HOME_HERO, mergedH);
+      writeLsBool(LS_HIDE_HOW_IT_WORKS, mergedW);
+
+      if (mergedH !== dbH || mergedW !== dbW) {
+        devHomeUiLog("sync: PATCH na login/client fetch merge", {
+          mergedH,
+          mergedW,
+          dbH,
+          dbW,
+        });
+        await fetch("/api/user/home-ui", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            hideHomeHero: mergedH,
+            hideHowItWorks: mergedW,
+          }),
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id, initialHomeUiFromServer]);
+
+  const persistHideHero = useCallback(async () => {
+    setHideHero(true);
+    writeLsBool(LS_HIDE_HOME_HERO, true);
+    const uid = (session?.user as { id?: string })?.id;
+    if (uid) {
+      devHomeUiLog("dismiss hero → PATCH user", { hideHomeHero: true });
+      await fetch("/api/user/home-ui", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hideHomeHero: true }),
+      });
+    } else {
+      devHomeUiLog("dismiss hero → localStorage only", {});
+    }
+  }, [session?.user]);
+
+  const persistHideHowItWorks = useCallback(async () => {
+    setHideHowItWorks(true);
+    writeLsBool(LS_HIDE_HOW_IT_WORKS, true);
+    const uid = (session?.user as { id?: string })?.id;
+    if (uid) {
+      devHomeUiLog('dismiss "hoe het werkt" → PATCH user', {
+        hideHowItWorks: true,
+      });
+      await fetch("/api/user/home-ui", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hideHowItWorks: true }),
+      });
+    } else {
+      devHomeUiLog('dismiss "hoe het werkt" → localStorage only', {});
+    }
+  }, [session?.user]);
+
   const [currentDomain, setCurrentDomain] = useState(() => {
     if (typeof document !== 'undefined') {
       const fromHtml = document.documentElement.getAttribute('data-domain');
@@ -34,22 +200,6 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [affiliateCheckComplete, setAffiliateCheckComplete] = useState(false);
 
-  useEffect(() => {
-    try {
-      const stored = typeof window !== 'undefined' ? sessionStorage.getItem(SPLASH_STORAGE_KEY) : null;
-      setSplashDismissed(stored === '1');
-    } catch {
-      setSplashDismissed(false);
-    }
-  }, []);
-
-  const dismissSplash = () => {
-    setSplashDismissed(true);
-    try {
-      sessionStorage.setItem(SPLASH_STORAGE_KEY, '1');
-    } catch {}
-  };
-  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const fromHtml = document.documentElement.getAttribute('data-domain');
@@ -89,15 +239,9 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
   };
   
   const affiliateTextDefault = 'Affiliate 12-12';
-  const affiliateTemporaryTextDefault = language === 'nl' 
-    ? '⚠️ Tijdelijk! We nemen affiliates aan' 
-    : '⚠️ Temporary! We are accepting affiliates';
   const affiliateTranslation = t('splash.affiliate');
-  const affiliateTemporaryTranslation = t('splash.affiliateTemporary');
   const affiliateText = (affiliateTranslation && typeof affiliateTranslation === 'string' && affiliateTranslation.trim().length > 0 && affiliateTranslation !== 'splash.affiliate' && affiliateTranslation.length > 5)
     ? affiliateTranslation : affiliateTextDefault;
-  const affiliateTemporaryText = (affiliateTemporaryTranslation && typeof affiliateTemporaryTranslation === 'string' && affiliateTemporaryTranslation.trim().length > 0 && affiliateTemporaryTranslation !== 'splash.affiliateTemporary' && affiliateTemporaryTranslation.length > 10)
-    ? affiliateTemporaryTranslation : affiliateTemporaryTextDefault;
   
   const structuredData = {
     '@context': 'https://schema.org',
@@ -127,57 +271,85 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
     inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/dorpsplein?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
+
+  const heroCloseLabel = language === 'nl' ? 'Sluit hero' : 'Close hero';
+  const howCloseLabel = language === 'nl' ? 'Sluit hoe het werkt' : 'Close how it works';
   
   return (
     <>
       <StructuredData data={structuredData} />
       <StructuredData data={websiteStructuredData} />
       <main className="min-h-[60vh] bg-gradient-to-br from-emerald-50 via-white to-blue-50">
-        <section className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-10 sm:py-14 px-4 sm:px-6 shadow-lg">
-          <button type="button" onClick={dismissSplash} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label={language === 'nl' ? 'Welkomstblok sluiten' : 'Close welcome block'}>
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-          <div className="max-w-5xl mx-auto text-center text-white">
-            <div className="flex justify-center mb-5">
-              <Logo size="lg" showText={true} className="pointer-events-none" />
-            </div>
-            <div className="flex justify-center gap-2 sm:gap-3 mb-5">
-              <button onClick={() => handleLanguageChange('nl')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'nl' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇳🇱 NL</button>
-              <button onClick={() => handleLanguageChange('en')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'en' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇬🇧 EN</button>
-            </div>
-            <p className="uppercase tracking-wide text-xs sm:text-sm text-white/80 mb-2">Verdien geld met wat je al kunt — gewoon in jouw buurt.</p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">Verdien geld met wat je al kunt</h1>
-            <p className="text-base sm:text-lg text-emerald-100 mb-7 max-w-3xl mx-auto">Kook, maak en verkoop — en vind direct klanten in jouw buurt.</p>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Button type="button" variant="primary" className="text-sm sm:text-base py-3 px-6" onClick={openCreateFlow}>
-                Start met verkopen
-              </Button>
-              <a href="#homecheff-feed" className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium border border-white/30 bg-white/10 text-white hover:bg-white/20">Ontdek aanbod</a>
-              {(!isSubAffiliate || !affiliateCheckComplete) && (
-                <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-3 px-6 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">Hoe het werkt</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { title: 'Plaats wat je maakt', icon: CheckCircle2 },
-              { title: 'Mensen uit jouw buurt zien het', icon: Home },
-              { title: 'Jij verdient', icon: Store },
-            ].map((step, i) => (
-              <div key={step.title} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">{i + 1}</span>
-                  <step.icon className="w-5 h-5 text-emerald-600" />
-                </div>
-                <p className="font-semibold text-gray-900">{step.title}</p>
+        {!hideHero && (
+          <section
+            className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-10 sm:py-14 px-4 sm:px-6 shadow-lg transition-opacity duration-200 ease-out"
+            aria-label={language === 'nl' ? 'Welkom hero' : 'Welcome hero'}
+          >
+            <button
+              type="button"
+              onClick={() => void persistHideHero()}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-700"
+              aria-label={heroCloseLabel}
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden />
+            </button>
+            <div className="max-w-5xl mx-auto text-center text-white">
+              <div className="flex justify-center mb-5">
+                <Logo size="lg" showText={true} className="pointer-events-none" />
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="flex justify-center gap-2 sm:gap-3 mb-5">
+                <button type="button" onClick={() => handleLanguageChange('nl')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'nl' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇳🇱 NL</button>
+                <button type="button" onClick={() => handleLanguageChange('en')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'en' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇬🇧 EN</button>
+              </div>
+              <p className="uppercase tracking-wide text-xs sm:text-sm text-white/80 mb-2">Verdien geld met wat je al kunt — gewoon in jouw buurt.</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">Verdien geld met wat je al kunt</h1>
+              <p className="text-base sm:text-lg text-emerald-100 mb-7 max-w-3xl mx-auto">Kook, maak en verkoop — en vind direct klanten in jouw buurt.</p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Button type="button" variant="primary" className="text-sm sm:text-base py-3 px-6" onClick={openCreateFlow}>
+                  Start met verkopen
+                </Button>
+                <a href="#homecheff-feed" className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium border border-white/30 bg-white/10 text-white hover:bg-white/20">Ontdek aanbod</a>
+                {(!isSubAffiliate || !affiliateCheckComplete) && (
+                  <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-3 px-6 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {!hideHowItWorks && (
+          <section
+            className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 transition-opacity duration-200 ease-out"
+            aria-labelledby="home-how-it-works-heading"
+          >
+            <button
+              type="button"
+              onClick={() => void persistHideHowItWorks()}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              aria-label={howCloseLabel}
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden />
+            </button>
+            <h2 id="home-how-it-works-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6 pr-10">
+              Hoe het werkt
+            </h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { title: 'Plaats wat je maakt', icon: CheckCircle2 },
+                { title: 'Mensen uit jouw buurt zien het', icon: Home },
+                { title: 'Jij verdient', icon: Store },
+              ].map((step, i) => (
+                <div key={step.title} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">{i + 1}</span>
+                    <step.icon className="w-5 h-5 text-emerald-600" aria-hidden />
+                  </div>
+                  <p className="font-semibold text-gray-900">{step.title}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">Verdienen in jouw buurt</h2>
