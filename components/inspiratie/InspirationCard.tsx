@@ -2,20 +2,29 @@
 
 import Link from 'next/link';
 import UserStatsTile from '@/components/ui/UserStatsTile';
-import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
+import InspirationTileSellCtaOverlay from '@/components/feed/InspirationTileSellCtaOverlay';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { InspirationItem } from './InspiratieContent';
 
-export function inspirationContentLabel(item: InspirationItem): string {
+type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>
+) => string;
+
+export function inspirationContentLabel(
+  item: InspirationItem,
+  t: TranslateFn
+): string {
   switch (item.category) {
     case 'CHEFF':
-      return 'Recept';
+      return t('feed.inspirationCategoryCheff');
     case 'GROWN':
-      return 'Tuin';
+      return t('feed.inspirationCategoryGrown');
     case 'DESIGNER':
-      return 'Design';
+      return t('feed.inspirationCategoryDesigner');
     default:
-      return 'Inspiratie';
+      return t('feed.inspirationCategoryDefault');
   }
 }
 
@@ -51,43 +60,9 @@ export default function InspirationCard({
   onCardHoverChange,
   priority = false,
 }: InspirationCardProps) {
-  const { openCreateFlow } = useCreateFlow();
-  const categoryLabel = inspirationContentLabel(item);
+  const { t } = useTranslation();
+  const categoryLabel = inspirationContentLabel(item, t);
   const desc = snippet(item.description);
-
-  const ctaBlock = (
-    <div
-      className="mt-4 rounded-xl border border-stone-200 bg-stone-50/90 p-4"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <p className="text-sm font-medium text-stone-800 mb-3">Wil je dit ook maken?</p>
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={session?.user ? detailHref : '#'}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!session?.user) {
-              e.preventDefault();
-              onCardClick(item);
-            }
-          }}
-          className="inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50 transition-colors"
-        >
-          Bekijk
-        </Link>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            openCreateFlow();
-          }}
-          className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
-        >
-          Start met verkopen
-        </button>
-      </div>
-    </div>
-  );
 
   const titleBlock = (
     <div className="mb-2">
@@ -134,7 +109,7 @@ export default function InspirationCard({
     ) : null;
 
   const cardShellClass =
-    'rounded-2xl border border-stone-200/90 bg-white overflow-hidden transition-shadow duration-200 cursor-pointer hover:shadow-md active:scale-[0.99]';
+    'group relative rounded-2xl border border-stone-200/90 bg-white overflow-hidden transition-shadow duration-200 cursor-pointer hover:shadow-md active:scale-[0.99]';
 
   if (variant === 'list') {
     return (
@@ -163,8 +138,20 @@ export default function InspirationCard({
           {titleBlock}
           {desc ? <p className="text-sm text-stone-600 line-clamp-3 leading-relaxed">{desc}</p> : null}
           {authorRow}
-          {ctaBlock}
         </div>
+        <InspirationTileSellCtaOverlay
+          detailHref={session?.user ? detailHref : '#'}
+          headline={t('feed.tileCtaHeadline')}
+          bekijkLabel={t('feed.tileCtaBekijk')}
+          sellLabel={t('feed.tileCtaSell')}
+          onDetailClick={(e) => {
+            e.stopPropagation();
+            if (!session?.user) {
+              e.preventDefault();
+              onCardClick(item);
+            }
+          }}
+        />
       </div>
     );
   }
@@ -198,8 +185,20 @@ export default function InspirationCard({
         {titleBlock}
         {desc ? <p className="text-sm text-stone-600 line-clamp-3 leading-relaxed mb-1">{desc}</p> : null}
         {authorRow}
-        {ctaBlock}
       </div>
+      <InspirationTileSellCtaOverlay
+        detailHref={session?.user ? detailHref : '#'}
+        headline={t('feed.tileCtaHeadline')}
+        bekijkLabel={t('feed.tileCtaBekijk')}
+        sellLabel={t('feed.tileCtaSell')}
+        onDetailClick={(e) => {
+          e.stopPropagation();
+          if (!session?.user) {
+            e.preventDefault();
+            onCardClick(item);
+          }
+        }}
+      />
     </div>
   );
 }

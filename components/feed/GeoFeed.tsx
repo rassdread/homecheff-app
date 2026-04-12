@@ -376,7 +376,7 @@ export default function GeoFeed({
   initialInspiratieItems = [],
   initialFeedChip,
 }: GeoFeedProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data: session } = useSession();
   const [items, setItems] = useState<FeedItem[]>([]);
   const [inspiratiePool, setInspiratiePool] = useState<InspirationItem[]>(
@@ -741,6 +741,17 @@ export default function GeoFeed({
     setCategory("all");
   };
 
+  const sortOptions = useMemo(
+    () =>
+      [
+        { id: "newest" as const, label: t("filters.sortNewest") },
+        { id: "price" as const, label: t("common.price") },
+        { id: "views" as const, label: t("feed.sortViews") },
+        { id: "distance" as const, label: t("feed.sortDistance") },
+      ] as const,
+    [language, t]
+  );
+
   const chipBtn = (active: boolean) =>
     `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
       active
@@ -770,7 +781,7 @@ export default function GeoFeed({
         </div>
         <div className="min-w-[120px]">
           <label className="block text-base font-semibold mb-1">
-            {t("common.radius")} (km)
+            {t("feed.radiusLabel")}
           </label>
           <input
             type="number"
@@ -806,9 +817,9 @@ export default function GeoFeed({
             className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
           >
             <option value="all">{t("common.allCategories")}</option>
-            <option value="cheff">🍳 Chef</option>
-            <option value="garden">🌱 Garden</option>
-            <option value="designer">🎨 Designer</option>
+            <option value="cheff">{t("feed.categoryVerticalCheff")}</option>
+            <option value="garden">{t("feed.categoryVerticalGarden")}</option>
+            <option value="designer">{t("feed.categoryVerticalDesigner")}</option>
           </select>
         </div>
         <div className="min-w-[120px]">
@@ -860,7 +871,7 @@ export default function GeoFeed({
 
       <div className="bg-white/60 rounded-xl p-4 border border-gray-200">
         <p className="text-sm text-gray-600 mb-3">
-          Ontdek wat mensen aanbieden en wat anderen inspireert.
+          {t("feed.chipSectionIntro")}
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -868,21 +879,21 @@ export default function GeoFeed({
             className={chipBtn(feedChip === "all")}
             onClick={() => setFeedChip("all")}
           >
-            Alles
+            {t("filters.all")}
           </button>
           <button
             type="button"
             className={chipBtn(feedChip === "sale")}
             onClick={() => setFeedChip("sale")}
           >
-            Te koop
+            {t("feed.chipSale")}
           </button>
           <button
             type="button"
             className={chipBtn(feedChip === "inspiration")}
             onClick={() => setFeedChip("inspiration")}
           >
-            Inspiratie
+            {t("feed.chipInspiration")}
           </button>
         </div>
       </div>
@@ -914,14 +925,7 @@ export default function GeoFeed({
           <span className="text-sm font-medium text-gray-700">
             {t("common.sortBy")}:
           </span>
-          {(
-            [
-              { id: "newest", label: "Nieuwste" },
-              { id: "price", label: t("common.price") },
-              { id: "views", label: "Weergaven" },
-              { id: "distance", label: "Afstand" },
-            ] as const
-          ).map((option) => (
+          {sortOptions.map((option) => (
             <button
               key={option.id}
               onClick={() => handleSort(option.id)}
@@ -971,7 +975,7 @@ export default function GeoFeed({
                         max: e.target.value,
                       }))
                     }
-                    placeholder={t("product.maxStock")}
+                    placeholder={t("filterBar.maxPrice")}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -982,7 +986,7 @@ export default function GeoFeed({
                   className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
                 >
                   <Filter className="w-4 h-4" />
-                  Wis alle filters
+                  {t("filters.clearFilters")}
                 </button>
               </div>
             </div>
@@ -991,8 +995,12 @@ export default function GeoFeed({
 
         <div className="text-sm text-gray-500 mt-2">
           {displayCount}{" "}
-          {displayCount === 1 ? "resultaat" : "resultaten"}
-          {searchQuery && ` · Gefilterd op: "${searchQuery}"`}
+          {displayCount === 1
+            ? t("feed.resultSingular")
+            : t("feed.resultPlural")}
+          {searchQuery
+            ? t("feed.filteredByQuery", { query: searchQuery })
+            : ""}
         </div>
       </div>
 
@@ -1001,11 +1009,9 @@ export default function GeoFeed({
       ) : emptySale ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
-            Nog geen aanbod gevonden in jouw buurt
+            {t("feed.emptySaleTitle")}
           </p>
-          <p className="mt-1">
-            Wees de eerste die iets aanbiedt of bekijk inspiratie.
-          </p>
+          <p className="mt-1">{t("feed.emptySaleBody")}</p>
           <p className="mt-2 text-xs text-gray-500">
             {t("emptyState.noResultsHint")}
           </p>
@@ -1015,20 +1021,20 @@ export default function GeoFeed({
               onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Start met verkopen
+              {t("feed.tileCtaSell")}
             </button>
             <button
               type="button"
               onClick={() => setFeedChip("inspiration")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              Bekijk inspiratie
+              {t("feed.emptySaleViewInspiration")}
             </button>
           </div>
           {filteredApiInspiration.length > 0 && (
             <div className="mt-4 border-t pt-3">
               <p className="text-xs font-medium text-gray-700 mb-2">
-                Inspiratie voor jou
+                {t("feed.emptyInspirationForYou")}
               </p>
               <div className="space-y-1">
                 {filteredApiInspiration.slice(0, 5).map((item) => (
@@ -1037,7 +1043,7 @@ export default function GeoFeed({
                     href={inspirationDetailHrefApi(item)}
                     className="block text-sm text-emerald-700 hover:underline"
                   >
-                    {item.title || "Inspiratie"}
+                    {item.title || t("feed.altInspiration")}
                   </a>
                 ))}
               </div>
@@ -1047,29 +1053,25 @@ export default function GeoFeed({
       ) : emptyInsp ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
-            Nog geen inspiratie gevonden
+            {t("feed.emptyInspTitle")}
           </p>
-          <p className="mt-1">
-            Deel een recept, idee of voorbeeld en inspireer anderen.
-          </p>
+          <p className="mt-1">{t("feed.emptyInspBody")}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Deel inspiratie
+              {t("feed.shareInspirationCta")}
             </button>
           </div>
         </div>
       ) : emptyAll ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
-            Niets gevonden met deze filters
+            {t("feed.emptyAllTitle")}
           </p>
-          <p className="mt-1">
-            Probeer andere zoektermen of bekijk alles zonder filter.
-          </p>
+          <p className="mt-1">{t("feed.emptyAllBody")}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
@@ -1079,21 +1081,21 @@ export default function GeoFeed({
               }}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              Filters wissen
+              {t("filters.clearFilters")}
             </button>
             <button
               type="button"
               onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Start met verkopen
+              {t("feed.tileCtaSell")}
             </button>
             <button
               type="button"
               onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
-              Deel inspiratie
+              {t("feed.shareInspirationCta")}
             </button>
           </div>
         </div>

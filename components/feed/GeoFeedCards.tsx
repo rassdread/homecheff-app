@@ -17,7 +17,7 @@ import {
   getInspirationFeedItemHref,
   getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
-import { useCreateFlow } from "@/components/create/CreateFlowContext";
+import InspirationTileSellCtaOverlay from "@/components/feed/InspirationTileSellCtaOverlay";
 
 export type GeoFeedCardItem = {
   id: string;
@@ -75,10 +75,11 @@ function snippet(text: string | null, max = 140) {
   return `${s.slice(0, max).trim()}…`;
 }
 
-function feedInspirationSoftLabel(it: GeoFeedCardItem): string {
-  if (it.type === "recipe" || it.isRecipe) return "Recept";
-  if (it.type === "inspiration" || it.isInspiration) return "Inspiratie";
-  return "Inspiratie";
+function feedInspirationSoftLabel(it: GeoFeedCardItem, t: TFn): string {
+  if (it.type === "recipe" || it.isRecipe) return t("feed.badgeRecipe");
+  if (it.type === "inspiration" || it.isInspiration)
+    return t("feed.badgeInspiration");
+  return t("feed.badgeInspiration");
 }
 
 /** Verkoop: duidelijk koopbaar, badge, prijs, CTA. */
@@ -109,7 +110,7 @@ export function FeedSaleCard({
         badgeOverlay={
           <div className="absolute top-2 left-2">
             <span className="inline-flex items-center rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-sm">
-              Te koop
+              {t("feed.chipSale")}
             </span>
           </div>
         }
@@ -136,7 +137,7 @@ export function FeedSaleCard({
           <p className="text-sm font-semibold text-emerald-800">Zie aanbod</p>
         )}
         <p className="text-xs text-gray-600">
-          {it.place ?? "Onbekende locatie"}
+          {it.place ?? t("feed.unknownPlace")}
           {it.distanceKm != null && it.distanceKm !== Infinity
             ? ` · ${it.distanceKm.toFixed(1)} km`
             : ""}
@@ -168,7 +169,7 @@ export function FeedSaleCard({
             href={listingHref}
             className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
           >
-            Bekijk aanbod
+            {t("feed.saleViewOffer")}
           </Link>
           <div className="flex items-center gap-2">
             {it.viewCount !== undefined && (
@@ -198,12 +199,11 @@ export function FeedInspirationCardFeed({
   item: GeoFeedCardItem;
   t: TFn;
 }) {
-  const { openCreateFlow } = useCreateFlow();
   const detailHref = getInspirationFeedItemHref(it);
   const desc = snippet(it.description);
 
   return (
-    <article className="rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <article className="group relative rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <FeedCardPrimaryMedia
         href={detailHref}
         alt={it.title ?? ""}
@@ -232,33 +232,13 @@ export function FeedInspirationCardFeed({
         {it.place ? (
           <p className="mt-2 text-xs text-stone-500">{it.place}</p>
         ) : null}
-        <div
-          className="mt-4 rounded-xl border border-stone-200 bg-stone-50/90 p-3"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className="text-sm font-medium text-stone-800 mb-2">
-            Wil je dit ook maken?
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={detailHref}
-              className="inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50 transition-colors"
-            >
-              Bekijk
-            </Link>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openCreateFlow();
-              }}
-              className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
-            >
-              Start met verkopen
-            </button>
-          </div>
-        </div>
       </div>
+      <InspirationTileSellCtaOverlay
+        detailHref={detailHref}
+        headline={t("feed.tileCtaHeadline")}
+        bekijkLabel={t("feed.tileCtaBekijk")}
+        sellLabel={t("feed.tileCtaSell")}
+      />
     </article>
   );
 }
@@ -271,10 +251,9 @@ export function FeedInspirationCardApi({
   item: InspirationItem;
   t: TFn;
 }) {
-  const { openCreateFlow } = useCreateFlow();
   const detailHref = inspirationDetailHrefApi(item);
   const desc = snippet(item.description);
-  const label = inspirationContentLabel(item);
+  const label = inspirationContentLabel(item, t);
   const resolved = resolvePrimaryMediaForInspirationApi(item);
   const photoFallback = pickPrimaryPhotoUrlFromPhotos(item.photos);
   const videoUrl = resolved.type === "video" ? resolved.src : null;
@@ -288,10 +267,10 @@ export function FeedInspirationCardApi({
         : null;
 
   return (
-    <article className="rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <article className="group relative rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <FeedCardPrimaryMedia
         href={detailHref}
-        alt={item.title || "Inspiratie"}
+        alt={item.title || t("feed.altInspiration")}
         videoUrl={videoUrl}
         videoPoster={videoPoster}
         imageUrl={imageUrl}
@@ -327,33 +306,13 @@ export function FeedInspirationCardApi({
             />
           </div>
         ) : null}
-        <div
-          className="mt-4 rounded-xl border border-stone-200 bg-stone-50/90 p-3"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className="text-sm font-medium text-stone-800 mb-2">
-            Wil je dit ook maken?
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={detailHref}
-              className="inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50 transition-colors"
-            >
-              Bekijk
-            </Link>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openCreateFlow();
-              }}
-              className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
-            >
-              Start met verkopen
-            </button>
-          </div>
-        </div>
       </div>
+      <InspirationTileSellCtaOverlay
+        detailHref={detailHref}
+        headline={t("feed.tileCtaHeadline")}
+        bekijkLabel={t("feed.tileCtaBekijk")}
+        sellLabel={t("feed.tileCtaSell")}
+      />
     </article>
   );
 }
