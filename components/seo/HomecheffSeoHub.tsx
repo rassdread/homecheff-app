@@ -9,11 +9,13 @@ import {
   getSeoPagePath,
 } from "@/lib/seo/homecheffSeoPages";
 import { MAIN_DOMAIN } from "@/lib/seo/metadata";
+import { getSeoHubProgrammaticSection } from "@/lib/i18n/translations";
 
 export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
   const isNl = locale === "nl";
   const canonical = isNl ? SEO_HUB_CANONICAL_NL : SEO_HUB_CANONICAL_EN;
   const otherHub = isNl ? "/en/seo-hub" : "/seo-hub";
+  const programmatic = getSeoHubProgrammaticSection(locale);
 
   const webPageLd = {
     "@context": "https://schema.org",
@@ -76,6 +78,21 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
                 </ul>
               </section>
             ))}
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {programmatic.title}
+              </h2>
+              <ul className="mt-4 space-y-2 text-emerald-800">
+                {programmatic.links.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:underline">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
 
           <div className="mt-14 border-t border-gray-200 pt-8 text-sm text-gray-600">

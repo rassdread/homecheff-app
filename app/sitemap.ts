@@ -45,6 +45,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${BASE_URL}/affiliate`,
       lastModified,
     },
+    {
+      url: `${BASE_URL}/verdienen-zonder-dropshipping`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/lokale-producten-verkopen`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/unieke-producten-verkopen`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/bezorger-worden`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/alternatief-voor-dropshipping`,
+      lastModified,
+    },
     ...staticSeoEntries(),
   ];
 }

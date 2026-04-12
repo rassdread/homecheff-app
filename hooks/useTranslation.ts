@@ -266,7 +266,7 @@ export function useTranslation() {
     const cacheKey = `i18n-${lang}`;
     const cacheTimeKey = `i18n-${lang}-time`;
     const cacheVersionKey = `i18n-${lang}-version`;
-    const CACHE_VERSION = '2.21'; // Increment to invalidate caches when adding/fixing translations
+    const CACHE_VERSION = '2.23'; // Increment to invalidate caches when adding/fixing translations
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state

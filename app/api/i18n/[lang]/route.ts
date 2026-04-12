@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { mergeProgrammaticI18n } from '@/lib/i18n/translations';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +19,12 @@ export async function GET(
   try {
     const filePath = path.join(process.cwd(), 'public', 'i18n', `${lang}.json`);
     const data = readFileSync(filePath, 'utf-8');
-    const json = JSON.parse(data);
-    return NextResponse.json(json, {
+    const json = JSON.parse(data) as Record<string, unknown>;
+    const merged =
+      lang === 'nl' || lang === 'en'
+        ? mergeProgrammaticI18n(json, lang)
+        : json;
+    return NextResponse.json(merged, {
       headers: {
         ...cors,
         'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
