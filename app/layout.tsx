@@ -38,15 +38,16 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
-// PNG first: Safari/Chrome tab icons prefer PNG; .ico last as fallback (served from /public only — no app/favicon.ico or Next injects a duplicate link).
+// PNG first; ?v= busts Safari tab-favicon cache. Geen X-Frame-Options op deze URLs (vercel.json sluit ze uit bij /(.*) security).
+const FAVICON_Q = '?v=hc3';
 const siteIcons: Metadata['icons'] = {
   icon: [
-    { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-    { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
-    { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-    { url: '/favicon.ico', sizes: 'any' },
+    { url: `/favicon-32.png${FAVICON_Q}`, sizes: '32x32', type: 'image/png' },
+    { url: `/favicon-48.png${FAVICON_Q}`, sizes: '48x48', type: 'image/png' },
+    { url: `/icon-192.png${FAVICON_Q}`, sizes: '192x192', type: 'image/png' },
+    { url: `/favicon.ico${FAVICON_Q}`, sizes: 'any' },
   ],
-  apple: '/apple-touch-icon.png',
+  apple: `/apple-touch-icon.png${FAVICON_Q}`,
 };
 
 export async function generateMetadata(): Promise<Metadata> {
