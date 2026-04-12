@@ -3,7 +3,65 @@
  * Wordt gemerged in `/api/i18n/[lang]` onder namespace-keys (bijv. cookingEarningPage.title).
  */
 
+import { PHASE2_PROGRAMMATIC_SOURCES } from "@/lib/i18n/seoPhase2ClusterSources";
+
 export type Bi = { nl: string; en: string };
+
+/** Gedeelde FAQ voor alle programmeerbare SEO-landingspagina’s (Schema.org FAQPage). */
+export const seoSharedFaq: Record<string, Bi> = {
+  faqBlockTitle: {
+    nl: "Veelgestelde vragen",
+    en: "Frequently asked questions",
+  },
+  faq1Q: {
+    nl: "Mag je eten verkopen vanuit huis?",
+    en: "Are you allowed to sell food from home?",
+  },
+  faq1A: {
+    nl: "Dat hangt af van je product, regio en wetgeving (o.a. hygiëne). HomeCheff is geen juridisch advies: check altijd officiële bronnen en gemeente-informatie voordat je start.",
+    en: "It depends on your product, region and law (including hygiene). HomeCheff is not legal advice: always check official and municipal sources before you start.",
+  },
+  faq2Q: {
+    nl: "Hoe begin je met thuis koken verkopen?",
+    en: "How do you start selling home cooking?",
+  },
+  faq2A: {
+    nl: "Begin met één duidelijk aanbod, vaste ophaalvensters en eerlijke foto’s. Zoek 5–10 testkopers in je buurt en verbeter communicatie voordat je uitbreidt.",
+    en: "Start with one clear offer, fixed pickup windows and honest photos. Find 5–10 neighbourhood testers and improve communication before expanding.",
+  },
+  faq3Q: {
+    nl: "Hoe vind je klanten lokaal?",
+    en: "How do you find customers locally?",
+  },
+  faq3A: {
+    nl: "Combineer buurtkanalen (apps, clubs) met zichtbaarheid waar mensen al zoeken. Op HomeCheff hoort daar ook de Growth-pagina bij voor structuur en ideeën.",
+    en: "Combine neighbourhood channels (apps, clubs) with visibility where people already search. On HomeCheff, the Growth page adds structure and ideas.",
+  },
+  faq4Q: {
+    nl: "Heb je een vergunning nodig?",
+    en: "Do you need a permit?",
+  },
+  faq4A: {
+    nl: "Soms wel, soms niet — afhankelijk van activiteit en gemeente. Vraag dit na bij je overheid; HomeCheff vervangt geen officiële informatie.",
+    en: "Sometimes yes, sometimes not — depends on activity and municipality. Ask your authorities; HomeCheff does not replace official information.",
+  },
+  faq5Q: {
+    nl: "Moet ik een webshop bouwen om te starten?",
+    en: "Do I need a webshop to start?",
+  },
+  faq5A: {
+    nl: "Niet per se. Een duidelijk marketplace-profiel met prijs, ophalen en allergenen kan sneller tot eerste verkopen leiden dan maanden site-bouwen zonder bezoekers.",
+    en: "Not necessarily. A clear marketplace profile with price, pickup and allergens can reach first sales faster than months of site building without visitors.",
+  },
+  faq6Q: {
+    nl: "Wat is het verschil met dropshipping?",
+    en: "What is the difference from dropshipping?",
+  },
+  faq6A: {
+    nl: "Bij dropshipping importeer je vaak anonieme massa-producten. Bij HomeCheff verkoop je iets dat jij maakt of oogst, lokaal en met direct contact — andere marge, andere relatie.",
+    en: "With dropshipping you often import anonymous mass products. On HomeCheff you sell something you make or grow, locally with direct contact — different margin, different relationship.",
+  },
+};
 
 const homeEarningPage: Record<string, Bi> = {
   metaTitle: {
@@ -146,6 +204,10 @@ const homeEarningPage: Record<string, Bi> = {
     nl: "Alternatief voor dropshipping",
     en: "Alternative to dropshipping",
   },
+  linkBijverdienenHub: {
+    nl: "bijverdienen vanuit huis (routes en realiteit)",
+    en: "side income from home (routes and reality)",
+  },
   cta: {
     nl: "Start vandaag met verdienen via HomeCheff",
     en: "Start earning today with HomeCheff",
@@ -153,6 +215,61 @@ const homeEarningPage: Record<string, Bi> = {
   ctaSub: {
     nl: "Registreer, kies je rol en zet je eerste aanbod live — zonder dropshipping-stress.",
     en: "Sign up, pick your role and publish your first listing — without dropshipping stress.",
+  },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Omdat identieke producten en lage marges je op een hamsterwiel zetten: meer ads, minder merk, nul relatie met de koper. Lokaal maken op HomeCheff draait om herhaling in de buurt: mensen weten wie je bent en wat je levert.",
+    en: "Because identical products and low margins put you on a hamster wheel: more ads, less brand, zero buyer relationship. Making locally on HomeCheff is about neighbourhood repeat: people know who you are and what you deliver.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Kopers vragen vaker naar herkomst en korte keten — niet als modegrap, maar omdat ze controle willen over wat ze eten en bij wie ze kopen. Platforms die ophalen en buurt-serieus nemen, passen daar beter bij dan anonieme schaal.",
+    en: "Buyers ask more about origin and short chains — not as a fad, but because they want control over what they eat and from whom. Platforms that take pickup and neighbourhood seriously fit better than anonymous scale.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Omdat het vaak persoonlijker is: seizoen, voorkeur, allergenen bespreekbaar, en geen anonieme schaal-keuken. Thuiskoks die leveren wat ze beloven, bouwen vaste ritten — dat is je echte concurrentievoordeel.",
+    en: "Because it is often more personal: season, preference, allergens discussable, no anonymous scale kitchen. Cooks who deliver what they promise build steady runs — that is your real competitive edge.",
+  },
+  homeRp1a: {
+    nl: "Wil je starten met koken voor anderen? Lees de ",
+    en: "Want to start cooking for others? Read the ",
+  },
+  homeRp1b: {
+    nl: " en zet daarna je eerste aanbod neer. ",
+    en: " and then publish your first offer. ",
+  },
+  homeRp1c: {
+    nl: " helpt je nadenken over zichtbaarheid in je buurt.",
+    en: " helps you think about visibility nearby.",
+  },
+  homeRp2a: {
+    nl: "Wil je breder dan alleen maaltijden? Bekijk ",
+    en: "Want to go beyond meals? See ",
+  },
+  homeRp2b: {
+    nl: " en lees ", en: " and read ",
+  },
+  homeRp2c: {
+    nl: " voor het grotere plaatje rond lokaal verdienen.",
+    en: " for the bigger picture of local earning.",
+  },
+  linkEtenVanuitHuis: {
+    nl: "gids eten verkopen vanuit huis",
+    en: "guide to selling food from home",
+  },
+  linkThuisgekooktCluster: {
+    nl: "thuisgekookt eten verkopen (uitleg en structuur)",
+    en: "selling home-cooked food (structure and explanation)",
   },
 };
 
@@ -257,6 +374,63 @@ const cookingEarningPage: Record<string, Bi> = {
     nl: "Te groot menu, vage prijs, geen vaste ophaal-logistiek, en te weinig communicatie over allergenen. Houd het strak en voorspelbaar.",
     en: "Too large a menu, vague pricing, messy pickup logistics, weak allergen communication. Keep it tight and predictable.",
   },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Dropshipping dwingt je naar identieke SKU’s en lage marge. Koken voor de buurt is het tegenovergestelde: je product is elke week iets anders, maar wél herkenbaar door jouw stijl en afspraken.",
+    en: "Dropshipping pushes you to identical SKUs and low margin. Cooking for the neighbourhood is the opposite: the product changes weekly but stays recognisable through your style and agreements.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Mensen willen kortere ketens en duidelijkheid: wie kookt dit, hoe haal ik op. Dat past bij vaste ophaal en buurt-reviews — niet bij anonieme schaal-import.",
+    en: "People want shorter chains and clarity: who cooked this, how do I pick up. That fits fixed pickup and neighbourhood reviews — not anonymous scale imports.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Omdat het vaak voelt als “echt eten van iemand”, met ruimte voor voorkeur en allergenen. Als je dat professioneel aanpakt (zonder theater), bouw je sneller vaste klanten.",
+    en: "Because it often feels like real food from someone, with room for preference and allergens. If you handle that professionally (without theatre), you build regulars faster.",
+  },
+  cookRp1a: {
+    nl: "Zet je eerste stappen naast deze gids ook in ",
+    en: "Take your first steps beyond this guide in ",
+  },
+  cookRp1b: {
+    nl: " en gebruik ", en: " and use ",
+  },
+  cookRp1c: {
+    nl: " om lokaal zichtbaar te worden.",
+    en: " to become visible locally.",
+  },
+  cookRp2a: {
+    nl: "Wil je weten hoe ", en: "Want to know how ",
+  },
+  cookRp2b: {
+    nl: " past bij een platform? Lees ", en: " fits a platform? Read ",
+  },
+  cookRp2c: {
+    nl: ".",
+    en: ".",
+  },
+  linkEtenVanuitHuisCook: {
+    nl: "eten verkopen vanuit huis (volledige route)",
+    en: "selling food from home (full route)",
+  },
+  linkThuisgekooktCook: {
+    nl: "thuisgekookt eten verkopen (structuur en tips)",
+    en: "selling home-cooked food (structure and tips)",
+  },
+  linkThuisgekookt: {
+    nl: "thuisgekookt eten verkopen",
+    en: "sell home-cooked food",
+  },
   cta: {
     nl: "Begin met koken voor je buurt via HomeCheff",
     en: "Start cooking for your neighbourhood on HomeCheff",
@@ -324,6 +498,14 @@ const localProductsPage: Record<string, Bi> = {
     nl: "Unieke producten verkopen",
     en: "Sell unique products",
   },
+  linkLokaalEten: {
+    nl: "lokaal eten verkopen (radius en ritme)",
+    en: "sell local food (radius and rhythm)",
+  },
+  linkEtenVanuitHuisGarden: {
+    nl: "eten verkopen vanuit huis (logistiek)",
+    en: "selling food from home (logistics)",
+  },
   stepsTitle: {
     nl: "Stappenplan",
     en: "Step-by-step plan",
@@ -355,6 +537,36 @@ const localProductsPage: Record<string, Bi> = {
   mistakesBody: {
     nl: "Te veel beloven, geen vaste ophaal-logistiek, prijs te laag voor je tijd. Houd het realistisch.",
     en: "Overpromising, messy pickup, prices too low for your time. Stay realistic.",
+  },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Tuinverkoop heeft niets met import-catalogi te maken — maar hetzelfde valkuil-principe geldt: als je anoniem en prijs-only bent, win je niet. Lokaal tuinproduct is juist verhaal + ophalen.",
+    en: "Garden sales are not import catalogues — but the same pitfall applies: if you are anonymous and price-only, you lose. Local garden goods are story plus pickup.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Mensen zoeken transparantie bij voedsel en planten: wie teelt dit, hoe vers is het. Dat is geen medische claim — wél een verwachting aan uitleg.",
+    en: "People look for transparency in food and plants: who grows this, how fresh. That is not a medical claim — it is an expectation of explanation.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Ook als jij tuin verkoopt, eten mensen elke dag. Thuiskoks en tuinmakers versterken elkaar in dezelfde buurt-apps: denk in combinaties (maaltijd + groente) zonder je te verspreiden.",
+    en: "Even if you sell garden, people eat daily. Cooks and growers reinforce each other in the same neighbourhood apps: think combos without spreading yourself thin.",
+  },
+  gardenRp1a: { nl: "Combineer tuin met ", en: "Combine garden with " },
+  gardenRp1b: { nl: " en lees ", en: " and read " },
+  gardenRp1c: {
+    nl: " voor bredere lokaal-strategie.",
+    en: " for broader local strategy.",
   },
   cta: {
     nl: "Verkoop je tuinproducten lokaal via HomeCheff",
@@ -419,6 +631,14 @@ const uniqueProductsPage: Record<string, Bi> = {
     nl: "Growth: klanten vinden",
     en: "Growth: find customers",
   },
+  linkEtenVanuitHuisDesigner: {
+    nl: "eten verkopen vanuit huis (zonder webshop-first)",
+    en: "selling food from home (without webshop-first)",
+  },
+  linkZelfgemaakt: {
+    nl: "zelfgemaakt eten verkopen",
+    en: "sell homemade food",
+  },
   stepsTitle: {
     nl: "Stappenplan",
     en: "Step-by-step plan",
@@ -450,6 +670,38 @@ const uniqueProductsPage: Record<string, Bi> = {
   mistakesBody: {
     nl: "Te veel variaties tegelijk, geen levertijd, geen duidelijke grenzen bij maatwerk. Houd het begrensd.",
     en: "Too many variants at once, unclear lead times, fuzzy bespoke boundaries. Keep it bounded.",
+  },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Uniek maatwerk is het antoniem van dropshipping: geen SKU die 10.000 shops delen. Als jij grenzen stelt en levert wat je belooft, bouw je marge via vertrouwen.",
+    en: "Unique bespoke work is the opposite of dropshipping: no SKU shared by ten thousand shops. If you set boundaries and deliver what you promise, you build margin through trust.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Lokaal creatief werk schaalt via referrals: mensen laten fysiek zien wat je maakte. Dat werkt beter met ophalen dan met wereldwijde verzendstress.",
+    en: "Local creative work scales through referrals: people show what you made physically. That works better with pickup than global shipping stress.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Niet elke designer verkoopt eten — maar dezelfde buurt kan beide nodig hebben. Positioneer jezelf helder: wat doe jij wél, en waar verwijs je door voor maaltijden?",
+    en: "Not every designer sells food — but the same neighbourhood may need both. Position clearly: what you do and where you refer for meals?",
+  },
+  designerRp1a: { nl: "Vergelijk met ", en: "Compare with " },
+  designerRp1b: {
+    nl: " en lees ", en: " and read ",
+  },
+  designerRp1c: {
+    nl: " voor het bredere alternatief op anonieme e-commerce.",
+    en: " for the broader alternative to anonymous e-commerce.",
   },
   cta: {
     nl: "Verkoop je unieke creaties via HomeCheff",
@@ -514,6 +766,10 @@ const deliveryPartnerPage: Record<string, Bi> = {
     nl: "Growth",
     en: "Growth",
   },
+  linkEtenVanuitHuisDeliv: {
+    nl: "eten verkopen vanuit huis (waar bezorging helpt)",
+    en: "selling food from home (where delivery helps)",
+  },
   stepsTitle: {
     nl: "Stappenplan",
     en: "Step-by-step plan",
@@ -545,6 +801,38 @@ const deliveryPartnerPage: Record<string, Bi> = {
   mistakesBody: {
     nl: "Te veel ritten accepteren zonder buffer, onduidelijke afspraken, geen backup bij ziekte. Zeg nee als het niet past.",
     en: "Taking too many runs without buffer, unclear handoffs, no backup when ill. Say no when it does not fit.",
+  },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Bezorging is fysiek werk — geen “set and forget” webshop. Dat is juist gezond: je ziet direct of een rit klopt en of communicatie eerlijk is.",
+    en: "Delivery is physical work — not a set-and-forget webshop. That is healthy: you see immediately if a run works and if communication is honest.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Lokale ritten houden euro’s in de buurt en verlagen faal-afstand: als iets misgaat, los je het sneller op dan bij anonieme schaal.",
+    en: "Local runs keep money nearby and reduce failure distance: if something goes wrong, you fix it faster than at anonymous scale.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Bezorgers maken thuisgekookt haalbaar voor mensen zonder auto of tijd. Daarmee zit je midden in het verhaal “lokaal eten zonder gedoe”.",
+    en: "Delivery partners make home-cooked feasible for people without a car or time. That puts you in the story of local food without hassle.",
+  },
+  delivRp1a: { nl: "Lees ", en: "Read " },
+  delivRp1b: {
+    nl: " en bekijk ", en: " and see ",
+  },
+  delivRp1c: {
+    nl: " voor makers die jij helpt met ritten.",
+    en: " for makers you help with runs.",
   },
   cta: {
     nl: "Meld je aan als bezorger op HomeCheff",
@@ -653,6 +941,50 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     nl: "Nog steeds anonieme import proberen te combineren met “lokaal” label — dat breekt vertrouwen. Kies één eerlijk verhaal.",
     en: "Trying to combine anonymous imports with a local label — that breaks trust. Pick one honest story.",
   },
+  authorityDropshippingTitle: {
+    nl: "Waarom mensen stoppen met dropshipping",
+    en: "Why people quit dropshipping",
+  },
+  authorityDropshippingBody: {
+    nl: "Omdat schaal zonder merk en zonder service uitput. Lokaal alternatief betekent: tastbaar product, echte afspraken, herhaalbare buurt.",
+    en: "Because scale without brand and service exhausts you. A local alternative means tangible product, real agreements, repeatable neighbourhood.",
+  },
+  authorityLocal2026Title: {
+    nl: "Waarom lokaal verkopen groeit in 2026",
+    en: "Why local selling keeps growing in 2026",
+  },
+  authorityLocal2026Body: {
+    nl: "Kopers zoeken makers en korte ketens — niet alleen lagere prijs. Platforms die ophalen en profielen serieus nemen, passen bij die shift.",
+    en: "Buyers look for makers and short chains — not only lower price. Platforms that take pickup and profiles seriously fit that shift.",
+  },
+  authorityHomeCookedTitle: {
+    nl: "Waarom mensen kiezen voor thuisgekookt eten",
+    en: "Why people choose home-cooked food",
+  },
+  authorityHomeCookedBody: {
+    nl: "Omdat het dichtbij en bespreekbaar is. Thuiskoks zijn vaak de eerste “lokale makers” die mensen proberen — daarna volgen tuin en creatief.",
+    en: "Because it is nearby and discussable. Home cooks are often the first local makers people try — then garden and creative follow.",
+  },
+  dsAltRp1a: { nl: "Lees ook ", en: "Also read " },
+  dsAltRp1b: {
+    nl: " en ", en: " and ",
+  },
+  dsAltRp1c: {
+    nl: " als je het topic “eten vanuit huis” wilt domineren.",
+    en: " if you want to own the “food from home” topic.",
+  },
+  linkEtenVanuitHuisDs: {
+    nl: "eten verkopen vanuit huis (topic cluster)",
+    en: "selling food from home (topic cluster)",
+  },
+  linkThuisgekooktDs: {
+    nl: "thuisgekookt eten verkopen (kernpagina)",
+    en: "selling home-cooked food (core page)",
+  },
+  linkBijverdienenDs: {
+    nl: "bijverdienen vanuit huis (realistische inkomsten)",
+    en: "side income from home (realistic earnings)",
+  },
   cta: {
     nl: "Kies lokaal in plaats van dropshipping — start op HomeCheff",
     en: "Choose local over dropshipping — start on HomeCheff",
@@ -664,69 +996,160 @@ const dropshippingAlternativePage: Record<string, Bi> = {
 };
 
 export const PROGRAMMATIC_PAGE_SOURCES: Record<string, Record<string, Bi>> = {
+  seoSharedFaq,
   homeEarningPage,
   cookingEarningPage,
   localProductsPage,
   uniqueProductsPage,
   deliveryPartnerPage,
   dropshippingAlternativePage,
+  ...PHASE2_PROGRAMMATIC_SOURCES,
 };
 
-/** Extra blok op /seo-hub en /en/seo-hub (server-side labels). */
-export const SEO_HUB_PROGRAMMATIC = {
-  sectionTitle: {
-    nl: "Verdienen, lokaal en alternatieven",
-    en: "Earning, local and alternatives",
+/** Gegroepeerde programmeerbare links op /seo-hub en /en/seo-hub. */
+export const SEO_HUB_PROGRAMMATIC_SECTIONS = [
+  {
+    sectionTitle: {
+      nl: "Geld verdienen vanuit huis",
+      en: "Earning from home",
+    },
+    links: [
+      {
+        href: "/verdienen-zonder-dropshipping",
+        label: {
+          nl: "Verdienen vanuit huis zonder dropshipping",
+          en: "Earn from home without dropshipping",
+        },
+      },
+      {
+        href: "/bijverdienen-vanuit-huis",
+        label: {
+          nl: "Bijverdienen vanuit huis",
+          en: "Side income from home",
+        },
+      },
+      {
+        href: "/alternatief-voor-dropshipping",
+        label: {
+          nl: "Alternatief voor dropshipping",
+          en: "Alternative to dropshipping",
+        },
+      },
+      {
+        href: "/growth",
+        label: {
+          nl: "Growth — klanten en zichtbaarheid",
+          en: "Growth — customers and visibility",
+        },
+      },
+    ],
   },
-  links: [
-    {
-      href: "/verdienen-zonder-dropshipping",
-      label: {
-        nl: "Verdienen vanuit huis zonder dropshipping",
-        en: "Earn from home without dropshipping",
-      },
+  {
+    sectionTitle: {
+      nl: "Eten verkopen",
+      en: "Selling food",
     },
-    {
-      href: "/geld-verdienen-met-koken",
-      label: {
-        nl: "Geld verdienen met koken",
-        en: "Earn money with cooking",
+    links: [
+      {
+        href: "/eten-verkopen-vanuit-huis",
+        label: {
+          nl: "Eten verkopen vanuit huis",
+          en: "Sell food from home",
+        },
       },
-    },
-    {
-      href: "/lokale-producten-verkopen",
-      label: {
-        nl: "Lokale producten verkopen",
-        en: "Sell local products",
+      {
+        href: "/thuisgekookt-eten-verkopen",
+        label: {
+          nl: "Thuisgekookt eten verkopen",
+          en: "Sell home-cooked food",
+        },
       },
-    },
-    {
-      href: "/unieke-producten-verkopen",
-      label: {
-        nl: "Unieke producten verkopen",
-        en: "Sell unique products",
+      {
+        href: "/zelfgemaakt-eten-verkopen",
+        label: {
+          nl: "Zelfgemaakt eten verkopen",
+          en: "Sell homemade food",
+        },
       },
-    },
-    {
-      href: "/bezorger-worden",
-      label: {
-        nl: "Bezorger worden",
-        en: "Become a delivery partner",
+      {
+        href: "/lokaal-eten-verkopen",
+        label: {
+          nl: "Lokaal eten verkopen",
+          en: "Sell local food",
+        },
       },
-    },
-    {
-      href: "/alternatief-voor-dropshipping",
-      label: {
-        nl: "Alternatief voor dropshipping",
-        en: "Alternative to dropshipping",
+      {
+        href: "/geld-verdienen-met-koken",
+        label: {
+          nl: "Geld verdienen met koken",
+          en: "Earn money with cooking",
+        },
       },
-    },
-    {
-      href: "/growth",
-      label: {
-        nl: "Growth — klanten en zichtbaarheid",
-        en: "Growth — customers and visibility",
+      {
+        href: "/eten-verkopen-rotterdam",
+        label: {
+          nl: "Eten verkopen in Rotterdam (voorbeeld stad)",
+          en: "Sell food in Rotterdam (example city)",
+        },
       },
+    ],
+  },
+  {
+    sectionTitle: {
+      nl: "Producten & platform",
+      en: "Products & platform",
     },
-  ],
-} as const;
+    links: [
+      {
+        href: "/lokale-producten-verkopen",
+        label: {
+          nl: "Lokale producten verkopen",
+          en: "Sell local products",
+        },
+      },
+      {
+        href: "/unieke-producten-verkopen",
+        label: {
+          nl: "Unieke producten verkopen",
+          en: "Sell unique products",
+        },
+      },
+      {
+        href: "/platform-voor-thuiskoks",
+        label: {
+          nl: "Platform voor thuiskoks",
+          en: "Platform for home cooks",
+        },
+      },
+      {
+        href: "/verkopen-vanuit-huis",
+        label: {
+          nl: "Verkopen vanuit huis",
+          en: "Selling from home",
+        },
+      },
+    ],
+  },
+  {
+    sectionTitle: {
+      nl: "Bezorger & eerdere gidsen",
+      en: "Delivery partner & more guides",
+    },
+    links: [
+      {
+        href: "/bezorger-worden",
+        label: {
+          nl: "Bezorger worden",
+          en: "Become a delivery partner",
+        },
+      },
+      {
+        href: "/verdienen-zonder-dropshipping",
+        label: {
+          nl: "Verdienen zonder dropshipping (lang)",
+          en: "Earn without dropshipping (long guide)",
+        },
+      },
+    ],
+  },
+] as const;

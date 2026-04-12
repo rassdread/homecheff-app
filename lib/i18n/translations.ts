@@ -5,7 +5,7 @@
 
 import {
   PROGRAMMATIC_PAGE_SOURCES,
-  SEO_HUB_PROGRAMMATIC,
+  SEO_HUB_PROGRAMMATIC_SECTIONS,
   type Bi,
 } from "@/lib/i18n/seoLandingSources";
 
@@ -47,9 +47,19 @@ export function mergeHomeEarningIntoI18n(
   return mergeProgrammaticI18n(json, lang);
 }
 
+function applyVars(s: string, vars?: Record<string, string>): string {
+  if (!vars) return s;
+  let out = s;
+  for (const [k, v] of Object.entries(vars)) {
+    out = out.split(`{{${k}}}`).join(v);
+  }
+  return out;
+}
+
 export function getProgrammaticSeoMeta(
   namespace: string,
-  lang: string
+  lang: string,
+  vars?: Record<string, string>
 ): { title: string; description: string } {
   const src = PROGRAMMATIC_PAGE_SOURCES[namespace];
   if (!src?.metaTitle || !src?.metaDescription) {
@@ -57,8 +67,8 @@ export function getProgrammaticSeoMeta(
   }
   const L = pickLang(lang);
   return {
-    title: src.metaTitle[L],
-    description: src.metaDescription[L],
+    title: applyVars(src.metaTitle[L], vars),
+    description: applyVars(src.metaDescription[L], vars),
   };
 }
 
@@ -66,16 +76,25 @@ export function getHomeEarningPageMeta(lang: string) {
   return getProgrammaticSeoMeta("homeEarningPage", lang);
 }
 
-export function getSeoHubProgrammaticSection(locale: "nl" | "en"): {
+export function getSeoHubProgrammaticSections(locale: "nl" | "en"): {
   title: string;
   links: { href: string; label: string }[];
-} {
+}[] {
   const L = pickLang(locale);
-  return {
-    title: SEO_HUB_PROGRAMMATIC.sectionTitle[L],
-    links: SEO_HUB_PROGRAMMATIC.links.map((item) => ({
+  return SEO_HUB_PROGRAMMATIC_SECTIONS.map((section) => ({
+    title: section.sectionTitle[L],
+    links: section.links.map((item) => ({
       href: item.href,
       label: item.label[L],
     })),
+  }));
+}
+
+/** @deprecated Gebruik getSeoHubProgrammaticSections. */
+export function getSeoHubProgrammaticSection(locale: "nl" | "en") {
+  const all = getSeoHubProgrammaticSections(locale);
+  return {
+    title: all[0]?.title ?? "",
+    links: all.flatMap((s) => s.links),
   };
 }

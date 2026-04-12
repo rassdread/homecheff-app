@@ -8,10 +8,11 @@ import { getProgrammaticSeoMeta } from "@/lib/i18n/translations";
 
 export async function buildProgrammaticLandingMetadata(
   path: string,
-  namespace: string
+  namespace: string,
+  vars?: Record<string, string>
 ): Promise<Metadata> {
   const lang = await getCurrentLanguage();
-  const { title, description } = getProgrammaticSeoMeta(namespace, lang);
+  const { title, description } = getProgrammaticSeoMeta(namespace, lang, vars);
   const currentDomain = await getCurrentDomain();
   const canonical = `${currentDomain}${path}`;
 

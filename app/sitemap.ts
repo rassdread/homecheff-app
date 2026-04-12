@@ -3,6 +3,7 @@ import {
   HOMECHEFF_SEO_PAGE_DEFS,
   getSeoPagePath,
 } from "@/lib/seo/homecheffSeoPages";
+import { ETEN_VERKOPEN_CITY_SLUGS } from "@/lib/seo/etenVerkopenCities";
 
 const BASE_URL = "https://homecheff.eu";
 
@@ -65,6 +66,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${BASE_URL}/alternatief-voor-dropshipping`,
       lastModified,
     },
+    {
+      url: `${BASE_URL}/eten-verkopen-vanuit-huis`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/thuisgekookt-eten-verkopen`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/bijverdienen-vanuit-huis`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/zelfgemaakt-eten-verkopen`,
+      lastModified,
+    },
+    {
+      url: `${BASE_URL}/lokaal-eten-verkopen`,
+      lastModified,
+    },
+    ...ETEN_VERKOPEN_CITY_SLUGS.map((stad) => ({
+      url: `${BASE_URL}/eten-verkopen-${stad}`,
+      lastModified,
+    })),
     ...staticSeoEntries(),
   ];
 }
