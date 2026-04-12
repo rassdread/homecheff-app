@@ -5,6 +5,17 @@ import { getSecurityHeaders } from '@/lib/security';
 
 const EU_HOST = 'homecheff.eu';
 
+/** Tab/PWA assets: geen CSP op deze responses — Safari weigert anders vaak de favicon en blijft op platform-default (Vercel-driehoek). Alleen favicon.ico zat al in de matcher-exclude. */
+function isPublicIconOrManifestPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/icon-') ||
+    pathname === '/icon.png' ||
+    pathname === '/apple-touch-icon.png' ||
+    pathname === '/manifest.json'
+  );
+}
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
@@ -72,7 +83,8 @@ export function middleware(request: NextRequest) {
     request: { headers: requestHeaders },
   });
   // Security headers alleen op pagina's, nooit op /api (video-proxy mag geen CSP krijgen, anders laadt video niet in Edge)
-  if (!pathname.startsWith('/api/')) {
+  // Ook niet op favicon/PNG icons/manifest: CSP op image-responses breekt tab-favicon in Safari.
+  if (!pathname.startsWith('/api/') && !isPublicIconOrManifestPath(pathname)) {
     const security = getSecurityHeaders();
     Object.entries(security).forEach(([key, value]) => res.headers.set(key, value));
   }
