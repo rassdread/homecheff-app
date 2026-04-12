@@ -38,12 +38,13 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
+// PNG first: Safari/Chrome tab icons prefer PNG; .ico last as fallback (served from /public only — no app/favicon.ico or Next injects a duplicate link).
 const siteIcons: Metadata['icons'] = {
   icon: [
-    { url: '/favicon.ico', sizes: 'any' },
     { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
     { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
     { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    { url: '/favicon.ico', sizes: 'any' },
   ],
   apple: '/apple-touch-icon.png',
 };
