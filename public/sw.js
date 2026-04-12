@@ -1,7 +1,7 @@
 // Service Worker voor supersnelle caching
-const CACHE_NAME = 'homecheff-v1';
-const STATIC_CACHE = 'homecheff-static-v1';
-const DYNAMIC_CACHE = 'homecheff-dynamic-v1';
+const CACHE_NAME = 'homecheff-v2';
+const STATIC_CACHE = 'homecheff-static-v2';
+const DYNAMIC_CACHE = 'homecheff-dynamic-v2';
 
 // Statische assets die altijd gecached moeten worden
 const STATIC_ASSETS = [
@@ -66,6 +66,18 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Favicons / manifest: nooit door SW (cache-first op *.png breekt Safari-tabicon).
+  const pathname = url.pathname;
+  if (
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/icon-') ||
+    pathname === '/icon.png' ||
+    pathname === '/apple-touch-icon.png' ||
+    pathname === '/manifest.json'
+  ) {
     return;
   }
 

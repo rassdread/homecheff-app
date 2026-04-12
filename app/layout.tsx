@@ -38,16 +38,17 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
-// PNG first; ?v= busts Safari tab-favicon cache. Geen X-Frame-Options op deze URLs (vercel.json sluit ze uit bij /(.*) security).
-const FAVICON_Q = '?v=hc3';
+// Absolute URLs + .ico eerst: Safari resolveert tab-favicon betrouwbaarder dan alleen relatieve PNG-links.
+// ?v= cache-bust. (vercel.json sluit deze paden uit voor X-Frame-Options; middleware zonder CSP op icons.)
+const FAVICON_Q = '?v=hc5';
 const siteIcons: Metadata['icons'] = {
   icon: [
-    { url: `/favicon-32.png${FAVICON_Q}`, sizes: '32x32', type: 'image/png' },
-    { url: `/favicon-48.png${FAVICON_Q}`, sizes: '48x48', type: 'image/png' },
-    { url: `/icon-192.png${FAVICON_Q}`, sizes: '192x192', type: 'image/png' },
-    { url: `/favicon.ico${FAVICON_Q}`, sizes: 'any' },
+    { url: `${MAIN_DOMAIN}/favicon.ico${FAVICON_Q}`, sizes: 'any' },
+    { url: `${MAIN_DOMAIN}/favicon-32.png${FAVICON_Q}`, sizes: '32x32', type: 'image/png' },
+    { url: `${MAIN_DOMAIN}/favicon-48.png${FAVICON_Q}`, sizes: '48x48', type: 'image/png' },
+    { url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, sizes: '192x192', type: 'image/png' },
   ],
-  apple: `/apple-touch-icon.png${FAVICON_Q}`,
+  apple: `${MAIN_DOMAIN}/apple-touch-icon.png${FAVICON_Q}`,
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -95,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
-        images: [{ url: '/icon-192.png', width: 192, height: 192, alt: 'HomeCheff' }],
+        images: [{ url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
       },
       icons: siteIcons,
       alternates: {
@@ -140,7 +141,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
-      images: [{ url: '/icon-192.png', width: 192, height: 192, alt: 'HomeCheff' }],
+      images: [{ url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
     },
     icons: siteIcons,
     alternates: {
