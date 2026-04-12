@@ -75,6 +75,7 @@ self.addEventListener('fetch', (event) => {
     pathname.startsWith('/favicon') ||
     pathname.startsWith('/icon-') ||
     pathname === '/icon.png' ||
+    pathname === '/apple-icon.png' ||
     pathname === '/apple-touch-icon.png' ||
     pathname === '/manifest.json'
   ) {

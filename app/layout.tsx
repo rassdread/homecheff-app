@@ -38,18 +38,8 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
-// Absolute URLs + .ico eerst: Safari resolveert tab-favicon betrouwbaarder dan alleen relatieve PNG-links.
-// ?v= cache-bust. (vercel.json sluit deze paden uit voor X-Frame-Options; middleware zonder CSP op icons.)
-const FAVICON_Q = '?v=hc5';
-const siteIcons: Metadata['icons'] = {
-  icon: [
-    { url: `${MAIN_DOMAIN}/favicon.ico${FAVICON_Q}`, sizes: 'any' },
-    { url: `${MAIN_DOMAIN}/favicon-32.png${FAVICON_Q}`, sizes: '32x32', type: 'image/png' },
-    { url: `${MAIN_DOMAIN}/favicon-48.png${FAVICON_Q}`, sizes: '48x48', type: 'image/png' },
-    { url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, sizes: '192x192', type: 'image/png' },
-  ],
-  apple: `${MAIN_DOMAIN}/apple-touch-icon.png${FAVICON_Q}`,
-};
+// Tab- + touch-icons: Next file convention (app/favicon.ico, app/icon.png, app/apple-icon.png) — stabieler in Safari dan alleen metadata.icons.
+const OG_IMAGE_Q = '?v=hc6';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -96,9 +86,8 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
-        images: [{ url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+        images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
       },
-      icons: siteIcons,
       alternates: {
         canonical: currentDomain,
         languages: seoHreflangLanguagesOnEu(''),
@@ -141,9 +130,8 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
-      images: [{ url: `${MAIN_DOMAIN}/icon-192.png${FAVICON_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
+      images: [{ url: `${MAIN_DOMAIN}/icon-192.png${OG_IMAGE_Q}`, width: 192, height: 192, alt: 'HomeCheff' }],
     },
-    icons: siteIcons,
     alternates: {
       canonical: currentDomain,
       languages: seoHreflangLanguagesOnEu(''),
@@ -186,7 +174,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
-        {/* Icons + manifest: single source of truth in generateMetadata (avoids duplicate link tags). */}
+        {/* Favicon / apple-touch: app/favicon.ico, app/icon.png, app/apple-icon.png (Next metadata files). Manifest: generateMetadata. */}
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />

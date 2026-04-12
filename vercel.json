@@ -28,7 +28,7 @@
 	],
 	"headers": [
 		{
-			"source": "/((?!_next/|favicon|icon-|icon\\.png|apple-touch-icon\\.png|manifest\\.json|robots\\.txt|sitemap\\.xml).*)",
+			"source": "/((?!_next/|favicon|icon-|icon\\.png|apple-icon\\.png|apple-touch-icon\\.png|manifest\\.json|robots\\.txt|sitemap\\.xml).*)",
 			"headers": [
 				{
 					"key": "X-Content-Type-Options",
