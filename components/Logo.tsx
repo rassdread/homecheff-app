@@ -38,6 +38,8 @@ export default function Logo({ size = 'md', showText = true, className = '', log
   const logoPaths = logoPath 
     ? [logoPath]
     : [
+        '/icon-192.png',
+        '/apple-touch-icon.png',
         '/logo.png',
         '/logo.svg',
         '/logo.webp',

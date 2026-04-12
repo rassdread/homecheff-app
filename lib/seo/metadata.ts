@@ -48,3 +48,21 @@ export async function getCurrentLanguage(): Promise<'nl' | 'en'> {
 export async function getCurrentDomain(): Promise<string> {
   return MAIN_DOMAIN;
 }
+
+/**
+ * Base URL for Next.js metadata (icons, Open Graph images, etc.) so paths resolve
+ * on the same host as the request (production, preview, localhost) — avoids broken
+ * or cross-origin favicons when MAIN_DOMAIN differs from the active host.
+ */
+export function getMetadataBaseFromHeaders(headersList: Headers): URL {
+  const forwarded = headersList.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const host = forwarded || headersList.get('host') || new URL(MAIN_DOMAIN).host;
+  const protoHeader = headersList.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const local = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+  const proto = protoHeader || (local ? 'http' : 'https');
+  try {
+    return new URL(`${proto}://${host}`);
+  } catch {
+    return new URL(MAIN_DOMAIN);
+  }
+}

@@ -4,7 +4,7 @@ import NavBar from '@/components/NavBar';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
-import { MAIN_DOMAIN, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
+import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } from '@/lib/seo/metadata';
 
 // Lazy load non-critical components for faster initial page load
 const PrivacyNotice = dynamic(() => import('@/components/PrivacyNotice'), {
@@ -38,8 +38,19 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
+const siteIcons: Metadata['icons'] = {
+  icon: [
+    { url: '/favicon.ico', sizes: 'any' },
+    { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
+    { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+  ],
+  apple: '/apple-touch-icon.png',
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
+  const metadataBase = getMetadataBaseFromHeaders(headersList);
   const hostname = headersList.get('host') || '';
   const isEnglishDomain = hostname.includes('homecheff.eu');
   const currentDomain = MAIN_DOMAIN;
@@ -58,6 +69,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
   if (lang === 'en') {
     return {
+      metadataBase,
+      manifest: '/manifest.json',
       title: {
         default: 'HomeCheff - Discover Digital Studios, Gardens and Kitchens',
         template: '%s | HomeCheff',
@@ -80,17 +93,9 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'HomeCheff',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
-        images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
+        images: [{ url: '/icon-192.png', width: 192, height: 192, alt: 'HomeCheff' }],
       },
-      icons: {
-        icon: [
-          { url: `${currentDomain}/favicon.ico`, sizes: 'any' },
-          { url: `${currentDomain}/favicon-32.png`, sizes: '32x32', type: 'image/png' },
-          { url: `${currentDomain}/favicon-48.png`, sizes: '48x48', type: 'image/png' },
-          { url: `${currentDomain}/icon-192.png`, sizes: '192x192', type: 'image/png' },
-        ],
-        apple: `${currentDomain}/apple-touch-icon.png`,
-      },
+      icons: siteIcons,
       alternates: {
         canonical: currentDomain,
         languages: seoHreflangLanguagesOnEu(''),
@@ -110,6 +115,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
+    metadataBase,
+    manifest: '/manifest.json',
     title: {
       default: 'HomeCheff - Ontdek Digitale Ateliers, Tuinen en Keukens',
       template: '%s | HomeCheff',
@@ -131,17 +138,9 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'HomeCheff',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
-      images: [{ url: `${currentDomain}/logo.png`, width: 1200, height: 630, alt: 'HomeCheff' }],
+      images: [{ url: '/icon-192.png', width: 192, height: 192, alt: 'HomeCheff' }],
     },
-    icons: {
-      icon: [
-        { url: `${currentDomain}/favicon.ico`, sizes: 'any' },
-        { url: `${currentDomain}/favicon-32.png`, sizes: '32x32', type: 'image/png' },
-        { url: `${currentDomain}/favicon-48.png`, sizes: '48x48', type: 'image/png' },
-        { url: `${currentDomain}/icon-192.png`, sizes: '192x192', type: 'image/png' },
-      ],
-      apple: `${currentDomain}/apple-touch-icon.png`,
-    },
+    icons: siteIcons,
     alternates: {
       canonical: currentDomain,
       languages: seoHreflangLanguagesOnEu(''),
@@ -184,12 +183,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        {/* Favicon afgeleid van logo.png (vierkant uitgesneden + schaal) */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href={`${MAIN_DOMAIN}/favicon-32.png`} />
-        <link rel="icon" type="image/png" sizes="48x48" href={`${MAIN_DOMAIN}/favicon-48.png`} />
-        <link rel="apple-touch-icon" href={`${MAIN_DOMAIN}/apple-touch-icon.png`} />
+        {/* Icons + manifest: single source of truth in generateMetadata (avoids duplicate link tags). */}
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />

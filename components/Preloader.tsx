@@ -82,7 +82,7 @@ export default function Preloader() {
   useEffect(() => {
     const preloadImages = () => {
       const criticalImages = [
-        '/logo.png', // Logo is in /public/ root
+        '/icon-192.png',
         '/avatar-placeholder.png' // Avatar placeholder (if exists)
       ];
 

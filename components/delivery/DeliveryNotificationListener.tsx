@@ -85,8 +85,8 @@ export default function DeliveryNotificationListener() {
         try {
           const browserNotification = new Notification(data.title, {
             body: data.body,
-            icon: '/logo.png',
-            badge: '/badge.png',
+            icon: '/icon-192.png',
+            badge: '/favicon-48.png',
             tag: `delivery-${notification.displayId}`,
             requireInteraction: data.urgent
           });

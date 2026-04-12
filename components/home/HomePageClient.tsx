@@ -251,7 +251,7 @@ export default function HomePageClient({
     name: 'HomeCheff',
     alternateName: ['homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef', 'HomeCheff platform', 'HomeCheff marktplaats', 'HomeCheff marketplace', 'HomeCheff app', 'HomeCheff website', 'HomeCheff Netherlands', 'HomeCheff Europe'],
     url: currentDomain,
-    logo: { '@type': 'ImageObject', url: `${currentDomain}/logo.png` },
+    logo: { '@type': 'ImageObject', url: `${currentDomain}/icon-192.png` },
     description: language === 'nl' 
       ? 'HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.'
       : 'HomeCheff is a local platform where individuals can sell their handmade products.',
