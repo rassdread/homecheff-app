@@ -485,8 +485,12 @@ export default function HomePageClient({
         </section>
 
         <section
-          className="mx-auto max-w-6xl px-4 sm:px-6"
-          aria-labelledby="home-how-it-works-heading"
+          className={`mx-auto max-w-6xl px-4 sm:px-6 ${infoCollapsed ? "pb-3" : "pb-8 sm:pb-10"}`}
+          aria-labelledby={
+            infoCollapsed
+              ? "home-intro-collapsed-summary"
+              : "home-how-it-works-heading"
+          }
         >
           {infoCollapsed ? (
             <button
@@ -494,11 +498,11 @@ export default function HomePageClient({
               onClick={() => void persistInfoCollapsed(false)}
               className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition hover:bg-gray-50/80 active:bg-gray-50 sm:min-h-14 sm:px-5"
               aria-expanded={false}
-              aria-controls="home-how-it-works-panel"
+              aria-controls="home-intro-expanded-panel"
               aria-label={t("home.infoExpandAria")}
             >
               <span
-                id="home-how-it-works-heading"
+                id="home-intro-collapsed-summary"
                 className="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-800 sm:text-base"
               >
                 {t("home.howItWorksCollapsedSummary")}
@@ -511,99 +515,99 @@ export default function HomePageClient({
             </button>
           ) : (
             <div
-              id="home-how-it-works-panel"
-              className="relative rounded-xl border border-transparent py-6 transition-opacity duration-300 ease-out sm:py-8"
+              id="home-intro-expanded-panel"
+              className="relative space-y-8 py-6 transition-opacity duration-300 ease-out sm:space-y-10 sm:py-8"
             >
               <button
                 type="button"
                 onClick={() => void persistInfoCollapsed(true)}
                 className="absolute right-0 top-0 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:right-1 sm:top-1"
                 aria-expanded
-                aria-controls="home-how-it-works-panel"
+                aria-controls="home-intro-expanded-panel"
                 aria-label={t("home.infoCollapseAria")}
               >
                 <Minus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.25} aria-hidden />
               </button>
-              <h2
-                id="home-how-it-works-heading"
-                className="mb-6 pr-14 text-center text-2xl font-bold text-gray-900 sm:text-3xl"
-              >
-                {t("home.howItWorksTitle")}
-              </h2>
-              <div className="grid gap-4 md:grid-cols-3">
-                {howItWorksSteps.map((step, i) => (
-                  <div
-                    key={`how-step-${i}`}
-                    className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
-                  >
-                    <div className="mb-2 flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
-                        {i + 1}
-                      </span>
-                      <step.icon className="h-5 w-5 text-emerald-600" aria-hidden />
+              <div>
+                <h2
+                  id="home-how-it-works-heading"
+                  className="mb-6 pr-14 text-center text-2xl font-bold text-gray-900 sm:text-3xl"
+                >
+                  {t("home.howItWorksTitle")}
+                </h2>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {howItWorksSteps.map((step, i) => (
+                    <div
+                      key={`how-step-${i}`}
+                      className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                    >
+                      <div className="mb-2 flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                          {i + 1}
+                        </span>
+                        <step.icon className="h-5 w-5 text-emerald-600" aria-hidden />
+                      </div>
+                      <p className="font-semibold text-gray-900">{step.title}</p>
                     </div>
-                    <p className="font-semibold text-gray-900">{step.title}</p>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h2
+                  id="home-earn-section-heading"
+                  className="mb-6 text-center text-2xl font-bold text-gray-900 sm:text-3xl"
+                >
+                  {t("home.earnSectionTitle")}
+                </h2>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {earnCategories.map((cat, i) => (
+                    <div
+                      key={`earn-cat-${i}`}
+                      className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <cat.icon
+                          className={`h-5 w-5 shrink-0 ${
+                            i === 0
+                              ? "text-amber-500"
+                              : i === 1
+                                ? "text-green-600"
+                                : "text-purple-600"
+                          }`}
+                          aria-hidden
+                        />
+                        <h3 className="font-semibold text-gray-900">{cat.title}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600">{cat.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div aria-labelledby="home-feed-sell-banner-heading">
+                <div className="flex min-h-[5.5rem] flex-col gap-4 rounded-xl border border-stone-200/90 bg-white/95 px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                  <div className="min-w-0">
+                    <h2
+                      id="home-feed-sell-banner-heading"
+                      className="text-sm font-semibold text-stone-800"
+                    >
+                      {t("feed.primarySellBannerTitle")}
+                    </h2>
+                    <p className="mt-1 text-sm text-stone-600 leading-snug">
+                      {t("feed.primarySellBannerBody")}
+                    </p>
                   </div>
-                ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full shrink-0 border-emerald-700/40 text-emerald-800 hover:bg-emerald-50/80 sm:w-auto"
+                    onClick={openCreateFlow}
+                  >
+                    {t("feed.primarySellBannerCta")}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pb-10 sm:px-6">
-          <h2 className="mb-6 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-            {t("home.earnSectionTitle")}
-          </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {earnCategories.map((cat, i) => (
-              <div
-                key={`earn-cat-${i}`}
-                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <cat.icon
-                    className={`h-5 w-5 shrink-0 ${
-                      i === 0
-                        ? "text-amber-500"
-                        : i === 1
-                          ? "text-green-600"
-                          : "text-purple-600"
-                    }`}
-                    aria-hidden
-                  />
-                  <h3 className="font-semibold text-gray-900">{cat.title}</h3>
-                </div>
-                <p className="text-sm text-gray-600">{cat.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className="max-w-6xl mx-auto px-4 sm:px-6 pb-6"
-          aria-labelledby="home-feed-sell-banner-heading"
-        >
-          <div className="flex min-h-[5.5rem] flex-col gap-4 rounded-xl border border-stone-200/90 bg-white/95 px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <div className="min-w-0">
-              <h2
-                id="home-feed-sell-banner-heading"
-                className="text-sm font-semibold text-stone-800"
-              >
-                {t("feed.primarySellBannerTitle")}
-              </h2>
-              <p className="mt-1 text-sm text-stone-600 leading-snug">
-                {t("feed.primarySellBannerBody")}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full shrink-0 border-emerald-700/40 text-emerald-800 hover:bg-emerald-50/80 sm:w-auto"
-              onClick={openCreateFlow}
-            >
-              {t("feed.primarySellBannerCta")}
-            </Button>
-          </div>
         </section>
 
         <section
