@@ -38,8 +38,10 @@ const SkipLink = dynamic(() => import('@/components/SkipLink'), {
   ssr: false,
 });
 
-// Tab- + touch-icons: Next file convention (app/favicon.ico, app/icon.png, app/apple-icon.png) — stabieler in Safari dan alleen metadata.icons.
+// Tab- + touch-icons: app/icon.png + app/apple-icon.png (Next). /favicon.ico komt uit public/ + expliciete link met query (Safari cache op blote /favicon.ico).
+// Bump FAVICON_ASSET_Q when je favicon/apple-touch vervangt zodat Safari geen oude (bijv. default host) ico blijft tonen.
 const OG_IMAGE_Q = '?v=hc6';
+const FAVICON_ASSET_Q = '?v=hc7';
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers();
@@ -174,7 +176,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
-        {/* Favicon / apple-touch: app/favicon.ico, app/icon.png, app/apple-icon.png (Next metadata files). Manifest: generateMetadata. */}
+        <link
+          rel="icon"
+          href={`/favicon.ico${FAVICON_ASSET_Q}`}
+          type="image/x-icon"
+          sizes="any"
+        />
+        <link
+          rel="apple-touch-icon"
+          href={`/apple-touch-icon.png${FAVICON_ASSET_Q}`}
+          sizes="180x180"
+        />
+        {/* app/icon.png + app/apple-icon.png: extra Next metadata links. Manifest: generateMetadata. */}
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
