@@ -1,19 +1,22 @@
 ---
-description: Riedel = Add, Commit, Build, Push (geen deploy). Wanneer de gebruiker "riedel" of "doe riedel" zegt.
+description: Riedel = veilige volgorde vóór push (pull/prisma/lint/build), dan git add → commit → push. Geen deploy.
 alwaysApply: true
 ---
 
 # Riedel
 
-**Riedel** is de vaste workflow: **A**dd → **C**ommit → **B**uild → **P**ush (geen Vercel CLI-deploy).
+**Riedel** is de vaste workflow om wijzigingen **logisch en veilig** op Git te zetten: **eerst controleren**, **dan pas vastleggen en pushen**. **Geen** Vercel CLI-deploy (daarvoor: **BCPD** in `.cursor/rules/bcpd.mdc`).
 
 Wanneer de gebruiker **"riedel"**, **"doe riedel"**, **"add commit build push"** of duidelijk hetzelfde bedoelt:
 
-1. **Add** – `git add -A` (in projectroot).
-2. **Commit** – `git commit` met een duidelijke message (samenvatting van de wijzigingen).
-3. **Build** – `npm run build` (in projectroot).
-4. **Push** – `git push origin main` (of de actuele branch).
+1. **`git pull`** — alleen als je op een gedeelde branch werkt en dat past bij de taak (conflicten voorkomen).
+2. **Prisma / database** — alleen als `schema.prisma` of migraties wijzigen:
+   - lokaal nieuwe migratie: `npx prisma migrate dev` (of het npm-script van het project);
+   - alleen controleren: `npx prisma validate` en `npx prisma migrate status`;
+   - **`npx prisma generate`** als het schema wijzigde en dat nodig is.
+3. **Kwaliteit** — **`npm run lint`** en **`npm run build`** (in projectroot) moeten **slagen vóór** commit. Bij fouten stoppen en rapporteren.
+4. **Git** — altijd in deze volgorde: **`git add -A`** → **`git commit`** (duidelijke message) → **`git push origin main`** (of de actuele branch). Niet eerst `commit` en dan pas `add`.
 
-Voer de stappen in **deze volgorde** uit. Bij git- of build-fouten stoppen en de foutmelding rapporteren.
+**Niet** doen: pushen van een commit die bewust niet buildt, tenzij de gebruiker dat expliciet wil.
 
-Voor build → commit → push → deploy gebruik je **BCPD** (`.cursor/rules/bcpd.mdc`), niet Riedel.
+Voor **Build → Commit → Push → Deploy** (productie met Vercel CLI): **BCPD**, niet Riedel.
