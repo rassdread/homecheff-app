@@ -88,6 +88,7 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
   
   const titleTranslation = t('splash.title');
   const subtitleTranslation = t('splash.subtitle');
+  const valuePropositionTranslation = t('splash.valueProposition');
   const inspiratieTranslation = t('navbar.inspiratie');
   const dorpspleinTranslation = t('navbar.dorpsplein');
   
@@ -98,6 +99,17 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
   const splashSubtitle = (isReady && subtitleTranslation) ? subtitleTranslation : (language === 'nl'
     ? 'Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.'
     : 'Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.');
+
+  const splashValueProposition =
+    isReady &&
+    valuePropositionTranslation &&
+    typeof valuePropositionTranslation === 'string' &&
+    valuePropositionTranslation.trim().length > 0 &&
+    valuePropositionTranslation !== 'splash.valueProposition'
+      ? valuePropositionTranslation
+      : language === 'nl'
+        ? 'Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.'
+        : 'Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.';
   
   const inspiratieText = (isReady && inspiratieTranslation) ? inspiratieTranslation : (language === 'nl' ? 'Inspiratie' : 'Inspiration');
   const dorpspleinText = (isReady && dorpspleinTranslation) ? dorpspleinTranslation : (language === 'nl' ? 'Dorpsplein' : 'Village Square');
@@ -163,7 +175,7 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
             </div>
             <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 leading-tight px-2">{splashTitle}</h1>
             <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
-            <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{t('hero.valueProposition')}</p>
+            <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
               <Link href="/inspiratie"><Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"><Lightbulb className="w-4 h-4" />{inspiratieText}</Button></Link>
               <Link href="/dorpsplein"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>

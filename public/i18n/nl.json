@@ -63,7 +63,7 @@
   },
   "hero": {
     "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
-    "valueProposition": "Koop lokaal van je buren of verkoop wat je maakt — veilig betalen, direct uitbetaald.",
+    "valueProposition": "Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.",
     "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
     "greeting": "Welkom, {username}! Wat zal het vandaag worden?",
     "searchPlaceholder": "Zoek naar gerechten, producten of verkopers…",
@@ -76,9 +76,9 @@
     "permissionCheckFailed": "Toestemmingscontrole mislukt"
   },
   "categories": {
-    "chef": "Chef",
-    "garden": "Garden",
-    "designer": "Designer",
+    "chef": "Thuiskok",
+    "garden": "Tuin / oogst",
+    "designer": "Design",
     "all": "Alles"
   },
   "messages": {
@@ -3975,24 +3975,24 @@
   "home": {
     "loading": "Laden...",
     "seoHubLink": "Alle gidsen en onderwerpen (SEO-hub)",
-    "heroCollapsedLabel": "Verdienen in jouw buurt",
+    "heroCollapsedLabel": "Welkom & ontdekken",
     "heroExpandAria": "Welkom-sectie uitklappen",
     "heroCollapseAria": "Welkom-sectie inklappen",
     "howItWorksTitle": "Hoe het werkt",
-    "howItWorksCollapsedSummary": "Plaats wat je maakt → buurt ziet het → jij verdient.",
-    "infoExpandAria": "Intro uitklappen: hoe het werkt, verdienen in de buurt en verkopen",
-    "infoCollapseAria": "Intro inklappen: hoe het werkt, verdienen in de buurt en verkopen",
+    "howItWorksCollapsedSummary": "Deel wat je maakt → de buurt ziet het → jij bepaalt je volgende stap.",
+    "infoExpandAria": "Intro uitklappen: hoe het werkt, categorieën en starten met delen",
+    "infoCollapseAria": "Intro inklappen: hoe het werkt, categorieën en starten met delen",
     "heroAriaLabel": "Welkom hero",
-    "heroEyebrow": "Verdien geld met wat je al kunt — gewoon in jouw buurt.",
-    "heroTitle": "Verdien geld met wat je al kunt",
-    "heroSubtitle": "Kook, maak en verkoop — en vind direct klanten in jouw buurt.",
+    "heroEyebrow": "Digitale ateliers, tuinen en keukens — dichterbij dan je denkt.",
+    "heroTitle": "Ontdek wat mensen in jouw buurt maken",
+    "heroSubtitle": "Van inspiratie tot het dorpsplein: lokaal ontmoeten, duidelijke afspraken.",
     "heroCtaSecondary": "Ontdek aanbod",
     "heroLangNl": "🇳🇱 NL",
     "heroLangEn": "🇬🇧 EN",
     "howItWorksStep1Title": "Plaats wat je maakt",
     "howItWorksStep2Title": "Mensen uit jouw buurt zien het",
-    "howItWorksStep3Title": "Jij verdient",
-    "earnSectionTitle": "Verdienen in jouw buurt",
+    "howItWorksStep3Title": "Jij kiest je volgende stap",
+    "earnSectionTitle": "Mogelijkheden in jouw buurt",
     "categoryCheffTitle": "Thuiskoks (eten)",
     "categoryCheffDescription": "Maak je eten? Verkoop je gerechten lokaal.",
     "categoryGardenTitle": "Tuin / producten",
@@ -4938,6 +4938,7 @@
   "splash": {
     "title": "Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.",
     "subtitle": "Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.",
+    "valueProposition": "Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.",
     "affiliate": "Affiliate 12-12",
     "affiliateTemporary": "⚠️ Tijdelijk! We nemen affiliates aan"
   },
