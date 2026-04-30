@@ -217,7 +217,7 @@ export default function NavBar() {
               onClick={() => router.push('/')}
             >
               <Home className="w-4 h-4" />
-              <span>Home</span>
+              <span>{t("navbar.home")}</span>
             </Button>
             <Button
               type="button"
@@ -226,7 +226,7 @@ export default function NavBar() {
               onClick={handleVerdienenClick}
             >
               <DollarSign className="w-4 h-4" />
-              <span>Verdienen</span>
+              <span>{t("bottomNav.earn")}</span>
             </Button>
             <Link href="/werken-bij">
               <Button variant="ghost" className="flex items-center space-x-2">
@@ -237,7 +237,7 @@ export default function NavBar() {
             <Link href={user ? "/profile" : "/login"}>
               <Button variant="ghost" className="flex items-center space-x-2">
                 <User className="w-4 h-4" />
-                <span>Profiel</span>
+                <span>{t("bottomNav.profile")}</span>
               </Button>
             </Link>
 
@@ -275,7 +275,7 @@ export default function NavBar() {
                     {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
                         src={userProfile?.profileImage || userProfile?.image || user?.image || ''}
-                        alt="Profielfoto"
+                        alt={t("navbar.profileImage")}
                         width={32}
                         height={32}
                         className="rounded-full border-2 border-primary-200 flex-shrink-0"
@@ -357,7 +357,7 @@ export default function NavBar() {
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
                         <DollarSign className="w-4 h-4" />
-                        <span>Mijn Verdiensten</span>
+                        <span>{t("earningsPage.title")}</span>
                       </Link>
                       
                       <Link 
@@ -443,7 +443,7 @@ export default function NavBar() {
                           }}
                         >
                           <TrendingUp className="w-4 h-4" />
-                          <span>Affiliate Dashboard</span>
+                          <span>{t("navbar.affiliateDashboard")}</span>
                         </Link>
                       )}
 
@@ -508,7 +508,7 @@ export default function NavBar() {
                 }}
               >
                 <Home className="w-4 h-4" />
-                <span>Home</span>
+                <span>{t("navbar.home")}</span>
               </Button>
               
               <Button
@@ -518,7 +518,7 @@ export default function NavBar() {
                 onClick={handleVerdienenClick}
               >
                 <DollarSign className="w-4 h-4" />
-                <span>Verdienen</span>
+                <span>{t("bottomNav.earn")}</span>
               </Button>
               
               <Link href="/werken-bij" onClick={() => setIsMobileMenuOpen(false)}>
@@ -531,7 +531,7 @@ export default function NavBar() {
               <Link href={user ? "/profile" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                   <User className="w-4 h-4" />
-                  <span>Profiel</span>
+                  <span>{t("bottomNav.profile")}</span>
                 </Button>
               </Link>
 
@@ -588,7 +588,7 @@ export default function NavBar() {
                     {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
                         src={userProfile?.profileImage || userProfile?.image || user?.image || ''}
-                        alt="Profielfoto"
+                        alt={t("navbar.profileImage")}
                         width={32}
                         height={32}
                         className="rounded-full border-2 border-primary-200"
@@ -640,7 +640,7 @@ export default function NavBar() {
                   <Link href="/verdiensten" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                       <DollarSign className="w-4 h-4" />
-                      <span>Mijn Verdiensten</span>
+                      <span>{t("earningsPage.title")}</span>
                     </Button>
                   </Link>
                   
@@ -709,7 +709,7 @@ export default function NavBar() {
                     <Link href="/affiliate/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-emerald-600">
                         <TrendingUp className="w-4 h-4" />
-                        <span>Affiliate Dashboard</span>
+                        <span>{t("navbar.affiliateDashboard")}</span>
                       </Button>
                     </Link>
                   )}

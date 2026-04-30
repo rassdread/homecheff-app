@@ -842,16 +842,14 @@ export default function GeoFeed({
         <div className="w-full">
           {locationError && locationSource !== "profile" && (
             <p className="text-xs text-red-600 mb-2">
-              ⚠️ Locatie kon niet worden bepaald
+              ⚠️ {t("common.locationCouldNotBeDetermined")}
             </p>
           )}
           {userLocation && (
             <p className="text-xs text-green-600 mb-2">
-              {locationSource === "gps" && "✅ Jouw locatie wordt gebruikt"}
-              {locationSource === "profile" &&
-                "📍 Profiel locatie wordt gebruikt"}
-              {locationSource === "manual" &&
-                "📍 Handmatige locatie wordt gebruikt"}
+              {locationSource === "gps" && t("common.locationUsingGps")}
+              {locationSource === "profile" && t("common.locationUsingProfile")}
+              {locationSource === "manual" && t("common.locationUsingManual")}
             </p>
           )}
           {!userLocation && !place && (

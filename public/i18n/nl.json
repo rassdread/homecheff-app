@@ -441,6 +441,7 @@
     "subtitle": "cheff, garden en design netwerk"
   },
   "navbar": {
+    "home": "Home",
     "dorpsplein": "Dorpsplein",
     "inspiratie": "Inspiratie",
     "faq": "FAQ",
@@ -1738,6 +1739,10 @@
     "goBack": "Ga terug",
     "getLocation": "Locatie ophalen...",
     "typePlaceOrPostcode": "Typ een plaats of postcode",
+    "locationCouldNotBeDetermined": "Locatie kon niet worden bepaald",
+    "locationUsingGps": "✅ Jouw locatie wordt gebruikt",
+    "locationUsingProfile": "📍 Profiel locatie wordt gebruikt",
+    "locationUsingManual": "📍 Handmatige locatie wordt gebruikt",
     "decryptionKey": "Decryptie sleutel",
     "clearingMessages": "Berichten wissen...",
     "messagesClearedSuccess": "✅ Alle berichten succesvol gewist!",

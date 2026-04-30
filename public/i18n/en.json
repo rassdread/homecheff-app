@@ -1561,6 +1561,7 @@
     "subtitle": "cheff, garden and design network"
   },
   "navbar": {
+    "home": "Home",
     "dorpsplein": "Village Square",
     "inspiratie": "Inspiration",
     "faq": "FAQ",
@@ -2435,6 +2436,10 @@
     "goBack": "Go back",
     "getLocation": "Get location...",
     "typePlaceOrPostcode": "Type a place or postcode",
+    "locationCouldNotBeDetermined": "Location could not be determined",
+    "locationUsingGps": "✅ Your location is being used",
+    "locationUsingProfile": "📍 Profile location is being used",
+    "locationUsingManual": "📍 Manual location is being used",
     "decryptionKey": "Decryption key",
     "clearingMessages": "Clearing messages...",
     "messagesClearedSuccess": "✅ All messages successfully cleared!",
