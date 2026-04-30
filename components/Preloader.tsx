@@ -3,94 +3,62 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+/** Wacht tot de browser rustig is zodat eerste paint / feed niet concurreert met tientallen prefetch-JS downloads. */
+function runWhenIdle(fn: () => void, timeoutMs: number) {
+  if (typeof requestIdleCallback !== 'undefined') {
+    const id = requestIdleCallback(() => fn(), { timeout: timeoutMs });
+    return () => cancelIdleCallback(id);
+  }
+  const t = setTimeout(fn, Math.min(timeoutMs, 4000));
+  return () => clearTimeout(t);
+}
+
 export default function Preloader() {
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Preload critical routes - expanded list for faster navigation
-    const criticalRoutes = [
-      '/messages',
-      '/profile',
-      '/login',
-      '/register',
-      '/',
-      '/?chip=sale',
-      '/orders',
-      '/favorites',
-      '/faq',
-      // Dashboard routes - prefetch if user might have access
-      '/admin',
-      '/verkoper',
-      '/verkoper/dashboard',
-      '/verkoper/orders',
-      '/verkoper/analytics',
-      '/verkoper/revenue',
-      '/delivery/dashboard',
-      '/affiliate/dashboard',
-    ];
+    // Alleen kernroutes — geen admin/verkoper (zware bundles) voor elke bezoeker.
+    const criticalRoutes = ['/login', '/register', '/inspiratie', '/messages', '/profile'];
 
-    // Preload critical routes immediately (no delay for faster navigation)
-    const preloadRoutes = () => {
-      criticalRoutes.forEach(route => {
-        // Only prefetch if not already on that route
+    const cancel = runWhenIdle(() => {
+      criticalRoutes.forEach((route) => {
         if (pathname !== route && !pathname?.startsWith(route)) {
           router.prefetch(route);
         }
       });
-    };
+    }, 6000);
 
-    // Preload immediately after mount for faster navigation
-    preloadRoutes();
-    
-    // Also preload after short delay to catch any missed routes
-    const timer = setTimeout(preloadRoutes, 500);
-
-    return () => clearTimeout(timer);
+    return cancel;
   }, [router, pathname]);
 
   useEffect(() => {
-    // Preload critical API endpoints - faster timing for better UX
-    const preloadAPIs = async () => {
+    const cancel = runWhenIdle(() => {
       try {
-        // Preload user data (if logged in)
         if (pathname !== '/login' && pathname !== '/register') {
           fetch('/api/profile/me', { method: 'HEAD' }).catch(() => {});
+          fetch('/api/conversations', { method: 'HEAD', credentials: 'include' }).catch(
+            () => {}
+          );
         }
-        
-        // Preload conversations (if logged in)
-        if (pathname !== '/login' && pathname !== '/register') {
-          fetch('/api/conversations', { method: 'HEAD', credentials: 'include' }).catch(() => {});
-        }
-        
-        // Preload products (for dorpsplein/inspiratie)
         if (pathname === '/' || pathname === '/inspiratie') {
           fetch('/api/products?limit=10', { method: 'HEAD' }).catch(() => {});
         }
-      } catch (error) {
-        // Silently fail
+      } catch {
+        /* ignore */
       }
-    };
+    }, 12000);
 
-    // Preload after 1 second (faster than before)
-    const timer = setTimeout(preloadAPIs, 1000);
-
-    return () => clearTimeout(timer);
+    return cancel;
   }, [pathname]);
 
-  // Preload images
   useEffect(() => {
     const preloadImages = () => {
-      const criticalImages = [
-        '/icon-192.png',
-        '/avatar-placeholder.png' // Avatar placeholder (if exists)
-      ];
+      const criticalImages = ['/icon-192.png', '/avatar-placeholder.png'];
 
-      criticalImages.forEach(src => {
+      criticalImages.forEach((src) => {
         const img = new Image();
-        img.onerror = () => {
-          // Silently fail if image doesn't exist - not critical
-        };
+        img.onerror = () => {};
         img.src = src;
       });
     };

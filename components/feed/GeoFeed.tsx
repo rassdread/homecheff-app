@@ -415,8 +415,9 @@ export default function GeoFeed({
 
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
-      enableHighAccuracy: true,
-      timeout: 15000,
+      // Sneller eerste fix voor afstandssortering; hoge nauwkeurigheid houdt mobiel vaak seconden bezig.
+      enableHighAccuracy: false,
+      timeout: 10000,
       maximumAge: 300000,
       fallbackToManual: false,
       onFallback: () => {},
@@ -431,9 +432,12 @@ export default function GeoFeed({
     setFeedChip(initialFeedChip ?? "all");
   }, [initialFeedChip]);
 
+  // Vermijd dubbele DB/API-work: homepage levert al batch via SSR. Grotere pool pas na idle (geen race met /api/feed).
   useEffect(() => {
     let cancel = false;
-    (async () => {
+    const minServerBatch = 12;
+
+    const runClientInspiratieFetch = async () => {
       try {
         const res = await fetch("/api/inspiratie?take=48&sortBy=newest");
         if (!res.ok || cancel) return;
@@ -444,11 +448,37 @@ export default function GeoFeed({
       } catch {
         /* keep initial/server items */
       }
-    })();
+    };
+
+    if (initialInspiratieItems.length >= minServerBatch) {
+      let ricId: number | undefined;
+      let timerId: ReturnType<typeof setTimeout> | undefined;
+      if (typeof requestIdleCallback !== "undefined") {
+        ricId = requestIdleCallback(
+          () => {
+            if (!cancel) void runClientInspiratieFetch();
+          },
+          { timeout: 8000 }
+        );
+      } else {
+        timerId = setTimeout(() => {
+          if (!cancel) void runClientInspiratieFetch();
+        }, 3500);
+      }
+      return () => {
+        cancel = true;
+        if (ricId != null && typeof cancelIdleCallback !== "undefined") {
+          cancelIdleCallback(ricId);
+        }
+        if (timerId != null) clearTimeout(timerId);
+      };
+    }
+
+    void runClientInspiratieFetch();
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [initialInspiratieItems.length]);
 
   useEffect(() => {
     const loadProfileLocation = async () => {
