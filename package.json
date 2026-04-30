@@ -23,6 +23,7 @@
     "start:lan": "next start -p 3000 -H 0.0.0.0",
     "start:local": "npm run clean && npm run build && (lsof -ti:3000 | xargs kill -9 2>/dev/null || true) && next start -p 3000",
     "lint": "eslint",
+    "smoke-check": "node scripts/smoke-check.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && npx vercel --prod",
     "deploy:quick": "npx vercel --prod",

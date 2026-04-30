@@ -14,7 +14,7 @@ Wanneer de gebruiker **"riedel"**, **"doe riedel"**, **"add commit build push"**
    - lokaal nieuwe migratie: `npx prisma migrate dev` (of het npm-script van het project);
    - alleen controleren: `npx prisma validate` en `npx prisma migrate status`;
    - **`npx prisma generate`** als het schema wijzigde en dat nodig is.
-3. **Kwaliteit** — **`npm run lint`** en **`npm run build`** (in projectroot) moeten **slagen vóór** commit. Bij fouten stoppen en rapporteren.
+3. **Kwaliteit** — **`npm run lint`**, daarna **`npm run smoke-check`** (Prisma-schema, belangrijkste env-variabelen, DB-ping, kritieke route-bestanden), daarna **`npm run build`**. Alles moet **slagen vóór** commit. Echte browserflows (inloggen, betaling, upload) blijven **handmatig** of aparte E2E; `smoke-check` vervangt dat niet. Bij fouten stoppen en rapporteren.
 4. **Git** — altijd in deze volgorde: **`git add -A`** → **`git commit`** (duidelijke message) → **`git push origin main`** (of de actuele branch). Niet eerst `commit` en dan pas `add`.
 
 **Niet** doen: pushen van een commit die bewust niet buildt, tenzij de gebruiker dat expliciet wil.
