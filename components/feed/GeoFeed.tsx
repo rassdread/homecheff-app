@@ -426,8 +426,9 @@ export default function GeoFeed({
     setInspiratiePool(initialInspiratieItems);
   }, [initialInspiratieItems]);
 
+  // Altijd server/URL-chip volgen: bij terug naar `/` zonder chip moet weer "all" (was: oude chip bleef hangen).
   useEffect(() => {
-    if (initialFeedChip != null) setFeedChip(initialFeedChip);
+    setFeedChip(initialFeedChip ?? "all");
   }, [initialFeedChip]);
 
   useEffect(() => {
