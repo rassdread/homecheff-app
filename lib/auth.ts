@@ -5,7 +5,6 @@ import NextAuth from "next-auth";
 import { getServerSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
@@ -81,34 +80,6 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID || "",
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
-      authorization: {
-        params: {
-          scope: "email,public_profile",
-        },
-      },
-      profile(profile) {
-        // Facebook can return picture in different formats
-        let imageUrl = null;
-        if (profile.picture?.data?.url) {
-          imageUrl = profile.picture.data.url;
-        } else if (profile.picture) {
-          imageUrl = typeof profile.picture === 'string' ? profile.picture : profile.picture.url;
-        }
-        
-        return {
-          id: profile.id,
-          name: profile.name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-          email: profile.email,
-          image: imageUrl,
-          // Facebook provides first_name and last_name separately
-          firstName: profile.first_name || '',
-          lastName: profile.last_name || '',
-        };
-      },
-    }),
     Credentials({
       name: "Inloggen",
       credentials: {
@@ -166,7 +137,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" || account?.provider === "facebook" || account?.provider === "apple") {
+      if (account?.provider === "google" || account?.provider === "apple") {
         try {
 
           // Check if user exists in database
@@ -187,7 +158,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name || existingUser.name,
             };
             
-            // Mark email as verified for social login (Google/Facebook already verified it)
+            // Mark email as verified for social login (provider verified it)
             if (!existingUser.emailVerified) {
               updateData.emailVerified = new Date();
             }
@@ -242,7 +213,7 @@ export const authOptions: NextAuthOptions = {
                 socialOnboardingCompleted: false, // Needs onboarding!
                 termsAccepted: false,
                 privacyPolicyAccepted: false,
-                // Mark email as verified for social login (Google/Facebook already verified it)
+                // Mark email as verified for social login (provider verified it)
                 emailVerified: new Date(),
                 // Set default values to match regular registration
                 displayFullName: true,
@@ -261,7 +232,7 @@ export const authOptions: NextAuthOptions = {
             (user as any).isNewSocialUser = true;
             
             // Store firstName and lastName from provider for onboarding form
-            // These come from the provider profile functions (Google: given_name/family_name, Facebook: first_name/last_name)
+            // These come from the provider profile functions (e.g. Google: given_name/family_name)
             (user as any).firstName = (user as any).firstName || '';
             (user as any).lastName = (user as any).lastName || '';
           }
@@ -298,9 +269,9 @@ export const authOptions: NextAuthOptions = {
           minimalToken.isNewSocialUser = true;
         }
         // Set flag if this is a social login provider (only store provider name)
-        if (account?.provider === "google" || account?.provider === "facebook" || account?.provider === "apple") {
+        if (account?.provider === "google" || account?.provider === "apple") {
           minimalToken.isSocialLogin = true;
-          minimalToken.socialProvider = account.provider; // 'google', 'facebook', or 'apple' - very short (5-8 chars)
+          minimalToken.socialProvider = account.provider; // 'google' or 'apple'
           
           // Store firstName/lastName temporarily for onboarding (only for new social users)
           // These will be used to pre-fill the registration form
@@ -326,7 +297,7 @@ export const authOptions: NextAuthOptions = {
         // Only preserve boolean flags (minimal size - 1 byte each)
         if ((token as any).isNewSocialUser) minimalToken.isNewSocialUser = true;
         if ((token as any).isSocialLogin) minimalToken.isSocialLogin = true;
-        if ((token as any).socialProvider) minimalToken.socialProvider = String((token as any).socialProvider).substring(0, 8); // Max 8 chars ('facebook')
+        if ((token as any).socialProvider) minimalToken.socialProvider = String((token as any).socialProvider).substring(0, 8);
         if ((token as any).needsOnboarding) minimalToken.needsOnboarding = true;
         if ((token as any).tempUsername) minimalToken.tempUsername = true;
         if ((token as any).socialOnboardingCompleted) minimalToken.socialOnboardingCompleted = true;
@@ -559,7 +530,7 @@ export const authOptions: NextAuthOptions = {
       };
 
       try {
-        if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/facebook') || url.includes('/api/auth/callback/apple')) {
+        if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/apple')) {
           return actualBaseUrl + '/social-login-success';
         }
         if (url.includes('/social-login-success')) {
@@ -577,7 +548,7 @@ export const authOptions: NextAuthOptions = {
         return forceSameDomain(res);
       } catch (error) {
         console.error('🔍 Redirect error:', error);
-        if (url.includes('google') || url.includes('facebook') || url.includes('apple')) {
+        if (url.includes('google') || url.includes('apple')) {
           return actualBaseUrl + '/social-login-success';
         }
         return actualBaseUrl + '/';

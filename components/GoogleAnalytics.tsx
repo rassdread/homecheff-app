@@ -253,7 +253,7 @@ export const trackAddToCart = (productData: {
 
 // Track registration with user type
 export const trackRegistration = (registrationData: {
-  method: 'email' | 'google' | 'facebook' | 'phone';
+  method: 'email' | 'google' | 'phone';
   userRole?: string;
   buyerRoles?: string[];
   sellerRoles?: string[];
@@ -280,7 +280,7 @@ export const trackRegistration = (registrationData: {
 };
 
 // Track login
-export const trackLogin = (method: 'email' | 'google' | 'facebook' | 'phone') => {
+export const trackLogin = (method: 'email' | 'google' | 'phone') => {
   trackEvent('login', {
     method,
   });

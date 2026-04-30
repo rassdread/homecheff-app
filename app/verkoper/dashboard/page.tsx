@@ -15,7 +15,7 @@ export default async function SellerDashboardPageWrapper() {
   const userId = (session.user as any).id;
 
   // Check email verification - redirect if not verified
-  // Note: Social login users (Google/Facebook) have emailVerified set automatically
+  // Note: Social login users (e.g. Google) have emailVerified set automatically
   const emailCheckUser = await prisma.user.findUnique({
     where: { id: userId },
     select: { 
@@ -48,7 +48,7 @@ export default async function SellerDashboardPageWrapper() {
   }
 
   // Only redirect if emailVerified is null (not verified), not if it's a Date (verified)
-  // Skip redirect for social login users - their email is already verified by Google/Facebook
+  // Skip redirect for social login users - their email is already verified by the OAuth provider
   if (!emailCheckUser || (emailCheckUser.emailVerified === null && !hasSocialAccount)) {
     redirect(`/verify-email?email=${encodeURIComponent(session.user.email || '')}`);
   }

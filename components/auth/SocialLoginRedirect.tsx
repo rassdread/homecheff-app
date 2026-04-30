@@ -16,7 +16,7 @@ import { usePathname } from 'next/navigation';
  * This component ONLY acts as a safety net for users who navigate away from onboarding
  * 
  * Flow:
- * 1. User logs in with social (Google/Facebook)
+ * 1. User logs in with social (e.g. Google)
  * 2. social-login-success page redirects to /register?social=true
  * 3. register page handles onboarding
  * 4. If user navigates away, this component redirects back to /register?social=true
