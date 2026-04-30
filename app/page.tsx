@@ -1,10 +1,24 @@
 import { getInspiratieItems } from '@/lib/getInspiratieItems';
 import HomePageClient from '@/components/home/HomePageClient';
 
+type HomeFeedChip = 'all' | 'sale' | 'inspiration';
+
 /**
- * Server component: laad eerste batch inspiratie server-side zodat de feed direct zichtbaar is (geen lege omheining).
+ * Server component: eerste batch inspiratie + optionele feed-chip (/?chip=sale|inspiration|all#homecheff-feed).
  */
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: { chip?: string };
+}) {
   const { items } = await getInspiratieItems({ take: 24, skip: 0, sortBy: 'newest' });
-  return <HomePageClient initialInspiratieItems={items} />;
+  const raw = searchParams?.chip;
+  const initialFeedChip: HomeFeedChip | undefined =
+    raw === 'sale' || raw === 'inspiration' || raw === 'all' ? raw : undefined;
+  return (
+    <HomePageClient
+      initialInspiratieItems={items}
+      initialFeedChip={initialFeedChip}
+    />
+  );
 }

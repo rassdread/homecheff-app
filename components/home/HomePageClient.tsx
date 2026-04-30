@@ -8,16 +8,22 @@ import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import InspiratieContent from "@/components/inspiratie/InspiratieContent";
+import GeoFeed from "@/components/feed/GeoFeed";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
+
+type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
 const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
 
 type Props = {
   initialInspiratieItems?: InspirationItem[];
+  initialFeedChip?: HomeFeedChip;
 };
 
-export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
+export default function HomePageClient({
+  initialInspiratieItems = [],
+  initialFeedChip,
+}: Props) {
   const { t, language, changeLanguage, isReady } = useTranslation();
   const { data: session } = useSession();
   const [splashDismissed, setSplashDismissed] = useState(false);
@@ -177,8 +183,8 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
             <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
             <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
-              <Link href="/inspiratie"><Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"><Lightbulb className="w-4 h-4" />{inspiratieText}</Button></Link>
-              <Link href="/inspiratie?bron=dorpsplein"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>
+              <Link href="/?chip=inspiration#homecheff-feed"><Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"><Lightbulb className="w-4 h-4" />{inspiratieText}</Button></Link>
+              <Link href="/?chip=sale#homecheff-feed"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>
               {(!isSubAffiliate || !affiliateCheckComplete) && (
                 <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
               )}
@@ -192,7 +198,12 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
         </section>
       )}
       <main className="min-h-[60vh]">
-        <InspiratieContent initialItems={initialInspiratieItems} />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <GeoFeed
+            initialInspiratieItems={initialInspiratieItems}
+            initialFeedChip={initialFeedChip}
+          />
+        </div>
       </main>
     </>
   );

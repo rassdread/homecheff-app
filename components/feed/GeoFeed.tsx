@@ -766,7 +766,7 @@ export default function GeoFeed({
   const emptyAll = feedChip === "all" && !loading && displayCount === 0;
 
   return (
-    <div className="space-y-4">
+    <div id="homecheff-feed" className="space-y-4">
       <div className="flex flex-wrap gap-3 items-end bg-white/60 rounded-xl p-4 border border-gray-200">
         <div className="flex-1 min-w-[180px]">
           <label className="block text-base font-semibold mb-1">
