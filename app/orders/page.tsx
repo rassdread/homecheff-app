@@ -238,7 +238,7 @@ export default function OrdersPage() {
               }
             </p>
             <Link
-              href="/dorpsplein"
+              href="/inspiratie?bron=dorpsplein"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold"
             >
               Verder winkelen

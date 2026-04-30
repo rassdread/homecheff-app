@@ -107,7 +107,7 @@ export default function OnboardingTour({
           setChainSuppress(dontShowAgain);
           setChainedTarget('home');
           try { (window as any).__homecheffTourActive = false; } catch {}
-          window.location.href = '/dorpsplein?tour=chain';
+          window.location.href = '/inspiratie?bron=dorpsplein&tour=chain';
           return; // do not mark completed yet
         }
       } catch {}

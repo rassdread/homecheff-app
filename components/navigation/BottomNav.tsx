@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Home, Lightbulb, MessageCircle, User, HelpCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -18,18 +18,21 @@ export default function BottomNav() {
 
   if (shouldHide) return null;
 
+  const isDorpspleinHub =
+    pathname === '/inspiratie' && searchParams.get('bron') === 'dorpsplein';
+
   const navItems = [
     {
       label: t('bottomNav.dorpsplein'),
       icon: Home,
-      href: '/dorpsplein',
-      active: pathname === '/dorpsplein' || pathname === '/',
+      href: '/inspiratie?bron=dorpsplein',
+      active: isDorpspleinHub || pathname === '/',
     },
     {
       label: t('bottomNav.inspiratie'),
       icon: Lightbulb,
       href: '/inspiratie',
-      active: pathname?.startsWith('/inspiratie'),
+      active: Boolean(pathname?.startsWith('/inspiratie')) && !isDorpspleinHub,
     },
     {
       label: t('bottomNav.messages'),

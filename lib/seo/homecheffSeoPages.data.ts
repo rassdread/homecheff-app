@@ -47,7 +47,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Bekijk inspiratie", href: "/inspiratie" },
       },
     },
@@ -91,7 +91,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Explore inspiration", href: "/inspiratie" },
       },
     },
@@ -141,7 +141,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Account aanmaken", href: "/register" },
       },
     },
@@ -185,7 +185,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Create an account", href: "/register" },
       },
     },
@@ -235,7 +235,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Neem contact op", href: "/contact" },
       },
     },
@@ -279,7 +279,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Contact us", href: "/contact" },
       },
     },
@@ -330,7 +330,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       },
       cta: {
         primary: { label: "Bekijk wat anderen maken", href: "/inspiratie" },
-        secondary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        secondary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
       },
     },
     en: {
@@ -374,7 +374,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       },
       cta: {
         primary: { label: "Explore what others make", href: "/inspiratie" },
-        secondary: { label: "Discover local offers", href: "/dorpsplein" },
+        secondary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
       },
     },
   },
@@ -422,7 +422,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Bekijk inspiratie", href: "/inspiratie" },
       },
     },
@@ -465,7 +465,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Explore inspiration", href: "/inspiratie" },
       },
     },
@@ -966,7 +966,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       },
       cta: {
         primary: { label: "Start met verkopen", href: "/sell" },
-        secondary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        secondary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
       },
     },
     en: {
@@ -1008,7 +1008,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       },
       cta: {
         primary: { label: "Start selling", href: "/sell" },
-        secondary: { label: "Discover local offers", href: "/dorpsplein" },
+        secondary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
       },
     },
   },
@@ -1054,7 +1054,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Veelgestelde vragen", href: "/faq" },
       },
     },
@@ -1095,7 +1095,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "FAQ", href: "/faq" },
       },
     },
@@ -1233,7 +1233,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Inspiratie", href: "/inspiratie" },
       },
     },
@@ -1275,7 +1275,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Inspiration", href: "/inspiratie" },
       },
     },
@@ -1321,7 +1321,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Start met verkopen", href: "/sell" },
       },
     },
@@ -1361,7 +1361,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Start selling", href: "/sell" },
       },
     },
@@ -1408,7 +1408,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Meer over maaltijden Rotterdam", href: "/maaltijden/rotterdam" },
       },
     },
@@ -1449,7 +1449,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "More on meals in Rotterdam", href: "/maaltijden/rotterdam" },
       },
     },
@@ -1495,7 +1495,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Maaltijden Amsterdam", href: "/maaltijden/amsterdam" },
       },
     },
@@ -1535,7 +1535,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Meals in Amsterdam hub", href: "/maaltijden/amsterdam" },
       },
     },
@@ -1581,7 +1581,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Maaltijden Den Haag", href: "/maaltijden/den-haag" },
       },
     },
@@ -1621,7 +1621,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "The Hague meals hub", href: "/maaltijden/den-haag" },
       },
     },
@@ -1667,7 +1667,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Maaltijden Utrecht", href: "/maaltijden/utrecht" },
       },
     },
@@ -1707,7 +1707,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Utrecht meals hub", href: "/maaltijden/utrecht" },
       },
     },
@@ -1753,7 +1753,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Ontdek lokaal aanbod", href: "/dorpsplein" },
+        primary: { label: "Ontdek lokaal aanbod", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Maaltijden Eindhoven", href: "/maaltijden/eindhoven" },
       },
     },
@@ -1793,7 +1793,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       cta: {
-        primary: { label: "Discover local offers", href: "/dorpsplein" },
+        primary: { label: "Discover local offers", href: "/inspiratie?bron=dorpsplein" },
         secondary: { label: "Eindhoven meals hub", href: "/maaltijden/eindhoven" },
       },
     },

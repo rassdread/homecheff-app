@@ -55,7 +55,7 @@ export default function OrderList() {
         title={t('emptyState.ordersTitle')}
         description={t('emptyState.ordersDesc')}
         actionLabel={t('emptyState.ordersAction')}
-        actionHref="/dorpsplein"
+        actionHref="/inspiratie?bron=dorpsplein"
       />
     );
   }

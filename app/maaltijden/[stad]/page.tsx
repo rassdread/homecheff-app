@@ -59,7 +59,7 @@ export default function MaaltijdenStadPage({
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/dorpsplein"
+            href="/inspiratie?bron=dorpsplein"
             className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             Naar het dorpsplein

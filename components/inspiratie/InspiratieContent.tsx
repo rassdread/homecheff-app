@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo, createElement } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { ChefHat, Sprout, Palette, Filter, Grid, List, TrendingUp, Eye, Lightbulb, X, ChevronDown, PlayCircle, Star, MessageSquare, MapPin, Navigation, Search, SlidersHorizontal, Globe } from 'lucide-react';
 import Image from 'next/image';
@@ -62,9 +62,14 @@ export type InspirationItem = {
 type InspiratieContentProps = {
   /** Server-side geladen items (homepage): direct tonen, geen skeleton */
   initialItems?: InspirationItem[];
+  /** In ontdek-hub: geen eigen hero, filters standaard uitgeklapt */
+  layout?: 'page' | 'hub';
 };
 
-export default function InspiratieContent({ initialItems = [] }: InspiratieContentProps) {
+export default function InspiratieContent({
+  initialItems = [],
+  layout = 'page',
+}: InspiratieContentProps) {
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -82,7 +87,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
   const [selectedRegion, setSelectedRegion] = useState<string>('all'); // New: region filter
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'distance' | 'views' | 'rating' | 'props'>('newest');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(layout === 'hub');
   const [filtersLabelMounted, setFiltersLabelMounted] = useState(false); // avoid hydration mismatch: server "" vs client "Filters"
   const [hasMounted, setHasMounted] = useState(false); // avoid hydration: translations/data kunnen server vs client verschillen
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
@@ -101,7 +106,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
   const [minViews, setMinViews] = useState<number>(0);
   const [minProps, setMinProps] = useState<number>(0);
   const [minRating, setMinRating] = useState<number>(0);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(layout === 'hub');
   
   // Promo modal state
   const [showPromoModal, setShowPromoModal] = useState(false);
@@ -640,13 +645,22 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
     router.push(getItemDetailUrl(item));
   };
 
-  return (
-    <main className="min-h-[100dvh] bg-gradient-to-br from-amber-50 via-emerald-50 to-blue-50" data-inspiratie-page>
+  return createElement(
+    layout === 'hub' ? 'div' : 'main',
+    layout === 'hub'
+      ? { className: 'min-h-0 bg-transparent', 'data-inspiratie-hub': true }
+      : {
+          className:
+            'min-h-[100dvh] bg-gradient-to-br from-amber-50 via-emerald-50 to-blue-50',
+          'data-inspiratie-page': true,
+        },
+    <>
       {/* Onboarding Tour for Inspiratie */}
       <ClientOnly>
         <OnboardingTour pageId="inspiratie" autoStart={false} />
       </ClientOnly>
-      {/* Hero Header */}
+      {/* Hero Header (alleen volledige inspiratie-pagina; hub heeft gedeelde hero) */}
+      {layout === 'page' && (
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
@@ -673,8 +687,10 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
           </div>
         </div>
       </div>
+      )}
 
       {/* Tour trigger button */}
+      {layout === 'page' && (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
         <ClientOnly>
           <div className="flex justify-center items-center w-full">
@@ -682,6 +698,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
           </div>
         </ClientOnly>
       </div>
+      )}
 
       {/* Filters + content: na mount om hydration mismatch te voorkomen; tot die tijd skeleton */}
       {!hasMounted ? (
@@ -1259,7 +1276,7 @@ export default function InspiratieContent({ initialItems = [] }: InspiratieConte
         ctaText={t('inspiratie.promoModal.ctaText') || "Meld je aan en deel inspiratie"}
         modalType="inspiratie-item"
       />
-    </main>
+    </>
   );
 }
 

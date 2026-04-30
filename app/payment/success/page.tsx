@@ -355,7 +355,7 @@ function PaymentSuccessContent() {
               Naar Mijn Aankopen
             </Link>
             <Link
-              href="/dorpsplein"
+              href="/inspiratie?bron=dorpsplein"
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 border border-neutral-200 text-neutral-700 rounded-xl hover:bg-neutral-50 transition-colors font-semibold"
             >
               <Package className="w-5 h-5" />

@@ -15,7 +15,7 @@ export default function Preloader() {
       '/login',
       '/register',
       '/inspiratie',
-      '/dorpsplein',
+      '/inspiratie?bron=dorpsplein',
       '/orders',
       '/favorites',
       '/faq',
@@ -64,7 +64,7 @@ export default function Preloader() {
         }
         
         // Preload products (for dorpsplein/inspiratie)
-        if (pathname === '/' || pathname === '/dorpsplein' || pathname === '/inspiratie') {
+        if (pathname === '/' || pathname === '/inspiratie') {
           fetch('/api/products?limit=10', { method: 'HEAD' }).catch(() => {});
         }
       } catch (error) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface PageSwipeHandlerProps {
   enabled?: boolean; // Allow parent to disable if needed
@@ -14,6 +14,7 @@ interface PageSwipeHandlerProps {
  */
 export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -22,7 +23,7 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
 
   useEffect(() => {
     // Only enable on Inspiratie and Dorpsplein pages
-    if (!enabled || (pathname !== '/inspiratie' && pathname !== '/dorpsplein' && pathname !== '/')) {
+    if (!enabled || (pathname !== '/inspiratie' && pathname !== '/')) {
       return;
     }
 
@@ -120,15 +121,17 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
 
       // Only navigate if swipe is significant enough
       if (absDiff > minSwipeDistance) {
-        // Swipe left (right to left) - go to Inspiratie
-        if (diff > 0 && (pathname === '/dorpsplein' || pathname === '/')) {
+        const onDorpspleinTab =
+          pathname === '/inspiratie' && searchParams.get('bron') === 'dorpsplein';
+        // Swipe left — naar inspiratie-tab
+        if (diff > 0 && (onDorpspleinTab || pathname === '/')) {
           e.preventDefault();
-          router.push('/inspiratie');
+          router.replace('/inspiratie');
         }
-        // Swipe right (left to right) - go to Dorpsplein
-        else if (diff < 0 && pathname === '/inspiratie') {
+        // Swipe right — naar dorpsplein-tab
+        else if (diff < 0 && pathname === '/inspiratie' && !onDorpspleinTab) {
           e.preventDefault();
-          router.push('/dorpsplein');
+          router.replace('/inspiratie?bron=dorpsplein');
         }
       }
 
@@ -147,7 +150,7 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [pathname, router, enabled]);
+  }, [pathname, searchParams, router, enabled]);
 
   // This component doesn't render anything
   return null;

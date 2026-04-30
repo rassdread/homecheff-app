@@ -137,7 +137,7 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
       : 'HomeCheff is a local platform where individuals can sell their handmade products.',
     contactPoint: { '@type': 'ContactPoint', contactType: 'Customer Service', email: 'support@homecheff.eu', availableLanguage: ['Dutch', 'English'] },
     areaServed: { '@type': 'Country', name: 'Netherlands' },
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/dorpsplein?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/inspiratie?bron=dorpsplein&q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
   
   const websiteStructuredData = {
@@ -151,7 +151,7 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
       : 'HomeCheff - Discover digital studios, gardens and kitchens in your neighborhood.',
     publisher: { '@type': 'Organization', name: 'HomeCheff' },
     inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/dorpsplein?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/inspiratie?bron=dorpsplein&q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
   
   return (
@@ -178,13 +178,13 @@ export default function HomePageClient({ initialInspiratieItems = [] }: Props) {
             <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
               <Link href="/inspiratie"><Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"><Lightbulb className="w-4 h-4" />{inspiratieText}</Button></Link>
-              <Link href="/dorpsplein"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>
+              <Link href="/inspiratie?bron=dorpsplein"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>
               {(!isSubAffiliate || !affiliateCheckComplete) && (
                 <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
               )}
             </div>
             <p className="text-xs text-white/80 mt-4">
-              <Link href="/dorpsplein" className="underline hover:text-white">{dorpspleinText}</Link>
+              <Link href="/inspiratie?bron=dorpsplein" className="underline hover:text-white">{dorpspleinText}</Link>
               {' · '}<Link href="/inspiratie" className="underline hover:text-white">{inspiratieText}</Link>
               {' · '}<Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
             </p>

@@ -325,7 +325,7 @@ export default async function ProductLayout({
             '@type': 'ListItem',
             position: 2,
             name: squareLabel,
-            item: `${currentDomain}/dorpsplein`,
+            item: `${currentDomain}/inspiratie?bron=dorpsplein`,
           },
           {
             '@type': 'ListItem',

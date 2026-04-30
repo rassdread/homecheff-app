@@ -288,6 +288,12 @@
     "profilePhotoAlt": "Profielfoto",
     "swipeForNextPhoto": "Veeg voor volgende foto"
   },
+  "discover": {
+    "hubTitle": "Ontdekken",
+    "hubSubtitle": "Inspiratie uit de community en te koop op het dorpsplein — wissel met de tabs hieronder. Uitgeklapte filters helpen je snel verfijnen.",
+    "listingTypeLabel": "Toon",
+    "listingTabsAria": "Kies inspiratie of dorpsplein"
+  },
   "inspiratie": {
     "title": "Inspiratie",
     "welcomeBack": "Welkom terug!",

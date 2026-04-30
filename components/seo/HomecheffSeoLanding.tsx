@@ -170,7 +170,7 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dorpsplein" className="hover:underline">
+                  <Link href="/inspiratie?bron=dorpsplein" className="hover:underline">
                     {locale === "nl" ? "Dorpsplein" : "Village square"}
                   </Link>
                 </li>

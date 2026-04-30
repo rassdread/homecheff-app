@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import InspiratieContent from '@/components/inspiratie/InspiratieContent';
+import DiscoverHubClient from '@/components/discover/DiscoverHubClient';
 import type { Metadata } from 'next';
 import {
   getCurrentDomain,
@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
   if (lang === 'en') {
     return {
-      title: 'Inspiration - HomeCheff',
-      description: 'Discover what\'s happening in your neighborhood — recipes, fresh harvests and unique creations from people around you. HomeCheff inspiration page.',
+      title: 'Discover - HomeCheff',
+      description: 'Discover inspiration and village-square listings near you — recipes, harvests, designs and local products. One place to explore HomeCheff.',
       keywords: [
         'HomeCheff inspiration', 'homecheff recipes', 'homecheff ideas',
         'homemade recipes', 'local inspiration', 'neighborhood recipes',
@@ -22,8 +22,8 @@ export async function generateMetadata(): Promise<Metadata> {
         'HomeCheff', 'homecheff', 'local marketplace inspiration',
       ],
       openGraph: {
-        title: 'Inspiration - HomeCheff',
-        description: 'Discover what\'s happening in your neighborhood — recipes, fresh harvests and unique creations from people around you',
+        title: 'Discover - HomeCheff',
+        description: 'Discover inspiration and village-square listings near you — recipes, harvests, designs and local products.',
         type: 'website',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
@@ -42,8 +42,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
   
   return {
-    title: 'Inspiratie - HomeCheff',
-    description: 'Ontdek wat er leeft in jouw buurt — recepten, verse oogst en unieke creaties van mensen om je heen. HomeCheff inspiratie pagina.',
+    title: 'Ontdekken - HomeCheff',
+    description: 'Ontdek inspiratie en dorpsplein-aanbiedingen bij jou in de buurt — recepten, oogst, designs en lokale producten. Eén plek om HomeCheff te verkennen.',
     keywords: [
       'HomeCheff inspiratie', 'homecheff recepten', 'homecheff ideeën',
       'thuisgemaakte recepten', 'lokale inspiratie', 'buurt recepten',
@@ -51,8 +51,8 @@ export async function generateMetadata(): Promise<Metadata> {
       'HomeCheff', 'homecheff', 'lokale marktplaats inspiratie',
     ],
     openGraph: {
-      title: 'Inspiratie - HomeCheff',
-      description: 'Ontdek wat er leeft in jouw buurt — recepten, verse oogst en unieke creaties van mensen om je heen',
+      title: 'Ontdekken - HomeCheff',
+      description: 'Ontdek inspiratie en dorpsplein-aanbiedingen bij jou in de buurt — recepten, oogst, designs en lokale producten.',
       type: 'website',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
@@ -80,7 +80,7 @@ export default function InspiratiePage() {
         </div>
       </div>
     }>
-      <InspiratieContent />
+      <DiscoverHubClient />
     </Suspense>
   );
 }
