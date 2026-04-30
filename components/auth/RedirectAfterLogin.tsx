@@ -28,9 +28,8 @@ export default function RedirectAfterLogin() {
       if (isFromAuthFlow) {
         hasRedirected.current = true;
         
-        // Redirect based on role - focus op inspiratie voor iedereen
-        // Iedereen gaat naar inspiratie (standaard startpagina)
-        router.push('/inspiratie');
+        // Standaard startpagina: home (zelfde als homecheff.eu /)
+        router.push('/');
       }
     }
   }, [session, status, router]);

@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     } else if (roleValue === UserRole.DELIVERY) {
       redirectUrl = "/delivery/dashboard?welcome=true&newUser=true";
     } else if (roleValue === UserRole.BUYER) {
-      redirectUrl = "/inspiratie?welcome=true&newUser=true";
+      redirectUrl = "/?welcome=true&newUser=true";
     }
     
     return NextResponse.json({ 

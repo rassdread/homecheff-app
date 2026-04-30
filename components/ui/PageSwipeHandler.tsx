@@ -123,12 +123,26 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
       if (absDiff > minSwipeDistance) {
         const onDorpspleinTab =
           pathname === '/inspiratie' && searchParams.get('bron') === 'dorpsplein';
-        // Swipe left — naar inspiratie-tab
-        if (diff > 0 && (onDorpspleinTab || pathname === '/')) {
+        const chip = searchParams.get('chip');
+        const onHomeSaleOrAll =
+          pathname === '/' &&
+          (chip === 'sale' || chip === 'all' || chip == null || chip === '');
+        const onHomeInspiration = pathname === '/' && chip === 'inspiration';
+
+        // Homepage: swipe left → inspiratie-chip, swipe right → sale-chip
+        if (diff > 0 && pathname === '/' && onHomeSaleOrAll) {
+          e.preventDefault();
+          router.replace('/?chip=inspiration#homecheff-feed');
+        } else if (diff < 0 && onHomeInspiration) {
+          e.preventDefault();
+          router.replace('/?chip=sale#homecheff-feed');
+        }
+        // Ontdek-hub: van dorpsplein-tab naar inspiratie-tab binnen /inspiratie
+        else if (diff > 0 && onDorpspleinTab) {
           e.preventDefault();
           router.replace('/inspiratie');
         }
-        // Swipe right — naar dorpsplein-tab
+        // Swipe right — naar dorpsplein-tab binnen /inspiratie
         else if (diff < 0 && pathname === '/inspiratie' && !onDorpspleinTab) {
           e.preventDefault();
           router.replace('/inspiratie?bron=dorpsplein');

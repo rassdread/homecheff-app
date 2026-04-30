@@ -59,13 +59,13 @@ export default function MaaltijdenStadPage({
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/inspiratie?bron=dorpsplein"
+            href="/?chip=sale#homecheff-feed"
             className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             Naar het dorpsplein
           </Link>
           <Link
-            href="/inspiratie"
+            href="/#homecheff-feed"
             className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
           >
             Inspiratie

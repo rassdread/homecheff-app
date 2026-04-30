@@ -55,7 +55,7 @@ export default function OrderList() {
         title={t('emptyState.ordersTitle')}
         description={t('emptyState.ordersDesc')}
         actionLabel={t('emptyState.ordersAction')}
-        actionHref="/inspiratie?bron=dorpsplein"
+        actionHref="/?chip=sale#homecheff-feed"
       />
     );
   }

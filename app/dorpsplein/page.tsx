@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Dorpsplein staat samen met inspiratie op `/inspiratie?bron=dorpsplein` (één ontdek-pagina). */
+/** Dorpsplein-feed op de homepage (GeoFeed, chip sale). */
 export default function DorpspleinRedirectPage() {
-  redirect('/inspiratie?bron=dorpsplein');
+  redirect('/?chip=sale');
 }

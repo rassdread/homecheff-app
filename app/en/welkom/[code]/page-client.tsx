@@ -13,7 +13,7 @@ export default function WelkomClient({ code, isValid, language = 'nl' }: { code:
   useEffect(() => {
     if (!isValid) {
       // Invalid code, redirect immediately
-      setTimeout(() => router.push(isEnglish ? '/en/inspiratie' : '/inspiratie'), 2000);
+      setTimeout(() => router.push('/'), 2000);
       return;
     }
 
@@ -22,7 +22,7 @@ export default function WelkomClient({ code, isValid, language = 'nl' }: { code:
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push(isEnglish ? '/en/inspiratie' : '/inspiratie');
+          router.push('/');
           return 0;
         }
         return prev - 1;
@@ -30,7 +30,7 @@ export default function WelkomClient({ code, isValid, language = 'nl' }: { code:
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isValid, router, isEnglish]);
+  }, [isValid, router]);
 
   if (!isValid) {
     return (
@@ -48,7 +48,7 @@ export default function WelkomClient({ code, isValid, language = 'nl' }: { code:
               : 'Deze uitnodigingslink is niet geldig of verlopen.'}
           </p>
           <Link
-            href={isEnglish ? '/en/inspiratie' : '/inspiratie'}
+            href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
           >
             {isEnglish ? 'Go to HomeCheff' : 'Naar HomeCheff'}
@@ -112,7 +112,7 @@ export default function WelkomClient({ code, isValid, language = 'nl' }: { code:
         {/* CTA Button */}
         <div className="space-y-4">
           <Link
-            href={isEnglish ? '/en/inspiratie' : '/inspiratie'}
+            href="/"
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-semibold text-lg"
           >
             {isEnglish ? 'Explore HomeCheff' : 'Verken HomeCheff'}

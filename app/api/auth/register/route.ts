@@ -392,15 +392,15 @@ export async function POST(req: NextRequest) {
 
     // Als bedrijf met abonnement: start Stripe Checkout direct
     let checkoutUrl: string | null = null;
-    // Bepaal redirect URL op basis van rol - focus op inspiratie
-    let redirectUrl = "/inspiratie"; // Default naar inspiratie (nieuwe startpagina)
-    
+    // Standaard: homepage met gemengde feed; verkopers met bedrijf naar sell-flow
+    let redirectUrl = "/";
+
     if (isBusiness && hasSellerRole) {
-      redirectUrl = "/sell"; // Bedrijven kiezen hun abonnement na registratie via de sell-pagina
+      redirectUrl = "/sell";
     } else if (userRole === 'SELLER') {
-      redirectUrl = "/inspiratie"; // Verkopers zonder bedrijf gaan naar inspiratie
+      redirectUrl = "/";
     } else if (userRole === 'BUYER') {
-      redirectUrl = "/inspiratie"; // Kopers naar inspiratie (nieuwe startpagina)
+      redirectUrl = "/";
     }
 
     const requiresPayment = false; // Abonnement wordt na registratie gekozen op /sell

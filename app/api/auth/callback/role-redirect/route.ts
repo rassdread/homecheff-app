@@ -13,10 +13,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
     
-    // Redirect everyone to inspiratie (standaard startpagina)
-    return NextResponse.redirect(new URL('/inspiratie', req.url));
+    // Standaard startpagina: home (gemengde feed + filters op homecheff.eu)
+    return NextResponse.redirect(new URL('/', req.url));
   } catch (error) {
     console.error('Role redirect error:', error);
-    return NextResponse.redirect(new URL('/inspiratie', req.url));
+    return NextResponse.redirect(new URL('/', req.url));
   }
 }

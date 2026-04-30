@@ -23,12 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
         title: 'Village Square - HomeCheff',
         description: 'Discover local makers and their unique products on the Village Square. HomeCheff marketplace.',
         type: 'website',
-        url: `${currentDomain}/inspiratie?bron=dorpsplein`,
+        url: `${currentDomain}/?chip=sale`,
         siteName: 'HomeCheff',
       },
       alternates: {
-        canonical: `${currentDomain}/inspiratie?bron=dorpsplein`,
-        languages: seoHreflangLanguagesOnEu('/inspiratie?bron=dorpsplein'),
+        canonical: `${currentDomain}/?chip=sale`,
+        languages: seoHreflangLanguagesOnEu('/?chip=sale'),
       },
       robots: {
         index: true,
@@ -50,12 +50,12 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Dorpsplein - HomeCheff',
       description: 'Ontdek lokale makers en hun unieke producten op het Dorpsplein. HomeCheff marktplaats.',
       type: 'website',
-      url: `${currentDomain}/inspiratie?bron=dorpsplein`,
+      url: `${currentDomain}/?chip=sale`,
       siteName: 'HomeCheff',
     },
     alternates: {
-      canonical: `${currentDomain}/inspiratie?bron=dorpsplein`,
-      languages: seoHreflangLanguagesOnEu('/inspiratie?bron=dorpsplein'),
+      canonical: `${currentDomain}/?chip=sale`,
+      languages: seoHreflangLanguagesOnEu('/?chip=sale'),
     },
     robots: {
       index: true,

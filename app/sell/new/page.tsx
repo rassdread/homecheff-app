@@ -609,7 +609,7 @@ function HomeCheffProductNieuwPageContent() {
                 location={inspiratieLocation}
                 initialPhoto={initialPhoto}
                 onSave={() => {
-                  window.location.href = "/inspiratie";
+                  window.location.href = "/?chip=inspiration#homecheff-feed";
                 }}
                 onCancel={() => setPhase("wizard-2-inspiratie")}
               />

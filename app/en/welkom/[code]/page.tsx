@@ -13,7 +13,7 @@ export default async function WelkomPageEN({
   const code = params.code;
 
   if (!code) {
-    redirect('/en/inspiratie');
+    redirect('/');
   }
 
   // Validate referral code

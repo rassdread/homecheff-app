@@ -1473,7 +1473,7 @@ export default function ProductPage() {
                   <p className="font-semibold text-gray-800">Verder ontdekken</p>
                   <ul className="flex flex-col gap-2 text-emerald-700">
                     <li>
-                      <Link href="/inspiratie?bron=dorpsplein" className="hover:underline">
+                      <Link href="/?chip=sale#homecheff-feed" className="hover:underline">
                         Ontdek het dorpsplein
                       </Link>
                     </li>
@@ -1499,7 +1499,7 @@ export default function ProductPage() {
                       </li>
                     ) : null}
                     <li>
-                      <Link href="/inspiratie" className="hover:underline">
+                      <Link href="/#homecheff-feed" className="hover:underline">
                         Inspiratie en recepten
                       </Link>
                     </li>

@@ -103,7 +103,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   Voeg producten toe aan je winkelwagen om verder te gaan
                 </p>
                 <Link
-                  href="/inspiratie"
+                  href="/#homecheff-feed"
                   onClick={onClose}
                   className="px-8 py-4 bg-primary-brand text-white rounded-xl hover:bg-primary-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
                 >

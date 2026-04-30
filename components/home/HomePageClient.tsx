@@ -143,7 +143,7 @@ export default function HomePageClient({
       : 'HomeCheff is a local platform where individuals can sell their handmade products.',
     contactPoint: { '@type': 'ContactPoint', contactType: 'Customer Service', email: 'support@homecheff.eu', availableLanguage: ['Dutch', 'English'] },
     areaServed: { '@type': 'Country', name: 'Netherlands' },
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/inspiratie?bron=dorpsplein&q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}#homecheff-feed` }, 'query-input': 'required name=search_term_string' },
   };
   
   const websiteStructuredData = {
@@ -157,7 +157,7 @@ export default function HomePageClient({
       : 'HomeCheff - Discover digital studios, gardens and kitchens in your neighborhood.',
     publisher: { '@type': 'Organization', name: 'HomeCheff' },
     inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
-    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/inspiratie?bron=dorpsplein&q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+    potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}#homecheff-feed` }, 'query-input': 'required name=search_term_string' },
   };
   
   return (
@@ -190,8 +190,8 @@ export default function HomePageClient({
               )}
             </div>
             <p className="text-xs text-white/80 mt-4">
-              <Link href="/inspiratie?bron=dorpsplein" className="underline hover:text-white">{dorpspleinText}</Link>
-              {' · '}<Link href="/inspiratie" className="underline hover:text-white">{inspiratieText}</Link>
+              <Link href="/?chip=sale#homecheff-feed" className="underline hover:text-white">{dorpspleinText}</Link>
+              {' · '}<Link href="/?chip=inspiration#homecheff-feed" className="underline hover:text-white">{inspiratieText}</Link>
               {' · '}<Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
             </p>
           </div>

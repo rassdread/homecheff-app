@@ -24,7 +24,7 @@ export default function NotFound() {
             {t('notFound.home')}
           </Link>
           <Link
-            href="/inspiratie"
+            href="/?chip=inspiration#homecheff-feed"
             className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           >
             {t('notFound.inspiratie')}

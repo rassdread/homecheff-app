@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/delivery/dashboard', request.url));
     }
 
-    // User doesn't have delivery profile, redirect to inspiratie
-    return NextResponse.redirect(new URL('/inspiratie', request.url));
+    // Geen bezorgprofiel: terug naar homepage
+    return NextResponse.redirect(new URL('/', request.url));
 
   } catch (error) {
     console.error('Delivery redirect error:', error);

@@ -12,7 +12,7 @@ export default function UitnodigingClient({ code, isValid }: { code: string; isV
   useEffect(() => {
     if (!isValid) {
       // Invalid code, redirect immediately
-      setTimeout(() => router.push('/inspiratie'), 2000);
+      setTimeout(() => router.push('/'), 2000);
       return;
     }
 
@@ -21,7 +21,7 @@ export default function UitnodigingClient({ code, isValid }: { code: string; isV
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/inspiratie');
+          router.push('/');
           return 0;
         }
         return prev - 1;
@@ -41,7 +41,7 @@ export default function UitnodigingClient({ code, isValid }: { code: string; isV
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Uitnodiging niet gevonden</h1>
           <p className="text-gray-600 mb-6">Deze uitnodigingslink is niet geldig of verlopen.</p>
           <Link
-            href="/inspiratie"
+            href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
           >
             Naar HomeCheff
@@ -95,7 +95,7 @@ export default function UitnodigingClient({ code, isValid }: { code: string; isV
         {/* CTA Button */}
         <div className="space-y-4">
           <Link
-            href="/inspiratie"
+            href="/"
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-semibold text-lg"
           >
             Verken HomeCheff

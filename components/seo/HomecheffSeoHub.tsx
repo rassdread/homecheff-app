@@ -105,7 +105,7 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
               </Link>
             </p>
             <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-              <Link href="/inspiratie?bron=dorpsplein" className="text-emerald-700 hover:underline">
+              <Link href="/?chip=sale#homecheff-feed" className="text-emerald-700 hover:underline">
                 {isNl ? "Dorpsplein" : "Village square"}
               </Link>
               <Link href="/sell" className="text-emerald-700 hover:underline">
