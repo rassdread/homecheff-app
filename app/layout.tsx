@@ -1,6 +1,7 @@
 import './globals.css';
 import Providers from '@/components/Providers';
 import NavBar from '@/components/NavBar';
+import AppPageChrome from '@/components/AppPageChrome';
 import { headers, cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
@@ -202,10 +203,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <UserValidation />
           <OnlineStatusTracker />
           <NavBar />
-          <main id="main-content" tabIndex={-1}>
-            {children}
-          </main>
-          <Footer />
+          <AppPageChrome>
+            <main id="main-content" tabIndex={-1} className="min-w-0 outline-none">
+              {children}
+            </main>
+            <Footer />
+          </AppPageChrome>
           <BottomNavigation />
           <PrivacyNotice />
         </Providers>

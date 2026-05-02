@@ -411,7 +411,7 @@ export default function AffiliateDashboardClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 max-w-full">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -585,7 +585,7 @@ export default function AffiliateDashboardClient() {
 
             {/* Referral Link & QR Code */}
             {referralCode ? (
-              <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-xl shadow-lg border-2 border-emerald-300 p-8">
+              <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-xl shadow-lg border-2 border-emerald-300 p-4 sm:p-6 lg:p-8 max-w-full">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-full mb-4 shadow-lg">
                     <Gift className="w-8 h-8 text-white" />
@@ -655,11 +655,11 @@ export default function AffiliateDashboardClient() {
                   </div>
                 </div>
 
-                {/* QR Code Section */}
-                <div className="border-t pt-6">
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                {/* QR Code Section — grid i.p.v. flex: voorkomt smalle rechterkolom / clipping (Safari) */}
+                <div className="border-t border-emerald-200/80 pt-6">
+                  <div className="grid w-full grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
                     {/* QR Code Display */}
-                    <div className="bg-white p-4 rounded-lg border-2 border-gray-200 flex-shrink-0">
+                    <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm justify-self-center lg:justify-self-start w-fit max-w-full">
                       {referralCode && typeof window !== 'undefined' ? (
                         <QRCodeSVG
                           value={getReferralLink()}
@@ -676,17 +676,17 @@ export default function AffiliateDashboardClient() {
                     </div>
 
                     {/* QR Code Info & Actions */}
-                    <div className="flex-1">
-                      <h4 className="text-md font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <QrCode className="w-5 h-5 text-emerald-600" />
+                    <div className="min-w-0 w-full max-w-full text-center lg:text-left">
+                      <h4 className="text-base font-semibold text-gray-900 mb-2 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                        <QrCode className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                         {t('affiliate.dashboard.qrCodeTitle')}
                       </h4>
-                      <p className="text-sm text-gray-600 mb-4">
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed break-words">
                         {t('affiliate.dashboard.qrCodeDesc')}
                       </p>
                       
                       {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
                         <button
                           onClick={() => downloadQRCode('standard', 'png')}
                           disabled={downloading || !qrCodeUrl}
@@ -705,7 +705,7 @@ export default function AffiliateDashboardClient() {
                         </button>
                       </div>
                       
-                      <p className="text-xs text-gray-500 mt-4">
+                      <p className="text-xs text-gray-500 mt-4 leading-relaxed break-words">
                         {t('affiliate.dashboard.qrCodeHint')}
                       </p>
                     </div>

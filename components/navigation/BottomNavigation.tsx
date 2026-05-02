@@ -9,6 +9,7 @@ import PromoModal from '@/components/promo/PromoModal';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
+import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -21,9 +22,7 @@ export default function BottomNavigation() {
   const { data: session, status: sessionStatus } = useSession();
   const { t } = useTranslation();
   
-  // Hide on certain pages (admin, delivery dashboard, verkoper, login, register, etc.)
-  const hideOnPaths = ['/admin', '/delivery', '/verkoper', '/login', '/register', '/auth', '/signin'];
-  const shouldHide = hideOnPaths.some(path => pathname?.startsWith(path));
+  const shouldHide = isBottomNavigationHidden(pathname);
   
   // Quick Add State
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);

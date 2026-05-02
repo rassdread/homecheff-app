@@ -408,7 +408,7 @@ export default function AffiliatePageClient() {
 
         {/* CTA - Simple */}
         {session?.user && (
-          <div className="bg-white rounded-lg shadow-sm border p-6 text-center mb-6 pb-20 md:pb-6">
+          <div className="bg-white rounded-lg shadow-sm border p-6 text-center mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">{t('affiliate.readyToStart')}</h2>
             <p className="text-sm text-gray-600 mb-4">
               {userData ? t('affiliate.readyToStartDesc') : t('affiliate.readyToStartDescNew')}
