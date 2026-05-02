@@ -33,6 +33,7 @@ export async function generateMetadata({
   }
 
   const displayName = user.name || user.username || "Profiel";
+  const title = `${displayName} | HomeCheff`;
   const description = user.bio
     ? user.bio.substring(0, 155) + (user.bio.length > 155 ? "..." : "")
     : `${displayName} op HomeCheff`;

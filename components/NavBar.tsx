@@ -13,7 +13,7 @@ import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
-import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, forceSessionReset, clearNextAuthData } from '@/lib/session-cleanup';
+import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, clearNextAuthData } from '@/lib/session-cleanup';
 import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -186,13 +186,14 @@ export default function NavBar() {
   };
 
   const handleLogout = async () => {
-    // Clear all user data and NextAuth data for complete session isolation
+    // Lokale data weg. HttpOnly session-cookies kan JS niet wissen — alleen signOut-response wel.
     clearAllUserData();
-    clearNextAuthData();
-    
-    // Sign out and force complete session reset
-    await signOut({ redirect: false });
-    forceSessionReset();
+    try {
+      await signOut({ callbackUrl: '/', redirect: true });
+    } catch {
+      clearNextAuthData();
+      window.location.assign('/');
+    }
   };
 
   const handleVerdienenClick = () => {

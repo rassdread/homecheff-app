@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Settings, User, Shield, Bell, Palette, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { clearAllUserData, clearNextAuthData } from '@/lib/session-cleanup';
 
 interface SettingsMenuProps {
   isOpen: boolean;
@@ -122,8 +123,13 @@ export default function SettingsMenu({ isOpen, onClose, activeSection, setActive
             <button 
               onClick={async () => {
                 const { signOut } = await import('next-auth/react');
-                await signOut({ callbackUrl: "/" });
-                window.location.href = "/";
+                clearAllUserData();
+                try {
+                  await signOut({ callbackUrl: "/", redirect: true });
+                } catch {
+                  clearNextAuthData();
+                  window.location.assign("/");
+                }
               }}
               className="w-full flex items-center justify-center space-x-2 p-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
             >

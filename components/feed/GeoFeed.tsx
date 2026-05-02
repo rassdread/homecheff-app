@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import {
@@ -382,7 +382,10 @@ export default function GeoFeed({
   const [inspiratiePool, setInspiratiePool] = useState<InspirationItem[]>(
     initialInspiratieItems
   );
-  const [loading, setLoading] = useState(true);
+  /** Eerste /api/feed: geen skeleton-blok; daarna wel bij filterwijziging (snellere eerste indruk). */
+  const [loading, setLoading] = useState(false);
+  const feedInteractionStartedRef = useRef(false);
+  const [feedHydrated, setFeedHydrated] = useState(false);
   const [radius, setRadius] = useState(25);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState("");
@@ -511,10 +514,9 @@ export default function GeoFeed({
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
-    if (locationSupported && !coords && !locationLoading) {
-      getCurrentPosition();
-    }
-  }, [locationSupported, coords, locationLoading, getCurrentPosition]);
+    // Geen automatische GPS op homepage: voorkomt lange "Loading" (prompt/timeout) en concurreert niet met eerste feed.
+    // Locatie alleen via knop of profiel (ingelogd) / handmatige plaats.
+  }, []);
 
   useEffect(() => {
     if (coords) {
@@ -570,7 +572,9 @@ export default function GeoFeed({
 
   useEffect(() => {
     const fetchItems = async () => {
-      setLoading(true);
+      if (feedInteractionStartedRef.current) {
+        setLoading(true);
+      }
       const params = new URLSearchParams();
       if (place.trim()) {
         params.set("place", place.trim());
@@ -592,6 +596,8 @@ export default function GeoFeed({
         console.error("Error fetching items:", error);
       } finally {
         setLoading(false);
+        feedInteractionStartedRef.current = true;
+        setFeedHydrated(true);
       }
     };
     fetchItems();
@@ -791,10 +797,17 @@ export default function GeoFeed({
     }`;
 
   const emptySale =
-    feedChip === "sale" && !loading && sortedSales.length === 0;
+    feedChip === "sale" &&
+    !loading &&
+    feedHydrated &&
+    sortedSales.length === 0;
   const emptyInsp =
-    feedChip === "inspiration" && !loading && inspirationSlots.length === 0;
-  const emptyAll = feedChip === "all" && !loading && displayCount === 0;
+    feedChip === "inspiration" &&
+    !loading &&
+    feedHydrated &&
+    inspirationSlots.length === 0;
+  const emptyAll =
+    feedChip === "all" && !loading && feedHydrated && displayCount === 0;
 
   return (
     <div id="homecheff-feed" className="space-y-4">
