@@ -16,6 +16,7 @@ const CATEGORY_MAP: Record<string, any> = {
 const DELIVERY_MAP: Record<string, any> = {
   PICKUP: 'PICKUP',
   DELIVERY: 'DELIVERY',
+  SHIPPING: 'SHIPPING',
   BOTH: 'BOTH',
 };
 

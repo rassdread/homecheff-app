@@ -16,6 +16,29 @@ type Platform = 'dorpsplein' | 'inspiratie';
 type Category = 'CHEFF' | 'GARDEN' | 'DESIGNER';
 type Location = 'keuken' | 'tuin' | 'atelier' | 'recepten' | 'kweken' | 'designs';
 
+function QuickAddMediaPreview({ media, alt }: { media: string; alt: string }) {
+  const isVideo = media.startsWith('data:video/');
+  if (isVideo) {
+    return (
+      <video
+        src={media}
+        className="w-full max-h-48 object-contain rounded-xl border-2 border-gray-200 bg-black"
+        controls
+        playsInline
+        muted
+        preload="metadata"
+      />
+    );
+  }
+  return (
+    <img
+      src={media}
+      alt={alt}
+      className="w-full h-32 object-cover rounded-xl border-2 border-gray-200"
+    />
+  );
+}
+
 export default function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
@@ -546,9 +569,10 @@ export default function BottomNavigation() {
     
     console.log('Final photoUrl:', photoUrl ? `Yes (${photoUrl.length} chars)` : 'No');
     
-    // CRITICAL: Compress photo before storing to avoid storage quota errors
+    // Compress alleen foto's — video's niet door canvas/compressDataUrl halen
+    const srcIsVideo = !!photoUrl && photoUrl.startsWith('data:video/');
     let compressedPhotoUrl = photoUrl;
-    if (photoUrl) {
+    if (photoUrl && !srcIsVideo) {
       try {
         console.log('Compressing photo for storage...');
         compressedPhotoUrl = await compressDataUrl(photoUrl, 1920, 1080, 0.7, 500);
@@ -557,12 +581,10 @@ export default function BottomNavigation() {
         console.log(`Photo compressed: ${originalSizeKB}KB -> ${compressedSizeKB}KB`);
       } catch (error) {
         console.error('Error compressing photo, using original:', error);
-        // Continue with original if compression fails
       }
     }
     
-    // Check if photo is actually a video
-    const isVideo = compressedPhotoUrl?.startsWith('data:video/') || false;
+    const isVideo = srcIsVideo || compressedPhotoUrl?.startsWith('data:video/') || false;
     
     // CRITICAL: Save everything to storage BEFORE navigation
     // This ensures data is available when the new page loads
@@ -654,9 +676,9 @@ export default function BottomNavigation() {
       photoUrl = capturedPhoto;
     }
     
-    // CRITICAL: Compress photo before storing to avoid storage quota errors
+    const srcIsVideoInsp = !!photoUrl && photoUrl.startsWith('data:video/');
     let compressedPhotoUrl = photoUrl;
-    if (photoUrl) {
+    if (photoUrl && !srcIsVideoInsp) {
       try {
         console.log('Compressing photo for storage...');
         compressedPhotoUrl = await compressDataUrl(photoUrl, 1920, 1080, 0.7, 500);
@@ -665,7 +687,6 @@ export default function BottomNavigation() {
         console.log(`Photo compressed: ${originalSizeKB}KB -> ${compressedSizeKB}KB`);
       } catch (error) {
         console.error('Error compressing photo, using original:', error);
-        // Continue with original if compression fails
       }
     }
     
@@ -940,11 +961,9 @@ export default function BottomNavigation() {
                 
                 {capturedPhoto && (
                   <div className="mb-6" style={{ pointerEvents: 'none' }}>
-                    <img
-                      src={capturedPhoto}
+                    <QuickAddMediaPreview
+                      media={capturedPhoto}
                       alt={t('camera.selectedPhoto')}
-                      className="w-full h-32 object-cover rounded-xl border-2 border-gray-200"
-                      style={{ pointerEvents: 'none' }}
                     />
                   </div>
                 )}
@@ -1103,11 +1122,9 @@ export default function BottomNavigation() {
                 
                 {capturedPhoto && (
                   <div className="mb-6" style={{ pointerEvents: 'none' }}>
-                    <img
-                      src={capturedPhoto}
+                    <QuickAddMediaPreview
+                      media={capturedPhoto}
                       alt={t('camera.selectedPhoto')}
-                      className="w-full h-32 object-cover rounded-xl border-2 border-gray-200"
-                      style={{ pointerEvents: 'none' }}
                     />
                   </div>
                 )}

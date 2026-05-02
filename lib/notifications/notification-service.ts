@@ -11,6 +11,39 @@
 
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
+import type { NotificationType } from '@prisma/client';
+
+/** Alleen waarden uit Prisma `NotificationType` — voorkomt mislukte DB-writes bij bestel-/bezorgmeldingen. */
+function mapDataTypeToPrismaNotificationType(dataType: string | undefined): NotificationType {
+  if (!dataType) return 'ADMIN_NOTICE';
+  const map: Record<string, NotificationType> = {
+    ORDER_PLACED: 'ORDER_RECEIVED',
+    ORDER_PAID: 'ORDER_RECEIVED',
+    NEW_ORDER: 'ORDER_RECEIVED',
+    PAYMENT_RECEIVED: 'ORDER_RECEIVED',
+    ORDER_STATUS_UPDATE: 'ORDER_UPDATE',
+    ORDER_UPDATE: 'ORDER_UPDATE',
+    ORDER_CONFIRMED: 'ORDER_UPDATE',
+    ORDER_PROCESSING: 'ORDER_UPDATE',
+    ORDER_SHIPPED: 'ORDER_UPDATE',
+    ORDER_DELIVERED: 'ORDER_UPDATE',
+    ORDER_CANCELLED: 'ORDER_UPDATE',
+    ORDER_READY_FOR_PICKUP: 'ORDER_UPDATE',
+    ORDER_READY_FOR_DELIVERY: 'ORDER_UPDATE',
+    ORDER_READY: 'ORDER_UPDATE',
+    SHIPPING_LABEL_READY: 'ORDER_UPDATE',
+    DELIVERY_ORDER_AVAILABLE: 'ORDER_UPDATE',
+    DELIVERY_ACCEPTED: 'ORDER_UPDATE',
+    DELIVERY_PICKED_UP: 'ORDER_UPDATE',
+    DELIVERY_COMPLETED: 'ORDER_UPDATE',
+    DELIVERY_CANCELLED: 'ORDER_UPDATE',
+    DELIVERY_COUNTDOWN_WARNING: 'ORDER_UPDATE',
+    NEW_MESSAGE: 'MESSAGE_RECEIVED',
+    MESSAGE_RECEIVED: 'MESSAGE_RECEIVED',
+    SHIFT_REMINDER: 'ADMIN_NOTICE',
+  };
+  return map[dataType] ?? 'ADMIN_NOTICE';
+}
 
 // Platform detection helper
 export const Platform = {
@@ -267,31 +300,9 @@ export class NotificationService {
       const notificationId = crypto.randomUUID();
       const notificationData = message.data || {};
       
-      // Determine notification type from message data
-      let notificationType: any = 'ADMIN_NOTICE';
-      if (notificationData.type) {
-        // Map data.type to NotificationType enum
-        const typeMap: Record<string, any> = {
-          'ORDER_PLACED': 'ORDER_RECEIVED',
-          'ORDER_PAID': 'ORDER_CONFIRMED',
-          'NEW_ORDER': 'ORDER_RECEIVED',
-          'ORDER_STATUS_UPDATE': 'ORDER_UPDATE',
-          'ORDER_CONFIRMED': 'ORDER_CONFIRMED',
-          'ORDER_PROCESSING': 'ORDER_PROCESSING',
-          'ORDER_SHIPPED': 'ORDER_SHIPPED',
-          'ORDER_DELIVERED': 'ORDER_DELIVERED',
-          'ORDER_CANCELLED': 'ORDER_CANCELLED',
-          'DELIVERY_ORDER_AVAILABLE': 'DELIVERY_ACCEPTED',
-          'DELIVERY_ACCEPTED': 'DELIVERY_ACCEPTED',
-          'DELIVERY_PICKED_UP': 'DELIVERY_PICKED_UP',
-          'DELIVERY_COMPLETED': 'DELIVERY_DELIVERED',
-          'DELIVERY_CANCELLED': 'DELIVERY_CANCELLED',
-          'DELIVERY_COUNTDOWN_WARNING': 'DELIVERY_WARNING',
-          'NEW_MESSAGE': 'MESSAGE_RECEIVED',
-          'ORDER_UPDATE': 'ORDER_UPDATE'
-        };
-        notificationType = typeMap[notificationData.type] || 'ADMIN_NOTICE';
-      }
+      const notificationType = mapDataTypeToPrismaNotificationType(
+        notificationData.type as string | undefined
+      );
 
       // Build notification data - orderId/deliveryOrderId are optional and may not exist in DB yet
       const notificationCreateData: any = {

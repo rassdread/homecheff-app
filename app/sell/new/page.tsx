@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   useEffect,
@@ -16,6 +16,7 @@ import InspiratieFormHandler from "@/components/products/InspiratieFormHandler";
 import { compressDataUrl } from "@/lib/imageOptimization";
 import { useTranslation } from "@/hooks/useTranslation";
 import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymentsBanner";
+import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
 
 type Phase =
   | "wizard-1"
@@ -29,8 +30,9 @@ type PlatformChoice = "dorpsplein" | "inspiratie";
 
 function HomeCheffProductNieuwPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const categoryParam = searchParams?.get("category");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { t } = useTranslation();
 
   const skipWizard = useMemo(() => {
@@ -67,6 +69,30 @@ function HomeCheffProductNieuwPageContent() {
       setPhase("form-sell");
     }
   }, [skipWizard]);
+
+  /** Zelfde context als quick-add na categoriekeuze: dorpsplein + media in storage. */
+  useEffect(() => {
+    if (!skipWizard || !searchParams) return;
+    const cat = searchParams.get("category");
+    if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") {
+      setPlatformChoice("dorpsplein");
+      return;
+    }
+    if (
+      searchParams.get("fromGarden") === "true" ||
+      searchParams.get("fromDesign") === "true" ||
+      searchParams.get("fromRecipe") === "true" ||
+      searchParams.get("fromProduct") === "true"
+    ) {
+      setPlatformChoice("dorpsplein");
+    }
+  }, [skipWizard, searchParams]);
+
+  useEffect(() => {
+    if (status !== "unauthenticated") return;
+    const q = typeof window !== "undefined" ? window.location.search : "";
+    router.replace(`/login?callbackUrl=${encodeURIComponent(`/sell/new${q}`)}`);
+  }, [status, router]);
 
   useEffect(() => {
     if (!session?.user) {
@@ -145,10 +171,18 @@ function HomeCheffProductNieuwPageContent() {
     setCategory("CHEFF");
   }, [categoryParam, searchParams, skipWizard]);
 
-  if (sessionStatus === "loading" || sessionStatus === "unauthenticated") {
+  if (status === "loading") {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
         <div className="text-center text-gray-600">Laden...</div>
+      </main>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <main className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
+        <div className="text-center text-gray-600">Doorsturen naar inloggen…</div>
       </main>
     );
   }
@@ -157,12 +191,12 @@ function HomeCheffProductNieuwPageContent() {
     if (product?.id) {
       window.location.href = `/product/${product.id}`;
     } else {
-      window.location.href = "/profile?tab=producten";
+      window.location.href = getProfileHrefAfterProductSave(category);
     }
   };
 
   const handleCancel = () => {
-    window.location.href = "/profile?tab=producten";
+    window.location.href = getProfileHrefAfterProductSave(category);
   };
 
   const initialPhoto =
@@ -214,6 +248,12 @@ function HomeCheffProductNieuwPageContent() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+    if (!isVideo && !isImage) {
+      alert("Alleen foto's en video's zijn toegestaan");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result;
@@ -247,12 +287,10 @@ function HomeCheffProductNieuwPageContent() {
     setPhase(next);
   };
 
-  const showChef =
-    !session?.user || !rolesLoaded || userRoles.includes("chef");
-  const showGarden =
-    !session?.user || !rolesLoaded || userRoles.includes("garden");
-  const showDesigner =
-    !session?.user || !rolesLoaded || userRoles.includes("designer");
+  /** Zelfde als +-menu: opties pas na rollen, niet alle drie tonen vóór laden. */
+  const showChef = rolesLoaded && userRoles.includes("chef");
+  const showGarden = rolesLoaded && userRoles.includes("garden");
+  const showDesigner = rolesLoaded && userRoles.includes("designer");
   const noSellerRoles =
     Boolean(session?.user) && rolesLoaded && userRoles.length === 0;
 

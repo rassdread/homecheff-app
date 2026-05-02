@@ -9,6 +9,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
+import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 
 type Uploaded = { 
   url: string; 
@@ -427,7 +428,7 @@ export default function CompactDesignerForm({
         if (onSave) {
           onSave(data.product || data);
         } else {
-          window.location.href = editMode ? `/product/${data.product?.id || data.id}` : '/profile?tab=producten';
+          window.location.href = editMode ? `/product/${data.product?.id || data.id}` : getProfileHrefAfterProductSave('DESIGNER');
         }
       } else {
         console.error('❌ [CompactDesignerForm] API error:', {

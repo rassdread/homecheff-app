@@ -155,6 +155,26 @@ export default function SellerDashboardClient() {
     }
   }, [selectedPeriod, activeTab]);
 
+  /** Na betaling/webhook: data vernieuwen wanneer gebruiker terugkomt naar dit tabblad. */
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (activeTab === 'dashboard') {
+        void loadDashboardData();
+      } else if (activeTab === 'orders') {
+        void loadOrders();
+      } else if (activeTab === 'deliveries') {
+        void loadDeliveryOrders();
+      }
+    };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [activeTab, selectedPeriod]);
+
   useEffect(() => {
     if (activeTab === 'orders') {
       filterOrders();

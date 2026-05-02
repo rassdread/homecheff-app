@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import { getProfileTabAfterProductFlow } from '@/lib/profileProductTab';
 
 import dynamic from 'next/dynamic';
 import PhotoUploader from './PhotoUploader';
@@ -182,11 +183,19 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       setShowWelcome(true);
     }
     
-    // Set active tab from URL params
+    // Set active tab from URL params (legacy `producten` bestond niet als tab-id)
     if (searchParams?.tab && typeof searchParams.tab === 'string') {
-      setActiveTab(searchParams.tab);
+      let tab = searchParams.tab;
+      if (tab === 'producten') {
+        const roles = user?.sellerRoles || [];
+        if (roles.includes('chef')) tab = getProfileTabAfterProductFlow('CHEFF');
+        else if (roles.includes('garden')) tab = getProfileTabAfterProductFlow('GARDEN');
+        else if (roles.includes('designer')) tab = getProfileTabAfterProductFlow('DESIGNER');
+        else tab = 'dishes';
+      }
+      setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, user?.sellerRoles]);
 
   const fetchStats = async () => {
     try {
