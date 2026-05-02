@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -13,21 +14,27 @@ const CATEGORY_MAP: Record<string, any> = {
   DESIGNER: 'DESIGNER',
 };
 
-const DELIVERY_MAP: Record<string, any> = {
-  PICKUP: 'PICKUP',
-  DELIVERY: 'DELIVERY',
-  SHIPPING: 'SHIPPING',
-  BOTH: 'BOTH',
-};
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!(session?.user as any)?.id) {
+    const sessionUserId = (session?.user as { id?: string })?.id;
+    const sessionEmail = session?.user?.email;
+    if (!session?.user || (!sessionUserId && !sessionEmail)) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
     }
 
-    const body = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            'Kon de gegevens niet verwerken. Probeer kleinere foto’s (upload i.p.v. zeer grote plakken) of minder tegelijk.',
+        },
+        { status: 400 }
+      );
+    }
     console.log('[Products Create API] Received request body:', {
       hasTitle: !!body.title,
       hasDescription: !!body.description,
@@ -67,15 +74,48 @@ export async function POST(req: Request) {
     const finalIsPublic = isActive !== undefined ? isActive : (isPublic !== undefined ? isPublic : true);
     console.log('[Products Create API] Final isPublic value:', finalIsPublic, '(from isActive:', isActive, ', isPublic:', isPublic, ')');
 
-    if (!title || !description || !priceCents || !Array.isArray(images) || images.length === 0) {
-      return NextResponse.json({ error: 'Ontbrekende velden' }, { status: 400 });
+    const titleStr = typeof title === 'string' ? title.trim() : '';
+    const descStr = typeof description === 'string' ? description.trim() : '';
+    const priceCentsNum = Number(priceCents);
+    const imageList = Array.isArray(images) ? images : [];
+    const validImageUrls = imageList.filter(
+      (u): u is string => typeof u === 'string' && u.trim().length > 0
+    );
+
+    if (
+      !titleStr ||
+      !descStr ||
+      !Number.isFinite(priceCentsNum) ||
+      priceCentsNum < 0 ||
+      validImageUrls.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Ontbrekende of ongeldige velden',
+          details:
+            validImageUrls.length === 0
+              ? 'Minstens één geldige foto-URL is verplicht.'
+              : !Number.isFinite(priceCentsNum) || priceCentsNum < 0
+                ? 'Prijs ontbreekt of is ongeldig.'
+                : undefined,
+        },
+        { status: 400 }
+      );
     }
 
-    // Get user with seller profile
-    const user = await prisma.user.findUnique({
-      where: { id: (session?.user as any)?.id },
-      include: { SellerProfile: true }
-    });
+    // Get user with seller profile (id preferred; email fallback matches other seller APIs)
+    let user =
+      sessionUserId &&
+      (await prisma.user.findUnique({
+        where: { id: sessionUserId },
+        include: { SellerProfile: true },
+      }));
+    if (!user && sessionEmail) {
+      user = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        include: { SellerProfile: true },
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
@@ -123,16 +163,18 @@ export async function POST(req: Request) {
     
     console.log('[Products Create API] Using sellerProfileId:', sellerProfileId);
 
-    const cat = CATEGORY_MAP[category] ?? 'CHEFF';
-    const delivery = DELIVERY_MAP[deliveryMode] ?? 'PICKUP';
+    const cat = CATEGORY_MAP[category as string] ?? 'CHEFF';
+    const delivery = normalizeDeliveryModeInput(
+      typeof deliveryMode === 'string' ? deliveryMode : 'PICKUP'
+    );
 
     // Create Product (not Listing)
     const productId = randomUUID();
     console.log('[Products Create API] Creating product with:', {
       productId,
-      title,
+      title: titleStr,
       category: cat,
-      priceCents: Number(priceCents),
+      priceCents: priceCentsNum,
       isActive: Boolean(finalIsPublic),
       finalIsPublic,
       sellerProfileId
@@ -141,9 +183,9 @@ export async function POST(req: Request) {
     const result = await prisma.product.create({
       data: {
         id: productId,
-        title,
-        description,
-        priceCents: Number(priceCents),
+        title: titleStr,
+        description: descStr,
+        priceCents: priceCentsNum,
         category: cat as any,
         unit: 'PORTION', // Default unit
         delivery: delivery as any,
@@ -164,7 +206,7 @@ export async function POST(req: Request) {
         tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
         sellerId: sellerProfileId!,
         Image: {
-          create: images.map((url: string, i: number) => ({
+          create: validImageUrls.map((url: string, i: number) => ({
             id: randomUUID(),
             fileUrl: url,
             sortOrder: i,
@@ -206,14 +248,14 @@ export async function POST(req: Request) {
         data: {
           id: productId,
           userId: user.id,
-          title,
-          description: description || null,
+          title: titleStr,
+          description: descStr || null,
           status: 'PUBLISHED',
           category: 'GROWN',
           subcategory: subcategory || null,
           tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
           // Set other fields to null/empty for garden projects
-          priceCents: Number(priceCents),
+          priceCents: priceCentsNum,
           deliveryMode: delivery as any,
           place: pickupAddress || null,
           lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
@@ -226,7 +268,7 @@ export async function POST(req: Request) {
           servings: null,
           // Create main photos
           photos: {
-            create: images.map((url: string, i: number) => ({
+            create: validImageUrls.map((url: string, i: number) => ({
               id: randomUUID(),
               url: url,
               idx: i,
@@ -316,8 +358,8 @@ export async function POST(req: Request) {
           userId: user.id,
           metadata: {
             category: cat,
-            title: title,
-            priceCents: Number(priceCents),
+            title: titleStr,
+            priceCents: priceCentsNum,
             sellerId: sellerProfileId,
             createdAt: new Date().toISOString()
           }

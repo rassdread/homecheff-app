@@ -3451,6 +3451,18 @@
     "dashboard": "Dashboard",
     "earnDesc": "Start selling today. List products in less than 2 minutes."
   },
+  "sellNew": {
+    "hubTitle": "What do you want to add?",
+    "hubSubtitle": "Pick your seller role and whether you sell on the village square (Dorpsplein) or share inspiration — then photo and form.",
+    "chefDorps": "Chef · Village square",
+    "chefInspi": "Chef · Inspiration",
+    "gardenDorps": "Garden · Village square",
+    "gardenInspi": "Garden · Inspiration",
+    "designerDorps": "Design · Village square",
+    "designerInspi": "Design · Inspiration",
+    "tileDorpsHint": "Sell a product",
+    "tileInspiHint": "Share an idea or recipe"
+  },
   "werkenBij": {
     "title": "Work at HomeCheff",
     "subtitle": "Earn extra money by delivering local products or become an affiliate. Flexible work, good earnings and help the local economy.",
@@ -3574,6 +3586,8 @@
     "category": "Category",
     "fillTitleDescriptionPrice": "Please fill in title, description and valid price.",
     "addAtLeastOnePhoto": "Add at least 1 photo.",
+    "photosStillUploading": "Wait until all photos have finished uploading before saving.",
+    "photosNeedValidUrl": "No valid photo URL; add a photo again or wait for the upload to finish.",
     "saveFailed": "Save failed",
     "couldNotRemoveSessionStorage": "Could not remove sessionStorage key",
     "couldNotRemoveLocalStorage": "Could not remove locandtorage key",

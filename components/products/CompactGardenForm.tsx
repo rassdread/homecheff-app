@@ -10,6 +10,7 @@ import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddres
 import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
+import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
 
 type Uploaded = { 
   url: string; 
@@ -55,18 +56,6 @@ export default function CompactGardenForm({
   const [price, setPrice] = React.useState('');
   const [subcategory, setSubcategory] = React.useState('');
   const [deliveryOptions, setDeliveryOptions] = React.useState<string[]>(['PICKUP']);
-  
-  // Helper function to convert deliveryOptions array to deliveryMode string for API
-  const getDeliveryMode = (options: string[]): string => {
-    if (options.length === 0) return 'PICKUP'; // Default
-    if (options.length === 1) return options[0];
-    // Multiple options: convert to appropriate format
-    if (options.includes('PICKUP') && options.includes('DELIVERY') && !options.includes('SHIPPING')) {
-      return 'BOTH'; // PICKUP + DELIVERY = BOTH
-    }
-    // For other combinations, use comma-separated string (will be handled by API)
-    return options.join(',');
-  };
   
   // Helper to check if option is selected
   const hasDeliveryOption = (option: string): boolean => {
@@ -303,7 +292,18 @@ export default function CompactGardenForm({
       return;
     }
     if (images.length === 0) {
-      setMessage('Minstens 1 foto toevoegen.');
+      setMessage(t('productForm.addAtLeastOnePhoto'));
+      return;
+    }
+    if (images.some((i) => i.uploading)) {
+      setMessage(t('productForm.photosStillUploading'));
+      return;
+    }
+    const imageUrlsReady = images
+      .filter((i) => i.url?.trim() && !i.uploading)
+      .map((i) => i.url.trim());
+    if (imageUrlsReady.length === 0) {
+      setMessage(t('productForm.photosNeedValidUrl'));
       return;
     }
     const priceCents = Math.round(priceNumber * 100);
@@ -355,7 +355,7 @@ export default function CompactGardenForm({
 
     setSubmitting(true);
     try {
-      const imageUrls = images.map(i => i.url);
+      const imageUrls = imageUrlsReady;
 
       let res, data;
       
@@ -370,7 +370,7 @@ export default function CompactGardenForm({
             priceCents,
             category: 'GARDEN',
             subcategory: subcategory || null,
-            deliveryMode: getDeliveryMode(deliveryOptions),
+            deliveryMode: deliveryModeFromOptions(deliveryOptions),
             images: imageUrls,
             stock: stock ? parseInt(stock) : undefined,
             maxStock: maxStock ? parseInt(maxStock) : undefined,
@@ -416,7 +416,7 @@ export default function CompactGardenForm({
             priceCents,
             category: 'GARDEN',
             subcategory: subcategory || null,
-            deliveryMode: getDeliveryMode(deliveryOptions),
+            deliveryMode: deliveryModeFromOptions(deliveryOptions),
             images: imageUrls,
             isPublic: isActive, // For backwards compatibility
             isActive: isActive, // Explicitly send isActive state
@@ -460,7 +460,10 @@ export default function CompactGardenForm({
           error: data.error,
           details: data.details
         });
-        setMessage(data.error || data.details || 'Er is een fout opgetreden');
+        setMessage(
+          [data.error, data.details].filter(Boolean).join(' ').trim() ||
+            'Er is een fout opgetreden'
+        );
       }
     } catch (error) {
       console.error('❌ [CompactGardenForm] Submit error:', error);

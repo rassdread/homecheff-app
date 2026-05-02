@@ -2910,6 +2910,18 @@
     "dashboard": "Dashboard",
     "earnDesc": "Start vandaag nog met verkopen. Plaats producten in minder dan 2 minuten."
   },
+  "sellNew": {
+    "hubTitle": "Wat wil je toevoegen?",
+    "hubSubtitle": "Kies je rol en of je op het Dorpsplein verkoopt of inspiratie deelt — daarna foto en formulier.",
+    "chefDorps": "Chef · Dorpsplein",
+    "chefInspi": "Chef · Inspiratie",
+    "gardenDorps": "Tuin · Dorpsplein",
+    "gardenInspi": "Tuin · Inspiratie",
+    "designerDorps": "Design · Dorpsplein",
+    "designerInspi": "Design · Inspiratie",
+    "tileDorpsHint": "Product verkopen",
+    "tileInspiHint": "Idee of recept delen"
+  },
   "werkenBij": {
     "title": "Werken bij HomeCheff",
     "subtitle": "Verdien extra geld door lokale producten te bezorgen of word affiliate. Flexibel werken, goede verdiensten en help de lokale economie.",
@@ -3280,6 +3292,8 @@
     "category": "Categorie",
     "fillTitleDescriptionPrice": "Vul titel, beschrijving en geldige prijs in.",
     "addAtLeastOnePhoto": "Minstens 1 foto toevoegen.",
+    "photosStillUploading": "Wacht tot alle foto’s klaar zijn met uploaden voordat je opslaat.",
+    "photosNeedValidUrl": "Er is geen geldige foto-URL; voeg opnieuw een foto toe of wacht op de upload.",
     "saveFailed": "Opslaan mislukte",
     "couldNotRemoveSessionStorage": "Kon sessionStorage sleutel niet verwijderen",
     "couldNotRemoveLocalStorage": "Kon localStorage sleutel niet verwijderen",

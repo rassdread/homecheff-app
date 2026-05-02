@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -28,6 +29,51 @@ type Phase =
 
 type PlatformChoice = "dorpsplein" | "inspiratie";
 
+const INSPIRATIE_IMPORT_KEY = "inspiratieToProductData";
+
+function sellsNewSkipWizard(sp: URLSearchParams | null): boolean {
+  if (!sp) return false;
+  const cat = sp.get("category");
+  if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") return true;
+  const deep = [
+    "fromRecipe",
+    "fromGarden",
+    "fromDesign",
+    "fromInspiratie",
+    "fromProduct",
+  ] as const;
+  return deep.some((k) => sp.get(k) === "true");
+}
+
+/** Import-flow vanaf foto-selectie / storage (fromInspiratie=true). */
+function parseInspiratieImportPayload(): {
+  category: "CHEFF" | "GARDEN" | "DESIGNER";
+  location: "keuken" | "tuin" | "atelier";
+} {
+  if (typeof window === "undefined") {
+    return { category: "CHEFF", location: "keuken" };
+  }
+  try {
+    const raw =
+      sessionStorage.getItem(INSPIRATIE_IMPORT_KEY) ||
+      localStorage.getItem(INSPIRATIE_IMPORT_KEY);
+    if (!raw) return { category: "CHEFF", location: "keuken" };
+    const d = JSON.parse(raw) as Record<string, unknown>;
+    const c = d.category;
+    const category: "CHEFF" | "GARDEN" | "DESIGNER" =
+      c === "GARDEN" ? "GARDEN" : c === "DESIGNER" ? "DESIGNER" : "CHEFF";
+    const locRaw = String(
+      d.location ?? d.inspiratieLocation ?? ""
+    ).toLowerCase();
+    let location: "keuken" | "tuin" | "atelier" = "keuken";
+    if (locRaw === "tuin" || locRaw === "garden") location = "tuin";
+    else if (locRaw === "atelier" || locRaw === "design") location = "atelier";
+    return { category, location };
+  } catch {
+    return { category: "CHEFF", location: "keuken" };
+  }
+}
+
 function HomeCheffProductNieuwPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -35,44 +81,56 @@ function HomeCheffProductNieuwPageContent() {
   const { data: session, status } = useSession();
   const { t } = useTranslation();
 
-  const skipWizard = useMemo(() => {
-    if (!searchParams) return false;
-    const cat = searchParams.get("category");
-    if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") return true;
-    const deep = [
-      "fromRecipe",
-      "fromGarden",
-      "fromDesign",
-      "fromInspiratie",
-      "fromProduct",
-    ];
-    return deep.some((k) => searchParams.get(k) === "true");
-  }, [searchParams]);
+  const skipWizard = useMemo(
+    () => sellsNewSkipWizard(searchParams),
+    [searchParams]
+  );
 
   const [category, setCategory] = useState<"CHEFF" | "GARDEN" | "DESIGNER">(
     "CHEFF"
   );
-  const [phase, setPhase] = useState<Phase>(
-    skipWizard ? "form-sell" : "wizard-1"
-  );
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (!searchParams || !sellsNewSkipWizard(searchParams)) return "wizard-1";
+    return searchParams.get("fromInspiratie") === "true"
+      ? "form-inspiratie"
+      : "form-sell";
+  });
   const [platformChoice, setPlatformChoice] =
     useState<PlatformChoice | null>(null);
   const [inspiratieLocation, setInspiratieLocation] = useState<
     "keuken" | "tuin" | "atelier" | null
   >(null);
+  /** Na keuze uit de 6-tegel-hub: na foto direct naar formulier, zonder tussentijdse rol-stap. */
+  const [hubSelectionComplete, setHubSelectionComplete] = useState(false);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [rolesLoaded, setRolesLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /** fromInspiratie: vóór paint category/location/phase zetten (geen form-sell flash). */
+  useLayoutEffect(() => {
+    if (!skipWizard || !searchParams) return;
+    if (searchParams.get("fromInspiratie") !== "true") return;
+    const { category: cat, location } = parseInspiratieImportPayload();
+    setCategory(cat);
+    setInspiratieLocation(location);
+    setPlatformChoice("inspiratie");
+    setHubSelectionComplete(false);
+    setPhase("form-inspiratie");
+  }, [skipWizard, searchParams]);
+
   useEffect(() => {
-    if (skipWizard) {
-      setPhase("form-sell");
-    }
-  }, [skipWizard]);
+    if (!skipWizard || !searchParams) return;
+    if (searchParams.get("fromInspiratie") === "true") return;
+    setPhase("form-sell");
+  }, [skipWizard, searchParams]);
 
   /** Zelfde context als quick-add na categoriekeuze: dorpsplein + media in storage. */
   useEffect(() => {
     if (!skipWizard || !searchParams) return;
+    if (searchParams.get("fromInspiratie") === "true") {
+      setPlatformChoice("inspiratie");
+      return;
+    }
     const cat = searchParams.get("category");
     if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") {
       setPlatformChoice("dorpsplein");
@@ -125,6 +183,10 @@ function HomeCheffProductNieuwPageContent() {
   // Category from URL / template (behoud bestaande deep links)
   useEffect(() => {
     if (!skipWizard) return;
+
+    if (searchParams?.get("fromInspiratie") === "true") {
+      return;
+    }
 
     if (
       categoryParam === "CHEFF" ||
@@ -208,8 +270,39 @@ function HomeCheffProductNieuwPageContent() {
         undefined
       : undefined;
 
-  const goAfterPhotoPick = (next: "wizard-2-sell" | "wizard-2-inspiratie") => {
-    setPhase(next);
+  const resolvePhaseAfterPhoto = (): Phase => {
+    if (hubSelectionComplete) {
+      if (platformChoice === "inspiratie" && inspiratieLocation) {
+        return "form-inspiratie";
+      }
+      if (platformChoice === "dorpsplein") {
+        return "form-sell";
+      }
+    }
+    return platformChoice === "inspiratie"
+      ? "wizard-2-inspiratie"
+      : "wizard-2-sell";
+  };
+
+  const goAfterPhotoPick = () => {
+    setPhase(resolvePhaseAfterPhoto());
+  };
+
+  const pickHubTile = (
+    cat: "CHEFF" | "GARDEN" | "DESIGNER",
+    platform: PlatformChoice
+  ) => {
+    setCategory(cat);
+    setPlatformChoice(platform);
+    setHubSelectionComplete(true);
+    if (platform === "inspiratie") {
+      setInspiratieLocation(
+        cat === "CHEFF" ? "keuken" : cat === "GARDEN" ? "tuin" : "atelier"
+      );
+    } else {
+      setInspiratieLocation(null);
+    }
+    setPhase("wizard-photo");
   };
 
   const processDataUrl = async (dataUrl: string) => {
@@ -239,9 +332,7 @@ function HomeCheffProductNieuwPageContent() {
       }
       return;
     }
-    const next =
-      platformChoice === "inspiratie" ? "wizard-2-inspiratie" : "wizard-2-sell";
-    goAfterPhotoPick(next);
+    goAfterPhotoPick();
   };
 
   const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -282,9 +373,7 @@ function HomeCheffProductNieuwPageContent() {
     sessionStorage.removeItem("quickAddPhoto");
     localStorage.removeItem("pendingProductPhoto");
     sessionStorage.removeItem("productIsVideo");
-    const next =
-      platformChoice === "inspiratie" ? "wizard-2-inspiratie" : "wizard-2-sell";
-    setPhase(next);
+    setPhase(resolvePhaseAfterPhoto());
   };
 
   /** Zelfde als +-menu: opties pas na rollen, niet alle drie tonen vóór laden. */
@@ -305,43 +394,128 @@ function HomeCheffProductNieuwPageContent() {
       />
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        {showStripeConnectPaymentsBanner && <StripeConnectPaymentsBanner />}
+        <StripeConnectPaymentsBanner />
         {phase === "wizard-1" && (
           <>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">
-                Wat wil je toevoegen?
+                {t("sellNew.hubTitle")}
               </h1>
-              <p className="mt-2 text-gray-600">
-                Zelfde stappen als via het plus-knopmenu onderaan.
-              </p>
+              <p className="mt-2 text-gray-600">{t("sellNew.hubSubtitle")}</p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                className="w-full p-6 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-[0.99] text-left"
-                onClick={() => {
-                  setPlatformChoice("dorpsplein");
-                  setPhase("wizard-photo");
-                }}
-              >
-                <div className="text-2xl mb-1">🏪</div>
-                <div className="text-lg font-bold">{t("bottomNav.dorpsplein")}</div>
-                <div className="text-sm opacity-90">{t("bottomNav.sellProducts")}</div>
-              </button>
-              <button
-                type="button"
-                className="w-full p-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-[0.99] text-left"
-                onClick={() => {
-                  setPlatformChoice("inspiratie");
-                  setPhase("wizard-photo");
-                }}
-              >
-                <div className="text-2xl mb-1">✨</div>
-                <div className="text-lg font-bold">{t("bottomNav.inspiratie")}</div>
-                <div className="text-sm opacity-90">{t("bottomNav.shareIdeas")}</div>
-              </button>
-            </div>
+            {noSellerRoles ? (
+              <div className="text-center py-6 rounded-xl border bg-white p-6">
+                <p className="text-gray-600 mb-4">
+                  Je hebt nog geen verkoper rollen.
+                </p>
+                <Link
+                  href="/profile?tab=overview"
+                  className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
+                >
+                  Mijn HomeCheff instellen
+                </Link>
+              </div>
+            ) : (
+              <>
+                {!rolesLoaded && session?.user && (
+                  <p className="text-sm text-gray-500 text-center py-6">
+                    Laden…
+                  </p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+                  {rolesLoaded && showChef && (
+                    <>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-white/20"
+                        onClick={() => pickHubTile("CHEFF", "dorpsplein")}
+                      >
+                        <div className="text-xl mb-0.5">🍳</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.chefDorps")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          🏪 {t("sellNew.tileDorpsHint")}
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-orange-600 via-amber-600 to-fuchsia-600 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-purple-200/50"
+                        onClick={() => pickHubTile("CHEFF", "inspiratie")}
+                      >
+                        <div className="text-xl mb-0.5">🍳</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.chefInspi")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          ✨ {t("sellNew.tileInspiHint")}
+                        </div>
+                      </button>
+                    </>
+                  )}
+                  {rolesLoaded && showGarden && (
+                    <>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-white/20"
+                        onClick={() => pickHubTile("GARDEN", "dorpsplein")}
+                      >
+                        <div className="text-xl mb-0.5">🌱</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.gardenDorps")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          🏪 {t("sellNew.tileDorpsHint")}
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-fuchsia-600 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-purple-200/50"
+                        onClick={() => pickHubTile("GARDEN", "inspiratie")}
+                      >
+                        <div className="text-xl mb-0.5">🌱</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.gardenInspi")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          ✨ {t("sellNew.tileInspiHint")}
+                        </div>
+                      </button>
+                    </>
+                  )}
+                  {rolesLoaded && showDesigner && (
+                    <>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-white/20"
+                        onClick={() => pickHubTile("DESIGNER", "dorpsplein")}
+                      >
+                        <div className="text-xl mb-0.5">🎨</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.designerDorps")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          🏪 {t("sellNew.tileDorpsHint")}
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full p-4 sm:p-5 rounded-xl font-semibold text-left text-white bg-gradient-to-r from-violet-600 via-purple-600 to-pink-500 hover:shadow-lg transition-all active:scale-[0.99] ring-2 ring-purple-200/50"
+                        onClick={() => pickHubTile("DESIGNER", "inspiratie")}
+                      >
+                        <div className="text-xl mb-0.5">🎨</div>
+                        <div className="text-base sm:text-lg font-bold leading-tight">
+                          {t("sellNew.designerInspi")}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90 mt-1">
+                          ✨ {t("sellNew.tileInspiHint")}
+                        </div>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -352,6 +526,8 @@ function HomeCheffProductNieuwPageContent() {
                 type="button"
                 onClick={() => {
                   setPlatformChoice(null);
+                  setHubSelectionComplete(false);
+                  setInspiratieLocation(null);
                   setPhase("wizard-1");
                 }}
                 className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
@@ -582,10 +758,22 @@ function HomeCheffProductNieuwPageContent() {
               <div className="mb-6">
                 <button
                   type="button"
-                  onClick={() => setPhase("wizard-2-sell")}
+                  onClick={() => {
+                    if (hubSelectionComplete) {
+                      setHubSelectionComplete(false);
+                      setInspiratieLocation(null);
+                      setPlatformChoice(null);
+                      setPhase("wizard-1");
+                    } else {
+                      setPhase("wizard-2-sell");
+                    }
+                  }}
                   className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
                 >
-                  ← Andere categorie
+                  ←{" "}
+                  {hubSelectionComplete
+                    ? "Andere start"
+                    : "Andere categorie"}
                 </button>
               </div>
             )}
@@ -622,18 +810,34 @@ function HomeCheffProductNieuwPageContent() {
           </>
         )}
 
-        {phase === "form-inspiratie" && inspiratieLocation && (
+        {phase === "form-inspiratie" && (
           <>
             <div className="mb-6 space-y-3">
               <button
                 type="button"
                 onClick={() => {
-                  setInspiratieLocation(null);
-                  setPhase("wizard-2-inspiratie");
+                  if (skipWizard) {
+                    router.back();
+                    return;
+                  }
+                  if (hubSelectionComplete) {
+                    setHubSelectionComplete(false);
+                    setInspiratieLocation(null);
+                    setPlatformChoice(null);
+                    setPhase("wizard-1");
+                  } else {
+                    setInspiratieLocation(null);
+                    setPhase("wizard-2-inspiratie");
+                  }
                 }}
                 className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
               >
-                ← Andere inspiratie-categorie
+                ←{" "}
+                {skipWizard
+                  ? "Terug"
+                  : hubSelectionComplete
+                    ? "Andere start"
+                    : "Andere inspiratie-categorie"}
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
@@ -645,14 +849,32 @@ function HomeCheffProductNieuwPageContent() {
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-8">
-              <InspiratieFormHandler
-                location={inspiratieLocation}
-                initialPhoto={initialPhoto}
-                onSave={() => {
-                  window.location.href = "/?chip=inspiration#homecheff-feed";
-                }}
-                onCancel={() => setPhase("wizard-2-inspiratie")}
-              />
+              {inspiratieLocation ? (
+                <InspiratieFormHandler
+                  location={inspiratieLocation}
+                  initialPhoto={initialPhoto}
+                  onSave={() => {
+                    window.location.href =
+                      "/?chip=inspiration#homecheff-feed";
+                  }}
+                  onCancel={() => {
+                    if (skipWizard) {
+                      router.back();
+                      return;
+                    }
+                    if (hubSelectionComplete) {
+                      setHubSelectionComplete(false);
+                      setInspiratieLocation(null);
+                      setPlatformChoice(null);
+                      setPhase("wizard-1");
+                    } else {
+                      setPhase("wizard-2-inspiratie");
+                    }
+                  }}
+                />
+              ) : (
+                <div className="text-center py-10 text-gray-600">Laden…</div>
+              )}
             </div>
           </>
         )}
