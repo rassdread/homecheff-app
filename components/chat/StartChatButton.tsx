@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
+import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 
 interface StartChatButtonProps {
   productId?: string; // Optional for general seller contact
@@ -25,6 +27,7 @@ export default function StartChatButton({
   showSuccessMessage = false
 }: StartChatButtonProps) {
   const { t } = useTranslation();
+  const { referralCode } = useAffiliateLink();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [initialMessage, setInitialMessage] = useState('');
@@ -43,9 +46,13 @@ export default function StartChatButton({
     try {
       // Use different endpoint based on whether we have a productId or sellerId
       const endpoint = productId ? '/api/conversations/start' : '/api/conversations/start-seller';
-      const requestBody = productId 
-        ? { productId, initialMessage: initialMessage.trim() || null }
-        : { sellerId, initialMessage: initialMessage.trim() || null };
+      const msgRaw = initialMessage.trim() || null;
+      const msgAff = msgRaw
+        ? appendAffiliateReferralToOutgoingText(msgRaw, referralCode)
+        : null;
+      const requestBody = productId
+        ? { productId, initialMessage: msgAff }
+        : { sellerId, initialMessage: msgAff };
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -110,9 +117,10 @@ export default function StartChatButton({
 
     try {
       const endpoint = productId ? '/api/conversations/start' : '/api/conversations/start-seller';
-      const requestBody = productId 
-        ? { productId, initialMessage: message }
-        : { sellerId, initialMessage: message };
+      const msgAff = appendAffiliateReferralToOutgoingText(message, referralCode);
+      const requestBody = productId
+        ? { productId, initialMessage: msgAff }
+        : { sellerId, initialMessage: msgAff };
 
       const response = await fetch(endpoint, {
         method: 'POST',

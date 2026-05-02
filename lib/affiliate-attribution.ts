@@ -11,17 +11,48 @@ import { AttributionType, AttributionSource } from '@prisma/client';
 const COOKIE_NAME = 'hc_ref';
 const COOKIE_TTL_DAYS = 30;
 
+function safeDecodeURIComponent(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+function parseCookieHeader(cookieHeader: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const part of cookieHeader.split(';')) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim();
+    if (key) out[key] = safeDecodeURIComponent(value);
+  }
+  return out;
+}
+
 /**
  * Get affiliate ID from referral code
  */
 export async function getAffiliateIdFromCode(code: string): Promise<string | null> {
   try {
-    const referralLink = await prisma.referralLink.findUnique({
-      where: { code },
+    const raw = String(code || '').trim();
+    if (!raw) return null;
+    const upper = raw.toUpperCase();
+    let referralLink = await prisma.referralLink.findUnique({
+      where: { code: raw },
       include: {
         affiliate: true,
       },
     });
+    if (!referralLink) {
+      referralLink = await prisma.referralLink.findUnique({
+        where: { code: upper },
+        include: { affiliate: true },
+      });
+    }
 
     if (!referralLink || !referralLink.affiliate) {
       return null;
@@ -74,13 +105,7 @@ export async function createAttribution(
  */
 export function getAffiliateIdFromCookie(cookieHeader: string | null): string | null {
   if (!cookieHeader) return null;
-
-  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-    const [key, value] = cookie.trim().split('=');
-    acc[key] = value;
-    return acc;
-  }, {} as Record<string, string>);
-
+  const cookies = parseCookieHeader(cookieHeader);
   return cookies[COOKIE_NAME] || null;
 }
 
@@ -93,8 +118,33 @@ export function setReferralCookie(code: string): void {
 
   const expires = new Date();
   expires.setDate(expires.getDate() + COOKIE_TTL_DAYS);
+  const secure =
+    window.location.protocol === 'https:' ? '; Secure' : '';
+  const value = encodeURIComponent(code.trim());
 
-  document.cookie = `${COOKIE_NAME}=${code}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+  document.cookie = `${COOKIE_NAME}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secure}`;
+}
+
+/**
+ * Voegt een korte tracking-URL toe aan uitgaande tekst (chat) voor actieve affiliates,
+ * alleen als er nog geen ref/welkom-link in de tekst staat.
+ */
+export function appendAffiliateReferralToOutgoingText(
+  text: string,
+  referralCode: string | null | undefined,
+  origin?: string
+): string {
+  const raw = text ?? '';
+  const trimmed = raw.trim();
+  if (!trimmed || !referralCode?.trim()) return raw;
+  const c = referralCode.trim();
+  if (/\?ref=|&ref=|\/welkom\/|\/uitnodiging\//i.test(trimmed)) {
+    return raw;
+  }
+  const o =
+    origin ||
+    (typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu');
+  return `${trimmed}\n\n—\n${o}/?ref=${encodeURIComponent(c)}`;
 }
 
 /**
@@ -103,12 +153,7 @@ export function setReferralCookie(code: string): void {
 export function getReferralCodeFromCookie(): string | null {
   if (typeof window === 'undefined') return null;
 
-  const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-    const [key, value] = cookie.trim().split('=');
-    acc[key] = value;
-    return acc;
-  }, {} as Record<string, string>);
-
+  const cookies = parseCookieHeader(document.cookie);
   return cookies[COOKIE_NAME] || null;
 }
 
@@ -122,6 +167,19 @@ export async function processAttributionOnSignup(
   isBusiness: boolean = false
 ): Promise<void> {
   try {
+    const already = await prisma.attribution.findFirst({
+      where: {
+        userId,
+        type: {
+          in: [AttributionType.USER_SIGNUP, AttributionType.BUSINESS_SIGNUP],
+        },
+      },
+      select: { id: true },
+    });
+    if (already) {
+      return;
+    }
+
     // Get affiliate code from cookie
     const affiliateCode = getAffiliateIdFromCookie(cookieHeader);
     if (!affiliateCode) {

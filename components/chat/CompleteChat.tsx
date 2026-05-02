@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
+import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 
 interface CompleteChatProps {
   conversationId: string;
@@ -39,6 +41,7 @@ interface Message {
 
 export default function CompleteChat({ conversationId, otherParticipant, onBack }: CompleteChatProps) {
   const { t } = useTranslation();
+  const { referralCode } = useAffiliateLink();
   // State
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -200,7 +203,10 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
     }
 
     setIsSending(true);
-    const messageText = newMessage.trim();
+    const messageText = appendAffiliateReferralToOutgoingText(
+      newMessage.trim(),
+      referralCode
+    );
     setNewMessage(''); // Clear input immediately
 
     try {

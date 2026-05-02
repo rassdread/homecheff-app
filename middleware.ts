@@ -36,6 +36,16 @@ export function middleware(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 365,
       secure: true,
     });
+    // Behoud affiliate-referralcookie over .nl → .eu (anders mis je attributie na registratie op .eu).
+    const hcRef = request.cookies.get('hc_ref')?.value;
+    if (hcRef) {
+      redirectResponse.cookies.set('hc_ref', hcRef, {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30,
+        secure: true,
+      });
+    }
     return redirectResponse;
   }
 
@@ -73,7 +83,7 @@ export function middleware(request: NextRequest) {
       cleanUrl.searchParams.delete('ref');
       const redirectUrl = cleanUrl.pathname + cleanUrl.search;
       const url = new URL(
-        `/api/affiliate/referral?code=${refCode}&redirect=${encodeURIComponent(redirectUrl)}`,
+        `/api/affiliate/referral?code=${encodeURIComponent(refCode)}&redirect=${encodeURIComponent(redirectUrl)}`,
         request.url
       );
       return NextResponse.redirect(url);

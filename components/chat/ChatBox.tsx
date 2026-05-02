@@ -8,6 +8,8 @@ import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
+import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
+import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 
 interface ChatBoxProps {
   conversationId: string;
@@ -41,6 +43,7 @@ interface Message {
 
 export default function ChatBox({ conversationId, otherParticipant, onBack }: ChatBoxProps) {
   const { t } = useTranslation();
+  const { referralCode } = useAffiliateLink();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
@@ -289,7 +292,10 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     if (!newMessage.trim() || isSending) return;
     
     setIsSending(true);
-    const text = newMessage.trim();
+    const text = appendAffiliateReferralToOutgoingText(
+      newMessage.trim(),
+      referralCode
+    );
     setNewMessage('');
     setIsTyping(false);
     

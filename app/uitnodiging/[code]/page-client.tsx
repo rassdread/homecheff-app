@@ -4,10 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Gift, ArrowRight, Users, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { setReferralCookie } from '@/lib/affiliate-attribution';
 
 export default function UitnodigingClient({ code, isValid }: { code: string; isValid: boolean }) {
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
+
+  useEffect(() => {
+    if (isValid && code) {
+      setReferralCookie(code);
+    }
+  }, [isValid, code]);
 
   useEffect(() => {
     if (!isValid) {

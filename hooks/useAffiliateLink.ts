@@ -20,7 +20,9 @@ export function useAffiliateLink() {
     // Fetch referral code from API
     const fetchReferralCode = async () => {
       try {
-        const response = await fetch('/api/affiliate/referral-link');
+        const response = await fetch('/api/affiliate/referral-link', {
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.code) {
@@ -47,7 +49,11 @@ export function useAffiliateLink() {
     if (!referralCode) return url;
 
     try {
-      const urlObj = new URL(url);
+      const base =
+        typeof window !== 'undefined'
+          ? window.location.origin
+          : 'https://homecheff.eu';
+      const urlObj = new URL(url, base);
       // Add ref parameter if not already present
       if (!urlObj.searchParams.has('ref')) {
         urlObj.searchParams.set('ref', referralCode);

@@ -4,11 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Gift, ArrowRight, Users, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { setReferralCookie } from '@/lib/affiliate-attribution';
 
 export default function WelkomClient({ code, isValid, language = 'nl' }: { code: string; isValid: boolean; language?: 'nl' | 'en' }) {
   const isEnglish = language === 'en';
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
+
+  // Next.js App Router: geen cookies().set in Server Components — zet hc_ref hier (30 dagen via setReferralCookie).
+  useEffect(() => {
+    if (isValid && code) {
+      setReferralCookie(code);
+    }
+  }, [isValid, code]);
 
   useEffect(() => {
     const redirectPath = '/';

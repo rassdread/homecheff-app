@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Facebook, Twitter, Instagram, Copy, Check, Mail, MessageCircle, Linkedin, MessageSquare } from 'lucide-react';
+import { Share2, Facebook, Twitter, Instagram, Copy, Check, Mail, MessageCircle, Linkedin, MessageSquare, Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -38,14 +39,18 @@ interface ShareButtonProps {
 
 export default function ShareButton({ url, title, description, className }: ShareButtonProps) {
   const { t } = useTranslation();
+  const { data: session } = useSession();
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { addAffiliateToUrl, isAffiliate } = useAffiliateLink();
+  const { addAffiliateToUrl, isAffiliate, loading: referralLoading } = useAffiliateLink();
 
-  // Beleid: bij delen van profielen of items altijd de affiliate link meesturen (ref-parameter).
-  const shareUrl = addAffiliateToUrl(url);
+  // Bij ingelogde gebruiker eerst referral-code ophalen: anders zou een affiliate in de eerste
+  // milliseconden een link zonder ?ref= kunnen kopiëren (item-URL blijft van de maker; ref = deler).
+  const shareReady = !session?.user?.email || !referralLoading;
+  const shareUrl = shareReady ? addAffiliateToUrl(url) : url;
 
   const handleCopyLink = async () => {
+    if (!shareReady) return;
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -56,6 +61,7 @@ export default function ShareButton({ url, title, description, className }: Shar
   };
 
   const handleSocialShare = (platform: string) => {
+    if (!shareReady) return;
     const encodedUrl = encodeURIComponent(shareUrl);
     const encodedTitle = encodeURIComponent(title);
     const encodedDescription = encodeURIComponent(description || '');
@@ -140,8 +146,14 @@ export default function ShareButton({ url, title, description, className }: Shar
                 </button>
               </div>
               <div className="p-4 pb-8">
+                {session?.user?.email && !shareReady && (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                    {t('share.preparingLink')}
+                  </div>
+                )}
                 {/* Affiliate hint */}
-                {isAffiliate && (
+                {isAffiliate && shareReady && (
                   <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <p className="text-xs text-emerald-800 font-medium">💡 {t('share.affiliateHint')}</p>
                   </div>
@@ -151,7 +163,8 @@ export default function ShareButton({ url, title, description, className }: Shar
                 <button
                   onClick={handleCopyLink}
                   type="button"
-                  className="w-full flex items-center space-x-3 px-4 py-4 text-base text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors mb-3"
+                  disabled={!shareReady}
+                  className="w-full flex items-center space-x-3 px-4 py-4 text-base text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors mb-3 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {copied ? (
                     <>
@@ -170,7 +183,7 @@ export default function ShareButton({ url, title, description, className }: Shar
 
                 {/* Social media opties - Mobile grid */}
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Socials</p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className={`grid grid-cols-3 gap-3 ${!shareReady ? 'pointer-events-none opacity-50' : ''}`}>
                   <button
                     type="button"
                     onClick={() => { handleSocialShare('whatsapp'); setShowShareMenu(false); }}
@@ -261,7 +274,14 @@ export default function ShareButton({ url, title, description, className }: Shar
             <div className="p-3">
               <div className="text-sm font-semibold text-gray-800 mb-2 px-2">{t('share.via')}</div>
 
-              {isAffiliate && (
+              {session?.user?.email && !shareReady && (
+                <div className="mb-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-900">
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                  {t('share.preparingLink')}
+                </div>
+              )}
+
+              {isAffiliate && shareReady && (
                 <div className="mb-3 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <p className="text-xs text-emerald-800 font-medium">💡 {t('share.affiliateHint')}</p>
                 </div>
@@ -270,7 +290,8 @@ export default function ShareButton({ url, title, description, className }: Shar
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors mb-1"
+                disabled={!shareReady}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors mb-1 disabled:pointer-events-none disabled:opacity-50"
               >
                 {copied ? (
                   <>
@@ -288,7 +309,7 @@ export default function ShareButton({ url, title, description, className }: Shar
               <div className="border-t border-gray-100 my-2" />
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Socials</p>
 
-              <div className="grid grid-cols-3 gap-1">
+              <div className={`grid grid-cols-3 gap-1 ${!shareReady ? 'pointer-events-none opacity-50' : ''}`}>
                 <button type="button" onClick={() => handleSocialShare('whatsapp')} className="flex flex-col items-center space-y-1 px-2 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors" title={t('share.whatsapp')}>
                   <MessageCircle className="w-5 h-5 text-green-600" aria-hidden />
                   <span className="text-xs truncate w-full text-center">{t('share.whatsapp')}</span>

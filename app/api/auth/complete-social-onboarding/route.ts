@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
+import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 // import { UserRole } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
@@ -126,6 +127,14 @@ export async function POST(request: NextRequest) {
       displayName: updatedUser.name || username,
       bio: updatedUser.bio || null,
     });
+
+    // Affiliate: OAuth-account werd in signIn aangemaakt zonder cookie-header; nu wel browser-cookies (hc_ref).
+    try {
+      const cookieHeader = request.headers.get('cookie');
+      await processAttributionOnSignup(existingUser.id, cookieHeader, false);
+    } catch (e) {
+      console.error('Affiliate attribution after social onboarding:', e);
+    }
 
     return NextResponse.json({ 
       message: 'Onboarding succesvol voltooid',
