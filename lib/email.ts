@@ -156,6 +156,88 @@ export async function sendReviewRequestEmail(data: {
   }
 }
 
+export type PasswordResetEmailData = {
+  email: string;
+  name: string;
+  /** Volledige URL naar /reset-password?token=... */
+  resetUrl: string;
+};
+
+/**
+ * Wachtwoord-resetlink (Resend). Vereist RESEND_API_KEY en geverifieerd domein in Resend.
+ */
+export async function sendPasswordResetEmail({
+  email,
+  name,
+  resetUrl,
+}: PasswordResetEmailData) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error("[email] sendPasswordResetEmail: RESEND_API_KEY ontbreekt");
+    throw new Error("RESEND_API_KEY_NOT_CONFIGURED");
+  }
+
+  const { data, error } = await resend.emails.send({
+    from: "HomeCheff <noreply@homecheff.eu>",
+    to: [email],
+    subject: "Nieuw wachtwoord instellen - HomeCheff",
+    html: `
+      <!DOCTYPE html>
+      <html lang="nl">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Wachtwoord resetten</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+          .header { background: linear-gradient(135deg, #006D52 0%, #005843 100%); padding: 32px 24px; text-align: center; }
+          .header h1 { color: white; margin: 0; font-size: 22px; font-weight: 700; }
+          .content { padding: 32px 24px; }
+          .button { display: inline-block; background: #006D52; color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; margin: 16px 0; }
+          .footer { background: #f9fafb; padding: 24px; text-align: center; font-size: 13px; color: #6b7280; border-top: 1px solid #e5e7eb; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Wachtwoord vergeten?</h1>
+          </div>
+          <div class="content">
+            <p>Hallo ${escapeHtml(name)},</p>
+            <p>Je hebt gevraagd om je wachtwoord opnieuw in te stellen. Klik op de knop hieronder (link is 1 uur geldig):</p>
+            <p style="text-align:center"><a class="button" href="${escapeAttr(resetUrl)}">Nieuw wachtwoord kiezen</a></p>
+            <p>Of plak deze link in je browser:</p>
+            <p style="word-break: break-all; background: #f3f4f6; padding: 12px; border-radius: 6px; font-size: 14px;">${escapeHtml(resetUrl)}</p>
+            <p>Heb je dit niet aangevraagd? Negeer deze e-mail; je wachtwoord blijft dan ongewijzigd.</p>
+          </div>
+          <div class="footer">
+            HomeCheff · <a href="mailto:support@homecheff.eu">support@homecheff.eu</a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+
+  if (error) {
+    console.error("[email] sendPasswordResetEmail Resend error:", error);
+    throw new Error("Failed to send password reset email");
+  }
+  return { success: true as const, data };
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(s: string) {
+  return escapeHtml(s).replace(/'/g, "&#39;");
+}
+
 export async function sendWelcomeEmail({ email, name }: { email: string; name: string }) {
   try {
     const { data, error } = await resend.emails.send({

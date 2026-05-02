@@ -93,13 +93,13 @@ export default function OnboardingTour({
           setChainSuppress(dontShowAgain);
           setChainedTarget('inspiratie');
           try { (window as any).__homecheffTourActive = false; } catch {}
-          window.location.href = '/inspiratie?tour=chain';
+          window.location.href = '/?chip=inspiration&tour=chain#homecheff-feed';
           return; // do not mark completed yet
         }
       } catch {}
     }
 
-    // If we are at inspiratie and want to chain to home (dorpsplein), don't finish yet
+    // Tweede stap: inspiratie-rondleiding op dezelfde Discover-pagina (`/`), daarna sale-chip
     if (pageId === 'inspiratie' && !chained) {
       try {
         if (typeof window !== 'undefined') {
@@ -107,7 +107,7 @@ export default function OnboardingTour({
           setChainSuppress(dontShowAgain);
           setChainedTarget('home');
           try { (window as any).__homecheffTourActive = false; } catch {}
-          window.location.href = '/inspiratie?bron=dorpsplein&tour=chain';
+          window.location.href = '/?chip=sale&tour=chain#homecheff-feed';
           return; // do not mark completed yet
         }
       } catch {}

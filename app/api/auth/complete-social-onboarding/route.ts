@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { ensureSellerProfileForUser } from '@/lib/seller-access';
 // import { UserRole } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
@@ -120,6 +121,12 @@ export async function POST(request: NextRequest) {
         encryptionEnabled: false,
       }
     });
+
+    await ensureSellerProfileForUser(existingUser.id, {
+      displayName: updatedUser.name || username,
+      bio: updatedUser.bio || null,
+    });
+
     return NextResponse.json({ 
       message: 'Onboarding succesvol voltooid',
       user: {

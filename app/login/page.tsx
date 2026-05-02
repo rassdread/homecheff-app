@@ -324,7 +324,11 @@ function LoginForm() {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-center">
                 <AlertCircle className="h-5 w-5 text-blue-600 mr-3" />
-                <p className="text-sm text-blue-800">{message}</p>
+                <p className="text-sm text-blue-800">
+                  {message === "password-reset"
+                    ? t("passwordReset.loginAfterReset")
+                    : message}
+                </p>
               </div>
             </div>
           )}

@@ -1,14 +1,13 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, Lightbulb, MessageCircle, User, HelpCircle } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Compass, MessageCircle, User, HelpCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { t } = useTranslation();
 
@@ -18,26 +17,14 @@ export default function BottomNav() {
 
   if (shouldHide) return null;
 
-  const chip = searchParams.get('chip');
-  const isDorpspleinHub =
-    pathname === '/inspiratie' && searchParams.get('bron') === 'dorpsplein';
   const onHome = pathname === '/';
-  const homeSaleOrDefault =
-    onHome && (chip === 'sale' || chip === 'all' || chip == null || chip === '');
-  const homeInspiration = onHome && chip === 'inspiration';
 
   const navItems = [
     {
-      label: t('bottomNav.dorpsplein'),
-      icon: Home,
-      href: '/?chip=sale#homecheff-feed',
-      active: homeSaleOrDefault || isDorpspleinHub,
-    },
-    {
-      label: t('bottomNav.inspiratie'),
-      icon: Lightbulb,
-      href: '/?chip=inspiration#homecheff-feed',
-      active: homeInspiration || (Boolean(pathname?.startsWith('/inspiratie')) && !isDorpspleinHub),
+      label: t('bottomNav.discoverTab'),
+      icon: Compass,
+      href: '/#homecheff-feed',
+      active: onHome,
     },
     {
       label: t('bottomNav.messages'),

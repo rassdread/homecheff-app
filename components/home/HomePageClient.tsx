@@ -1,8 +1,9 @@
 'use client';
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/Button";
-import { Lightbulb, Home, Users, X } from "lucide-react";
+import { Compass, Users, Briefcase, X } from "lucide-react";
 import type { Language } from "@/hooks/useTranslation";
 import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
@@ -14,6 +15,26 @@ import type { InspirationItem } from "@/components/inspiratie/InspiratieContent"
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
 const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
+
+/** Lazy chunk: voorkomt webpack/module-boundary issues bij statische bundeling met de tour. */
+const OnboardingTour = dynamic(
+  () => import("@/components/onboarding/OnboardingTour"),
+  { ssr: false }
+);
+
+function pickFirstName(
+  user: { name?: string | null; email?: string | null } | undefined
+): string | null {
+  if (!user) return null;
+  const raw = user.name?.trim();
+  if (raw) {
+    const first = raw.split(/\s+/)[0];
+    return first || null;
+  }
+  const local = user.email?.split("@")[0]?.trim();
+  if (!local) return null;
+  return local.charAt(0).toUpperCase() + local.slice(1).toLowerCase();
+}
 
 type Props = {
   initialInspiratieItems?: InspirationItem[];
@@ -95,8 +116,7 @@ export default function HomePageClient({
   const titleTranslation = t('splash.title');
   const subtitleTranslation = t('splash.subtitle');
   const valuePropositionTranslation = t('splash.valueProposition');
-  const inspiratieTranslation = t('navbar.inspiratie');
-  const dorpspleinTranslation = t('navbar.dorpsplein');
+  const discoverTabLabel = t('bottomNav.discoverTab');
   
   const splashTitle = (isReady && titleTranslation) ? titleTranslation : (language === 'nl' 
     ? 'Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.'
@@ -117,8 +137,17 @@ export default function HomePageClient({
         ? 'Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.'
         : 'Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.';
   
-  const inspiratieText = (isReady && inspiratieTranslation) ? inspiratieTranslation : (language === 'nl' ? 'Inspiratie' : 'Inspiration');
-  const dorpspleinText = (isReady && dorpspleinTranslation) ? dorpspleinTranslation : (language === 'nl' ? 'Dorpsplein' : 'Village Square');
+  const discoverLabel =
+    (isReady && discoverTabLabel && discoverTabLabel.trim().length > 0)
+      ? discoverTabLabel
+      : language === 'nl'
+        ? 'Ontdekken'
+        : 'Discover';
+  const firstName = pickFirstName(session?.user);
+  const welcomeLine =
+    firstName &&
+    ((isReady && t('home.welcomeFirstName', { name: firstName }).trim()) ||
+      (language === 'nl' ? `Welkom, ${firstName}!` : `Welcome, ${firstName}!`));
   
   const affiliateTextDefault = 'Affiliate 12-12';
   const affiliateTemporaryTextDefault = language === 'nl' 
@@ -183,28 +212,65 @@ export default function HomePageClient({
             <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
             <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
-              <Link href="/?chip=inspiration#homecheff-feed"><Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"><Lightbulb className="w-4 h-4" />{inspiratieText}</Button></Link>
-              <Link href="/?chip=sale#homecheff-feed"><Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 bg-white/10 border-white/30 text-white hover:bg-white/20"><Home className="w-4 h-4" />{dorpspleinText}</Button></Link>
-              {(!isSubAffiliate || !affiliateCheckComplete) && (
-                <Link href="/affiliate"><Button className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 !bg-orange-500/90 !border-orange-300 !text-white hover:!bg-orange-600"><Users className="w-4 h-4" />{affiliateText}</Button></Link>
-              )}
+              <Link href="/#homecheff-feed">
+                <Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3">
+                  <Compass className="w-4 h-4" aria-hidden />
+                  {discoverLabel}
+                </Button>
+              </Link>
             </div>
             <p className="text-xs text-white/80 mt-4">
-              <Link href="/?chip=sale#homecheff-feed" className="underline hover:text-white">{dorpspleinText}</Link>
-              {' · '}<Link href="/?chip=inspiration#homecheff-feed" className="underline hover:text-white">{inspiratieText}</Link>
-              {' · '}<Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
+              <Link href="/#homecheff-feed" className="underline hover:text-white">{discoverLabel}</Link>
+              {' · '}
+              <Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
             </p>
           </div>
         </section>
       )}
       <main className="min-h-[60vh]">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          {session?.user && welcomeLine && (
+            <p className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 text-center sm:text-left">
+              {welcomeLine}
+            </p>
+          )}
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}
           />
         </div>
+        <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 pt-2 border-t border-gray-200/80">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {t('home.moreSectionHeading') || (language === 'nl' ? 'Meer' : 'More')}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(!isSubAffiliate || !affiliateCheckComplete) && (
+              <Link
+                href="/affiliate"
+                className="flex items-start gap-3 rounded-xl border border-orange-200 bg-orange-50/80 p-4 hover:border-orange-300 transition-colors"
+              >
+                <Users className="w-8 h-8 shrink-0 text-orange-600" aria-hidden />
+                <span>
+                  <span className="block font-semibold text-gray-900">{affiliateText}</span>
+                  <span className="text-sm text-gray-600 mt-0.5 block">{affiliateTemporaryText}</span>
+                </span>
+              </Link>
+            )}
+            <Link
+              href="/werken-bij"
+              className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 hover:border-emerald-300 transition-colors"
+            >
+              <Briefcase className="w-8 h-8 shrink-0 text-emerald-700" aria-hidden />
+              <span>
+                <span className="block font-semibold text-gray-900">{t('werkenBij.title')}</span>
+                <span className="text-sm text-gray-600 mt-0.5 block line-clamp-2">{t('werkenBij.subtitle')}</span>
+              </span>
+            </Link>
+          </div>
+        </section>
       </main>
+      <OnboardingTour pageId="home" autoStart={false} />
+      <OnboardingTour pageId="inspiratie" autoStart={false} />
     </>
   );
 }

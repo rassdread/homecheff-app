@@ -11,6 +11,8 @@ interface AccountSettingsProps {
     id: string;
     email: string;
     name?: string | null;
+    /** false bij alleen social login: geen huidig wachtwoord nodig om een wachtwoord te koppelen */
+    hasPassword?: boolean;
   };
   onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onUpdateEmail: (newEmail: string) => Promise<void>;
@@ -19,6 +21,7 @@ interface AccountSettingsProps {
 
 export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail, onAccountDeleted }: AccountSettingsProps) {
   const { t } = useTranslation();
+  const hasPassword = user.hasPassword !== false;
   const [activeTab, setActiveTab] = useState('password');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -52,13 +55,23 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
       return;
     }
 
+    if (hasPassword && !passwordForm.currentPassword) {
+      setMessage({ type: 'error', text: t('accountSettings.currentPasswordRequired') });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await onUpdatePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      await onUpdatePassword(
+        hasPassword ? passwordForm.currentPassword : '',
+        passwordForm.newPassword
+      );
       setMessage({ type: 'success', text: t('accountSettings.passwordUpdated') });
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error) {
-      setMessage({ type: 'error', text: t('accountSettings.errorUpdatingPassword') });
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Error ? error.message : t('accountSettings.errorUpdatingPassword');
+      setMessage({ type: 'error', text: msg });
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +160,13 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
         <form onSubmit={handlePasswordUpdate} className="space-y-6">
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">{t('accountSettings.changePassword')}</h3>
+            {!hasPassword && (
+              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                {t('accountSettings.linkPasswordGoogleHint')}
+              </div>
+            )}
             <div className="space-y-4">
+              {hasPassword && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('accountSettings.currentPassword')}
@@ -169,6 +188,7 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
                   </button>
                 </div>
               </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

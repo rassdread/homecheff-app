@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useSessionCleanup } from '@/hooks/useSessionCleanup';
 import { useTranslation } from '@/hooks/useTranslation';
 import { 
   TrendingUp, 
@@ -36,9 +35,11 @@ import {
   ChevronDown,
   Wallet
 } from 'lucide-react';
-import { auth } from '@/lib/auth';
 import Link from 'next/link';
-import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import { dispatchOpenQuickAdd } from '@/lib/quickAddOpen';
+import { getCreateAuthReturnUrls } from '@/lib/createAuthReturnUrls';
+import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -105,7 +106,22 @@ interface Order {
 
 export default function SellerDashboardClient() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const createFlowLastOpenRef = useRef(0);
+  /** Zelfde gedrag als +-knop: quick-add of login met intent (geen useCreateFlow — werkt altijd, ook buiten edge cases). */
+  const openCreateFlow = useCallback(() => {
+    if (sessionStatus === 'loading') return;
+    const now = Date.now();
+    if (now - createFlowLastOpenRef.current < 400) return;
+    createFlowLastOpenRef.current = now;
+    if (sessionStatus !== 'authenticated' || !session?.user) {
+      setPendingOpenQuickAddAfterLogin();
+      router.push(getCreateAuthReturnUrls().login);
+      return;
+    }
+    dispatchOpenQuickAdd();
+  }, [router, session?.user, sessionStatus]);
+
   const { t, language } = useTranslation();
   const hasDeliveryProfile = !!(session?.user as any)?.hasDeliveryProfile;
   const [isLoading, setIsLoading] = useState(true);
@@ -243,7 +259,7 @@ export default function SellerDashboardClient() {
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => {
-        const orderStatus = order.status.toLowerCase();
+        const orderStatus = (order.status || '').toLowerCase();
         const filterStatus = statusFilter.toLowerCase();
         return orderStatus === filterStatus || 
                (filterStatus === 'bevestigd' && orderStatus === 'confirmed') ||
@@ -256,10 +272,10 @@ export default function SellerDashboardClient() {
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.customerName.toLowerCase().includes(query) ||
-        order.productTitle.toLowerCase().includes(query) ||
-        order.orderNumber.toLowerCase().includes(query)
+      filtered = filtered.filter(order =>
+        (order.customerName || '').toLowerCase().includes(query) ||
+        (order.productTitle || '').toLowerCase().includes(query) ||
+        (order.orderNumber || '').toLowerCase().includes(query)
       );
     }
 
@@ -447,6 +463,7 @@ export default function SellerDashboardClient() {
           <div className="w-full block mb-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
+            <StripeConnectPaymentsBanner />
           </div>
 
           {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}
@@ -758,7 +775,9 @@ export default function SellerDashboardClient() {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">{t('common.averageRating')}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.averageRating.toFixed(1)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                    {(Number.isFinite(stats.averageRating) ? stats.averageRating : 0).toFixed(1)}
+                  </p>
                   <div className={`flex items-center text-xs sm:text-sm mt-1 ${stats.ratingChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {stats.ratingChange >= 0 ? (
                       <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />

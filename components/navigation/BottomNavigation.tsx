@@ -238,7 +238,6 @@ export default function BottomNavigation() {
       '/verkoper/dashboard',
       '/admin',
       '/',
-      '/inspiratie',
     ];
     routesToPrefetch.forEach((route) => {
       if (!pathname) return;

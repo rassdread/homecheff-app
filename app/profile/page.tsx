@@ -28,6 +28,7 @@ export default async function ProfilePage({
       id: true,
       name: true,
       username: true,
+      passwordHash: true,
       email: true,
       bio: true,
       quote: true,
@@ -129,5 +130,17 @@ export default async function ProfilePage({
 
   const openNewProducts = (searchParams?.added ?? "") === "1";
 
-  return <ProfileClient user={user as any} openNewProducts={openNewProducts} searchParams={searchParams} />;
+  const { passwordHash, ...userForClient } = user;
+  const clientUser = {
+    ...userForClient,
+    hasPassword: Boolean(passwordHash),
+  };
+
+  return (
+    <ProfileClient
+      user={clientUser as any}
+      openNewProducts={openNewProducts}
+      searchParams={searchParams}
+    />
+  );
 }

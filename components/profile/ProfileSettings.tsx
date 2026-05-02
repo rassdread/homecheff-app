@@ -6,6 +6,7 @@ import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
 
 export interface ProfileSettingsRef {
   handleSave: () => Promise<void>;
@@ -173,16 +174,19 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const canRenameUsername = usernameContainsTempPlaceholder(user?.username);
+
   const handleSave = async () => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
     
     try {
-      // Include username with current value (can't be changed but API expects it)
       const dataToSave = {
         ...formData,
-        username: user?.username || user?.name || formData.username // Use current username
+        username: canRenameUsername
+          ? formData.username.trim()
+          : (user?.username || formData.username || "").trim(),
       };
       await onSave(dataToSave);
       setSuccess(t('profileSettings.profileUpdated'));
@@ -518,10 +522,25 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
             <input
               type="text"
               value={formData.username}
-              disabled={true}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+              disabled={!isEditing || !canRenameUsername}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, username: e.target.value }))
+              }
+              autoComplete="username"
+              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                !isEditing || !canRenameUsername
+                  ? "bg-gray-50 text-gray-500 cursor-not-allowed"
+                  : ""
+              }`}
             />
-            <p className="text-xs text-gray-500 mt-1">{t('profileSettings.usernameCannotChange')}</p>
+            {canRenameUsername ? (
+              <div className="mt-2 space-y-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                <p>{t("profileSettings.usernameTempOneTimeHint")}</p>
+                <p className="text-amber-800/90">{t("profileSettings.usernameUniqueReminder")}</p>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">{t("profileSettings.usernameCannotChange")}</p>
+            )}
           </div>
         </div>
 

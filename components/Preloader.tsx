@@ -19,7 +19,7 @@ export default function Preloader() {
 
   useEffect(() => {
     // Alleen kernroutes — geen admin/verkoper (zware bundles) voor elke bezoeker.
-    const criticalRoutes = ['/login', '/register', '/inspiratie', '/messages', '/profile'];
+    const criticalRoutes = ['/login', '/register', '/messages', '/profile'];
 
     const cancel = runWhenIdle(() => {
       criticalRoutes.forEach((route) => {
@@ -41,7 +41,7 @@ export default function Preloader() {
             () => {}
           );
         }
-        if (pathname === '/' || pathname === '/inspiratie') {
+        if (pathname === '/') {
           fetch('/api/products?limit=10', { method: 'HEAD' }).catch(() => {});
         }
       } catch {

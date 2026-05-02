@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
+import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
 export default function EditProductPage() {
@@ -188,6 +189,8 @@ export default function EditProductPage() {
             </div>
           </div>
         )}
+
+        {product && product.priceCents > 0 && <StripeConnectPaymentsBanner />}
 
         {/* Use CategoryFormSelector with correct category */}
         {product && (

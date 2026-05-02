@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { CheckCircle, User, Mail, Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CheckCircle, User, Mail, Loader2, ArrowRight, ArrowLeft, Eye, EyeOff, KeyRound } from 'lucide-react';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 
 // User types (verkoper rollen) - consistent met register form
@@ -112,6 +112,10 @@ export default function SocialLoginOnboarding() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [termsError, setTermsError] = useState('');
+  /** Optioneel: ook met e-mail + wachtwoord kunnen inloggen (naast Google). */
+  const [optionalPassword, setOptionalPassword] = useState('');
+  const [optionalPasswordConfirm, setOptionalPasswordConfirm] = useState('');
+  const [showOptionalPw, setShowOptionalPw] = useState(false);
 
   useEffect(() => {
     const fetchSocialData = async () => {
@@ -260,6 +264,17 @@ export default function SocialLoginOnboarding() {
       return;
     }
 
+    if (optionalPassword || optionalPasswordConfirm) {
+      if (optionalPassword.length < 8) {
+        setTermsError('Optioneel wachtwoord: minimaal 8 tekens, of laat beide velden leeg.');
+        return;
+      }
+      if (optionalPassword !== optionalPasswordConfirm) {
+        setTermsError('De wachtwoorden komen niet overeen.');
+        return;
+      }
+    }
+
     setIsSaving(true);
     setTermsError('');
 
@@ -287,6 +302,9 @@ export default function SocialLoginOnboarding() {
           lng: addressData.lng,
           acceptedTerms,
           acceptedPrivacy,
+          ...(optionalPassword.length >= 8 && optionalPassword === optionalPasswordConfirm
+            ? { password: optionalPassword }
+            : {}),
         }),
       });
 
@@ -672,6 +690,57 @@ export default function SocialLoginOnboarding() {
         {/* STEP 4: Terms & Privacy */}
         {step === 'terms' && (
           <div className="space-y-6">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-6 text-left">
+              <div className="flex items-center gap-2 mb-3 text-emerald-900">
+                <KeyRound className="w-5 h-5 shrink-0" aria-hidden />
+                <h3 className="font-semibold">Optioneel: wachtwoord voor e-mail login</h3>
+              </div>
+              <p className="text-sm text-emerald-900/90 mb-4">
+                Je blijft gewoon met Google kunnen inloggen. Als je hier een wachtwoord invult, kun je later ook inloggen met je e-mailadres en dit wachtwoord (handig op een ander apparaat of als je Google even niet wilt gebruiken). Je mag dit overslaan en later instellen onder Profiel → Instellingen → Account.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Nieuw wachtwoord (optioneel)</label>
+                  <div className="relative">
+                    <input
+                      type={showOptionalPw ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      value={optionalPassword}
+                      onChange={(e) => {
+                        setOptionalPassword(e.target.value);
+                        setTermsError('');
+                      }}
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm"
+                      placeholder="Minimaal 8 tekens, of leeg laten"
+                      minLength={0}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOptionalPw((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 p-1"
+                      aria-label={showOptionalPw ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
+                    >
+                      {showOptionalPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Bevestig wachtwoord (optioneel)</label>
+                  <input
+                    type={showOptionalPw ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={optionalPasswordConfirm}
+                    onChange={(e) => {
+                      setOptionalPasswordConfirm(e.target.value);
+                      setTermsError('');
+                    }}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm"
+                    placeholder="Herhaal het wachtwoord"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
               <h3 className="font-semibold text-gray-900 mb-4 text-left">
                 ⚠️ Akkoord verklaring

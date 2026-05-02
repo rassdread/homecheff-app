@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Users, Heart, Star, Eye, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import SafeImage from "./SafeImage";
 import { getDisplayName } from "@/lib/displayName";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
+import { fetchUserStatsDeduped, EMPTY_USER_STATS } from "@/lib/userStatsClientCache";
 
 type UserStats = {
   fansCount: number;
@@ -38,28 +39,52 @@ export default function UserStatsTile({
   const { isMobile } = useMobileOptimization();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!userId) {
+      setStats(null);
       setLoading(false);
       return;
     }
 
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(`/api/user/${userId}/stats`, { credentials: 'include' });
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-        }
-      } catch {
-        // Silent: CORS or network
-      } finally {
-        setLoading(false);
-      }
-    };
+    setStats(null);
+    setLoading(true);
 
-    fetchStats();
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      let cancelled = false;
+      void fetchUserStatsDeduped(userId).then((data) => {
+        if (!cancelled) {
+          setStats(data);
+          setLoading(false);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    let cancelled = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const vis = entries.some((e) => e.isIntersecting);
+        if (!vis || cancelled) return;
+        observer.disconnect();
+        void fetchUserStatsDeduped(userId).then((data) => {
+          if (!cancelled) {
+            setStats(data);
+            setLoading(false);
+          }
+        });
+      },
+      { root: null, rootMargin: "120px 0px", threshold: 0.01 }
+    );
+    observer.observe(el);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
   }, [userId]);
 
   if (!userId) {
@@ -71,7 +96,7 @@ export default function UserStatsTile({
 
   if (loading) {
     return (
-      <div className={`pt-4 border-t border-gray-100 ${className}`}>
+      <div ref={rootRef} className={`pt-4 border-t border-gray-100 ${className}`}>
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
           <div className="flex-1">
@@ -90,9 +115,7 @@ export default function UserStatsTile({
     );
   }
 
-  if (!stats) {
-    return null;
-  }
+  const effectiveStats = stats ?? EMPTY_USER_STATS;
 
   const statsItems = [
     {
@@ -108,7 +131,7 @@ export default function UserStatsTile({
     {
       icon: Heart,
       label: "Favorieten",
-      value: stats.totalFavorites,
+      value: effectiveStats.totalFavorites,
       color: "text-pink-600",
       bgColor: "bg-pink-50",
       borderColor: "border-pink-100",
@@ -118,7 +141,7 @@ export default function UserStatsTile({
     {
       icon: ThumbsUp,
       label: "Props",
-      value: stats.totalProps,
+      value: effectiveStats.totalProps,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-100",
@@ -128,7 +151,7 @@ export default function UserStatsTile({
     {
       icon: Star,
       label: "Reviews",
-      value: stats.totalReviews,
+      value: effectiveStats.totalReviews,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-100",
@@ -138,7 +161,10 @@ export default function UserStatsTile({
     {
       icon: Star,
       label: "Rating",
-      value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "-",
+      value:
+        effectiveStats.averageRating > 0
+          ? effectiveStats.averageRating.toFixed(1)
+          : "-",
       color: "text-amber-600",
       bgColor: "bg-amber-50",
       borderColor: "border-amber-100",
@@ -148,7 +174,10 @@ export default function UserStatsTile({
     {
       icon: Eye,
       label: "Views",
-      value: stats.totalViews > 0 ? formatViews(stats.totalViews) : "0",
+      value:
+        effectiveStats.totalViews > 0
+          ? formatViews(effectiveStats.totalViews)
+          : "0",
       color: "text-emerald-600",
       bgColor: "bg-emerald-50",
       borderColor: "border-emerald-100",

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { matchesCurrentMode } from '@/lib/stripe';
+import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,7 +126,7 @@ async function getStatsForPeriod(sellerId: string, startDate: Date, endDate: Dat
     prisma.order.findMany({
       where: {
         createdAt: { gte: startDate, lte: endDate },
-        stripeSessionId: { not: null }, // Only Stripe Connect orders
+        stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
         NOT: { orderNumber: { startsWith: 'SUB-' } },
         items: {
           some: {

@@ -811,136 +811,151 @@ export default function GeoFeed({
 
   return (
     <div id="homecheff-feed" className="space-y-4">
-      <div className="flex flex-wrap gap-3 items-end bg-white/60 rounded-xl p-4 border border-gray-200">
-        <div className="flex-1 min-w-[180px]">
-          <label className="block text-base font-semibold mb-1">
-            {t("common.place")}
-          </label>
-          <input
-            value={place}
-            onChange={(e) => handlePlaceInput(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-            placeholder={t("common.typePlaceOrPostcode")}
-          />
+      <div className="bg-white/70 rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm space-y-5">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">
+            {t("feed.discoverFiltersHeading")}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1 mb-3">
+            {t("feed.chipSectionIntro")}
+          </p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            {t("feed.viewModeLabel")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={chipBtn(feedChip === "all")}
+              onClick={() => setFeedChip("all")}
+            >
+              {t("filters.all")}
+            </button>
+            <button
+              type="button"
+              className={chipBtn(feedChip === "sale")}
+              onClick={() => setFeedChip("sale")}
+            >
+              {t("feed.chipSale")}
+            </button>
+            <button
+              type="button"
+              className={chipBtn(feedChip === "inspiration")}
+              onClick={() => setFeedChip("inspiration")}
+            >
+              {t("feed.chipInspiration")}
+            </button>
+          </div>
         </div>
-        <div className="min-w-[120px]">
-          <label className="block text-base font-semibold mb-1">
-            {t("feed.radiusLabel")}
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={radius}
-            onChange={(e) =>
-              setRadius(
-                Math.max(1, Math.min(100, Number(e.target.value)))
-              )
-            }
-            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
-          />
-        </div>
-        <div className="flex-1 min-w-[180px]">
-          <label className="block text-base font-semibold mb-1">
-            {t("common.search")}
-          </label>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-            placeholder={t("common.searchPlaceholder")}
-          />
-        </div>
-        <div className="min-w-[140px]">
-          <label className="block text-base font-semibold mb-1">
-            {t("common.category")}
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
-          >
-            <option value="all">{t("common.allCategories")}</option>
-            <option value="cheff">{t("feed.categoryVerticalCheff")}</option>
-            <option value="garden">{t("feed.categoryVerticalGarden")}</option>
-            <option value="designer">{t("feed.categoryVerticalDesigner")}</option>
-          </select>
-        </div>
-        <div className="min-w-[120px]">
-          <label className="block text-base font-semibold mb-1">
-            {t("common.location")}
-          </label>
-          <button
-            onClick={getCurrentPosition}
-            disabled={locationLoading || !locationSupported}
-            className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {locationLoading ? "⏳" : coords ? "📍" : "🌍"}
-            {locationLoading
-              ? t("common.loading")
-              : coords
-                ? t("common.gps")
-                : t("common.location")}
-          </button>
-        </div>
-        <div className="w-full">
-          {locationError && locationSource !== "profile" && (
-            <p className="text-xs text-red-600 mb-2">
-              ⚠️ {t("common.locationCouldNotBeDetermined")}
-            </p>
-          )}
-          {userLocation && (
-            <p className="text-xs text-green-600 mb-2">
-              {locationSource === "gps" && t("common.locationUsingGps")}
-              {locationSource === "profile" && t("common.locationUsingProfile")}
-              {locationSource === "manual" && t("common.locationUsingManual")}
-            </p>
-          )}
-          {!userLocation && !place && (
-            <p className="text-xs text-gray-500">
-              {locationSupported
-                ? t("common.getLocation")
-                : t("common.typePlaceOrPostcode")}
-            </p>
-          )}
-          {place && (
-            <p className="text-xs text-blue-600">
-              📍 {t("common.searchIn")}: {place}
-            </p>
-          )}
-        </div>
-      </div>
 
-      <div className="bg-white/60 rounded-xl p-4 border border-gray-200">
-        <p className="text-sm text-gray-600 mb-3">
-          {t("feed.chipSectionIntro")}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={chipBtn(feedChip === "all")}
-            onClick={() => setFeedChip("all")}
-          >
-            {t("filters.all")}
-          </button>
-          <button
-            type="button"
-            className={chipBtn(feedChip === "sale")}
-            onClick={() => setFeedChip("sale")}
-          >
-            {t("feed.chipSale")}
-          </button>
-          <button
-            type="button"
-            className={chipBtn(feedChip === "inspiration")}
-            onClick={() => setFeedChip("inspiration")}
-          >
-            {t("feed.chipInspiration")}
-          </button>
+        <div className="border-t border-gray-200 pt-5">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+            {t("feed.locationSectionLabel")}
+          </p>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-base font-semibold mb-1">
+                {t("common.place")}
+              </label>
+              <input
+                value={place}
+                onChange={(e) => handlePlaceInput(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
+                placeholder={t("common.typePlaceOrPostcode")}
+              />
+            </div>
+            <div className="min-w-[120px]">
+              <label className="block text-base font-semibold mb-1">
+                {t("feed.radiusLabel")}
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={radius}
+                onChange={(e) =>
+                  setRadius(
+                    Math.max(1, Math.min(100, Number(e.target.value)))
+                  )
+                }
+                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
+              />
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-base font-semibold mb-1">
+                {t("common.search")}
+              </label>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
+                placeholder={t("common.searchPlaceholder")}
+              />
+            </div>
+            <div className="min-w-[140px]">
+              <label className="block text-base font-semibold mb-1">
+                {t("common.category")}
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
+              >
+                <option value="all">{t("common.allCategories")}</option>
+                <option value="cheff">{t("feed.categoryVerticalCheff")}</option>
+                <option value="garden">{t("feed.categoryVerticalGarden")}</option>
+                <option value="designer">{t("feed.categoryVerticalDesigner")}</option>
+              </select>
+            </div>
+            <div className="min-w-[120px]">
+              <label className="block text-base font-semibold mb-1">
+                {t("common.location")}
+              </label>
+              <button
+                onClick={getCurrentPosition}
+                disabled={locationLoading || !locationSupported}
+                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {locationLoading ? "⏳" : coords ? "📍" : "🌍"}
+                {locationLoading
+                  ? t("common.loading")
+                  : coords
+                    ? t("common.gps")
+                    : t("common.location")}
+              </button>
+            </div>
+          </div>
+          <div className="w-full mt-2">
+            {locationError && locationSource !== "profile" && (
+              <p className="text-xs text-red-600 mb-2">
+                ⚠️ {t("common.locationCouldNotBeDetermined")}
+              </p>
+            )}
+            {userLocation && (
+              <p className="text-xs text-green-600 mb-2">
+                {locationSource === "gps" && t("common.locationUsingGps")}
+                {locationSource === "profile" && t("common.locationUsingProfile")}
+                {locationSource === "manual" && t("common.locationUsingManual")}
+              </p>
+            )}
+            {!userLocation && !place && (
+              <p className="text-xs text-gray-500">
+                {locationSupported
+                  ? t("common.getLocation")
+                  : t("common.typePlaceOrPostcode")}
+              </p>
+            )}
+            {place && (
+              <p className="text-xs text-blue-600">
+                📍 {t("common.searchIn")}: {place}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white/60 rounded-xl p-4 border border-gray-200">
+        <div className="border-t border-gray-200 pt-5">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+            {t("feed.refineSectionLabel")}
+          </p>
         <div className="flex flex-wrap items-center gap-4 mb-4">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
@@ -1043,6 +1058,7 @@ export default function GeoFeed({
           {searchQuery
             ? t("feed.filteredByQuery", { query: searchQuery })
             : ""}
+        </div>
         </div>
       </div>
 

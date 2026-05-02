@@ -44,6 +44,8 @@ interface User {
   id: string;
   name: string;
   username: string;
+  /** false = alleen o.a. Google-login, wachtwoord koppelen zonder huidig wachtwoord */
+  hasPassword?: boolean;
   email: string;
   bio?: string;
   quote?: string;
@@ -305,7 +307,15 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   };
 
   const handlePasswordUpdate = async (currentPassword: string, newPassword: string) => {
-    return Promise.resolve();
+    const res = await fetch("/api/profile/password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(typeof data.error === "string" ? data.error : "Wachtwoord bijwerken mislukt");
+    }
   };
 
   const handleEmailUpdate = async (newEmail: string) => {
@@ -325,7 +335,19 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       case 'profile':
         return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
       case 'account':
-        return <AccountSettings user={user} onUpdatePassword={handlePasswordUpdate} onUpdateEmail={handleEmailUpdate} onAccountDeleted={() => window.location.href = '/'} />;
+        return (
+          <AccountSettings
+            user={{
+              id: user.id,
+              email: user.email,
+              name: user.name || "",
+              hasPassword: user.hasPassword !== false,
+            }}
+            onUpdatePassword={handlePasswordUpdate}
+            onUpdateEmail={handleEmailUpdate}
+            onAccountDeleted={() => (window.location.href = "/")}
+          />
+        );
       case 'notifications':
         return <NotificationSettings onUpdateSettings={handleNotificationSettingsUpdate} />;
       default:

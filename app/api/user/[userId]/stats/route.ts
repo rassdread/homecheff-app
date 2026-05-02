@@ -20,15 +20,19 @@ export async function GET(
     const { userId } = await params;
 
     // Security: Validate userId format (must be UUID)
-    if (!userId || typeof userId !== 'string' || !UUID_REGEX.test(userId)) {
-      return NextResponse.json({
-        fansCount: 0,
-        totalFavorites: 0,
-        totalReviews: 0,
-        averageRating: 0,
-        totalViews: 0,
-        totalProps: 0
-      }, { status: 400, headers: cors });
+    // Geen 400: clients (UserStatsTile) moeten altijd een geldig stats-object kunnen tonen.
+    if (!userId || typeof userId !== "string" || !UUID_REGEX.test(userId)) {
+      return NextResponse.json(
+        {
+          fansCount: 0,
+          totalFavorites: 0,
+          totalReviews: 0,
+          averageRating: 0,
+          totalViews: 0,
+          totalProps: 0,
+        },
+        { status: 200, headers: cors }
+      );
     }
 
     // Get all product IDs for this user (via seller)

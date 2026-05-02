@@ -4,7 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { geocodeAddress } from '@/lib/global-geocoding';
+import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
+import { validateUsernameCandidate } from '@/lib/username-validation';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -38,8 +41,11 @@ export async function PUT(request: NextRequest) {
       // Bank details now handled via Stripe
     } = body;
 
+    const trimmedIncomingUsername =
+      typeof username === 'string' ? username.trim() : '';
+
     // Validate required fields
-    if (!name || !username) {
+    if (!name || !trimmedIncomingUsername) {
       return NextResponse.json({ 
         error: 'Naam en gebruikersnaam zijn verplicht' 
       }, { status: 400 });
@@ -48,14 +54,29 @@ export async function PUT(request: NextRequest) {
     // Get current user to check if username is being changed
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { username: true, messageGuidelinesAcceptedAt: true }
+      select: { id: true, username: true, messageGuidelinesAcceptedAt: true },
     });
+    let resolvedUsername = trimmedIncomingUsername;
 
-    // Prevent username changes - username is immutable after registration
-    if (currentUser?.username && currentUser.username !== username) {
-      return NextResponse.json({ 
-        error: 'Gebruikersnaam kan niet worden gewijzigd na registratie' 
-      }, { status: 400 });
+    if (currentUser?.username !== trimmedIncomingUsername) {
+      const oldName = currentUser?.username ?? '';
+      if (!usernameContainsTempPlaceholder(oldName)) {
+        return NextResponse.json(
+          {
+            error:
+              'Gebruikersnaam kan niet worden gewijzigd. Alleen accounts met een tijdelijke naam (waarin “temp” voorkomt) mogen eenmalig een definitieve, unieke naam kiezen — zoals op de site beschreven.',
+          },
+          { status: 400 }
+        );
+      }
+      const v = await validateUsernameCandidate(trimmedIncomingUsername, {
+        excludeUserId: currentUser!.id,
+        forbidTempSubstring: true,
+      });
+      if (!v.available) {
+        return NextResponse.json({ error: v.message }, { status: 400 });
+      }
+      resolvedUsername = trimmedIncomingUsername;
     }
 
     // Use provided lat/lng if available (from client-side geocoding), otherwise geocode
@@ -86,7 +107,7 @@ export async function PUT(request: NextRequest) {
       where: { email: session.user.email },
       data: {
         name,
-        username,
+        username: resolvedUsername,
         bio: bio || null,
         quote: quote || null,
         place: place || null,
@@ -134,6 +155,14 @@ export async function PUT(request: NextRequest) {
         updatedAt: true,
       }
     });
+
+    const roles = sellerRoles || [];
+    if (roles.length > 0) {
+      await ensureSellerProfileForUser(updatedUser.id, {
+        displayName: name,
+        bio: bio ?? null,
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -187,7 +187,10 @@ export async function GET(req: NextRequest) {
         Image: { 
           select: { fileUrl: true, sortOrder: true },
           orderBy: { sortOrder: 'asc' }
-        }
+        },
+        Video: {
+          select: { url: true, thumbnail: true },
+        },
       }
     }).then(products => {
       // Filter out products with price that were created with test Stripe Connect accounts
@@ -290,7 +293,12 @@ export async function GET(req: NextRequest) {
         photos: { 
           select: { url: true, idx: true },
           orderBy: { idx: 'asc' }
-        }
+        },
+        videos: {
+          select: { url: true, thumbnail: true },
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+        },
       }
     })
   ]);
@@ -314,6 +322,14 @@ export async function GET(req: NextRequest) {
     },
     images: dish.photos.map(photo => photo.url),
     image: dish.photos[0]?.url || null,
+    videos:
+      dish.videos?.length > 0
+        ? dish.videos.map((v) => ({
+            url: v.url,
+            thumbnail: v.thumbnail ?? null,
+          }))
+        : [],
+    videoUrl: dish.videos?.[0]?.url ?? null,
     location: {
       place: dish.place,
       lat: dish.lat,
@@ -403,7 +419,13 @@ export async function GET(req: NextRequest) {
       companyName: product.seller.companyName || null,
       kvk: product.seller.kvk || null
     } : undefined,
-    isBusiness: !!(product.seller?.kvk && product.seller?.companyName)
+    isBusiness: !!(product.seller?.kvk && product.seller?.companyName),
+    // Voor GeoFeed / pickPrimaryVideoUrl (ProductVideo 1:1)
+    Video: product.Video
+      ? { url: product.Video.url, thumbnail: product.Video.thumbnail ?? null }
+      : undefined,
+    videoUrl: product.Video?.url ?? null,
+    primaryVideoUrl: product.Video?.url ?? null,
   }));
 
   // Combine all items

@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { redirect } from 'next/navigation';
 import SellerDashboardClient from './page-client';
 
@@ -70,6 +71,9 @@ export default async function SellerDashboardPageWrapper() {
   if (!hasSellerRoles && !isSeller) {
     redirect('/');
   }
+
+  // Herstel ontbrekend profiel (o.a. social onboarding vóór deze fix)
+  await ensureSellerProfileForUser(userId);
 
   return <SellerDashboardClient />;
 }

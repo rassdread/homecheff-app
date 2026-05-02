@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,8 @@ export async function GET(request: Request) {
           gte: startDate,
           lte: now
         },
-        stripeSessionId: { not: null }, // Only paid orders (Stripe source)
+        // Alleen betaalde Checkout-sessies in dezelfde Stripe-modus als de server (test vs live)
+        stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
         NOT: {
           orderNumber: {
             startsWith: 'SUB-' // Exclude subscription orders
@@ -129,11 +131,14 @@ export async function GET(request: Request) {
 
     console.log(`📊 Seller Dashboard Orders API: Found ${orders.length} orders matching criteria (with stripeSessionId, period: ${period})`);
 
-    // Filter orders to only include items from this seller
-    const filteredOrders = orders.map(order => ({
-      ...order,
-      items: order.items.filter((item: any) => item.Product?.sellerId === sellerProfile.id)
-    })).filter(order => order.items.length > 0);
+    // Filter orders to only include items from this seller + nogmaals Stripe-modus (legacy id’s)
+    const filteredOrders = orders
+      .filter((o) => o.stripeSessionId && matchesCurrentMode(o.stripeSessionId))
+      .map((order) => ({
+        ...order,
+        items: order.items.filter((item: any) => item.Product?.sellerId === sellerProfile.id),
+      }))
+      .filter((order) => order.items.length > 0);
 
     // Transform orders to include seller-specific data
     const transformedOrders = filteredOrders.map(order => {

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 
 export async function POST(request: Request) {
   try {
@@ -54,6 +55,10 @@ export async function POST(request: Request) {
           gte: startDate,
           lte: now
         },
+        stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
+        NOT: {
+          orderNumber: { startsWith: 'SUB-' }
+        },
         items: {
           some: {
             Product: {
@@ -99,7 +104,9 @@ export async function POST(request: Request) {
               createdAt: {
                 gte: startDate,
                 lte: now
-              }
+              },
+              stripeSessionId: { startsWith: STRIPE_SESSION_ID_PREFIX },
+              NOT: { orderNumber: { startsWith: 'SUB-' } }
             }
           },
           include: {
@@ -116,16 +123,27 @@ export async function POST(request: Request) {
       }
     });
 
-    // Filter orders to only include items from this seller
-    const filteredOrders = orders.map(order => ({
-      ...order,
-      items: order.items.filter((item: any) => item.Product?.sellerId === sellerProfile.id)
-    })).filter(order => order.items.length > 0);
+    // Filter orders to only include items from this seller + Stripe-modus
+    const filteredOrders = orders
+      .filter((o) => o.stripeSessionId && matchesCurrentMode(o.stripeSessionId))
+      .map((order) => ({
+        ...order,
+        items: order.items.filter((item: any) => item.Product?.sellerId === sellerProfile.id)
+      }))
+      .filter((order) => order.items.length > 0);
+
+    const productsForExport = products.map((p) => ({
+      ...p,
+      orderItems: p.orderItems.filter(
+        (item: any) =>
+          item.Order?.stripeSessionId && matchesCurrentMode(item.Order.stripeSessionId)
+      )
+    }));
 
     if (format === 'csv') {
-      return generateCSV(filteredOrders, products, sellerProfile, period);
+      return generateCSV(filteredOrders, productsForExport, sellerProfile, period);
     } else if (format === 'pdf') {
-      return generatePDF(filteredOrders, products, sellerProfile, period);
+      return generatePDF(filteredOrders, productsForExport, sellerProfile, period);
     } else {
       return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
     }

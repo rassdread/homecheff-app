@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,10 +86,15 @@ export async function GET(request: Request) {
       }
     });
 
-    // Calculate stats for each product
-    const productsWithStats = products.map(product => {
-      const sales = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
-      const revenue = product.orderItems.reduce((sum, item) => {
+    // Calculate stats for each product (alleen orderregels waarvan de order in de juiste Stripe-modus zit)
+    const productsWithStats = products.map((product) => {
+      const itemsInMode = product.orderItems.filter(
+        (item) =>
+          item.Order?.stripeSessionId &&
+          matchesCurrentMode(item.Order.stripeSessionId)
+      );
+      const sales = itemsInMode.reduce((sum, item) => sum + item.quantity, 0);
+      const revenue = itemsInMode.reduce((sum, item) => {
         return sum + (item.priceCents * item.quantity);
       }, 0);
 
