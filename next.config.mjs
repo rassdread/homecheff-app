@@ -74,30 +74,30 @@ const nextConfig = {
     },
   },
   
-  // Redirects: aviliate (typo) → affiliate
+  // Redirects: typo-URL + apex /growth (SEO) → subsite op .homecheff.eu
   async redirects() {
     return [
       { source: '/aviliate', destination: '/affiliate', permanent: true },
       { source: '/aviliate/', destination: '/affiliate/', permanent: true },
       { source: '/aviliate/:path*', destination: '/affiliate/:path*', permanent: true },
+      { source: '/growth', destination: 'https://growth.homecheff.eu/', permanent: true },
+      { source: '/growth/', destination: 'https://growth.homecheff.eu/', permanent: true },
     ];
   },
 
   // Enable static optimization
   swcMinify: true,
-  
+
   // Compress output for better performance
   compress: true,
-  
+
   // Optimize production builds
   productionBrowserSourceMaps: false,
-  
+
   // Bundle optimization
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Enable compression
-  compress: true,
   // Powerpack optimizations
   poweredByHeader: false,
   
@@ -139,10 +139,7 @@ const nextConfig = {
       },
     ];
   },
-  
-  // Optimize production builds
-  productionBrowserSourceMaps: false,
-  
+
   // Enable prefetching for faster navigation (default is true, but explicit is better)
   // This makes Next.js automatically prefetch linked pages in the viewport
   // Can be disabled per Link with prefetch={false}

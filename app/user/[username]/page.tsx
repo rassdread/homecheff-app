@@ -11,9 +11,9 @@ export const revalidate = 0;
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ username: string }>;
+  params: { username: string };
 }): Promise<Metadata> {
-  const { username } = await params;
+  const { username } = params;
   const currentDomain = await getCurrentDomain();
 
   const user = await prisma.user.findUnique({
