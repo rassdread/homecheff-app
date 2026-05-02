@@ -30,16 +30,19 @@ export async function GET(req: NextRequest) {
     // Create response with redirect
     const response = NextResponse.redirect(new URL(redirect, req.url));
 
-    // Set referral cookie (30 days)
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 30);
-    
-    response.cookies.set('hc_ref', code, {
-      expires,
-      path: '/',
-      sameSite: 'lax',
-      httpOnly: false, // Needs to be accessible from client-side
-    });
+    // Eerste aanraking: alleen hc_ref zetten als er nog geen referral-cookie is (niet overschrijven).
+    const existingRef = req.cookies.get("hc_ref")?.value?.trim();
+    if (!existingRef) {
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 30);
+
+      response.cookies.set("hc_ref", code, {
+        expires,
+        path: "/",
+        sameSite: "lax",
+        httpOnly: false,
+      });
+    }
 
     return response;
   } catch (error) {

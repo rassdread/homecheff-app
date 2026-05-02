@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { getAffiliateIdFromCode } from '@/lib/affiliate-attribution';
-import UitnodigingClient from './page-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +15,11 @@ export default async function UitnodigingPage({
   }
 
   const affiliateId = await getAffiliateIdFromCode(code);
+  if (!affiliateId) {
+    redirect('/');
+  }
 
-  return <UitnodigingClient code={code} isValid={!!affiliateId} />;
+  redirect(
+    `/api/affiliate/referral?code=${encodeURIComponent(code)}&redirect=${encodeURIComponent('/')}`
+  );
 }
-

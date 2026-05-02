@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { getAffiliateIdFromCode } from '@/lib/affiliate-attribution';
-import WelkomClient from './page-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,9 +14,13 @@ export default async function WelkomPage({
     redirect('/');
   }
 
-  // Validate referral code (cookie zetten gebeurt in de client — cookies().set in RSC geeft in Next 14+ een fout)
   const affiliateId = await getAffiliateIdFromCode(code);
+  if (!affiliateId) {
+    redirect('/');
+  }
 
-  return <WelkomClient code={code} isValid={!!affiliateId} language="nl" />;
+  // Stille attributie: cookie via API, daarna gewoon homepage — geen welkomstscherm
+  redirect(
+    `/api/affiliate/referral?code=${encodeURIComponent(code)}&redirect=${encodeURIComponent('/')}`
+  );
 }
-
