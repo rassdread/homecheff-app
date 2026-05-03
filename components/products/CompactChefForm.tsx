@@ -304,7 +304,7 @@ export default function CompactChefForm({
 
     const priceNumber = Number(price.replace(',', '.'));
     if (!title || !description || !Number.isFinite(priceNumber)) {
-      setMessage('Vul titel, beschrijving en geldige prijs in.');
+      setMessage(t('compactForms.shared.fillTitleDescriptionPrice'));
       return;
     }
     if (images.length === 0) {
@@ -522,7 +522,7 @@ export default function CompactChefForm({
         {/* Foto Upload - Compact */}
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-            📸 Laat zien wat je aanbiedt (foto/video)
+            {t('compactForms.shared.photoMediaLabel')}
           </label>
           <SimpleImageUploader
             value={images}
@@ -535,21 +535,21 @@ export default function CompactChefForm({
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Wat ga je verkopen?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.titleLabel')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Bijv. Verse lasagne voor 2 personen"
+              placeholder={t('compactForms.shared.titlePlaceholderChef')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Prijs</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.priceLabel')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="12,50"
+              placeholder={t('compactForms.shared.pricePlaceholderChef')}
               inputMode="decimal"
             />
           </div>
@@ -558,7 +558,7 @@ export default function CompactChefForm({
         {/* Beschrijving - Compact */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">Vertel wat je aanbiedt</label>
+            <label className="block text-sm font-medium text-gray-700">{t('compactForms.shared.descriptionLabel')}</label>
             <EmojiPickerButton
               onEmojiClick={(emoji) => {
                 setDescription(prev => prev + emoji);
@@ -577,7 +577,7 @@ export default function CompactChefForm({
             className="w-full rounded-md border border-gray-300 px-3 py-2 h-20 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Wat maak je, voor wie, en waarom is het lekker of bijzonder?"
+            placeholder={t('compactForms.shared.descriptionPlaceholderChef')}
           />
         </div>
 
@@ -656,13 +656,17 @@ export default function CompactChefForm({
             <div className="mb-3 p-2 bg-white rounded border border-orange-200">
               <p className="text-xs text-gray-600 mb-1">{t('productForm.fromRecipe')}</p>
               <div className="flex flex-wrap gap-2 text-xs text-gray-700">
-                {recipeMetadata.prepTime && <span>⏱️ {recipeMetadata.prepTime} min</span>}
-                {recipeMetadata.servings && <span>👥 {recipeMetadata.servings} porties</span>}
+                {recipeMetadata.prepTime && (
+                  <span>⏱️ {t('compactForms.shared.metaMinutes', { minutes: recipeMetadata.prepTime })}</span>
+                )}
+                {recipeMetadata.servings && (
+                  <span>👥 {t('compactForms.shared.metaServings', { count: recipeMetadata.servings })}</span>
+                )}
                 {recipeMetadata.difficulty && (
                   <span>
-                    {recipeMetadata.difficulty === 'EASY' && '🟢 Makkelijk'}
-                    {recipeMetadata.difficulty === 'MEDIUM' && '🟡 Gemiddeld'}
-                    {recipeMetadata.difficulty === 'HARD' && '🔴 Moeilijk'}
+                    {recipeMetadata.difficulty === 'EASY' && `🟢 ${t('recipe.difficultyLevels.EASY')}`}
+                    {recipeMetadata.difficulty === 'MEDIUM' && `🟡 ${t('recipe.difficultyLevels.MEDIUM')}`}
+                    {recipeMetadata.difficulty === 'HARD' && `🔴 ${t('recipe.difficultyLevels.HARD')}`}
                   </span>
                 )}
               </div>
@@ -732,8 +736,10 @@ export default function CompactChefForm({
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="">{t('products.chooseType')}</option>
-              {CHEF_SUBCATEGORIES.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+              {CHEF_SUBCATEGORIES.map((sub) => (
+                <option key={sub} value={sub}>
+                  {t(`compactForms.chef.subLabels.${sub}` as any)}
+                </option>
               ))}
             </select>
           </div>
@@ -795,7 +801,7 @@ export default function CompactChefForm({
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
-                <p className="text-xs text-red-600 mt-1">Selecteer minimaal één bezorgoptie</p>
+                <p className="text-xs text-red-600 mt-1">{t('compactForms.shared.deliveryAtLeastOne')}</p>
               )}
             </div>
           </div>
@@ -957,12 +963,14 @@ export default function CompactChefForm({
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700 mb-1">
-                {isActive ? '✅ Actief - Zichtbaar op Dorpsplein' : '❌ Inactief - Verborgen op Dorpsplein'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveDorpsplein')
+                  : t('compactForms.shared.statusInactiveDorpsplein')}
               </p>
               <p className="text-xs text-gray-600">
-                {isActive 
-                  ? 'Je product is zichtbaar voor andere gebruikers op het dorpsplein'
-                  : 'Je product is verborgen maar niet verwijderd. Je kunt het later weer activeren.'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveHelp')
+                  : t('compactForms.shared.statusInactiveHelp')}
               </p>
             </div>
             <button
@@ -973,6 +981,7 @@ export default function CompactChefForm({
               }`}
               role="switch"
               aria-checked={isActive}
+              aria-label={t('productForm.status')}
             >
               <span
                 className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -1030,7 +1039,7 @@ export default function CompactChefForm({
                 {editMode ? t('productForm.updating') : t('productForm.saving')}
               </div>
             ) : (
-              editMode ? 'Bijwerken' : 'Publiceer & begin met verdienen'
+              editMode ? t('compactForms.shared.updateSubmit') : t('compactForms.shared.publishAndEarn')
             )}
           </button>
           

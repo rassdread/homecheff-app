@@ -1296,45 +1296,13 @@ export default function ProductPage() {
               })()}
 
                   {!isOwner && (
-                    <>
-                      <StartChatButton
-                        productId={product.id}
-                        sellerId={product.seller?.User?.id || ''}
-                        sellerName={getDisplayName(product)}
-                        showSuccessMessage={true}
-                        className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
-                      />
-                      <button
-                        onClick={() => {
-                          // Store product data for short form
-                          const productData = {
-                            title: product.title,
-                            description: product.description || '',
-                            priceCents: product.priceCents,
-                            category: product.category || 'CHEFF',
-                            subcategory: product.subcategory || '',
-                            photos: carouselPhotos.map(photo => ({ url: photo.fileUrl, id: photo.id })),
-                            video: carouselVideos.length > 0 ? {
-                              url: carouselVideos[0].url,
-                              thumbnail: carouselVideos[0].thumbnail,
-                              duration: carouselVideos[0].duration,
-                              id: carouselVideos[0].id
-                            } : null,
-                            deliveryMode: product.delivery || 'PICKUP'
-                          };
-                          
-                          // Store in sessionStorage for select-photos page
-                          sessionStorage.setItem('productToShortFormData', JSON.stringify(productData));
-                          
-                          // Navigate to photo selection page
-                          router.push(`/sell/select-photos?source=product&productId=${product.id}`);
-                        }}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
-                      >
-                        <ShoppingBag className="w-5 h-5" />
-                        Verkoop vergelijkbaar
-                      </button>
-                    </>
+                    <StartChatButton
+                      productId={product.id}
+                      sellerId={product.seller?.User?.id || ''}
+                      sellerName={getDisplayName(product)}
+                      showSuccessMessage={true}
+                      className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
+                    />
                   )}
             </div>
 
@@ -1354,7 +1322,7 @@ export default function ProductPage() {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
                     >
                       <Printer className="w-5 h-5" />
-                      <span>Printen</span>
+                      <span>{t('product.printButton')}</span>
                     </button>
                     <button
                       onClick={() => {
@@ -1369,7 +1337,7 @@ export default function ProductPage() {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
                     >
                       <Download className="w-5 h-5" />
-                      <span>Download PDF</span>
+                      <span>{t('product.downloadPdf')}</span>
                     </button>
                   </div>
                 )}
@@ -1397,7 +1365,7 @@ export default function ProductPage() {
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
                 <div className="flex items-center gap-2 mb-6">
                   <Award className="w-6 h-6 text-emerald-600" />
-                  <h3 className="text-xl font-semibold text-gray-900">Gemaakt door</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{t('product.madeByHeading')}</h3>
                 </div>
                 
                 <div className="flex items-center gap-4 mb-6">

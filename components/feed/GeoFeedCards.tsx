@@ -134,7 +134,7 @@ export function FeedSaleCard({
             {priceLabel}
           </p>
         ) : (
-          <p className="text-sm font-semibold text-emerald-800">Zie aanbod</p>
+          <p className="text-sm font-semibold text-emerald-800">{t("feed.saleSeeOffer")}</p>
         )}
         <p className="text-xs text-gray-600">
           {it.place ?? t("feed.unknownPlace")}

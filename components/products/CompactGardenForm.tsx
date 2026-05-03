@@ -18,13 +18,6 @@ type Uploaded = {
   error?: string;
 };
 
-const DELIVERY = [
-  { label: 'Afhalen', value: 'PICKUP' },
-  { label: 'Bezorgen', value: 'DELIVERY' },
-  { label: 'Verzenden', value: 'SHIPPING' },
-  { label: 'Beide', value: 'BOTH' },
-];
-
 const GARDEN_SUBCATEGORIES = [
   "Groenten", "Fruit", "Kruiden", "Bloemen", "Bomen", "Cactussen",
   "Vetplanten", "Kamerplanten", "Tuinplanten", "Moestuin", "Biologisch",
@@ -288,7 +281,7 @@ export default function CompactGardenForm({
 
     const priceNumber = Number(price.replace(',', '.'));
     if (!title || !description || !Number.isFinite(priceNumber)) {
-      setMessage('Vul titel, beschrijving en geldige prijs in.');
+      setMessage(t('compactForms.shared.fillTitleDescriptionPrice'));
       return;
     }
     if (images.length === 0) {
@@ -462,7 +455,7 @@ export default function CompactGardenForm({
         });
         setMessage(
           [data.error, data.details].filter(Boolean).join(' ').trim() ||
-            'Er is een fout opgetreden'
+            t('productForm.errorOccurred')
         );
       }
     } catch (error) {
@@ -471,7 +464,7 @@ export default function CompactGardenForm({
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
       });
-      setMessage(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het opslaan');
+      setMessage(error instanceof Error ? error.message : t('productForm.savingFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -484,12 +477,12 @@ export default function CompactGardenForm({
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-2xl">🌱</span>
           <h2 className="text-xl font-bold text-gray-900">
-            {editMode ? 'Garden Product Bewerken' : 'Nieuw Garden Product'}
+            {editMode ? t('productForm.editGardenProduct') : t('productForm.newGardenProduct')}
           </h2>
         </div>
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
           <span>🌱</span>
-          <span>Planten & Groenten</span>
+          <span>{t('compactForms.garden.badge')}</span>
         </div>
       </div>
 
@@ -509,7 +502,7 @@ export default function CompactGardenForm({
         {/* Foto Upload - Compact */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            📸 Laat zien wat je aanbiedt (foto/video)
+            {t('compactForms.shared.photoMediaLabel')}
           </label>
           <SimpleImageUploader
             value={images}
@@ -522,21 +515,21 @@ export default function CompactGardenForm({
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Wat ga je verkopen?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.titleLabel')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('common.example') + ': Verse tomaten uit eigen tuin'}
+              placeholder={t('compactForms.shared.titlePlaceholderGardenExample')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Prijs (€)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.priceLabelEuro')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="5,50"
+              placeholder={t('compactForms.shared.pricePlaceholderGarden')}
               inputMode="decimal"
             />
           </div>
@@ -545,7 +538,7 @@ export default function CompactGardenForm({
         {/* Beschrijving - Compact */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">Vertel wat je aanbiedt</label>
+            <label className="block text-sm font-medium text-gray-700">{t('compactForms.shared.descriptionLabel')}</label>
             <EmojiPickerButton
               onEmojiClick={(emoji) => {
                 setDescription(prev => prev + emoji);
@@ -564,7 +557,7 @@ export default function CompactGardenForm({
             className="w-full rounded-md border border-gray-300 px-3 py-2 h-20 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Omschrijf je aanbod: kwaliteit, herkomst, seizoen en wat mensen krijgen."
+            placeholder={t('compactForms.shared.descriptionPlaceholderGarden')}
           />
         </div>
 
@@ -578,13 +571,15 @@ export default function CompactGardenForm({
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
             >
               <option value="">{t('products.chooseType')}</option>
-              {GARDEN_SUBCATEGORIES.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+              {GARDEN_SUBCATEGORIES.map((sub) => (
+                <option key={sub} value={sub}>
+                  {t(`compactForms.garden.subLabels.${sub}` as any)}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bezorgopties</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('compactForms.shared.deliveryOptionsHeading')}</label>
             <div className="space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
                 <input
@@ -601,7 +596,7 @@ export default function CompactGardenForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  Afhalen
+                  {t('productForm.deliveryOptions.pickup')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -619,7 +614,7 @@ export default function CompactGardenForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Truck className="w-4 h-4" />
-                  Bezorgen
+                  {t('productForm.deliveryOptions.delivery')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -641,7 +636,7 @@ export default function CompactGardenForm({
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
-                <p className="text-xs text-red-600 mt-1">Selecteer minimaal één bezorgoptie</p>
+                <p className="text-xs text-red-600 mt-1">{t('compactForms.shared.deliveryAtLeastOne')}</p>
               )}
             </div>
           </div>
@@ -651,10 +646,10 @@ export default function CompactGardenForm({
         {hasDeliveryOption('PICKUP') && (
           <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📍 Afhaaladres
+              📍 {t('productForm.pickupAddress')}
             </label>
             <p className="text-xs text-gray-600 mb-4">
-              Geef aan waar klanten het product kunnen ophalen. Deze locatie wordt gebruikt voor de radius filter op dorpsplein.
+              {t('productForm.pickupAddressDescription')}
             </p>
             
             {/* Keuze: Mijn adres of ander adres */}
@@ -672,7 +667,7 @@ export default function CompactGardenForm({
                     className="mr-2 w-4 h-4 text-green-500 focus:ring-green-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    Mijn adres gebruiken
+                    {t('productForm.useMyAddress')}
                   </span>
                 </label>
                 <label className="flex items-center cursor-pointer">
@@ -687,7 +682,7 @@ export default function CompactGardenForm({
                     className="mr-2 w-4 h-4 text-green-500 focus:ring-green-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    Ander adres opgeven
+                    {t('productForm.useOtherAddress')}
                   </span>
                 </label>
               </div>
@@ -757,12 +752,14 @@ export default function CompactGardenForm({
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700 mb-1">
-                {isActive ? '✅ Actief - Zichtbaar op Dorpsplein' : '❌ Inactief - Verborgen op Dorpsplein'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveDorpsplein')
+                  : t('compactForms.shared.statusInactiveDorpsplein')}
               </p>
               <p className="text-xs text-gray-600">
-                {isActive 
-                  ? 'Je product is zichtbaar voor andere gebruikers op het dorpsplein'
-                  : 'Je product is verborgen maar niet verwijderd. Je kunt het later weer activeren.'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveHelp')
+                  : t('compactForms.shared.statusInactiveHelp')}
               </p>
             </div>
             <button
@@ -773,6 +770,7 @@ export default function CompactGardenForm({
               }`}
               role="switch"
               aria-checked={isActive}
+              aria-label={t('productForm.status')}
             >
               <span
                 className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -785,7 +783,7 @@ export default function CompactGardenForm({
 
         {/* Voorraad - Altijd beschikbaar */}
         <div className="bg-gray-50 rounded-lg p-3">
-          <label className="block text-sm font-medium text-gray-700 mb-2">📦 Voorraad</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">📦 {t('productForm.stock')}</label>
           <div className="grid gap-2 grid-cols-2">
             <div>
               <input
@@ -813,7 +811,7 @@ export default function CompactGardenForm({
         {/* Tags */}
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
           <label className="block text-sm font-semibold text-gray-900 mb-3">
-            🏷️ Tags
+            🏷️ {t('productForm.tags')}
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
             {tags.map((tag, index) => (
@@ -847,7 +845,7 @@ export default function CompactGardenForm({
                 }
               }}
               className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="Tag toevoegen (Enter)"
+              placeholder={t('compactForms.shared.tagPlaceholderEnter')}
             />
             <button
               type="button"
@@ -881,10 +879,10 @@ export default function CompactGardenForm({
             {submitting ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                {editMode ? t('common.saving') : t('common.saving')}
+                {editMode ? t('productForm.updating') : t('productForm.saving')}
               </div>
             ) : (
-              editMode ? `✅ ${t('common.update')}` : 'Publiceer & begin met verdienen'
+              editMode ? t('compactForms.shared.updateSubmitWithCheck') : t('compactForms.shared.publishAndEarn')
             )}
           </button>
           

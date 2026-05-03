@@ -15,7 +15,8 @@
     "twitter": "X (Twitter)",
     "telegram": "Telegram",
     "pinterest": "Pinterest",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "socialsHeading": "Socials"
   },
   "navigation": {
     "home": "Home",
@@ -178,7 +179,9 @@
     "title": "Messages",
     "noMessagesFound": "No messages found",
     "noMessagesReceived": "You haven't received any messages yet",
-    "conversations": "Conversations"
+    "conversations": "Conversations",
+    "noConversationsYet": "No conversations yet",
+    "searchConversationsPlaceholder": "Search conversations..."
   },
   "chat": {
     "backToConversations": "Back to conversations",
@@ -187,6 +190,7 @@
     "isTyping": "Is typeing...",
     "couldNotSend": "Could not send message",
     "fileTypeNotSupported": "File type not supported.",
+    "loginToChat": "Log in to chat",
     "chooseEmoji": {
       "garden": "Choose from our favorite garden and plant emojis"
     },
@@ -2544,7 +2548,10 @@
     "pickupDescription": "Come pick up the product",
     "buyerProtection": "Buyer Protection",
     "stock": "Stock",
-    "maxStock": "Max"
+    "maxStock": "Max",
+    "printButton": "Print",
+    "downloadPdf": "Download PDF",
+    "madeByHeading": "Made by"
   },
   "dish": {
     "noItemsShared": "No items shared yet",
@@ -3147,6 +3154,7 @@
     "heroCtaSecondary": "Discover listings",
     "heroLangNl": "🇳🇱 NL",
     "heroLangEn": "🇬🇧 EN",
+    "splashDismissAria": "Close welcome banner",
     "howItWorksStep1Title": "List what you make",
     "howItWorksStep2Title": "People nearby see it",
     "howItWorksStep3Title": "You choose your next step",
@@ -3450,7 +3458,128 @@
     "signUpBuyLocal": "Sign up and buy local",
     "earn": "Earn",
     "dashboard": "Dashboard",
-    "earnDesc": "Start selling today. List products in less than 2 minutes."
+    "earnDesc": "Start selling today. List products in less than 2 minutes.",
+    "quickAdd": {
+      "platformTitle": "What do you want to add?",
+      "photoTitle": "Add a photo",
+      "photoSubtitle": "Choose a photo from your gallery or take a new one",
+      "galleryTitle": "Gallery",
+      "gallerySubtitle": "Choose a photo or video from your gallery",
+      "cameraTitle": "Camera",
+      "cameraSubtitle": "Take a new photo or video",
+      "categoryTitle": "Choose your role",
+      "categorySubtitle": "What type of product is this?",
+      "roleChefTitle": "Chef",
+      "roleChefSubtitle": "Dishes & ingredients",
+      "roleGardenTitle": "Garden",
+      "roleGardenSubtitle": "Vegetables & plants",
+      "roleDesignerTitle": "Designer",
+      "roleDesignerSubtitle": "Handmade items",
+      "noSellerRoles": "You don't have any seller roles yet.",
+      "locationTitle": "Choose inspiration type",
+      "locationSubtitle": "What inspiration do you want to share?",
+      "inspRecipesTitle": "Recipes",
+      "inspRecipesSubtitle": "Share your recipes and cooking tips",
+      "inspGardenTitle": "Growing",
+      "inspGardenSubtitle": "Share your growing projects",
+      "inspDesignTitle": "Designs",
+      "inspDesignSubtitle": "Share your creative work",
+      "invalidMediaType": "Only photos and videos are allowed",
+      "videoTooLargeStorage": "Video is too large to store. Try a shorter video."
+    }
+  },
+  "compactForms": {
+    "shared": {
+      "titleLabel": "What are you selling?",
+      "priceLabelEuro": "Price (€)",
+      "priceLabel": "Price",
+      "descriptionLabel": "Describe what you offer",
+      "photoMediaLabel": "📸 Show what you offer (photo/video)",
+      "deliveryOptionsHeading": "Delivery options",
+      "deliveryAtLeastOne": "Select at least one delivery option",
+      "titlePlaceholderChef": "e.g. Fresh lasagna for 2",
+      "titlePlaceholderGardenExample": "Fresh tomatoes from your own garden",
+      "descriptionPlaceholderChef": "What do you make, for whom, and why is it tasty or special?",
+      "descriptionPlaceholderGarden": "Describe your offer: quality, origin, season and what buyers get.",
+      "descriptionPlaceholderDesigner": "Briefly describe materials, finish and why this is valuable.",
+      "pricePlaceholderChef": "12.50",
+      "pricePlaceholderGarden": "5.50",
+      "pricePlaceholderDesigner": "25.00",
+      "tagPlaceholderEnter": "Add tag (Enter)",
+      "metaMinutes": "{minutes} min",
+      "metaServings": "{count} servings",
+      "fillTitleDescriptionPrice": "Enter title, description and a valid price.",
+      "statusActiveDorpsplein": "✅ Active — visible on the village square",
+      "statusInactiveDorpsplein": "❌ Inactive — hidden on the village square",
+      "statusActiveHelp": "Your product is visible to other users on the village square",
+      "statusInactiveHelp": "Your product is hidden but not deleted. You can activate it again later.",
+      "publishAndEarn": "Publish & start earning",
+      "updateSubmit": "Update",
+      "updateSubmitWithCheck": "✅ Update"
+    },
+    "chef": {
+      "subLabels": {
+        "Hoofdgerecht": "Main course",
+        "Voorgerecht": "Starter",
+        "Dessert": "Dessert",
+        "Snack": "Snack",
+        "Soep": "Soup",
+        "Salade": "Salad",
+        "Pasta": "Pasta",
+        "Rijst": "Rice",
+        "Vegetarisch": "Vegetarian",
+        "Veganistisch": "Vegan",
+        "Glutenvrij": "Gluten-free",
+        "Lactosevrij": "Lactose-free",
+        "Seizoen": "Seasonal",
+        "Feestdagen": "Holidays",
+        "BBQ": "BBQ",
+        "Bakken": "Baking",
+        "Wereldkeuken": "World cuisine"
+      }
+    },
+    "garden": {
+      "badge": "Plants & vegetables",
+      "subLabels": {
+        "Groenten": "Vegetables",
+        "Fruit": "Fruit",
+        "Kruiden": "Herbs",
+        "Bloemen": "Flowers",
+        "Bomen": "Trees",
+        "Cactussen": "Cacti",
+        "Vetplanten": "Succulents",
+        "Kamerplanten": "Houseplants",
+        "Tuinplanten": "Garden plants",
+        "Moestuin": "Vegetable garden",
+        "Biologisch": "Organic",
+        "Zaadjes": "Seeds",
+        "Stekjes": "Cuttings",
+        "Seizoensgroente": "Seasonal vegetables",
+        "Exotisch": "Exotic",
+        "Compost": "Compost"
+      }
+    },
+    "designer": {
+      "badge": "Handmade & design",
+      "subLabels": {
+        "Meubels": "Furniture",
+        "Decoratie": "Decoration",
+        "Kleding": "Clothing",
+        "Accessoires": "Accessories",
+        "Schilderijen": "Paintings",
+        "Beelden": "Sculptures",
+        "Fotografie": "Photography",
+        "Keramiek": "Ceramics",
+        "Houtwerk": "Woodwork",
+        "Metaalwerk": "Metalwork",
+        "Textiel": "Textiles",
+        "Digitale kunst": "Digital art",
+        "Upcycling": "Upcycling",
+        "Vintage": "Vintage",
+        "Modern": "Modern",
+        "Handgemaakt": "Handmade"
+      }
+    }
   },
   "sellNew": {
     "hubTitle": "What do you want to add?",

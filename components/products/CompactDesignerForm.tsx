@@ -6,7 +6,7 @@ import { Package, Truck } from 'lucide-react';
 import SimpleImageUploader from './SimpleImageUploader';
 import EmojiPickerButton from '@/components/chat/EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
-import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import DynamicAddressFields from '@/components/ui/DynamicAddressFields';
 import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
@@ -17,13 +17,6 @@ type Uploaded = {
   uploading?: boolean;
   error?: string;
 };
-
-const DELIVERY = [
-  { label: 'Afhalen', value: 'PICKUP' },
-  { label: 'Bezorgen', value: 'DELIVERY' },
-  { label: 'Verzenden', value: 'SHIPPING' },
-  { label: 'Beide', value: 'BOTH' },
-];
 
 const DESIGNER_SUBCATEGORIES = [
   "Meubels", "Decoratie", "Kleding", "Accessoires", "Schilderijen",
@@ -56,18 +49,6 @@ export default function CompactDesignerForm({
   const [price, setPrice] = React.useState('');
   const [subcategory, setSubcategory] = React.useState('');
   const [deliveryOptions, setDeliveryOptions] = React.useState<string[]>(['PICKUP']);
-  
-  // Helper function to convert deliveryOptions array to deliveryMode string for API
-  const getDeliveryMode = (options: string[]): string => {
-    if (options.length === 0) return 'PICKUP'; // Default
-    if (options.length === 1) return options[0];
-    // Multiple options: convert to appropriate format
-    if (options.includes('PICKUP') && options.includes('DELIVERY') && !options.includes('SHIPPING')) {
-      return 'BOTH'; // PICKUP + DELIVERY = BOTH
-    }
-    // For other combinations, use comma-separated string (will be handled by API)
-    return options.join(',');
-  };
   
   // Helper to check if option is selected
   const hasDeliveryOption = (option: string): boolean => {
@@ -293,7 +274,7 @@ export default function CompactDesignerForm({
 
     const priceNumber = Number(price.replace(',', '.'));
     if (!title || !description || !Number.isFinite(priceNumber)) {
-      setMessage('Vul titel, beschrijving en geldige prijs in.');
+      setMessage(t('compactForms.shared.fillTitleDescriptionPrice'));
       return;
     }
     if (images.length === 0) {
@@ -451,7 +432,7 @@ export default function CompactDesignerForm({
         });
         setMessage(
           [data.error, data.details].filter(Boolean).join(' ').trim() ||
-            'Er is een fout opgetreden'
+            t('productForm.errorOccurred')
         );
       }
     } catch (error) {
@@ -460,7 +441,7 @@ export default function CompactDesignerForm({
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
       });
-      setMessage(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het opslaan');
+      setMessage(error instanceof Error ? error.message : t('productForm.savingFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -478,7 +459,7 @@ export default function CompactDesignerForm({
         </div>
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
           <span>🎨</span>
-          <span>Handgemaakt & Design</span>
+          <span>{t('compactForms.designer.badge')}</span>
         </div>
       </div>
 
@@ -498,7 +479,7 @@ export default function CompactDesignerForm({
         {/* Foto Upload - Compact */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            📸 Laat zien wat je aanbiedt (foto/video)
+            {t('compactForms.shared.photoMediaLabel')}
           </label>
           <SimpleImageUploader
             value={images}
@@ -511,7 +492,7 @@ export default function CompactDesignerForm({
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Wat ga je verkopen?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.titleLabel')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               value={title}
@@ -520,12 +501,12 @@ export default function CompactDesignerForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Prijs (€)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.priceLabelEuro')}</label>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="25,00"
+              placeholder={t('compactForms.shared.pricePlaceholderDesigner')}
               inputMode="decimal"
             />
           </div>
@@ -534,7 +515,7 @@ export default function CompactDesignerForm({
         {/* Beschrijving - Compact */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">Vertel wat je aanbiedt</label>
+            <label className="block text-sm font-medium text-gray-700">{t('compactForms.shared.descriptionLabel')}</label>
             <EmojiPickerButton
               onEmojiClick={(emoji) => {
                 setDescription(prev => prev + emoji);
@@ -553,7 +534,7 @@ export default function CompactDesignerForm({
             className="w-full rounded-md border border-gray-300 px-3 py-2 h-20 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Vertel kort over materiaal, afwerking en waarom dit waardevol is."
+            placeholder={t('compactForms.shared.descriptionPlaceholderDesigner')}
           />
         </div>
 
@@ -567,13 +548,15 @@ export default function CompactDesignerForm({
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="">{t('products.chooseType')}</option>
-              {DESIGNER_SUBCATEGORIES.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+              {DESIGNER_SUBCATEGORIES.map((sub) => (
+                <option key={sub} value={sub}>
+                  {t(`compactForms.designer.subLabels.${sub}` as any)}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bezorgopties</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('compactForms.shared.deliveryOptionsHeading')}</label>
             <div className="space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
                 <input
@@ -590,7 +573,7 @@ export default function CompactDesignerForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Package className="w-4 h-4" />
-                  Afhalen
+                  {t('productForm.deliveryOptions.pickup')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -608,7 +591,7 @@ export default function CompactDesignerForm({
                 />
                 <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Truck className="w-4 h-4" />
-                  Bezorgen
+                  {t('productForm.deliveryOptions.delivery')}
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer hover:bg-white rounded p-2 transition-colors">
@@ -630,7 +613,7 @@ export default function CompactDesignerForm({
                 </span>
               </label>
               {deliveryOptions.length === 0 && (
-                <p className="text-xs text-red-600 mt-1">Selecteer minimaal één bezorgoptie</p>
+                <p className="text-xs text-red-600 mt-1">{t('compactForms.shared.deliveryAtLeastOne')}</p>
               )}
             </div>
           </div>
@@ -640,10 +623,10 @@ export default function CompactDesignerForm({
         {hasDeliveryOption('PICKUP') && (
           <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📍 Afhaaladres
+              📍 {t('productForm.pickupAddress')}
             </label>
             <p className="text-xs text-gray-600 mb-4">
-              Geef aan waar klanten het product kunnen ophalen. Deze locatie wordt gebruikt voor de radius filter op dorpsplein.
+              {t('productForm.pickupAddressDescription')}
             </p>
             
             {/* Keuze: Mijn adres of ander adres */}
@@ -661,7 +644,7 @@ export default function CompactDesignerForm({
                     className="mr-2 w-4 h-4 text-purple-500 focus:ring-purple-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    Mijn adres gebruiken
+                    {t('productForm.useMyAddress')}
                   </span>
                 </label>
                 <label className="flex items-center cursor-pointer">
@@ -676,7 +659,7 @@ export default function CompactDesignerForm({
                     className="mr-2 w-4 h-4 text-purple-500 focus:ring-purple-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    Ander adres opgeven
+                    {t('productForm.useOtherAddress')}
                   </span>
                 </label>
               </div>
@@ -730,10 +713,10 @@ export default function CompactDesignerForm({
               📦 {t('productForm.shippingInfo.title')}
             </label>
             <p className="text-xs text-gray-600 mb-2">
-              {t('productForm.shippingInfo.description') || 'Dit product kan via pakketpost worden verzonden. De verzendkosten worden automatisch berekend op basis van het adres van de koper.'}
+              {t('productForm.shippingInfo.description')}
             </p>
             <p className="text-xs text-gray-500">
-              {t('productForm.shippingInfo.addressNote') || 'Je adres wordt automatisch gebruikt als verzendadres. Zorg dat je adres compleet is in je profiel.'}
+              {t('productForm.shippingInfo.addressNote')}
             </p>
           </div>
         )}
@@ -742,10 +725,10 @@ export default function CompactDesignerForm({
         {hasDeliveryOption('DELIVERY') && (
           <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              🚚 Bezorging
+              🚚 {t('productForm.sellerDelivery')}
             </label>
             <p className="text-xs text-gray-600 mb-4">
-              Geef aan of je zelf kunt bezorgen en binnen welk bereik.
+              {t('productForm.sellerDeliveryDescription')}
             </p>
             
             <div className="space-y-3">
@@ -757,26 +740,26 @@ export default function CompactDesignerForm({
                   className="mr-2 w-4 h-4 text-blue-500 focus:ring-blue-500 rounded"
                 />
                 <span className="text-sm font-medium text-gray-700">
-                  Ik kan zelf bezorgen
+                  {t('productForm.iCanDeliverMyself')}
                 </span>
               </label>
 
               {sellerCanDeliver && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bezorgbereik (km)
+                    {t('productForm.deliveryRadius')}
                   </label>
                   <input
                     type="number"
                     value={deliveryRadiusKm}
                     onChange={(e) => setDeliveryRadiusKm(e.target.value)}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Bijv. 5"
+                    placeholder={t('productForm.deliveryRadiusPlaceholder')}
                     min="0"
                     step="0.5"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Binnen hoeveel kilometer ben je bereid te bezorgen?
+                    {t('productForm.deliveryRadiusHelp')}
                   </p>
                 </div>
               )}
@@ -787,17 +770,19 @@ export default function CompactDesignerForm({
         {/* Status Toggle - Altijd beschikbaar */}
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-200">
           <label className="block text-sm font-semibold text-gray-900 mb-3">
-            👁️ {t('productForm.status') || 'Zichtbaarheid op Dorpsplein'}
+            👁️ {t('productForm.status')}
           </label>
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700 mb-1">
-                {isActive ? '✅ Actief - Zichtbaar op Dorpsplein' : '❌ Inactief - Verborgen op Dorpsplein'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveDorpsplein')
+                  : t('compactForms.shared.statusInactiveDorpsplein')}
               </p>
               <p className="text-xs text-gray-600">
-                {isActive 
-                  ? 'Je product is zichtbaar voor andere gebruikers op het dorpsplein'
-                  : 'Je product is verborgen maar niet verwijderd. Je kunt het later weer activeren.'}
+                {isActive
+                  ? t('compactForms.shared.statusActiveHelp')
+                  : t('compactForms.shared.statusInactiveHelp')}
               </p>
             </div>
             <button
@@ -808,6 +793,7 @@ export default function CompactDesignerForm({
               }`}
               role="switch"
               aria-checked={isActive}
+              aria-label={t('productForm.status')}
             >
               <span
                 className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -820,7 +806,7 @@ export default function CompactDesignerForm({
 
         {/* Voorraad - Altijd beschikbaar */}
         <div className="bg-gray-50 rounded-lg p-3">
-          <label className="block text-sm font-medium text-gray-700 mb-2">📦 Voorraad</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">📦 {t('productForm.stock')}</label>
           <div className="grid gap-2 grid-cols-2">
             <div>
               <input
@@ -848,7 +834,7 @@ export default function CompactDesignerForm({
         {/* Tags */}
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <label className="block text-sm font-semibold text-gray-900 mb-3">
-            🏷️ Tags
+            🏷️ {t('productForm.tags')}
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
             {tags.map((tag, index) => (
@@ -882,7 +868,7 @@ export default function CompactDesignerForm({
                 }
               }}
               className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Tag toevoegen (Enter)"
+              placeholder={t('compactForms.shared.tagPlaceholderEnter')}
             />
             <button
               type="button"
@@ -916,10 +902,10 @@ export default function CompactDesignerForm({
             {submitting ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                {editMode ? t('recipe.update') + '...' : t('buttons.save') + '...'}
+                {editMode ? t('productForm.updating') : t('productForm.saving')}
               </div>
             ) : (
-              editMode ? '✅ ' + t('recipe.update') : 'Publiceer & begin met verdienen'
+              editMode ? t('compactForms.shared.updateSubmitWithCheck') : t('compactForms.shared.publishAndEarn')
             )}
           </button>
           

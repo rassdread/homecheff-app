@@ -15,7 +15,8 @@
     "twitter": "X (Twitter)",
     "telegram": "Telegram",
     "pinterest": "Pinterest",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "socialsHeading": "Socials"
   },
   "navigation": {
     "home": "Home",
@@ -117,7 +118,9 @@
     "title": "Berichten",
     "noMessagesFound": "Geen berichten gevonden",
     "noMessagesReceived": "Je hebt nog geen berichten ontvangen",
-    "conversations": "Gesprekken"
+    "conversations": "Gesprekken",
+    "noConversationsYet": "Nog geen gesprekken",
+    "searchConversationsPlaceholder": "Zoek in gesprekken..."
   },
   "buttons": {
     "addItem": "Deel je creatie",
@@ -1959,7 +1962,10 @@
     "pickupDescription": "Kom het product ophalen",
     "buyerProtection": "Kopers Bescherming",
     "stock": "Voorraad",
-    "maxStock": "Max"
+    "maxStock": "Max",
+    "printButton": "Printen",
+    "downloadPdf": "Download PDF",
+    "madeByHeading": "Gemaakt door"
   },
   "dish": {
     "noItemsShared": "Nog geen items gedeeld",
@@ -2909,7 +2915,128 @@
     "signUpBuyLocal": "Meld je aan en koop lokaal",
     "earn": "Verdienen",
     "dashboard": "Dashboard",
-    "earnDesc": "Start vandaag nog met verkopen. Plaats producten in minder dan 2 minuten."
+    "earnDesc": "Start vandaag nog met verkopen. Plaats producten in minder dan 2 minuten.",
+    "quickAdd": {
+      "platformTitle": "Wat wil je toevoegen?",
+      "photoTitle": "Foto toevoegen",
+      "photoSubtitle": "Kies een foto uit je galerij of maak een nieuwe",
+      "galleryTitle": "Galerij",
+      "gallerySubtitle": "Kies een foto of video uit je galerij",
+      "cameraTitle": "Camera",
+      "cameraSubtitle": "Maak een nieuwe foto of video",
+      "categoryTitle": "Kies je rol",
+      "categorySubtitle": "Welk type product is dit?",
+      "roleChefTitle": "Chef",
+      "roleChefSubtitle": "Gerechten & ingrediënten",
+      "roleGardenTitle": "Tuin",
+      "roleGardenSubtitle": "Groenten & planten",
+      "roleDesignerTitle": "Designer",
+      "roleDesignerSubtitle": "Handgemaakte items",
+      "noSellerRoles": "Je hebt nog geen verkoper rollen.",
+      "locationTitle": "Kies inspiratie type",
+      "locationSubtitle": "Welke inspiratie wil je delen?",
+      "inspRecipesTitle": "Recepten",
+      "inspRecipesSubtitle": "Deel je recepten en kooktips",
+      "inspGardenTitle": "Kweken",
+      "inspGardenSubtitle": "Deel je kweekprojecten",
+      "inspDesignTitle": "Designs",
+      "inspDesignSubtitle": "Deel je creatieve werken",
+      "invalidMediaType": "Alleen foto's en video's zijn toegestaan",
+      "videoTooLargeStorage": "Video is te groot voor opslag. Probeer een kortere video."
+    }
+  },
+  "compactForms": {
+    "shared": {
+      "titleLabel": "Wat ga je verkopen?",
+      "priceLabelEuro": "Prijs (€)",
+      "priceLabel": "Prijs",
+      "descriptionLabel": "Vertel wat je aanbiedt",
+      "photoMediaLabel": "📸 Laat zien wat je aanbiedt (foto/video)",
+      "deliveryOptionsHeading": "Bezorgopties",
+      "deliveryAtLeastOne": "Selecteer minimaal één bezorgoptie",
+      "titlePlaceholderChef": "Bijv. Verse lasagne voor 2 personen",
+      "titlePlaceholderGardenExample": "Verse tomaten uit eigen tuin",
+      "descriptionPlaceholderChef": "Wat maak je, voor wie, en waarom is het lekker of bijzonder?",
+      "descriptionPlaceholderGarden": "Omschrijf je aanbod: kwaliteit, herkomst, seizoen en wat mensen krijgen.",
+      "descriptionPlaceholderDesigner": "Vertel kort over materiaal, afwerking en waarom dit waardevol is.",
+      "pricePlaceholderChef": "12,50",
+      "pricePlaceholderGarden": "5,50",
+      "pricePlaceholderDesigner": "25,00",
+      "tagPlaceholderEnter": "Tag toevoegen (Enter)",
+      "metaMinutes": "{minutes} min",
+      "metaServings": "{count} porties",
+      "fillTitleDescriptionPrice": "Vul titel, beschrijving en geldige prijs in.",
+      "statusActiveDorpsplein": "✅ Actief - Zichtbaar op Dorpsplein",
+      "statusInactiveDorpsplein": "❌ Inactief - Verborgen op Dorpsplein",
+      "statusActiveHelp": "Je product is zichtbaar voor andere gebruikers op het dorpsplein",
+      "statusInactiveHelp": "Je product is verborgen maar niet verwijderd. Je kunt het later weer activeren.",
+      "publishAndEarn": "Publiceer & begin met verdienen",
+      "updateSubmit": "Bijwerken",
+      "updateSubmitWithCheck": "✅ Bijwerken"
+    },
+    "chef": {
+      "subLabels": {
+        "Hoofdgerecht": "Hoofdgerecht",
+        "Voorgerecht": "Voorgerecht",
+        "Dessert": "Dessert",
+        "Snack": "Snack",
+        "Soep": "Soep",
+        "Salade": "Salade",
+        "Pasta": "Pasta",
+        "Rijst": "Rijst",
+        "Vegetarisch": "Vegetarisch",
+        "Veganistisch": "Veganistisch",
+        "Glutenvrij": "Glutenvrij",
+        "Lactosevrij": "Lactosevrij",
+        "Seizoen": "Seizoen",
+        "Feestdagen": "Feestdagen",
+        "BBQ": "BBQ",
+        "Bakken": "Bakken",
+        "Wereldkeuken": "Wereldkeuken"
+      }
+    },
+    "garden": {
+      "badge": "Planten & Groenten",
+      "subLabels": {
+        "Groenten": "Groenten",
+        "Fruit": "Fruit",
+        "Kruiden": "Kruiden",
+        "Bloemen": "Bloemen",
+        "Bomen": "Bomen",
+        "Cactussen": "Cactussen",
+        "Vetplanten": "Vetplanten",
+        "Kamerplanten": "Kamerplanten",
+        "Tuinplanten": "Tuinplanten",
+        "Moestuin": "Moestuin",
+        "Biologisch": "Biologisch",
+        "Zaadjes": "Zaadjes",
+        "Stekjes": "Stekjes",
+        "Seizoensgroente": "Seizoensgroente",
+        "Exotisch": "Exotisch",
+        "Compost": "Compost"
+      }
+    },
+    "designer": {
+      "badge": "Handgemaakt & Design",
+      "subLabels": {
+        "Meubels": "Meubels",
+        "Decoratie": "Decoratie",
+        "Kleding": "Kleding",
+        "Accessoires": "Accessoires",
+        "Schilderijen": "Schilderijen",
+        "Beelden": "Beelden",
+        "Fotografie": "Fotografie",
+        "Keramiek": "Keramiek",
+        "Houtwerk": "Houtwerk",
+        "Metaalwerk": "Metaalwerk",
+        "Textiel": "Textiel",
+        "Digitale kunst": "Digitale kunst",
+        "Upcycling": "Upcycling",
+        "Vintage": "Vintage",
+        "Modern": "Modern",
+        "Handgemaakt": "Handgemaakt"
+      }
+    }
   },
   "sellNew": {
     "hubTitle": "Wat wil je toevoegen?",
@@ -3906,6 +4033,7 @@
     "isTyping": "aan het typen...",
     "couldNotSend": "Kon bericht niet verzenden",
     "fileTypeNotSupported": "Bestandstype niet ondersteund.",
+    "loginToChat": "Inloggen om te chatten",
     "chooseEmoji": {
       "garden": "Kies uit onze favoriete tuin en planten emoji's"
     },
@@ -4047,6 +4175,7 @@
     "heroCtaSecondary": "Ontdek aanbod",
     "heroLangNl": "🇳🇱 NL",
     "heroLangEn": "🇬🇧 EN",
+    "splashDismissAria": "Welkomstblok sluiten",
     "howItWorksStep1Title": "Plaats wat je maakt",
     "howItWorksStep2Title": "Mensen uit jouw buurt zien het",
     "howItWorksStep3Title": "Jij kiest je volgende stap",

@@ -45,7 +45,7 @@ export default function HomePageClient({
   initialInspiratieItems = [],
   initialFeedChip,
 }: Props) {
-  const { t, language, changeLanguage, isReady } = useTranslation();
+  const { t, tOr, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
   const [splashDismissed, setSplashDismissed] = useState(false);
   const [currentDomain, setCurrentDomain] = useState(() => {
@@ -113,53 +113,69 @@ export default function HomePageClient({
     if (language !== newLanguage) await changeLanguage(newLanguage);
   };
   
-  const titleTranslation = t('splash.title');
-  const subtitleTranslation = t('splash.subtitle');
-  const valuePropositionTranslation = t('splash.valueProposition');
-  const discoverTabLabel = t('bottomNav.discoverTab');
-  
-  const splashTitle = (isReady && titleTranslation) ? titleTranslation : (language === 'nl' 
-    ? 'Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.'
-    : 'Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra.');
-  
-  const splashSubtitle = (isReady && subtitleTranslation) ? subtitleTranslation : (language === 'nl'
-    ? 'Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.'
-    : 'Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.');
+  const splashTitle = tOr(
+    'splash.title',
+    'Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra.',
+    'Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.'
+  );
 
-  const splashValueProposition =
-    isReady &&
-    valuePropositionTranslation &&
-    typeof valuePropositionTranslation === 'string' &&
-    valuePropositionTranslation.trim().length > 0 &&
-    valuePropositionTranslation !== 'splash.valueProposition'
-      ? valuePropositionTranslation
-      : language === 'nl'
-        ? 'Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.'
-        : 'Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.';
-  
-  const discoverLabel =
-    (isReady && discoverTabLabel && discoverTabLabel.trim().length > 0)
-      ? discoverTabLabel
-      : language === 'nl'
-        ? 'Ontdekken'
-        : 'Discover';
+  const splashSubtitle = tOr(
+    'splash.subtitle',
+    'Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.',
+    'Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.'
+  );
+
+  const splashValueProposition = tOr(
+    'splash.valueProposition',
+    'Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.',
+    'Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.'
+  );
+
+  const discoverLabel = tOr('bottomNav.discoverTab', 'Discover', 'Ontdekken');
+
   const firstName = pickFirstName(session?.user);
+  const welcomeFromT = firstName
+    ? t('home.welcomeFirstName', { name: firstName }).trim()
+    : '';
   const welcomeLine =
     firstName &&
-    ((isReady && t('home.welcomeFirstName', { name: firstName }).trim()) ||
-      (language === 'nl' ? `Welkom, ${firstName}!` : `Welcome, ${firstName}!`));
-  
-  const affiliateTextDefault = 'Affiliate 12-12';
-  const affiliateTemporaryTextDefault = language === 'nl' 
-    ? '⚠️ Tijdelijk! We nemen affiliates aan' 
-    : '⚠️ Temporary! We are accepting affiliates';
-  const affiliateTranslation = t('splash.affiliate');
-  const affiliateTemporaryTranslation = t('splash.affiliateTemporary');
-  const affiliateText = (affiliateTranslation && typeof affiliateTranslation === 'string' && affiliateTranslation.trim().length > 0 && affiliateTranslation !== 'splash.affiliate' && affiliateTranslation.length > 5)
-    ? affiliateTranslation : affiliateTextDefault;
-  const affiliateTemporaryText = (affiliateTemporaryTranslation && typeof affiliateTemporaryTranslation === 'string' && affiliateTemporaryTranslation.trim().length > 0 && affiliateTemporaryTranslation !== 'splash.affiliateTemporary' && affiliateTemporaryTranslation.length > 10)
-    ? affiliateTemporaryTranslation : affiliateTemporaryTextDefault;
-  
+    (welcomeFromT ||
+      (language === 'en' ? `Welcome, ${firstName}!` : `Welkom, ${firstName}!`));
+
+  const affiliateText = tOr(
+    'splash.affiliate',
+    'Affiliate 12-12',
+    'Affiliate 12-12'
+  );
+  const affiliateTemporaryText = tOr(
+    'splash.affiliateTemporary',
+    '⚠️ Temporary! We are accepting affiliates',
+    '⚠️ Tijdelijk! We nemen affiliates aan'
+  );
+
+  const schemaOrgDescription = tOr(
+    'home.schemaOrganizationDescription',
+    'HomeCheff is a local platform where individuals can sell their handmade products.',
+    'HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.'
+  );
+  const schemaWebsiteDescription = tOr(
+    'home.schemaWebsiteDescription',
+    'HomeCheff — discover digital studios, gardens, and kitchens in your neighborhood.',
+    'HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.'
+  );
+  const schemaContactType = tOr(
+    'home.schemaContactCustomerService',
+    'Customer service',
+    'Klantenservice'
+  );
+  const schemaAreaCountry = tOr(
+    'home.schemaAreaServedCountry',
+    'Netherlands',
+    'Nederland'
+  );
+  const schemaLang1 = tOr('home.schemaAvailableLang1', 'Dutch', 'Nederlands');
+  const schemaLang2 = tOr('home.schemaAvailableLang2', 'English', 'Engels');
+
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -167,11 +183,9 @@ export default function HomePageClient({
     alternateName: ['homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef', 'HomeCheff platform', 'HomeCheff marktplaats', 'HomeCheff marketplace', 'HomeCheff app', 'HomeCheff website', 'HomeCheff Netherlands', 'HomeCheff Europe'],
     url: currentDomain,
     logo: { '@type': 'ImageObject', url: `${currentDomain}/logo.png` },
-    description: language === 'nl' 
-      ? 'HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.'
-      : 'HomeCheff is a local platform where individuals can sell their handmade products.',
-    contactPoint: { '@type': 'ContactPoint', contactType: 'Customer Service', email: 'support@homecheff.eu', availableLanguage: ['Dutch', 'English'] },
-    areaServed: { '@type': 'Country', name: 'Netherlands' },
+    description: schemaOrgDescription,
+    contactPoint: { '@type': 'ContactPoint', contactType: schemaContactType, email: 'support@homecheff.eu', availableLanguage: [schemaLang1, schemaLang2] },
+    areaServed: { '@type': 'Country', name: schemaAreaCountry },
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
   
@@ -181,9 +195,7 @@ export default function HomePageClient({
     name: 'HomeCheff',
     alternateName: ['homecheff', 'home cheff', 'home-cheff', 'homechef', 'home chef', 'HomeCheff platform', 'HomeCheff marketplace'],
     url: currentDomain,
-    description: language === 'nl'
-      ? 'HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.'
-      : 'HomeCheff - Discover digital studios, gardens and kitchens in your neighborhood.',
+    description: schemaWebsiteDescription,
     publisher: { '@type': 'Organization', name: 'HomeCheff' },
     inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
@@ -195,7 +207,7 @@ export default function HomePageClient({
       <StructuredData data={websiteStructuredData} />
       {!splashDismissed && (
         <section className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-6 sm:py-8 px-4 sm:px-6 shadow-lg">
-          <button type="button" onClick={dismissSplash} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label={language === 'nl' ? 'Welkomstblok sluiten' : 'Close welcome block'}>
+          <button type="button" onClick={dismissSplash} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label={tOr('home.splashDismissAria', 'Close welcome banner', 'Welkomstblok sluiten')}>
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           <div className="relative max-w-4xl mx-auto text-center">
@@ -205,8 +217,8 @@ export default function HomePageClient({
               </div>
             </div>
             <div className="flex justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <button onClick={() => handleLanguageChange('nl')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'nl' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇳🇱 NL</button>
-              <button onClick={() => handleLanguageChange('en')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'en' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>🇬🇧 EN</button>
+              <button type="button" onClick={() => handleLanguageChange('nl')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'nl' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>{tOr('home.heroLangNl', '🇳🇱 NL', '🇳🇱 NL')}</button>
+              <button type="button" onClick={() => handleLanguageChange('en')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'en' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>{tOr('home.heroLangEn', '🇬🇧 EN', '🇬🇧 EN')}</button>
             </div>
             <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 leading-tight px-2">{splashTitle}</h1>
             <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
@@ -241,7 +253,7 @@ export default function HomePageClient({
         </div>
         <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 pt-2 border-t border-gray-200/80">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            {t('home.moreSectionHeading') || (language === 'nl' ? 'Meer' : 'More')}
+            {tOr('home.moreSectionHeading', 'More', 'Meer')}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {(!isSubAffiliate || !affiliateCheckComplete) && (

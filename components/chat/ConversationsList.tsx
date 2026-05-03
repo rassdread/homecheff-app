@@ -229,7 +229,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Gesprekken laden...</div>
+        <div className="text-gray-500">{t('messages.loadingConversations')}</div>
       </div>
     );
   }
@@ -251,7 +251,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         <div className="relative">
           <input
             type="text"
-            placeholder="Zoek in gesprekken..."
+            placeholder={t('messages.searchConversationsPlaceholder')}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <MessageCircle className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />

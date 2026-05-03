@@ -193,7 +193,7 @@ export default function StartChatButton({
         `}
       >
         <MessageCircle className="w-4 h-4" />
-        <span>Inloggen om te chatten</span>
+        <span>{t('chat.loginToChat')}</span>
       </button>
     );
   }

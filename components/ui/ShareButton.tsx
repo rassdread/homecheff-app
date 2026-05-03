@@ -182,7 +182,7 @@ export default function ShareButton({ url, title, description, className }: Shar
                 <div className="border-t border-gray-100 my-4" />
 
                 {/* Social media opties - Mobile grid */}
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Socials</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">{t('share.socialsHeading')}</p>
                 <div className={`grid grid-cols-3 gap-3 ${!shareReady ? 'pointer-events-none opacity-50' : ''}`}>
                   <button
                     type="button"
@@ -307,7 +307,7 @@ export default function ShareButton({ url, title, description, className }: Shar
               </button>
 
               <div className="border-t border-gray-100 my-2" />
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Socials</p>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">{t('share.socialsHeading')}</p>
 
               <div className={`grid grid-cols-3 gap-1 ${!shareReady ? 'pointer-events-none opacity-50' : ''}`}>
                 <button type="button" onClick={() => handleSocialShare('whatsapp')} className="flex flex-col items-center space-y-1 px-2 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors" title={t('share.whatsapp')}>

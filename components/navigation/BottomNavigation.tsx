@@ -477,7 +477,7 @@ export default function BottomNavigation() {
     
     if (!isVideo && !isImage) {
       console.error('File is neither image nor video:', file.type);
-      alert('Alleen foto\'s en video\'s zijn toegestaan');
+      alert(t('bottomNav.quickAdd.invalidMediaType'));
       closeQuickAddMenu();
       return;
     }
@@ -606,7 +606,7 @@ export default function BottomNavigation() {
       } catch (error) {
         console.error(`Error storing ${isVideo ? 'video' : 'photo'}:`, error);
         if (error instanceof Error && error.message.includes('quota')) {
-          alert(isVideo ? 'Video is te groot voor opslag. Probeer een kortere video.' : t('errors.photoTooLarge'));
+          alert(isVideo ? t('bottomNav.quickAdd.videoTooLargeStorage') : t('errors.photoTooLarge'));
           return;
         }
         throw error;
@@ -729,7 +729,7 @@ export default function BottomNavigation() {
       } catch (error) {
         console.error(`Error storing ${isVideo ? 'video' : 'photo'} in sessionStorage:`, error);
         if (error instanceof Error && error.message.includes('quota')) {
-          alert(isVideo ? 'Video is te groot voor opslag. Probeer een kortere video.' : t('errors.photoTooLarge'));
+          alert(isVideo ? t('bottomNav.quickAdd.videoTooLargeStorage') : t('errors.photoTooLarge'));
           return;
         }
         throw error;
@@ -792,7 +792,7 @@ export default function BottomNavigation() {
     
     // Navigate immediately - sessionStorage should be written
     window.location.href = targetUrl;
-  }, [capturedPhoto]);
+  }, [capturedPhoto, t]);
 
   const closeQuickAddMenu = () => {
     setShowQuickAddMenu(false);
@@ -862,7 +862,7 @@ export default function BottomNavigation() {
             {quickAddStep === 'platform' && (
               <div className="p-6" key="platform-step">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Wat wil je toevoegen?</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.platformTitle')}</h3>
                   <button
                     onClick={closeQuickAddMenu}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -901,8 +901,8 @@ export default function BottomNavigation() {
               <div className="p-6" key="photoSource-step">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Foto toevoegen</h3>
-                    <p className="text-sm text-gray-600">Kies een foto uit je galerij of maak een nieuwe</p>
+                    <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.photoTitle')}</h3>
+                    <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.photoSubtitle')}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -924,8 +924,8 @@ export default function BottomNavigation() {
                     className="w-full p-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
                     <div className="text-2xl mb-1">📷</div>
-                    <div className="text-lg font-bold">Galerij</div>
-                    <div className="text-sm opacity-90">Kies een foto of video uit je galerij</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.galleryTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.gallerySubtitle')}</div>
                   </button>
                   
                   <button
@@ -933,8 +933,8 @@ export default function BottomNavigation() {
                     className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
                     <div className="text-2xl mb-1">📸</div>
-                    <div className="text-lg font-bold">Camera</div>
-                    <div className="text-sm opacity-90">Maak een nieuwe foto of video</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.cameraTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.cameraSubtitle')}</div>
                   </button>
                 </div>
               </div>
@@ -945,8 +945,8 @@ export default function BottomNavigation() {
               <div className="p-6" key="category-step">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Kies je rol</h3>
-                    <p className="text-sm text-gray-600">Welk type product is dit?</p>
+                    <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.categoryTitle')}</h3>
+                    <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.categorySubtitle')}</p>
                   </div>
                   <button
                     onClick={closeQuickAddMenu}
@@ -1000,8 +1000,8 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">🍳</div>
-                      <div className="text-lg font-bold">Chef</div>
-                      <div className="text-sm opacity-90">Gerechten & ingrediënten</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.roleChefTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.roleChefSubtitle')}</div>
                     </button>
                   )}
                   
@@ -1034,8 +1034,8 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">🌱</div>
-                      <div className="text-lg font-bold">Garden</div>
-                      <div className="text-sm opacity-90">Groenten & planten</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.roleGardenTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.roleGardenSubtitle')}</div>
                     </button>
                   )}
                   
@@ -1068,26 +1068,26 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">🎨</div>
-                      <div className="text-lg font-bold">Designer</div>
-                      <div className="text-sm opacity-90">Handgemaakte items</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.roleDesignerTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.roleDesignerSubtitle')}</div>
                     </button>
                   )}
                   
                   {userRolesLoaded && userRoles.length === 0 && session?.user && (
                     <div className="text-center py-4">
-                      <p className="text-gray-600 mb-4">Je hebt nog geen verkoper rollen.</p>
+                      <p className="text-gray-600 mb-4">{t('bottomNav.quickAdd.noSellerRoles')}</p>
                       <Link
                         href="/profile?tab=overview"
                         className="inline-block bg-primary-brand text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600 transition-colors"
                         onClick={closeQuickAddMenu}
                       >
-                        Mijn HomeCheff instellen
+                        {t('bottomNav.setupHomeCheff')}
                       </Link>
                     </div>
                   )}
                   {!userRolesLoaded && (
                     <div className="text-center py-4">
-                      <p className="text-gray-600 mb-4">Laden...</p>
+                      <p className="text-gray-600 mb-4">{t('common.loadingDots')}</p>
                     </div>
                   )}
                 </div>
@@ -1096,7 +1096,7 @@ export default function BottomNavigation() {
                   onClick={goBackInQuickAdd}
                   className="w-full mt-4 p-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all active:scale-95"
                 >
-                  ← Terug
+                  {t('messages.back')}
                 </button>
               </div>
             )}
@@ -1106,8 +1106,8 @@ export default function BottomNavigation() {
               <div className="p-6" key="location-step">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Kies inspiratie type</h3>
-                    <p className="text-sm text-gray-600">Welke inspiratie wil je delen?</p>
+                    <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.locationTitle')}</h3>
+                    <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.locationSubtitle')}</p>
                   </div>
                   <button
                     onClick={closeQuickAddMenu}
@@ -1153,8 +1153,8 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">📝</div>
-                      <div className="text-lg font-bold">Recepten</div>
-                      <div className="text-sm opacity-90">Deel je recepten en kooktips</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.inspRecipesTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.inspRecipesSubtitle')}</div>
                     </button>
                   )}
                   
@@ -1187,8 +1187,8 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">🌱</div>
-                      <div className="text-lg font-bold">Kweken</div>
-                      <div className="text-sm opacity-90">Deel je kweekprojecten</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.inspGardenTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.inspGardenSubtitle')}</div>
                     </button>
                   )}
                   
@@ -1221,26 +1221,26 @@ export default function BottomNavigation() {
                       }}
                     >
                       <div className="text-2xl mb-1">🎨</div>
-                      <div className="text-lg font-bold">Designs</div>
-                      <div className="text-sm opacity-90">Deel je creatieve werken</div>
+                      <div className="text-lg font-bold">{t('bottomNav.quickAdd.inspDesignTitle')}</div>
+                      <div className="text-sm opacity-90">{t('bottomNav.quickAdd.inspDesignSubtitle')}</div>
                     </button>
                   )}
                   
                   {userRolesLoaded && userRoles.length === 0 && session?.user && (
                     <div className="text-center py-4">
-                      <p className="text-gray-600 mb-4">Je hebt nog geen verkoper rollen.</p>
+                      <p className="text-gray-600 mb-4">{t('bottomNav.quickAdd.noSellerRoles')}</p>
                       <Link
                         href="/profile?tab=overview"
                         className="inline-block bg-primary-brand text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600 transition-colors"
                         onClick={closeQuickAddMenu}
                       >
-                        Mijn HomeCheff instellen
+                        {t('bottomNav.setupHomeCheff')}
                       </Link>
                     </div>
                   )}
                   {!userRolesLoaded && (
                     <div className="text-center py-4">
-                      <p className="text-gray-600 mb-4">Laden...</p>
+                      <p className="text-gray-600 mb-4">{t('common.loadingDots')}</p>
                     </div>
                   )}
                 </div>
@@ -1249,7 +1249,7 @@ export default function BottomNavigation() {
                   onClick={goBackInQuickAdd}
                   className="w-full mt-4 p-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all active:scale-95"
                 >
-                  ← Terug
+                  {t('messages.back')}
                 </button>
               </div>
             )}

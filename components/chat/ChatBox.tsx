@@ -469,7 +469,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <div className="text-5xl mb-4">💬</div>
             <p>{t('messages.noMessages')}</p>
-            <p className="text-sm">Stuur het eerste bericht!</p>
+            <p className="text-sm">{t('messages.sendFirstMessage')}</p>
           </div>
         ) : (
           <>
