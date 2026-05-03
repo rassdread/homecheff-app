@@ -36,8 +36,19 @@ export async function GET(req: NextRequest) {
         kvk: true,
         deliveryMode: true,
         deliveryRadius: true,
-        deliveryRegions: true
-      }
+        deliveryRegions: true,
+        subscriptionId: true,
+        subscriptionValidUntil: true,
+        Subscription: {
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+            feeBps: true,
+            priceCents: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ profile });

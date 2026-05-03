@@ -239,9 +239,17 @@ function SellPageContent({
   return (
     <main className="max-w-5xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-4 text-center">{t('sell.title') || 'Zet je bedrijf op de kaart — groei met je lokale community'}</h1>
-      <p className="text-center text-gray-600 mb-10">
+      <p className="text-center text-gray-600 mb-6">
         {t('sell.subtitle') || 'Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.'}
       </p>
+
+      <div className="mb-8 max-w-2xl mx-auto rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5 text-sm text-gray-800 text-left space-y-3 shadow-sm">
+        <p className="leading-relaxed">{t('sell.introWho')}</p>
+        <p className="font-medium text-gray-900 leading-relaxed">{t('sell.feeSummary')}</p>
+        <p className="text-gray-700 leading-relaxed border-t border-emerald-100 pt-3">
+          {t('sell.buyersNoSubscription')}
+        </p>
+      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

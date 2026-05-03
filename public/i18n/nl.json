@@ -1442,6 +1442,15 @@
       "seller": "Verkoper",
       "dashboard": "Verkoper Dashboard",
       "dashboardDescription": "Overzicht van je verkoopactiviteiten en prestaties",
+      "businessUpgradeCallout": {
+        "regionLabel": "Bedrijf en abonnement",
+        "title": "Verkopen als bedrijf (KVK)?",
+        "body": "Wil je verkopen als bedrijf? Vul je KVK-gegevens in en kies daarna een bedrijfsabonnement met lagere platformkosten.",
+        "buyersNote": "Kopers hebben geen HomeCheff-abonnement nodig; zij betalen alleen hun bestelling (en eventuele betaalkosten via Stripe).",
+        "ctaSettings": "KVK en bedrijfsnaam invullen",
+        "ctaSubscriptions": "Bedrijfsabonnement kiezen",
+        "editCompanyLink": "Bedrijfsgegevens aanpassen"
+      },
       "stripeConnectPaymentsBanner": {
         "message": "Je producten kunnen zichtbaar zijn, maar klanten kunnen pas afrekenen zodra je betalingen hebt ingesteld.",
         "cta": "Betalingen instellen (Stripe Connect)",
@@ -1611,6 +1620,7 @@
       "chooseFormat": "Kies het formaat voor je verkooprapport over de periode {period}.",
       "clearFilters": "Filters wissen",
       "companyInfo": "Bedrijfsgegevens",
+      "companyInfoUpgradeHint": "Wil je verkopen als bedrijf? Vul hier bedrijfsnaam en KVK in en sla op. Kies daarna een bedrijfsabonnement (via je verkoper-dashboard of profiel) voor lagere platformkosten. Kopers hebben geen abonnement nodig.",
       "companyName": "Bedrijfsnaam",
       "completed": "Voltooid",
       "confirmed": "Bevestigd",
@@ -5122,6 +5132,9 @@
   "sell": {
     "title": "Zet je bedrijf op de kaart — groei met je lokale community",
     "subtitle": "Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.",
+    "introWho": "Deze pagina is voor verkopers met een KVK / bedrijfsregistratie: je kiest hier een maandabonnement met lagere HomeCheff-platformfee op je verkopen.",
+    "feeSummary": "Overzicht plannen: Basic €39 per maand + 7% platformfee · Pro €99 per maand + 4% · Premium €199 per maand + 2%.",
+    "buyersNoSubscription": "Kopers hebben geen HomeCheff-abonnement; zij betalen alleen hun bestelling (en eventuele betaalkosten via de betaalprovider).",
     "confirmationFailed": "Bevestigen mislukt",
     "cannotConfirmSubscription": "Kon abonnement niet bevestigen. Neem contact op met support.",
     "confirmingSubscription": "We bevestigen je abonnement, een moment geduld..."

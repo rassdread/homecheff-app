@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { dispatchOpenQuickAdd } from '@/lib/quickAddOpen';
 import { getCreateAuthReturnUrls } from '@/lib/createAuthReturnUrls';
 import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
@@ -484,6 +485,7 @@ export default function SellerDashboardClient() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
             <StripeConnectPaymentsBanner />
+            <BusinessUpgradeCallout />
           </div>
 
           {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}

@@ -217,6 +217,9 @@ export default function VerkoperInstellingenPageClient() {
               <Home className="w-5 h-5" />
               {t('seller.companyInfo')}
             </h2>
+            <p className="mb-4 text-sm text-gray-600 leading-relaxed rounded-lg bg-emerald-50/80 border border-emerald-100 px-4 py-3">
+              {t('seller.companyInfoUpgradeHint')}
+            </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

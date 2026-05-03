@@ -2135,6 +2135,15 @@
       "seller": "Seller",
       "dashboard": "Seller Dashboard",
       "dashboardDescription": "Overview of your sales activities and performance",
+      "businessUpgradeCallout": {
+        "regionLabel": "Business and subscription",
+        "title": "Selling as a business (Chamber of Commerce)?",
+        "body": "Want to sell as a business? Enter your business registration (e.g. KVK) details, then choose a business subscription with lower platform fees.",
+        "buyersNote": "Buyers do not need a HomeCheff subscription; they only pay for their order (and any card/payment fees via Stripe).",
+        "ctaSettings": "Enter company name and registration",
+        "ctaSubscriptions": "Choose a business subscription",
+        "editCompanyLink": "Edit business details"
+      },
       "stripeConnectPaymentsBanner": {
         "message": "Your products can be visible, but customers can only check out once you have set up payments.",
         "cta": "Set up payments (Stripe Connect)",
@@ -2333,6 +2342,7 @@
       "latitude": "Latitude",
       "longitude": "Longitude",
       "companyInfo": "Company Information",
+      "companyInfoUpgradeHint": "Want to sell as a business? Enter your company name and registration number here and save. Then choose a business subscription (from your seller dashboard or profile) for lower platform fees. Buyers do not need a subscription.",
       "kvkNumber": "KVK Number",
       "salesOrders": "Sales Orders",
       "salesOrdersDescription": "Overview of incoming orders from customers",
@@ -5121,6 +5131,9 @@
   "sell": {
     "title": "Put your business on the map — grow with your local community",
     "subtitle": "Choose the subscription that fits your business. Transparent prices, cancelable monthly and without hidden costs.",
+    "introWho": "This page is for sellers with a business registration: you choose a monthly subscription with a lower HomeCheff platform fee on your sales.",
+    "feeSummary": "Plans: Basic €39/month + 7% platform fee · Pro €99/month + 4% · Premium €199/month + 2%.",
+    "buyersNoSubscription": "Buyers do not need a HomeCheff subscription; they only pay for their order (and any payment fees via the payment provider).",
     "confirmationFailed": "Confirmation failed",
     "cannotConfirmSubscription": "Could not confirm subscription. Please contact support.",
     "confirmingSubscription": "We are confirming your subscription, please wait..."

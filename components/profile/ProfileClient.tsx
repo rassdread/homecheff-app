@@ -497,6 +497,38 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     )}
                   </div>
                 )}
+
+                {user?.sellerRoles &&
+                  user.sellerRoles.length > 0 &&
+                  (!(user?.SellerProfile?.kvk ?? '').trim() ||
+                    !(user?.SellerProfile?.companyName ?? '').trim()) && (
+                  <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-left">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                      {t('profilePage.sellerBusinessUpgrade.title')}
+                    </h4>
+                    <p className="text-sm text-gray-700 mb-2">
+                      {t('profilePage.sellerBusinessUpgrade.body')}
+                    </p>
+                    <p className="text-xs text-gray-600 mb-3">
+                      {t('profilePage.sellerBusinessUpgrade.buyersNote')}
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Link href="/verkoper/instellingen" className="w-full sm:w-auto">
+                        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-2">
+                          {t('profilePage.sellerBusinessUpgrade.ctaSettings')}
+                        </Button>
+                      </Link>
+                      <Link href="/sell" className="w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          className="w-full text-sm py-2 border-emerald-600 text-emerald-800 hover:bg-emerald-50"
+                        >
+                          {t('profilePage.sellerBusinessUpgrade.ctaSell')}
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Gekozen naam weergave */}
                 {(() => {
