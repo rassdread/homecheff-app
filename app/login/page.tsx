@@ -9,6 +9,8 @@ import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackLogin } from "@/components/GoogleAnalytics";
 import { isSafari, isIOS, getSafariCookieDelay, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
+import { isNativeApp } from "@/lib/native/capacitor";
+import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 
 type LoginState = {
   emailOrUsername: string;
@@ -26,6 +28,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const { t, isReady, isLoading } = useTranslation();
+  const nativeMounted = useIsNativeAppMounted();
   const [state, setState] = useState<LoginState>({
     emailOrUsername: "",
     password: "",
@@ -48,6 +51,12 @@ function LoginForm() {
         : '/';
   const oauthError = searchParams?.get('error');
   const prefillEmail = searchParams?.get('email');
+
+  // Native app: standaard aan laten staan (geen “onthoud mij”-UI); sessie voelt persistent.
+  useEffect(() => {
+    if (!nativeMounted) return;
+    setState((prev) => ({ ...prev, rememberMe: true }));
+  }, [nativeMounted]);
   
   // Pre-fill email if provided in URL (bijv. na registratie)
   useEffect(() => {
@@ -242,8 +251,17 @@ function LoginForm() {
         ? callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'welcome=true'
         : '/?welcome=true';
       
-      // Gebruik window.location.href voor betere Safari-compatibiliteit
-      // Op iOS Safari: gebruik replace om back button issues te voorkomen
+      // Capacitor / Android WebView: client-side navigatie houdt sessie in dezelfde WebView i.p.v. riskante volledige document-navigatie.
+      // iOS Safari (ook als WebView): blijf bij location.replace (cookie-timing).
+      if (isNativeApp() && !isSafariOnIOS) {
+        try {
+          router.refresh();
+        } catch {
+          /* ignore */
+        }
+        router.replace(finalRedirectUrl);
+        return;
+      }
       if (isSafariOnIOS || isIOSDevice) {
         window.location.replace(finalRedirectUrl);
       } else {
@@ -268,6 +286,18 @@ function LoginForm() {
     } catch (gaError) {
       console.error('Failed to track social login in GA:', gaError);
       // Don't fail login if GA tracking fails
+    }
+
+    if (isNativeApp() && provider === "google") {
+      setState({
+        ...state,
+        isLoading: false,
+        error:
+          t("login.errors.googleUnavailableInApp") ||
+          "In de app werkt inloggen met Google nog niet betrouwbaar. Gebruik je e-mailadres en wachtwoord.",
+        success: false,
+      });
+      return;
     }
     
     try {
@@ -456,22 +486,28 @@ function LoginForm() {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
+              {/* Remember Me & Forgot Password (remember verborgen in native shell) */}
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      name="remember-me"
-                      type="checkbox"
-                      checked={state.rememberMe}
-                      onChange={(e) => setState({ ...state, rememberMe: e.target.checked })}
-                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                      {t('login.rememberMe')}
-                    </label>
-                  </div>
+                  {!nativeMounted ? (
+                    <div className="flex items-center">
+                      <input
+                        id="remember-me"
+                        name="remember-me"
+                        type="checkbox"
+                        checked={state.rememberMe}
+                        onChange={(e) => setState({ ...state, rememberMe: e.target.checked })}
+                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                        {t('login.rememberMe')}
+                      </label>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500" aria-hidden>
+                      {""}
+                    </span>
+                  )}
                   <Link
                     href="/forgot-password"
                     className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
@@ -479,9 +515,11 @@ function LoginForm() {
                     {t('login.forgotPassword')}
                   </Link>
                 </div>
-                <p className="mt-1 ml-6 text-[11px] text-gray-500">
-                  {t('login.rememberMeHint')}
-                </p>
+                {!nativeMounted ? (
+                  <p className="mt-1 ml-6 text-[11px] text-gray-500">
+                    {t('login.rememberMeHint')}
+                  </p>
+                ) : null}
               </div>
 
               {/* Error/Success Messages */}
@@ -540,7 +578,7 @@ function LoginForm() {
                   e.stopPropagation();
                   handleSocialLogin("google");
                 }}
-                disabled={state.isLoading}
+                disabled={state.isLoading || nativeMounted}
                 className="w-full inline-flex justify-center items-center px-6 py-4 border-2 border-gray-200 rounded-2xl shadow-sm bg-white text-base font-semibold text-gray-800 hover:border-emerald-300 hover:bg-emerald-50 active:bg-emerald-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 group"
               >
                 <svg className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">

@@ -1331,6 +1331,7 @@
       "tryAgain": "Probeer opnieuw in te loggen of gebruik je email en wachtwoord.",
       "genericError": "Er is een fout opgetreden. Probeer het opnieuw.",
       "socialLoginError": "Er is een fout opgetreden bij het inloggen met {provider}.",
+      "googleUnavailableInApp": "In de HomeCheff-app werkt inloggen met Google nog niet. Gebruik je e-mailadres en wachtwoord.",
       "categoryClickError": "Fout bij klikken op categorie",
       "locationClickError": "Fout bij klikken op locatie",
       "unknownError": "Onbekende fout",
@@ -4621,7 +4622,9 @@
     "categoryVerticalCheff": "🍳 Chef",
     "categoryVerticalGarden": "🌱 Garden",
     "categoryVerticalDesigner": "🎨 Designer",
-    "tileMoreActionsAria": "Meer acties"
+    "tileMoreActionsAria": "Meer acties",
+    "nativeExpandGeoFilters": "Locatie, zoeken & meer",
+    "nativeCollapseGeoFilters": "Verbergen"
   },
   "affiliate": {
     "title": "HomeCheff Affiliate Programma",

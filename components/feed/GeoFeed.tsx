@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import {
+  Filter,
+  ArrowUp,
+  ArrowDown,
+  Search,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import {
   FeedSaleCard,
   FeedInspirationCardFeed,
@@ -455,9 +462,11 @@ export default function GeoFeed({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
+  /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
+  const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
   const [category, setCategory] = useState("all");
   const profileLocationLoadedRef = useRef(false);
-  const capacitorShell = useIsNativeAppMounted();
+  const nativeMounted = useIsNativeAppMounted();
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
@@ -562,7 +571,7 @@ export default function GeoFeed({
   }, []);
 
   useEffect(() => {
-    if (!(SHOW_CAPACITOR_PUSH_DEBUG && capacitorShell)) return;
+    if (!(SHOW_CAPACITOR_PUSH_DEBUG && nativeMounted)) return;
     let teardown: (() => Promise<void>) | undefined;
     void setupNativePushDebugListeners({
       onNotificationReceived: ({ title, body }) => {
@@ -578,7 +587,7 @@ export default function GeoFeed({
     return () => {
       void teardown?.();
     };
-  }, [SHOW_CAPACITOR_PUSH_DEBUG, capacitorShell]);
+  }, [SHOW_CAPACITOR_PUSH_DEBUG, nativeMounted]);
 
   const runNativePushDebugRegister = useCallback(async () => {
     setPushDebugError(null);
@@ -971,12 +980,89 @@ export default function GeoFeed({
     [language, t]
   );
 
+  const nativeGeoFilterActive = useMemo(
+    () =>
+      place.trim() !== "" ||
+      q.trim() !== "" ||
+      category !== "all" ||
+      searchQuery.trim() !== "" ||
+      priceRange.min !== "" ||
+      priceRange.max !== "" ||
+      showFilters,
+    [
+      place,
+      q,
+      category,
+      searchQuery,
+      priceRange.min,
+      priceRange.max,
+      showFilters,
+    ]
+  );
+
   const chipBtn = (active: boolean) =>
-    `px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+    `${nativeMounted ? "px-3 py-1.5 rounded-lg text-xs" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
       active
         ? "bg-emerald-600 text-white shadow-sm"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
     }`;
+
+  const sortRowEl = (
+    <div
+      className={
+        nativeMounted
+          ? "flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5"
+          : "flex flex-wrap items-center gap-2 mb-4"
+      }
+    >
+      <span className="text-sm font-medium text-gray-700 shrink-0">
+        {t("common.sortBy")}:
+      </span>
+      {sortOptions.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => handleSort(option.id)}
+          className={`shrink-0 px-3 py-1 rounded-lg text-sm flex items-center gap-1 transition-colors ${
+            sortBy === option.id
+              ? "bg-blue-100 text-blue-700"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          {option.label}
+          {sortBy === option.id &&
+            (sortOrder === "asc" ? (
+              <ArrowUp className="w-3 h-3" />
+            ) : (
+              <ArrowDown className="w-3 h-3" />
+            ))}
+        </button>
+      ))}
+    </div>
+  );
+
+  const feedPanelPad = nativeMounted ? "p-3 space-y-3" : "p-4 sm:p-5 space-y-5";
+  const feedSectionBorder = nativeMounted
+    ? "border-t border-gray-200 pt-3"
+    : "border-t border-gray-200 pt-5";
+
+  const resultCountEl = (
+    <div
+      className={
+        nativeMounted
+          ? "text-xs text-gray-500 mt-1.5"
+          : "text-sm text-gray-500 mt-2"
+      }
+    >
+      {displayCount}{" "}
+      {displayCount === 1
+        ? t("feed.resultSingular")
+        : t("feed.resultPlural")}
+      {searchQuery
+        ? t("feed.filteredByQuery", { query: searchQuery })
+        : ""}
+    </div>
+  );
 
   const emptySale =
     feedChip === "sale" &&
@@ -993,15 +1079,31 @@ export default function GeoFeed({
 
   return (
     <div id="homecheff-feed" className="space-y-4">
-      <div className="bg-white/70 rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm space-y-5">
+      <div
+        className={`bg-white/70 rounded-xl border border-gray-200 shadow-sm ${feedPanelPad}`}
+      >
         <div>
-          <h2 className="text-base font-semibold text-gray-900">
+          <h2
+            className={
+              nativeMounted
+                ? "text-sm font-semibold text-gray-900"
+                : "text-base font-semibold text-gray-900"
+            }
+          >
             {t("feed.discoverFiltersHeading")}
           </h2>
-          <p className="text-sm text-gray-600 mt-1 mb-3">
-            {t("feed.chipSectionIntro")}
-          </p>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          {!nativeMounted && (
+            <p className="text-sm text-gray-600 mt-1 mb-3">
+              {t("feed.chipSectionIntro")}
+            </p>
+          )}
+          <p
+            className={
+              nativeMounted
+                ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5"
+                : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
+            }
+          >
             {t("feed.viewModeLabel")}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -1029,277 +1131,303 @@ export default function GeoFeed({
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-5">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-            {t("feed.locationSectionLabel")}
-          </p>
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-base font-semibold mb-1">
-                {t("common.place")}
-              </label>
-              <input
-                value={place}
-                onChange={(e) => handlePlaceInput(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-                placeholder={t("common.typePlaceOrPostcode")}
-              />
-            </div>
-            <div className="min-w-[120px]">
-              <label className="block text-base font-semibold mb-1">
-                {t("feed.radiusLabel")}
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                value={radius}
-                onChange={(e) =>
-                  setRadius(
-                    Math.max(1, Math.min(100, Number(e.target.value)))
-                  )
-                }
-                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
-              />
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <label className="block text-base font-semibold mb-1">
-                {t("common.search")}
-              </label>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-                placeholder={t("common.searchPlaceholder")}
-              />
-            </div>
-            <div className="min-w-[140px]">
-              <label className="block text-base font-semibold mb-1">
-                {t("common.category")}
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
-              >
-                <option value="all">{t("common.allCategories")}</option>
-                <option value="cheff">{t("feed.categoryVerticalCheff")}</option>
-                <option value="garden">{t("feed.categoryVerticalGarden")}</option>
-                <option value="designer">{t("feed.categoryVerticalDesigner")}</option>
-              </select>
-            </div>
-            <div className="min-w-[120px]">
-              <label className="block text-base font-semibold mb-1">
-                {t("common.location")}
-              </label>
-              <button
-                onClick={getCurrentPosition}
-                disabled={locationLoading || !locationSupported}
-                className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {locationLoading ? "⏳" : coords ? "📍" : "🌍"}
-                {locationLoading
-                  ? t("common.loading")
-                  : coords
-                    ? t("common.gps")
-                    : t("common.location")}
-              </button>
-            </div>
-          </div>
-          <div className="w-full mt-2">
-            {locationError && locationSource !== "profile" && (
-              <p className="text-xs text-red-600 mb-2">
-                ⚠️ {t("common.locationCouldNotBeDetermined")}
-              </p>
-            )}
-            {userLocation && (
-              <p className="text-xs text-green-600 mb-2">
-                {locationSource === "gps" && t("common.locationUsingGps")}
-                {locationSource === "profile" && t("common.locationUsingProfile")}
-                {locationSource === "manual" && t("common.locationUsingManual")}
-              </p>
-            )}
-            {!userLocation && !place && (
-              <p className="text-xs text-gray-500">
-                {locationSupported
-                  ? t("common.getLocation")
-                  : t("common.typePlaceOrPostcode")}
-              </p>
-            )}
-            {place && (
-              <p className="text-xs text-blue-600">
-                📍 {t("common.searchIn")}: {place}
-              </p>
-            )}
-            {SHOW_NATIVE_GPS_DEBUG_UI && capacitorShell && (
-              <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
-                <p className="font-medium text-gray-800 mb-2">
-                  Native app: Capacitor-GPS (test, wijzigt de feed nog niet)
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void runNativeGpsTest()}
-                  disabled={nativeGpsLoading}
-                  className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {nativeGpsLoading
-                    ? t("common.loading")
-                    : "Vraag native locatie op"}
-                </button>
-                {nativeGpsCoords && (
-                  <p className="mt-2 text-green-700 font-mono break-all">
-                    lat {nativeGpsCoords.latitude.toFixed(6)}, lng{" "}
-                    {nativeGpsCoords.longitude.toFixed(6)}, accuracy{" "}
-                    {nativeGpsCoords.accuracy != null
-                      ? `${Math.round(nativeGpsCoords.accuracy)} m`
-                      : "—"}
-                  </p>
-                )}
-                {nativeGpsError && (
-                  <p className="mt-2 text-red-600">{nativeGpsError}</p>
-                )}
-              </div>
-            )}
-            {SHOW_CAPACITOR_PUSH_DEBUG && capacitorShell && (
-              <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
-                <p className="font-medium text-gray-800 mb-2">Native push test</p>
-                <button
-                  type="button"
-                  onClick={() => void runNativePushDebugRegister()}
-                  disabled={pushDebugLoading}
-                  className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {pushDebugLoading
-                    ? t("common.loading")
-                    : "Vraag push toestemming"}
-                </button>
-                <p className="mt-2 text-gray-600">
-                  Status: <span className="font-medium">{pushDebugStatus}</span>
-                </p>
-                {pushMaskedToken && (
-                  <p className="mt-1 font-mono text-green-700 break-all">
-                    Token: {pushMaskedToken}
-                  </p>
-                )}
-                {pushDebugError && (
-                  <p className="mt-2 text-red-600">{pushDebugError}</p>
-                )}
-                {pushLastEvent && (
-                  <p className="mt-2 text-blue-700">{pushLastEvent}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        {nativeMounted && sortRowEl}
 
-        <div className="border-t border-gray-200 pt-5">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-            {t("feed.refineSectionLabel")}
-          </p>
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("common.searchInProductsSimple")}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+        {nativeMounted && (
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+            type="button"
+            aria-expanded={nativeFeedExtraOpen}
+            onClick={() => setNativeFeedExtraOpen((o) => !o)}
+            className="inline-flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors"
           >
-            <Filter className="w-4 h-4" />
-            {t("common.filters")}
+            {nativeFeedExtraOpen ? (
+              <ChevronUp className="w-4 h-4 shrink-0" />
+            ) : (
+              <ChevronDown className="w-4 h-4 shrink-0" />
+            )}
+            {nativeFeedExtraOpen
+              ? t("feed.nativeCollapseGeoFilters")
+              : t("feed.nativeExpandGeoFilters")}
+            {nativeGeoFilterActive && !nativeFeedExtraOpen ? (
+              <span
+                className="h-2 w-2 rounded-full bg-emerald-500"
+                aria-hidden
+              />
+            ) : null}
           </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="text-sm font-medium text-gray-700">
-            {t("common.sortBy")}:
-          </span>
-          {sortOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleSort(option.id)}
-              className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 transition-colors ${
-                sortBy === option.id
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {option.label}
-              {sortBy === option.id &&
-                (sortOrder === "asc" ? (
-                  <ArrowUp className="w-3 h-3" />
-                ) : (
-                  <ArrowDown className="w-3 h-3" />
-                ))}
-            </button>
-          ))}
-        </div>
-
-        {showFilters && (
-          <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t("common.priceEuro")}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={priceRange.min}
-                    onChange={(e) =>
-                      setPriceRange((prev) => ({
-                        ...prev,
-                        min: e.target.value,
-                      }))
-                    }
-                    placeholder={t("common.min")}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    type="number"
-                    value={priceRange.max}
-                    onChange={(e) =>
-                      setPriceRange((prev) => ({
-                        ...prev,
-                        max: e.target.value,
-                      }))
-                    }
-                    placeholder={t("filterBar.maxPrice")}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-                >
-                  <Filter className="w-4 h-4" />
-                  {t("filters.clearFilters")}
-                </button>
-              </div>
-            </div>
-          </div>
         )}
 
-        <div className="text-sm text-gray-500 mt-2">
-          {displayCount}{" "}
-          {displayCount === 1
-            ? t("feed.resultSingular")
-            : t("feed.resultPlural")}
-          {searchQuery
-            ? t("feed.filteredByQuery", { query: searchQuery })
-            : ""}
-        </div>
-        </div>
+        {(!nativeMounted || nativeFeedExtraOpen) && (
+          <>
+            <div className={feedSectionBorder}>
+              <p
+                className={
+                  nativeMounted
+                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
+                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
+                }
+              >
+                {t("feed.locationSectionLabel")}
+              </p>
+              <div className="flex flex-wrap gap-3 items-end">
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-base font-semibold mb-1">
+                    {t("common.place")}
+                  </label>
+                  <input
+                    value={place}
+                    onChange={(e) => handlePlaceInput(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
+                    placeholder={t("common.typePlaceOrPostcode")}
+                  />
+                </div>
+                <div className="min-w-[120px]">
+                  <label className="block text-base font-semibold mb-1">
+                    {t("feed.radiusLabel")}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={radius}
+                    onChange={(e) =>
+                      setRadius(
+                        Math.max(1, Math.min(100, Number(e.target.value)))
+                      )
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
+                  />
+                </div>
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-base font-semibold mb-1">
+                    {t("common.search")}
+                  </label>
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
+                    placeholder={t("common.searchPlaceholder")}
+                  />
+                </div>
+                <div className="min-w-[140px]">
+                  <label className="block text-base font-semibold mb-1">
+                    {t("common.category")}
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
+                  >
+                    <option value="all">{t("common.allCategories")}</option>
+                    <option value="cheff">
+                      {t("feed.categoryVerticalCheff")}
+                    </option>
+                    <option value="garden">
+                      {t("feed.categoryVerticalGarden")}
+                    </option>
+                    <option value="designer">
+                      {t("feed.categoryVerticalDesigner")}
+                    </option>
+                  </select>
+                </div>
+                <div className="min-w-[120px]">
+                  <label className="block text-base font-semibold mb-1">
+                    {t("common.location")}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={getCurrentPosition}
+                    disabled={locationLoading || !locationSupported}
+                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {locationLoading ? "⏳" : coords ? "📍" : "🌍"}
+                    {locationLoading
+                      ? t("common.loading")
+                      : coords
+                        ? t("common.gps")
+                        : t("common.location")}
+                  </button>
+                </div>
+              </div>
+              <div className="w-full mt-2">
+                {locationError && locationSource !== "profile" && (
+                  <p className="text-xs text-red-600 mb-2">
+                    ⚠️ {t("common.locationCouldNotBeDetermined")}
+                  </p>
+                )}
+                {userLocation && (
+                  <p className="text-xs text-green-600 mb-2">
+                    {locationSource === "gps" &&
+                      t("common.locationUsingGps")}
+                    {locationSource === "profile" &&
+                      t("common.locationUsingProfile")}
+                    {locationSource === "manual" &&
+                      t("common.locationUsingManual")}
+                  </p>
+                )}
+                {!userLocation && !place && (
+                  <p className="text-xs text-gray-500">
+                    {locationSupported
+                      ? t("common.getLocation")
+                      : t("common.typePlaceOrPostcode")}
+                  </p>
+                )}
+                {place && (
+                  <p className="text-xs text-blue-600">
+                    📍 {t("common.searchIn")}: {place}
+                  </p>
+                )}
+                {SHOW_NATIVE_GPS_DEBUG_UI && nativeMounted && (
+                  <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
+                    <p className="font-medium text-gray-800 mb-2">
+                      Native app: Capacitor-GPS (test, wijzigt de feed nog niet)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void runNativeGpsTest()}
+                      disabled={nativeGpsLoading}
+                      className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {nativeGpsLoading
+                        ? t("common.loading")
+                        : "Vraag native locatie op"}
+                    </button>
+                    {nativeGpsCoords && (
+                      <p className="mt-2 text-green-700 font-mono break-all">
+                        lat {nativeGpsCoords.latitude.toFixed(6)}, lng{" "}
+                        {nativeGpsCoords.longitude.toFixed(6)}, accuracy{" "}
+                        {nativeGpsCoords.accuracy != null
+                          ? `${Math.round(nativeGpsCoords.accuracy)} m`
+                          : "—"}
+                      </p>
+                    )}
+                    {nativeGpsError && (
+                      <p className="mt-2 text-red-600">{nativeGpsError}</p>
+                    )}
+                  </div>
+                )}
+                {SHOW_CAPACITOR_PUSH_DEBUG && nativeMounted && (
+                  <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
+                    <p className="font-medium text-gray-800 mb-2">
+                      Native push test
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void runNativePushDebugRegister()}
+                      disabled={pushDebugLoading}
+                      className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {pushDebugLoading
+                        ? t("common.loading")
+                        : "Vraag push toestemming"}
+                    </button>
+                    <p className="mt-2 text-gray-600">
+                      Status:{" "}
+                      <span className="font-medium">{pushDebugStatus}</span>
+                    </p>
+                    {pushMaskedToken && (
+                      <p className="mt-1 font-mono text-green-700 break-all">
+                        Token: {pushMaskedToken}
+                      </p>
+                    )}
+                    {pushDebugError && (
+                      <p className="mt-2 text-red-600">{pushDebugError}</p>
+                    )}
+                    {pushLastEvent && (
+                      <p className="mt-2 text-blue-700">{pushLastEvent}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={feedSectionBorder}>
+              <p
+                className={
+                  nativeMounted
+                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
+                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
+                }
+              >
+                {t("feed.refineSectionLabel")}
+              </p>
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                <div className="flex-1 min-w-[200px]">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t("common.searchInProductsSimple")}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  {t("common.filters")}
+                </button>
+              </div>
+
+              {!nativeMounted && sortRowEl}
+
+              {showFilters && (
+                <div className="border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("common.priceEuro")}
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={priceRange.min}
+                          onChange={(e) =>
+                            setPriceRange((prev) => ({
+                              ...prev,
+                              min: e.target.value,
+                            }))
+                          }
+                          placeholder={t("common.min")}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <input
+                          type="number"
+                          value={priceRange.max}
+                          onChange={(e) =>
+                            setPriceRange((prev) => ({
+                              ...prev,
+                              max: e.target.value,
+                            }))
+                          }
+                          placeholder={t("filterBar.maxPrice")}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                      >
+                        <Filter className="w-4 h-4" />
+                        {t("filters.clearFilters")}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {resultCountEl}
       </div>
 
       {loading ? (
@@ -1387,7 +1515,13 @@ export default function GeoFeed({
           </div>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div
+          className={
+            nativeMounted
+              ? "grid sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 hc-native-feed-grid"
+              : "grid sm:grid-cols-2 md:grid-cols-3 gap-4"
+          }
+        >
           {displayRows.map((row, idx) => {
             if (row.row === "sale") {
               return (

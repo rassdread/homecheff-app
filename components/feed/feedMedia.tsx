@@ -456,7 +456,7 @@ export function FeedCardPrimaryMedia({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100"
+      className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 feed-card-primary-media"
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
         {renderVideoElement ? (

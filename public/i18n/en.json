@@ -80,6 +80,7 @@
       "tryAgain": "Try logging in again or use your email and password.",
       "genericError": "An error occurred. Please try again.",
       "socialLoginError": "An error occurred while logging in with {provider}.",
+      "googleUnavailableInApp": "Google sign-in is not available in the HomeCheff app yet. Please use your email and password.",
       "categoryClickError": "Error clicking on category",
       "locationClickError": "Error clicking on location",
       "unknownError": "Unknown error",
@@ -4094,7 +4095,9 @@
     "categoryVerticalCheff": "🍳 Chef",
     "categoryVerticalGarden": "🌱 Garden",
     "categoryVerticalDesigner": "🎨 Designer",
-    "tileMoreActionsAria": "More actions"
+    "tileMoreActionsAria": "More actions",
+    "nativeExpandGeoFilters": "Location, search & more",
+    "nativeCollapseGeoFilters": "Hide"
   },
   "profileSettings": {
     "title": "Profile Settings",

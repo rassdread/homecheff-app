@@ -82,7 +82,7 @@ export function FeedSaleCard({
     : null;
 
   return (
-    <div className="rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <div className="feed-card-geo rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <FeedCardPrimaryMedia
         href={listingHref}
         alt={it.title ?? ""}
@@ -97,7 +97,7 @@ export function FeedSaleCard({
           </div>
         }
       />
-      <div className="p-3 flex flex-col flex-1 gap-2">
+      <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={listingHref} className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 line-clamp-2 leading-snug">
@@ -134,7 +134,7 @@ export function FeedSaleCard({
                 : ""}
         </p>
         {it.sellerUserId ? (
-          <div className="mt-2 min-h-[5.5rem]">
+          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
             <UserStatsTile
               userId={it.sellerUserId}
               userName={it.sellerName || null}
@@ -146,7 +146,7 @@ export function FeedSaleCard({
             />
           </div>
         ) : null}
-        <div className="flex items-center justify-between text-xs mt-auto pt-1">
+        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-1">
           <Link
             href={listingHref}
             className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
@@ -277,7 +277,7 @@ function FeedInspirationCard({
   const fallbackTitle = data.title ?? t("common.dish");
 
   return (
-    <div className="rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <div className="feed-card-geo rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <FeedCardPrimaryMedia
         href={data.detailHref}
         alt={data.alt}
@@ -293,7 +293,7 @@ function FeedInspirationCard({
           </div>
         }
       />
-      <div className="p-3 flex flex-col flex-1 gap-2">
+      <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={data.detailHref} className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 line-clamp-2 leading-snug">
@@ -307,7 +307,7 @@ function FeedInspirationCard({
             className="shrink-0 p-1 text-gray-400 hover:text-blue-600"
           />
         </div>
-        <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+        <p className="feed-card-insp-secondary-label text-2xl font-bold text-emerald-700 tabular-nums">
           {data.label}
         </p>
         <p className="text-xs text-gray-600">
@@ -318,7 +318,7 @@ function FeedInspirationCard({
         </p>
         <p className="text-xs text-gray-500">&nbsp;</p>
         {data.user ? (
-          <div className="mt-2 min-h-[5.5rem]">
+          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
             <UserStatsTile
               userId={data.user.id}
               userName={data.user.name}
@@ -330,9 +330,9 @@ function FeedInspirationCard({
             />
           </div>
         ) : (
-          <div className="mt-2 min-h-[5.5rem]" aria-hidden />
+          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]" aria-hidden />
         )}
-        <div className="flex items-center justify-between text-xs mt-auto pt-1">
+        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-1">
           <Link
             href={data.detailHref}
             className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"

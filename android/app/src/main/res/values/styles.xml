@@ -18,11 +18,11 @@
     </style>
 
 
+    <!-- Android 12+: wit + app-icoon; pre-12: splash_full (wit + logo). Geen full-bitmap als animatedIcon (zwart/klein artefact). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@drawable/splash_full</item>
         <item name="windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
-        <item name="android:background">@drawable/splash</item>
     </style>
 </resources>
