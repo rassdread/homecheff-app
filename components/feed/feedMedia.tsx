@@ -187,31 +187,56 @@ export type FeedCardPrimaryMediaProps = {
 };
 
 /**
+ * Eén gedeelde bron voor hover vs viewport (geen N× matchMedia per kaart — veel minder listeners bij volle feed).
+ */
+let feedInteractionListeners = new Set<() => void>();
+let feedInteractionMediaBound = false;
+
+function readFeedVideoInteractionMode(): "hover" | "viewport" {
+  if (typeof window === "undefined") return "viewport";
+  const coarse = window.matchMedia("(any-pointer: coarse)").matches;
+  const fine = window.matchMedia("(pointer: fine)").matches;
+  const canHover = window.matchMedia("(hover: hover)").matches;
+  return !coarse && fine && canHover ? "hover" : "viewport";
+}
+
+function notifyFeedInteractionListeners() {
+  feedInteractionListeners.forEach((l) => l());
+}
+
+function subscribeFeedVideoInteractionMode(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  if (!feedInteractionMediaBound) {
+    feedInteractionMediaBound = true;
+    const sync = () => notifyFeedInteractionListeners();
+    ["(any-pointer: coarse)", "(pointer: fine)", "(hover: hover)"].forEach(
+      (q) => window.matchMedia(q).addEventListener("change", sync)
+    );
+  }
+  feedInteractionListeners.add(onStoreChange);
+  return () => {
+    feedInteractionListeners.delete(onStoreChange);
+  };
+}
+
+function getFeedVideoInteractionSnapshot(): "hover" | "viewport" {
+  return readFeedVideoInteractionMode();
+}
+
+/**
  * Alleen echte desktop-muis: geen coarse pointer (tablet/touch), anders viewport-gestuurde playback.
- * Voorkomt dat iPad “hover-modus” krijgt zonder hover → video speelt nooit.
  */
 function useFeedVideoInteractionMode(): "hover" | "viewport" {
-  const [mode, setMode] = useState<"hover" | "viewport">("viewport");
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const sync = () => {
-      const coarse = window.matchMedia("(any-pointer: coarse)").matches;
-      const fine = window.matchMedia("(pointer: fine)").matches;
-      const canHover = window.matchMedia("(hover: hover)").matches;
-      setMode(!coarse && fine && canHover ? "hover" : "viewport");
-    };
-    sync();
-    const queries = [
-      "(any-pointer: coarse)",
-      "(pointer: fine)",
-      "(hover: hover)",
-    ];
-    const mqs = queries.map((q) => window.matchMedia(q));
-    mqs.forEach((mq) => mq.addEventListener("change", sync));
-    return () => mqs.forEach((mq) => mq.removeEventListener("change", sync));
-  }, []);
-  return mode;
+  return useSyncExternalStore(
+    subscribeFeedVideoInteractionMode,
+    getFeedVideoInteractionSnapshot,
+    () => "viewport"
+  );
 }
+
+/** Typische homepage-feed grid: helpt browser bij schalen (ook bij enkele src-URL). */
+const FEED_CARD_IMG_SIZES =
+  "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
 
 /** Iets lager dan 0.6 zodat kaartvideo’s in de feed weer betrouwbaar starten. */
 const VIEWPORT_PLAY_THRESHOLD = 0.3;
@@ -254,12 +279,6 @@ export function FeedCardPrimaryMedia({
     maybeApplyFeedAudioPreference(videoRef.current, instanceId);
   }, [instanceId]);
 
-  useEffect(() => {
-    setVideoFailed(false);
-    setImgBroken(false);
-    wantPlayRef.current = false;
-  }, [videoUrl, imageUrl]);
-
   const rawVideo = (videoUrl ?? "").trim();
   const hasVideoCandidate =
     hasUsableMediaUrl(videoUrl) && !videoFailed && rawVideo.length > 0;
@@ -280,9 +299,46 @@ export function FeedCardPrimaryMedia({
 
   const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
   const showVideo = Boolean(corsSrc);
+  /** Viewport/touch: mount <video> pas nabij viewport; desktop-hover: meteen (play op hover). */
+  const shouldDeferVideoMount = showVideo && !useHoverPlayback;
+  const [videoDomMounted, setVideoDomMounted] = useState(!shouldDeferVideoMount);
+  const renderVideoElement = showVideo && videoDomMounted;
+
+  useEffect(() => {
+    if (useHoverPlayback && showVideo) setVideoDomMounted(true);
+  }, [useHoverPlayback, showVideo]);
+
+  useEffect(() => {
+    setVideoFailed(false);
+    setImgBroken(false);
+    wantPlayRef.current = false;
+    if (showVideo && !useHoverPlayback) setVideoDomMounted(false);
+    else if (showVideo && useHoverPlayback) setVideoDomMounted(true);
+  }, [videoUrl, imageUrl, showVideo, useHoverPlayback]);
+
+  useEffect(() => {
+    if (!shouldDeferVideoMount || videoDomMounted) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          setVideoDomMounted(true);
+          io.disconnect();
+        }
+      },
+      { root: null, rootMargin: "260px 0px", threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shouldDeferVideoMount, videoDomMounted]);
+
   const posterEffective =
     (hasUsableMediaUrl(videoPoster) ? videoPoster!.trim() : null) ||
     (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : undefined);
+  const staticPosterSrc =
+    posterEffective ||
+    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : FEED_MEDIA_PLACEHOLDER);
 
   const showImage =
     (!showVideo || videoFailed) &&
@@ -303,30 +359,30 @@ export function FeedCardPrimaryMedia({
 
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || !showVideo) return;
+    if (!v || !renderVideoElement) return;
     v.setAttribute("playsinline", "");
     v.setAttribute("webkit-playsinline", "");
-  }, [showVideo, corsSrc]);
+  }, [renderVideoElement, corsSrc]);
 
   useEffect(() => {
-    if (!showVideo) return;
+    if (!renderVideoElement) return;
     return registerFeedVideoPauseHandler(instanceId, () => {
       videoRef.current?.pause();
     });
-  }, [showVideo, instanceId]);
+  }, [renderVideoElement, instanceId]);
 
   const onDesktopMouseEnter = useCallback(() => {
-    if (!useHoverPlayback || !showVideo) return;
+    if (!useHoverPlayback || !renderVideoElement) return;
     wantPlayRef.current = true;
     const vid = videoRef.current;
     if (!vid) return;
     claimFeedVideoPlayback(instanceId);
     applyMutedForFeedPolicy();
     void vid.play().catch(() => {});
-  }, [useHoverPlayback, showVideo, instanceId, applyMutedForFeedPolicy]);
+  }, [useHoverPlayback, renderVideoElement, instanceId, applyMutedForFeedPolicy]);
 
   const onDesktopMouseLeave = useCallback(() => {
-    if (!useHoverPlayback || !showVideo) return;
+    if (!useHoverPlayback || !renderVideoElement) return;
     wantPlayRef.current = false;
     const vid = videoRef.current;
     if (vid) {
@@ -336,10 +392,10 @@ export function FeedCardPrimaryMedia({
     releaseFeedVideoPlayback(instanceId, {
       minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
     });
-  }, [useHoverPlayback, showVideo, instanceId]);
+  }, [useHoverPlayback, renderVideoElement, instanceId]);
 
   useEffect(() => {
-    if (!showVideo || !corsSrc || useHoverPlayback) return;
+    if (!renderVideoElement || !corsSrc || useHoverPlayback) return;
     const el = containerRef.current;
     if (!el) return;
 
@@ -377,10 +433,10 @@ export function FeedCardPrimaryMedia({
         minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
       });
     };
-  }, [showVideo, corsSrc, useHoverPlayback, instanceId]);
+  }, [renderVideoElement, corsSrc, useHoverPlayback, instanceId]);
 
   useEffect(() => {
-    if (!showVideo || !corsSrc || useHoverPlayback) return;
+    if (!renderVideoElement || !corsSrc || useHoverPlayback) return;
     return registerMobileFeedVideoCandidate({
       id: instanceId,
       getRatio: () => getElementVisibleRatio(containerRef.current),
@@ -393,7 +449,7 @@ export function FeedCardPrimaryMedia({
         void vid.play().catch(() => {});
       },
     });
-  }, [showVideo, corsSrc, useHoverPlayback, instanceId]);
+  }, [renderVideoElement, corsSrc, useHoverPlayback, instanceId]);
 
   const label = alt?.trim() || "Bekijk";
 
@@ -403,7 +459,7 @@ export function FeedCardPrimaryMedia({
       className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100"
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
-        {showVideo ? (
+        {renderVideoElement ? (
           <EdgeAwareVideo
             ref={videoRef}
             src={corsSrc}
@@ -423,6 +479,16 @@ export function FeedCardPrimaryMedia({
             onLoadedData={tryPlayIfWanted}
             onError={onVideoError}
           />
+        ) : showVideo && shouldDeferVideoMount ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={staticPosterSrc}
+            alt={label}
+            className={`absolute inset-0 h-full w-full ${fitClass}`}
+            loading="lazy"
+            decoding="async"
+            sizes={FEED_CARD_IMG_SIZES}
+          />
         ) : showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -431,6 +497,7 @@ export function FeedCardPrimaryMedia({
             className={`absolute inset-0 h-full w-full ${fitClass}`}
             loading="lazy"
             decoding="async"
+            sizes={FEED_CARD_IMG_SIZES}
             onError={onImgError}
           />
         ) : (
@@ -441,6 +508,7 @@ export function FeedCardPrimaryMedia({
             className={`absolute inset-0 h-full w-full ${fitClass}`}
             loading="lazy"
             decoding="async"
+            sizes={FEED_CARD_IMG_SIZES}
           />
         )}
       </div>
@@ -449,13 +517,17 @@ export function FeedCardPrimaryMedia({
         href={href}
         className="absolute inset-0 z-10"
         aria-label={label}
-        onMouseEnter={useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined}
-        onMouseLeave={useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined}
+        onMouseEnter={
+          useHoverPlayback && renderVideoElement ? onDesktopMouseEnter : undefined
+        }
+        onMouseLeave={
+          useHoverPlayback && renderVideoElement ? onDesktopMouseLeave : undefined
+        }
       >
         <span className="sr-only">{label}</span>
       </Link>
 
-      {showVideo ? (
+      {renderVideoElement ? (
         <button
           type="button"
           className="absolute bottom-2 right-2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
@@ -526,6 +598,7 @@ export function FeedCardImage({
         onError={onError}
         loading="lazy"
         decoding="async"
+        sizes={FEED_CARD_IMG_SIZES}
       />
       {showVideoHint ? (
         <div

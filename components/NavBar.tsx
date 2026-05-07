@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
 import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, Gift, TrendingUp, DollarSign, Info } from 'lucide-react';
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -18,16 +18,19 @@ import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation();
   const { openCreateFlow } = useCreateFlow();
+  const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
+  const hasFetchedProfileRef = useRef(false);
   const DROPDOWN_WIDTH = 224;
   const DROPDOWN_MARGIN = 16;
   const [dropdownPosition, setDropdownPosition] = useState({ top: 56, right: 16, openAbove: false });
@@ -128,20 +131,14 @@ export default function NavBar() {
     };
   }, [isProfileDropdownOpen]);
 
-  // Fetch user profile data
-  const fetchUserProfile = async () => {
-    if (!session?.user?.email) return;
-    
-    try {
-      const response = await fetch('/api/profile/me');
-      if (response.ok) {
-        const data = await response.json();
-        setUserProfile(data.user);
-      }
-    } catch {
-      // Silent: network/CORS (e.g. when opening from different host)
+  // Fetch user profile data on demand (e.g. dropdown open), not during first paint.
+  const fetchUserProfile = useCallback(async () => {
+    const data = await ensureProfile();
+    if (data) {
+      setUserProfile(data);
+      hasFetchedProfileRef.current = true;
     }
-  };
+  }, [ensureProfile]);
 
   // Sync cart with user ID for isolation and validate session
   useEffect(() => {
@@ -158,8 +155,6 @@ export default function NavBar() {
       setCartUserId(session.user.email);
       // Fetch unread count
       fetchUnreadCount();
-      // Fetch user profile data
-      fetchUserProfile();
     } else {
       // No session: clear only UI state. Do NOT call clearNextAuthData() here –
       // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
@@ -167,8 +162,22 @@ export default function NavBar() {
       setCartUserId(null);
       setUnreadCount(0);
       setUserProfile(null);
+      hasFetchedProfileRef.current = false;
     }
   }, [session, status, user]);
+
+  useEffect(() => {
+    if (bootstrapProfile) {
+      setUserProfile(bootstrapProfile);
+      hasFetchedProfileRef.current = true;
+    }
+  }, [bootstrapProfile]);
+
+  useEffect(() => {
+    if (isProfileDropdownOpen && !hasFetchedProfileRef.current) {
+      fetchUserProfile();
+    }
+  }, [isProfileDropdownOpen, fetchUserProfile]);
 
   // Fetch unread messages count
   const fetchUnreadCount = async () => {

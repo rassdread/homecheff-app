@@ -59,7 +59,10 @@ export function rankSalesByScore<T extends RankableSaleItem>(
 ): ScoredSale<T>[] {
   return items
     .map((item) => ({ item, score: computeSaleScore(item, nowMs) }))
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.item.id.localeCompare(a.item.id);
+    });
 }
 
 /** Cold-start: max 2 lage-views items vooraan, daarna de rest, resterend fresh achteraan. */
@@ -120,9 +123,7 @@ export function pickTopThreeSales<T extends RankableSaleItem>(
   }
 
   const thirdSale =
-    rest2.length > 0
-      ? [...rest2].sort((a, b) => score(b) - score(a))[0]
-      : undefined;
+    rest2.length > 0 ? [...rest2].sort(cmpScoreDesc)[0] : undefined;
 
   return {
     winner,

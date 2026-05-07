@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Filter, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import {
@@ -28,6 +28,11 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useCreateFlow } from "@/components/create/CreateFlowContext";
+import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
+import {
+  coerceUserStatsPayload,
+  seedCachedUserStats,
+} from "@/lib/userStatsClientCache";
 
 type FeedItem = {
   id: string;
@@ -212,10 +217,15 @@ function sortSales(
         aValue = new Date(a.createdAt).getTime();
         bValue = new Date(b.createdAt).getTime();
     }
-    if (sortOrder === "asc") {
-      return aValue > bValue ? 1 : -1;
+    if (aValue !== bValue) {
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1;
+      }
+      return aValue < bValue ? 1 : -1;
     }
-    return aValue < bValue ? 1 : -1;
+    return sortOrder === "asc"
+      ? a.id.localeCompare(b.id)
+      : b.id.localeCompare(a.id);
   });
 }
 
@@ -234,7 +244,10 @@ function buildInspSlots(
     const tb = new Date(
       b.kind === "api" ? b.item.createdAt : b.item.createdAt
     ).getTime();
-    return tb - ta;
+    if (tb !== ta) return tb - ta;
+    const ida = a.kind === "api" ? a.item.id : a.item.id;
+    const idb = b.kind === "api" ? b.item.id : b.item.id;
+    return idb.localeCompare(ida);
   });
   return slots;
 }
@@ -377,13 +390,19 @@ export default function GeoFeed({
   initialFeedChip,
 }: GeoFeedProps) {
   const { t, language } = useTranslation();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const { profile: bootstrapProfile, ensureProfile, status: bootstrapStatus } =
+    useUserBootstrap();
   const [items, setItems] = useState<FeedItem[]>([]);
   const [inspiratiePool, setInspiratiePool] = useState<InspirationItem[]>(
     initialInspiratieItems
   );
-  /** Eerste /api/feed: geen skeleton-blok; daarna wel bij filterwijziging (snellere eerste indruk). */
-  const [loading, setLoading] = useState(false);
+  /**
+   * Eerste /api/feed: start op "loading" zodat we geen lege-staat + verkoop-CTA tonen vóór de eerste response
+   * (voorkomt flits van oude/verwarrende UI bij startup en houdt client gelijk met neutrale skeleton).
+   * Na de eerste fetch schakelt `feedInteractionStartedRef` en blijft gedrag bij filterwijzigingen zoals voorheen.
+   */
+  const [loading, setLoading] = useState(true);
   const feedInteractionStartedRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
   const [radius, setRadius] = useState(25);
@@ -415,6 +434,34 @@ export default function GeoFeed({
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
   const [category, setCategory] = useState("all");
+  const profileLocationLoadedRef = useRef(false);
+
+  /** Coördinaten voor /api/feed: state (GPS/profiel) óf bootstrap-profiel vóór state-update — één query i.p.v. fetch→fetch. */
+  const feedCoords = useMemo(() => {
+    if (userLocation) return userLocation;
+    if (
+      session?.user?.email &&
+      bootstrapProfile?.lat != null &&
+      bootstrapProfile?.lng != null
+    ) {
+      const la = Number(bootstrapProfile.lat);
+      const ln = Number(bootstrapProfile.lng);
+      if (Number.isFinite(la) && Number.isFinite(ln)) {
+        return { lat: la, lng: ln };
+      }
+    }
+    return null;
+  }, [
+    userLocation,
+    session?.user?.email,
+    bootstrapProfile?.lat,
+    bootstrapProfile?.lng,
+  ]);
+
+  /** Wacht op sessie + profile-bootstrap zodat eerste fetch niet als anoniem/andere radius loopt. */
+  const feedStartupBlocked =
+    sessionStatus === "loading" ||
+    (!!session?.user && bootstrapStatus === "loading");
 
   const { coords, loading: locationLoading, error: locationError, supported: locationSupported, getCurrentPosition } =
     useGeolocation({
@@ -435,82 +482,46 @@ export default function GeoFeed({
     setFeedChip(initialFeedChip ?? "all");
   }, [initialFeedChip]);
 
-  // Vermijd dubbele DB/API-work: homepage levert al batch via SSR. Grotere pool pas na idle (geen race met /api/feed).
+  const loadProfileLocation = useCallback(async () => {
+    if (!session?.user || profileLocationLoadedRef.current) return;
+    profileLocationLoadedRef.current = true;
+    const profile = bootstrapProfile ?? (await ensureProfile());
+    if (!profile?.lat || !profile?.lng) return;
+    const { lat, lng, place: pl, postalCode, address } = profile;
+    setProfileLocation({
+      place: pl ?? undefined,
+      postcode: postalCode ?? undefined,
+      lat,
+      lng,
+    });
+    setUserLocation({ lat, lng });
+    setLocationSource("profile");
+    if (pl || postalCode || address) {
+      setPlace(pl || postalCode || address || "");
+    }
+  }, [session?.user, bootstrapProfile, ensureProfile]);
+
   useEffect(() => {
-    let cancel = false;
-    const minServerBatch = 12;
+    if (!session?.user) return;
 
-    const runClientInspiratieFetch = async () => {
-      try {
-        const res = await fetch("/api/inspiratie?take=48&sortBy=newest");
-        if (!res.ok || cancel) return;
-        const data = await res.json();
-        if (data.items?.length && !cancel) {
-          setInspiratiePool(data.items);
-        }
-      } catch {
-        /* keep initial/server items */
-      }
+    const run = () => {
+      void loadProfileLocation();
     };
-
-    if (initialInspiratieItems.length >= minServerBatch) {
-      let ricId: number | undefined;
-      let timerId: ReturnType<typeof setTimeout> | undefined;
-      if (typeof requestIdleCallback !== "undefined") {
-        ricId = requestIdleCallback(
-          () => {
-            if (!cancel) void runClientInspiratieFetch();
-          },
-          { timeout: 8000 }
-        );
-      } else {
-        timerId = setTimeout(() => {
-          if (!cancel) void runClientInspiratieFetch();
-        }, 3500);
-      }
-      return () => {
-        cancel = true;
-        if (ricId != null && typeof cancelIdleCallback !== "undefined") {
-          cancelIdleCallback(ricId);
-        }
-        if (timerId != null) clearTimeout(timerId);
-      };
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+    if (typeof requestIdleCallback !== "undefined") {
+      idleId = requestIdleCallback(run, { timeout: 5000 });
+    } else {
+      timer = setTimeout(run, 1200);
     }
 
-    void runClientInspiratieFetch();
     return () => {
-      cancel = true;
-    };
-  }, [initialInspiratieItems.length]);
-
-  useEffect(() => {
-    const loadProfileLocation = async () => {
-      if (!session?.user) return;
-      try {
-        const response = await fetch("/api/user/me");
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData.lat && userData.lng) {
-            const { lat, lng, place: pl, postcode, address } = userData;
-            setProfileLocation({
-              place: pl,
-              postcode,
-              lat,
-              lng,
-            });
-            setUserLocation({ lat, lng });
-            setLocationSource("profile");
-            if (pl || postcode || address) {
-              setPlace(pl || postcode || address || "");
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load profile location:", error);
+      if (idleId !== null && typeof cancelIdleCallback !== "undefined") {
+        cancelIdleCallback(idleId);
       }
+      if (timer) clearTimeout(timer);
     };
-    loadProfileLocation();
-  }, [session?.user]);
+  }, [session?.user, loadProfileLocation]);
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
@@ -526,40 +537,10 @@ export default function GeoFeed({
   }, [coords]);
 
   useEffect(() => {
-    const fetchUserProfileLocation = async () => {
-      if (
-        locationError &&
-        !userLocation &&
-        !profileLocation &&
-        session?.user
-      ) {
-        try {
-          const response = await fetch("/api/user/me");
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.lat && userData.lng) {
-              const { lat, lng, place: userPlace, postcode, address } =
-                userData;
-              setProfileLocation({
-                place: userPlace,
-                postcode,
-                lat,
-                lng,
-              });
-              setUserLocation({ lat, lng });
-              setLocationSource("profile");
-              if (userPlace || postcode || address) {
-                setPlace(userPlace || postcode || address || "");
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Failed to load profile location as fallback:", error);
-        }
-      }
-    };
-    fetchUserProfileLocation();
-  }, [locationError, userLocation, profileLocation, session?.user]);
+    if (locationError && !userLocation && !profileLocation && session?.user) {
+      void loadProfileLocation();
+    }
+  }, [locationError, userLocation, profileLocation, session?.user, loadProfileLocation]);
 
   const handlePlaceInput = async (inputPlace: string) => {
     if (!inputPlace.trim()) {
@@ -571,37 +552,122 @@ export default function GeoFeed({
   };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      if (feedInteractionStartedRef.current) {
-        setLoading(true);
-      }
-      const params = new URLSearchParams();
-      if (place.trim()) {
-        params.set("place", place.trim());
-      } else if (userLocation) {
-        params.set("lat", String(userLocation.lat));
-        params.set("lng", String(userLocation.lng));
-        params.set("radius", String(radius));
-      }
-      if (q.trim()) params.set("q", q.trim());
-      if (category && category !== "all") params.set("vertical", category);
+    if (feedStartupBlocked) return;
+
+    const params = new URLSearchParams();
+    // Altijd radius meesturen (server default 10 vs client 25 gaf eerder verschillende filters)
+    params.set("radius", String(radius));
+    // Bij coördinaten: die gebruiken i.p.v. place-tekst (voorkomt tweede fetch na profiel-place + geocode)
+    if (locationSource === "manual" && place.trim()) {
+      params.set("place", place.trim());
+    } else if (feedCoords) {
+      params.set("lat", String(feedCoords.lat));
+      params.set("lng", String(feedCoords.lng));
+    } else if (place.trim()) {
+      params.set("place", place.trim());
+    }
+    if (q.trim()) params.set("q", q.trim());
+    if (category && category !== "all") params.set("vertical", category);
+
+    const requestKey = params.toString();
+
+    if (feedInteractionStartedRef.current) {
+      setLoading(true);
+    }
+
+    const feedUrl = `/api/feed?${params.toString()}`;
+    const startupInspParallel = !feedInteractionStartedRef.current;
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("[GeoFeed feed-fetch]", {
+        ts: new Date().toISOString(),
+        startupInspParallel,
+        requestKey,
+        feedUrl,
+      });
+    }
+
+    const ac = new AbortController();
+    let cancelled = false;
+
+    const run = async () => {
       try {
-        const res = await fetch(`/api/feed?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
+        const feedP = fetch(feedUrl, { signal: ac.signal, cache: "no-store" });
+        const inspP = startupInspParallel
+          ? fetch("/api/inspiratie?take=48&sortBy=newest", {
+              signal: ac.signal,
+              cache: "no-store",
+            })
+          : Promise.resolve(null as Response | null);
+
+        const [feedRes, inspRes] = await Promise.all([feedP, inspP]);
+
+        if (cancelled) return;
+
+        if (feedRes.ok) {
+          const data = await feedRes.json();
+          if (cancelled) return;
           const rawItems = (data.items || []) as Record<string, unknown>[];
+          const previewRaw = data.statsPreview as
+            | Record<string, unknown>
+            | undefined;
+          if (previewRaw && typeof previewRaw === "object") {
+            for (const [uid, row] of Object.entries(previewRaw)) {
+              const payload = coerceUserStatsPayload(row);
+              if (payload) seedCachedUserStats(uid, payload);
+            }
+          }
+          if (process.env.NODE_ENV === "development") {
+            console.log("[GeoFeed feed-fetch] response", {
+              count: rawItems.length,
+              statsPreviewKeys:
+                previewRaw && typeof previewRaw === "object"
+                  ? Object.keys(previewRaw).length
+                  : 0,
+              firstTitles: rawItems.slice(0, 10).map((r) => ({
+                id: String(r.id ?? ""),
+                title: String((r.title as string) ?? "").slice(0, 60),
+              })),
+            });
+          }
           setItems(rawItems.map((r) => normalizeFeedItem(r)));
         }
+
+        if (inspRes?.ok) {
+          const inspData = await inspRes.json();
+          if (cancelled) return;
+          if (Array.isArray(inspData.items) && inspData.items.length > 0) {
+            setInspiratiePool(inspData.items);
+          }
+        }
       } catch (error) {
+        if ((error as Error)?.name === "AbortError") return;
         console.error("Error fetching items:", error);
       } finally {
-        setLoading(false);
-        feedInteractionStartedRef.current = true;
-        setFeedHydrated(true);
+        if (!cancelled) {
+          setLoading(false);
+          feedInteractionStartedRef.current = true;
+          setFeedHydrated(true);
+        }
       }
     };
-    fetchItems();
-  }, [radius, q, place, userLocation, locationSource, category]);
+
+    void run();
+
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [
+    feedStartupBlocked,
+    radius,
+    q,
+    place,
+    feedCoords?.lat,
+    feedCoords?.lng,
+    locationSource,
+    category,
+  ]);
 
   const activeFeedItems = useMemo(
     () => items.filter(isVisible),
@@ -666,6 +732,12 @@ export default function GeoFeed({
 
   const useSmartRanking = sortBy === "newest" && sortOrder === "desc";
 
+  /** Vaste tijd per dataset zodat score-ranking niet verschuift tussen re-renders. */
+  const rankNowMs = useMemo(
+    () => Date.now(),
+    [filteredSaleBase]
+  );
+
   const filteredApiInspiration = useMemo(() => {
     const qn = searchQuery.trim();
     return inspiratiePool.filter((item) =>
@@ -695,8 +767,7 @@ export default function GeoFeed({
       };
     }
 
-    const nowMs = Date.now();
-    const ranked = rankSalesByScore(filteredSaleBase, nowMs);
+    const ranked = rankSalesByScore(filteredSaleBase, rankNowMs);
     const coldOrdered = applyColdStartScoreOrder(ranked);
     const scoreById = new Map(ranked.map((r) => [r.item.id, r.score]));
 
@@ -716,6 +787,7 @@ export default function GeoFeed({
     };
   }, [
     filteredSaleBase,
+    rankNowMs,
     useSmartRanking,
     sortBy,
     sortOrder,
@@ -760,6 +832,7 @@ export default function GeoFeed({
   }, [feedChip, sortedSales, inspirationSlots, mixedRows]);
 
   const displayCount = displayRows.length;
+
 
   const handleSort = (field: "newest" | "price" | "views" | "distance") => {
     if (sortBy === field) {
@@ -1063,7 +1136,10 @@ export default function GeoFeed({
       </div>
 
       {loading ? (
-        <div className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+        <div className="space-y-4" aria-hidden>
+          <div className="h-48 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+          <div className="h-32 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+        </div>
       ) : emptySale ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
@@ -1074,13 +1150,6 @@ export default function GeoFeed({
             {t("emptyState.noResultsHint")}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={openCreateFlow}
-              className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              {t("feed.tileCtaSell")}
-            </button>
             <button
               type="button"
               onClick={() => setFeedChip("inspiration")}
@@ -1144,13 +1213,6 @@ export default function GeoFeed({
             <button
               type="button"
               onClick={openCreateFlow}
-              className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              {t("feed.tileCtaSell")}
-            </button>
-            <button
-              type="button"
-              onClick={openCreateFlow}
               className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
               {t("feed.shareInspirationCta")}
@@ -1176,6 +1238,7 @@ export default function GeoFeed({
                 <FeedInspirationCardApi
                   key={`insp-api-${slot.item.id}-${idx}`}
                   item={slot.item}
+                  baseUrl={baseUrl}
                   t={t}
                 />
               );
@@ -1184,6 +1247,7 @@ export default function GeoFeed({
               <FeedInspirationCardFeed
                 key={`insp-feed-${slot.item.id}-${idx}`}
                 item={toCardItem(slot.item)}
+                baseUrl={baseUrl}
                 t={t}
               />
             );

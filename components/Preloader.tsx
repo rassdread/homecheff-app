@@ -18,8 +18,8 @@ export default function Preloader() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Alleen kernroutes — geen admin/verkoper (zware bundles) voor elke bezoeker.
-    const criticalRoutes = ['/login', '/register', '/messages', '/profile'];
+    // Alleen publieke kernroutes voor first-load; private routes prefetchen op interactie in UI zelf.
+    const criticalRoutes = ['/login', '/register', '/faq'];
 
     const cancel = runWhenIdle(() => {
       criticalRoutes.forEach((route) => {
@@ -31,26 +31,6 @@ export default function Preloader() {
 
     return cancel;
   }, [router, pathname]);
-
-  useEffect(() => {
-    const cancel = runWhenIdle(() => {
-      try {
-        if (pathname !== '/login' && pathname !== '/register') {
-          fetch('/api/profile/me', { method: 'HEAD' }).catch(() => {});
-          fetch('/api/conversations', { method: 'HEAD', credentials: 'include' }).catch(
-            () => {}
-          );
-        }
-        if (pathname === '/') {
-          fetch('/api/products?limit=10', { method: 'HEAD' }).catch(() => {});
-        }
-      } catch {
-        /* ignore */
-      }
-    }, 12000);
-
-    return cancel;
-  }, [pathname]);
 
   useEffect(() => {
     const preloadImages = () => {

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, MessageCircle, Package, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import OrdersTab from './OrdersTab';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -28,9 +29,15 @@ export default function NotificationDropdown() {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Fetch unread counts
-  const fetchUnreadCounts = async () => {
+  const fetchUnreadCounts = useCallback(async () => {
+    if (!session?.user?.email) {
+      setUnreadMessagesCount(0);
+      setUnreadOrdersCount(0);
+      return;
+    }
     try {
       // Fetch messages unread count
       const messagesResponse = await fetch('/api/messages/unread-count');
@@ -49,10 +56,14 @@ export default function NotificationDropdown() {
     } catch (error) {
       console.error('Error fetching unread counts:', error);
     }
-  };
+  }, [session?.user?.email]);
 
   // Fetch messages for messages tab
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
+    if (!session?.user?.email) {
+      setMessages([]);
+      return;
+    }
     setLoading(true);
     try {
       // Fetch both conversations and chat notifications
@@ -168,47 +179,78 @@ export default function NotificationDropdown() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.email]);
 
   useEffect(() => {
-    fetchUnreadCounts();
-    
-    // Refresh counts every 30 seconds
-    const interval = setInterval(fetchUnreadCounts, 30000);
-    
-    // Listen for messages read events to update unread count
-    const handleMessagesRead = () => {
-      fetchUnreadCounts();
+    if (!session?.user?.email) {
+      setUnreadMessagesCount(0);
+      setUnreadOrdersCount(0);
+      return;
+    }
+
+    const scheduleInitial = () => {
+      void fetchUnreadCounts();
     };
-    
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+    if (typeof requestIdleCallback !== 'undefined') {
+      idleId = requestIdleCallback(scheduleInitial, { timeout: 3000 });
+    } else {
+      timer = setTimeout(scheduleInitial, 1200);
+    }
+
+    // Open dropdown = strakker verversen; gesloten = lage frequentie voor badge.
+    const interval = setInterval(
+      () => {
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+        void fetchUnreadCounts();
+      },
+      isOpen ? 30000 : 90000
+    );
+
+    const handleMessagesRead = () => {
+      void fetchUnreadCounts();
+    };
+
     const handleUnreadCountUpdate = (event: CustomEvent) => {
       const { unreadCount: newCount } = event.detail;
       if (typeof newCount === 'number') {
         setUnreadMessagesCount(newCount);
       }
-      // Refresh all counts to ensure consistency
-      fetchUnreadCounts();
+      void fetchUnreadCounts();
     };
-    
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchUnreadCounts();
+      }
+    };
+
     window.addEventListener('messagesRead', handleMessagesRead);
     window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
-    
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       clearInterval(interval);
+      if (idleId !== null && typeof cancelIdleCallback !== 'undefined') {
+        cancelIdleCallback(idleId);
+      }
+      if (timer) clearTimeout(timer);
       window.removeEventListener('messagesRead', handleMessagesRead);
       window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, []);
+  }, [session?.user?.email, isOpen, fetchUnreadCounts]);
 
   // Fetch messages when messages tab is active and dropdown is open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && session?.user?.email) {
       if (activeTab === 'messages') {
         fetchMessages();
       }
       // OrdersTab fetches its own data when mounted
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, session?.user?.email, fetchMessages]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

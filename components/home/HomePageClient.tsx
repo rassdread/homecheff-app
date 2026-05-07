@@ -9,8 +9,8 @@ import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import GeoFeed from "@/components/feed/GeoFeed";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
+import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -20,6 +20,19 @@ const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
 const OnboardingTour = dynamic(
   () => import("@/components/onboarding/OnboardingTour"),
   { ssr: false }
+);
+
+const GeoFeed = dynamic(
+  () => import("@/components/feed/GeoFeed"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <div className="h-48 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+        <div className="h-32 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+      </div>
+    ),
+  }
 );
 
 function pickFirstName(
@@ -47,6 +60,7 @@ export default function HomePageClient({
 }: Props) {
   const { t, tOr, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
+  const { profile: bootstrapProfile } = useUserBootstrap();
   const [splashDismissed, setSplashDismissed] = useState(false);
   const [currentDomain, setCurrentDomain] = useState(() => {
     if (typeof document !== 'undefined') {
@@ -83,31 +97,18 @@ export default function HomePageClient({
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (session?.user) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-        setAffiliateCheckComplete(true);
-      }, 3000);
-      fetch('/api/profile/me', { signal: controller.signal })
-        .then(res => {
-          clearTimeout(timeoutId);
-          if (!res.ok) return null;
-          return res.json();
-        })
-        .then(data => {
-          if (data?.user?.affiliate?.parentAffiliateId) setIsSubAffiliate(true);
-          setAffiliateCheckComplete(true);
-        })
-        .catch(() => {
-          clearTimeout(timeoutId);
-          setAffiliateCheckComplete(true);
-        });
-    } else {
+    if (!session?.user) {
+      setIsSubAffiliate(false);
       setAffiliateCheckComplete(true);
+      return;
     }
-  }, [session]);
+    if (!bootstrapProfile) {
+      setAffiliateCheckComplete(false);
+      return;
+    }
+    setIsSubAffiliate(!!bootstrapProfile.affiliate?.parentAffiliateId);
+    setAffiliateCheckComplete(true);
+  }, [session?.user, bootstrapProfile]);
   
   const handleLanguageChange = async (newLanguage: Language) => {
     if (language !== newLanguage) await changeLanguage(newLanguage);

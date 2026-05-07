@@ -13,12 +13,9 @@ import {
 } from "@/components/feed/feedMedia";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
 import {
-  classifyFeedItem,
   getInspirationFeedItemHref,
   getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
-import InspirationTileSellCtaOverlay from "@/components/feed/InspirationTileSellCtaOverlay";
-
 export type GeoFeedCardItem = {
   id: string;
   title: string | null;
@@ -47,14 +44,6 @@ export type GeoFeedCardItem = {
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
-export function isGeoFeedInspiration(item: GeoFeedCardItem) {
-  return classifyFeedItem(item) === "inspiration";
-}
-
-export function inspirationDetailHrefFromFeedItem(it: GeoFeedCardItem): string {
-  return getInspirationFeedItemHref(it);
-}
-
 export function inspirationDetailHrefApi(item: Pick<InspirationItem, "id" | "category">): string {
   switch (item.category) {
     case "CHEFF":
@@ -66,13 +55,6 @@ export function inspirationDetailHrefApi(item: Pick<InspirationItem, "id" | "cat
     default:
       return `/inspiratie/${item.id}`;
   }
-}
-
-function snippet(text: string | null, max = 140) {
-  if (!text) return "";
-  const s = text.trim();
-  if (s.length <= max) return s;
-  return `${s.slice(0, max).trim()}…`;
 }
 
 function feedInspirationSoftLabel(it: GeoFeedCardItem, t: TFn): string {
@@ -191,128 +173,214 @@ export function FeedSaleCard({
   );
 }
 
-/** Inspiratie uit /api/feed (beperkte velden): content-kaart. */
-export function FeedInspirationCardFeed({
-  item: it,
+/** Genormaliseerde shape voor inspiratie-tegels in de gemengde GeoFeed.
+ *  De twee databronnen (/api/feed en /api/inspiratie) leveren verschillende
+ *  shapes; we projecteren ze hier op één gemeenschappelijke vorm zodat er
+ *  maar één tegel-component is om te onderhouden. */
+type NormalizedInspirationCard = {
+  id: string;
+  title: string | null;
+  description: string | null;
+  detailHref: string;
+  label: string;
+  place: string | null;
+  distanceKm: number | null;
+  videoUrl: string | null;
+  videoPoster: string | null;
+  imageUrl: string | null;
+  objectFit?: "cover" | "contain";
+  alt: string;
+  viewCount?: number;
+  user: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    avatar: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
+  } | null;
+};
+
+function fromGeoFeedItem(it: GeoFeedCardItem, t: TFn): NormalizedInspirationCard {
+  return {
+    id: it.id,
+    title: it.title,
+    description: it.description,
+    detailHref: getInspirationFeedItemHref(it),
+    label: feedInspirationSoftLabel(it, t),
+    place: it.place ?? null,
+    distanceKm: it.distanceKm ?? null,
+    videoUrl: it.videoUrl ?? null,
+    videoPoster: it.videoThumbnail ?? null,
+    imageUrl: it.photo ?? null,
+    alt: it.title ?? "",
+    viewCount: it.viewCount,
+    user: it.sellerUserId
+      ? {
+          id: it.sellerUserId,
+          name: it.sellerName ?? null,
+          username: it.sellerUsername ?? null,
+          avatar: it.sellerAvatar ?? null,
+          displayFullName: it.sellerDisplayFullName,
+          displayNameOption: it.sellerDisplayNameOption,
+        }
+      : null,
+  };
+}
+
+function fromInspirationApiItem(item: InspirationItem, t: TFn): NormalizedInspirationCard {
+  const resolved = resolvePrimaryMediaForInspirationApi(item);
+  const photoFallback = pickPrimaryPhotoUrlFromPhotos(item.photos);
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    detailHref: inspirationDetailHrefApi(item),
+    label: inspirationContentLabel(item, t),
+    place: item.location?.place ?? null,
+    distanceKm: item.location?.distanceKm ?? null,
+    videoUrl: resolved.type === "video" ? resolved.src : null,
+    videoPoster: resolved.type === "video" ? resolved.poster : null,
+    imageUrl:
+      resolved.type === "video"
+        ? photoFallback
+        : resolved.type === "image"
+          ? resolved.src
+          : null,
+    objectFit: item.category === "GROWN" ? "contain" : "cover",
+    alt: item.title || t("feed.altInspiration"),
+    viewCount: item.viewCount,
+    user: item.user?.id
+      ? {
+          id: item.user.id,
+          name: item.user.name ?? null,
+          username: item.user.username ?? null,
+          avatar: item.user.profileImage ?? null,
+          displayFullName: item.user.displayFullName,
+          displayNameOption: item.user.displayNameOption,
+        }
+      : null,
+  };
+}
+
+/** Eén inspiratie-tegelimplementatie voor beide bronnen. Visueel gelijk aan
+ *  FeedSaleCard zodat de gemengde feed één consistente structuur heeft. */
+function FeedInspirationCard({
+  data,
+  baseUrl,
   t,
 }: {
-  item: GeoFeedCardItem;
+  data: NormalizedInspirationCard;
+  baseUrl: string;
   t: TFn;
 }) {
-  const detailHref = getInspirationFeedItemHref(it);
-  const desc = snippet(it.description);
+  const fallbackTitle = data.title ?? t("common.dish");
 
   return (
-    <article className="group relative rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <div className="rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <FeedCardPrimaryMedia
-        href={detailHref}
-        alt={it.title ?? ""}
-        videoUrl={it.videoUrl}
-        videoPoster={it.videoThumbnail}
-        imageUrl={it.photo}
+        href={data.detailHref}
+        alt={data.alt}
+        videoUrl={data.videoUrl}
+        videoPoster={data.videoPoster}
+        imageUrl={data.imageUrl}
+        objectFit={data.objectFit}
         badgeOverlay={
           <div className="absolute top-2 left-2">
-            <span className="inline-flex rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-medium text-stone-700 shadow-sm">
-              {feedInspirationSoftLabel(it)}
+            <span className="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-stone-700 shadow-sm">
+              {data.label}
             </span>
           </div>
         }
       />
-      <div className="p-4 flex flex-col flex-1">
-        <Link href={detailHref}>
-          <h3 className="font-semibold text-stone-900 text-base leading-snug line-clamp-2 hover:text-emerald-800 transition-colors">
-            {it.title ?? t("common.dish")}
-          </h3>
-        </Link>
-        {desc ? (
-          <p className="mt-2 text-sm text-stone-600 line-clamp-3 leading-relaxed">
-            {desc}
-          </p>
-        ) : null}
-        {it.place ? (
-          <p className="mt-2 text-xs text-stone-500">{it.place}</p>
-        ) : null}
+      <div className="p-3 flex flex-col flex-1 gap-2">
+        <div className="flex justify-between items-start gap-2">
+          <Link href={data.detailHref} className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 line-clamp-2 leading-snug">
+              {fallbackTitle}
+            </p>
+          </Link>
+          <ShareButton
+            url={`${baseUrl}${data.detailHref}`}
+            title={fallbackTitle}
+            description={data.description || ""}
+            className="shrink-0 p-1 text-gray-400 hover:text-blue-600"
+          />
+        </div>
+        <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+          {data.label}
+        </p>
+        <p className="text-xs text-gray-600">
+          {data.place ?? t("feed.unknownPlace")}
+          {data.distanceKm != null && data.distanceKm !== Infinity
+            ? ` · ${data.distanceKm.toFixed(1)} km`
+            : ""}
+        </p>
+        <p className="text-xs text-gray-500">&nbsp;</p>
+        {data.user ? (
+          <div className="mt-2 min-h-[5.5rem]">
+            <UserStatsTile
+              userId={data.user.id}
+              userName={data.user.name}
+              userUsername={data.user.username}
+              userAvatar={data.user.avatar}
+              displayFullName={data.user.displayFullName}
+              displayNameOption={data.user.displayNameOption}
+              className="!pt-3"
+            />
+          </div>
+        ) : (
+          <div className="mt-2 min-h-[5.5rem]" aria-hidden />
+        )}
+        <div className="flex items-center justify-between text-xs mt-auto pt-1">
+          <Link
+            href={data.detailHref}
+            className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+          >
+            {t("feed.inspirationViewCta")}
+          </Link>
+          <div className="flex items-center gap-2">
+            {data.viewCount !== undefined && (
+              <div className="flex items-center gap-1 text-gray-500">
+                <Eye className="w-3 h-3" />
+                <span>{data.viewCount}</span>
+              </div>
+            )}
+            <PropsButton
+              dishId={data.id}
+              productTitle={fallbackTitle}
+              size="sm"
+              variant="thumbs"
+            />
+          </div>
+        </div>
       </div>
-      <InspirationTileSellCtaOverlay
-        detailHref={detailHref}
-        headline={t("feed.tileCtaHeadline")}
-        bekijkLabel={t("feed.tileCtaBekijk")}
-        sellLabel={t("feed.tileCtaSell")}
-      />
-    </article>
+    </div>
   );
 }
 
-/** Inspiratie uit /api/inspiratie: zelfde mediaregels als sale/feed (FeedCardPrimaryMedia). */
+/** Inspiratie uit /api/feed (beperkte velden): thin wrapper rond FeedInspirationCard. */
+export function FeedInspirationCardFeed({
+  item,
+  baseUrl,
+  t,
+}: {
+  item: GeoFeedCardItem;
+  baseUrl: string;
+  t: TFn;
+}) {
+  return <FeedInspirationCard data={fromGeoFeedItem(item, t)} baseUrl={baseUrl} t={t} />;
+}
+
+/** Inspiratie uit /api/inspiratie: thin wrapper rond FeedInspirationCard. */
 export function FeedInspirationCardApi({
   item,
+  baseUrl,
   t,
 }: {
   item: InspirationItem;
+  baseUrl: string;
   t: TFn;
 }) {
-  const detailHref = inspirationDetailHrefApi(item);
-  const desc = snippet(item.description);
-  const label = inspirationContentLabel(item, t);
-  const resolved = resolvePrimaryMediaForInspirationApi(item);
-  const photoFallback = pickPrimaryPhotoUrlFromPhotos(item.photos);
-  const videoUrl = resolved.type === "video" ? resolved.src : null;
-  const videoPoster =
-    resolved.type === "video" ? resolved.poster : null;
-  const imageUrl =
-    resolved.type === "video"
-      ? photoFallback
-      : resolved.type === "image"
-        ? resolved.src
-        : null;
-
-  return (
-    <article className="group relative rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
-      <FeedCardPrimaryMedia
-        href={detailHref}
-        alt={item.title || t("feed.altInspiration")}
-        videoUrl={videoUrl}
-        videoPoster={videoPoster}
-        imageUrl={imageUrl}
-        objectFit={item.category === "GROWN" ? "contain" : "cover"}
-        badgeOverlay={
-          <div className="absolute top-2 left-2">
-            <span className="inline-flex rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-medium text-stone-700 shadow-sm">
-              {label}
-            </span>
-          </div>
-        }
-      />
-      <div className="p-4 flex flex-col flex-1">
-        <Link href={detailHref}>
-          <h3 className="font-semibold text-stone-900 text-base leading-snug line-clamp-2 hover:text-emerald-800 transition-colors">
-            {item.title ?? t("common.dish")}
-          </h3>
-        </Link>
-        {desc ? (
-          <p className="mt-2 text-sm text-stone-600 line-clamp-3 leading-relaxed">
-            {desc}
-          </p>
-        ) : null}
-        {item.user?.id ? (
-          <div className="mt-3 pt-3 border-t border-stone-100">
-            <UserStatsTile
-              userId={item.user.id}
-              userName={item.user.name || null}
-              userUsername={item.user.username || null}
-              userAvatar={item.user.profileImage || null}
-              displayFullName={item.user.displayFullName}
-              displayNameOption={item.user.displayNameOption}
-            />
-          </div>
-        ) : null}
-      </div>
-      <InspirationTileSellCtaOverlay
-        detailHref={detailHref}
-        headline={t("feed.tileCtaHeadline")}
-        bekijkLabel={t("feed.tileCtaBekijk")}
-        sellLabel={t("feed.tileCtaSell")}
-      />
-    </article>
-  );
+  return <FeedInspirationCard data={fromInspirationApiItem(item, t)} baseUrl={baseUrl} t={t} />;
 }

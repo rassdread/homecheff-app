@@ -47,10 +47,12 @@
   },
   "cart": {
     "title": "Winkelwagen",
-    "addToCart": "Voeg toe aan winkelwagen",
+    "addToCart": "In winkelwagen",
     "adding": "Toevoegen...",
-    "addedToCart": "Toegevoegd aan winkelwagen",
+    "addedToCart": "Toegevoegd",
     "inCart": "In winkelwagen",
+    "goToCheckout": "Ga naar afrekenen",
+    "outOfStockMessage": "Dit product is helaas niet meer op voorraad.",
     "empty": "Je winkelwagen staat klaar voor jouw volgende ontdekking",
     "emptyDescription": "Ontdek wat er nu beschikbaar is in je buurt — van verse oogst tot huisgemaakte gerechten",
     "continueShopping": "Ontdek meer op het dorpsplein",
@@ -476,6 +478,9 @@
     "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd."
   },
   "admin": {
+    "newUser": "Nieuwe gebruiker",
+    "promoAnalytics": "Promotie analytics",
+    "loginAnalytics": "Login analytics",
     "chatArchiving": "Chat Archivering",
     "chatArchivingDesc": "Gesprekken tussen gebruikers archiveren en exporteren",
     "chatManagement": {
@@ -1359,6 +1364,8 @@
     "update": "Bijwerken",
     "send": "Verstuur",
     "loadingEllipsis": "Laden...",
+    "searchByNameUsernameEmail": "Zoek op naam, gebruikersnaam of e-mail",
+    "searchInProductsSimple": "Zoek in producten...",
     "add": "Toevoegen",
     "addEllipsis": "Toevoegen...",
     "activateRoles": "Rollen Activeren",
@@ -1939,7 +1946,11 @@
     "tags": "Tags:",
     "draftError": "⚠️ Kon conceptproduct niet verwijderen uit sessionStorage:",
     "clearFilters": "Wis filters",
-    "chooseCategory": "Kies je Categorie"
+    "chooseCategory": "Kies je Categorie",
+    "chooseType": "Kies een categorie",
+    "typeDish": "Categorie",
+    "typeProduct": "Categorie",
+    "typeCreation": "Categorie"
   },
   "product": {
     "updateError": "Er is een fout opgetreden bij het bijwerken van het product",
@@ -2952,20 +2963,26 @@
       "inspDesignTitle": "Designs",
       "inspDesignSubtitle": "Deel je creatieve werken",
       "invalidMediaType": "Alleen foto's en video's zijn toegestaan",
-      "videoTooLargeStorage": "Video is te groot voor opslag. Probeer een kortere video."
+      "videoTooLargeStorage": "Video is te groot voor opslag. Probeer een kortere video.",
+      "missingPlatform": "Kies eerst Dorpsplein of Inspiratie, daarna opnieuw een foto.",
+      "processMediaError": "De foto kon niet worden verwerkt. Probeer een andere afbeelding.",
+      "readFileError": "De foto kon niet worden gelezen. Probeer opnieuw."
     }
   },
   "compactForms": {
     "shared": {
-      "titleLabel": "Wat ga je verkopen?",
+      "titleLabel": "Naam van je item",
+      "titleHelper": "Deze naam wordt zichtbaar op je tegel en in zoekresultaten.",
       "priceLabelEuro": "Prijs (€)",
       "priceLabel": "Prijs",
       "descriptionLabel": "Vertel wat je aanbiedt",
       "photoMediaLabel": "📸 Laat zien wat je aanbiedt (foto/video)",
       "deliveryOptionsHeading": "Bezorgopties",
       "deliveryAtLeastOne": "Selecteer minimaal één bezorgoptie",
-      "titlePlaceholderChef": "Bijv. Verse lasagne voor 2 personen",
-      "titlePlaceholderGardenExample": "Verse tomaten uit eigen tuin",
+      "titlePlaceholderChef": "Bijv: Lasagne bolognese, Sushi box of Marokkaanse couscous",
+      "titlePlaceholderGardenExample": "Bijv: Monstera stek, Verse basilicum of Tomatenplant XL",
+      "titlePlaceholderDesigner": "Bijv: Handgemaakte keramische vaas, Abstract canvas of Eiken wandplank",
+      "titlePlaceholderDefault": "Bijv: Handgemaakt item, plant, gerecht of product",
       "descriptionPlaceholderChef": "Wat maak je, voor wie, en waarom is het lekker of bijzonder?",
       "descriptionPlaceholderGarden": "Omschrijf je aanbod: kwaliteit, herkomst, seizoen en wat mensen krijgen.",
       "descriptionPlaceholderDesigner": "Vertel kort over materiaal, afwerking en waarom dit waardevol is.",
@@ -2973,6 +2990,39 @@
       "pricePlaceholderGarden": "5,50",
       "pricePlaceholderDesigner": "25,00",
       "tagPlaceholderEnter": "Tag toevoegen (Enter)",
+      "tagSuggestionsHeading": "Suggesties",
+      "tagSuggestionsChef": [
+        "huisgemaakt",
+        "halal",
+        "vegetarisch",
+        "vers",
+        "pittig",
+        "Surinaams",
+        "Marokkaans",
+        "maaltijd",
+        "dessert"
+      ],
+      "tagSuggestionsGarden": [
+        "stek",
+        "biologisch",
+        "kamerplant",
+        "kruiden",
+        "moestuin",
+        "zaden",
+        "vers geoogst",
+        "buitenplant"
+      ],
+      "tagSuggestionsDesign": [
+        "handgemaakt",
+        "keramiek",
+        "schilderij",
+        "houtwerk",
+        "vintage",
+        "modern",
+        "decoratie",
+        "cadeau",
+        "maatwerk"
+      ],
       "metaMinutes": "{minutes} min",
       "metaServings": "{count} porties",
       "fillTitleDescriptionPrice": "Vul titel, beschrijving en geldige prijs in.",
@@ -3268,6 +3318,10 @@
       "myItems": "Mijn Items",
       "reviews": "Reviews",
       "fans": "Fans",
+      "dorpspleinItems": "Mijn dorpsplein items",
+      "noDorpspleinItems": "Nog geen dorpsplein items",
+      "inspiratieItems": "Mijn inspiratie items",
+      "noInspiratieItems": "Nog geen inspiratie items",
       "subTabs": {
         "villageSquare": "Dorpsplein",
         "inspiration": "Inspiratie"
@@ -3428,6 +3482,7 @@
     "materials": "Materiaal",
     "dimensions": "Afmetingen",
     "category": "Categorie",
+    "status": "Status",
     "fillTitleDescriptionPrice": "Vul titel, beschrijving en geldige prijs in.",
     "addAtLeastOnePhoto": "Minstens 1 foto toevoegen.",
     "photosStillUploading": "Wacht tot alle foto’s klaar zijn met uploaden voordat je opslaat.",
@@ -4525,12 +4580,6 @@
   "feed": {
     "noResultsInRadius": "Geen resultaten in deze straal. Probeer een grotere straal of wis de zoekterm.",
     "noProductsWithFilters": "Geen producten gevonden met de huidige filters. Probeer andere zoektermen of filters.",
-    "tileCtaHeadline": "Wil je dit ook maken?",
-    "tileCtaBekijk": "Bekijk",
-    "tileCtaSell": "Start met verkopen",
-    "primarySellBannerTitle": "Verkoop wat je maakt",
-    "primarySellBannerBody": "In een paar stappen zichtbaar in de feed — zonder knoppen op elke kaart.",
-    "primarySellBannerCta": "Start met verkopen",
     "radiusLabel": "Straal (km)",
     "sortViews": "Weergaven",
     "sortDistance": "Afstand",
@@ -4554,6 +4603,7 @@
     "altInspiration": "Inspiratie",
     "saleSeeOffer": "Zie aanbod",
     "saleViewOffer": "Te koop",
+    "inspirationViewCta": "Bekijk",
     "unknownPlace": "Onbekende locatie",
     "resultSingular": "resultaat",
     "resultPlural": "resultaten",

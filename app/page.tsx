@@ -2,6 +2,7 @@ import { getInspiratieItems } from '@/lib/getInspiratieItems';
 import HomePageClient from '@/components/home/HomePageClient';
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
+export const revalidate = 60;
 
 function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefined {
   if (!raw) return undefined;

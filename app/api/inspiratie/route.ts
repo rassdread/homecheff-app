@@ -4,6 +4,11 @@ import { getInspiratieItems } from '@/lib/getInspiratieItems';
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
+  const headers = {
+    ...cors,
+    // Publieke inspiratie-content: korte edge-cache voor snellere eerste load.
+    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+  };
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category') || 'all';
@@ -16,12 +21,12 @@ export async function GET(req: NextRequest) {
     const skip = Math.max(parseInt(skipParam || '0', 10) || 0, 0);
 
     const { items } = await getInspiratieItems({ category, subcategory, region, sortBy, take, skip });
-    return NextResponse.json({ items, total: items.length }, { headers: cors });
+    return NextResponse.json({ items, total: items.length }, { headers });
   } catch (error) {
     console.error('❌ Error fetching inspiration items:', error);
     return NextResponse.json(
       { error: 'Failed to fetch inspiration items' },
-      { status: 500, headers: cors }
+      { status: 500, headers }
     );
   }
 }

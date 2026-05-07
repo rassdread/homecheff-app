@@ -14,6 +14,10 @@ let translations: Translations = {};
 let previousTranslations: Translations = {}; // Keep previous translations during language switch
 let translationListeners: Set<() => void> = new Set();
 let isChangingLanguage = false; // Flag to prevent race conditions during language change
+// Dedup warnings: log "key not found" maximaal 1x per key per pagina-load om
+// console-spam te voorkomen wanneer een (mogelijk gecachete) component dezelfde
+// missende key tientallen keren rendert.
+const warnedMissingKeys = new Set<string>();
 
 // Function to notify all listeners that translations have changed
 const notifyListeners = () => {
@@ -147,7 +151,16 @@ export function useTranslation() {
           const data = await response.json();
           if (data.language && (data.language === 'nl' || data.language === 'en')) {
             setUserLanguagePreference(data.language);
-            console.log(`[i18n] Loaded user language preference: ${data.language}`);
+            // Verbose info-log alleen achter expliciete debug-flag — anders spamt het
+            // de console bij elke remount/refetch (bv. tijdens quick-add flow).
+            if (
+              typeof process !== 'undefined' &&
+              process.env.NODE_ENV !== 'production' &&
+              process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+            ) {
+              // eslint-disable-next-line no-console
+              console.debug(`[i18n] Loaded user language preference: ${data.language}`);
+            }
           } else {
             setUserLanguagePreference(null);
           }
@@ -257,7 +270,14 @@ export function useTranslation() {
   const loadTranslations = async (lang: Language) => {
     // Prevent multiple simultaneous loads of the same language
     if (isLoading && language === lang && isReady) {
-      console.log(`[i18n] Translations for ${lang} already loading or loaded, skipping...`);
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+      ) {
+        // eslint-disable-next-line no-console
+        console.debug(`[i18n] Translations for ${lang} already loading or loaded, skipping...`);
+      }
       return;
     }
     
@@ -266,7 +286,9 @@ export function useTranslation() {
     const cacheKey = `i18n-${lang}`;
     const cacheTimeKey = `i18n-${lang}-time`;
     const cacheVersionKey = `i18n-${lang}-version`;
-    const CACHE_VERSION = '2.26'; // Increment to invalidate caches when adding/fixing translations
+    // Bump bij elke wijziging in public/i18n/{nl,en}.json zodat browsers met stale
+    // localStorage-cache nieuwe keys krijgen en niet onterecht "key not found" loggen.
+    const CACHE_VERSION = '2.29';
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     
     // Check cache FIRST, before setting loading state
@@ -280,7 +302,14 @@ export function useTranslation() {
       try {
         const cachedTranslations = JSON.parse(cachedData);
         if (cachedTranslations && typeof cachedTranslations === 'object' && Object.keys(cachedTranslations).length > 0) {
-          console.log(`[i18n] Using cached translations for ${lang} (instant load)`);
+          if (
+            typeof process !== 'undefined' &&
+            process.env.NODE_ENV !== 'production' &&
+            process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+          ) {
+            // eslint-disable-next-line no-console
+            console.debug(`[i18n] Using cached translations for ${lang} (instant load)`);
+          }
           translations = cachedTranslations;
           setIsReady(true);
           setIsLoading(false);
@@ -350,6 +379,9 @@ export function useTranslation() {
       }
       
       translations = newTranslations;
+      // Reset dedup zodat een key die in NL ontbreekt maar in EN bestaat (of andersom)
+      // alsnog wordt gemeld na een taalwissel.
+      warnedMissingKeys.clear();
       
       // Cache in localStorage for faster future loads (only if available)
       if (safeLocalStorage.isAvailable()) {
@@ -363,7 +395,14 @@ export function useTranslation() {
       // Notify all listeners that translations have changed
       notifyListeners();
       
-      console.log(`[i18n] ✓ Loaded ${lang} translations:`, Object.keys(newTranslations).length, 'keys');
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+      ) {
+        // eslint-disable-next-line no-console
+        console.debug(`[i18n] Loaded ${lang} translations:`, Object.keys(newTranslations).length, 'keys');
+      }
       
     } catch (error) {
       console.error(`[i18n] ✗ Error loading ${lang} translations:`, error);
@@ -675,9 +714,20 @@ export function useTranslation() {
       return '';
     }
 
-    // Alleen in development waarschuwen, en niet op iOS (iPhone console schoon houden)
+    // Alleen in development waarschuwen, en niet op iOS (iPhone console schoon houden).
+    // Dedup per key: een (mogelijk gecachete) component die `t('foo.bar')` op elke render
+    // aanroept zou anders de console oneindig vol spammen.
     const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (!isIOS && typeof process !== 'undefined' && process.env.NODE_ENV === 'development' && isReady && !isLoading && Object.keys(translations).length > 0) {
+    if (
+      !isIOS &&
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development' &&
+      isReady &&
+      !isLoading &&
+      Object.keys(translations).length > 0 &&
+      !warnedMissingKeys.has(key)
+    ) {
+      warnedMissingKeys.add(key);
       const topLevelKeys = Object.keys(translations).slice(0, 10);
       console.warn(`[i18n] Translation key not found: ${key}`, topLevelKeys);
       const keyParts = key.split('.');

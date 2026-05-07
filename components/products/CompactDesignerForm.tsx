@@ -41,7 +41,16 @@ export default function CompactDesignerForm({
   initialPhoto,
   platform = 'dorpsplein'
 }: CompactDesignerFormProps) {
-  const { t } = useTranslation();
+  const { t, tOr, getTranslationObject } = useTranslation();
+
+  /**
+   * Suggesties komen volledig uit i18n (zie compactForms.shared.tagSuggestionsDesign in
+   * public/i18n/{nl,en}.json). Wisselt automatisch met de gekozen taal.
+   */
+  const tagSuggestionsRaw = getTranslationObject('compactForms.shared.tagSuggestionsDesign');
+  const TAG_SUGGESTIONS = Array.isArray(tagSuggestionsRaw)
+    ? (tagSuggestionsRaw as unknown[]).filter((v): v is string => typeof v === 'string')
+    : [];
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [title, setTitle] = React.useState('');
@@ -493,11 +502,14 @@ export default function CompactDesignerForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.titleLabel')}</label>
+            <p className="text-xs text-gray-500 mb-1.5 leading-snug">
+              {t('compactForms.shared.titleHelper')}
+            </p>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('common.exampleDesign')}
+              placeholder={t('compactForms.shared.titlePlaceholderDesigner')}
             />
           </div>
           <div>
@@ -541,15 +553,20 @@ export default function CompactDesignerForm({
         {/* Subcategorie & Bezorging - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('products.typeCreation')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {tOr('products.typeCreation', 'Category', 'Categorie')}
+            </label>
             <select
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              aria-label={tOr('products.chooseType', 'Choose a category', 'Kies een categorie')}
+              className={`w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${subcategory ? 'text-gray-900' : 'text-gray-400'}`}
             >
-              <option value="">{t('products.chooseType')}</option>
+              <option value="" disabled hidden>
+                {tOr('products.chooseType', 'Choose a category', 'Kies een categorie')}
+              </option>
               {DESIGNER_SUBCATEGORIES.map((sub) => (
-                <option key={sub} value={sub}>
+                <option key={sub} value={sub} className="text-gray-900">
                   {t(`compactForms.designer.subLabels.${sub}` as any)}
                 </option>
               ))}
@@ -883,6 +900,39 @@ export default function CompactDesignerForm({
               +
             </button>
           </div>
+          {/* Klikbare suggestie-chips: helpen gebruiker zonder de bestaande tag-state
+              te wijzigen. Gebruikt dezelfde setTags-flow als handmatig toevoegen. */}
+          {TAG_SUGGESTIONS.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-gray-500 mb-1.5">
+                {tOr('compactForms.shared.tagSuggestionsHeading', 'Suggestions', 'Suggesties')}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {TAG_SUGGESTIONS.map((suggestion) => {
+                  const isActive = tags.includes(suggestion);
+                  return (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        if (isActive) return;
+                        setTags([...tags, suggestion]);
+                      }}
+                      aria-pressed={isActive}
+                      disabled={isActive}
+                      className={
+                        isActive
+                          ? 'inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-blue-300 bg-blue-100 text-blue-700 cursor-default opacity-60'
+                          : 'inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-gray-300 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors'
+                      }
+                    >
+                      {isActive ? `✓ ${suggestion}` : `+ ${suggestion}`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error Message */}

@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
-import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AddToCartButtonProps {
@@ -26,13 +25,12 @@ interface AddToCartButtonProps {
 
 export default function AddToCartButton({ 
   product, 
-  variant = 'default', 
   size = 'md',
   className = '',
   quantity = 1,
   onAdded,
 }: AddToCartButtonProps) {
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const { addItem, totalItems } = useCart();
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
@@ -57,9 +55,15 @@ export default function AddToCartButton({
     if (result.addedQuantity <= 0) {
       const remaining = result.availableQuantity ?? 0;
       if (result.reason === 'OUT_OF_STOCK' || remaining === 0) {
-        setErrorMessage('Dit product is helaas niet meer op voorraad.');
+        setErrorMessage(tOr('cart.outOfStockMessage', 'This product is no longer in stock.', 'Dit product is helaas niet meer op voorraad.'));
       } else {
-        setErrorMessage(`Je hebt al het maximum aantal (${remaining}) voor dit product in je winkelwagen.`);
+        setErrorMessage(
+          tOr(
+            'cart.alreadyMaxInCart',
+            `You already have the maximum (${remaining}) of this product in your cart.`,
+            `Je hebt al het maximum aantal (${remaining}) voor dit product in je winkelwagen.`,
+          ),
+        );
       }
       setIsAdded(false);
       return;
@@ -70,7 +74,13 @@ export default function AddToCartButton({
     if (!result.success && result.reason === 'LIMIT_REACHED' && result.availableQuantity !== null) {
       const maxAllowed = result.availableQuantity;
       const currentQuantity = result.newQuantity;
-      setErrorMessage(`Maximaal ${maxAllowed} beschikbaar. Je winkelwagen bevat nu ${currentQuantity} stuks.`);
+      setErrorMessage(
+        tOr(
+          'cart.limitReachedMessage',
+          `Maximum ${maxAllowed} available. Your cart now contains ${currentQuantity}.`,
+          `Maximaal ${maxAllowed} beschikbaar. Je winkelwagen bevat nu ${currentQuantity} stuks.`,
+        ),
+      );
     } else {
       setErrorMessage(null);
     }
@@ -81,72 +91,73 @@ export default function AddToCartButton({
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const buttonSizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
-  };
-
-  const iconSizes = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6'
-  };
+  const sizeStyles = {
+    sm: { padding: 'px-3 py-2', text: 'text-sm', icon: 'w-4 h-4' },
+    md: { padding: 'px-4 py-3', text: 'text-base', icon: 'w-5 h-5' },
+    lg: { padding: 'px-6 py-4', text: 'text-base sm:text-lg', icon: 'w-5 h-5' },
+  } as const;
+  const sz = sizeStyles[size];
 
   const goToCheckout = () => {
     router.push('/checkout');
   };
 
-  // Expliciete tekstkleur zodat labels zichtbaar blijven in een witte/gradient-kaart (text-white parent)
-  const outlineTextClass = variant === 'outline' ? '!text-gray-900' : '';
+  const labelAdd = tOr('cart.addToCart', 'Add to cart', 'In winkelwagen');
+  const labelAdded = tOr('cart.addedToCart', 'Added to cart', 'Toegevoegd');
+  const labelAdding = tOr('cart.adding', 'Adding...', 'Toevoegen...');
+  const labelCheckout = tOr('cart.goToCheckout', 'Go to checkout', 'Ga naar afrekenen');
 
-  const renderCartShortcut = () => (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={goToCheckout}
-      title="Ga naar afrekenen"
-      aria-label="Ga naar afrekenen"
-      className={`${buttonSizes[size]} w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-primary-brand bg-white hover:bg-primary-50 !text-gray-900`}
-    >
-      <ShoppingCart className={`${iconSizes[size]} flex-shrink-0`} aria-hidden />
-      <span className="font-medium">Ga naar afrekenen</span>
-      <ArrowRight className={`${iconSizes[size]} flex-shrink-0`} aria-hidden />
-    </Button>
-  );
+  const primaryBase = `inline-flex w-full items-center justify-center gap-2 rounded-2xl ${sz.padding} ${sz.text} font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-transparent disabled:cursor-not-allowed`;
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      <Button
+      <button
+        type="button"
         onClick={handleAddToCart}
         disabled={isAdding}
-        variant={variant}
-        title={isAdded ? t('cart.addedToCart') : t('cart.addToCart')}
-        aria-label={isAdded ? t('cart.addedToCart') : t('cart.addToCart')}
-        className={`${buttonSizes[size]} ${outlineTextClass} ${className}`}
+        title={isAdded ? labelAdded : labelAdd}
+        aria-label={isAdded ? labelAdded : labelAdd}
+        className={`${primaryBase} bg-white text-gray-900 shadow-xl hover:bg-gray-50 hover:scale-[1.02] active:scale-[0.99] disabled:opacity-80 ${className}`}
       >
         {isAdding ? (
           <>
-            <div className={`${iconSizes[size]} mr-2 animate-spin rounded-full border-2 border-current border-t-transparent flex-shrink-0`} aria-hidden />
-            <span>{t('cart.adding')}</span>
+            <span
+              className={`${sz.icon} animate-spin rounded-full border-2 border-current border-t-transparent flex-shrink-0`}
+              aria-hidden
+            />
+            <span>{labelAdding}</span>
           </>
         ) : isAdded ? (
           <>
-            <Check className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
-            <span>{t('cart.addedToCart')}</span>
+            <Check className={`${sz.icon} flex-shrink-0 text-emerald-600`} aria-hidden />
+            <span>{labelAdded}</span>
           </>
         ) : (
           <>
-            <ShoppingCart className={`${iconSizes[size]} mr-2 flex-shrink-0`} aria-hidden />
-            <span className="font-medium">{t('cart.inCart')}</span>
+            <ShoppingCart className={`${sz.icon} flex-shrink-0`} aria-hidden />
+            <span>{labelAdd}</span>
           </>
         )}
-      </Button>
+      </button>
 
-      {(isAdded || totalItems > 0) && renderCartShortcut()}
+      {(isAdded || totalItems > 0) && (
+        <button
+          type="button"
+          onClick={goToCheckout}
+          title={labelCheckout}
+          aria-label={labelCheckout}
+          className={`${primaryBase} bg-white/15 text-white border border-white/40 backdrop-blur-sm hover:bg-white/25 hover:scale-[1.02] active:scale-[0.99]`}
+        >
+          <ShoppingCart className={`${sz.icon} flex-shrink-0`} aria-hidden />
+          <span>{labelCheckout}</span>
+          <ArrowRight className={`${sz.icon} flex-shrink-0`} aria-hidden />
+        </button>
+      )}
 
       {errorMessage && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-sm font-medium text-red-100 bg-red-700/40 rounded-xl px-3 py-2">
+          {errorMessage}
+        </p>
       )}
     </div>
   );

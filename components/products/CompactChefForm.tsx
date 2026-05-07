@@ -43,7 +43,18 @@ export default function CompactChefForm({
   initialPhoto,
   platform = 'dorpsplein'
 }: CompactChefFormProps) {
-  const { t } = useTranslation();
+  const { t, tOr, getTranslationObject } = useTranslation();
+
+  /**
+   * Suggesties komen volledig uit i18n (zie compactForms.shared.tagSuggestionsChef in
+   * public/i18n/{nl,en}.json). Bij een taalwissel updatet `useTranslation` de hook,
+   * dus deze array wordt automatisch in de juiste taal opgeleverd zonder hardcoded
+   * NL/EN strings in de component.
+   */
+  const tagSuggestionsRaw = getTranslationObject('compactForms.shared.tagSuggestionsChef');
+  const TAG_SUGGESTIONS = Array.isArray(tagSuggestionsRaw)
+    ? (tagSuggestionsRaw as unknown[]).filter((v): v is string => typeof v === 'string')
+    : [];
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [title, setTitle] = React.useState('');
@@ -536,6 +547,9 @@ export default function CompactChefForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.titleLabel')}</label>
+            <p className="text-xs text-gray-500 mb-1.5 leading-snug">
+              {t('compactForms.shared.titleHelper')}
+            </p>
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               value={title}
@@ -723,21 +737,63 @@ export default function CompactChefForm({
                 {t('productForm.addTag')}
               </button>
             </div>
+            {/* Klikbare suggestie-chips: helpen gebruiker zonder de bestaande tag-state
+                te wijzigen. Gebruikt dezelfde setTags-flow als handmatig toevoegen. */}
+            {TAG_SUGGESTIONS.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[11px] font-medium uppercase tracking-wide text-gray-500 mb-1.5">
+                  {tOr('compactForms.shared.tagSuggestionsHeading', 'Suggestions', 'Suggesties')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {TAG_SUGGESTIONS.map((suggestion) => {
+                    const isActive = tags.includes(suggestion);
+                    return (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => {
+                          if (isActive) return;
+                          setTags([...tags, suggestion]);
+                        }}
+                        aria-pressed={isActive}
+                        disabled={isActive}
+                        className={
+                          isActive
+                            ? 'inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-orange-300 bg-orange-100 text-orange-700 cursor-default opacity-60'
+                            : 'inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-gray-300 bg-white text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700 transition-colors'
+                        }
+                      >
+                        {isActive ? `✓ ${suggestion}` : `+ ${suggestion}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Subcategorie & Bezorging - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('products.typeDish')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {tOr('products.typeDish', 'Category', 'Categorie')}
+            </label>
             <select
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              aria-label={tOr('products.chooseType', 'Choose a category', 'Kies een categorie')}
+              className={`w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${subcategory ? 'text-gray-900' : 'text-gray-400'}`}
             >
-              <option value="">{t('products.chooseType')}</option>
+              {/* `disabled hidden` option dient als placeholder: zichtbaar in de balk
+                  zolang er niets is gekozen, maar niet selecteerbaar uit de lijst.
+                  Validatie blijft werken: select.value blijft "" tot een echte
+                  categorie wordt gekozen. */}
+              <option value="" disabled hidden>
+                {tOr('products.chooseType', 'Choose a category', 'Kies een categorie')}
+              </option>
               {CHEF_SUBCATEGORIES.map((sub) => (
-                <option key={sub} value={sub}>
+                <option key={sub} value={sub} className="text-gray-900">
                   {t(`compactForms.chef.subLabels.${sub}` as any)}
                 </option>
               ))}

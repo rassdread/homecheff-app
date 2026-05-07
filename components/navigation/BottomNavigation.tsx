@@ -10,6 +10,7 @@ import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
+import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -44,6 +45,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { data: session, status: sessionStatus } = useSession();
   const { t } = useTranslation();
+  const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   
   const shouldHide = isBottomNavigationHidden(pathname);
   
@@ -55,7 +57,42 @@ export default function BottomNavigation() {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [userRolesLoaded, setUserRolesLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /**
+   * Guard tegen Safari/mobile "phantom" click of focus events vlak na het sluiten van de
+   * native file picker. Sommige iOS-builds vuren een synthetische tap af op de coördinaten
+   * van de oorspronkelijke tap zodra de picker sluit; als die op de modal-overlay valt,
+   * sluit de quick-add modal ongewenst en valt de gebruiker terug op het homescreen.
+   * Wordt gezet vlak vóór `fileInputRef.click()` en verlengd tijdens FileReader/compression.
+   */
+  const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
+
+  const isQuickAddDebug =
+    typeof process !== 'undefined' &&
+    process.env.NEXT_PUBLIC_DEBUG_QUICK_ADD === 'true';
+  const quickAddDebug = useCallback(
+    (...args: unknown[]) => {
+      if (isQuickAddDebug && typeof console !== 'undefined') {
+        console.debug('[quick-add]', ...args);
+      }
+    },
+    [isQuickAddDebug]
+  );
+
+  const armFilePickerGuard = useCallback(
+    (durationMs: number) => {
+      const next = Date.now() + durationMs;
+      if (next > filePickerGuardUntilRef.current) {
+        filePickerGuardUntilRef.current = next;
+      }
+      quickAddDebug('armed file picker guard', { durationMs, until: filePickerGuardUntilRef.current });
+    },
+    [quickAddDebug]
+  );
+
+  const isFilePickerGuardActive = useCallback(() => {
+    return Date.now() < filePickerGuardUntilRef.current;
+  }, []);
 
   // Device detection
   useEffect(() => {
@@ -69,28 +106,31 @@ export default function BottomNavigation() {
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
-  // Fetch user roles
+  // Start met sessie-rollen; extra fetch alleen op demand wanneer quick-add geopend wordt.
   useEffect(() => {
     if (session?.user) {
-      const fetchUserRoles = async () => {
-        try {
-          const response = await fetch('/api/profile/me');
-          if (response.ok) {
-            const data = await response.json();
-            setUserRoles(data.user?.sellerRoles || []);
-            setUserRolesLoaded(true);
-          }
-        } catch {
-          setUserRoles((session?.user as any)?.sellerRoles || []);
-          setUserRolesLoaded(true);
-        }
-      };
-      fetchUserRoles();
+      const sessionRoles = (session.user as any)?.sellerRoles || [];
+      const bootstrapRoles = Array.isArray(bootstrapProfile?.sellerRoles) ? bootstrapProfile.sellerRoles : [];
+      setUserRoles(sessionRoles.length > 0 ? sessionRoles : bootstrapRoles);
+      setUserRolesLoaded(true);
     } else {
       setUserRoles([]);
       setUserRolesLoaded(true);
     }
-  }, [session]);
+  }, [session?.user, bootstrapProfile?.sellerRoles]);
+
+  const loadUserRolesIfNeeded = useCallback(async () => {
+    if (!session?.user || userRoles.length > 0) return;
+    try {
+      const profile = await ensureProfile();
+      const roles = profile?.sellerRoles || [];
+      if (Array.isArray(roles)) {
+        setUserRoles(roles);
+      }
+    } catch {
+      // fallback blijft sessie-data
+    }
+  }, [session?.user, userRoles.length, ensureProfile]);
 
   // Restore selectedPlatform from sessionStorage when component mounts or menu opens
   useEffect(() => {
@@ -239,6 +279,7 @@ export default function BottomNavigation() {
       setActivePromoModal('add');
       return;
     }
+    void loadUserRolesIfNeeded();
     openQuickAddFlow();
   };
 
@@ -250,29 +291,33 @@ export default function BottomNavigation() {
     return () => window.removeEventListener(QUICK_ADD_OPEN_EVENT, onOpenQuickAdd);
   }, [openQuickAddFlow]);
 
-  // Prefetch routes on hover for faster navigation
+  // Lichte prefetch na idle; geen zware/private dashboardroutes op eerste paint.
   useEffect(() => {
-    if (!session?.user) return;
-    
-    // Prefetch common routes when component mounts
-    const routesToPrefetch = [
-      '/messages',
-      '/profile',
-      '/verkoper/dashboard',
-      '/admin',
-      '/',
-    ];
-    routesToPrefetch.forEach((route) => {
-      if (!pathname) return;
-      if (pathname === route) return;
-      if (route === '/') {
-        if (pathname === '/') return;
-      } else if (pathname.startsWith(route)) {
-        return;
+    if (!session?.user || !pathname) return;
+
+    const runPrefetch = () => {
+      const routesToPrefetch = ['/messages', '/profile', '/'];
+      routesToPrefetch.forEach((route) => {
+        if (pathname === route || pathname.startsWith(route)) return;
+        router.prefetch(route);
+      });
+    };
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+    if (typeof requestIdleCallback !== 'undefined') {
+      idleId = requestIdleCallback(runPrefetch, { timeout: 8000 });
+    } else {
+      timer = setTimeout(runPrefetch, 3000);
+    }
+
+    return () => {
+      if (idleId !== null && typeof cancelIdleCallback !== 'undefined') {
+        cancelIdleCallback(idleId);
       }
-      router.prefetch(route);
-    });
-  }, [session, router, pathname]);
+      if (timer) clearTimeout(timer);
+    };
+  }, [session?.user, router, pathname]);
 
   const handleDashboardClick = () => {
     if (!session?.user) {
@@ -313,6 +358,10 @@ export default function BottomNavigation() {
   };
   
   const handlePhotoSourceSelect = (source: 'camera' | 'gallery') => {
+    // Arm guard vóór het openen van de native picker. Safari/mobile vuurt soms na het
+    // sluiten van de picker een synthetische click af; die mag de modal niet sluiten.
+    armFilePickerGuard(1500);
+    quickAddDebug('handlePhotoSourceSelect', { source });
     if (source === 'camera') {
       // For camera, set capture attribute and open file picker directly
       // This will show camera option in the file picker on mobile
@@ -348,7 +397,7 @@ export default function BottomNavigation() {
     
     if (!platformToUse) {
       console.error('No platform available! Cannot proceed.');
-      closeQuickAddMenu();
+      alert(t('bottomNav.quickAdd.missingPlatform'));
       return;
     }
 
@@ -427,7 +476,6 @@ export default function BottomNavigation() {
       if (error instanceof Error && error.message.includes('quota')) {
         console.error('Storage quota exceeded! Photo is too large even after compression.');
         alert(t('errors.photoTooLarge'));
-        closeQuickAddMenu();
         return;
       }
       // Fallback: save to state and proceed anyway
@@ -443,12 +491,19 @@ export default function BottomNavigation() {
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    // Geen bestand: picker geannuleerd OF tweede change na programmatic .value='' — nooit menu sluiten.
+    // We verlengen de guard kort, want sommige browsers vuren de phantom click net na
+    // de cancel-change event af.
     if (!file) {
-      // User cancelled, close menu
-      closeQuickAddMenu();
+      armFilePickerGuard(800);
+      quickAddDebug('handleFileSelect: no file (cancel) — keeping menu open');
       return;
     }
+    // Verleng guard tijdens FileReader/compression zodat een late phantom-click niet
+    // halverwege de async processing de modal sluit.
+    armFilePickerGuard(2500);
 
     console.log('=== File selected ===');
     console.log('File name:', file.name);
@@ -460,7 +515,7 @@ export default function BottomNavigation() {
     const platformToUse = selectedPlatform || sessionStorage.getItem('quickAddPlatform') as Platform | null;
     if (!platformToUse) {
       console.error('No platform selected');
-      closeQuickAddMenu();
+      alert(t('bottomNav.quickAdd.missingPlatform'));
       return;
     }
 
@@ -478,7 +533,11 @@ export default function BottomNavigation() {
     if (!isVideo && !isImage) {
       console.error('File is neither image nor video:', file.type);
       alert(t('bottomNav.quickAdd.invalidMediaType'));
-      closeQuickAddMenu();
+      try {
+        input.value = "";
+      } catch {
+        /* ignore */
+      }
       return;
     }
     
@@ -487,6 +546,14 @@ export default function BottomNavigation() {
     console.log('Is video:', isVideo);
     console.log('Is image:', isImage);
     
+    const clearFileInput = () => {
+      try {
+        input.value = "";
+      } catch {
+        /* ignore */
+      }
+    };
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const mediaUrl = e.target?.result as string;
@@ -508,28 +575,39 @@ export default function BottomNavigation() {
           if (storedPlatform) {
             console.log('Restoring platform from storage:', storedPlatform);
             setSelectedPlatform(storedPlatform);
-            processPhotoAndNavigate(mediaUrl, isVideo);
+            void processPhotoAndNavigate(mediaUrl, isVideo)
+              .catch((err) => {
+                console.error('Error in processPhotoAndNavigate:', err);
+                alert(t('bottomNav.quickAdd.processMediaError'));
+              })
+              .finally(clearFileInput);
           } else {
             console.error('Cannot proceed without platform');
-            closeQuickAddMenu();
+            alert(t('bottomNav.quickAdd.missingPlatform'));
+            clearFileInput();
           }
         } else {
-          // Use helper function to process media and navigate (async)
-          processPhotoAndNavigate(mediaUrl, isVideo).catch((error) => {
-            console.error('Error in processPhotoAndNavigate:', error);
-            closeQuickAddMenu();
-          });
+          void processPhotoAndNavigate(mediaUrl, isVideo)
+            .catch((error) => {
+              console.error('Error in processPhotoAndNavigate:', error);
+              alert(t('bottomNav.quickAdd.processMediaError'));
+            })
+            .finally(clearFileInput);
         }
       } else {
         console.error('Failed to load media - FileReader result is empty');
+        clearFileInput();
       }
     };
     reader.onerror = (error) => {
       console.error('FileReader error:', error);
       console.error('FileReader error details:', reader.error);
+      alert(t('bottomNav.quickAdd.readFileError'));
+      clearFileInput();
     };
     reader.onabort = () => {
       console.error('FileReader aborted');
+      clearFileInput();
     };
     
     // Read file as data URL
@@ -537,23 +615,28 @@ export default function BottomNavigation() {
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error reading file:', error);
-      closeQuickAddMenu();
+      alert(t('bottomNav.quickAdd.readFileError'));
+      clearFileInput();
     }
-    
-    // Reset input AFTER starting read (not before)
-    // This allows the file to be read even if input is reset
-    setTimeout(() => {
-      if (event.target) {
-        event.target.value = '';
-      }
-    }, 100);
   };
 
   const handleCategorySelect = async (category: Category) => {
-    console.log('=== handleCategorySelect called ===', category);
-    console.log('capturedPhoto state:', capturedPhoto ? `Yes (${capturedPhoto.length} chars)` : 'No');
-    console.log('sessionStorage keys:', Object.keys(sessionStorage));
-    
+    // Volledige diagnose-snapshot: dit is exact het moment waarop we tot voor kort
+    // de quick-add modal sloten en met `window.location.href` een hard reload deden.
+    // Bij die hard reload gingen we soms terug naar `/` doordat de SessionProvider
+    // tijdens het opnieuw mounten kort 'unauthenticated' rapporteerde en SessionGuard
+    // dan sessionStorage volledig wiste — incl. de net-opgeslagen foto.
+    quickAddDebug('handleCategorySelect entry', {
+      category,
+      selectedPlatform,
+      hasCapturedPhoto: !!capturedPhoto,
+      capturedPhotoLength: capturedPhoto?.length ?? 0,
+      sessionStorageKeys: Object.keys(sessionStorage),
+      hasSessionPhoto: !!sessionStorage.getItem('quickAddPhoto'),
+      hasProductPhoto: !!sessionStorage.getItem('productPhoto'),
+      hasLocalPendingPhoto: !!localStorage.getItem('pendingProductPhoto'),
+    });
+
     // Read photo from storage - try ALL possible locations
     // Priority: sessionStorage > localStorage > state
     let photoUrl = sessionStorage.getItem('quickAddPhoto') || 
@@ -563,48 +646,38 @@ export default function BottomNavigation() {
     
     // If we have photo in state but not in storage, save it now
     if (capturedPhoto && !photoUrl) {
-      console.log('Using capturedPhoto from state and saving to storage...');
       photoUrl = capturedPhoto;
     }
-    
-    console.log('Final photoUrl:', photoUrl ? `Yes (${photoUrl.length} chars)` : 'No');
+
+    quickAddDebug('handleCategorySelect resolved photo', {
+      hasPhoto: !!photoUrl,
+      photoLength: photoUrl?.length ?? 0,
+    });
     
     // Compress alleen foto's — video's niet door canvas/compressDataUrl halen
     const srcIsVideo = !!photoUrl && photoUrl.startsWith('data:video/');
     let compressedPhotoUrl = photoUrl;
     if (photoUrl && !srcIsVideo) {
       try {
-        console.log('Compressing photo for storage...');
         compressedPhotoUrl = await compressDataUrl(photoUrl, 1920, 1080, 0.7, 500);
-        const originalSizeKB = ((photoUrl.length * 3) / 4 / 1024).toFixed(1);
-        const compressedSizeKB = ((compressedPhotoUrl.length * 3) / 4 / 1024).toFixed(1);
-        console.log(`Photo compressed: ${originalSizeKB}KB -> ${compressedSizeKB}KB`);
       } catch (error) {
-        console.error('Error compressing photo, using original:', error);
+        console.error('[quick-add] Error compressing photo, using original:', error);
       }
     }
-    
+
     const isVideo = srcIsVideo || compressedPhotoUrl?.startsWith('data:video/') || false;
-    
+
     // CRITICAL: Save everything to storage BEFORE navigation
     // This ensures data is available when the new page loads
     if (compressedPhotoUrl) {
       try {
-        // Save to all storage locations for redundancy
         sessionStorage.setItem('productPhoto', compressedPhotoUrl);
         sessionStorage.setItem('quickAddPhoto', compressedPhotoUrl);
-        sessionStorage.setItem('productIsVideo', isVideo ? 'true' : 'false'); // Store if it's a video
+        sessionStorage.setItem('productIsVideo', isVideo ? 'true' : 'false');
         localStorage.setItem('pendingProductPhoto', compressedPhotoUrl);
         localStorage.setItem('pendingProductCategory', category);
-        
-        // Verify storage was successful
-        const verifyPhoto = sessionStorage.getItem('productPhoto');
-        const verifyQuickAdd = sessionStorage.getItem('quickAddPhoto');
-        console.log('Verification - productPhoto stored:', verifyPhoto ? `Yes (${verifyPhoto.length} chars)` : 'No');
-        console.log('Verification - quickAddPhoto stored:', verifyQuickAdd ? `Yes (${verifyQuickAdd.length} chars)` : 'No');
-        console.log('Verification - isVideo:', sessionStorage.getItem('productIsVideo'));
       } catch (error) {
-        console.error(`Error storing ${isVideo ? 'video' : 'photo'}:`, error);
+        console.error(`[quick-add] Error storing ${isVideo ? 'video' : 'photo'}:`, error);
         if (error instanceof Error && error.message.includes('quota')) {
           alert(isVideo ? t('bottomNav.quickAdd.videoTooLargeStorage') : t('errors.photoTooLarge'));
           return;
@@ -612,67 +685,58 @@ export default function BottomNavigation() {
         throw error;
       }
     }
-    
+
     sessionStorage.setItem('productCategory', category);
-    
-    // Navigate immediately - use photo=true only if we have a photo
-    const targetUrl = compressedPhotoUrl 
+
+    const targetUrl = compressedPhotoUrl
       ? `/sell/new?category=${category}&photo=true`
       : `/sell/new?category=${category}`;
-    
-    console.log('Navigating to:', targetUrl);
-    console.log('Photo available:', compressedPhotoUrl ? 'Yes' : 'No');
-    
-    // Close menu FIRST
+
+    quickAddDebug('handleCategorySelect navigating', {
+      targetUrl,
+      category,
+      selectedPlatform,
+      hasPhoto: !!compressedPhotoUrl,
+      isVideo,
+      sessionStorageKeysBefore: Object.keys(sessionStorage),
+    });
+
+    // Sluit de quick-add modal eerst (state-only). Bewust GEEN
+    // `closeQuickAddMenu()` aanroepen: die wist `quickAddPhoto` niet maar zou wel
+    // andere quick-add flags resetten — die zijn voor de overgang naar /sell/new
+    // niet meer relevant.
     setShowQuickAddMenu(false);
     setQuickAddStep('platform');
     setSelectedPlatform(null);
-    
-    // Force a final write to ensure data is persisted (already done above, but verify)
-    if (compressedPhotoUrl) {
-      try {
-        sessionStorage.setItem('productPhoto', compressedPhotoUrl);
-        sessionStorage.setItem('quickAddPhoto', compressedPhotoUrl);
-      } catch (error) {
-        console.error('Error in final storage write:', error);
-        if (error instanceof Error && error.message.includes('quota')) {
-          alert(t('errors.photoTooLarge'));
-          return;
-        }
-      }
-    }
-    
-    // Navigate - use window.location for reliable navigation on mobile
-    // Small delay to ensure sessionStorage is written
-    setTimeout(() => {
-      console.log('Executing navigation to:', targetUrl);
-      console.log('Final photo check before navigation:', sessionStorage.getItem('productPhoto') ? 'Yes' : 'No');
-      window.location.href = targetUrl;
-    }, 50);
+
+    // Soft client-side navigatie i.p.v. `window.location.href`. Dit voorkomt:
+    //   1) een hard reload waarbij SessionProvider kort 'unauthenticated' kan
+    //      rapporteren → SessionGuard → `clearAllUserData()` → sessionStorage.clear()
+    //      → `productPhoto`/`quickAddPhoto` zijn weg → /sell/new laadt zonder foto;
+    //   2) dat `useUserValidation` na hard reload opnieuw een /api/profile/me roept
+    //      die op een lokale dev-DB 404 kan geven en zo signOut → / triggert;
+    //   3) dat de i18n bundel opnieuw geladen moet worden (was zichtbaar als
+    //      "Loaded user language preference: nl" spam).
+    // Met `router.push` blijft de NextAuth-sessie en sessionStorage intact.
+    router.push(targetUrl);
   };
 
   const handleLocationSelect = React.useCallback(async (location: Location) => {
-    console.log('=== handleLocationSelect called ===', location);
-    console.log('All sessionStorage keys BEFORE:', Object.keys(sessionStorage));
-    
+    quickAddDebug('handleLocationSelect entry', {
+      location,
+      hasCapturedPhoto: !!capturedPhoto,
+      sessionStorageKeys: Object.keys(sessionStorage),
+    });
+
     // Get photo from ALL possible sources - prioritize sessionStorage
-    let photoUrl = sessionStorage.getItem('quickAddPhoto') || 
+    let photoUrl = sessionStorage.getItem('quickAddPhoto') ||
                    sessionStorage.getItem('productPhoto') ||
                    localStorage.getItem('pendingProductPhoto') ||
                    capturedPhoto;
-    
-    console.log('Photo URL found:', photoUrl ? `Yes (${photoUrl.length} chars)` : 'No');
-    console.log('quickAddPhoto in storage:', sessionStorage.getItem('quickAddPhoto') ? `Yes (${sessionStorage.getItem('quickAddPhoto')?.length} chars)` : 'No');
-    console.log('productPhoto in storage:', sessionStorage.getItem('productPhoto') ? `Yes (${sessionStorage.getItem('productPhoto')?.length} chars)` : 'No');
-    console.log('capturedPhoto in state:', capturedPhoto ? `Yes (${capturedPhoto.length} chars)` : 'No');
-    
-    // If we have capturedPhoto but not in storage, save it now
+
     if (capturedPhoto && !photoUrl) {
-      console.log('Using capturedPhoto from state and saving to storage...');
       photoUrl = capturedPhoto;
     } else if (capturedPhoto && photoUrl !== capturedPhoto) {
-      // Update with latest photo from state
-      console.log('Updating with capturedPhoto from state...');
       photoUrl = capturedPhoto;
     }
     
@@ -680,20 +744,16 @@ export default function BottomNavigation() {
     let compressedPhotoUrl = photoUrl;
     if (photoUrl && !srcIsVideoInsp) {
       try {
-        console.log('Compressing photo for storage...');
         compressedPhotoUrl = await compressDataUrl(photoUrl, 1920, 1080, 0.7, 500);
-        const originalSizeKB = ((photoUrl.length * 3) / 4 / 1024).toFixed(1);
-        const compressedSizeKB = ((compressedPhotoUrl.length * 3) / 4 / 1024).toFixed(1);
-        console.log(`Photo compressed: ${originalSizeKB}KB -> ${compressedSizeKB}KB`);
       } catch (error) {
-        console.error('Error compressing photo, using original:', error);
+        console.error('[quick-add] Error compressing photo, using original:', error);
       }
     }
-    
+
     // Map inspiratie locations to internal location names
     let internalLocation = location;
     let tab = 'dishes-chef';
-    
+
     if (location === 'recepten') {
       internalLocation = 'keuken';
       tab = 'dishes-chef';
@@ -708,91 +768,56 @@ export default function BottomNavigation() {
     } else if (location === 'atelier') {
       tab = 'dishes-designer';
     }
-    
-    // Always set location and photo in sessionStorage BEFORE navigation
-    // This ensures data is available when the new page loads
+
     sessionStorage.setItem('inspiratieLocation', internalLocation);
-    
-    // Use compressed photo URL (or original video URL)
+
     const finalPhotoUrl = compressedPhotoUrl;
     const isVideo = finalPhotoUrl?.startsWith('data:video/') || false;
-    
+
     if (finalPhotoUrl) {
       try {
         sessionStorage.setItem('inspiratiePhoto', finalPhotoUrl);
-        sessionStorage.setItem('inspiratieIsVideo', isVideo ? 'true' : 'false'); // Store if it's a video
-        // Also keep quickAddPhoto as backup
+        sessionStorage.setItem('inspiratieIsVideo', isVideo ? 'true' : 'false');
         if (!sessionStorage.getItem('quickAddPhoto')) {
           sessionStorage.setItem('quickAddPhoto', finalPhotoUrl);
         }
-        console.log(`Stored ${isVideo ? 'video' : 'photo'} in sessionStorage, length:`, finalPhotoUrl.length);
       } catch (error) {
-        console.error(`Error storing ${isVideo ? 'video' : 'photo'} in sessionStorage:`, error);
+        console.error(`[quick-add] Error storing ${isVideo ? 'video' : 'photo'} in sessionStorage:`, error);
         if (error instanceof Error && error.message.includes('quota')) {
           alert(isVideo ? t('bottomNav.quickAdd.videoTooLargeStorage') : t('errors.photoTooLarge'));
           return;
         }
         throw error;
       }
-    } else {
-      console.warn('No photo/video URL to store in sessionStorage');
     }
-    console.log('Stored inspiratieLocation:', internalLocation);
-    
-    // Verify storage was successful
-    const storedPhoto = sessionStorage.getItem('inspiratiePhoto');
-    const storedLocation = sessionStorage.getItem('inspiratieLocation');
-    const storedQuickAdd = sessionStorage.getItem('quickAddPhoto');
-    console.log('Verification - stored photo:', storedPhoto ? `Yes (${storedPhoto.length} chars)` : 'No');
-    console.log('Verification - stored location:', storedLocation || 'No');
-    console.log('Verification - stored quickAddPhoto:', storedQuickAdd ? `Yes (${storedQuickAdd.length} chars)` : 'No');
-    console.log('All sessionStorage keys AFTER:', Object.keys(sessionStorage));
-    
-    // Close menu immediately
-    setShowQuickAddMenu(false);
-    setQuickAddStep('platform');
-    setSelectedPlatform(null);
-    
-    // Store photo in localStorage as backup (persists across page reloads)
+
     if (finalPhotoUrl) {
       localStorage.setItem('pendingInspiratiePhoto', finalPhotoUrl);
       localStorage.setItem('pendingInspiratieLocation', internalLocation);
-      console.log('Photo also stored in localStorage as backup');
     }
-    
-    // Use window.location for reliable navigation
-    // Add openForm=true to directly open the form without tab navigation delay
+
     const targetUrl = finalPhotoUrl
       ? `/profile?tab=${tab}&addInspiratie=true&openForm=true`
       : `/profile?tab=${tab}&openForm=true`;
-    
-    console.log('Navigating to:', targetUrl);
-    console.log('Final photo URL before navigation:', finalPhotoUrl ? `Yes (${finalPhotoUrl.length} chars)` : 'No');
-    
-    // Final verification before navigation
-    const finalCheck = sessionStorage.getItem('inspiratiePhoto') || sessionStorage.getItem('quickAddPhoto');
-    console.log('Final check - photo in storage before navigation:', finalCheck ? `Yes (${finalCheck.length} chars)` : 'No');
-    
-    // Force synchronous write to sessionStorage (already done above, but verify)
-    if (finalPhotoUrl) {
-      try {
-        sessionStorage.setItem('inspiratiePhoto', finalPhotoUrl);
-        sessionStorage.setItem('quickAddPhoto', finalPhotoUrl);
-        // Force a read to ensure it's written
-        const verify = sessionStorage.getItem('inspiratiePhoto');
-        console.log('Verification after force write:', verify ? `Yes (${verify.length} chars)` : 'No');
-      } catch (error) {
-        console.error('Error in final storage write:', error);
-        if (error instanceof Error && error.message.includes('quota')) {
-          alert(t('errors.photoTooLarge'));
-          return;
-        }
-      }
-    }
-    
-    // Navigate immediately - sessionStorage should be written
-    window.location.href = targetUrl;
-  }, [capturedPhoto, t]);
+
+    quickAddDebug('handleLocationSelect navigating', {
+      targetUrl,
+      location,
+      internalLocation,
+      hasPhoto: !!finalPhotoUrl,
+      isVideo,
+    });
+
+    setShowQuickAddMenu(false);
+    setQuickAddStep('platform');
+    setSelectedPlatform(null);
+
+    // Soft client-side navigation; zelfde reden als bij handleCategorySelect:
+    // hard reload kan SessionGuard triggeren die sessionStorage wist en de
+    // gebruiker (na 404 op /api/profile/me in dev) onbedoeld op de homepage
+    // achterlaat.
+    router.push(targetUrl);
+  }, [capturedPhoto, t, quickAddDebug, router]);
 
   const closeQuickAddMenu = () => {
     setShowQuickAddMenu(false);
@@ -848,9 +873,16 @@ export default function BottomNavigation() {
           className="fixed inset-0 z-[100] bg-black bg-opacity-50 flex items-end md:items-center justify-center p-4 md:p-0"
           onClick={(e) => {
             // Only close if clicking directly on overlay background
-            if (e.target === e.currentTarget) {
-              closeQuickAddMenu();
+            if (e.target !== e.currentTarget) return;
+            // Negeer phantom click die Safari/mobile soms vuurt vlak na het sluiten van
+            // de native file picker — dit voorkomt dat de modal terugvalt naar homepage.
+            if (isFilePickerGuardActive()) {
+              quickAddDebug('overlay click ignored — file picker guard active');
+              e.preventDefault();
+              e.stopPropagation();
+              return;
             }
+            closeQuickAddMenu();
           }}
         >
           <div 
@@ -864,6 +896,7 @@ export default function BottomNavigation() {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.platformTitle')}</h3>
                   <button
+                    type="button"
                     onClick={closeQuickAddMenu}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label={t('buttons.close')}
@@ -876,6 +909,7 @@ export default function BottomNavigation() {
                 
                 <div className="space-y-3">
                   <button
+                    type="button"
                     onClick={() => handlePlatformSelect('dorpsplein')}
                     className="w-full p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
@@ -885,6 +919,7 @@ export default function BottomNavigation() {
                   </button>
                   
                   <button
+                    type="button"
                     onClick={() => handlePlatformSelect('inspiratie')}
                     className="w-full p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
@@ -905,6 +940,7 @@ export default function BottomNavigation() {
                     <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.photoSubtitle')}</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setQuickAddStep('platform');
                       setSelectedPlatform(null);
@@ -920,6 +956,7 @@ export default function BottomNavigation() {
                 
                 <div className="space-y-3">
                   <button
+                    type="button"
                     onClick={() => handlePhotoSourceSelect('gallery')}
                     className="w-full p-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
@@ -929,6 +966,7 @@ export default function BottomNavigation() {
                   </button>
                   
                   <button
+                    type="button"
                     onClick={() => handlePhotoSourceSelect('camera')}
                     className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
@@ -949,6 +987,7 @@ export default function BottomNavigation() {
                     <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.categorySubtitle')}</p>
                   </div>
                   <button
+                    type="button"
                     onClick={closeQuickAddMenu}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label={t('buttons.close')}
@@ -1093,6 +1132,7 @@ export default function BottomNavigation() {
                 </div>
                 
                 <button
+                  type="button"
                   onClick={goBackInQuickAdd}
                   className="w-full mt-4 p-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all active:scale-95"
                 >
@@ -1110,6 +1150,7 @@ export default function BottomNavigation() {
                     <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.locationSubtitle')}</p>
                   </div>
                   <button
+                    type="button"
                     onClick={closeQuickAddMenu}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     aria-label={t('buttons.close')}
@@ -1246,6 +1287,7 @@ export default function BottomNavigation() {
                 </div>
                 
                 <button
+                  type="button"
                   onClick={goBackInQuickAdd}
                   className="w-full mt-4 p-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all active:scale-95"
                 >

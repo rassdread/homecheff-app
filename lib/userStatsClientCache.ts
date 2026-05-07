@@ -38,6 +38,11 @@ function isStatsPayload(x: unknown): x is UserStatsPayload {
   );
 }
 
+/** Valideert JSON uit statsPreview (feed API). */
+export function coerceUserStatsPayload(raw: unknown): UserStatsPayload | null {
+  return isStatsPayload(raw) ? raw : null;
+}
+
 export function getCachedUserStats(userId: string): UserStatsPayload | null {
   const row = cache.get(userId);
   if (!row) return null;
@@ -46,6 +51,12 @@ export function getCachedUserStats(userId: string): UserStatsPayload | null {
     return null;
   }
   return row.data;
+}
+
+/** Zet cache vóór eerste render (bv. statsPreview uit /api/feed) zodat tiles geen skeleton tonen. */
+export function seedCachedUserStats(userId: string, data: UserStatsPayload): void {
+  if (!userId || !isStatsPayload(data)) return;
+  cache.set(userId, { data, at: Date.now() });
 }
 
 /**

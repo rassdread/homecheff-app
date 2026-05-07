@@ -6,7 +6,11 @@ import Link from "next/link";
 import SafeImage from "./SafeImage";
 import { getDisplayName } from "@/lib/displayName";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
-import { fetchUserStatsDeduped, EMPTY_USER_STATS } from "@/lib/userStatsClientCache";
+import {
+  fetchUserStatsDeduped,
+  EMPTY_USER_STATS,
+  getCachedUserStats,
+} from "@/lib/userStatsClientCache";
 
 type UserStats = {
   fansCount: number;
@@ -37,8 +41,12 @@ export default function UserStatsTile({
   className = "" 
 }: UserStatsTileProps) {
   const { isMobile } = useMobileOptimization();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<UserStats | null>(() =>
+    userId ? getCachedUserStats(userId) : null
+  );
+  const [loading, setLoading] = useState(() =>
+    Boolean(userId && !getCachedUserStats(userId))
+  );
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -46,6 +54,31 @@ export default function UserStatsTile({
       setStats(null);
       setLoading(false);
       return;
+    }
+
+    const cachedNow = getCachedUserStats(userId);
+    if (cachedNow) {
+      setStats(cachedNow);
+      setLoading(false);
+      let cancelled = false;
+      const refresh = () => {
+        if (cancelled) return;
+        void fetchUserStatsDeduped(userId).then((data) => {
+          if (!cancelled) setStats(data);
+        });
+      };
+      if (typeof requestIdleCallback !== "undefined") {
+        const id = requestIdleCallback(refresh, { timeout: 3500 });
+        return () => {
+          cancelled = true;
+          cancelIdleCallback(id);
+        };
+      }
+      const tid = setTimeout(refresh, 0);
+      return () => {
+        cancelled = true;
+        clearTimeout(tid);
+      };
     }
 
     setStats(null);
@@ -121,7 +154,7 @@ export default function UserStatsTile({
     {
       icon: Users,
       label: "Fans",
-      value: stats.fansCount,
+      value: effectiveStats.fansCount,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-100",

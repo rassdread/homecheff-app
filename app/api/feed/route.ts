@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { getCorsHeaders } from "@/lib/apiCors";
+import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -14,19 +15,42 @@ function toNumber(v: string | null, fallback: number) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** Zelfde seller-user-id als GeoFeed `normalizeFeedItem` (owner → User → seller). */
+function extractFeedItemSellerUserId(item: Record<string, unknown>): string | null {
+  const ownerRaw = item.ownerId;
+  if (ownerRaw != null && String(ownerRaw).trim() !== "") {
+    return String(ownerRaw).trim();
+  }
+  const user = item.User as { id?: string } | undefined;
+  if (user?.id) return String(user.id);
+  const seller = item.seller as { id?: string } | undefined;
+  if (seller?.id) return String(seller.id);
+  return null;
+}
+
+const STATS_PREVIEW_SELLER_CAP = 9;
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
   const vertical = (searchParams.get("vertical") || "all").toLowerCase();
   const subfilters = (searchParams.get("subfilters") || "").split(",").map(s => s.trim()).filter(Boolean);
   let radius = toNumber(searchParams.get("radius"), 10);
+  const place = searchParams.get("place")?.trim() || "";
 
   const session = await getServerSession(authOptions as any);
   const userId = (session as any)?.user?.id || null;
+  const isPublicDefaultFeed =
+    !userId &&
+    !q &&
+    !place &&
+    vertical === 'all' &&
+    !searchParams.get('lat') &&
+    !searchParams.get('lng') &&
+    !searchParams.get('subfilters');
 
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
-  const place = searchParams.get("place")?.trim() || "";
 
   // Handle international place geocoding
   if (place && (!lat || !lng)) {
@@ -430,9 +454,19 @@ export async function GET(req: NextRequest) {
 
   // Combine all items
   const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
-  
-  // Get view counts, review counts, and average ratings for all items
-  const allItemIds = allItems.map(item => item.id);
+
+  // Sorteer eerst op datum en beperk naar responsgrootte; daarna pas enrichment voor die set.
+  const sortedItems = allItems
+    .sort((a, b) => {
+      const tb = new Date(b.createdAt).getTime();
+      const ta = new Date(a.createdAt).getTime();
+      if (tb !== ta) return tb - ta;
+      return String(b.id).localeCompare(String(a.id));
+    })
+    .slice(0, 30);
+
+  // Get view counts, review counts, and average ratings only for returned items
+  const allItemIds = sortedItems.map(item => item.id);
   if (allItemIds.length > 0) {
     const [viewCounts, reviewCounts, avgRatings] = await Promise.all([
       // View counts from analytics
@@ -487,8 +521,8 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Add stats to all items
-    allItems.forEach(item => {
+    // Add stats to returned items
+    sortedItems.forEach(item => {
       (item as any).viewCount = viewCountMap.get(item.id) || 0;
       (item as any).reviewCount = reviewCountMap.get(item.id) || 0;
       (item as any).averageRating = avgRatingMap.get(item.id) || 0;
@@ -500,7 +534,7 @@ export async function GET(req: NextRequest) {
     const userLat = Number(lat);
     const userLng = Number(lng);
     
-    allItems.forEach(item => {
+    sortedItems.forEach(item => {
       // Only calculate distance for items with real location data (not null)
       if ((item as any).lat !== null && (item as any).lng !== null && 
           !isNaN((item as any).lat) && !isNaN((item as any).lng)) {
@@ -514,15 +548,50 @@ export async function GET(req: NextRequest) {
     });
   }
   
-  // Sort by creation date
-  const sortedItems = allItems.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  ).slice(0, 30);
+  let statsPreview:
+    | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
+    | undefined;
+  try {
+    const previewIds: string[] = [];
+    const seen = new Set<string>();
+    for (const item of sortedItems) {
+      const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
+      if (!uid || seen.has(uid)) continue;
+      seen.add(uid);
+      previewIds.push(uid);
+      if (previewIds.length >= STATS_PREVIEW_SELLER_CAP) break;
+    }
+    if (previewIds.length > 0) {
+      const computed = await batchComputeUserStatsPreview(previewIds);
+      if (Object.keys(computed).length > 0) {
+        statsPreview = computed;
+      }
+    }
+  } catch (e) {
+    console.error("[feed] statsPreview:", e);
+  }
 
   const cors = getCorsHeaders(req);
-  return NextResponse.json({
-    filters: { q, vertical, subfilters, radius, lat: lat ? Number(lat) : null, lng: lng ? Number(lng) : null },
-    count: sortedItems.length,
-    items: sortedItems,
-  }, { headers: cors });
+  const headers = {
+    ...cors,
+    ...(isPublicDefaultFeed
+      ? { 'Cache-Control': 'public, s-maxage=45, stale-while-revalidate=90' }
+      : {}),
+  };
+  return NextResponse.json(
+    {
+      filters: {
+        q,
+        vertical,
+        subfilters,
+        radius,
+        lat: lat ? Number(lat) : null,
+        lng: lng ? Number(lng) : null,
+      },
+      count: sortedItems.length,
+      items: sortedItems,
+      ...(statsPreview ? { statsPreview } : {}),
+    },
+    { headers }
+  );
 }

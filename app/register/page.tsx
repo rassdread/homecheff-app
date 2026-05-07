@@ -22,7 +22,7 @@ const getUserTypes = (t: (key: string) => string) => [
     id: "chef",
     title: t("register.userTypes.chef.title"),
     description: t("register.userTypes.chef.description"),
-    icon: "👨��",
+    icon: "👨‍🍳",
     features: [
       t("register.userTypes.chef.features.0"),
       t("register.userTypes.chef.features.1"),
@@ -61,7 +61,7 @@ const getBuyerTypes = (t: (key: string) => string) => [
     id: "ontdekker",
     title: t("register.buyerTypes.ontdekker.title"),
     description: t("register.buyerTypes.ontdekker.description"),
-    icon: "�"
+    icon: "🔍"
   },
   {
     id: "verzamelaar",
@@ -73,13 +73,13 @@ const getBuyerTypes = (t: (key: string) => string) => [
     id: "liefhebber",
     title: t("register.buyerTypes.liefhebber.title"),
     description: t("register.buyerTypes.liefhebber.description"),
-    icon: "��"
+    icon: "❤️"
   },
   {
     id: "avonturier",
     title: t("register.buyerTypes.avonturier.title"),
     description: t("register.buyerTypes.avonturier.description"),
-    icon: "🗺�"
+    icon: "🗺️"
   },
   {
     id: "fijnproever",
@@ -1693,7 +1693,7 @@ function RegisterPageContent() {
         return;
       } else if (state.isBusiness && state.subscription) {
         // Als we hier komen terwijl we wel een bedrijf zijn met abonnement, is er iets mis
-        console.error('� [FRONTEND] Bedrijf met abonnement maar geen checkoutUrl!', {
+        console.error('❌ [FRONTEND] Bedrijf met abonnement maar geen checkoutUrl!', {
           requiresPayment: data?.requiresPayment,
           checkoutUrl: data?.checkoutUrl,
           isBusiness: state.isBusiness,
@@ -2021,7 +2021,7 @@ function RegisterPageContent() {
                           </p>
                           <div className="grid md:grid-cols-3 gap-4 text-center">
                             <div className="bg-white rounded-xl p-4 border border-emerald-100">
-                              <div className="text-3xl mb-2">👨��</div>
+                              <div className="text-3xl mb-2">👨‍🍳</div>
                               <h3 className="font-semibold text-gray-900 mb-2">{t('register.userTypes.chef.title')}</h3>
                               <p className="text-sm text-gray-600">{t('register.welcomeChef')}</p>
                             </div>
@@ -2232,7 +2232,7 @@ function RegisterPageContent() {
                         className="w-6 h-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
                       />
                       <label htmlFor="isBusiness" className="text-base font-semibold text-gray-900 cursor-pointer flex-1 flex items-center gap-2">
-                        <span className="text-2xl">�</span>
+                        <span className="text-2xl">💼</span>
                         <span>{t('register.registerAsBusiness')}</span>
                       </label>
                       {pageHints?.hints.business && (
@@ -2556,7 +2556,7 @@ function RegisterPageContent() {
                 {state.isBusiness && (
                   <div className="mt-6 p-6 bg-blue-50 border border-blue-200 rounded-xl transition-all duration-300">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <span className="mr-2">�</span>
+                      <span className="mr-2">🏢</span>
                       {t('register.businessDetails')}
                     </h3>
                     
@@ -3343,7 +3343,7 @@ function RegisterPageContent() {
                   <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
-                        <span className="text-yellow-600 text-xl">⚠�</span>
+                        <span className="text-yellow-600 text-xl">⚠️</span>
                       </div>
                       <div>
                         <h4 className="text-sm font-semibold text-yellow-800 mb-1">{t('register.taxResponsibility')}</h4>

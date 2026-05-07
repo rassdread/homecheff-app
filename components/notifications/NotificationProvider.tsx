@@ -145,15 +145,40 @@ export default function NotificationProvider({ children }: NotificationProviderP
     }
   }, [addNotification]);
 
-  // Set up periodic checks for new products
+  // Stel achtergrondchecks uit zodat first-load niet concurreert met feed/rendering.
   useEffect(() => {
-    // Check immediately
-    checkForNewProducts();
+    const runCheck = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return;
+      }
+      void checkForNewProducts();
+    };
 
-    // Check every 30 minutes
-    const interval = setInterval(checkForNewProducts, 30 * 60 * 1000);
+    let idleId: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    if (typeof requestIdleCallback !== 'undefined') {
+      idleId = requestIdleCallback(runCheck, { timeout: 10000 });
+    } else {
+      timer = setTimeout(runCheck, 4000);
+    }
 
-    return () => clearInterval(interval);
+    // Check every 30 minutes (alleen zichtbaar tabblad)
+    const interval = setInterval(runCheck, 30 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        runCheck();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      if (idleId !== null && typeof cancelIdleCallback !== 'undefined') {
+        cancelIdleCallback(idleId);
+      }
+      if (timer) clearTimeout(timer);
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [checkForNewProducts]);
 
   // Set up service worker for push notifications

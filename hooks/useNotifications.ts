@@ -18,7 +18,7 @@ interface Notification {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
 
   // Load notifications
@@ -64,15 +64,34 @@ export function useNotifications() {
 
   // Poll for new notifications (reduced frequency to prevent rate limiting)
   useEffect(() => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setIsLoading(false);
+      return;
+    }
 
-    loadNotifications();
+    setIsLoading(true);
+    void loadNotifications();
 
     const interval = setInterval(() => {
-      loadNotifications();
-    }, 30000); // Check every 30 seconds (reduced from 3 seconds to prevent 429 errors)
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return;
+      }
+      void loadNotifications();
+    }, 30000); // Poll alleen op zichtbare tab.
 
-    return () => clearInterval(interval);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void loadNotifications();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [session?.user?.email, loadNotifications]);
 
   return {
