@@ -11,6 +11,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
+import { cn } from '@/lib/utils';
+import { isNativeApp } from '@/lib/native/capacitor';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -66,8 +68,11 @@ export default function BottomNavigation() {
    */
   const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isNativeShell, setIsNativeShell] = useState(false);
 
-  const isQuickAddDebug =
+  useEffect(() => {
+    setIsNativeShell(isNativeApp());
+  }, []);
     typeof process !== 'undefined' &&
     process.env.NEXT_PUBLIC_DEBUG_QUICK_ADD === 'true';
   const quickAddDebug = useCallback(
@@ -1300,14 +1305,36 @@ export default function BottomNavigation() {
       )}
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 py-2 z-40 shadow-lg">
-        <div className="flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1">
+      <div
+        data-hc-bottom-nav
+        className={cn(
+          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
+          isNativeShell
+            ? 'shadow-[0_-6px_28px_-2px_rgba(0,0,0,0.12)] border-primary-brand/15 py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))]'
+            : 'shadow-lg py-2'
+        )}
+      >
+        <div
+          className={cn(
+            'flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
+            isNativeShell && 'gap-0.5'
+          )}
+        >
           {/* Home Button */}
           <button
             onClick={feedDiscoverConfig.onClick}
-            className={`flex flex-col items-center justify-center min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none p-1.5 sm:p-2 rounded-lg transition-colors ${
-              isFeedDiscoverActive ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={cn(
+              'flex flex-col items-center justify-center min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none rounded-lg transition-all duration-150 ease-out',
+              isFeedDiscoverActive
+                ? 'text-primary-brand'
+                : 'text-gray-600 hover:text-gray-900',
+              isNativeShell
+                ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
+                : 'p-1.5 sm:p-2',
+              isNativeShell &&
+                isFeedDiscoverActive &&
+                'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
+            )}
           >
             <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{feedDiscoverConfig.icon}</div>
             <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{feedDiscoverConfig.label}</span>
@@ -1317,9 +1344,18 @@ export default function BottomNavigation() {
           <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleDashboardClick}
-              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
-                pathname?.startsWith('/verkoper') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={cn(
+                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
+                pathname?.startsWith('/verkoper')
+                  ? 'text-primary-brand'
+                  : 'text-gray-600 hover:text-gray-900',
+                isNativeShell
+                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
+                  : 'p-1.5 sm:p-2',
+                isNativeShell &&
+                  pathname?.startsWith('/verkoper') &&
+                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
+              )}
             >
               <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💰</div>
               <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}</span>
@@ -1341,9 +1377,19 @@ export default function BottomNavigation() {
           <div className="relative group flex-shrink-0">
             <button
               onClick={handleQuickAddClick}
-              className="relative -top-4 bg-gradient-to-r from-primary-brand to-primary-600 text-white p-3 sm:p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95"
+              className={cn(
+                'relative bg-gradient-to-r from-primary-brand to-primary-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95',
+                isNativeShell
+                  ? '-top-5 p-[0.9375rem] sm:p-[1.0625rem] ring-[3px] ring-white/80'
+                  : '-top-4 p-3 sm:p-4'
+              )}
             >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className={cn(isNativeShell ? 'w-9 h-9' : 'w-8 h-8')}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
               </svg>
             </button>
@@ -1364,9 +1410,18 @@ export default function BottomNavigation() {
           <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleMessagesClick}
-              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
-                isActive('/messages') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={cn(
+                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
+                isActive('/messages')
+                  ? 'text-primary-brand'
+                  : 'text-gray-600 hover:text-gray-900',
+                isNativeShell
+                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
+                  : 'p-1.5 sm:p-2',
+                isNativeShell &&
+                  isActive('/messages') &&
+                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
+              )}
             >
               <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💬</div>
               <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{t('bottomNav.messages')}</span>
@@ -1388,9 +1443,18 @@ export default function BottomNavigation() {
           <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
             <button
               onClick={handleProfileClick}
-              className={`flex flex-col items-center justify-center min-w-0 w-full p-1.5 sm:p-2 rounded-lg transition-colors ${
-                isActive('/profile') ? 'text-primary-brand' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={cn(
+                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
+                isActive('/profile')
+                  ? 'text-primary-brand'
+                  : 'text-gray-600 hover:text-gray-900',
+                isNativeShell
+                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
+                  : 'p-1.5 sm:p-2',
+                isNativeShell &&
+                  isActive('/profile') &&
+                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
+              )}
             >
               <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">👤</div>
               <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}</span>
@@ -1410,8 +1474,11 @@ export default function BottomNavigation() {
         </div>
       </div>
 
-      {/* Bottom padding */}
-      <div className="h-20" />
+      {/* Bottom padding (flow spacer; primary reserve zit in AppPageChrome pb) */}
+      <div
+        className={cn(isNativeShell ? 'h-[6.5rem]' : 'h-20')}
+        aria-hidden
+      />
 
       {/* Promo Modals */}
       <PromoModal

@@ -19,6 +19,7 @@ import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
+import { isNativeApp } from '@/lib/native/capacitor';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -54,6 +55,12 @@ export default function NavBar() {
       portalContainerRef.current = null;
     };
   }, []);
+  const [nativeShell, setNativeShell] = useState(false);
+
+  useEffect(() => {
+    setNativeShell(isNativeApp());
+  }, []);
+
   const user =
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
@@ -208,7 +215,11 @@ export default function NavBar() {
   };
 
   return (
-    <header className="w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800">
+    <header
+      className={`w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
+        nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-w-0">
         <div className="flex items-center justify-between h-16 min-w-0 gap-2">
           {/* Logo - responsive voor mobiel */}

@@ -15,6 +15,8 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
 
   return (
     <div
+      data-homecheff-app-chrome=""
+      data-bottom-nav-visible={!navHidden ? 'true' : 'false'}
       className={cn(
         'min-w-0 w-full max-w-full',
         !navHidden &&

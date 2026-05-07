@@ -378,3 +378,28 @@ ul, ol { padding: 0; margin: 0; list-style: none; }
   .card       { @apply rounded-2xl bg-white shadow-sm border border-black/5; }
   .card-pad   { @apply p-4 md:p-6; }
 }
+
+/* Capacitor native shell — class wordt gezet door components/native/NativeAppRootClass.tsx */
+html.hc-native-capacitor body {
+  min-height: 100dvh;
+  min-height: 100vh;
+  overscroll-behavior-y: contain;
+}
+
+/*
+ * Hogere ondermarge voor native bottom nav + touch targets + safe-area.
+ * Alleen als bottom-nav zichtbaar (data attribuut gezet door AppPageChrome).
+ */
+html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+  padding-bottom: calc(
+    6.75rem + env(safe-area-inset-bottom, 0px)
+  ) !important;
+}
+
+@media (min-width: 640px) {
+  html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+    padding-bottom: calc(
+      6.35rem + env(safe-area-inset-bottom, 0px)
+    ) !important;
+  }
+}

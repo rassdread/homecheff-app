@@ -158,6 +158,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5, // Allow zoom for accessibility (was: 1)
   userScalable: true, // Allow zoom - false can cause scroll issues on mobile Chrome
+  /** Notch/statusbar: laat env(safe-area-inset-*) werken in Capacitor / PWA-shell */
+  viewportFit: 'cover' as const,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

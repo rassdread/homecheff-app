@@ -1,5 +1,6 @@
 'use client';
 import { SessionProvider } from 'next-auth/react';
+import NativeAppRootClass from '@/components/native/NativeAppRootClass';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
@@ -19,6 +20,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       // Uit: refetch bij tab-focus kan op Safari falen (CORS/cookie) en dan status 'unauthenticated' geven – blijf ingelogd.
       refetchOnWindowFocus={false}
     >
+      <NativeAppRootClass />
       <SessionGuard />
       <SessionIsolationWrapper>
         <UserBootstrapProvider>
