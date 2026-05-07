@@ -4,6 +4,8 @@ const config: CapacitorConfig = {
   appId: 'com.homecheff.app',
   appName: 'HomeCheff',
   webDir: 'dist',
+  /** Wit achter WebView vóór eerste paint (Capacitor Android past dit toe in Bridge.initWebView). */
+  backgroundColor: '#ffffff',
   server: {
     androidScheme: 'https',
     // For production, point to your Vercel URL:
