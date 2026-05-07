@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { clearAllUserData } from "@/lib/session-cleanup";
+import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackLogin } from "@/components/GoogleAnalytics";
 import { isSafari, isIOS, getSafariCookieDelay, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
@@ -110,6 +111,18 @@ function LoginForm() {
         emailOrUsername: state.emailOrUsername,
         password: state.password,
       });
+
+      // Pas direct na signIn de "Onthoud mij" voorkeur toe op het sessie-cookie.
+      // Bij `false`: cookie wordt session-only (vervalt bij browser-close) en JWT exp = 8 uur.
+      // Bij `true`:  cookie krijgt 30 dagen Max-Age (default NextAuth-gedrag).
+      // Faalt nooit hard: bij netwerkfout valt het terug op de NextAuth-default (30 dagen).
+      if (!result?.error) {
+        try {
+          await applySessionMode(state.rememberMe);
+        } catch {
+          /* ignore: login mag niet falen door deze optie */
+        }
+      }
 
       if (result?.error) {
         setState({ 
@@ -258,6 +271,10 @@ function LoginForm() {
     }
     
     try {
+      // "Onthoud mij" voorkeur klaarzetten zodat hij de OAuth-redirect overleeft.
+      // De /social-login-success page leest dit en past het sessie-cookie aan.
+      setRememberPreference(state.rememberMe);
+
       // For social login, redirect to registration page to complete profile
       await signIn(provider, { 
         callbackUrl: '/register?social=true',
@@ -440,26 +457,31 @@ function LoginForm() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    checked={state.rememberMe}
-                    onChange={(e) => setState({ ...state, rememberMe: e.target.checked })}
-                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    {t('login.rememberMe')}
-                  </label>
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <input
+                      id="remember-me"
+                      name="remember-me"
+                      type="checkbox"
+                      checked={state.rememberMe}
+                      onChange={(e) => setState({ ...state, rememberMe: e.target.checked })}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                      {t('login.rememberMe')}
+                    </label>
+                  </div>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    {t('login.forgotPassword')}
+                  </Link>
                 </div>
-                <Link 
-                  href="/forgot-password" 
-                  className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-                >
-                  {t('login.forgotPassword')}
-                </Link>
+                <p className="mt-1 ml-6 text-[11px] text-gray-500">
+                  {t('login.rememberMeHint')}
+                </p>
               </div>
 
               {/* Error/Success Messages */}

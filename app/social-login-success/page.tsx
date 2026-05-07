@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { isIOS, isSafariIOS } from '@/lib/browser-utils';
+import { applySessionMode, readRememberPreference } from '@/lib/session-mode';
 
 export default function SocialLoginSuccessPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -113,6 +114,19 @@ export default function SocialLoginSuccessPage() {
         // Use window.location for iOS Safari compatibility
         window.location.href = '/login?error=session_failed';
         return;
+      }
+
+      // "Onthoud mij" voorkeur toepassen vóór verdere navigatie. De voorkeur is op
+      // de loginpagina als korte cookie + localStorage gezet vóór de OAuth-redirect;
+      // applySessionMode leest die en herschrijft het sessie-cookie (kortere JWT exp +
+      // session-cookie zonder Max-Age als de gebruiker UIT had aangevinkt).
+      // Faalt nooit hard: bij geen voorkeur of netwerkfout valt het terug op de
+      // NextAuth-default (30 dagen).
+      try {
+        const rememberPref = readRememberPreference();
+        await applySessionMode(rememberPref);
+      } catch {
+        /* ignore: social login mag niet falen door deze optie */
       }
 
       // Check database directly via API to get the latest onboarding status
