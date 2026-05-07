@@ -33,7 +33,7 @@ import {
   coerceUserStatsPayload,
   seedCachedUserStats,
 } from "@/lib/userStatsClientCache";
-import { isNativeApp } from "@/lib/native/capacitor";
+import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import {
   NativeLocationError,
   requestAndGetNativeCurrentPosition,
@@ -457,7 +457,7 @@ export default function GeoFeed({
   const [showFilters, setShowFilters] = useState(false);
   const [category, setCategory] = useState("all");
   const profileLocationLoadedRef = useRef(false);
-  const [capacitorShell, setCapacitorShell] = useState(false);
+  const capacitorShell = useIsNativeAppMounted();
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
@@ -559,11 +559,6 @@ export default function GeoFeed({
     setBaseUrl(window.location.origin);
     // Geen automatische GPS op homepage: voorkomt lange "Loading" (prompt/timeout) en concurreert niet met eerste feed.
     // Locatie alleen via knop of profiel (ingelogd) / handmatige plaats.
-  }, []);
-
-  useEffect(() => {
-    if (!SHOW_NATIVE_GPS_DEBUG_UI && !SHOW_CAPACITOR_PUSH_DEBUG) return;
-    setCapacitorShell(isNativeApp());
   }, []);
 
   useEffect(() => {

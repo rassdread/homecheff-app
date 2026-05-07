@@ -19,7 +19,7 @@ import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
-import { isNativeApp } from '@/lib/native/capacitor';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -55,11 +55,7 @@ export default function NavBar() {
       portalContainerRef.current = null;
     };
   }, []);
-  const [nativeShell, setNativeShell] = useState(false);
-
-  useEffect(() => {
-    setNativeShell(isNativeApp());
-  }, []);
+  const nativeShell = useIsNativeAppMounted();
 
   const user =
     session && 'user' in session

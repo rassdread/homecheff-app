@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
+import { MAIN_DOMAIN } from "@/lib/seo/constants";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -62,14 +63,7 @@ export default function HomePageClient({
   const { data: session } = useSession();
   const { profile: bootstrapProfile } = useUserBootstrap();
   const [splashDismissed, setSplashDismissed] = useState(false);
-  const [currentDomain, setCurrentDomain] = useState(() => {
-    if (typeof document !== 'undefined') {
-      const fromHtml = document.documentElement.getAttribute('data-domain');
-      if (fromHtml) return fromHtml;
-      return window.location.origin;
-    }
-    return typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
-  });
+  const [currentDomain, setCurrentDomain] = useState(MAIN_DOMAIN);
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [affiliateCheckComplete, setAffiliateCheckComplete] = useState(false);
 

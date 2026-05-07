@@ -12,7 +12,7 @@ import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
-import { isNativeApp } from '@/lib/native/capacitor';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -68,11 +68,9 @@ export default function BottomNavigation() {
    */
   const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [isNativeShell, setIsNativeShell] = useState(false);
+  const isNativeShell = useIsNativeAppMounted();
 
-  useEffect(() => {
-    setIsNativeShell(isNativeApp());
-  }, []);
+  const isQuickAddDebug =
     typeof process !== 'undefined' &&
     process.env.NEXT_PUBLIC_DEBUG_QUICK_ADD === 'true';
   const quickAddDebug = useCallback(

@@ -1,14 +1,7 @@
 import { headers, cookies } from 'next/headers';
+import { MAIN_DOMAIN, NL_DOMAIN } from './constants';
 
-/**
- * homecheff.eu = enige canonieke basis voor metadata (canonical, OG, hreflang, sitemap).
- * homecheff.nl = redirect naar .eu; niet gebruiken in canonicals of hreflang.
- * (NL/EN op dezelfde .eu-URL via cookie/header waar van toepassing.)
- */
-export const MAIN_DOMAIN = 'https://homecheff.eu';
-
-/** Alleen voor CORS, allowed origins, e-mail — niet voor canonical SEO. */
-export const NL_DOMAIN = 'https://homecheff.nl';
+export { MAIN_DOMAIN, NL_DOMAIN };
 
 /**
  * hreflang voor routes die één URL op .eu delen (taal via cookie/header).

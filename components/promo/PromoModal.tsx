@@ -40,10 +40,8 @@ export default function PromoModal({
   const searchParams = useSearchParams();
   const defaultCtaText = ctaText || t('common.signUpNow');
   
-  // Build callback URL for login - return to current page after login
-  const currentUrl = typeof window !== 'undefined' 
-    ? `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`
-    : '/';
+  // Build callback URLs from Next route state only (must match SSR output for hydration).
+  const currentUrl = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`;
   const loginUrl = `/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
   
   // Build register URL with returnUrl parameter to return to current page after registration
