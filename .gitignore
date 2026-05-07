@@ -49,6 +49,9 @@ next-env.d.ts
 
 .vercel
 
+# Firebase Android (lokaal plaatsen: android/app/google-services.json)
+android/app/google-services.json
+
 # Sensitive files
 STRIPE_KEYS.txt
 *_KEYS.txt

@@ -39,11 +39,22 @@ import {
   requestAndGetNativeCurrentPosition,
   type NativeLocationCoords,
 } from "@/lib/native/location";
+import {
+  NativePushError,
+  maskPushTokenForDisplay,
+  requestAndRegisterNativePush,
+  setupNativePushDebugListeners,
+} from "@/lib/native/push";
 
 /** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
 const SHOW_NATIVE_GPS_DEBUG_UI =
   process.env.NODE_ENV === "development" ||
   process.env.NEXT_PUBLIC_CAPACITOR_NATIVE_GPS_DEBUG === "true";
+
+/** Native push-debug (FCM): alleen dev of expliciete flag; niet voor gewone productiegebruikers. */
+const SHOW_CAPACITOR_PUSH_DEBUG =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_CAPACITOR_PUSH_DEBUG === "true";
 
 type FeedItem = {
   id: string;
@@ -451,6 +462,11 @@ export default function GeoFeed({
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
   const [nativeGpsError, setNativeGpsError] = useState<string | null>(null);
+  const [pushDebugLoading, setPushDebugLoading] = useState(false);
+  const [pushDebugStatus, setPushDebugStatus] = useState<string>("—");
+  const [pushMaskedToken, setPushMaskedToken] = useState<string | null>(null);
+  const [pushDebugError, setPushDebugError] = useState<string | null>(null);
+  const [pushLastEvent, setPushLastEvent] = useState<string | null>(null);
 
   /** Coördinaten voor /api/feed: state (GPS/profiel) óf bootstrap-profiel vóór state-update — één query i.p.v. fetch→fetch. */
   const feedCoords = useMemo(() => {
@@ -546,8 +562,56 @@ export default function GeoFeed({
   }, []);
 
   useEffect(() => {
-    if (!SHOW_NATIVE_GPS_DEBUG_UI) return;
+    if (!SHOW_NATIVE_GPS_DEBUG_UI && !SHOW_CAPACITOR_PUSH_DEBUG) return;
     setCapacitorShell(isNativeApp());
+  }, []);
+
+  useEffect(() => {
+    if (!(SHOW_CAPACITOR_PUSH_DEBUG && capacitorShell)) return;
+    let teardown: (() => Promise<void>) | undefined;
+    void setupNativePushDebugListeners({
+      onNotificationReceived: ({ title, body }) => {
+        const bit = [title, body].filter(Boolean).join(" — ") || "melding";
+        setPushLastEvent(`Ontvangen: ${bit.slice(0, 120)}`);
+      },
+      onActionPerformed: ({ summary }) => {
+        setPushLastEvent(`Actie: ${summary.slice(0, 120)}`);
+      },
+    }).then((fn) => {
+      teardown = fn;
+    });
+    return () => {
+      void teardown?.();
+    };
+  }, [SHOW_CAPACITOR_PUSH_DEBUG, capacitorShell]);
+
+  const runNativePushDebugRegister = useCallback(async () => {
+    setPushDebugError(null);
+    setPushDebugLoading(true);
+    setPushDebugStatus("Bezig met registreren…");
+    try {
+      const token = await requestAndRegisterNativePush();
+      setPushMaskedToken(maskPushTokenForDisplay(token));
+      setPushDebugStatus("Geregistreerd (FCM-token ontvangen)");
+    } catch (e) {
+      const msg =
+        e instanceof NativePushError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Onbekende fout";
+      setPushDebugError(msg);
+      setPushDebugStatus(
+        e instanceof NativePushError && e.code === "permission_denied"
+          ? "Toestemming geweigerd"
+          : e instanceof NativePushError && e.code === "unsupported"
+            ? "Niet ondersteund"
+            : "Registratiefout"
+      );
+      console.warn("[HomeCheff push] debug register failed", e);
+    } finally {
+      setPushDebugLoading(false);
+    }
   }, []);
 
   const runNativeGpsTest = useCallback(async () => {
@@ -1098,6 +1162,35 @@ export default function GeoFeed({
                 )}
                 {nativeGpsError && (
                   <p className="mt-2 text-red-600">{nativeGpsError}</p>
+                )}
+              </div>
+            )}
+            {SHOW_CAPACITOR_PUSH_DEBUG && capacitorShell && (
+              <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
+                <p className="font-medium text-gray-800 mb-2">Native push test</p>
+                <button
+                  type="button"
+                  onClick={() => void runNativePushDebugRegister()}
+                  disabled={pushDebugLoading}
+                  className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {pushDebugLoading
+                    ? t("common.loading")
+                    : "Vraag push toestemming"}
+                </button>
+                <p className="mt-2 text-gray-600">
+                  Status: <span className="font-medium">{pushDebugStatus}</span>
+                </p>
+                {pushMaskedToken && (
+                  <p className="mt-1 font-mono text-green-700 break-all">
+                    Token: {pushMaskedToken}
+                  </p>
+                )}
+                {pushDebugError && (
+                  <p className="mt-2 text-red-600">{pushDebugError}</p>
+                )}
+                {pushLastEvent && (
+                  <p className="mt-2 text-blue-700">{pushLastEvent}</p>
                 )}
               </div>
             )}
