@@ -100,7 +100,7 @@ export function FeedSaleCard({
       <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={listingHref} className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 line-clamp-2 leading-snug">
+            <p className="feed-card-title font-semibold text-gray-900 line-clamp-2 leading-snug">
               {it.title ?? t("common.dish")}
             </p>
           </Link>
@@ -118,21 +118,23 @@ export function FeedSaleCard({
         ) : (
           <p className="text-sm font-semibold text-emerald-800">{t("feed.saleSeeOffer")}</p>
         )}
-        <p className="text-xs text-gray-600">
-          {it.place ?? t("feed.unknownPlace")}
-          {it.distanceKm != null && it.distanceKm !== Infinity
-            ? ` · ${it.distanceKm.toFixed(1)} km`
-            : ""}
-        </p>
-        <p className="text-xs text-gray-500">
-          {it.deliveryMode === "PICKUP"
-            ? t("common.pickup")
-            : it.deliveryMode === "DELIVERY"
-              ? t("common.delivery")
-              : it.deliveryMode === "BOTH"
-                ? t("common.pickupOrDelivery")
-                : ""}
-        </p>
+        <div className="feed-card-meta-cluster">
+          <p className="text-xs text-gray-600">
+            {it.place ?? t("feed.unknownPlace")}
+            {it.distanceKm != null && it.distanceKm !== Infinity
+              ? ` · ${it.distanceKm.toFixed(1)} km`
+              : ""}
+          </p>
+          <p className="text-xs text-gray-500">
+            {it.deliveryMode === "PICKUP"
+              ? t("common.pickup")
+              : it.deliveryMode === "DELIVERY"
+                ? t("common.delivery")
+                : it.deliveryMode === "BOTH"
+                  ? t("common.pickupOrDelivery")
+                  : ""}
+          </p>
+        </div>
         {it.sellerUserId ? (
           <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
             <UserStatsTile
@@ -296,7 +298,7 @@ function FeedInspirationCard({
       <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={data.detailHref} className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 line-clamp-2 leading-snug">
+            <p className="feed-card-title font-semibold text-gray-900 line-clamp-2 leading-snug">
               {fallbackTitle}
             </p>
           </Link>
@@ -310,13 +312,14 @@ function FeedInspirationCard({
         <p className="feed-card-insp-secondary-label text-2xl font-bold text-emerald-700 tabular-nums">
           {data.label}
         </p>
-        <p className="text-xs text-gray-600">
-          {data.place ?? t("feed.unknownPlace")}
-          {data.distanceKm != null && data.distanceKm !== Infinity
-            ? ` · ${data.distanceKm.toFixed(1)} km`
-            : ""}
-        </p>
-        <p className="text-xs text-gray-500">&nbsp;</p>
+        <div className="feed-card-meta-cluster">
+          <p className="text-xs text-gray-600">
+            {data.place ?? t("feed.unknownPlace")}
+            {data.distanceKm != null && data.distanceKm !== Infinity
+              ? ` · ${data.distanceKm.toFixed(1)} km`
+              : ""}
+          </p>
+        </div>
         {data.user ? (
           <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
             <UserStatsTile

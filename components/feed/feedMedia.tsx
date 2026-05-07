@@ -11,6 +11,10 @@ import {
 } from "react";
 import Link from "next/link";
 import { PlayCircle, Volume2, VolumeX } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
+import { FeedMediaLightbox } from "@/components/feed/FeedMediaLightbox";
+import type { FeedMediaLightboxPayload } from "@/components/feed/FeedMediaLightbox";
 import { EdgeAwareVideo } from "@/components/ui/EdgeAwareVideo";
 import {
   getVideoUrlWithCors,
@@ -35,6 +39,20 @@ const SERVER_FEED_AUDIO_SNAPSHOT = {
   audioEnabled: false,
   activeId: null as string | null,
 };
+
+const COARSE_POINTER_MQ = "(any-pointer: coarse)";
+
+function subscribeCoarsePointer(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(COARSE_POINTER_MQ);
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getCoarsePointerSnapshot(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(COARSE_POINTER_MQ).matches;
+}
 
 /** Voorkomt broken <img src=""> in Safari en bij lege strings. */
 export function hasUsableMediaUrl(url: unknown): url is string {
@@ -264,6 +282,18 @@ export function FeedCardPrimaryMedia({
   const wantPlayRef = useRef(false);
   const interactionMode = useFeedVideoInteractionMode();
   const useHoverPlayback = interactionMode === "hover";
+  const { t } = useTranslation();
+  const nativeMounted = useIsNativeAppMounted();
+  const coarsePointer = useSyncExternalStore(
+    subscribeCoarsePointer,
+    getCoarsePointerSnapshot,
+    () => false
+  );
+  /** Native app + touch web: media opens lightbox; desktop mouse web keeps link-to-detail on media. */
+  const lightboxEligible = nativeMounted || coarsePointer;
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxPayload, setLightboxPayload] =
+    useState<FeedMediaLightboxPayload | null>(null);
   const [videoFailed, setVideoFailed] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
 
@@ -453,10 +483,71 @@ export function FeedCardPrimaryMedia({
 
   const label = alt?.trim() || "Bekijk";
 
+  const hasOpenableLightboxMedia =
+    (Boolean(corsSrc) && !videoFailed) ||
+    (showImage && hasUsableMediaUrl(imageUrl));
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+    setLightboxPayload(null);
+  }, []);
+
+  const openLightbox = useCallback(() => {
+    if (!lightboxEligible || !hasOpenableLightboxMedia) return;
+    if (hasVideoCandidate && corsSrc && !videoFailed) {
+      wantPlayRef.current = false;
+      videoRef.current?.pause();
+      releaseFeedVideoPlayback(instanceId, {
+        minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
+      });
+      setLightboxPayload({
+        kind: "video",
+        src: corsSrc,
+        fallbackSrc:
+          fallbackVideoSrc && fallbackVideoSrc !== corsSrc
+            ? fallbackVideoSrc
+            : undefined,
+        poster: posterEffective,
+      });
+      setLightboxOpen(true);
+      return;
+    }
+    if (showImage && hasUsableMediaUrl(imageUrl)) {
+      setLightboxPayload({
+        kind: "image",
+        src: imageUrl!.trim(),
+        alt: label,
+      });
+      setLightboxOpen(true);
+    }
+  }, [
+    lightboxEligible,
+    hasOpenableLightboxMedia,
+    hasVideoCandidate,
+    corsSrc,
+    videoFailed,
+    showImage,
+    imageUrl,
+    instanceId,
+    fallbackVideoSrc,
+    posterEffective,
+    label,
+  ]);
+
+  const hoverMediaHandlers =
+    useHoverPlayback && renderVideoElement
+      ? {
+          onMouseEnter: onDesktopMouseEnter,
+          onMouseLeave: onDesktopMouseLeave,
+        }
+      : {};
+
   return (
+    <>
     <div
       ref={containerRef}
       className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 feed-card-primary-media"
+      {...(lightboxEligible ? hoverMediaHandlers : {})}
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
         {renderVideoElement ? (
@@ -513,19 +604,43 @@ export function FeedCardPrimaryMedia({
         )}
       </div>
 
-      <Link
-        href={href}
-        className="absolute inset-0 z-10"
-        aria-label={label}
-        onMouseEnter={
-          useHoverPlayback && renderVideoElement ? onDesktopMouseEnter : undefined
-        }
-        onMouseLeave={
-          useHoverPlayback && renderVideoElement ? onDesktopMouseLeave : undefined
-        }
-      >
-        <span className="sr-only">{label}</span>
-      </Link>
+      {lightboxEligible ? (
+        <button
+          type="button"
+          className={`absolute inset-0 z-10 border-0 bg-transparent p-0 ${
+            hasOpenableLightboxMedia
+              ? "cursor-pointer"
+              : "cursor-default pointer-events-none"
+          }`}
+          aria-label={t("feed.openMediaFullscreen")}
+          disabled={!hasOpenableLightboxMedia}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openLightbox();
+          }}
+        >
+          <span className="sr-only">{t("feed.openMediaFullscreen")}</span>
+        </button>
+      ) : (
+        <Link
+          href={href}
+          className="absolute inset-0 z-10"
+          aria-label={label}
+          onMouseEnter={
+            useHoverPlayback && renderVideoElement
+              ? onDesktopMouseEnter
+              : undefined
+          }
+          onMouseLeave={
+            useHoverPlayback && renderVideoElement
+              ? onDesktopMouseLeave
+              : undefined
+          }
+        >
+          <span className="sr-only">{label}</span>
+        </Link>
+      )}
 
       {renderVideoElement ? (
         <button
@@ -567,6 +682,13 @@ export function FeedCardPrimaryMedia({
         </div>
       ) : null}
     </div>
+    <FeedMediaLightbox
+      open={lightboxOpen}
+      onClose={closeLightbox}
+      payload={lightboxPayload}
+      closeLabel={t("feed.closeMediaViewer")}
+    />
+    </>
   );
 }
 

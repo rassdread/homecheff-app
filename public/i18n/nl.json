@@ -4624,7 +4624,9 @@
     "categoryVerticalDesigner": "🎨 Designer",
     "tileMoreActionsAria": "Meer acties",
     "nativeExpandGeoFilters": "Locatie, zoeken & meer",
-    "nativeCollapseGeoFilters": "Verbergen"
+    "nativeCollapseGeoFilters": "Verbergen",
+    "openMediaFullscreen": "Media volledig scherm",
+    "closeMediaViewer": "Sluiten"
   },
   "affiliate": {
     "title": "HomeCheff Affiliate Programma",

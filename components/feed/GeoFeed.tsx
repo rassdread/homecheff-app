@@ -951,6 +951,43 @@ export default function GeoFeed({
 
   const displayCount = displayRows.length;
 
+  /**
+   * Native: false = toon eerst 2 kaarten; true = volledige lijst (na idle).
+   * Web: nativeMounted is altijd false tot mount — slice wordt niet gebruikt.
+   */
+  const [nativeFeedRenderMore, setNativeFeedRenderMore] = useState(false);
+
+  useEffect(() => {
+    if (!nativeMounted) {
+      setNativeFeedRenderMore(false);
+      return;
+    }
+    setNativeFeedRenderMore(false);
+    let cancelled = false;
+    const finish = () => {
+      if (!cancelled) setNativeFeedRenderMore(true);
+    };
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    if (typeof requestIdleCallback !== "undefined") {
+      idleId = requestIdleCallback(finish, { timeout: 450 }) as unknown as number;
+    } else {
+      timeoutId = window.setTimeout(finish, 100);
+    }
+    return () => {
+      cancelled = true;
+      if (idleId != null && typeof cancelIdleCallback !== "undefined") {
+        cancelIdleCallback(idleId);
+      }
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+    };
+  }, [nativeMounted, displayRows]);
+
+  const feedRowsToRender = useMemo(() => {
+    if (!nativeMounted) return displayRows;
+    if (nativeFeedRenderMore) return displayRows;
+    return displayRows.slice(0, 2);
+  }, [nativeMounted, nativeFeedRenderMore, displayRows]);
 
   const handleSort = (field: "newest" | "price" | "views" | "distance") => {
     if (sortBy === field) {
@@ -1522,7 +1559,7 @@ export default function GeoFeed({
               : "grid sm:grid-cols-2 md:grid-cols-3 gap-4"
           }
         >
-          {displayRows.map((row, idx) => {
+          {feedRowsToRender.map((row, idx) => {
             if (row.row === "sale") {
               return (
                 <FeedSaleCard

@@ -4097,7 +4097,9 @@
     "categoryVerticalDesigner": "🎨 Designer",
     "tileMoreActionsAria": "More actions",
     "nativeExpandGeoFilters": "Location, search & more",
-    "nativeCollapseGeoFilters": "Hide"
+    "nativeCollapseGeoFilters": "Hide",
+    "openMediaFullscreen": "Open media fullscreen",
+    "closeMediaViewer": "Close"
   },
   "profileSettings": {
     "title": "Profile Settings",

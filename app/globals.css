@@ -481,3 +481,52 @@ html.hc-native-capacitor .feed-card-geo .text-2xl.font-bold.text-emerald-700 {
   font-size: 1.125rem;
   line-height: 1.25rem;
 }
+
+html.hc-native-capacitor .feed-card-geo .feed-card-title {
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-meta-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5rem;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-meta-cluster p {
+  margin: 0;
+  font-size: 0.65rem;
+  line-height: 1.25;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-meta-cluster p + p::before {
+  content: "· ";
+  color: rgb(107 114 128);
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-stats-wrap .space-y-2 > p.text-xs.text-gray-500.text-center.font-medium {
+  display: none !important;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-stats-wrap .grid.grid-cols-6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-stats-wrap .grid > div .font-bold {
+  font-size: 0.65rem !important;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-cta-row .flex.items-center.gap-2 {
+  gap: 0.25rem;
+}
+
+html.hc-native-capacitor .feed-card-geo .feed-card-cta-row .flex.items-center.gap-2 svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
