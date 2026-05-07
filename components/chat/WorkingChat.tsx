@@ -6,8 +6,6 @@ import { ArrowLeft, Send, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
-import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
-import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 
 interface WorkingChatProps {
   conversationId: string;
@@ -116,10 +114,7 @@ export default function WorkingChat({ conversationId, otherParticipant, onBack }
     if (!newMessage.trim() || !currentUserId || isSending) return;
 
     setIsSending(true);
-    const messageText = appendAffiliateReferralToOutgoingText(
-      newMessage.trim(),
-      referralCode
-    );
+    const messageText = newMessage.trim();
     setNewMessage('');
 
     try {

@@ -2,22 +2,22 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send, Loader2, Check, CheckCheck, Circle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Circle, Trash2, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
-import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
-import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
 import {
   readMessagesCache,
   writeMessagesCache,
 } from '@/lib/chat/sessionChatCache';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import ChatThreadMessageRow from './ChatThreadMessageRow';
+import type { ChatThreadMessage } from './chatThreadTypes';
 
-interface ChatBoxProps {
+export interface ChatBoxProps {
   conversationId: string;
   otherParticipant: {
     id: string;
@@ -28,29 +28,18 @@ interface ChatBoxProps {
     displayNameOption?: string | null;
   };
   onBack?: () => void;
+  /** Profiel/mobiel: handmatig verversen + gesprek wissen. */
+  showConversationTools?: boolean;
 }
 
-interface Message {
-  id: string;
-  text: string;
-  senderId: string;
-  createdAt: string;
-  deliveredAt?: string | null;
-  readAt?: string | null;
-  User: {
-    id: string;
-    name?: string | null;
-    username?: string | null;
-    profileImage?: string | null;
-    displayFullName?: boolean | null;
-    displayNameOption?: string | null;
-  };
-}
-
-export default function ChatBox({ conversationId, otherParticipant, onBack }: ChatBoxProps) {
+export default function ChatBox({
+  conversationId,
+  otherParticipant,
+  onBack,
+  showConversationTools = false,
+}: ChatBoxProps) {
   const { t } = useTranslation();
-  const { referralCode } = useAffiliateLink();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +111,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
             setMessages((prev) => {
               const existingIds = new Set(prev.map((m) => m.id));
               const newUniqueMessages = newMessages.filter(
-                (m: Message) => !existingIds.has(m.id)
+                (m: ChatThreadMessage) => !existingIds.has(m.id)
               );
               if (newUniqueMessages.length === 0) return prev;
               const merged = [...prev, ...newUniqueMessages].sort(
@@ -169,7 +158,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     const ac = new AbortController();
     fetchAbortRef.current = ac;
 
-    const cached = readMessagesCache<Message>(conversationId);
+    const cached = readMessagesCache<ChatThreadMessage>(conversationId);
     if (cached.length > 0) {
       setMessages(cached);
       setIsLoading(false);
@@ -207,7 +196,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       setPusherConnected(false);
     });
     
-    channel.bind('new-message', (data: Message) => {
+    channel.bind('new-message', (data: ChatThreadMessage) => {
       setMessages((prev) => {
         const next = mergePusherChatMessage(prev, data);
         queueMicrotask(() => writeMessagesCache(conversationId, next));
@@ -311,10 +300,7 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     if (!newMessage.trim() || isSending) return;
     
     setIsSending(true);
-    const text = appendAffiliateReferralToOutgoingText(
-      newMessage.trim(),
-      referralCode
-    );
+    const text = newMessage.trim();
     setNewMessage('');
     setIsTyping(false);
     
@@ -325,19 +311,20 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     
     // Create optimistic message immediately
     const tempId = `temp-${Date.now()}`;
-    const optimisticMessage: Message = {
+    const optimisticMessage: ChatThreadMessage = {
       id: tempId,
       text,
+      messageType: 'TEXT',
       senderId: currentUserId,
       createdAt: new Date().toISOString(),
       User: {
         id: currentUserId,
-        name: null,
-        username: null,
-        profileImage: null,
+        name: session?.user?.name ?? null,
+        username: (session?.user as { username?: string })?.username ?? null,
+        profileImage: session?.user?.image ?? null,
         displayFullName: null,
-        displayNameOption: null
-      }
+        displayNameOption: null,
+      },
     };
     
     // Add optimistic message immediately to UI
@@ -386,6 +373,27 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     }
   };
 
+  const handleManualReload = () => {
+    void loadMessages(true);
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!confirm(t('errors.confirmDeleteConversation'))) return;
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/delete`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        if (onBack) onBack();
+        else window.location.href = '/messages';
+      } else {
+        throw new Error('delete failed');
+      }
+    } catch {
+      alert(t('errors.clearConversationError'));
+    }
+  };
+
   const formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString('nl-NL', {
       hour: '2-digit',
@@ -421,66 +429,89 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     >
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-white shadow-sm">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full lg:hidden"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        )}
-        
-        {otherParticipant.profileImage ? (
-          <Image
-            src={otherParticipant.profileImage}
-            alt={getDisplayName(otherParticipant)}
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold">
-              {getDisplayName(otherParticipant)[0].toUpperCase()}
-            </span>
-          </div>
-        )}
-        
-        <div className="flex-1">
-          <h2 className="font-semibold text-gray-900">
-            {getDisplayName(otherParticipant)}
-          </h2>
-          <div className="flex items-center gap-1.5">
-            {otherUserTyping ? (
-              <>
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
-              </>
-            ) : (
-              <>
-                {isOnline !== undefined && (
-                  <>
-                    <Circle className={`w-2 h-2 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                    <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                      {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
-                    </span>
-                    {pusherConnected && (
-                      <span className="text-xs text-gray-400">• Live</span>
-                    )}
-                  </>
-                )}
-              </>
-            )}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full lg:hidden shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+
+          {otherParticipant.profileImage ? (
+            <Image
+              src={otherParticipant.profileImage}
+              alt={getDisplayName(otherParticipant)}
+              width={40}
+              height={40}
+              className="rounded-full shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-white font-bold">
+                {getDisplayName(otherParticipant)[0].toUpperCase()}
+              </span>
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <h2 className="font-semibold text-gray-900 truncate">
+              {getDisplayName(otherParticipant)}
+            </h2>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {otherUserTyping ? (
+                <>
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
+                </>
+              ) : (
+                <>
+                  {isOnline !== undefined && (
+                    <>
+                      <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                      <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                        {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
+                      </span>
+                      {pusherConnected && (
+                        <span className="text-xs text-gray-400">• Live</span>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
+
+        {showConversationTools ? (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleManualReload()}
+              className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              title={t('messages.reloadMessages')}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDeleteConversation()}
+              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              title={t('common.clearConversation')}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50 hc-native-chat-scroll touch-pan-y">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-3 bg-gray-50 hc-native-chat-scroll touch-pan-y">
         {isLoading ? (
           <div className="space-y-3 py-2" aria-busy>
             {[0, 1, 2, 3, 4].map((i) => (
@@ -507,48 +538,14 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
           </div>
         ) : (
           <>
-            {messages.map((msg) => {
-              const isOwn = msg.senderId === currentUserId;
-              
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
-                    <div
-                      className={`px-4 py-2 rounded-2xl ${
-                        isOwn
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white text-gray-900 border'
-                      }`}
-                    >
-                      <p className="text-sm break-words">
-                        {msg.text ?? ''}
-                      </p>
-                    </div>
-                    <div className={`flex items-center gap-1 mt-1 px-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <p className="text-xs text-gray-400">
-                        {formatTime(msg.createdAt)}
-                      </p>
-                      {isOwn && (
-                        <span className="text-xs">
-                          {msg.id.startsWith('temp-') ? (
-                            <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
-                          ) : msg.readAt ? (
-                            <CheckCheck className="w-3 h-3 text-blue-400" />
-                          ) : msg.deliveredAt ? (
-                            <CheckCheck className="w-3 h-3 text-gray-400" />
-                          ) : (
-                            <Check className="w-3 h-3 text-gray-400" />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {messages.map((msg) => (
+              <ChatThreadMessageRow
+                key={msg.id}
+                msg={msg}
+                currentUserId={currentUserId}
+                formatTime={formatTime}
+              />
+            ))}
             <div ref={messagesEndRef} />
           </>
         )}

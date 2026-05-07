@@ -9,8 +9,6 @@ import Pusher from 'pusher-js';
 import { getDisplayName } from '@/lib/displayName';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
-import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
-import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 
 interface OptimizedChatProps {
   conversationId: string;
@@ -43,7 +41,6 @@ interface Message {
 }
 
 export default function OptimizedChat({ conversationId, otherParticipant, onBack }: OptimizedChatProps) {
-  const { referralCode } = useAffiliateLink();
   // State
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -271,10 +268,7 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
     }
 
     setIsSending(true);
-    const messageText = appendAffiliateReferralToOutgoingText(
-      newMessage.trim(),
-      referralCode
-    );
+    const messageText = newMessage.trim();
     setNewMessage(''); // Clear input immediately for better UX
 
     // Optimistic update - add message to UI immediately

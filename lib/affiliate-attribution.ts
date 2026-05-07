@@ -126,8 +126,9 @@ export function setReferralCookie(code: string): void {
 }
 
 /**
- * Voegt een korte tracking-URL toe aan uitgaande tekst (chat) voor actieve affiliates,
- * alleen als er nog geen ref/welkom-link in de tekst staat.
+ * Voegt een tracking-URL toe aan vrij te kiezen uitgaande tekst.
+ * @deprecated Niet gebruiken voor chat of gebruikersberichten — alleen voor expliciete
+ * marketing-/deel-UI waar de gebruiker verwacht dat een link wordt toegevoegd.
  */
 export function appendAffiliateReferralToOutgoingText(
   text: string,

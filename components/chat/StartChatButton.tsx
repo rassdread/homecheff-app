@@ -6,8 +6,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
-import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 interface StartChatButtonProps {
@@ -49,12 +47,9 @@ export default function StartChatButton({
       ? '/api/conversations/start'
       : '/api/conversations/start-seller';
     const msgRaw = rawMessage?.trim() || null;
-    const msgAff = msgRaw
-      ? appendAffiliateReferralToOutgoingText(msgRaw, referralCode)
-      : null;
     const requestBody = productId
-      ? { productId, initialMessage: msgAff }
-      : { sellerId, initialMessage: msgAff };
+      ? { productId, initialMessage: msgRaw }
+      : { sellerId, initialMessage: msgRaw };
 
     const response = await fetch(endpoint, {
       method: 'POST',

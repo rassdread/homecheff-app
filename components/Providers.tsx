@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import NativeAppRootClass from '@/components/native/NativeAppRootClass';
 import NativePushTokenSync from '@/components/native/NativePushTokenSync';
@@ -24,7 +25,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     >
       <NativeAppRootClass />
       <NativePushTokenSync />
-      <NativePushPermissionOnboarding />
+      <Suspense fallback={null}>
+        <NativePushPermissionOnboarding />
+      </Suspense>
       <SessionGuard />
       <SessionIsolationWrapper>
         <UserBootstrapProvider>

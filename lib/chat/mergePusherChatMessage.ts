@@ -3,7 +3,7 @@
  */
 export type ChatMessageLike = {
   id: string;
-  text: string;
+  text?: string | null;
   senderId: string;
   createdAt: string;
 };

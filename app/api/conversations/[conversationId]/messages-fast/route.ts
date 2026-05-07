@@ -66,7 +66,10 @@ export async function GET(
         messageType: true,
         createdAt: true,
         readAt: true,
+        deliveredAt: true,
         attachmentUrl: true,
+        attachmentName: true,
+        orderNumber: true,
         senderId: true,
         User: {
           select: {
