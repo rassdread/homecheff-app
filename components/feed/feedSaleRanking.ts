@@ -123,7 +123,7 @@ export function pickTopThreeSales<T extends RankableSaleItem>(
   }
 
   const thirdSale =
-    rest2.length > 0 ? [...rest2].sort(cmpScoreDesc)[0] : undefined;
+    rest2.length > 0 ? [...rest2].sort((a, b) => score(b) - score(a))[0] : undefined;
 
   return {
     winner,
