@@ -584,7 +584,7 @@ export class NotificationService {
     if (existing) {
       await prisma.$executeRaw`
         UPDATE "PushToken" 
-        SET "isActive" = true, "lastUsedAt" = ${new Date()}, "updatedAt" = ${new Date()}
+        SET "userId" = ${userId}, "platform" = ${platform}, "type" = ${type}, "isActive" = true, "lastUsedAt" = ${new Date()}, "updatedAt" = ${new Date()}
         WHERE "token" = ${token}
       `;
     } else {

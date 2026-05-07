@@ -52,6 +52,7 @@ import {
   requestAndRegisterNativePush,
   setupNativePushDebugListeners,
 } from "@/lib/native/push";
+import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 
 /** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
 const SHOW_NATIVE_GPS_DEBUG_UI =
@@ -596,7 +597,18 @@ export default function GeoFeed({
     try {
       const token = await requestAndRegisterNativePush();
       setPushMaskedToken(maskPushTokenForDisplay(token));
-      setPushDebugStatus("Geregistreerd (FCM-token ontvangen)");
+      setPushDebugStatus("FCM-token ontvangen…");
+
+      const server = await registerFcmTokenWithServer(token, "android");
+      if (server === "ok") {
+        setPushDebugStatus("Token + server geregistreerd");
+      } else if (server === "unauthorized") {
+        setPushDebugStatus("Token ok; server 401 (niet ingelogd?)");
+      } else if (server === "bad_request") {
+        setPushDebugStatus("Token ok; server weigerde body (400)");
+      } else {
+        setPushDebugStatus("Token ok; server-sync mislukt (netwerk?)");
+      }
     } catch (e) {
       const msg =
         e instanceof NativePushError

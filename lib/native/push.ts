@@ -217,9 +217,95 @@ export async function requestAndRegisterNativePush(): Promise<string> {
     await PushNotifications.register();
     const token = await Promise.race([tokenPromise, timeoutPromise]);
     if (process.env.NODE_ENV === "development") {
-      console.log("[HomeCheff push] full FCM token", token);
+      console.log("[HomeCheff push] FCM token", maskPushTokenForDisplay(token));
     }
     return token;
+  } finally {
+    try {
+      await regHandle.remove();
+    } catch {
+      /* ignore */
+    }
+    try {
+      await errHandle.remove();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+const REGISTRATION_TIMEOUT_MS_GRANTED = 45_000;
+
+/**
+ * Haalt FCM-token op zonder permissie te vragen.
+ * Alleen als `checkPermissions` al `granted` is (geen prompt).
+ * Anders `null`.
+ */
+export async function getNativeFcmTokenWhenAlreadyGranted(): Promise<string | null> {
+  if (!isPushAvailable()) {
+    return null;
+  }
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+  const perm = await PushNotifications.checkPermissions();
+  const receive = String(
+    (perm as { receive?: string }).receive ?? "prompt"
+  );
+  if (receive !== "granted") {
+    return null;
+  }
+
+  let settled = false;
+  let resolveToken: (value: string) => void;
+  let rejectToken: (reason: Error) => void;
+  const tokenPromise = new Promise<string>((resolve, reject) => {
+    resolveToken = resolve;
+    rejectToken = reject;
+  });
+
+  const regHandle = await PushNotifications.addListener(
+    "registration",
+    ({ value }) => {
+      if (settled) return;
+      settled = true;
+      resolveToken(value);
+    }
+  );
+
+  const errHandle = await PushNotifications.addListener(
+    "registrationError",
+    (err) => {
+      if (settled) return;
+      settled = true;
+      rejectToken(
+        mapRegistrationFailure(
+          typeof err?.error === "string" ? err.error : "registrationError"
+        )
+      );
+    }
+  );
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(
+        new NativePushError(
+          "registration_error",
+          "Timeout bij ophalen van push-token."
+        )
+      );
+    }, REGISTRATION_TIMEOUT_MS_GRANTED);
+  });
+
+  try {
+    await PushNotifications.register();
+    const token = await Promise.race([tokenPromise, timeoutPromise]);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[HomeCheff push] FCM token (already granted)", maskPushTokenForDisplay(token));
+    }
+    return token;
+  } catch {
+    return null;
   } finally {
     try {
       await regHandle.remove();

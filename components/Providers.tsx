@@ -1,6 +1,7 @@
 'use client';
 import { SessionProvider } from 'next-auth/react';
 import NativeAppRootClass from '@/components/native/NativeAppRootClass';
+import NativePushTokenSync from '@/components/native/NativePushTokenSync';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
@@ -21,6 +22,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       refetchOnWindowFocus={false}
     >
       <NativeAppRootClass />
+      <NativePushTokenSync />
       <SessionGuard />
       <SessionIsolationWrapper>
         <UserBootstrapProvider>
