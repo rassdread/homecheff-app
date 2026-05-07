@@ -386,6 +386,11 @@ html.hc-native-capacitor body {
   overscroll-behavior-y: contain;
 }
 
+/* Portal-root mag nooit fullscreen touches vangen (alleen echte children met pointer-events-auto). */
+html.hc-native-capacitor #navbar-dropdown-portal-root {
+  pointer-events: none;
+}
+
 /*
  * Hogere ondermarge voor native bottom nav + touch targets + safe-area.
  * Alleen als bottom-nav zichtbaar (data attribuut gezet door AppPageChrome).

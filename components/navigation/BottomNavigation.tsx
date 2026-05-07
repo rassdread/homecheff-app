@@ -1306,7 +1306,8 @@ export default function BottomNavigation() {
       <div
         data-hc-bottom-nav
         className={cn(
-          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
+          /* Buitenste shell vangt geen touches: voorkomt WebView hit-rect groter dan zichtbare balk. */
+          'pointer-events-none fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
           isNativeShell
             ? 'shadow-[0_-6px_28px_-2px_rgba(0,0,0,0.12)] border-primary-brand/15 py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))]'
             : 'shadow-lg py-2'
@@ -1314,7 +1315,7 @@ export default function BottomNavigation() {
       >
         <div
           className={cn(
-            'flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
+            'pointer-events-auto flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
             isNativeShell && 'gap-0.5'
           )}
         >
@@ -1474,7 +1475,10 @@ export default function BottomNavigation() {
 
       {/* Bottom padding (flow spacer; primary reserve zit in AppPageChrome pb) */}
       <div
-        className={cn(isNativeShell ? 'h-[6.5rem]' : 'h-20')}
+        className={cn(
+          'pointer-events-none shrink-0',
+          isNativeShell ? 'h-[6.5rem]' : 'h-20'
+        )}
         aria-hidden
       />
 

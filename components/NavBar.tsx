@@ -47,6 +47,7 @@ export default function NavBar() {
     if (typeof document === 'undefined' || !document.body) return;
     const el = document.createElement('div');
     el.id = 'navbar-dropdown-portal-root';
+    el.style.pointerEvents = 'none';
     document.body.appendChild(el);
     portalContainerRef.current = el;
     setPortalContainer(el);
@@ -313,7 +314,7 @@ export default function NavBar() {
                   {portalContainer && isProfileDropdownOpen && createPortal(
                     <div 
                       ref={dropdownMenuRef}
-                      className={`fixed w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 overflow-y-auto z-[99999] ${
+                      className={`pointer-events-auto fixed w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 overflow-y-auto z-[99999] ${
                         dropdownPosition.openAbove 
                           ? 'animate-in slide-in-from-bottom-2 duration-200' 
                           : 'animate-in slide-in-from-top-2 duration-200'
