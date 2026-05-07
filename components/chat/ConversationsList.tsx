@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { MessageCircle, CheckCheck, Package, User as UserIcon } from 'lucide-react';
+import Link from 'next/link';
+import { MessageCircle, CheckCheck, Package } from 'lucide-react';
 import Image from 'next/image';
-import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import {
   readConversationsListCache,
   writeConversationsListCache,
@@ -74,13 +74,21 @@ interface ConversationsListProps {
   onMessagesRead?: () => void;
 }
 
+/** Verwijdert referral/uitnodiging-ruis uit list-preview (geen links/chips voor referrals). */
+function sanitizeConversationPreviewText(text: string): string {
+  let s = text.replace(/\s+/g, ' ').trim();
+  s = s.replace(/\b(?:ref|referral|invite)[=:]\s*\S+/gi, '').trim();
+  s = s.replace(/https?:\/\/[^\s]*(?:ref|referral|invite|uitnodiging)[^\s]*/gi, '').trim();
+  return s.length > 0 ? s : 'Bericht';
+}
+
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const { t } = useTranslation();
+  const nativeMounted = useIsNativeAppMounted();
   const cachedInitial = readConversationsListCache<Conversation>();
   const [conversations, setConversations] = useState<Conversation[]>(cachedInitial);
   const [isLoading, setIsLoading] = useState(() => cachedInitial.length === 0);
   const { data: session } = useSession();
-  const router = useRouter();
 
   useEffect(() => {
     loadConversations();
@@ -174,10 +182,6 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     });
   };
 
-  const formatPrice = (priceCents: number) => {
-    return `€${(priceCents / 100).toFixed(2)}`;
-  };
-
   const getLastMessagePreview = (lastMessage: Conversation['lastMessage']) => {
     if (!lastMessage) return 'Nog geen berichten';
     
@@ -234,19 +238,27 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     }
   };
 
+  const listShellPad = nativeMounted ? 'p-3' : 'p-4';
+
   if (isLoading && conversations.length === 0) {
     return (
-      <div className="p-4 space-y-3 animate-pulse" aria-busy>
+      <div className={`${listShellPad} space-y-2 animate-pulse`} aria-busy>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex gap-3 py-3 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-2/5" />
-              <div className="h-3 bg-gray-100 rounded w-full" />
+          <div
+            key={i}
+            className="flex min-h-[52px] items-center gap-3 border-b border-gray-100 py-2"
+          >
+            <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex justify-between gap-2">
+                <div className="h-3.5 w-28 rounded bg-gray-200" />
+                <div className="h-3 w-10 rounded bg-gray-100" />
+              </div>
+              <div className="h-3 w-full rounded bg-gray-100" />
             </div>
           </div>
         ))}
-        <p className="text-center text-sm text-gray-500 pt-2">
+        <p className="pt-2 text-center text-sm text-gray-500">
           {t('messages.loadingConversations')}
         </p>
       </div>
@@ -263,126 +275,188 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
   }
 
+  const openConversation = (conversation: Conversation) => {
+    onSelectConversation(conversation);
+    void markConversationAsRead(conversation.id);
+  };
+
+  const primaryParticipant = (c: Conversation) =>
+    c.otherParticipant || c.participants?.[0];
+
+  const profileHrefFor = (c: Conversation): string | null => {
+    const p = primaryParticipant(c);
+    const u = p?.username?.trim();
+    return u ? `/user/${u}` : null;
+  };
+
+  const displayTitle = (c: Conversation) => {
+    const p = primaryParticipant(c);
+    return p ? getDisplayName(p) : c.title || 'Gesprek';
+  };
+
+  const previewLine = (c: Conversation): string => {
+    const lm = c.lastMessage;
+    if (!lm) return 'Gesprek gestart';
+    const prefix = getLastMessageSender(lm, session?.user);
+    let body = getLastMessagePreview(lm);
+    if (lm.messageType === 'TEXT' && lm.text) {
+      body = sanitizeConversationPreviewText(lm.text);
+    }
+    return `${prefix}${body}`;
+  };
+
+  const rowUnread = (c: Conversation) =>
+    Boolean(
+      c.lastMessage &&
+        c.lastMessage.User.id !== getCurrentUserId() &&
+        !c.lastMessage.readAt
+    );
+
+  const avatarVisual = (c: Conversation) => {
+    const p = primaryParticipant(c);
+    if (c.product?.Image?.[0]) {
+      return (
+        <Image
+          src={c.product.Image[0].fileUrl}
+          alt=""
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+      );
+    }
+    if (p?.profileImage) {
+      return (
+        <Image
+          src={p.profileImage}
+          alt=""
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+      );
+    }
+    if (c.order) {
+      return (
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+          <Package className="h-6 w-6 text-blue-600" aria-hidden />
+        </div>
+      );
+    }
+    return (
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
+        <span className="text-sm font-bold text-white">
+          {(p?.name || p?.username || c.title || 'G').charAt(0).toUpperCase()}
+        </span>
+      </div>
+    );
+  };
+
   return (
-    <div className="h-full flex flex-col">
-      {/* Search/Filter Bar */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+    <div className="flex h-full flex-col">
+      <div
+        className={`border-b border-gray-200 bg-gray-50 ${nativeMounted ? 'px-3 py-2' : 'p-4'}`}
+      >
         <div className="relative">
           <input
             type="text"
             placeholder={t('messages.searchConversationsPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 min-h-[44px]"
           />
-          <MessageCircle className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+          <MessageCircle className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         </div>
       </div>
-      
-      {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
-        {conversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            onClick={() => {
 
-              onSelectConversation(conversation);
-              markConversationAsRead(conversation.id);
-            }}
-            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100"
-          >
-            <div className="flex items-center space-x-3">
-              {/* Avatar */}
-              <div className="flex-shrink-0 relative">
-                {conversation.product?.Image[0] ? (
-                  <Image
-                    src={conversation.product.Image[0].fileUrl}
-                    alt={conversation.product.title}
-                    width={50}
-                    height={50}
-                    className="rounded-full object-cover"
-                  />
-                ) : conversation.participants[0]?.profileImage ? (
-                  <Image
-                    src={conversation.participants[0].profileImage}
-                    alt={getDisplayName(conversation.participants[0])}
-                    width={50}
-                    height={50}
-                    className="rounded-full object-cover"
-                  />
-                ) : conversation.order ? (
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Package className="w-6 h-6 text-blue-600" />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold">
-                      {(conversation.participants?.[0]?.name || conversation.participants?.[0]?.username || conversation.title || 'G').charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                
-                {/* Unread indicator */}
-                {conversation.lastMessage && 
-                 conversation.lastMessage.User.id !== getCurrentUserId() && 
-                 !conversation.lastMessage.readAt && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-white"></div>
-                )}
-              </div>
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        {conversations.map((conversation) => {
+          const href = profileHrefFor(conversation);
+          const unread = rowUnread(conversation);
+          const lm = conversation.lastMessage;
 
-              {/* Conversation Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const participant = conversation.otherParticipant || conversation.participants?.[0];
-                        const username = participant?.username || participant?.id;
-                        if (username) {
-                          router.push(`/user/${username}`);
-                        }
-                      }}
-                      className="group flex items-center gap-1 hover:bg-gray-100 rounded px-1 py-0.5 transition-colors"
-                      title={t('common.viewProfile')}
+          return (
+            <div
+              key={conversation.id}
+              className={`flex items-stretch gap-2 border-b border-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
+            >
+              {href ? (
+                <Link
+                  href={href}
+                  className="flex min-h-[48px] min-w-[48px] shrink-0 touch-manipulation items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
+                  aria-label={`${t('common.viewProfile')}: ${displayTitle(conversation)}`}
+                  scroll={false}
+                >
+                  <span className="relative inline-flex">{avatarVisual(conversation)}</span>
+                </Link>
+              ) : (
+                <div
+                  className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
+                  aria-hidden
+                >
+                  {avatarVisual(conversation)}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => openConversation(conversation)}
+                className="flex min-h-[48px] min-w-0 flex-1 touch-manipulation flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="truncate text-sm font-semibold text-gray-900">
+                    {displayTitle(conversation)}
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {unread && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
+                        aria-label="Ongelezen"
+                      />
+                    )}
+                    <time
+                      className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
+                      dateTime={conversation.lastMessageAt ?? undefined}
                     >
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 truncate transition-colors">
-                        {conversation.participants && conversation.participants.length > 0
-                          ? getDisplayName(conversation.participants[0])
-                          : conversation.title || 'Gesprek'}
-                      </h3>
-                      <UserIcon className="w-3 h-3 text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
-                    </button>
-                  </div>
-                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                    {formatTime(conversation.lastMessageAt)}
+                      {formatTime(conversation.lastMessageAt)}
+                    </time>
                   </span>
                 </div>
-                {conversation.product && (
-                  <p className="text-xs text-gray-500 truncate mb-1 px-1">
-                    💬 over: {conversation.product.title}
-                  </p>
-                )}
-                
-                {conversation.lastMessage ? (
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-600 truncate flex-1">
-                      {getLastMessageSender(conversation.lastMessage, session?.user)}
-                      {getLastMessagePreview(conversation.lastMessage)}
-                    </p>
-                    {conversation.lastMessage.User.id === getCurrentUserId() && (
-                      <CheckCheck className={`w-4 h-4 flex-shrink-0 ml-2 ${
-                        conversation.lastMessage.readAt ? 'text-blue-500' : 'text-gray-400'
-                      }`} />
+
+                {(conversation.product || conversation.order) && (
+                  <div className="flex min-w-0 flex-wrap gap-1">
+                    {conversation.product && (
+                      <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                        <Package className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+                        <span className="truncate">{conversation.product.title}</span>
+                      </span>
+                    )}
+                    {conversation.order && (
+                      <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                        Order
+                        {conversation.order.orderNumber
+                          ? ` #${conversation.order.orderNumber}`
+                          : ''}
+                      </span>
                     )}
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-500 truncate">
-                    Gesprek gestart
-                  </p>
                 )}
-              </div>
+
+                <div className="flex min-w-0 items-center gap-2">
+                  <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
+                    {previewLine(conversation)}
+                  </p>
+                  {lm?.User.id === getCurrentUserId() && (
+                    <CheckCheck
+                      className={`h-4 w-4 shrink-0 ${
+                        lm.readAt ? 'text-blue-500' : 'text-gray-400'
+                      }`}
+                      aria-hidden
+                    />
+                  )}
+                </div>
+              </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -1,3 +1,7 @@
+/**
+ * Legacy / niet meer in de app-shell gebruikt. Actieve gesprekkenlijst:
+ * {@link ../chat/ConversationsList.tsx} (o.a. /messages, profiel-tab, MobileMessagesView).
+ */
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
