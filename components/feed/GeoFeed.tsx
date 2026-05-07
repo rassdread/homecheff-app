@@ -33,6 +33,12 @@ import {
   coerceUserStatsPayload,
   seedCachedUserStats,
 } from "@/lib/userStatsClientCache";
+import { isNativeApp } from "@/lib/native/capacitor";
+import {
+  NativeLocationError,
+  requestAndGetNativeCurrentPosition,
+  type NativeLocationCoords,
+} from "@/lib/native/location";
 
 type FeedItem = {
   id: string;
@@ -435,6 +441,11 @@ export default function GeoFeed({
   const [showFilters, setShowFilters] = useState(false);
   const [category, setCategory] = useState("all");
   const profileLocationLoadedRef = useRef(false);
+  const [capacitorShell, setCapacitorShell] = useState(false);
+  const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
+  const [nativeGpsCoords, setNativeGpsCoords] =
+    useState<NativeLocationCoords | null>(null);
+  const [nativeGpsError, setNativeGpsError] = useState<string | null>(null);
 
   /** Coördinaten voor /api/feed: state (GPS/profiel) óf bootstrap-profiel vóór state-update — één query i.p.v. fetch→fetch. */
   const feedCoords = useMemo(() => {
@@ -527,6 +538,39 @@ export default function GeoFeed({
     setBaseUrl(window.location.origin);
     // Geen automatische GPS op homepage: voorkomt lange "Loading" (prompt/timeout) en concurreert niet met eerste feed.
     // Locatie alleen via knop of profiel (ingelogd) / handmatige plaats.
+  }, []);
+
+  useEffect(() => {
+    setCapacitorShell(isNativeApp());
+  }, []);
+
+  const runNativeGpsTest = useCallback(async () => {
+    setNativeGpsError(null);
+    setNativeGpsLoading(true);
+    try {
+      const c = await requestAndGetNativeCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      });
+      setNativeGpsCoords(c);
+      console.log("[HomeCheff native GPS]", {
+        latitude: c.latitude,
+        longitude: c.longitude,
+        accuracy: c.accuracy,
+      });
+    } catch (e) {
+      const msg =
+        e instanceof NativeLocationError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Onbekende fout";
+      setNativeGpsError(msg);
+      console.warn("[HomeCheff native GPS]", e);
+    } finally {
+      setNativeGpsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -1021,6 +1065,35 @@ export default function GeoFeed({
               <p className="text-xs text-blue-600">
                 📍 {t("common.searchIn")}: {place}
               </p>
+            )}
+            {capacitorShell && (
+              <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
+                <p className="font-medium text-gray-800 mb-2">
+                  Native app: Capacitor-GPS (test, wijzigt de feed nog niet)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void runNativeGpsTest()}
+                  disabled={nativeGpsLoading}
+                  className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {nativeGpsLoading
+                    ? t("common.loading")
+                    : "Vraag native locatie op"}
+                </button>
+                {nativeGpsCoords && (
+                  <p className="mt-2 text-green-700 font-mono break-all">
+                    lat {nativeGpsCoords.latitude.toFixed(6)}, lng{" "}
+                    {nativeGpsCoords.longitude.toFixed(6)}, accuracy{" "}
+                    {nativeGpsCoords.accuracy != null
+                      ? `${Math.round(nativeGpsCoords.accuracy)} m`
+                      : "—"}
+                  </p>
+                )}
+                {nativeGpsError && (
+                  <p className="mt-2 text-red-600">{nativeGpsError}</p>
+                )}
+              </div>
             )}
           </div>
         </div>
