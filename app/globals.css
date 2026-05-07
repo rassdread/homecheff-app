@@ -383,7 +383,9 @@ ul, ol { padding: 0; margin: 0; list-style: none; }
 html.hc-native-capacitor body {
   min-height: 100dvh;
   min-height: 100vh;
-  overscroll-behavior-y: contain;
+  /* contain kan op sommige Android WebViews scroll door de pagina beperken; laat default overscroll. */
+  overscroll-behavior-y: auto;
+  touch-action: pan-y pinch-zoom;
 }
 
 /* Portal-root mag nooit fullscreen touches vangen (alleen echte children met pointer-events-auto). */

@@ -1306,8 +1306,8 @@ export default function BottomNavigation() {
       <div
         data-hc-bottom-nav
         className={cn(
-          /* Buitenste shell vangt geen touches: voorkomt WebView hit-rect groter dan zichtbare balk. */
-          'pointer-events-none fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
+          /* Geen pointer-events-none hier: op Android WebView kan dat scroll-gesture routing breken. */
+          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
           isNativeShell
             ? 'shadow-[0_-6px_28px_-2px_rgba(0,0,0,0.12)] border-primary-brand/15 py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))]'
             : 'shadow-lg py-2'
@@ -1315,7 +1315,7 @@ export default function BottomNavigation() {
       >
         <div
           className={cn(
-            'pointer-events-auto flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
+            'flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
             isNativeShell && 'gap-0.5'
           )}
         >
@@ -1378,8 +1378,9 @@ export default function BottomNavigation() {
               onClick={handleQuickAddClick}
               className={cn(
                 'relative bg-gradient-to-r from-primary-brand to-primary-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95',
+                /* Native: geen negatieve top — anders reikt de hit-box van z-40-laag ver de feed in (Android WebView blokkeert scroll). */
                 isNativeShell
-                  ? '-top-5 p-[0.9375rem] sm:p-[1.0625rem] ring-[3px] ring-white/80'
+                  ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem] ring-[3px] ring-white/80'
                   : '-top-4 p-3 sm:p-4'
               )}
             >
@@ -1475,10 +1476,7 @@ export default function BottomNavigation() {
 
       {/* Bottom padding (flow spacer; primary reserve zit in AppPageChrome pb) */}
       <div
-        className={cn(
-          'pointer-events-none shrink-0',
-          isNativeShell ? 'h-[6.5rem]' : 'h-20'
-        )}
+        className={cn('pointer-events-none shrink-0', isNativeShell ? 'h-[6.5rem]' : 'h-20')}
         aria-hidden
       />
 
