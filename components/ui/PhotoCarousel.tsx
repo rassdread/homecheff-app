@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X, ZoomIn, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import SafeImage from './SafeImage';
-import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
+import { HomeCheffVideoPlayer } from '@/components/media/HomeCheffVideoPlayer';
 import { checkVideoHasAudio, getVideoUrlWithCors, isEdgeBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 
@@ -54,8 +54,8 @@ export default function PhotoCarousel({
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
-  const [videoMutedStates, setVideoMutedStates] = useState<Map<number, boolean>>(new Map());
   const [videoHasAudio, setVideoHasAudio] = useState<Map<number, boolean>>(new Map());
+  const audioCheckedRef = useRef<Set<number>>(new Set());
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
   
   // Combine photos, videos, and media into a single array
@@ -127,23 +127,17 @@ export default function PhotoCarousel({
         )?.[0];
         if (videoElement && videoElement.paused) {
           videoManager.stopAllExcept(videoElement);
-          videoElement.muted = true;
-          const playPromise = videoElement.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                if (videoElement && !videoElement.paused && videoIndex !== undefined) {
-                  const wantMuted = videoManager.getUserPrefersMuted() === true;
-                  videoElement.muted = wantMuted;
-                  setVideoMutedStates((prev) => {
-                    const newMap = new Map(prev);
-                    newMap.set(videoIndex, wantMuted);
-                    return newMap;
-                  });
-                }
-              })
-              .catch(() => {});
-          }
+                  videoElement.muted = true;
+                  const playPromise = videoElement.play();
+                  if (playPromise !== undefined) {
+                    playPromise
+                      .then(() => {
+                        if (videoElement && !videoElement.paused && videoIndex !== undefined) {
+                          videoElement.muted = videoManager.shouldStartMuted();
+                        }
+                      })
+                      .catch(() => {});
+                  }
         }
       },
       { threshold: 1.0 }
@@ -161,7 +155,36 @@ export default function PhotoCarousel({
         intersectionObserverRef.current.disconnect();
       }
     };
-  }, [mediaItems, currentIndex, videoMutedStates]);
+  }, [mediaItems, currentIndex]);
+
+  useEffect(() => {
+    const m = mediaItems[currentIndex];
+    if (!m || m.type !== 'video' || !m.url) return;
+    if (audioCheckedRef.current.has(currentIndex)) return;
+    audioCheckedRef.current.add(currentIndex);
+    checkVideoHasAudio(m.url).then((has) => {
+      setVideoHasAudio((prev) => {
+        const next = new Map(prev);
+        next.set(currentIndex, has);
+        return next;
+      });
+    });
+  }, [currentIndex, mediaItems]);
+
+  useEffect(() => {
+    const v = videoRefs.current.get(currentIndex);
+    const m = mediaItems[currentIndex];
+    if (!v || m?.type !== 'video') return;
+    const onVol = () => {
+      try {
+        videoManager.setUserPrefersMuted(v.muted);
+      } catch {
+        /* noop */
+      }
+    };
+    v.addEventListener('volumechange', onVol);
+    return () => v.removeEventListener('volumechange', onVol);
+  }, [currentIndex, mediaItems]);
 
   // Cleanup: unregister all videos when component unmounts
   useEffect(() => {
@@ -242,94 +265,62 @@ export default function PhotoCarousel({
         {/* Main Media Container */}
         <div className="relative aspect-video bg-gray-100 rounded-xl overflow-hidden">
           {currentMedia.type === 'video' ? (
-            <div className="video-smooth relative w-full h-full">
-              <EdgeAwareVideo
+            <div className="video-smooth relative z-0 w-full h-full">
+              <HomeCheffVideoPlayer
                 ref={(el) => {
                   if (el) {
                     videoRefs.current.set(currentIndex, el);
                     videoManager.register(el);
                     videoManager.stopAllExcept(el);
-                    el.muted = true; // Bij start altijd mute; unmute pas na start afspelen (onPlaying)
+                    el.muted = true;
                     el.playsInline = true;
                     el.setAttribute('playsinline', 'true');
                     el.setAttribute('webkit-playsinline', 'true');
                     el.preload = 'auto';
-                    el.loop = false; // Don't loop - go to next slide after video ends
+                    el.loop = false;
                     if (intersectionObserverRef.current) {
                       intersectionObserverRef.current.observe(el);
                     }
                   }
                 }}
+                variant="detail"
+                fallbackUI="inline"
                 src={getVideoUrlWithCors(currentMedia.url ?? '')}
                 fallbackSrc={currentMedia.url ?? undefined}
-                controls
                 muted
                 preload="auto"
-                className="w-full h-full object-cover"
+                className="relative h-full w-full"
+                videoClassName="h-full w-full object-cover"
                 poster={currentMedia.thumbnail || undefined}
                 playsInline
                 autoPlay
-                  onPlaying={() => {
-                    const v = videoRefs.current.get(currentIndex);
-                    if (v) {
-                      const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
-                      v.muted = wantMuted;
-                      setVideoMutedStates((prev) => {
-                        const next = new Map(prev);
-                        next.set(currentIndex, wantMuted);
-                        return next;
-                      });
-                    }
-                  }}
-                  onEnded={() => {
+                nativeControls
+                onPlaying={() => {
+                  const v = videoRefs.current.get(currentIndex);
+                  if (v) {
+                    const wantMuted = isEdgeBrowser()
+                      ? true
+                      : videoManager.shouldStartMuted();
+                    v.muted = wantMuted;
+                  }
+                }}
+                onEnded={() => {
                   if (currentIndex < mediaItems.length - 1) {
                     setCurrentIndex(currentIndex + 1);
                   } else {
-                    // If video is last item, go to first image (skip video if it's not first)
-                    const firstImageIndex = mediaItems.findIndex(m => m.type === 'image');
+                    const firstImageIndex = mediaItems.findIndex(
+                      (m) => m.type === 'image'
+                    );
                     if (firstImageIndex >= 0) {
                       setCurrentIndex(firstImageIndex);
                     } else {
-                      setCurrentIndex(0); // Fallback to first item
+                      setCurrentIndex(0);
                     }
                   }
                 }}
-              >
-                Je browser ondersteunt geen video element.
-              </EdgeAwareVideo>
-              {/* Mute/Unmute Button - Only show if video has audio */}
-              {videoHasAudio.get(currentIndex) !== false && (
-                <button
-                  type="button"
-                  data-video-mute-button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const video = videoRefs.current.get(currentIndex);
-                    if (video) {
-                      const newMutedState = !video.muted;
-                      video.muted = newMutedState;
-                      videoManager.setUserPrefersMuted(newMutedState);
-                      setVideoMutedStates((prev) => {
-                        const newMap = new Map(prev);
-                        newMap.set(currentIndex, newMutedState);
-                        return newMap;
-                      });
-                    }
-                  }}
-                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
-                  aria-label={videoMutedStates.get(currentIndex) !== false ? "Unmute video" : "Mute video"}
-                >
-                  {videoMutedStates.get(currentIndex) !== false ? (
-                    <VolumeX className="w-5 h-5" aria-hidden />
-                  ) : (
-                    <Volume2 className="w-5 h-5" aria-hidden />
-                  )}
-                </button>
-              )}
-              {/* Warning if video has no audio */}
+              />
               {videoHasAudio.get(currentIndex) === false && (
-                <div className="absolute bottom-3 right-3 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded z-30">
+                <div className="pointer-events-none absolute bottom-3 right-3 z-[5] rounded bg-yellow-500/80 px-2 py-1 text-xs text-white">
                   Geen audio
                 </div>
               )}
@@ -344,53 +335,53 @@ export default function PhotoCarousel({
             />
           )}
           
-          {/* Overlay with controls */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300">
-            {/* Navigation Arrows */}
+          {/* Overlay: pointer-events-none zodat native video-controls (seek/mute) klikbaar blijven */}
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-black/0 transition-all duration-300 group-hover:bg-black/20">
             {mediaItems.length > 1 && (
               <>
                 <button
+                  type="button"
                   onClick={goToPrevious}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                  className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow-lg transition-all duration-300 hover:scale-110 hover:bg-white group-hover:opacity-100"
                 >
-                  <ChevronLeft className="w-5 h-5 text-gray-700" />
+                  <ChevronLeft className="h-5 w-5 text-gray-700" />
                 </button>
                 <button
+                  type="button"
                   onClick={goToNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                  className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow-lg transition-all duration-300 hover:scale-110 hover:bg-white group-hover:opacity-100"
                 >
-                  <ChevronRight className="w-5 h-5 text-gray-700" />
+                  <ChevronRight className="h-5 w-5 text-gray-700" />
                 </button>
               </>
             )}
 
-            {/* Fullscreen Button */}
             <button
+              type="button"
               onClick={toggleFullscreen}
-              className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-30"
+              className="pointer-events-auto absolute right-4 top-4 z-30 rounded-full bg-white/90 p-2 opacity-0 shadow-lg transition-all duration-300 hover:scale-110 hover:bg-white group-hover:opacity-100"
             >
-              <ZoomIn className="w-5 h-5 text-gray-700" />
+              <ZoomIn className="h-5 w-5 text-gray-700" />
             </button>
 
-            {/* Play/Pause Button (if autoPlay enabled) */}
             {autoPlay && (
               <button
+                type="button"
                 onClick={togglePlay}
-                className="absolute top-4 left-4 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                className="pointer-events-auto absolute left-4 top-4 rounded-full bg-white/90 p-2 opacity-0 shadow-lg transition-all duration-300 hover:scale-110 hover:bg-white group-hover:opacity-100"
               >
                 {isPlaying ? (
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <div className="w-2 h-4 bg-gray-700 rounded-sm"></div>
-                    <div className="w-2 h-4 bg-gray-700 rounded-sm ml-1"></div>
+                  <div className="flex h-5 w-5 items-center justify-center">
+                    <div className="h-4 w-2 rounded-sm bg-gray-700"></div>
+                    <div className="ml-1 h-4 w-2 rounded-sm bg-gray-700"></div>
                   </div>
                 ) : (
-                  <div className="w-0 h-0 border-l-[6px] border-l-gray-700 border-y-[4px] border-y-transparent ml-1"></div>
+                  <div className="ml-1 h-0 w-0 border-y-[4px] border-l-[6px] border-y-transparent border-l-gray-700"></div>
                 )}
               </button>
             )}
 
-            {/* Media Counter */}
-            <div className="absolute bottom-4 left-4 px-3 py-1 bg-white/90 rounded-full text-sm font-medium text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="pointer-events-auto absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-gray-700 opacity-0 transition-all duration-300 group-hover:opacity-100">
               {currentIndex + 1} / {mediaItems.length}
             </div>
           </div>
@@ -466,132 +457,104 @@ export default function PhotoCarousel({
       {isFullscreen && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
           <button
+            type="button"
             onClick={toggleFullscreen}
-            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all duration-200"
+            className="pointer-events-auto absolute right-4 top-4 rounded-full bg-white/20 p-2 text-white transition-all duration-200 hover:bg-white/30"
           >
             <X className="w-6 h-6" />
           </button>
 
-          <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
+          <div className="pointer-events-none relative flex h-full max-h-full w-full max-w-7xl items-center justify-center">
             {currentMedia.type === 'video' ? (
-              <div className="video-smooth relative w-full h-full flex items-center justify-center">
-                <EdgeAwareVideo
+              <div className="video-smooth pointer-events-auto relative flex h-full max-h-full w-full items-center justify-center">
+                <HomeCheffVideoPlayer
                   ref={(el) => {
                     if (el) {
                       videoRefs.current.set(currentIndex, el);
                       videoManager.register(el);
                       videoManager.stopAllExcept(el);
-                      el.muted = true; // Altijd mute tot video start; unmute in onPlaying
+                      el.muted = true;
                       el.playsInline = true;
                       el.setAttribute('playsinline', 'true');
                       el.setAttribute('webkit-playsinline', 'true');
                       el.preload = 'auto';
-                      el.loop = false; // Don't loop - go to next slide after video ends
+                      el.loop = false;
                     }
                   }}
+                  variant="lightbox"
+                  fallbackUI="inline"
                   src={getVideoUrlWithCors(currentMedia.url ?? '')}
                   fallbackSrc={currentMedia.url ?? undefined}
-                  controls
                   autoPlay
                   muted
                   preload="auto"
-                  className="max-w-full max-h-full object-contain rounded-lg"
+                  className="relative max-h-full max-w-full"
+                  videoClassName="max-h-full max-w-full rounded-lg object-contain"
                   poster={currentMedia.thumbnail || undefined}
                   playsInline
-                onPlaying={() => {
-                  const v = videoRefs.current.get(currentIndex);
-                  if (v) {
-                    const wantMuted = isEdgeBrowser() ? true : videoManager.shouldStartMuted();
-                    v.muted = wantMuted;
-                    setVideoMutedStates((prev) => {
-                      const next = new Map(prev);
-                      next.set(currentIndex, wantMuted);
-                      return next;
-                    });
-                  }
-                }}
-                onEnded={() => {
-                  if (currentIndex < mediaItems.length - 1) {
-                    setCurrentIndex(currentIndex + 1);
-                  } else {
-                    const firstImageIndex = mediaItems.findIndex(m => m.type === 'image');
-                    if (firstImageIndex >= 0) {
-                      setCurrentIndex(firstImageIndex);
-                    } else {
-                      setCurrentIndex(0);
+                  nativeControls
+                  onPlaying={() => {
+                    const v = videoRefs.current.get(currentIndex);
+                    if (v) {
+                      const wantMuted = isEdgeBrowser()
+                        ? true
+                        : videoManager.shouldStartMuted();
+                      v.muted = wantMuted;
                     }
-                  }
-                }}
-              >
-                Je browser ondersteunt geen video element.
-              </EdgeAwareVideo>
-              {/* Mute/Unmute Button - Only show if video has audio */}
-                {videoHasAudio.get(currentIndex) !== false && (
-                  <button
-                    type="button"
-                    data-video-mute-button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const video = videoRefs.current.get(currentIndex);
-                      if (video) {
-                        const newMutedState = !video.muted;
-                        video.muted = newMutedState;
-                        videoManager.setUserPrefersMuted(newMutedState);
-                        setVideoMutedStates((prev) => {
-                          const newMap = new Map(prev);
-                          newMap.set(currentIndex, newMutedState);
-                          return newMap;
-                        });
+                  }}
+                  onEnded={() => {
+                    if (currentIndex < mediaItems.length - 1) {
+                      setCurrentIndex(currentIndex + 1);
+                    } else {
+                      const firstImageIndex = mediaItems.findIndex(
+                        (m) => m.type === 'image'
+                      );
+                      if (firstImageIndex >= 0) {
+                        setCurrentIndex(firstImageIndex);
+                      } else {
+                        setCurrentIndex(0);
                       }
-                    }}
-                    className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-[40] transition-all duration-200 pointer-events-auto"
-                    aria-label={videoMutedStates.get(currentIndex) !== false ? "Unmute video" : "Mute video"}
-                  >
-                    {videoMutedStates.get(currentIndex) !== false ? (
-                      <VolumeX className="w-5 h-5" aria-hidden />
-                    ) : (
-                      <Volume2 className="w-5 h-5" aria-hidden />
-                    )}
-                  </button>
-                )}
-                {/* Warning if video has no audio */}
+                    }
+                  }}
+                />
                 {videoHasAudio.get(currentIndex) === false && (
-                  <div className="absolute bottom-3 right-3 bg-yellow-500/80 text-white text-xs px-2 py-1 rounded z-30">
+                  <div className="pointer-events-none absolute bottom-3 right-3 z-[5] rounded bg-yellow-500/80 px-2 py-1 text-xs text-white">
                     Geen audio
                   </div>
                 )}
               </div>
             ) : (
-              <SafeImage
-                src={currentMedia.fileUrl || ''}
-                alt={`Foto ${currentIndex + 1}`}
-                width={1200}
-                height={800}
-                className="max-w-full max-h-full object-contain rounded-lg"
-              />
+              <div className="pointer-events-auto">
+                <SafeImage
+                  src={currentMedia.fileUrl || ''}
+                  alt={`Foto ${currentIndex + 1}`}
+                  width={1200}
+                  height={800}
+                  className="max-h-full max-w-full rounded-lg object-contain"
+                />
+              </div>
             )}
 
-            {/* Fullscreen Navigation */}
             {mediaItems.length > 1 && (
               <>
                 <button
+                  type="button"
                   onClick={goToPrevious}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all duration-200"
+                  className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition-all duration-200 hover:bg-white/30"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="h-6 w-6" />
                 </button>
                 <button
+                  type="button"
                   onClick={goToNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all duration-200"
+                  className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition-all duration-200 hover:bg-white/30"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="h-6 w-6" />
                 </button>
               </>
             )}
 
-            {/* Fullscreen Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 rounded-full text-white font-medium">
+            <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/20 px-4 py-2 font-medium text-white">
               {currentIndex + 1} / {mediaItems.length}
             </div>
           </div>

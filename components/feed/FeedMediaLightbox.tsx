@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { EdgeAwareVideo } from "@/components/ui/EdgeAwareVideo";
+import { HomeCheffVideoPlayer } from "@/components/media/HomeCheffVideoPlayer";
 
 export type FeedMediaLightboxPayload =
   | {
@@ -95,16 +95,19 @@ export function FeedMediaLightbox({
               className="max-h-[85dvh] max-w-full object-contain shadow-2xl"
             />
           ) : (
-            <EdgeAwareVideo
+            <HomeCheffVideoPlayer
+              variant="lightbox"
+              fallbackUI="inline"
               src={payload.src}
               fallbackSrc={payload.fallbackSrc}
               poster={payload.poster ?? undefined}
-              className="max-h-[85dvh] max-w-full rounded-lg bg-black object-contain"
-              controls
+              className="relative max-h-[85dvh] max-w-full"
+              videoClassName="max-h-[85dvh] max-w-full rounded-lg bg-black object-contain"
               playsInline
               preload="metadata"
               autoPlay
               muted
+              nativeControls
             />
           )}
         </div>

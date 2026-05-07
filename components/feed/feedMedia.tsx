@@ -15,7 +15,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { FeedMediaLightbox } from "@/components/feed/FeedMediaLightbox";
 import type { FeedMediaLightboxPayload } from "@/components/feed/FeedMediaLightbox";
-import { EdgeAwareVideo } from "@/components/ui/EdgeAwareVideo";
+import { HomeCheffVideoPlayer } from "@/components/media/HomeCheffVideoPlayer";
 import {
   getVideoUrlWithCors,
   isEdgeAndroid,
@@ -551,8 +551,10 @@ export function FeedCardPrimaryMedia({
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
         {renderVideoElement ? (
-          <EdgeAwareVideo
+          <HomeCheffVideoPlayer
             ref={videoRef}
+            variant="compact"
+            fallbackUI="none"
             src={corsSrc}
             fallbackSrc={
               fallbackVideoSrc && fallbackVideoSrc !== corsSrc
@@ -560,12 +562,13 @@ export function FeedCardPrimaryMedia({
                 : undefined
             }
             poster={posterEffective}
-            className={`pointer-events-none absolute inset-0 h-full w-full ${fitClass}`}
+            videoClassName={`pointer-events-none absolute inset-0 h-full w-full ${fitClass}`}
+            className="pointer-events-none absolute inset-0 h-full w-full"
             muted={!isAudible}
             loop
             playsInline
             preload="metadata"
-            controls={false}
+            nativeControls={false}
             disablePictureInPicture
             onLoadedData={tryPlayIfWanted}
             onError={onVideoError}

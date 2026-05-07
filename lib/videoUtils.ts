@@ -32,6 +32,27 @@ export function isSamsungBrowser(): boolean {
   return /SamsungBrowser/i.test(navigator.userAgent);
 }
 
+/** Leesbare fout voor dev-log bij HTMLMediaElement.error */
+export function formatMediaErrorForDevLog(
+  err: MediaError | null,
+  src?: string
+): string {
+  if (!err) {
+    return src
+      ? `unknown error (src=${src.slice(0, Math.min(120, src.length))}${src.length > 120 ? "…" : ""})`
+      : "unknown error";
+  }
+  const names = [
+    "",
+    "MEDIA_ERR_ABORTED",
+    "MEDIA_ERR_NETWORK",
+    "MEDIA_ERR_DECODE",
+    "MEDIA_ERR_SRC_NOT_SUPPORTED",
+  ];
+  const name = names[err.code] ?? `CODE_${err.code}`;
+  return `${name}${err.message ? `: ${err.message}` : ""}`;
+}
+
 /**
  * Get video URL with CORS proxy if needed
  * Edge Android + Samsung Internet: directe Blob-URL eerst, proxy als fallback.
