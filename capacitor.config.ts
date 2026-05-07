@@ -31,7 +31,8 @@ const config: CapacitorConfig = {
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
+      // Fit hele splash-bitmap (wit + gecentreerd logo); voorkomt undesired crop op afwijkende aspect ratios
+      androidScaleType: 'FIT_CENTER',
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
