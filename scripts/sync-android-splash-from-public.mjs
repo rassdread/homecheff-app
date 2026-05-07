@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Copieert public/native-splash.png naar alle Android splash.png-resources.
+ * Copieert android/native-splash.png naar alle Android res/splash.png-resources.
  * Run vóór `npx cap sync` (zie npm script cap:sync).
  */
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const root = join(import.meta.dirname, "..");
-const src = join(root, "public/native-splash.png");
+const src = join(root, "android/native-splash.png");
 
 const targets = [
   "android/app/src/main/res/drawable/splash.png",
@@ -24,7 +24,7 @@ const targets = [
 ];
 
 if (!existsSync(src)) {
-  console.error("sync-android-splash-from-public: missing public/native-splash.png");
+  console.error("sync-android-splash-from-public: missing android/native-splash.png");
   process.exit(1);
 }
 
@@ -34,4 +34,4 @@ for (const rel of targets) {
   copyFileSync(src, dest);
 }
 
-console.log(`sync-android-splash-from-public: copied to ${targets.length} paths`);
+console.log(`sync-android-splash: copied to ${targets.length} paths`);
