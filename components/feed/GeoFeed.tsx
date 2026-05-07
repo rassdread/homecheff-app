@@ -40,6 +40,11 @@ import {
   type NativeLocationCoords,
 } from "@/lib/native/location";
 
+/** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
+const SHOW_NATIVE_GPS_DEBUG_UI =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_CAPACITOR_NATIVE_GPS_DEBUG === "true";
+
 type FeedItem = {
   id: string;
   title: string | null;
@@ -541,6 +546,7 @@ export default function GeoFeed({
   }, []);
 
   useEffect(() => {
+    if (!SHOW_NATIVE_GPS_DEBUG_UI) return;
     setCapacitorShell(isNativeApp());
   }, []);
 
@@ -1066,7 +1072,7 @@ export default function GeoFeed({
                 📍 {t("common.searchIn")}: {place}
               </p>
             )}
-            {capacitorShell && (
+            {SHOW_NATIVE_GPS_DEBUG_UI && capacitorShell && (
               <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
                 <p className="font-medium text-gray-800 mb-2">
                   Native app: Capacitor-GPS (test, wijzigt de feed nog niet)
