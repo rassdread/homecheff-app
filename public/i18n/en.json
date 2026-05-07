@@ -2088,6 +2088,8 @@
     "sendMessage": "Send message",
     "sending": "Sending...",
     "messageSent": "Message sent! You can view the conversation in your messages.",
+    "messageSentConfirm": "Message sent",
+    "openConversation": "Open conversation",
     "startChatWith": "Start chat with {name}",
     "quickMessages": "Quick messages",
     "quickMessagesHint": "(click = send immediately)",

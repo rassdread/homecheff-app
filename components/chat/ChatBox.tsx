@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Send, Loader2, Check, CheckCheck, Circle } from 'lucide-react';
 import Image from 'next/image';
@@ -10,6 +10,12 @@ import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
 import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
+import {
+  readMessagesCache,
+  writeMessagesCache,
+} from '@/lib/chat/sessionChatCache';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 interface ChatBoxProps {
   conversationId: string;
@@ -58,84 +64,126 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const pusherRef = useRef<any>(null);
+  const fetchAbortRef = useRef<AbortController | null>(null);
+  const nativeMounted = useIsNativeAppMounted();
   const { data: session } = useSession();
 
-  // Get current user
+  const scrollToBottomSoon = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    });
+  }, []);
+
+  // Current user: JWT sessie bevat id — voorkomt extra roundtrip naar /api/profile/me
   useEffect(() => {
+    const sid = (session?.user as { id?: string } | undefined)?.id;
+    if (sid) {
+      setCurrentUserId(sid);
+      return;
+    }
     const fetchUser = async () => {
       if (!session?.user?.email) return;
-      
       try {
         const res = await fetch('/api/profile/me');
         if (res.ok) {
           const data = await res.json();
-          if (data.user?.id) {
-            setCurrentUserId(data.user.id);
-          }
+          if (data.user?.id) setCurrentUserId(data.user.id);
         }
-      } catch (error) {
-        console.error('❌ Error loading user:', error);
+      } catch {
+        /* ignore */
       }
     };
-    
-    fetchUser();
+    void fetchUser();
   }, [session]);
 
-  // Load messages - OPTIMIZED VERSION
-  const loadMessages = async (isInitialLoad = false) => {
-    if (!conversationId) return;
-    
-    try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages-fast?limit=50`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        const newMessages = data.messages || [];
-        if (isInitialLoad) {
-          // Initial load - replace all messages
-          setMessages(newMessages);
-        } else {
-          // Update load - only add new messages
-          setMessages(prev => {
-            const existingIds = new Set(prev.map(m => m.id));
-            const newUniqueMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
-            
-            if (newUniqueMessages.length > 0) {
-              return [...prev, ...newUniqueMessages].sort((a, b) => 
-                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  const loadMessages = useCallback(
+    async (isInitialLoad = false, signal?: AbortSignal) => {
+      if (!conversationId) return;
+
+      try {
+        const res = await fetch(
+          `/api/conversations/${conversationId}/messages-fast?limit=50`,
+          {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' },
+            signal,
+          }
+        );
+
+        if (signal?.aborted) return;
+
+        if (res.ok) {
+          const data = await res.json();
+          const newMessages = data.messages || [];
+          if (isInitialLoad) {
+            setMessages(newMessages);
+            writeMessagesCache(conversationId, newMessages);
+          } else {
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map((m) => m.id));
+              const newUniqueMessages = newMessages.filter(
+                (m: Message) => !existingIds.has(m.id)
               );
-            }
-            return prev;
-          });
+              if (newUniqueMessages.length === 0) return prev;
+              const merged = [...prev, ...newUniqueMessages].sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime()
+              );
+              writeMessagesCache(conversationId, merged);
+              return merged;
+            });
+          }
+
+          setIsLoading(false);
+          if (isInitialLoad || (data.messages && data.messages.length > 0)) {
+            scrollToBottomSoon();
+          }
+        } else {
+          const fallbackRes = await fetch(
+            `/api/conversations/${conversationId}/messages?limit=50`,
+            { signal }
+          );
+          if (signal?.aborted) return;
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            const list = fallbackData.messages || [];
+            setMessages(list);
+            writeMessagesCache(conversationId, list);
+          }
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
-        
-        // Scroll to bottom only on initial load or when new messages are added
-        if (isInitialLoad || (data.messages && data.messages.length > 0)) {
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
-        }
-      } else {
-        // Fallback to regular API if fast API fails
-        const fallbackRes = await fetch(`/api/conversations/${conversationId}/messages?limit=50`);
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          setMessages(fallbackData.messages || []);
-        }
+      } catch (error) {
+        if ((error as Error)?.name === 'AbortError') return;
         setIsLoading(false);
       }
-    } catch (error) {
-      console.error('❌ Error loading messages:', error);
+    },
+    [conversationId, scrollToBottomSoon]
+  );
+
+  // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+
+    fetchAbortRef.current?.abort();
+    const ac = new AbortController();
+    fetchAbortRef.current = ac;
+
+    const cached = readMessagesCache<Message>(conversationId);
+    if (cached.length > 0) {
+      setMessages(cached);
       setIsLoading(false);
+    } else {
+      setMessages([]);
+      setIsLoading(true);
     }
-  };
+
+    void loadMessages(true, ac.signal);
+
+    return () => {
+      ac.abort();
+    };
+  }, [conversationId, currentUserId, loadMessages]);
 
   // Setup Pusher real-time
   useEffect(() => {
@@ -159,28 +207,13 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       setPusherConnected(false);
     });
     
-    // New message event
     channel.bind('new-message', (data: Message) => {
       setMessages((prev) => {
-        // Check if message already exists (including optimistic messages)
-        if (prev.some(m => m.id === data.id || m.id.startsWith('temp-'))) {
-          // If we have an optimistic message, replace it with real message
-          if (prev.some(m => m.id.startsWith('temp-') && m.senderId === data.senderId && m.text === data.text)) {
-            return prev.map(msg => 
-              msg.id.startsWith('temp-') && msg.senderId === data.senderId && msg.text === data.text 
-                ? data 
-                : msg
-            );
-          }
-          return prev; // Message already exists
-        }
-        return [...prev, data];
+        const next = mergePusherChatMessage(prev, data);
+        queueMicrotask(() => writeMessagesCache(conversationId, next));
+        return next;
       });
-      
-      // Auto-scroll
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      scrollToBottomSoon();
     });
     
     // Typing indicator
@@ -212,34 +245,20 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
     };
   }, [conversationId, currentUserId, otherParticipant.id]);
 
-  // Initial load + smart polling backup
   useEffect(() => {
-    if (conversationId && currentUserId) {
-      loadMessages(true); // Initial load
-      loadOtherUserStatus(); // Load other user's online status
-      
-      // Smart polling: only when Pusher is not connected or after connection issues
-      let pollInterval: NodeJS.Timeout | null = null;
-      
-      if (!pusherConnected) {
-        // Poll every 3 seconds when Pusher is not connected
-        pollInterval = setInterval(() => {
-          loadMessages(false); // Update load
-        }, 3000);
-      } else {
-        // When Pusher is connected, only poll every 30 seconds as backup
-        pollInterval = setInterval(() => {
-          loadMessages(false); // Update load
-        }, 30000);
-      }
-      
-      return () => {
-        if (pollInterval) clearInterval(pollInterval);
-      };
-    }
-  }, [conversationId, currentUserId, pusherConnected]);
+    if (!conversationId || !currentUserId) return;
+    void loadOtherUserStatus();
+  }, [conversationId, currentUserId, otherParticipant.id]);
 
-  // Load other user's online status
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+    const ms = pusherConnected ? 45000 : 8000;
+    const id = setInterval(() => {
+      void loadMessages(false);
+    }, ms);
+    return () => clearInterval(id);
+  }, [conversationId, currentUserId, pusherConnected, loadMessages]);
+
   const loadOtherUserStatus = async () => {
     try {
       const response = await fetch(`/api/users/online-status?userId=${otherParticipant.id}`);
@@ -339,17 +358,14 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       if (res.ok) {
         const data = await res.json();
         const realMessage = data.message;
-        // Replace optimistic message with real message
-        setMessages(prev => 
-          prev.map(msg => 
+        setMessages((prev) => {
+          const next = prev.map((msg) =>
             msg.id === tempId ? realMessage : msg
-          )
-        );
-        
-        // Scroll to bottom after real message
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+          );
+          writeMessagesCache(conversationId, next);
+          return next;
+        });
+        scrollToBottomSoon();
       } else {
         console.error('❌ Failed to send:', res.status);
         
@@ -398,7 +414,11 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div
+      className={`flex flex-col h-full min-h-0 bg-white hc-native-chat-root ${
+        nativeMounted ? 'hc-native-chat-root-native' : ''
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-white shadow-sm">
         {onBack && (
@@ -460,10 +480,24 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50 hc-native-chat-scroll touch-pan-y">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+          <div className="space-y-3 py-2" aria-busy>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+              >
+                <div
+                  className={`h-11 rounded-2xl bg-gray-200 animate-pulse ${
+                    i % 2 === 0 ? 'w-[72%]' : 'w-[55%]'
+                  }`}
+                />
+              </div>
+            ))}
+            <div className="flex justify-center pt-4">
+              <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -489,7 +523,9 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
                           : 'bg-white text-gray-900 border'
                       }`}
                     >
-                      <p className="text-sm break-words">{msg.text}</p>
+                      <p className="text-sm break-words">
+                        {msg.text ?? ''}
+                      </p>
                     </div>
                     <div className={`flex items-center gap-1 mt-1 px-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                       <p className="text-xs text-gray-400">
@@ -519,8 +555,13 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-4 border-t bg-white">
-        <div className="flex gap-2">
+      <form
+        onSubmit={handleSend}
+        className={`shrink-0 p-4 border-t bg-white hc-native-chat-composer ${
+          nativeMounted ? 'hc-native-chat-composer-native' : ''
+        }`}
+      >
+        <div className="flex gap-2 items-end">
           <EmojiPickerButton
             onEmojiClick={(emoji) => {
               setNewMessage(prev => prev + emoji);
@@ -531,17 +572,23 @@ export default function ChatBox({ conversationId, otherParticipant, onBack }: Ch
           />
           <input
             type="text"
+            enterKeyHint="send"
             value={newMessage}
             onChange={(e) => handleTyping(e.target.value)}
             placeholder={t('messages.typeMessage')}
             disabled={isSending}
-            className="flex-1 px-4 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            className={`flex-1 min-w-0 px-4 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+              nativeMounted ? 'text-base py-3.5' : ''
+            }`}
             autoComplete="off"
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || isSending}
-            className="px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className={`shrink-0 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+              nativeMounted ? 'min-h-[48px] min-w-[48px] px-5' : 'px-6 py-3'
+            }`}
+            aria-label={t('common.send')}
           >
             {isSending ? (
               <Loader2 className="w-5 h-5 animate-spin" />

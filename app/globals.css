@@ -530,3 +530,39 @@ html.hc-native-capacitor .feed-card-geo .feed-card-cta-row .flex.items-center.ga
   width: 0.75rem;
   height: 0.75rem;
 }
+
+/* Native chat: thread + composer (messages page / ChatBox / CompleteChat) */
+html.hc-native-capacitor .hc-native-chat-root-native {
+  min-height: 0;
+}
+
+html.hc-native-capacitor .hc-native-chat-composer-native {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+}
+
+html.hc-native-capacitor .hc-native-messages-page {
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+
+html.hc-native-capacitor .hc-native-messages-page .hc-native-chat-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+html.hc-native-capacitor .hc-native-product-msg-modal .product-msg-modal-inner {
+  max-height: min(88dvh, 640px);
+}
+
+html.hc-native-capacitor .hc-native-msg-success-toast {
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  html.hc-native-capacitor .hc-native-msg-success-toast {
+    max-width: 22rem;
+  }
+}

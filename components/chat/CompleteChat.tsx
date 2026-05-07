@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send, Trash2, Circle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Send, Trash2, Circle, RefreshCw, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { appendAffiliateReferralToOutgoingText } from '@/lib/affiliate-attribution';
 import { useAffiliateLink } from '@/hooks/useAffiliateLink';
+import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
+import {
+  readMessagesCache,
+  writeMessagesCache,
+} from '@/lib/chat/sessionChatCache';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 interface CompleteChatProps {
   conversationId: string;
@@ -25,7 +31,7 @@ interface CompleteChatProps {
 
 interface Message {
   id: string;
-  text: string;
+  text: string | null;
   senderId: string;
   createdAt: string;
   readAt: string | null;
@@ -48,210 +54,181 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [lastFetch, setLastFetch] = useState<number>(Date.now());
   const [pusherConnected, setPusherConnected] = useState(false);
-  
-  // Refs
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollingIntervalRef = useRef<NodeJS.Timeout>();
-  const pusherRef = useRef<any>(null);
-  
+  const pusherRef = useRef<ReturnType<typeof getPusherClient> | null>(null);
+  const fetchAbortRef = useRef<AbortController | null>(null);
+  const nativeMounted = useIsNativeAppMounted();
+
   const { data: session } = useSession();
 
-  // Step 1: Get current user ID
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      if (!session?.user?.email) {
-        return;
-      }
+  const scrollToBottomSoon = useCallback(() => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, []);
 
+  useEffect(() => {
+    const sid = (session?.user as { id?: string } | undefined)?.id;
+    if (sid) {
+      setCurrentUserId(sid);
+      return;
+    }
+    const fetchCurrentUser = async () => {
+      if (!session?.user?.email) return;
       try {
         const response = await fetch('/api/profile/me');
         if (response.ok) {
           const data = await response.json();
           const userId = data.user?.id;
-          if (userId) {
-            setCurrentUserId(userId);
-          }
+          if (userId) setCurrentUserId(userId);
         }
-      } catch (error) {
-        console.error('[CompleteChat] Error fetching user:', error);
+      } catch {
+        /* ignore */
       }
     };
-
-    fetchCurrentUser();
+    void fetchCurrentUser();
   }, [session]);
 
-  // Step 2: Load messages
-  const loadMessages = async () => {
-    if (!conversationId) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/conversations/${conversationId}/messages?page=1&limit=100`,
-        {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+  const loadMessages = useCallback(
+    async (isFullRefresh = true, signal?: AbortSignal) => {
+      if (!conversationId) return;
+      try {
+        let response = await fetch(
+          `/api/conversations/${conversationId}/messages-fast?limit=50`,
+          { cache: 'no-store', signal }
+        );
+        if (!response.ok) {
+          response = await fetch(
+            `/api/conversations/${conversationId}/messages?page=1&limit=100`,
+            {
+              cache: 'no-store',
+              headers: { 'Cache-Control': 'no-cache' },
+              signal,
+            }
+          );
         }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const loadedMessages = data.messages || [];
-        setMessages(loadedMessages);
-        setLastFetch(Date.now());
-        setIsLoading(false);
-        
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      } else {
-        const errorText = await response.text();
-        console.error('[CompleteChat] ❌ Failed to load messages:', response.status, errorText);
+        if (signal?.aborted) return;
+        if (response.ok) {
+          const data = await response.json();
+          const loadedMessages = data.messages || [];
+          setMessages(loadedMessages);
+          writeMessagesCache(conversationId, loadedMessages);
+          setIsLoading(false);
+          scrollToBottomSoon();
+        } else {
+          setIsLoading(false);
+        }
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') return;
         setIsLoading(false);
       }
-    } catch (error) {
-      console.error('[CompleteChat] ❌ Error loading messages:', error);
-      setIsLoading(false);
-    }
-  };
+    },
+    [conversationId, scrollToBottomSoon]
+  );
 
-  // Step 3: Initial load
-  useEffect(() => {
-    if (conversationId && currentUserId) {
-      loadMessages();
-    }
-  }, [conversationId, currentUserId]);
-
-  // Step 4: Setup Pusher real-time + polling backup
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
-    // Setup Pusher for real-time updates
-    const pusher = getPusherClient();
-    if (pusher) {
-      pusherRef.current = pusher;
-      
-      const channel = pusher.subscribe(`conversation-${conversationId}`);
-      
-      channel.bind('pusher:subscription_succeeded', () => {
-        setPusherConnected(true);
-      });
-      
-      channel.bind('pusher:subscription_error', (error: any) => {
-        console.error('[CompleteChat] ❌ Pusher error:', error);
-        setPusherConnected(false);
-      });
-      
-      channel.bind('new-message', (data: Message) => {
-        // Add message to state if not already there
-        setMessages((prev) => {
-          const exists = prev.some(m => m.id === data.id);
-          if (exists) {
-            return prev;
-          }
-          return [...prev, data];
-        });
-        
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      });
+    fetchAbortRef.current?.abort();
+    const ac = new AbortController();
+    fetchAbortRef.current = ac;
+    const cached = readMessagesCache<Message>(conversationId);
+    if (cached.length > 0) {
+      setMessages(cached);
+      setIsLoading(false);
     } else {
-      console.warn('[CompleteChat] ⚠️ Pusher not available');
+      setMessages([]);
+      setIsLoading(true);
     }
+    void loadMessages(true, ac.signal);
+    return () => ac.abort();
+  }, [conversationId, currentUserId, loadMessages]);
 
-    // Backup polling (every 5 seconds when Pusher is connected, every 2 seconds when not)
-    const pollInterval = pusherConnected ? 5000 : 2000;
-    
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-    }
-
-    pollingIntervalRef.current = setInterval(() => {
-      if (!pusherConnected) {
-      }
-      loadMessages();
-    }, pollInterval);
-
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+    pusherRef.current = pusher;
+    const channel = pusher.subscribe(`conversation-${conversationId}`);
+    channel.bind('pusher:subscription_succeeded', () => {
+      setPusherConnected(true);
+    });
+    channel.bind('pusher:subscription_error', () => {
+      setPusherConnected(false);
+    });
+    channel.bind('new-message', (data: Message) => {
+      setMessages((prev) => {
+        const next = mergePusherChatMessage(prev, data);
+        queueMicrotask(() => writeMessagesCache(conversationId, next));
+        return next;
+      });
+      scrollToBottomSoon();
+    });
     return () => {
-      // Cleanup Pusher
-      if (pusher && pusherRef.current) {
-        pusher.unsubscribe(`conversation-${conversationId}`);
-        pusherRef.current = null;
-      }
-      
-      // Cleanup polling
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
+      pusher.unsubscribe(`conversation-${conversationId}`);
     };
-  }, [conversationId, currentUserId, pusherConnected]);
+  }, [conversationId, currentUserId, scrollToBottomSoon]);
 
-  // Step 5: Send message
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+    const ms = pusherConnected ? 45000 : 8000;
+    const id = setInterval(() => void loadMessages(true), ms);
+    return () => clearInterval(id);
+  }, [conversationId, currentUserId, pusherConnected, loadMessages]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newMessage.trim() || !currentUserId || isSending) return;
 
-    if (!newMessage.trim() || !currentUserId || isSending) {
-      return;
-    }
-
-    setIsSending(true);
     const messageText = appendAffiliateReferralToOutgoingText(
       newMessage.trim(),
       referralCode
     );
-    setNewMessage(''); // Clear input immediately
+    setNewMessage('');
+    setIsSending(true);
+
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      text: messageText,
+      senderId: currentUserId,
+      createdAt: new Date().toISOString(),
+      readAt: null,
+      User: {
+        id: currentUserId,
+        name: session?.user?.name ?? null,
+        username: (session?.user as { username?: string })?.username ?? null,
+        profileImage: session?.user?.image ?? null,
+        displayFullName: null,
+        displayNameOption: null,
+      },
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    scrollToBottomSoon();
 
     try {
-      // Send message
       const response = await fetch(
-        `/api/conversations/${conversationId}/messages`,
+        `/api/conversations/${conversationId}/messages/quick`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: messageText,
-            messageType: 'TEXT',
-          }),
+          body: JSON.stringify({ text: messageText, messageType: 'TEXT' }),
         }
       );
-
-      if (!response.ok) {
-        throw new Error(`Failed to send: ${response.status}`);
-      }
-      // Create notification for other participant
-      try {
-        await fetch('/api/notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: otherParticipant.id,
-            type: 'MESSAGE_RECEIVED',
-            payload: {
-              title: 'Nieuw bericht',
-              message: messageText.substring(0, 100),
-              conversationId: conversationId,
-            }
-          })
-        });
-      } catch (notifError) {
-        console.error('[CompleteChat] Notification error:', notifError);
-      }
-
-      // Reload messages immediately
-      await loadMessages();
-
-    } catch (error) {
-      console.error('[CompleteChat] ❌ Error sending message:', error);
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
+      const data = await response.json();
+      const realMessage = data.message as Message;
+      setMessages((prev) => {
+        const next = prev.map((m) => (m.id === tempId ? realMessage : m));
+        writeMessagesCache(conversationId, next);
+        return next;
+      });
+      scrollToBottomSoon();
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setNewMessage(messageText);
       alert(t('errors.sendError'));
-      setNewMessage(messageText); // Restore message
     } finally {
       setIsSending(false);
     }
@@ -287,7 +264,11 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div
+      className={`flex flex-col h-full min-h-0 bg-white hc-native-chat-root ${
+        nativeMounted ? 'hc-native-chat-root-native' : ''
+      }`}
+    >
       {/* HEADER */}
       <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm flex-shrink-0">
         <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -331,7 +312,8 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
 
         <div className="flex items-center space-x-2 flex-shrink-0">
           <button
-            onClick={() => loadMessages()}
+            type="button"
+            onClick={() => void loadMessages(true)}
             className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             title={t('messages.reloadMessages')}
           >
@@ -349,11 +331,24 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50 hc-native-chat-scroll touch-pan-y">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-500 mt-4">{t('messages.loading')}</p>
+          <div className="space-y-3 py-2" aria-busy>
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+              >
+                <div
+                  className={`h-11 rounded-2xl bg-gray-200 animate-pulse ${
+                    i % 2 === 0 ? 'w-[70%]' : 'w-[50%]'
+                  }`}
+                />
+              </div>
+            ))}
+            <div className="flex justify-center pt-4">
+              <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
@@ -400,7 +395,7 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
                             : 'bg-white text-gray-900 border border-gray-200'
                         }`}
                       >
-                        <p className="text-sm break-words">{message.text}</p>
+                        <p className="text-sm break-words">{message.text ?? ''}</p>
                       </div>
                       <p className={`text-xs text-gray-400 mt-1 px-2 ${isOwn ? 'text-right' : 'text-left'}`}>
                         {formatTime(message.createdAt)}
@@ -416,24 +411,35 @@ export default function CompleteChat({ conversationId, otherParticipant, onBack 
       </div>
 
       {/* INPUT */}
-      <form onSubmit={handleSendMessage} className="p-4 border-t bg-white flex-shrink-0">
-        <div className="flex items-center space-x-2">
+      <form
+        onSubmit={handleSendMessage}
+        className={`shrink-0 p-4 border-t bg-white hc-native-chat-composer ${
+          nativeMounted ? 'hc-native-chat-composer-native' : ''
+        }`}
+      >
+        <div className="flex items-end gap-2">
           <input
             type="text"
+            enterKeyHint="send"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={t('common.typeMessage')}
             disabled={isSending || !currentUserId}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={`flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
+              nativeMounted ? 'text-base py-3.5' : ''
+            }`}
             autoComplete="off"
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || isSending || !currentUserId}
-            className="px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
+            className={`shrink-0 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center ${
+              nativeMounted ? 'min-h-[48px] min-w-[48px] px-5' : 'px-6 py-3'
+            }`}
+            aria-label={t('common.send')}
           >
             {isSending ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />
             )}

@@ -1395,6 +1395,8 @@
     "sendMessage": "Verstuur bericht",
     "sending": "Verzenden...",
     "messageSent": "Bericht verzonden! Je kunt het gesprek bekijken in je berichten.",
+    "messageSentConfirm": "Bericht verzonden",
+    "openConversation": "Open gesprek",
     "startChatWith": "Start chat met {name}",
     "quickMessages": "Snelle berichten",
     "quickMessagesHint": "(klik = direct verzenden)",

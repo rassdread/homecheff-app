@@ -10,6 +10,7 @@ import TourTrigger from '@/components/onboarding/TourTrigger';
 import InfoIcon from '@/components/onboarding/InfoIcon';
 import { getHintsForPage } from '@/lib/onboarding/hints';
 import OrdersTab from '@/components/notifications/OrdersTab';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 interface Conversation {
   id: string;
@@ -81,6 +82,7 @@ interface Notification {
 }
 
 function MessagesPageContent() {
+  const nativeMounted = useIsNativeAppMounted();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'conversations' | 'notifications' | 'orders'>('conversations');
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -178,7 +180,9 @@ function MessagesPageContent() {
   }, [searchParams]);
 
   return (
-    <main className="h-screen bg-gray-50 flex flex-col">
+    <main
+      className={`h-screen bg-gray-50 flex flex-col ${nativeMounted ? 'hc-native-messages-page' : ''}`}
+    >
       {/* Onboarding Tour */}
       <OnboardingTour pageId="messages" autoStart={false} />
       
@@ -251,7 +255,9 @@ function MessagesPageContent() {
       </header>
       
       {/* Main Content - WhatsApp-like layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div
+        className={`flex-1 flex overflow-hidden min-h-0 ${nativeMounted ? 'hc-native-chat-shell' : ''}`}
+      >
         {activeTab === 'conversations' ? (
           <>
             {/* Conversations List - Left Side */}
@@ -430,7 +436,26 @@ function MessagesPageContent() {
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="h-screen bg-gray-50 flex flex-col">
+          <div className="h-16 border-b bg-white animate-pulse" />
+          <div className="flex-1 flex min-h-0">
+            <div className="w-full max-w-sm border-r bg-white p-4 space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex gap-3 animate-pulse">
+                  <div className="h-12 w-12 rounded-full bg-gray-200" />
+                  <div className="flex-1 space-y-2 pt-1">
+                    <div className="h-3 w-2/3 rounded bg-gray-200" />
+                    <div className="h-3 w-full rounded bg-gray-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      }
+    >
       <MessagesPageContent />
     </Suspense>
   );

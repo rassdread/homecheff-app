@@ -3,11 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { MessageCircle, Clock, CheckCheck, Package, User as UserIcon } from 'lucide-react';
+import { MessageCircle, CheckCheck, Package, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  readConversationsListCache,
+  writeConversationsListCache,
+} from '@/lib/chat/sessionChatCache';
 
 interface Conversation {
   id: string;
@@ -72,8 +76,9 @@ interface ConversationsListProps {
 
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const { t } = useTranslation();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const cachedInitial = readConversationsListCache<Conversation>();
+  const [conversations, setConversations] = useState<Conversation[]>(cachedInitial);
+  const [isLoading, setIsLoading] = useState(() => cachedInitial.length === 0);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -83,7 +88,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const loadConversations = async () => {
     try {
-      setIsLoading(true);
+      if (conversations.length === 0) setIsLoading(true);
 
       const response = await fetch('/api/conversations-fast', {
         cache: 'no-store',
@@ -112,7 +117,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         }
         
         const fallbackData = await fallbackResponse.json();
-        setConversations(fallbackData.conversations || []);
+        const list = fallbackData.conversations || [];
+        setConversations(list);
+        writeConversationsListCache(list);
         setIsLoading(false);
         return;
       }
@@ -120,6 +127,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const { conversations: fetchedConversations } = await response.json();
 
       setConversations(fetchedConversations);
+      writeConversationsListCache(fetchedConversations);
     } catch (error) {
       console.error('[ConversationsList] ❌ Critical error:', error);
     } finally {
@@ -226,10 +234,21 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     }
   };
 
-  if (isLoading) {
+  if (isLoading && conversations.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">{t('messages.loadingConversations')}</div>
+      <div className="p-4 space-y-3 animate-pulse" aria-busy>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex gap-3 py-3 border-b border-gray-100">
+            <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-2/5" />
+              <div className="h-3 bg-gray-100 rounded w-full" />
+            </div>
+          </div>
+        ))}
+        <p className="text-center text-sm text-gray-500 pt-2">
+          {t('messages.loadingConversations')}
+        </p>
       </div>
     );
   }
