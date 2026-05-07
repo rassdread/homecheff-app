@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
@@ -13,7 +13,7 @@ import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
-import { clearAllUserData, validateAndCleanSession, setupSessionIsolation, clearNextAuthData } from '@/lib/session-cleanup';
+import { validateAndCleanSession, setupSessionIsolation, performLogout } from '@/lib/session-cleanup';
 import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -195,14 +195,11 @@ export default function NavBar() {
   };
 
   const handleLogout = async () => {
-    // Lokale data weg. HttpOnly session-cookies kan JS niet wissen — alleen signOut-response wel.
-    clearAllUserData();
-    try {
-      await signOut({ callbackUrl: '/', redirect: true });
-    } catch {
-      clearNextAuthData();
-      window.location.assign('/');
-    }
+    // performLogout() doet: lokale cleanup → POST /api/auth/force-logout (wist alle cookie-varianten
+    // server-side, incl. host-only, .homecheff.eu, __Secure-/__Host- prefixes en chunked .0/.1) →
+    // NextAuth signOut zonder redirect → hard navigation. Dit lost het Safari-probleem op waarbij
+    // het oude sessie-cookie bleef staan na een gewone signOut.
+    await performLogout('/');
   };
 
   const handleVerdienenClick = () => {

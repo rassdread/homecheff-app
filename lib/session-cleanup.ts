@@ -245,3 +245,65 @@ export function setupSessionIsolation(): void {
 
 // Import cart cleanup function
 import { clearAllCartData } from './cart';
+
+/**
+ * Voer een betrouwbare logout uit, ook op Safari/iPhone.
+ *
+ * Probleem dat dit oplost: NextAuth's `signOut` wist het sessie-cookie via één Set-Cookie response;
+ * als de attributen niet exact matchen met de manier waarop het cookie ooit werd gezet (bijv.
+ * host-only vs `Domain=.homecheff.eu`, of `__Secure-` prefix verschillen na een config-wijziging)
+ * laat Safari het oude cookie staan. Resultaat: na "uitloggen" is de gebruiker direct weer ingelogd.
+ *
+ * Werking:
+ * 1. Lokale data weg (localStorage / sessionStorage / caches / IndexedDB).
+ * 2. Hard server-call naar `/api/auth/force-logout` die alle cookie-varianten met expliciete
+ *    `Set-Cookie` headers wist (host-only én `.homecheff.eu`, met/zonder `__Secure-`/`__Host-`).
+ * 3. NextAuth's eigen signOut zonder redirect (best-effort) zodat de client-side session-cache
+ *    direct leeg is en `useSession()` 'unauthenticated' wordt.
+ * 4. Hard navigation (`window.location.assign`) zodat React/SSR opnieuw begint zonder gestale
+ *    session-state of memoized auth-tokens.
+ */
+export async function performLogout(target: string = '/'): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  // Lokale data direct weg.
+  try {
+    clearAllUserData();
+  } catch {
+    /* never block logout on cleanup errors */
+  }
+
+  // 1) Server-side cookie-purge (HttpOnly cookies kun je alleen server-side wissen).
+  try {
+    await fetch('/api/auth/force-logout', {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch {
+    /* netwerkfout: doorgaan, signOut hieronder probeert het ook */
+  }
+
+  // 2) Best-effort NextAuth signOut zonder redirect (synchroniseert client-side session-state).
+  try {
+    const { signOut } = await import('next-auth/react');
+    await signOut({ redirect: false });
+  } catch {
+    /* signOut mag falen — server-call hierboven heeft de cookies al gewist */
+  }
+
+  // 3) Belt-and-braces: extra non-HttpOnly cookie-namen (CSRF/callback) lokaal overschrijven.
+  try {
+    clearNextAuthData();
+  } catch {
+    /* ignore */
+  }
+
+  // 4) Hard navigation: forceer een verse pagina-load zonder gestale React-state.
+  try {
+    window.location.assign(target);
+  } catch {
+    window.location.href = target;
+  }
+}
