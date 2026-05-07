@@ -1,6 +1,7 @@
 "use client";
 
 import { isNativeApp } from "@/lib/native/capacitor";
+import { setCachedPushRegistrationId } from "@/lib/native/pushRegistrationCache";
 import { maskPushTokenForLogs } from "@/lib/pushTokenValidation";
 
 export type PushTokenServerResult =
@@ -28,6 +29,7 @@ export async function registerFcmTokenWithServer(
     if (res.status === 401) return "unauthorized";
     if (res.status === 400) return "bad_request";
     if (!res.ok) return "error";
+    setCachedPushRegistrationId(token);
     if (process.env.NODE_ENV === "development") {
       console.info(
         "[HomeCheff push] server register OK",

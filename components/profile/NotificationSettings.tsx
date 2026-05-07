@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Bell, Mail, Smartphone, MessageSquare, Clock, ToggleLeft, ToggleRight, Save, Loader2, HelpCircle, X } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
+import NativePushManageSection from '@/components/native/NativePushManageSection';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 interface NotificationSettingsProps {
   onUpdateSettings: (settings: any) => Promise<void>;
 }
 
 export default function NotificationSettings({ onUpdateSettings }: NotificationSettingsProps) {
+  const nativeMounted = useIsNativeAppMounted();
   const { t } = useTranslation();
   const [settings, setSettings] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -140,6 +143,10 @@ export default function NotificationSettings({ onUpdateSettings }: NotificationS
 
       {/* Help & Uitleg - BOVENAAN */}
       <HelpSettings />
+
+      {nativeMounted ? (
+        <NativePushManageSection onRegistered={() => void loadSettings()} />
+      ) : null}
 
       {/* Email Notifications */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">

@@ -3299,6 +3299,21 @@
     "securityAlertsSms": "SMS bij beveiligingsgerelateerde gebeurtenissen",
     "enableQuietHoursDescription": "Schakel notificaties uit tijdens specifieke uren"
   },
+  "nativePush": {
+    "introTitle": "Meldingen op dit apparaat",
+    "introBody": "Wil je meldingen ontvangen voor nieuwe berichten en bestellingen? Je ziet zo het systeemvenster om dit toe te staan.",
+    "turnOn": "Meldingen aanzetten",
+    "later": "Later",
+    "registerError": "Push registreren lukt niet. Controleer internet en probeer opnieuw via Instellingen.",
+    "manageTitle": "Meldingen beheren (apparaat)",
+    "deviceStatus": "Status op dit apparaat:",
+    "manageHint": "Dit is de systeemtoestemming voor meldingen op dit apparaat. Je voorkeuren hieronder (e-mail, push-kanalen, chat) gelden op je account zodra het apparaat meldingen mag sturen.",
+    "statusAllowed": "Toegestaan",
+    "statusDenied": "Geweigerd",
+    "statusPrompt": "Nog niet gevraagd",
+    "openAndroidSettings": "Open Android app-instellingen",
+    "openIosHint": "Schakel meldingen in via Instellingen → Meldingen → HomeCheff op je iPhone."
+  },
   "settingsMenu": {
     "profileDescription": "Persoonlijke informatie en profielfoto",
     "accountDescription": "Wachtwoord, email en beveiliging",

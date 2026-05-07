@@ -50,6 +50,22 @@ export function maskPushTokenForDisplay(token: string): string {
  * Vraagt POST_NOTIFICATIONS (Android 13+) / iOS-equivalent via Capacitor.
  * Geeft `{ granted: true }` als `receive === 'granted'`.
  */
+export type NativeOsPushPermission = "granted" | "denied" | "prompt";
+
+export async function getNativePushPermissionState(): Promise<NativeOsPushPermission> {
+  if (!isPushAvailable()) {
+    return "prompt";
+  }
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+  const perm = await PushNotifications.checkPermissions();
+  const receive = String(
+    (perm as { receive?: string }).receive ?? "prompt"
+  );
+  if (receive === "granted") return "granted";
+  if (receive === "denied") return "denied";
+  return "prompt";
+}
+
 export async function requestNativePushPermission(): Promise<{
   granted: boolean;
   receive: string;

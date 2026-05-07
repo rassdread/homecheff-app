@@ -255,6 +255,11 @@ function LoginForm() {
       // iOS Safari (ook als WebView): blijf bij location.replace (cookie-timing).
       if (isNativeApp() && !isSafariOnIOS) {
         try {
+          sessionStorage.setItem("hc_npush_gate", "1");
+        } catch {
+          /* ignore */
+        }
+        try {
           router.refresh();
         } catch {
           /* ignore */
@@ -263,6 +268,13 @@ function LoginForm() {
         return;
       }
       if (isSafariOnIOS || isIOSDevice) {
+        if (isNativeApp()) {
+          try {
+            sessionStorage.setItem("hc_npush_gate", "1");
+          } catch {
+            /* ignore */
+          }
+        }
         window.location.replace(finalRedirectUrl);
       } else {
         window.location.href = finalRedirectUrl;

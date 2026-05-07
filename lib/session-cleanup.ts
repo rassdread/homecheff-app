@@ -266,6 +266,16 @@ import { clearAllCartData } from './cart';
 export async function performLogout(target: string = '/'): Promise<void> {
   if (typeof window === 'undefined') return;
 
+  // Push-token server-side deactiveren zolang sessie-cookies nog geldig zijn.
+  try {
+    const { unregisterNativePushTokenBeforeLogout } = await import(
+      '@/lib/native/pushLogout'
+    );
+    await unregisterNativePushTokenBeforeLogout();
+  } catch {
+    /* ignore */
+  }
+
   // Lokale data direct weg.
   try {
     clearAllUserData();

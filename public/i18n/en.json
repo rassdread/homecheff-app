@@ -4453,6 +4453,21 @@
     "securityAlertsSms": "SMS for security-related events",
     "enableQuietHoursDescription": "Disable notifications during specific hours"
   },
+  "nativePush": {
+    "introTitle": "Notifications on this device",
+    "introBody": "Would you like notifications for new messages and orders? Next you’ll see the system prompt to allow them.",
+    "turnOn": "Turn on notifications",
+    "later": "Not now",
+    "registerError": "Could not register push. Check your connection and try again from Settings.",
+    "manageTitle": "Manage notifications (device)",
+    "deviceStatus": "Status on this device:",
+    "manageHint": "This is the system notification permission on this device. Your preferences below (email, push channels, chat) apply to your account once the device allows notifications.",
+    "statusAllowed": "Allowed",
+    "statusDenied": "Denied",
+    "statusPrompt": "Not asked yet",
+    "openAndroidSettings": "Open Android app settings",
+    "openIosHint": "Turn on notifications in Settings → Notifications → HomeCheff on your iPhone."
+  },
   "settingsMenu": {
     "profileDescription": "Personal information and profile photo",
     "accountDescription": "Password, email and security",
