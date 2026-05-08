@@ -65,15 +65,22 @@ function ThreadSkeleton() {
 export default function ConversationPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const conversationId = params?.conversationId as string;
 
   useEffect(() => {
-    if (!session?.user) {
-      router.push('/api/auth/signin');
+    if (!conversationId) {
+      return;
+    }
+    if (sessionStatus === 'loading') {
+      return;
+    }
+    if (sessionStatus === 'unauthenticated' || !session?.user) {
+      const back = `/messages/${encodeURIComponent(conversationId)}/`;
+      router.push(`/login?callbackUrl=${encodeURIComponent(back)}`);
       return;
     }
 
@@ -111,7 +118,7 @@ export default function ConversationPage() {
     return () => {
       cancelled = true;
     };
-  }, [conversationId, session, router]);
+  }, [conversationId, session, sessionStatus, router]);
 
   const handleBackToList = () => {
     router.push('/messages');

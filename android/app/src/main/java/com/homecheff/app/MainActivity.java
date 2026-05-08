@@ -1,5 +1,7 @@
 package com.homecheff.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
@@ -24,8 +26,38 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        ensureChatNotificationChannel();
         applyLightSystemChrome();
         tintWebViewShellWhite();
+    }
+
+    /** FCM / Capacitor: kanaal voor chat (Android 8+). */
+    private void ensureChatNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        try {
+            NotificationChannel channel =
+                new NotificationChannel(
+                    "chat_messages",
+                    "Berichten",
+                    NotificationManager.IMPORTANCE_HIGH
+                );
+            channel.setDescription("Chatberichten van HomeCheff");
+            channel.enableVibration(true);
+            channel.setSound(
+                android.media.RingtoneManager.getDefaultUri(
+                    android.media.RingtoneManager.TYPE_NOTIFICATION
+                ),
+                null
+            );
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) {
+                nm.createNotificationChannel(channel);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Notification channel chat_messages", e);
+        }
     }
 
     @Override

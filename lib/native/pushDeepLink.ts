@@ -22,6 +22,16 @@ export function pathFromPushNotificationData(
 ): string | null {
   const d = readDataRecord(data);
 
+  const t = typeof d.type === "string" ? d.type.toLowerCase() : "";
+  if (t === "chat" || t === "new_message" || t === "message_received") {
+    const cid =
+      typeof d.conversationId === "string" ? d.conversationId : null;
+    if (cid && /^[a-zA-Z0-9_-]{6,}$/.test(cid)) {
+      const p = `/messages/${cid}`;
+      if (isSafeRestorablePath(p)) return toTrailingSlashPath(p);
+    }
+  }
+
   const direct =
     typeof d.path === "string"
       ? d.path

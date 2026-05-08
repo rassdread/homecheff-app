@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { pusherServer } from '@/lib/pusher';
+import { NotificationService } from '@/lib/notifications/notification-service';
+import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,6 +92,35 @@ export async function POST(
     } catch (pusherError) {
       console.error('Pusher error:', pusherError);
       // Don't fail the request
+    }
+
+    try {
+      const otherParticipants = await prisma.conversationParticipant.findMany({
+        where: {
+          conversationId,
+          userId: { not: user.id },
+        },
+        select: { userId: true },
+      });
+      const previewBase = text.trim().slice(0, 100);
+      const preview = stripReferralNoise(previewBase, 'Nieuw bericht');
+      for (const participant of otherParticipants) {
+        try {
+          await NotificationService.sendChatNotification(
+            participant.userId,
+            user.id,
+            preview,
+            conversationId
+          );
+        } catch (notifError) {
+          console.error(
+            `[Notifications] quick route failed for ${participant.userId}:`,
+            notifError
+          );
+        }
+      }
+    } catch (notifError) {
+      console.error('[Notifications] quick route:', notifError);
     }
 
     return NextResponse.json({ message });

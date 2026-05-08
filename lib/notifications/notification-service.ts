@@ -12,6 +12,12 @@
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
 import type { NotificationType } from '@prisma/client';
+import { getFirebaseMessaging } from '@/lib/firebase/admin';
+import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+import {
+  isValidFcmTokenShape,
+  maskPushTokenForLogs,
+} from '@/lib/pushTokenValidation';
 
 /** Alleen waarden uit Prisma `NotificationType` — voorkomt mislukte DB-writes bij bestel-/bezorgmeldingen. */
 function mapDataTypeToPrismaNotificationType(dataType: string | undefined): NotificationType {
@@ -285,13 +291,15 @@ export class NotificationService {
       }
     }
 
-    // 4. Mobile Push (FCM) - Future implementation
-    if (pushTokens.length > 0) {
-      for (const token of pushTokens) {
-        if (token.type === 'FCM') {
-          // TODO: Implement Firebase Cloud Messaging when mobile app is ready
-          // await this.sendFCMNotification(token.token, message);
-        }
+    // 4. Mobile push (FCM) — alleen chat, zelfde gate als Pusher; faalt nooit de hele send().
+    if (channels.includes('push') && pushEnabled && pushTokens.length > 0) {
+      try {
+        await this.sendFcmNotificationsForMessage(pushTokens, message);
+      } catch (e) {
+        console.error(
+          '[FCM] Onverwachte fout:',
+          e instanceof Error ? e.message : e
+        );
       }
     }
 
@@ -608,6 +616,129 @@ export class NotificationService {
   }
 
   /**
+   * Truncate voor FCM notification body (geen lange / gevoelige tekst).
+   */
+  private static truncateFcmVisibleText(s: string, max: number): string {
+    const t = s.replace(/\s+/g, ' ').trim();
+    if (t.length <= max) return t;
+    return `${t.slice(0, Math.max(0, max - 1))}…`;
+  }
+
+  private static fcmErrorCode(err: unknown): string {
+    if (err && typeof err === 'object') {
+      const o = err as { code?: string; errorInfo?: { code?: string } };
+      if (typeof o.code === 'string') return o.code;
+      if (typeof o.errorInfo?.code === 'string') return o.errorInfo.code;
+    }
+    return '';
+  }
+
+  private static async deactivateFcmToken(token: string): Promise<void> {
+    try {
+      await prisma.$executeRaw`
+        UPDATE "PushToken" 
+        SET "isActive" = false, "updatedAt" = ${new Date()} 
+        WHERE "token" = ${token}
+      `;
+    } catch {
+      console.warn(
+        '[FCM] Kon token niet deactiveren',
+        maskPushTokenForLogs(token)
+      );
+    }
+  }
+
+  /**
+   * FCM alleen voor chat (NEW_MESSAGE / MESSAGE_RECEIVED). Android + actieve FCM-tokens.
+   */
+  private static async sendFcmNotificationsForMessage(
+    pushTokens: any[],
+    message: NotificationMessage
+  ): Promise<void> {
+    const dataType = message.data?.type as string | undefined;
+    const isChat =
+      dataType === 'NEW_MESSAGE' || dataType === 'MESSAGE_RECEIVED';
+    if (!isChat) return;
+
+    const conversationId = message.data?.conversationId;
+    if (!conversationId || typeof conversationId !== 'string') {
+      console.warn('[FCM] Chatmelding zonder conversationId — overgeslagen');
+      return;
+    }
+
+    const messaging = getFirebaseMessaging();
+    if (!messaging) return;
+
+    const notificationTitle = 'Nieuw bericht';
+    const notificationBody = this.truncateFcmVisibleText(
+      stripReferralNoise(
+        message.body || 'Je hebt een nieuw bericht op HomeCheff',
+        'Je hebt een nieuw bericht op HomeCheff'
+      ),
+      160
+    );
+
+    const data: Record<string, string> = {
+      type: 'chat',
+      conversationId: String(conversationId),
+      route: `/messages/${conversationId}/`,
+    };
+    const senderId = message.data?.senderId;
+    if (senderId && typeof senderId === 'string') {
+      data.senderId = senderId;
+    }
+
+    for (const row of pushTokens) {
+      if (row?.type !== 'FCM' || row?.isActive !== true) continue;
+      const platform = String(row.platform || '').toLowerCase();
+      if (platform !== 'android') continue;
+
+      const token = row.token as string;
+      if (!isValidFcmTokenShape(token)) continue;
+
+      try {
+        await messaging.send({
+          token,
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+          },
+          data,
+          android: {
+            priority: 'high',
+            notification: {
+              channelId: 'chat_messages',
+              sound: 'default',
+            },
+          },
+        });
+      } catch (err: unknown) {
+        const code = this.fcmErrorCode(err);
+        const msg = err instanceof Error ? err.message : String(err);
+        const invalid =
+          code.includes('registration-token-not-registered') ||
+          code.includes('invalid-registration-token') ||
+          code === 'messaging/invalid-argument' ||
+          msg.includes('registration-token-not-registered') ||
+          msg.includes('Requested entity was not found');
+
+        if (invalid) {
+          await this.deactivateFcmToken(token);
+          console.info(
+            '[FCM] Token gedeactiveerd (ongeldig/niet geregistreerd)',
+            maskPushTokenForLogs(token)
+          );
+        } else {
+          console.warn(
+            '[FCM] Verzenden mislukt:',
+            code || this.truncateFcmVisibleText(msg, 120)
+          );
+        }
+      }
+    }
+  }
+
+  /**
    * Send chat message notification
    */
   static async sendChatNotification(
@@ -616,6 +747,10 @@ export class NotificationService {
     messagePreview: string,
     conversationId: string
   ): Promise<void> {
+    if (recipientId === senderId) {
+      return;
+    }
+
     // Get recipient's notification preferences
     const preferences = await prisma.$queryRaw<any[]>`
       SELECT * FROM "NotificationPreferences" 
@@ -634,15 +769,24 @@ export class NotificationService {
     });
 
     const senderName = sender?.name || sender?.username || 'Iemand';
-    
+    const usePreview = preferences?.chatNotificationPreview !== false;
+    const clipped = (messagePreview || '').slice(0, 100);
+    const body = usePreview
+      ? this.truncateFcmVisibleText(
+          stripReferralNoise(clipped, 'Nieuw bericht'),
+          120
+        )
+      : 'Je hebt een nieuw bericht op HomeCheff';
+
     const message: NotificationMessage = {
       title: `💬 Nieuw bericht van ${senderName}`,
-      body: preferences?.chatNotificationPreview ? messagePreview : 'Je hebt een nieuw bericht ontvangen',
+      body,
       data: {
         type: 'NEW_MESSAGE',
         conversationId,
         senderId,
-        actionUrl: `/messages?conversation=${conversationId}`
+        actionUrl: `/messages/${conversationId}/`,
+        route: `/messages/${conversationId}/`,
       },
       actions: [
         { label: 'Bekijk bericht', action: 'VIEW_MESSAGE' },
