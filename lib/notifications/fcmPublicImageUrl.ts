@@ -5,6 +5,8 @@ const MAX_URL_LEN = 2048;
 /**
  * Normaliseert een afbeeldings-URL voor FCM: alleen publieke HTTPS (geen data:/blob:/file:,
  * geen http). Relatieve paden worden tegen MAIN_DOMAIN gezet.
+ * HTTP wordt naar HTTPS gezet voor niet-local hosts (o.a. oude OAuth-avatar-URL's).
+ * Paden zonder leading slash (bv. `uploads/profile/x`) worden ook resolved.
  */
 export function resolveHttpsPublicImageUrlForFcm(
   raw: string | null | undefined
@@ -23,19 +25,39 @@ export function resolveHttpsPublicImageUrlForFcm(
   }
 
   let href: string;
+
   if (u.startsWith('//')) {
     href = `https:${u}`;
+  } else if (u.startsWith('https://')) {
+    href = u;
+  } else if (u.startsWith('http://')) {
+    try {
+      const p = new URL(u);
+      if (
+        p.hostname === 'localhost' ||
+        p.hostname === '127.0.0.1' ||
+        p.hostname.endsWith('.local')
+      ) {
+        return null;
+      }
+      p.protocol = 'https:';
+      href = p.href;
+    } catch {
+      return null;
+    }
   } else if (u.startsWith('/')) {
     try {
       href = new URL(u, MAIN_DOMAIN).href;
     } catch {
       return null;
     }
-  } else if (u.startsWith('https://')) {
-    href = u;
   } else {
-    // http://, relative zonder leading slash, etc. — niet naar FCM
-    return null;
+    try {
+      const path = `/${u.replace(/^\/+/, '')}`;
+      href = new URL(path, MAIN_DOMAIN).href;
+    } catch {
+      return null;
+    }
   }
 
   try {
