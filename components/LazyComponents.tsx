@@ -2,7 +2,7 @@
 
 import { lazy, Suspense } from 'react';
 
-// Lazy load zware components
+/** Lazy chat-onderdelen — geen actieve import gevonden buiten dit bestand; bron blijft ConversationsList + ChatBox. */
 export const LazyCompleteChat = lazy(() => import('./chat/CompleteChat'));
 export const LazyConversationsList = lazy(() => import('./chat/ConversationsList'));
 export const LazyUserManagement = lazy(() => import('./admin/UserManagement'));

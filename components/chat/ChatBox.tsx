@@ -4,11 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Send, Loader2, Circle, Trash2, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
 import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
+import { mergeServerChatMessages } from '@/lib/chat/mergeServerChatMessages';
 import {
   readMessagesCache,
   writeMessagesCache,
@@ -109,16 +111,18 @@ export default function ChatBox({
             writeMessagesCache(conversationId, newMessages, currentUserId);
           } else {
             setMessages((prev) => {
-              const existingIds = new Set(prev.map((m) => m.id));
-              const newUniqueMessages = newMessages.filter(
-                (m: ChatThreadMessage) => !existingIds.has(m.id)
-              );
-              if (newUniqueMessages.length === 0) return prev;
-              const merged = [...prev, ...newUniqueMessages].sort(
-                (a, b) =>
-                  new Date(a.createdAt).getTime() -
-                  new Date(b.createdAt).getTime()
-              );
+              const merged = mergeServerChatMessages(prev, newMessages);
+              if (
+                merged.length === prev.length &&
+                merged.every(
+                  (m, i) =>
+                    m.id === prev[i]?.id &&
+                    m.readAt === prev[i]?.readAt &&
+                    m.deliveredAt === prev[i]?.deliveredAt
+                )
+              ) {
+                return prev;
+              }
               writeMessagesCache(conversationId, merged, currentUserId);
               return merged;
             });
@@ -137,8 +141,16 @@ export default function ChatBox({
           if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json();
             const list = fallbackData.messages || [];
-            setMessages(list);
-            writeMessagesCache(conversationId, list, currentUserId);
+            if (isInitialLoad) {
+              setMessages(list);
+              writeMessagesCache(conversationId, list, currentUserId);
+            } else {
+              setMessages((prev) => {
+                const merged = mergeServerChatMessages(prev, list);
+                writeMessagesCache(conversationId, merged, currentUserId);
+                return merged;
+              });
+            }
           }
           setIsLoading(false);
         }
@@ -147,7 +159,7 @@ export default function ChatBox({
         setIsLoading(false);
       }
     },
-    [conversationId, scrollToBottomSoon]
+    [conversationId, scrollToBottomSoon, currentUserId]
   );
 
   // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
@@ -403,6 +415,10 @@ export default function ChatBox({
     });
   };
 
+  const peerProfileHref = otherParticipant.username?.trim()
+    ? `/user/${encodeURIComponent(otherParticipant.username)}`
+    : null;
+
   const formatLastSeen = (date: string) => {
     const now = new Date();
     const lastSeen = new Date(date);
@@ -436,7 +452,7 @@ export default function ChatBox({
             <button
               type="button"
               onClick={onBack}
-              className={`inline-flex shrink-0 items-center gap-1 rounded-full p-2 hover:bg-gray-100 ${
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full p-2 min-h-[44px] min-w-[44px] justify-center hover:bg-gray-100 ${
                 nativeMounted ? '' : 'lg:hidden'
               }`}
               aria-label={t('messages.backToConversations')}
@@ -450,53 +466,110 @@ export default function ChatBox({
             </button>
           )}
 
-          {otherParticipant.profileImage ? (
-            <Image
-              src={otherParticipant.profileImage}
-              alt={getDisplayName(otherParticipant)}
-              width={40}
-              height={40}
-              className="rounded-full shrink-0"
-            />
-          ) : (
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white font-bold">
-                {getDisplayName(otherParticipant)[0].toUpperCase()}
-              </span>
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-gray-900 truncate">
-              {getDisplayName(otherParticipant)}
-            </h2>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {otherUserTyping ? (
-                <>
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
-                </>
+          {peerProfileHref ? (
+            <Link
+              href={peerProfileHref}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            >
+              {otherParticipant.profileImage ? (
+                <Image
+                  src={otherParticipant.profileImage}
+                  alt={getDisplayName(otherParticipant)}
+                  width={40}
+                  height={40}
+                  className="rounded-full shrink-0"
+                />
               ) : (
-                <>
-                  {isOnline !== undefined && (
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-white font-bold">
+                    {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-semibold text-gray-900 truncate">
+                  {getDisplayName(otherParticipant)}
+                </h2>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {otherUserTyping ? (
                     <>
-                      <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                      <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                        {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
-                      </span>
-                      {pusherConnected && (
-                        <span className="text-xs text-gray-400">• Live</span>
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
+                    </>
+                  ) : (
+                    <>
+                      {isOnline !== undefined && (
+                        <>
+                          <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                          <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                            {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
+                          </span>
+                          {pusherConnected && (
+                            <span className="text-xs text-gray-400">• Live</span>
+                          )}
+                        </>
                       )}
                     </>
                   )}
-                </>
+                </div>
+              </div>
+            </Link>
+          ) : (
+            <>
+              {otherParticipant.profileImage ? (
+                <Image
+                  src={otherParticipant.profileImage}
+                  alt={getDisplayName(otherParticipant)}
+                  width={40}
+                  height={40}
+                  className="rounded-full shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-white font-bold">
+                    {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
+                  </span>
+                </div>
               )}
-            </div>
-          </div>
+
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-semibold text-gray-900 truncate">
+                  {getDisplayName(otherParticipant)}
+                </h2>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {otherUserTyping ? (
+                    <>
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
+                    </>
+                  ) : (
+                    <>
+                      {isOnline !== undefined && (
+                        <>
+                          <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+                          <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                            {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
+                          </span>
+                          {pusherConnected && (
+                            <span className="text-xs text-gray-400">• Live</span>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {showConversationTools ? (

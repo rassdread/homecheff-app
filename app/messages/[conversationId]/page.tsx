@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ChatBox from '@/components/chat/ChatBox';
 import { useSession } from 'next-auth/react';
+import { Loader2 } from 'lucide-react';
 
 interface Conversation {
   id: string;
-  title: string;
+  title: string | null;
   product?: {
     id: string;
     title: string;
@@ -30,6 +31,37 @@ interface Conversation {
   createdAt: string;
 }
 
+function ThreadSkeleton() {
+  return (
+    <div className="flex h-screen flex-col bg-white">
+      <div className="flex items-center gap-3 border-b p-4 shadow-sm">
+        <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 overflow-hidden bg-gray-50 p-4">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+          >
+            <div
+              className={`h-11 animate-pulse rounded-2xl bg-gray-200 ${
+                i % 2 === 0 ? 'w-[72%]' : 'w-[55%]'
+              }`}
+            />
+          </div>
+        ))}
+        <div className="flex flex-1 items-center justify-center pt-4">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ConversationPage() {
   const params = useParams();
   const router = useRouter();
@@ -45,64 +77,70 @@ export default function ConversationPage() {
       return;
     }
 
-    loadConversation();
-  }, [conversationId, session]);
+    let cancelled = false;
 
-  const loadConversation = async () => {
-    try {
+    const load = async () => {
       setIsLoading(true);
-      const response = await fetch('/api/conversations');
-      
-      if (!response.ok) {
-        throw new Error('Failed to load conversations');
-      }
+      setConversation(null);
+      try {
+        const response = await fetch(`/api/conversations/${conversationId}`, {
+          cache: 'no-store',
+          credentials: 'include',
+        });
 
-      const { conversations } = await response.json();
-      const foundConversation = conversations.find((c: Conversation) => c.id === conversationId);
-      
-      if (foundConversation) {
-        setConversation(foundConversation);
-      } else {
-        // Conversation not found, redirect to messages
-        router.push('/messages');
+        if (!response.ok) {
+          if (!cancelled) router.push('/messages');
+          return;
+        }
+
+        const data = await response.json();
+        if (cancelled) return;
+        if (data.conversation) {
+          setConversation(data.conversation);
+        } else {
+          router.push('/messages');
+        }
+      } catch {
+        if (!cancelled) router.push('/messages');
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading conversation:', error);
-      router.push('/messages');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId, session, router]);
 
   const handleBackToList = () => {
     router.push('/messages');
   };
 
   if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-gray-500">Gesprek laden...</div>
-      </div>
-    );
+    return <ThreadSkeleton />;
   }
 
   if (!conversation) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-gray-500">Gesprek niet gevonden</div>
+      <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-600">
+        <p className="text-sm">Terug naar berichten…</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex h-screen min-h-0 flex-col">
       <ChatBox
+        key={conversation.id}
         conversationId={conversation.id}
         otherParticipant={{
           id: conversation.otherParticipant?.id || 'unknown',
           name: conversation.otherParticipant?.name || undefined,
           username: conversation.otherParticipant?.username || undefined,
-          profileImage: conversation.otherParticipant?.profileImage || undefined
+          profileImage: conversation.otherParticipant?.profileImage || undefined,
+          displayFullName: conversation.otherParticipant?.displayFullName ?? undefined,
+          displayNameOption: conversation.otherParticipant?.displayNameOption ?? undefined,
         }}
         onBack={handleBackToList}
       />

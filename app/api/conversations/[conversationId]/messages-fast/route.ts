@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma';
 
 // In-memory cache for messages (in production, use Redis)
 const messageCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 30000; // 30 seconds
+/** Kort: minder kans op stale thread vs. Pusher/poll (desktop ≈ app). */
+const CACHE_TTL = 5000;
 
 export async function GET(
   req: NextRequest,
@@ -33,7 +34,7 @@ export async function GET(
 
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       const response = NextResponse.json(cached.data);
-      response.headers.set('Cache-Control', 'private, max-age=30');
+      response.headers.set('Cache-Control', 'private, max-age=0');
       response.headers.set('X-Cache', 'HIT');
       return response;
     }
@@ -106,7 +107,7 @@ export async function GET(
     }
 
     const response = NextResponse.json(responseData);
-    response.headers.set('Cache-Control', 'private, max-age=30');
+    response.headers.set('Cache-Control', 'private, max-age=0');
     response.headers.set('X-Cache', 'MISS');
     
     return response;

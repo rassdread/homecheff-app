@@ -1,6 +1,5 @@
 /**
- * Legacy / niet meer in de app-shell gebruikt. Actieve gesprekkenlijst:
- * {@link ../chat/ConversationsList.tsx} (o.a. /messages, profiel-tab, MobileMessagesView).
+ * @deprecated Legacy — niet in actieve routes. Bron: {@link ../chat/ConversationsList.tsx} + {@link ../chat/ChatBox.tsx} (`/messages`).
  */
 'use client';
 

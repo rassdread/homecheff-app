@@ -12,6 +12,7 @@ import {
   readConversationsListCache,
   writeConversationsListCache,
 } from '@/lib/chat/sessionChatCache';
+import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 
 interface Conversation {
   id: string;
@@ -72,14 +73,6 @@ interface Conversation {
 interface ConversationsListProps {
   onSelectConversation: (conversation: Conversation) => void;
   onMessagesRead?: () => void;
-}
-
-/** Verwijdert referral/uitnodiging-ruis uit list-preview (geen links/chips voor referrals). */
-function sanitizeConversationPreviewText(text: string): string {
-  let s = text.replace(/\s+/g, ' ').trim();
-  s = s.replace(/\b(?:ref|referral|invite)[=:]\s*\S+/gi, '').trim();
-  s = s.replace(/https?:\/\/[^\s]*(?:ref|referral|invite|uitnodiging)[^\s]*/gi, '').trim();
-  return s.length > 0 ? s : 'Bericht';
 }
 
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
@@ -311,7 +304,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const prefix = getLastMessageSender(lm, session?.user);
     let body = getLastMessagePreview(lm);
     if (lm.messageType === 'TEXT' && lm.text) {
-      body = sanitizeConversationPreviewText(lm.text);
+      body = stripReferralNoise(lm.text, 'Bericht');
     }
     return `${prefix}${body}`;
   };
@@ -413,7 +406,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                 className="flex min-h-[48px] min-w-0 flex-1 touch-manipulation flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="truncate text-sm font-semibold text-gray-900">
+                  <span className="truncate text-sm font-medium text-gray-900">
                     {displayTitle(conversation)}
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">

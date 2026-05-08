@@ -1,3 +1,6 @@
+/**
+ * @deprecated Geen actieve import in app-routes; voor berichten: /messages met ConversationsList + ChatBox.
+ */
 'use client';
 
 import { useState, useEffect } from 'react';

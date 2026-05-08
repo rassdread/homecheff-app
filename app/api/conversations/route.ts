@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { loadConversationsForSessionUser } from '@/lib/chat/loadConversationsForSessionUser';
 
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });
@@ -18,127 +19,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        ConversationParticipant: {
-          where: {
-            isHidden: false  // Only fetch non-hidden conversations
-          },
-          select: {
-            Conversation: {
-              select: {
-                id: true,
-                title: true,
-                lastMessageAt: true,
-                isActive: true,
-                createdAt: true,
-                Product: {
-                  select: {
-                    id: true,
-                    title: true,
-                    priceCents: true,
-                    Image: {
-                      select: {
-                        fileUrl: true,
-                        sortOrder: true
-                      },
-                      take: 1,
-                      orderBy: { sortOrder: 'asc' }
-                    }
-                  }
-                },
-                Message: {
-                  take: 1,
-                  orderBy: { createdAt: 'desc' },
-                  select: {
-                    id: true,
-                    text: true,
-                    messageType: true,
-                    createdAt: true,
-                    readAt: true,
-                    senderId: true,
-                    User: {
-                      select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        profileImage: true,
-                        displayFullName: true,
-                        displayNameOption: true
-                      }
-                    }
-                  }
-                },
-                ConversationParticipant: {
-                  select: {
-                    userId: true,
-                    User: {
-                      select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        profileImage: true,
-                        displayFullName: true,
-                        displayNameOption: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!user) {
+    const result = await loadConversationsForSessionUser(session.user.email);
+    if (!result) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
-    // Transform conversations - show all conversations (including inactive ones that might have new messages)
-    const conversations = user.ConversationParticipant
-    // Remove filter to show all conversations, even inactive ones
-    .map(participant => {
-      const conversation = participant.Conversation;
-      
-      // Get other participants (exclude current user) with proper user data
-      const otherParticipants = conversation.ConversationParticipant
-        .filter(p => p.userId !== user.id)
-        .map(p => ({
-          id: p.User.id,
-          name: p.User.name,
-          username: p.User.username,
-          profileImage: p.User.profileImage,
-          displayFullName: p.User.displayFullName,
-          displayNameOption: p.User.displayNameOption
-        }));
-
-      // Get the first other participant (for 1-on-1 chats) with consistent data structure
-      const otherParticipant = otherParticipants[0] || null;
-
-      return {
-        id: conversation.id,
-        title: conversation.title || 
-               (conversation.Product ? conversation.Product.title : 
-               otherParticipant ? (otherParticipant.name || otherParticipant.username || 'Gesprek') : 'Nieuwe conversatie'),
-        product: conversation.Product,
-        lastMessage: conversation.Message[0] || null,
-        participants: otherParticipants,
-        otherParticipant: otherParticipant, // Add single other participant for easy access
-        lastMessageAt: conversation.lastMessageAt,
-        isActive: conversation.isActive,
-        createdAt: conversation.createdAt
-      };
-    })
-    .sort((a, b) => {
-      const aTime = a.lastMessageAt || a.createdAt;
-      const bTime = b.lastMessageAt || b.createdAt;
-      return new Date(bTime).getTime() - new Date(aTime).getTime();
-    });
-    return NextResponse.json({ conversations }, { headers: cors });
+    return NextResponse.json({ conversations: result.conversations }, { headers: cors });
 
   } catch (error) {
     console.error('[Conversations API] ❌ Critical error:', error);

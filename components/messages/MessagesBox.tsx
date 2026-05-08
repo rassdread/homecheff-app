@@ -1,3 +1,6 @@
+/**
+ * @deprecated Legacy UI — niet gebruikt in /messages. Gebruik {@link ../chat/ConversationsList} + {@link ../chat/ChatBox}.
+ */
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';

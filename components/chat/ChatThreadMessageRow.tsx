@@ -12,8 +12,46 @@ import {
   Info,
 } from "lucide-react";
 import { getDisplayName } from "@/lib/displayName";
-import type { ChatThreadMessage, ChatThreadMessageType } from "./chatThreadTypes";
+import type {
+  ChatThreadMessage,
+  ChatThreadMessageType,
+  ChatThreadUser,
+} from "./chatThreadTypes";
 import { isChatSystemOrOrderMessage } from "./chatThreadTypes";
+import { stripReferralNoise } from "@/lib/chat/stripReferralNoise";
+
+function PeerAvatarLink({ user }: { user: ChatThreadUser }) {
+  const href = user.username?.trim()
+    ? `/user/${encodeURIComponent(user.username)}`
+    : null;
+  const letter = (getDisplayName(user)[0] || "?").toUpperCase();
+  const inner = user.profileImage ? (
+    <Image
+      src={user.profileImage}
+      alt=""
+      width={28}
+      height={28}
+      className="h-7 w-7 shrink-0 rounded-full object-cover"
+    />
+  ) : (
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-700">
+      {letter}
+    </div>
+  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center self-end rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
+        aria-label={`Profiel: ${getDisplayName(user)}`}
+        scroll={false}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <span className="mb-0.5 flex shrink-0 self-end">{inner}</span>;
+}
 
 function systemLabel(mt: ChatThreadMessageType): string {
   switch (mt) {
@@ -90,7 +128,7 @@ export default function ChatThreadMessageRow({
             ) : null}
           </div>
           <p className="text-xs leading-snug whitespace-pre-wrap max-h-36 overflow-y-auto">
-            {msg.text ?? ""}
+            {msg.text ? stripReferralNoise(msg.text) : ""}
           </p>
           <p className="mt-1.5 text-[10px] opacity-60">{formatTime(msg.createdAt)}</p>
         </div>
@@ -120,7 +158,7 @@ export default function ChatThreadMessageRow({
             <p
               className={`text-sm px-2 ${isOwn ? "text-blue-100 text-right" : "text-gray-700"}`}
             >
-              {msg.text}
+              {stripReferralNoise(msg.text)}
             </p>
           ) : null}
           <div
@@ -147,7 +185,10 @@ export default function ChatThreadMessageRow({
 
   if (mt === "FILE" && msg.attachmentUrl) {
     return (
-      <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`flex gap-2 ${isOwn ? "justify-end" : "justify-start items-end"}`}
+      >
+        {!isOwn && <PeerAvatarLink user={msg.User} />}
         <div className="max-w-[85%] sm:max-w-[70%]">
           <div
             className={`rounded-2xl px-3 py-2 border ${
@@ -178,8 +219,15 @@ export default function ChatThreadMessageRow({
   }
 
   /* TEXT + PRODUCT_SHARE + default */
+  const displayText =
+    msg.text != null && msg.text !== ""
+      ? stripReferralNoise(msg.text)
+      : "";
   return (
-    <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex gap-2 ${isOwn ? "justify-end" : "justify-start items-end"}`}
+    >
+      {!isOwn && <PeerAvatarLink user={msg.User} />}
       <div className="max-w-[85%] sm:max-w-[70%]">
         <div
           className={`px-3.5 py-2 rounded-2xl break-words shadow-sm ${
@@ -197,7 +245,7 @@ export default function ChatThreadMessageRow({
               #{msg.orderNumber}
             </p>
           ) : null}
-          <p className="text-sm whitespace-pre-wrap leading-snug">{msg.text ?? ""}</p>
+          <p className="text-sm whitespace-pre-wrap leading-snug">{displayText}</p>
         </div>
         <div
           className={`flex items-center gap-1 mt-1 px-1 ${isOwn ? "justify-end" : "justify-start"}`}

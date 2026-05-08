@@ -1,3 +1,7 @@
+/**
+ * @deprecated Geen actieve import in app-routes; zelfde bouwstenen als /messages (ConversationsList + CompleteChat).
+ * Bewaard voor eventuele profiel-tab hergebruik.
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
