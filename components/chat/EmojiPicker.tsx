@@ -7,12 +7,23 @@ import dynamic from 'next/dynamic';
 import { Smile, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Categories } from 'emoji-picker-react';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPickerReact = dynamic(
   () => import('emoji-picker-react'),
   { ssr: false }
 );
+
+/** Geen suggested/recent (vaak leeg), geen custom stickers-tab, geen flags/dieren — alleen bruikbare groepen. */
+const STANDARD_EMOJI_PICKER_CATEGORIES = [
+  Categories.SMILEYS_PEOPLE,
+  Categories.FOOD_DRINK,
+  Categories.ACTIVITIES,
+  Categories.TRAVEL_PLACES,
+  Categories.OBJECTS,
+  Categories.SYMBOLS,
+] as const;
 
 interface EmojiPickerProps {
   onEmojiClick: (emoji: string) => void;
@@ -108,7 +119,6 @@ export default function EmojiPickerButton({ onEmojiClick, className = '', catego
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [detectedCategory, setDetectedCategory] = useState<'CHEFF' | 'GARDEN' | 'DESIGNER' | null>(null);
-  const pickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const sheetNarrow = useMediaQuery('(max-width: 1023px)');
   const [desktopGeom, setDesktopGeom] = useState<DesktopPanelGeom | null>(null);
@@ -415,12 +425,14 @@ export default function EmojiPickerButton({ onEmojiClick, className = '', catego
     <div className="flex min-h-0 min-w-0 flex-1 flex-col items-stretch overflow-hidden px-1 pb-2 pt-1">
       <EmojiPickerReact
         onEmojiClick={handleEmojiClick}
+        categories={[...STANDARD_EMOJI_PICKER_CATEGORIES]}
         skinTonesDisabled={false}
         searchDisabled={false}
         previewConfig={{ showPreview: true }}
         height={emojiLibSize.height}
         width={emojiLibSize.width}
         lazyLoadEmojis={true}
+        allowExpandReactions={false}
         emojiStyle={
           selectedTheme === 'native'
             ? 'native'
