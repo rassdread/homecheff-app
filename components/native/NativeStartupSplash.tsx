@@ -1,10 +1,9 @@
 'use client';
 
-import { useLayoutEffect, useEffect, useState, useRef } from 'react';
-import Image from 'next/image';
+import { useEffect, useState, useRef } from 'react';
 import { isNativeApp } from '@/lib/native/capacitor';
 
-const MIN_VISIBLE_MS = 850;
+const MIN_VISIBLE_MS = 700;
 const FADE_OUT_MS = 260;
 
 /**
@@ -12,11 +11,15 @@ const FADE_OUT_MS = 260;
  * Native Android splash mag wit blijven; deze overlay toont direct daarna het merkbeeld.
  */
 export default function NativeStartupSplash() {
-  const [isNative, setIsNative] = useState(false);
+  const [isNative, setIsNative] = useState(() => isNativeApp());
   const [phase, setPhase] = useState<'show' | 'fade' | 'gone'>('show');
   const startedRef = useRef(false);
+  const mountedAtRef = useRef<number>(0);
+  if (mountedAtRef.current === 0 && typeof performance !== 'undefined') {
+    mountedAtRef.current = performance.now();
+  }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setIsNative(isNativeApp());
   }, []);
 
@@ -24,7 +27,7 @@ export default function NativeStartupSplash() {
     if (!isNative || startedRef.current) return;
     startedRef.current = true;
     let cancelled = false;
-    const t0 = performance.now();
+    const t0 = mountedAtRef.current || performance.now();
     let hideTimer: ReturnType<typeof window.setTimeout> | undefined;
     let fadeTimer: ReturnType<typeof window.setTimeout> | undefined;
     let raf2 = 0;
@@ -67,13 +70,13 @@ export default function NativeStartupSplash() {
       aria-hidden
     >
       <div className="relative mx-auto h-[min(78vh,800px)] w-[min(92vw,420px)]">
-        <Image
+        <img
           src="/homecheff-native-splash.png"
           alt=""
-          fill
-          className="object-contain object-center"
-          priority
-          sizes="(max-width: 480px) 92vw, 420px"
+          className="h-full w-full object-contain object-center"
+          decoding="sync"
+          fetchPriority="high"
+          draggable={false}
         />
       </div>
     </div>

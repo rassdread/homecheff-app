@@ -179,6 +179,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={htmlLang} data-domain={MAIN_DOMAIN}>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){document.documentElement.classList.add('hc-native-capacitor');}}catch(e){}})();",
+          }}
+        />
+        <link rel="preload" as="image" href="/homecheff-native-splash.png" />
         <link
           rel="icon"
           href={`/favicon.ico${FAVICON_ASSET_Q}`}
