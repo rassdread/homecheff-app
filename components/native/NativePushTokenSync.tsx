@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { getNativeFcmTokenWhenAlreadyGranted } from "@/lib/native/push";
+import { waitUntilNativePushSyncHoldReleased } from "@/lib/native/pushIntroStorage";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 
 /**
@@ -27,6 +28,8 @@ export default function NativePushTokenSync() {
     let cancelled = false;
 
     const run = async () => {
+      await waitUntilNativePushSyncHoldReleased();
+      if (cancelled) return;
       const token = await getNativeFcmTokenWhenAlreadyGranted();
       if (cancelled || !token) return;
       void registerFcmTokenWithServer(token, "android");

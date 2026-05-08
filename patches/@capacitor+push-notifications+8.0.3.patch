@@ -1,0 +1,385 @@
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/results.bin b/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/transformed/classes/classes_dex/classes.dex b/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..8795b03
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/.transforms/12093be4cda3d7052c453597cc5eaa8b/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/results.bin b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/results.bin
+new file mode 100644
+index 0000000..7ed749e
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/results.bin
+@@ -0,0 +1 @@
++o/bundleLibRuntimeToDirDebug
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/MessagingService.dex b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/MessagingService.dex
+new file mode 100644
+index 0000000..770226f
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/MessagingService.dex differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.dex b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.dex
+new file mode 100644
+index 0000000..72f1f89
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.dex differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.dex b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.dex
+new file mode 100644
+index 0000000..14e84e2
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.dex differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin
+new file mode 100644
+index 0000000..601f245
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/.transforms/4905d566eedb4b8d455062e7cfc4b1df/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..4687197
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.capacitorjs.plugins.pushnotifications" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++    <application>
++        <service
++            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
++            android:exported="false" >
++            <intent-filter>
++                <action android:name="com.google.firebase.MESSAGING_EVENT" />
++            </intent-filter>
++        </service>
++    </application>
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json b/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..0ad2516
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.capacitorjs.plugins.pushnotifications",
++  "variantName": "debug",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar b/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar
+new file mode 100644
+index 0000000..d570eee
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json b/node_modules/@capacitor/push-notifications/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/annotations_typedef_file/debug/extractDebugAnnotations/typedefs.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/annotations_typedef_file/debug/extractDebugAnnotations/typedefs.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar b/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar
+new file mode 100644
+index 0000000..160bbe4
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
+new file mode 100644
+index 0000000..8e7aa35
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state
+new file mode 100644
+index 0000000..1c983fc
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+new file mode 100644
+index 0000000..4832cbe
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+@@ -0,0 +1 @@
++#Thu May 07 18:08:33 CEST 2026
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+new file mode 100644
+index 0000000..9822b1e
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/build/generated/res/resValues/debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/build/generated/res/resValues/debug"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugAssets/merger.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+new file mode 100644
+index 0000000..bff7ca1
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/assets"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/debug/assets"/></dataSet><dataSet config="generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/build/intermediates/shader_assets/debug/compileDebugShaders/out"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+new file mode 100644
+index 0000000..9d9ab17
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/jniLibs"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/debug/jniLibs"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugShaders/merger.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+new file mode 100644
+index 0000000..4d83b75
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/shaders"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/debug/shaders"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/MessagingService.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/MessagingService.class
+new file mode 100644
+index 0000000..860871d
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/MessagingService.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class
+new file mode 100644
+index 0000000..fe6c760
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class
+new file mode 100644
+index 0000000..be237b9
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+new file mode 100644
+index 0000000..78ac5b8
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+@@ -0,0 +1,2 @@
++R_DEF: Internal format may change without notice
++local
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+new file mode 100644
+index 0000000..545814c
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+@@ -0,0 +1,24 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.capacitorjs.plugins.pushnotifications" >
++4
++5    <uses-sdk android:minSdkVersion="24" />
++6
++7    <application>
++7-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:2:5-8:19
++8        <service
++8-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:9-7:19
++9            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
++9-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:18-91
++10            android:exported="false" >
++10-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:92-116
++11            <intent-filter>
++11-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:4:13-6:29
++12                <action android:name="com.google.firebase.MESSAGING_EVENT" />
++12-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:5:17-78
++12-->/Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:5:25-75
++13            </intent-filter>
++14        </service>
++15    </application>
++16
++17</manifest>
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-push-notifications.jar b/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-push-notifications.jar
+new file mode 100644
+index 0000000..15cb0ec
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-push-notifications.jar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml b/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..4687197
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.capacitorjs.plugins.pushnotifications" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++    <application>
++        <service
++            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
++            android:exported="false" >
++            <intent-filter>
++                <action android:name="com.google.firebase.MESSAGING_EVENT" />
++            </intent-filter>
++        </service>
++    </application>
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json b/node_modules/@capacitor/push-notifications/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/MessagingService.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/MessagingService.class
+new file mode 100644
+index 0000000..860871d
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/MessagingService.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class
+new file mode 100644
+index 0000000..fe6c760
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/NotificationChannelManager.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class
+new file mode 100644
+index 0000000..be237b9
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.class differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar
+new file mode 100644
+index 0000000..9c7c356
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/@capacitor/push-notifications/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..ee925ac
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+@@ -0,0 +1 @@
++com.capacitorjs.plugins.pushnotifications
+diff --git a/node_modules/@capacitor/push-notifications/android/build/outputs/aar/capacitor-push-notifications-debug.aar b/node_modules/@capacitor/push-notifications/android/build/outputs/aar/capacitor-push-notifications-debug.aar
+new file mode 100644
+index 0000000..0a1ba6e
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/outputs/aar/capacitor-push-notifications-debug.aar differ
+diff --git a/node_modules/@capacitor/push-notifications/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/@capacitor/push-notifications/android/build/outputs/logs/manifest-merger-debug-report.txt
+new file mode 100644
+index 0000000..21fd064
+--- /dev/null
++++ b/node_modules/@capacitor/push-notifications/android/build/outputs/logs/manifest-merger-debug-report.txt
+@@ -0,0 +1,30 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:1:1-9:12
++INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:1:1-9:12
++	package
++		INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:1:11-69
++application
++ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:2:5-8:19
++service#com.capacitorjs.plugins.pushnotifications.MessagingService
++ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:9-7:19
++	android:exported
++		ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:92-116
++	android:name
++		ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:3:18-91
++intent-filter#action:name:com.google.firebase.MESSAGING_EVENT
++ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:4:13-6:29
++action#com.google.firebase.MESSAGING_EVENT
++ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:5:17-78
++	android:name
++		ADDED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml:5:25-75
++uses-sdk
++INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml
++INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/sergioarrias/Homecheff-app git/node_modules/@capacitor/push-notifications/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/@capacitor/push-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin b/node_modules/@capacitor/push-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..8da00db
+Binary files /dev/null and b/node_modules/@capacitor/push-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin differ
+diff --git a/node_modules/@capacitor/push-notifications/android/src/main/java/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.java b/node_modules/@capacitor/push-notifications/android/src/main/java/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.java
+index f338f49..9b8b40c 100644
+--- a/node_modules/@capacitor/push-notifications/android/src/main/java/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.java
++++ b/node_modules/@capacitor/push-notifications/android/src/main/java/com/capacitorjs/plugins/pushnotifications/PushNotificationsPlugin.java
+@@ -15,6 +15,7 @@ import com.getcapacitor.*;
+ import com.getcapacitor.annotation.CapacitorPlugin;
+ import com.getcapacitor.annotation.Permission;
+ import com.getcapacitor.annotation.PermissionCallback;
++import com.google.firebase.FirebaseApp;
+ import com.google.firebase.messaging.CommonNotificationBuilder;
+ import com.google.firebase.messaging.FirebaseMessaging;
+ import com.google.firebase.messaging.NotificationParams;
+@@ -99,17 +100,32 @@ public class PushNotificationsPlugin extends Plugin {
+ 
+     @PluginMethod
+     public void register(PluginCall call) {
+-        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
+-        FirebaseMessaging.getInstance()
+-            .getToken()
+-            .addOnCompleteListener((task) -> {
+-                if (!task.isSuccessful()) {
+-                    sendError(task.getException().getLocalizedMessage());
+-                    return;
+-                }
+-                sendToken(task.getResult());
+-            });
+-        call.resolve();
++        try {
++            FirebaseApp.getInstance();
++        } catch (IllegalStateException e) {
++            Logger.warn(getLogTag(), "Firebase not initialized — add google-services.json for package " + getContext().getPackageName());
++            sendError("Firebase not configured (missing or invalid google-services.json)");
++            call.resolve();
++            return;
++        }
++        try {
++            FirebaseMessaging.getInstance().setAutoInitEnabled(true);
++            FirebaseMessaging.getInstance()
++                .getToken()
++                .addOnCompleteListener((task) -> {
++                    if (!task.isSuccessful()) {
++                        Exception ex = task.getException();
++                        sendError(ex != null ? ex.getLocalizedMessage() : "FCM getToken failed");
++                        return;
++                    }
++                    sendToken(task.getResult());
++                });
++            call.resolve();
++        } catch (Exception e) {
++            Logger.error(getLogTag(), "PushNotifications.register failed", e);
++            sendError(e.getLocalizedMessage() != null ? e.getLocalizedMessage() : "register failed");
++            call.resolve();
++        }
+     }
+ 
+     @PluginMethod

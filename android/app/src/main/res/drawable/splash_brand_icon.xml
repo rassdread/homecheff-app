@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 12+ SplashScreen API: achtergrond moet een effen kleur zijn (@android:color/white).
-  Het merkbeeld komt via windowSplashScreenAnimatedIcon (gemaskerd door het systeem).
-  Maximale aanbevolen icoon-oppervlak ~240dp; wit canvas + gecentreerde splash-bitmap.
+  Android 12+ SplashScreen API: animatedIcon wordt cirkelvormig gemaskerd.
+  Gebruik een vierkante merk-bitmap met ruime marge (splash_a12_safe_icon), NIET de portrait splash.png.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@android:color/white" />
     <item
-        android:width="240dp"
-        android:height="240dp"
+        android:width="180dp"
+        android:height="180dp"
         android:gravity="center">
         <bitmap
             android:gravity="center"
-            android:src="@drawable/splash" />
+            android:src="@drawable/splash_a12_safe_icon" />
     </item>
 </layer-list>

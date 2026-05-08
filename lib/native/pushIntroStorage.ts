@@ -40,3 +40,33 @@ export function markPushIntroFinished(userId: string): void {
     /* ignore */
   }
 }
+
+/** Voorkomt dat NativePushTokenSync parallel register() aanroept tijdens onboarding-flow. */
+const SYNC_HOLD_KEY = "hc_npush_sync_hold";
+
+export function setNativePushSyncHold(active: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (active) {
+      sessionStorage.setItem(SYNC_HOLD_KEY, "1");
+    } else {
+      sessionStorage.removeItem(SYNC_HOLD_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function waitUntilNativePushSyncHoldReleased(): Promise<void> {
+  if (typeof window === "undefined") return;
+  for (;;) {
+    try {
+      if (sessionStorage.getItem(SYNC_HOLD_KEY) !== "1") {
+        break;
+      }
+    } catch {
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 150));
+  }
+}

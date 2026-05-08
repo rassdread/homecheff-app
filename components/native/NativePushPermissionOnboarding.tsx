@@ -9,6 +9,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import {
   markPushIntroFinished,
+  setNativePushSyncHold,
   shouldOfferPushIntroAuto,
 } from "@/lib/native/pushIntroStorage";
 import {
@@ -144,6 +145,7 @@ export default function NativePushPermissionOnboarding() {
           : t("nativePush.registerError");
       alert(msg);
     } finally {
+      setNativePushSyncHold(false);
       try {
         markPushIntroFinished(userId);
       } catch {
