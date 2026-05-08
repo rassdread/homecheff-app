@@ -14,6 +14,8 @@ import { prisma } from '@/lib/prisma';
 import type { NotificationType } from '@prisma/client';
 import { getFirebaseMessaging } from '@/lib/firebase/admin';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+import { getPublicAppUrl } from '@/lib/public-app-url';
+import { getTransactionalFrom } from '@/lib/email-from';
 import {
   isValidFcmTokenShape,
   maskPushTokenForLogs,
@@ -196,39 +198,45 @@ export class NotificationService {
     } else if (userPreferences) {
       // Check specific email preference based on notification type
       const notificationType = message.data?.type;
-      switch (notificationType) {
-        case 'NEW_MESSAGE':
-        case 'MESSAGE_RECEIVED':
-          emailEnabled = userPreferences.emailNewMessages !== false;
-          break;
-        case 'NEW_ORDER':
-        case 'ORDER_PLACED':
-          emailEnabled = userPreferences.emailNewOrders !== false;
-          break;
-        case 'ORDER_PAID':
-        case 'PAYMENT_RECEIVED':
-        case 'ORDER_STATUS_UPDATE':
-        case 'ORDER_READY_FOR_PICKUP':
-        case 'ORDER_DELIVERED':
-        case 'ORDER_CANCELLED':
-          emailEnabled = userPreferences.emailOrderUpdates !== false;
-          break;
-        case 'DELIVERY_ORDER_AVAILABLE':
-        case 'DELIVERY_ACCEPTED':
-        case 'DELIVERY_PICKED_UP':
-        case 'DELIVERY_COMPLETED':
-        case 'DELIVERY_COUNTDOWN_WARNING':
-          emailEnabled = userPreferences.emailDeliveryUpdates !== false;
-          break;
-        case 'SECURITY_ALERT':
-          emailEnabled = userPreferences.emailSecurityAlerts !== false;
-          break;
-        default:
-          // Default: check if any email preference is enabled
-          emailEnabled = userPreferences.emailNewMessages !== false || 
-                        userPreferences.emailNewOrders !== false ||
-                        userPreferences.emailOrderUpdates !== false ||
-                        userPreferences.emailDeliveryUpdates !== false;
+      // Marketing / promo: alleen als gebruiker emailMarketing aan heeft (scheiding transactioneel vs marketing)
+      if (message.data?.marketing === true) {
+        emailEnabled = userPreferences.emailMarketing === true;
+      } else {
+        switch (notificationType) {
+          case 'NEW_MESSAGE':
+          case 'MESSAGE_RECEIVED':
+            emailEnabled = userPreferences.emailNewMessages !== false;
+            break;
+          case 'NEW_ORDER':
+          case 'ORDER_PLACED':
+            emailEnabled = userPreferences.emailNewOrders !== false;
+            break;
+          case 'ORDER_PAID':
+          case 'PAYMENT_RECEIVED':
+          case 'ORDER_STATUS_UPDATE':
+          case 'ORDER_READY_FOR_PICKUP':
+          case 'ORDER_DELIVERED':
+          case 'ORDER_CANCELLED':
+            emailEnabled = userPreferences.emailOrderUpdates !== false;
+            break;
+          case 'DELIVERY_ORDER_AVAILABLE':
+          case 'DELIVERY_ACCEPTED':
+          case 'DELIVERY_PICKED_UP':
+          case 'DELIVERY_COMPLETED':
+          case 'DELIVERY_COUNTDOWN_WARNING':
+            emailEnabled = userPreferences.emailDeliveryUpdates !== false;
+            break;
+          case 'SECURITY_ALERT':
+            emailEnabled = userPreferences.emailSecurityAlerts !== false;
+            break;
+          default:
+            // Default: check if any email preference is enabled
+            emailEnabled =
+              userPreferences.emailNewMessages !== false ||
+              userPreferences.emailNewOrders !== false ||
+              userPreferences.emailOrderUpdates !== false ||
+              userPreferences.emailDeliveryUpdates !== false;
+        }
       }
     } else {
       // No preferences found, default to enabled
@@ -441,7 +449,7 @@ export class NotificationService {
             </div>
             <div class="content">
               ${formattedBody}
-              ${message.data?.link ? `<a href="${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
+              ${message.data?.link ? `<a href="${getPublicAppUrl()}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
             </div>
             <div class="footer">
               <p>Met vriendelijke groet,<br>Het HomeCheff Team</p>
@@ -452,7 +460,7 @@ export class NotificationService {
       `;
       
       await resend.emails.send({
-        from: 'HomeCheff <noreply@homecheff.eu>',
+        from: getTransactionalFrom(),
         to: email,
         subject: message.title,
         html: htmlEmail

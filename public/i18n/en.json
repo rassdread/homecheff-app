@@ -4204,6 +4204,7 @@
     "updatePassword": "Update password",
     "changeEmail": "Change email address",
     "currentEmail": "Current email address:",
+    "emailVerifiedBadge": "Verified",
     "newEmail": "New email address",
     "confirmNewEmail": "Confirm new email address",
     "emailsDoNotMatch": "Email addresses do not match",

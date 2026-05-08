@@ -3,6 +3,8 @@
  * Sent to buyers after order completion to request a review
  */
 
+import { getPublicAppUrl } from '@/lib/public-app-url';
+
 export interface ReviewRequestData {
   buyerName: string;
   buyerEmail: string;
@@ -194,7 +196,7 @@ export function renderReviewRequestEmail(data: ReviewRequestData): string {
         <div class="footer">
           <p>Met vriendelijke groet,<br>Het HomeCheff Team</p>
           <p style="margin-top: 15px; font-size: 12px;">
-            <a href="${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}" style="color: #006D52;">homecheff.eu</a>
+            <a href="${getPublicAppUrl()}" style="color: #006D52;">homecheff.eu</a>
           </p>
         </div>
       </div>

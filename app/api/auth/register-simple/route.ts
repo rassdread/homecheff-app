@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
-import { randomBytes } from "crypto";
+import {
+  generateVerificationCode,
+  generateVerificationToken,
+  getVerificationExpires,
+} from "@/lib/verification";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 
 export const dynamic = 'force-dynamic';
@@ -69,10 +73,6 @@ export async function POST(req: NextRequest) {
     // Determine user role
     const hasSellerRole = userTypes && userTypes.length > 0;
     const userRole = hasSellerRole ? 'SELLER' : 'BUYER';
-
-    // Generate email verification token
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     let user;
     if (hasSellerRole) {
@@ -186,8 +186,8 @@ export async function POST(req: NextRequest) {
           });
 
           // Generate referral link code
-          const { randomBytes } = await import('crypto');
-          const referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
+          const { randomBytes: rb } = await import('crypto');
+          const referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${rb(2).toString('hex').toUpperCase()}`;
           
           await prisma.referralLink.create({
             data: {
@@ -217,12 +217,26 @@ export async function POST(req: NextRequest) {
       // Don't fail registration if attribution fails
     }
 
+    const verificationToken = generateVerificationToken();
+    const verificationCode = generateVerificationCode();
+    const verificationExpires = getVerificationExpires();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: verificationToken,
+        emailVerificationCode: verificationCode,
+        emailVerificationExpires: verificationExpires,
+      },
+    });
+
     // Send verification email
     try {
       await sendVerificationEmail({
         email,
         name: name || username || 'Gebruiker',
-        verificationToken
+        verificationToken,
+        verificationCode,
       });
 
     } catch (emailError) {

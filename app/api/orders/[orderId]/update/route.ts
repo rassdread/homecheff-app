@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { OrderMessagingService } from '@/lib/orderMessaging';
+import { getPublicAppUrl } from '@/lib/public-app-url';
 
 const prisma = new PrismaClient();
 
@@ -408,7 +409,7 @@ export async function PATCH(
                               item.Product.seller?.User?.username || 
                               'Verkoper';
             const productImage = item.Product.Image[0]?.fileUrl || undefined;
-            const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/review/${review.reviewToken}`;
+            const reviewUrl = `${getPublicAppUrl()}/review/${review.reviewToken}`;
 
             // Send review request email
             try {

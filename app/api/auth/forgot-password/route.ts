@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { generateVerificationToken } from "@/lib/verification";
+import { getPublicAppUrl } from "@/lib/public-app-url";
 
 export const dynamic = "force-dynamic";
 
@@ -64,10 +65,7 @@ export async function POST(req: NextRequest) {
       data: { identifier, token, expires },
     });
 
-    const base = (process.env.NEXTAUTH_URL || "https://homecheff.eu").replace(
-      /\/$/,
-      ""
-    );
+    const base = getPublicAppUrl();
     const resetUrl = `${base}/reset-password?token=${encodeURIComponent(token)}`;
 
     try {

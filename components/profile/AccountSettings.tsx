@@ -13,6 +13,8 @@ interface AccountSettingsProps {
     name?: string | null;
     /** false bij alleen social login: geen huidig wachtwoord nodig om een wachtwoord te koppelen */
     hasPassword?: boolean;
+    /** gezet na e-mailverificatie (of social auto-verify) */
+    emailVerified?: Date | null;
   };
   onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onUpdateEmail: (newEmail: string) => Promise<void>;
@@ -255,8 +257,15 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">{t('accountSettings.changeEmail')}</h3>
             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                <strong>{t('accountSettings.currentEmail')}</strong> {user.email}
+              <p className="text-sm text-gray-600 flex flex-wrap items-center gap-2">
+                <strong>{t('accountSettings.currentEmail')}</strong>
+                <span>{user.email}</span>
+                {user.emailVerified ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                    <BadgeCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    {t('accountSettings.emailVerifiedBadge')}
+                  </span>
+                ) : null}
               </p>
             </div>
             <div className="space-y-4">

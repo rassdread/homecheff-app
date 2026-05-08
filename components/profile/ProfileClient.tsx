@@ -353,6 +353,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               email: user.email,
               name: user.name || "",
               hasPassword: user.hasPassword !== false,
+              emailVerified: user.emailVerified,
             }}
             onUpdatePassword={handlePasswordUpdate}
             onUpdateEmail={handleEmailUpdate}

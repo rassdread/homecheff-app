@@ -3243,6 +3243,7 @@
     "updatePassword": "Wachtwoord bijwerken",
     "changeEmail": "Email adres wijzigen",
     "currentEmail": "Huidig email adres:",
+    "emailVerifiedBadge": "Geverifieerd",
     "newEmail": "Nieuw email adres",
     "confirmNewEmail": "Bevestig nieuw email adres",
     "emailsDoNotMatch": "Email adressen komen niet overeen",

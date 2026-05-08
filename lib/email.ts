@@ -1,6 +1,15 @@
 import { Resend } from 'resend';
+import { getPublicAppUrl } from '@/lib/public-app-url';
+import { getTransactionalFrom } from '@/lib/email-from';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function requireResend(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    console.error('[email] RESEND_API_KEY ontbreekt');
+    throw new Error('RESEND_API_KEY_NOT_CONFIGURED');
+  }
+  return new Resend(key);
+}
 
 export interface EmailVerificationData {
   email: string;
@@ -11,10 +20,11 @@ export interface EmailVerificationData {
 
 export async function sendVerificationEmail({ email, name, verificationToken, verificationCode }: EmailVerificationData) {
   try {
-    const verificationUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/verify-email?token=${verificationToken}`;
-    
-    const { data, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.eu>',
+    const base = getPublicAppUrl();
+    const verificationUrl = `${base}/verify-email?token=${encodeURIComponent(verificationToken)}`;
+
+    const { data, error } = await requireResend().emails.send({
+      from: getTransactionalFrom(),
       to: [email],
       subject: 'Bevestig je e-mailadres - HomeCheff',
       html: `
@@ -126,10 +136,10 @@ export async function sendReviewRequestEmail(data: {
 }) {
   try {
     const { renderReviewRequestEmail, getReviewRequestSubject } = await import('./email-templates/review-request');
-    const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/review/${data.reviewToken}`;
-    
-    const { data: emailData, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.eu>',
+    const reviewUrl = `${getPublicAppUrl()}/review/${encodeURIComponent(data.reviewToken)}`;
+
+    const { data: emailData, error } = await requireResend().emails.send({
+      from: getTransactionalFrom(),
       to: [data.email],
       subject: getReviewRequestSubject(data.buyerName, data.productTitle),
       html: renderReviewRequestEmail({
@@ -171,13 +181,8 @@ export async function sendPasswordResetEmail({
   name,
   resetUrl,
 }: PasswordResetEmailData) {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("[email] sendPasswordResetEmail: RESEND_API_KEY ontbreekt");
-    throw new Error("RESEND_API_KEY_NOT_CONFIGURED");
-  }
-
-  const { data, error } = await resend.emails.send({
-    from: "HomeCheff <noreply@homecheff.eu>",
+  const { data, error } = await requireResend().emails.send({
+    from: getTransactionalFrom(),
     to: [email],
     subject: "Nieuw wachtwoord instellen - HomeCheff",
     html: `
@@ -240,8 +245,9 @@ function escapeAttr(s: string) {
 
 export async function sendWelcomeEmail({ email, name }: { email: string; name: string }) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'HomeCheff <noreply@homecheff.eu>',
+    const homeUrl = getPublicAppUrl();
+    const { data, error } = await requireResend().emails.send({
+      from: getTransactionalFrom(),
       to: [email],
       subject: 'Welkom bij HomeCheff! Je account is geactiveerd 🎉',
       html: `
@@ -313,7 +319,7 @@ export async function sendWelcomeEmail({ email, name }: { email: string; name: s
               </div>
               
               <div style="text-align: center;">
-                <a href="${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}" class="button">Start Verkennen</a>
+                <a href="${homeUrl}" class="button">Start Verkennen</a>
               </div>
               
               <p>Heb je vragen? Neem gerust contact met ons op via <a href="mailto:support@homecheff.eu" style="color: #006D52;">support@homecheff.eu</a></p>

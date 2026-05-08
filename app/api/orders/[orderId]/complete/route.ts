@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendReviewRequestEmail } from '@/lib/email';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { getPublicAppUrl } from '@/lib/public-app-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -138,7 +139,7 @@ export async function POST(
                         item.Product.seller?.User?.username || 
                         'Verkoper';
       const productImage = item.Product.Image[0]?.fileUrl || undefined;
-      const reviewUrl = `${process.env.NEXTAUTH_URL || 'https://homecheff.eu'}/review/${review.reviewToken}`;
+      const reviewUrl = `${getPublicAppUrl()}/review/${review.reviewToken}`;
 
       // Send review request email
       try {
