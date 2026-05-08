@@ -30,7 +30,7 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       /** Korte native splash; daarna direct app-content. */
-      launchShowDuration: 250,
+      launchShowDuration: 4000,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
