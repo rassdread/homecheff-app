@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Korte native bridge; branded WebView overlay neemt direct over. */
+      /** Korte native bridge; static HTML splash neemt direct over. */
       launchShowDuration: 250,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
