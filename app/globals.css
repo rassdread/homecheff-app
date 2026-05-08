@@ -388,41 +388,6 @@ html.hc-native-capacitor body {
   touch-action: pan-y pinch-zoom;
 }
 
-/* Static HTML startup splash (direct zichtbaar na Android system splash). */
-#hc-static-startup-splash {
-  display: none;
-}
-html.hc-native-capacitor #hc-static-startup-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  opacity: 1;
-  transition: opacity 260ms ease-out;
-}
-html.hc-native-capacitor.hc-native-splash-fade #hc-static-startup-splash {
-  opacity: 0;
-  pointer-events: none;
-}
-html.hc-native-capacitor.hc-native-splash-done #hc-static-startup-splash {
-  display: none;
-}
-
-/* Native startup first-frame guard:
- * voorkom Hero/content flash vóór branded splash.
- */
-html.hc-native-capacitor.hc-native-splash-active #main-content,
-html.hc-native-capacitor:not(.hc-native-splash-done) #main-content {
-  opacity: 0;
-}
-html.hc-native-capacitor.hc-native-splash-done #main-content {
-  opacity: 1;
-  transition: opacity 180ms ease-out;
-}
-
 /* Portal-root mag nooit fullscreen touches vangen (alleen echte children met pointer-events-auto). */
 html.hc-native-capacitor #navbar-dropdown-portal-root {
   pointer-events: none;

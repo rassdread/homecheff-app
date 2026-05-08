@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Korte native bridge; static HTML splash neemt direct over. */
+      /** Korte native splash; daarna direct app-content. */
       launchShowDuration: 250,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
