@@ -30,7 +30,7 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       /** Kortere Capacitor-overlay na OS-splash om lege wit-fase te beperken (remote WebView laadt async). */
-      launchShowDuration: 1200,
+      launchShowDuration: 900,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
