@@ -8,6 +8,17 @@ import PublicProfileClient from "./PublicProfileClient";
 
 export const revalidate = 0;
 
+/** Alleen dev: geen volledige slug/logins loggen — alleen lengtes en strategie. */
+function logPublicProfileLookupDev(payload: {
+  rawSegmentLen: number;
+  normalizedLen: number;
+  strategy: "username" | "uuid-id";
+  found: boolean;
+}) {
+  if (process.env.NODE_ENV !== "development") return;
+  console.log("[hc-public-profile]", payload);
+}
+
 /** URL-segment → prisma lookup (decode %40 etc.; reject kapotte placeholders). */
 function normalizeUsernameParam(raw: string | undefined): string | null {
   if (raw == null || typeof raw !== "string") return null;
@@ -86,9 +97,16 @@ export default async function PublicProfilePage({
 }: {
   params: { username: string };
 }) {
+  const rawSegment = typeof params.username === "string" ? params.username : "";
   const username = normalizeUsernameParam(params.username);
 
   if (!username) {
+    logPublicProfileLookupDev({
+      rawSegmentLen: rawSegment.length,
+      normalizedLen: 0,
+      strategy: "username",
+      found: false,
+    });
     notFound();
   }
 
@@ -223,12 +241,15 @@ export default async function PublicProfilePage({
     }
   });
 
+  let lookupStrategy: "username" | "uuid-id" = "username";
+
   // Als geen user gevonden via username, probeer via id (voor bestaande accounts)
   if (!user) {
     // Check if the username parameter is actually a UUID (for existing accounts)
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(username);
     
     if (isUUID) {
+      lookupStrategy = "uuid-id";
       user = await prisma.user.findUnique({
         where: { id: username },
         select: {
@@ -360,6 +381,13 @@ export default async function PublicProfilePage({
       });
     }
   }
+
+  logPublicProfileLookupDev({
+    rawSegmentLen: rawSegment.length,
+    normalizedLen: username.length,
+    strategy: lookupStrategy,
+    found: Boolean(user),
+  });
 
   if (!user) {
     notFound();

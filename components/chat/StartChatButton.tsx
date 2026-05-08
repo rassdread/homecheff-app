@@ -31,7 +31,6 @@ export default function StartChatButton({
   const router = useRouter();
   const pathname = usePathname();
   const nativeMounted = useIsNativeAppMounted();
-  const { referralCode } = useAffiliateLink();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [initialMessage, setInitialMessage] = useState('');
