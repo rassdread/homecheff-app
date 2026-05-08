@@ -32,13 +32,14 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Geen affiliate of nog geen link: 200 + null voorkomt 404-spam voor gewone gebruikers
     if (!user?.affiliate) {
-      return NextResponse.json({ error: "Affiliate account not found" }, { status: 404 });
+      return NextResponse.json({ code: null, link: null });
     }
 
     const referralLink = user.affiliate.referralLinks[0];
     if (!referralLink) {
-      return NextResponse.json({ error: "Referral link not found" }, { status: 404 });
+      return NextResponse.json({ code: null, link: null });
     }
 
     // Detect language from referrer header or cookie
