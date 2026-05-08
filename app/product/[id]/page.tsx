@@ -1474,13 +1474,15 @@ export default function ProductPage() {
                   </ul>
                 </nav>
 
+                {(product.seller?.User?.username || product.seller?.User?.id) ? (
                 <Link
-                  href={`/user/${product.seller?.User?.username || product.seller?.User?.id}`}
+                  href={`/user/${encodeURIComponent(String(product.seller?.User?.username || product.seller?.User?.id))}`}
                   className="w-full py-3 px-6 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-2xl text-center font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   Bekijk profiel
                   <ArrowLeft className="w-4 h-4 rotate-180" />
                 </Link>
+                ) : null}
               </div>
           </div>
         </div>

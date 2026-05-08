@@ -8,13 +8,31 @@ import PublicProfileClient from "./PublicProfileClient";
 
 export const revalidate = 0;
 
+/** URL-segment → prisma lookup (decode %40 etc.; reject kapotte placeholders). */
+function normalizeUsernameParam(raw: string | undefined): string | null {
+  if (raw == null || typeof raw !== "string") return null;
+  let s = raw.trim();
+  try {
+    s = decodeURIComponent(s);
+  } catch {
+    return null;
+  }
+  s = s.trim();
+  if (!s || s === "undefined" || s === "null") return null;
+  return s;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: { username: string };
 }): Promise<Metadata> {
-  const { username } = params;
+  const username = normalizeUsernameParam(params.username);
   const currentDomain = await getCurrentDomain();
+
+  if (!username) {
+    return { title: "Profiel" };
+  }
 
   const user = await prisma.user.findUnique({
     where: { username },
@@ -51,7 +69,7 @@ export async function generateMetadata({
       type: "profile",
       title,
       description,
-      url: `${currentDomain}/user/${username}`,
+      url: `${currentDomain}/user/${encodeURIComponent(username)}`,
       siteName: "HomeCheff",
       ...(imageUrl && {
         images: [{ url: imageUrl, width: 400, height: 400, alt: displayName }],
@@ -68,7 +86,11 @@ export default async function PublicProfilePage({
 }: {
   params: { username: string };
 }) {
-  const { username } = params;
+  const username = normalizeUsernameParam(params.username);
+
+  if (!username) {
+    notFound();
+  }
 
   // Probeer eerst via username, dan via id als username een UUID is
   let user = await prisma.user.findUnique({
@@ -351,7 +373,7 @@ export default async function PublicProfilePage({
   const currentDomain = await getCurrentDomain();
   const profileDisplay = user.name || user.username || "Profiel";
   const locality = formatCityLabel(user.place);
-  const profileUrl = `${currentDomain}/user/${username}`;
+  const profileUrl = `${currentDomain}/user/${encodeURIComponent(username)}`;
   const personLd = {
     "@context": "https://schema.org",
     "@type": "Person",

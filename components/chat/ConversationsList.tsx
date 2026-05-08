@@ -297,7 +297,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const profileHrefFor = (c: Conversation): string | null => {
     const p = primaryParticipant(c);
     const u = p?.username?.trim();
-    return u ? `/user/${u}` : null;
+    return u ? `/user/${encodeURIComponent(u)}` : null;
   };
 
   const displayTitle = (c: Conversation) => {

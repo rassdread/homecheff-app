@@ -29,18 +29,31 @@ export default function ClickableName({
     );
   }
   
-  const href = user?.id 
-    ? linkTo === 'seller' 
-      ? `/seller/${user.sellerProfileId || user.id}` 
-      : linkTo === 'profile'
-        ? user?.username 
-          ? `/user/${user.username}`
-          : `/user/${user.id}` // Gebruik userId als fallback voor bestaande accounts
-        : `/user/${user.id}` // Altijd naar publieke profielpagina
-    : '#';
-  
+  const href = user?.id
+    ? linkTo === "seller"
+      ? `/seller/${user.sellerProfileId || user.id}`
+      : linkTo === "profile"
+        ? user?.username
+          ? `/user/${encodeURIComponent(user.username.trim())}`
+          : `/user/${encodeURIComponent(user.id)}`
+        : `/user/${encodeURIComponent(user.id)}`
+    : "";
+
+  if (!href) {
+    return (
+      <span className={className}>
+        {displayName}
+        {showUsername && user?.username && (
+          <span className="ml-1 text-sm text-gray-500">
+            @{user.username}
+          </span>
+        )}
+      </span>
+    );
+  }
+
   return (
-    <Link 
+    <Link
       href={href}
       prefetch={true}
       className={`hover:text-primary-600 transition-colors ${className}`}

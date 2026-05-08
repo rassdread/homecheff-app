@@ -125,7 +125,11 @@ export default function UserStatsTile({
   }
 
   const userDisplayName = userName || userUsername || "Gebruiker";
-  const profileHref = userUsername ? `/user/${userUsername}` : `/user/${userId}`;
+  const profileSlug = (userUsername?.trim() || userId || "").trim();
+  const profileHref =
+    profileSlug.length > 0
+      ? `/user/${encodeURIComponent(profileSlug)}`
+      : "/profile";
 
   if (loading) {
     return (
@@ -220,42 +224,47 @@ export default function UserStatsTile({
   ];
 
   return (
-    <Link 
-      href={profileHref}
-      className={`pt-4 border-t border-gray-200 block hover:bg-gray-50 rounded-lg transition-colors ${className}`}
-      onClick={(e) => e.stopPropagation()}
+    <div
+      ref={rootRef}
+      className={`pt-4 border-t border-gray-200 ${className}`}
     >
-      {/* User Header */}
-      <div className="flex items-center gap-3 mb-3 hover:opacity-80 transition-opacity group">
-        <div className="flex-shrink-0 relative w-10 h-10">
-          {userAvatar ? (
-            <SafeImage
-              src={userAvatar}
-              alt={userDisplayName}
-              width={40}
-              height={40}
-              className="rounded-full object-cover border-2 border-primary-100 group-hover:border-primary-300 transition-colors"
-            />
-          ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center border-2 border-primary-200">
-              <span className="text-primary-600 font-semibold text-sm">
-                {userDisplayName.charAt(0).toUpperCase()}
-              </span>
+      {/* Alleen header is navigatie — voorkomt nested &lt;a&gt; en maakt stats-blok semantisch neutraal */}
+      <Link
+        href={profileHref}
+        className="mb-3 block rounded-lg px-1 py-1 transition-colors hover:bg-gray-50"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 hover:opacity-90 transition-opacity group">
+          <div className="relative h-10 w-10 shrink-0">
+            {userAvatar ? (
+              <SafeImage
+                src={userAvatar}
+                alt={userDisplayName}
+                width={40}
+                height={40}
+                className="rounded-full border-2 border-primary-100 object-cover transition-colors group-hover:border-primary-300"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary-200 bg-gradient-to-br from-primary-100 to-primary-200">
+                <span className="text-sm font-semibold text-primary-600">
+                  {userDisplayName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary-600">
+              {getDisplayName({
+                id: userId,
+                name: userName || null,
+                username: userUsername || null,
+                displayFullName: displayFullName,
+                displayNameOption: displayNameOption,
+              }) || 'Gebruiker'}
             </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors truncate">
-            {getDisplayName({
-              id: userId,
-              name: userName || null,
-              username: userUsername || null,
-              displayFullName: displayFullName,
-              displayNameOption: displayNameOption
-            }) || 'Gebruiker'}
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Stats Grid */}
       <div className="space-y-2">
@@ -283,7 +292,7 @@ export default function UserStatsTile({
           })}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

@@ -367,8 +367,8 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
 
               // Build href - always use username if available, fallback to ID
               const href = user.username 
-                ? `/user/${user.username}`
-                : `/user/${user.id}`;
+                ? `/user/${encodeURIComponent(user.username)}`
+                : `/user/${encodeURIComponent(user.id)}`;
 
               return (
                 <Link
