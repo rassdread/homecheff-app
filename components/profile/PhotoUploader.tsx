@@ -7,7 +7,16 @@ import { Camera } from "lucide-react";
 import { uploadProfilePhoto } from "@/lib/upload";
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUrl?: string; onPhotoChange?: (url: string | null) => void }) {
+export default function PhotoUploader({
+  initialUrl,
+  onPhotoChange,
+  onAvatarPreview,
+}: {
+  initialUrl?: string;
+  onPhotoChange?: (url: string | null) => void;
+  /** Tap op de foto: fullscreen preview (niet het uploadpad). */
+  onAvatarPreview?: (imageUrl: string) => void;
+}) {
   const { t } = useTranslation();
   const [preview, setPreview] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(initialUrl ?? null);
@@ -111,8 +120,17 @@ export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUr
     <div className="flex flex-col items-center gap-4">
       {/* Profielfoto container */}
       <div className="relative group">
-        <div className="relative rounded-full overflow-hidden border-2 border-emerald-700/60 shadow-sm"
-             style={{ width: "192px", height: "192px" }}>
+        <button
+          type="button"
+          className="relative block rounded-full overflow-hidden border-2 border-emerald-700/60 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          style={{ width: "192px", height: "192px" }}
+          disabled={!onAvatarPreview || !src || src === "/avatar-placeholder.png" || hasNoPhoto}
+          aria-label={onAvatarPreview ? t("profilePage.profilePhotoAlt") : undefined}
+          onClick={() => {
+            if (!onAvatarPreview || !src || src === "/avatar-placeholder.png" || hasNoPhoto) return;
+            onAvatarPreview(src);
+          }}
+        >
           {src ? (
             <Image src={src} alt="Profielfoto" fill className="object-cover" sizes="192px" />
           ) : (
@@ -125,13 +143,7 @@ export default function PhotoUploader({ initialUrl, onPhotoChange }: { initialUr
               </div>
             </div>
           )}
-          {/* Hover overlay met icon indicator */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
-            <div className="bg-white/90 rounded-full p-3 shadow-lg">
-              <Camera className="w-6 h-6 text-emerald-700" />
-            </div>
-          </div>
-        </div>
+        </button>
         
         {/* Action buttons - buiten de foto, onder of naast */}
         <div className="mt-3 flex flex-col items-center gap-2 w-full">

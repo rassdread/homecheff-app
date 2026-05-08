@@ -41,6 +41,7 @@ import {
   seedCachedUserStats,
 } from "@/lib/userStatsClientCache";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
+import { useNarrowViewport } from "@/hooks/useNarrowViewport";
 import {
   readNativeFeedPrefs,
   writeNativeFeedPrefs,
@@ -473,6 +474,9 @@ export default function GeoFeed({
   const profileLocationLoadedRef = useRef(false);
   const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
+  const narrowViewport = useNarrowViewport();
+  /** Smalle browser + native: compacte filter-chips, sort bovenaan, geo onder uitklap. */
+  const feedCompactChrome = nativeMounted || narrowViewport;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
@@ -1087,7 +1091,7 @@ export default function GeoFeed({
   );
 
   const chipBtn = (active: boolean) =>
-    `${nativeMounted ? "px-3 py-1.5 rounded-lg text-xs" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
+    `${feedCompactChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
       active
         ? "bg-emerald-600 text-white shadow-sm"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -1096,7 +1100,7 @@ export default function GeoFeed({
   const sortRowEl = (
     <div
       className={
-        nativeMounted
+        feedCompactChrome
           ? "flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5"
           : "flex flex-wrap items-center gap-2 mb-4"
       }
@@ -1127,15 +1131,15 @@ export default function GeoFeed({
     </div>
   );
 
-  const feedPanelPad = nativeMounted ? "p-3 space-y-3" : "p-4 sm:p-5 space-y-5";
-  const feedSectionBorder = nativeMounted
+  const feedPanelPad = feedCompactChrome ? "p-3 space-y-3" : "p-4 sm:p-5 space-y-5";
+  const feedSectionBorder = feedCompactChrome
     ? "border-t border-gray-200 pt-3"
     : "border-t border-gray-200 pt-5";
 
   const resultCountEl = (
     <div
       className={
-        nativeMounted
+        feedCompactChrome
           ? "text-xs text-gray-500 mt-1.5"
           : "text-sm text-gray-500 mt-2"
       }
@@ -1171,28 +1175,28 @@ export default function GeoFeed({
         <div>
           <h2
             className={
-              nativeMounted
+              feedCompactChrome
                 ? "text-sm font-semibold text-gray-900"
                 : "text-base font-semibold text-gray-900"
             }
           >
             {t("feed.discoverFiltersHeading")}
           </h2>
-          {!nativeMounted && (
+          {!feedCompactChrome && (
             <p className="text-sm text-gray-600 mt-1 mb-3">
               {t("feed.chipSectionIntro")}
             </p>
           )}
           <p
             className={
-              nativeMounted
+              feedCompactChrome
                 ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5"
                 : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
             }
           >
             {t("feed.viewModeLabel")}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 sm:flex-wrap sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0">
             <button
               type="button"
               className={chipBtn(feedChip === "all")}
@@ -1217,9 +1221,9 @@ export default function GeoFeed({
           </div>
         </div>
 
-        {nativeMounted && sortRowEl}
+        {feedCompactChrome && sortRowEl}
 
-        {nativeMounted && (
+        {feedCompactChrome && (
           <button
             type="button"
             aria-expanded={nativeFeedExtraOpen}
@@ -1243,20 +1247,20 @@ export default function GeoFeed({
           </button>
         )}
 
-        {(!nativeMounted || nativeFeedExtraOpen) && (
+        {(!feedCompactChrome || nativeFeedExtraOpen) && (
           <>
             <div className={feedSectionBorder}>
               <p
                 className={
-                  nativeMounted
+                  feedCompactChrome
                     ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
                     : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
                 }
               >
                 {t("feed.locationSectionLabel")}
               </p>
-              <div className="flex flex-wrap gap-3 items-end">
-                <div className="flex-1 min-w-[180px]">
+              <div className="flex flex-wrap gap-3 items-end max-md:flex-col max-md:items-stretch">
+                <div className="flex-1 min-w-[180px] max-md:min-w-0 max-md:w-full">
                   <label className="block text-base font-semibold mb-1">
                     {t("common.place")}
                   </label>
@@ -1267,7 +1271,7 @@ export default function GeoFeed({
                     placeholder={t("common.typePlaceOrPostcode")}
                   />
                 </div>
-                <div className="min-w-[120px]">
+                <div className="min-w-[120px] max-md:w-full">
                   <label className="block text-base font-semibold mb-1">
                     {t("feed.radiusLabel")}
                   </label>
@@ -1284,7 +1288,7 @@ export default function GeoFeed({
                     className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
                   />
                 </div>
-                <div className="flex-1 min-w-[180px]">
+                <div className="flex-1 min-w-[180px] max-md:min-w-0 max-md:w-full">
                   <label className="block text-base font-semibold mb-1">
                     {t("common.search")}
                   </label>
@@ -1295,7 +1299,7 @@ export default function GeoFeed({
                     placeholder={t("common.searchPlaceholder")}
                   />
                 </div>
-                <div className="min-w-[140px]">
+                <div className="min-w-[140px] max-md:w-full">
                   <label className="block text-base font-semibold mb-1">
                     {t("common.category")}
                   </label>
@@ -1316,7 +1320,7 @@ export default function GeoFeed({
                     </option>
                   </select>
                 </div>
-                <div className="min-w-[120px]">
+                <div className="min-w-[120px] max-md:w-full">
                   <label className="block text-base font-semibold mb-1">
                     {t("common.location")}
                   </label>
@@ -1430,7 +1434,7 @@ export default function GeoFeed({
             <div className={feedSectionBorder}>
               <p
                 className={
-                  nativeMounted
+                  feedCompactChrome
                     ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
                     : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
                 }
@@ -1460,7 +1464,7 @@ export default function GeoFeed({
                 </button>
               </div>
 
-              {!nativeMounted && sortRowEl}
+              {!feedCompactChrome && sortRowEl}
 
               {showFilters && (
                 <div className="border-t pt-4">

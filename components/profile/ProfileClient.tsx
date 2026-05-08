@@ -19,6 +19,7 @@ import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
 import BusinessBadge from '@/components/ui/BusinessBadge';
+import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 
 // Lazy load heavy components for better performance
 const MyDishesManager = dynamic(() => import('./MyDishesManager'), {
@@ -154,6 +155,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   const [loadingStats, setLoadingStats] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
 
   const handlePhotoChange = async (newPhotoUrl: string | null) => {
     try {
@@ -455,13 +457,14 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     <PhotoUploader 
                       initialUrl={profileImage ?? undefined} 
                       onPhotoChange={handlePhotoChange}
+                      onAvatarPreview={(url) => setAvatarPreviewUrl(url)}
                     />
                   </Suspense>
                 </div>
                 
                 {/* Business Badge - exclusief bovenaan voor KVK bedrijven */}
                 {user?.SellerProfile?.kvk && user?.SellerProfile?.companyName && (
-                  <div className="mb-4 space-y-3">
+                  <div className="mb-3 space-y-2">
                     <div className="flex justify-center">
                       <BusinessBadge 
                         companyName={user.SellerProfile.companyName}
@@ -469,31 +472,13 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         size="lg"
                       />
                     </div>
-                    
-                    {/* Melding als er geen actief abonnement is */}
                     {(!user.SellerProfile.subscriptionId || !user.SellerProfile.Subscription?.isActive) && (
-                      <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0">
-                            <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-sm font-semibold text-amber-900 mb-1">
-                              {t('profilePage.subscriptionSection.required')}
-                            </h4>
-                            <p className="text-sm text-amber-800 mb-3">
-                              {t('profilePage.subscriptionSection.description')}
-                            </p>
-                            <Link href="/sell">
-                              <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-sm py-2">
-                                {t('profilePage.subscriptionSection.chooseSubscription')}
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
+                      <p className="rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-center text-xs text-amber-900">
+                        {t('profilePage.subscriptionSection.required')}{' '}
+                        <Link href="/sell" className="font-semibold underline underline-offset-2">
+                          {t('profilePage.subscriptionSection.chooseSubscription')}
+                        </Link>
+                      </p>
                     )}
                   </div>
                 )}
@@ -502,31 +487,41 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   user.sellerRoles.length > 0 &&
                   (!(user?.SellerProfile?.kvk ?? '').trim() ||
                     !(user?.SellerProfile?.companyName ?? '').trim()) && (
-                  <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-left">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                      {t('profilePage.sellerBusinessUpgrade.title')}
-                    </h4>
-                    <p className="text-sm text-gray-700 mb-2">
-                      {t('profilePage.sellerBusinessUpgrade.body')}
-                    </p>
-                    <p className="text-xs text-gray-600 mb-3">
-                      {t('profilePage.sellerBusinessUpgrade.buyersNote')}
-                    </p>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <Link href="/verkoper/instellingen" className="w-full sm:w-auto">
-                        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-2">
-                          {t('profilePage.sellerBusinessUpgrade.ctaSettings')}
-                        </Button>
-                      </Link>
-                      <Link href="/sell" className="w-full sm:w-auto">
-                        <Button
-                          variant="outline"
-                          className="w-full text-sm py-2 border-emerald-600 text-emerald-800 hover:bg-emerald-50"
+                  <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs text-gray-800">
+                    {t('profilePage.sellerBusinessUpgrade.body')}{' '}
+                    <Link href="/verkoper/instellingen" className="font-semibold text-emerald-800 underline underline-offset-2">
+                      {t('profilePage.sellerBusinessUpgrade.ctaSettings')}
+                    </Link>
+                  </p>
+                )}
+
+                {(user.role === 'SELLER' || (user.sellerRoles && user.sellerRoles.length > 0)) && (
+                  <div className="mb-4 flex flex-col items-center gap-1 text-[11px] leading-snug text-gray-600">
+                    {user.stripeConnectOnboardingCompleted ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-700">
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Stripe gekoppeld
+                      </span>
+                    ) : (
+                      <span className="text-center">
+                        Stripe nog niet afgerond — zie tab{' '}
+                        <button
+                          type="button"
+                          className="font-semibold text-emerald-700 underline"
+                          onClick={() => setActiveTab('overview')}
                         >
-                          {t('profilePage.sellerBusinessUpgrade.ctaSell')}
-                        </Button>
-                      </Link>
-                    </div>
+                          Overzicht
+                        </button>
+                      </span>
+                    )}
+                    {!(user?.SellerProfile?.kvk ?? '').trim() && (user.sellerRoles?.length ?? 0) > 0 ? (
+                      <span className="text-center">
+                        Nog geen KVK gekoppeld —{' '}
+                        <Link href="/verkoper/instellingen" className="font-semibold text-emerald-800 underline">
+                          instellingen
+                        </Link>
+                      </span>
+                    ) : null}
                   </div>
                 )}
                 
@@ -1605,6 +1600,21 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
           </div>
         </div>
       )}
+
+      <FeedMediaLightbox
+        open={Boolean(avatarPreviewUrl)}
+        onClose={() => setAvatarPreviewUrl(null)}
+        payload={
+          avatarPreviewUrl
+            ? {
+                kind: 'image',
+                src: avatarPreviewUrl,
+                alt: t('profilePage.profilePhotoAlt'),
+              }
+            : null
+        }
+        closeLabel={t('feed.closeMediaViewer')}
+      />
     </div>
   );
 }

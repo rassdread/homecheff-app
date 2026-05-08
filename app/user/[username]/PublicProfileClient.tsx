@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, Suspense, useEffect, useMemo } from 'react';
-import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, Suspense, useEffect, useMemo, useCallback } from 'react';
+import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -14,6 +14,9 @@ import FansAndFollowsList from '@/components/FansAndFollowsList';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import ItemsWithReviews from '@/components/profile/ItemsWithReviews';
 import { useTranslation } from '@/hooks/useTranslation';
+import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
+import type { FeedMediaLightboxPayload } from '@/components/feed/FeedMediaLightbox';
+import { hrefForProfileGridItem } from '@/lib/profile/profilePublicItemHref';
 
 interface User {
   id: string;
@@ -115,7 +118,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
   const [ambassadorSubTab, setAmbassadorSubTab] = useState<'overview' | 'reviews' | 'vehicle'>('overview');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [profileImage, setProfileImage] = useState(user?.profileImage ?? null);
   const [stats, setStats] = useState<ProfileStats>({
     items: 0,
     dishes: 0,
@@ -126,10 +128,29 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
     orders: 0
   });
   const [loadingStats, setLoadingStats] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-  const [currentPhotos, setCurrentPhotos] = useState<Array<{id: string, fileUrl: string}>>([]);
-  const [showProfileImageModal, setShowProfileImageModal] = useState(false);
+  const [mediaLightbox, setMediaLightbox] =
+    useState<FeedMediaLightboxPayload | null>(null);
+
+  const openImageLightbox = useCallback(
+    (url: string, alt: string, allUrls?: string[], startIndex = 0) => {
+      const sources =
+        allUrls && allUrls.length > 0
+          ? allUrls.filter(Boolean)
+          : [url].filter(Boolean);
+      if (sources.length === 0) return;
+      const idx = Math.max(0, Math.min(startIndex, sources.length - 1));
+      setMediaLightbox({
+        kind: 'image',
+        src: sources[idx] ?? url,
+        alt,
+        gallery:
+          sources.length > 1
+            ? { sources, index: idx }
+            : undefined,
+      });
+    },
+    []
+  );
   const [userStats, setUserStats] = useState({
     reviews: 0,
     followers: 0,
@@ -468,7 +489,11 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
             <div className="flex-shrink-0 mx-auto lg:mx-0">
               <div 
                 className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white cursor-pointer hover:scale-105 transition-transform duration-200 flex-shrink-0"
-                onClick={() => setShowProfileImageModal(true)}
+                onClick={() => {
+                  const src = user.profileImage || '';
+                  if (!src || src.includes('avatar-placeholder')) return;
+                  openImageLightbox(src, t('profilePage.profilePhotoAlt'));
+                }}
               >
                 <SafeImage
                   src={user.profileImage || "/avatar-placeholder.png"}
@@ -477,13 +502,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                   className="object-cover"
                   sizes="(max-width: 768px) 128px, 160px"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
-                  <div className="opacity-0 hover:opacity-100 transition-opacity duration-200">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                    </svg>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -740,26 +758,39 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {filteredProducts.map((product) => {
                       const mainPhoto = product.photos?.[0];
+                      const itemHref = hrefForProfileGridItem(product, user.id, user.place);
+                      const photoUrls = (product.photos || []).map((p: { url?: string }) => p.url).filter(Boolean) as string[];
                       return (
                         <div
                           key={product.id}
-                          className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                          className="flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
                         >
-                          {mainPhoto && (
-                            <div 
-                              className="relative h-48 cursor-pointer"
-                              onClick={() => setSelectedImage(mainPhoto.url)}
+                          {mainPhoto ? (
+                            <button
+                              type="button"
+                              className="relative h-48 w-full shrink-0 cursor-zoom-in text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset"
+                              onClick={() =>
+                                openImageLightbox(
+                                  mainPhoto.url,
+                                  product.title || '',
+                                  photoUrls,
+                                  0
+                                )
+                              }
                             >
                               <SafeImage
                                 src={mainPhoto.url}
                                 alt={product.title}
                                 fill
-                                className="object-cover hover:opacity-90 transition-opacity"
+                                className="object-cover"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               />
-                            </div>
-                          )}
-                          <div className="p-4">
+                            </button>
+                          ) : null}
+                          <Link
+                            href={itemHref}
+                            className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
+                          >
                             <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
                             <div className="flex items-center justify-between mb-2">
@@ -772,7 +803,6 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                                 {getFilteredCategories('')[product.category]?.label || product.category}
                               </span>
                             </div>
-                            {/* Review Count and Rating */}
                             {(product.reviewCount > 0 || product.averageRating > 0) && (
                               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                                 {product.averageRating > 0 && (
@@ -790,7 +820,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                                 )}
                               </div>
                             )}
-                          </div>
+                          </Link>
                         </div>
                       );
                     })}
@@ -1011,9 +1041,16 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                               key={photo.id}
                               className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
                               onClick={() => {
-                                setSelectedImage(photo.fileUrl);
-                                setSelectedImageIndex(index);
-                                setCurrentPhotos(user.DeliveryProfile?.vehiclePhotos || []);
+                                const urls =
+                                  user.DeliveryProfile?.vehiclePhotos.map(
+                                    (p) => p.fileUrl
+                                  ) || [];
+                                openImageLightbox(
+                                  photo.fileUrl,
+                                  'Voertuig',
+                                  urls,
+                                  index
+                                );
                               }}
                             >
                               <SafeImage
@@ -1122,30 +1159,39 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {roleProducts.map((product: any) => {
                       const mainPhoto = product.photos?.[0];
+                      const itemHref = hrefForProfileGridItem(product, user.id, user.place);
+                      const photoUrls = (product.photos || []).map((p: { url?: string }) => p.url).filter(Boolean) as string[];
                       return (
                         <div
                           key={product.id}
-                          className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                          className="flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
                         >
-                          {mainPhoto && (
-                            <div
-                              className="relative h-48 cursor-pointer"
-                              onClick={() => {
-                                setCurrentPhotos(product.photos?.map((p: any) => ({ id: p.id || '', fileUrl: p.url })) || []);
-                                setSelectedImageIndex(0);
-                                setSelectedImage(mainPhoto.url);
-                              }}
+                          {mainPhoto ? (
+                            <button
+                              type="button"
+                              className="relative h-48 w-full shrink-0 cursor-zoom-in text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset"
+                              onClick={() =>
+                                openImageLightbox(
+                                  mainPhoto.url,
+                                  product.title || '',
+                                  photoUrls,
+                                  0
+                                )
+                              }
                             >
                               <SafeImage
                                 src={mainPhoto.url}
                                 alt={product.title}
                                 fill
-                                className="object-cover hover:opacity-90 transition-opacity"
+                                className="object-cover"
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               />
-                            </div>
-                          )}
-                          <div className="p-4">
+                            </button>
+                          ) : null}
+                          <Link
+                            href={itemHref}
+                            className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
+                          >
                             <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
                             <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
                             <div className="flex items-center justify-between mb-2">
@@ -1171,7 +1217,7 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                                 )}
                               </div>
                             )}
-                          </div>
+                          </Link>
                         </div>
                       );
                     })}
@@ -1284,114 +1330,12 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
         </div>
       </div>
 
-      {/* Image Modal */}
-      {selectedImage && currentPhotos.length > 0 && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-          data-modal
-        >
-          {/* Close Button */}
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all duration-200 z-10"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Previous Button - Desktop: Fixed buttons, Mobile: Transparent overlay */}
-          {currentPhotos.length > 1 && selectedImageIndex > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const newIndex = selectedImageIndex - 1;
-                setSelectedImageIndex(newIndex);
-                setSelectedImage(currentPhotos[newIndex].fileUrl);
-              }}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 md:bg-white/30 hover:bg-white/40 rounded-full text-white transition-all duration-200 z-10 backdrop-blur-sm"
-            >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-          )}
-
-          {/* Next Button - Desktop: Fixed buttons, Mobile: Transparent overlay */}
-          {currentPhotos.length > 1 && selectedImageIndex < currentPhotos.length - 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const newIndex = selectedImageIndex + 1;
-                setSelectedImageIndex(newIndex);
-                setSelectedImage(currentPhotos[newIndex].fileUrl);
-              }}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 md:bg-white/30 hover:bg-white/40 rounded-full text-white transition-all duration-200 z-10 backdrop-blur-sm"
-            >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-          )}
-
-          {/* Image Container */}
-          <div 
-            className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SafeImage
-              src={selectedImage}
-              alt="Uitvergrote foto"
-              width={1200}
-              height={800}
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-          </div>
-
-          {/* Photo Counter */}
-          {currentPhotos.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-medium text-sm">
-              {selectedImageIndex + 1} / {currentPhotos.length}
-            </div>
-          )}
-
-          {/* Swipe hint for mobile */}
-          <div className="md:hidden absolute bottom-16 left-1/2 -translate-x-1/2 text-white/60 text-xs">
-            {t('profilePage.swipeForNextPhoto')}
-          </div>
-        </div>
-      )}
-
-      {/* Profile Image Modal */}
-      {showProfileImageModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl max-h-full">
-            {/* Close button */}
-            <button
-              onClick={() => setShowProfileImageModal(false)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Profile Image */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
-              <SafeImage
-                src={user.profileImage || "/avatar-placeholder.png"}
-                alt="Profielfoto"
-                width={600}
-                height={600}
-                className="w-full h-auto max-w-2xl max-h-[80vh] object-contain"
-              />
-              
-              {/* User info below image */}
-              <div className="p-6 bg-white">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{getDisplayName()}</h3>
-                <p className="text-gray-600">@{user.username}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FeedMediaLightbox
+        open={Boolean(mediaLightbox)}
+        onClose={() => setMediaLightbox(null)}
+        payload={mediaLightbox}
+        closeLabel={t('feed.closeMediaViewer')}
+      />
       </div>
     </div>
     </ErrorBoundary>
