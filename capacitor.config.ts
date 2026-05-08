@@ -29,8 +29,8 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Simpele stabiele splash: native auto-hide na vaste duur. */
-      launchShowDuration: 4000,
+      /** Korte native bridge; branded WebView overlay neemt direct over. */
+      launchShowDuration: 250,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',

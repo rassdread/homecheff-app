@@ -388,6 +388,18 @@ html.hc-native-capacitor body {
   touch-action: pan-y pinch-zoom;
 }
 
+/* Native startup first-frame guard:
+ * voorkom Hero/content flash vóór branded splash.
+ */
+html.hc-native-capacitor.hc-native-splash-active #main-content,
+html.hc-native-capacitor:not(.hc-native-splash-done) #main-content {
+  opacity: 0;
+}
+html.hc-native-capacitor.hc-native-splash-done #main-content {
+  opacity: 1;
+  transition: opacity 180ms ease-out;
+}
+
 /* Portal-root mag nooit fullscreen touches vangen (alleen echte children met pointer-events-auto). */
 html.hc-native-capacitor #navbar-dropdown-portal-root {
   pointer-events: none;
