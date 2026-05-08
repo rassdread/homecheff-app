@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Smile, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 // Dynamically import emoji picker to avoid SSR issues
-const EmojiPicker = dynamic(
+const EmojiPickerReact = dynamic(
   () => import('emoji-picker-react'),
   { ssr: false }
 );
@@ -94,12 +96,53 @@ function detectCategory(pathname: string | null, category?: 'CHEFF' | 'GARDEN' |
   return null;
 }
 
+type DesktopPanelGeom = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
 export default function EmojiPickerButton({ onEmojiClick, className = '', category = 'auto' }: EmojiPickerProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [detectedCategory, setDetectedCategory] = useState<'CHEFF' | 'GARDEN' | 'DESIGNER' | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const sheetNarrow = useMediaQuery('(max-width: 1023px)');
+  const [desktopGeom, setDesktopGeom] = useState<DesktopPanelGeom | null>(null);
+  const [emojiLibSize, setEmojiLibSize] = useState({ width: 360, height: 380 });
+
+  const HEADER_THEME_ROW_H = 112;
+
+  const layoutPickerDimensions = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    if (sheetNarrow) {
+      const sheetMax = Math.floor(vh * 0.55);
+      const sheetMin = Math.floor(vh * 0.4);
+      const sheetH = Math.max(sheetMin, Math.min(sheetMax, vh - 120));
+      const innerH = Math.max(260, sheetH - HEADER_THEME_ROW_H - 24);
+      const innerW = Math.max(280, vw - 16);
+      setEmojiLibSize({ width: innerW, height: innerH });
+      return;
+    }
+
+    if (desktopGeom) {
+      const innerW = Math.max(304, desktopGeom.width - 16);
+      const innerH = Math.max(
+        300,
+        desktopGeom.height - HEADER_THEME_ROW_H - 16
+      );
+      setEmojiLibSize({
+        width: Math.min(innerW, vw - 24),
+        height: Math.min(innerH, vh - 24),
+      });
+    }
+  }, [sheetNarrow, desktopGeom]);
 
   // Detect category on mount and when pathname changes
   useEffect(() => {
@@ -131,25 +174,60 @@ export default function EmojiPickerButton({ onEmojiClick, className = '', catego
   };
 
   const togglePicker = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((o) => !o);
   };
 
-  // Close picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+  const closePicker = useCallback(() => setIsOpen(false), []);
+
+  /** Desktop popover: positie t.o.v. trigger, min 320×360 inhoud. */
+  useLayoutEffect(() => {
+    if (!isOpen || sheetNarrow || !triggerRef.current) {
+      if (!isOpen) setDesktopGeom(null);
+      return;
     }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    const rect = triggerRef.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const panelW = Math.max(320, Math.min(440, vw - 16));
+    const panelH = Math.min(520, Math.max(380, Math.floor(vh * 0.58)));
+    let left = rect.right - panelW;
+    left = Math.max(8, Math.min(left, vw - panelW - 8));
+    let top = rect.top - panelH - 10;
+    if (top < 8) top = rect.bottom + 10;
+    if (top + panelH > vh - 8) top = Math.max(8, vh - panelH - 8);
+    setDesktopGeom({ top, left, width: panelW, height: panelH });
+  }, [isOpen, sheetNarrow, pathname]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    layoutPickerDimensions();
+  }, [isOpen, sheetNarrow, desktopGeom, layoutPickerDimensions]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onResize = () => layoutPickerDimensions();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [isOpen, layoutPickerDimensions]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closePicker();
     };
-  }, [isOpen]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, closePicker]);
+
+  /** Voorkom body-scroll achter bottom sheet (mobiel). */
+  useEffect(() => {
+    if (!isOpen || !sheetNarrow) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen, sheetNarrow]);
 
   // Get emoji set based on theme
   const getEmojiSet = (theme: EmojiTheme): string[] => {
@@ -208,152 +286,207 @@ export default function EmojiPickerButton({ onEmojiClick, className = '', catego
   const themeColors = getThemeColors(selectedTheme);
   const themeInfo = EMOJI_THEMES.find(t => t.value === selectedTheme);
 
-  return (
-    <div className={`relative ${className}`} ref={pickerRef}>
+  const themeSelectorRow = (
+    <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-primary-200 bg-gradient-to-r from-primary-50 to-primary-100 p-2">
+      {EMOJI_THEMES.map((theme) => (
+        <button
+          key={theme.value}
+          type="button"
+          onClick={() => setSelectedTheme(theme.value)}
+          className={`relative rounded-md px-2 py-1.5 text-xs font-medium transition-all ${
+            selectedTheme === theme.value
+              ? isCustomTheme
+                ? themeColors.header
+                : 'bg-blue-500 text-white'
+              : 'text-gray-600 hover:bg-gray-200'
+          }`}
+          title={theme.description || theme.label}
+        >
+          <span className="text-base">{theme.icon}</span>
+          {isCustomTheme && selectedTheme === theme.value && (
+            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full border-2 border-white bg-green-500" />
+          )}
+        </button>
+      ))}
       <button
+        type="button"
+        onClick={closePicker}
+        className="ml-auto rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
+        aria-label={t('buttons.close')}
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
+  const pickerBody = isCustomTheme ? (
+    <div
+      className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 bg-gradient-to-br ${themeColors.bg}`}
+    >
+      <div
+        className={`mb-4 rounded-lg border ${themeColors.border} bg-white p-3 shadow-sm`}
+      >
+        <h3 className="mb-1 flex items-center gap-2 text-sm font-bold">
+          <span className="text-xl">{themeInfo?.icon}</span>
+          <span
+            className={
+              selectedTheme === 'whatsapp'
+                ? 'text-green-800'
+                : selectedTheme === 'garden'
+                  ? 'text-green-800'
+                  : selectedTheme === 'designer'
+                    ? 'text-purple-800'
+                    : 'text-primary-800'
+            }
+          >
+            {themeInfo?.description || themeInfo?.label}
+          </span>
+        </h3>
+        <p className="text-xs text-gray-600">
+          {selectedTheme === 'whatsapp'
+            ? "Klassieke WhatsApp emoji's"
+            : selectedTheme === 'garden'
+              ? t('chat.chooseEmoji.garden')
+              : selectedTheme === 'designer'
+                ? t('chat.chooseEmoji.designer')
+                : t('chat.chooseEmoji.chef')}
+        </p>
+      </div>
+
+      <div className="mb-4">
+        <h4
+          className={`mb-2 text-xs font-semibold ${
+            selectedTheme === 'whatsapp'
+              ? 'text-green-800'
+              : selectedTheme === 'garden'
+                ? 'text-green-800'
+                : selectedTheme === 'designer'
+                  ? 'text-purple-800'
+                  : 'text-primary-800'
+          }`}
+        >
+          👥 Mensen & Relaties
+        </h4>
+        <div className="mb-3 grid grid-cols-8 gap-2">
+          {PEOPLE_EMOJIS.map((emoji, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => onEmojiClick(emoji)}
+              className={`rounded-lg border border-transparent p-2 text-2xl transition-all duration-200 hover:scale-125 hover:bg-white hover:shadow-lg active:scale-110 ${
+                selectedTheme === 'whatsapp'
+                  ? 'hover:border-green-300'
+                  : selectedTheme === 'garden'
+                    ? 'hover:border-green-300'
+                    : selectedTheme === 'designer'
+                      ? 'hover:border-purple-300'
+                      : 'hover:border-primary-300'
+              }`}
+              title={emoji}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-8 gap-2 sm:grid-cols-10">
+        {emojiSet.map((emoji, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => onEmojiClick(emoji)}
+            className="rounded-lg border border-transparent p-2 text-2xl transition-all duration-200 hover:scale-125 hover:border-primary-300 hover:bg-white hover:shadow-lg active:scale-110"
+            title={emoji}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+
+      <div className={`mt-4 border-t pt-4 ${themeColors.border}`}>
+        <p className="flex items-center justify-center gap-1 text-center text-xs text-gray-500">
+          <span>💡</span>
+          <span>{t('chat.emojiTip')}</span>
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col items-stretch overflow-hidden px-1 pb-2 pt-1">
+      <EmojiPickerReact
+        onEmojiClick={handleEmojiClick}
+        skinTonesDisabled={false}
+        searchDisabled={false}
+        previewConfig={{ showPreview: true }}
+        height={emojiLibSize.height}
+        width={emojiLibSize.width}
+        lazyLoadEmojis={true}
+        emojiStyle={
+          selectedTheme === 'native'
+            ? 'native'
+            : (selectedTheme.toUpperCase() as import('emoji-picker-react').EmojiStyle)
+        }
+      />
+    </div>
+  );
+
+  const portalPanel =
+    typeof document !== 'undefined' &&
+    isOpen &&
+    createPortal(
+      <>
+        <div
+          className="fixed inset-0 z-[250] touch-none bg-black/45 backdrop-blur-[1px] md:bg-black/30"
+          aria-hidden
+          onClick={closePicker}
+          onKeyDown={(e) => e.key === 'Escape' && closePicker()}
+        />
+        {sheetNarrow ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('common.addEmoji')}
+            className="fixed inset-x-0 bottom-0 z-[260] flex max-h-[55vh] min-h-[40vh] w-full flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl supports-[padding:max(0px,1px)]:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {themeSelectorRow}
+            <div className="flex min-h-0 flex-1 flex-col">{pickerBody}</div>
+          </div>
+        ) : desktopGeom ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('common.addEmoji')}
+            style={{
+              top: desktopGeom.top,
+              left: desktopGeom.left,
+              width: desktopGeom.width,
+              height: desktopGeom.height,
+            }}
+            className="fixed z-[260] flex flex-col overflow-hidden rounded-xl border-2 border-primary-200 bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {themeSelectorRow}
+            <div className="flex min-h-0 flex-1 flex-col">{pickerBody}</div>
+          </div>
+        ) : null}
+      </>,
+      document.body
+    );
+
+  return (
+    <div className={`relative ${className}`}>
+      <button
+        ref={triggerRef}
         onClick={togglePicker}
-        className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 flex-shrink-0 active:scale-95 transition-all rounded-full hover:bg-gray-100"
+        className="flex-shrink-0 rounded-full p-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-700 active:scale-95 disabled:opacity-50"
         aria-label={t('common.addEmoji')}
+        aria-expanded={isOpen}
         type="button"
       >
-        <Smile className="w-5 h-5" />
+        <Smile className="h-5 w-5" />
       </button>
-
-      {isOpen && (
-        <>
-          {/* Overlay to close picker when clicking outside */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          
-          {/* Emoji Picker Container */}
-          <div className="absolute bottom-full right-0 mb-2 z-50 bg-white rounded-lg shadow-2xl border-2 border-primary-200 overflow-hidden w-[380px] max-w-[90vw]">
-            {/* Theme Selector */}
-            <div className="flex items-center gap-1 p-2 bg-gradient-to-r from-primary-50 to-primary-100 border-b border-primary-200 flex-wrap">
-              {EMOJI_THEMES.map((theme) => (
-                <button
-                  key={theme.value}
-                  onClick={() => setSelectedTheme(theme.value)}
-                  className={`px-2 py-1.5 rounded-md text-xs font-medium transition-all relative ${
-                    selectedTheme === theme.value
-                      ? isCustomTheme
-                        ? themeColors.header
-                        : 'bg-blue-500 text-white'
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
-                  title={theme.description || theme.label}
-                >
-                  <span className="text-base">{theme.icon}</span>
-                  {isCustomTheme && selectedTheme === theme.value && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border-2 border-white"></span>
-                  )}
-                </button>
-              ))}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-200 transition-colors"
-                aria-label={t('buttons.close')}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Custom Emoji Grids */}
-            {isCustomTheme ? (
-              <div className={`max-h-[400px] overflow-y-auto p-4 bg-gradient-to-br ${themeColors.bg}`}>
-                <div className={`mb-4 p-3 rounded-lg border ${themeColors.border} shadow-sm ${selectedTheme === 'whatsapp' ? 'bg-white' : 'bg-white'}`}>
-                  <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
-                    <span className="text-xl">{themeInfo?.icon}</span>
-                    <span className={selectedTheme === 'whatsapp' ? 'text-green-800' : selectedTheme === 'garden' ? 'text-green-800' : selectedTheme === 'designer' ? 'text-purple-800' : 'text-primary-800'}>
-                      {themeInfo?.description || themeInfo?.label}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-gray-600">
-                    {selectedTheme === 'whatsapp' 
-                      ? 'Klassieke WhatsApp emoji\'s' 
-                      : selectedTheme === 'garden'
-                      ? t('chat.chooseEmoji.garden')
-                      : selectedTheme === 'designer'
-                      ? t('chat.chooseEmoji.designer')
-                      : t('chat.chooseEmoji.chef')}
-                  </p>
-                </div>
-                
-                {/* Special section for people emojis - always available */}
-                <div className="mb-4">
-                  <h4 className={`text-xs font-semibold mb-2 ${
-                    selectedTheme === 'whatsapp' ? 'text-green-800' : 
-                    selectedTheme === 'garden' ? 'text-green-800' : 
-                    selectedTheme === 'designer' ? 'text-purple-800' : 
-                    'text-primary-800'
-                  }`}>
-                    👥 Mensen & Relaties
-                  </h4>
-                  <div className="grid grid-cols-8 gap-2 mb-3">
-                    {PEOPLE_EMOJIS.map((emoji, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          onEmojiClick(emoji);
-                        }}
-                        className={`text-2xl hover:bg-white hover:scale-125 rounded-lg p-2 transition-all duration-200 hover:shadow-lg active:scale-110 border border-transparent ${
-                          selectedTheme === 'whatsapp' ? 'hover:border-green-300' :
-                          selectedTheme === 'garden' ? 'hover:border-green-300' :
-                          selectedTheme === 'designer' ? 'hover:border-purple-300' :
-                          'hover:border-primary-300'
-                        }`}
-                        title={emoji}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Main emoji grid */}
-                <div className="grid grid-cols-8 sm:grid-cols-10 gap-2">
-                  {emojiSet.map((emoji, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        onEmojiClick(emoji);
-                      }}
-                      className="text-2xl hover:bg-white hover:scale-125 rounded-lg p-2 transition-all duration-200 hover:shadow-lg active:scale-110 border border-transparent hover:border-primary-300"
-                      title={emoji}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-                
-                <div className={`mt-4 pt-4 border-t ${themeColors.border}`}>
-                  <p className="text-xs text-center text-gray-500 flex items-center justify-center gap-1">
-                    <span>💡</span>
-                    <span>{t('chat.emojiTip')}</span>
-                  </p>
-                </div>
-              </div>
-            ) : (
-              /* Standard Emoji Picker */
-              <div className="max-h-[400px] overflow-y-auto">
-                <EmojiPicker
-                  onEmojiClick={handleEmojiClick}
-                  skinTonesDisabled={false}
-                  searchDisabled={false}
-                  previewConfig={{
-                    showPreview: true
-                  }}
-                  height={400}
-                  width={350}
-                  lazyLoadEmojis={true}
-                  emojiStyle={selectedTheme === 'native' ? 'native' : selectedTheme.toUpperCase() as any}
-                />
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      {portalPanel}
     </div>
   );
 }
