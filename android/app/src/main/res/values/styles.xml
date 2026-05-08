@@ -23,13 +23,17 @@
     </style>
 
 
-    <!-- Android 12+: volledige branded achtergrond via splash_full; animatedIcon is technisch verplicht maar transparant/minimaal. -->
+    <!--
+      Android 12+: windowSplashScreenBackground is een effen kleur (geen bitmap/layer-list — anders valt het terug naar wit zonder logo).
+      Pre-12 / eerste frame: android:windowBackground = splash_full (wit + logo).
+      Animated icon: splash_brand_icon (logo zichtbaar in systeem-splash).
+    -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:windowBackground">@drawable/splash_full</item>
-        <item name="windowSplashScreenBackground">@drawable/splash_full</item>
-        <item name="android:windowSplashScreenBackground">@drawable/splash_full</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_placeholder</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_placeholder</item>
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="android:windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_brand_icon</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_brand_icon</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
