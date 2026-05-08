@@ -1,1 +1,0 @@
-window.__HC_SHELL={origin:"https://homecheff.eu",healthPath:"/api/health"};

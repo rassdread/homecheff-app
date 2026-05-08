@@ -6,21 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   /** Wit achter WebView vóór eerste paint (Capacitor Android past dit toe in Bridge.initWebView). */
   backgroundColor: '#ffffff',
-  /**
-   * Zonder `url`: Android laadt gebundelde `webDir` (lokale startup-shell), daarna navigeert de shell naar homecheff.eu.
-   * Alleen zetten voor dev: CAPACITOR_SERVER_URL=http://localhost:3000 (+ eventueel CAPACITOR_ANDROID_CLEARTEXT=true).
-   */
-  server: process.env.CAPACITOR_SERVER_URL
-    ? {
-        androidScheme: 'https',
-        url: process.env.CAPACITOR_SERVER_URL,
-        ...(process.env.CAPACITOR_ANDROID_CLEARTEXT === 'true'
-          ? { cleartext: true }
-          : {}),
-      }
-    : {
-        androidScheme: 'https',
-      },
+  server: {
+    androidScheme: 'https',
+    url: process.env.CAPACITOR_SERVER_URL || 'https://homecheff.eu',
+  },
   android: {
     buildOptions: {
       keystorePath: undefined,
@@ -36,8 +25,8 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Kort: lokale shell vult direct; geen lange tweede splash. */
-      launchShowDuration: 900,
+      /** Lang genoeg om WebView-wit te maskeren; directe load naar homecheff.eu. */
+      launchShowDuration: 3250,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
@@ -50,4 +39,3 @@ const config: CapacitorConfig = {
 };
 
 export default config;
-

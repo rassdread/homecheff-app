@@ -1,7 +1,6 @@
 import { isSafeRestorablePath, toTrailingSlashPath } from "@/lib/native/safeRoute";
 import {
   NATIVE_SHELL_STORAGE_KEY,
-  NATIVE_PENDING_ROUTE_KEY,
   type NativeShellStored,
 } from "@/lib/native/nativeShellKeys";
 
@@ -36,34 +35,4 @@ export function writeNativeShellLastPath(
   } catch {
     /* ignore */
   }
-}
-
-export function resolveStartupPathForShell(
-  liveOrigin: string
-): { path: string; reason: "pending" | "last" | "default" } {
-  if (typeof window === "undefined") {
-    return { path: "/", reason: "default" };
-  }
-  try {
-    const pendingRaw = sessionStorage.getItem(NATIVE_PENDING_ROUTE_KEY);
-    if (pendingRaw) {
-      const p = JSON.parse(pendingRaw) as { v?: number; path?: string; ts?: number };
-      if (
-        p?.v === 1 &&
-        typeof p.path === "string" &&
-        isSafeRestorablePath(p.path) &&
-        Date.now() - (p.ts ?? 0) < 10 * 60 * 1000
-      ) {
-        return { path: toTrailingSlashPath(p.path), reason: "pending" };
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-
-  const shell = readNativeShellState();
-  if (shell?.lastPath) {
-    return { path: shell.lastPath, reason: "last" };
-  }
-  return { path: "/", reason: "default" };
 }
