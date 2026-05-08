@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import NativeAppRootClass from '@/components/native/NativeAppRootClass';
+import NativeAppUxFoundation from '@/components/native/NativeAppUxFoundation';
 import NativeLifecycleDiagnostics from '@/components/native/NativeLifecycleDiagnostics';
 import NativePushTokenSync from '@/components/native/NativePushTokenSync';
 import NativePushPermissionOnboarding from '@/components/native/NativePushPermissionOnboarding';
@@ -25,6 +26,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       refetchOnWindowFocus={false}
     >
       <NativeAppRootClass />
+      <Suspense fallback={null}>
+        <NativeAppUxFoundation />
+      </Suspense>
       <NativeLifecycleDiagnostics />
       <NativePushTokenSync />
       <Suspense fallback={null}>

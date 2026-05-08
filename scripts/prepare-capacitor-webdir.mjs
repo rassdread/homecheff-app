@@ -1,4 +1,59 @@
-<!DOCTYPE html>
+#!/usr/bin/env node
+/**
+ * Vult dist/ voor Capacitor Android: lokale startup-shell + logo + Capacitor-plugin bundle.
+ * Geen remote server.url nodig — WebView laadt dit direct, daarna window.location naar homecheff.eu.
+ */
+import { execSync } from "node:child_process";
+import {
+  copyFileSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+} from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = resolve(__dirname, "..");
+const dist = resolve(root, "dist");
+const nativeShellDir = resolve(dist, "native-shell");
+
+const LIVE_ORIGIN = "https://homecheff.eu";
+
+mkdirSync(nativeShellDir, { recursive: true });
+
+const logoSrc = resolve(root, "public", "icon-192.png");
+const logoDst = resolve(nativeShellDir, "logo.png");
+if (existsSync(logoSrc)) {
+  copyFileSync(logoSrc, logoDst);
+}
+
+const entry = resolve(root, "scripts", "native-shell-cap-entry.ts");
+const capOut = resolve(nativeShellDir, "cap-plugins.js");
+
+try {
+  const out = capOut.replace(/\\/g, "/");
+  const ent = entry.replace(/\\/g, "/");
+  const tsconfig = resolve(root, "tsconfig.json").replace(/\\/g, "/");
+  execSync(
+    `npx esbuild "${ent}" --bundle --format=iife --platform=browser --target=es2020 --outfile="${out}" --tsconfig="${tsconfig}"`,
+    { stdio: "inherit", cwd: root, shell: true }
+  );
+} catch {
+  console.error(
+    "\n[prepare-capacitor-webdir] esbuild failed. Run: npm install esbuild --save-dev\n"
+  );
+  process.exit(1);
+}
+
+writeFileSync(
+  resolve(dist, "shell-config.js"),
+  `window.__HC_SHELL={origin:${JSON.stringify(LIVE_ORIGIN)},healthPath:"/api/health"};`,
+  "utf8"
+);
+
+const indexHtml = `<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -48,7 +103,7 @@
   </div>
   <script>
 (function () {
-  var cfg = window.__HC_SHELL || { origin: "https://homecheff.eu", healthPath: "/api/health" };
+  var cfg = window.__HC_SHELL || { origin: "${LIVE_ORIGIN}", healthPath: "/api/health" };
   var origin = cfg.origin;
   var healthUrl = origin + cfg.healthPath;
   var statusEl = document.getElementById("s");
@@ -127,3 +182,8 @@
   </script>
 </body>
 </html>
+`;
+
+writeFileSync(resolve(dist, "index.html"), indexHtml, "utf8");
+
+console.log("[prepare-capacitor-webdir] dist/ ready (local shell + cap-plugins.js)");

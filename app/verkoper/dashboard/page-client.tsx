@@ -42,6 +42,14 @@ import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { dispatchOpenQuickAdd } from '@/lib/quickAddOpen';
 import { getCreateAuthReturnUrls } from '@/lib/createAuthReturnUrls';
 import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import {
+  readNativePersistedCache,
+  writeNativePersistedCache,
+} from '@/lib/native/nativePersistedCache';
+
+const DASH_CACHE_KIND = 'dash_home';
+const DASH_CACHE_TTL_MS = 12 * 60 * 1000;
 
 interface DashboardStats {
   totalRevenue: number;
@@ -106,9 +114,17 @@ interface Order {
   sellerCanSetDelivered?: boolean;
 }
 
+type DashboardHomeCache = {
+  period: string;
+  stats: DashboardStats | null;
+  recentOrders: RecentOrder[];
+  topProducts: TopProduct[];
+};
+
 export default function SellerDashboardClient() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
+  const nativeMounted = useIsNativeAppMounted();
   const lastNativeResumeRefreshRef = useRef(0);
   const createFlowLastOpenRef = useRef(0);
   /** Zelfde gedrag als +-knop: quick-add of login met intent (geen useCreateFlow — werkt altijd, ook buiten edge cases). */
@@ -208,26 +224,55 @@ export default function SellerDashboardClient() {
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
-      
+
+      const dashUserId = (session?.user as { id?: string } | undefined)?.id;
+      if (nativeMounted && dashUserId) {
+        const cached = readNativePersistedCache<DashboardHomeCache>(
+          DASH_CACHE_KIND,
+          dashUserId,
+          DASH_CACHE_TTL_MS
+        );
+        if (cached && cached.period === selectedPeriod) {
+          if (cached.stats) setStats(cached.stats);
+          setRecentOrders(cached.recentOrders || []);
+          setTopProducts(cached.topProducts || []);
+        }
+      }
+
       // Load dashboard stats
       const statsResponse = await fetch(`/api/seller/dashboard/stats?period=${selectedPeriod}`);
+      let nextStats: DashboardStats | null = null;
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
+        nextStats = statsData;
         setStats(statsData);
       }
 
       // Load recent orders
       const ordersResponse = await fetch(`/api/seller/dashboard/orders?period=${selectedPeriod}&limit=10`);
+      let nextRecent: RecentOrder[] = [];
       if (ordersResponse.ok) {
         const ordersData = await ordersResponse.json();
-        setRecentOrders(ordersData.orders || []);
+        nextRecent = ordersData.orders || [];
+        setRecentOrders(nextRecent);
       }
 
       // Load top products
       const productsResponse = await fetch(`/api/seller/dashboard/products?period=${selectedPeriod}&limit=5`);
+      let nextTop: TopProduct[] = [];
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();
-        setTopProducts(productsData.products || []);
+        nextTop = productsData.products || [];
+        setTopProducts(nextTop);
+      }
+
+      if (nativeMounted && dashUserId && nextStats) {
+        writeNativePersistedCache(DASH_CACHE_KIND, dashUserId, {
+          period: selectedPeriod,
+          stats: nextStats,
+          recentOrders: nextRecent,
+          topProducts: nextTop,
+        });
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);

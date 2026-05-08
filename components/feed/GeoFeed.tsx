@@ -42,6 +42,10 @@ import {
 } from "@/lib/userStatsClientCache";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import {
+  readNativeFeedPrefs,
+  writeNativeFeedPrefs,
+} from "@/lib/native/appPreferences";
+import {
   NativeLocationError,
   requestAndGetNativeCurrentPosition,
   type NativeLocationCoords,
@@ -467,6 +471,7 @@ export default function GeoFeed({
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
   const [category, setCategory] = useState("all");
   const profileLocationLoadedRef = useRef(false);
+  const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
@@ -514,6 +519,38 @@ export default function GeoFeed({
       fallbackToManual: false,
       onFallback: () => {},
     });
+
+  useEffect(() => {
+    if (!nativeMounted || sessionStatus === "loading") return;
+    if (initialFeedChip) {
+      queueMicrotask(() => {
+        nativeFeedPrefsBootRef.current = false;
+      });
+      return;
+    }
+    const uid = (session?.user as { id?: string } | undefined)?.id ?? null;
+    const p = readNativeFeedPrefs(uid);
+    if (p?.feedChip) setFeedChip(p.feedChip);
+    if (p?.sortBy) setSortBy(p.sortBy);
+    if (p?.sortOrder) setSortOrder(p.sortOrder);
+    queueMicrotask(() => {
+      nativeFeedPrefsBootRef.current = false;
+    });
+  }, [nativeMounted, sessionStatus, session?.user, initialFeedChip]);
+
+  useEffect(() => {
+    if (!nativeMounted || nativeFeedPrefsBootRef.current) return;
+    if (sessionStatus === "loading") return;
+    const uid = (session?.user as { id?: string } | undefined)?.id ?? null;
+    writeNativeFeedPrefs(uid, { feedChip, sortBy, sortOrder });
+  }, [
+    nativeMounted,
+    sessionStatus,
+    session?.user,
+    feedChip,
+    sortBy,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     setInspiratiePool(initialInspiratieItems);

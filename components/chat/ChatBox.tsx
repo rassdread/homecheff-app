@@ -15,6 +15,10 @@ import {
   readMessagesCache,
   writeMessagesCache,
 } from '@/lib/chat/sessionChatCache';
+import {
+  readNativePersistedCache,
+  writeNativePersistedCache,
+} from '@/lib/native/nativePersistedCache';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
 import type { ChatThreadMessage } from './chatThreadTypes';
@@ -108,7 +112,7 @@ export default function ChatBox({
           const newMessages = data.messages || [];
           if (isInitialLoad) {
             setMessages(newMessages);
-            writeMessagesCache(conversationId, newMessages, currentUserId);
+            persistThreadMsgs(newMessages);
           } else {
             setMessages((prev) => {
               const merged = mergeServerChatMessages(prev, newMessages);
@@ -123,7 +127,7 @@ export default function ChatBox({
               ) {
                 return prev;
               }
-              writeMessagesCache(conversationId, merged, currentUserId);
+              persistThreadMsgs(merged);
               return merged;
             });
           }
@@ -143,11 +147,11 @@ export default function ChatBox({
             const list = fallbackData.messages || [];
             if (isInitialLoad) {
               setMessages(list);
-              writeMessagesCache(conversationId, list, currentUserId);
+              persistThreadMsgs(list);
             } else {
               setMessages((prev) => {
                 const merged = mergeServerChatMessages(prev, list);
-                writeMessagesCache(conversationId, merged, currentUserId);
+                persistThreadMsgs(merged);
                 return merged;
               });
             }
@@ -159,7 +163,7 @@ export default function ChatBox({
         setIsLoading(false);
       }
     },
-    [conversationId, scrollToBottomSoon, currentUserId]
+    [conversationId, scrollToBottomSoon, currentUserId, persistThreadMsgs]
   );
 
   // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
@@ -170,9 +174,21 @@ export default function ChatBox({
     const ac = new AbortController();
     fetchAbortRef.current = ac;
 
-    const cached = currentUserId
+    let cached = currentUserId
       ? readMessagesCache<ChatThreadMessage>(conversationId, currentUserId)
       : [];
+    if (
+      cached.length === 0 &&
+      nativeMounted &&
+      currentUserId
+    ) {
+      const persisted = readNativePersistedCache<ChatThreadMessage[]>(
+        `conv_msgs_${conversationId}`,
+        currentUserId,
+        8 * 60 * 1000
+      );
+      if (persisted?.length) cached = persisted;
+    }
     if (cached.length > 0) {
       setMessages(cached);
       setIsLoading(false);
@@ -186,7 +202,7 @@ export default function ChatBox({
     return () => {
       ac.abort();
     };
-  }, [conversationId, currentUserId, loadMessages]);
+  }, [conversationId, currentUserId, loadMessages, nativeMounted]);
 
   // Setup Pusher real-time
   useEffect(() => {
@@ -213,7 +229,7 @@ export default function ChatBox({
     channel.bind('new-message', (data: ChatThreadMessage) => {
       setMessages((prev) => {
         const next = mergePusherChatMessage(prev, data);
-        queueMicrotask(() => writeMessagesCache(conversationId, next, currentUserId));
+        queueMicrotask(() => persistThreadMsgs(next));
         return next;
       });
       scrollToBottomSoon();
@@ -246,7 +262,7 @@ export default function ChatBox({
         pusher.unsubscribe(`conversation-${conversationId}`);
       }
     };
-  }, [conversationId, currentUserId, otherParticipant.id]);
+  }, [conversationId, currentUserId, otherParticipant.id, persistThreadMsgs, scrollToBottomSoon]);
 
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
@@ -363,7 +379,7 @@ export default function ChatBox({
           const next = prev.map((msg) =>
             msg.id === tempId ? realMessage : msg
           );
-          writeMessagesCache(conversationId, next, currentUserId);
+          persistThreadMsgs(next);
           return next;
         });
         scrollToBottomSoon();

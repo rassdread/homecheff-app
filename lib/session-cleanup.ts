@@ -2,12 +2,23 @@
  * Session cleanup utilities for data privacy and isolation
  */
 
+import { clearAllCartData } from '@/lib/cart';
+import { clearAllNativePersistedCaches } from '@/lib/native/nativePersistedCache';
+import { NATIVE_SHELL_STORAGE_KEY } from '@/lib/native/nativeShellKeys';
+
 // Clear all user-specific data from localStorage and sessionStorage
 export function clearAllUserData(): void {
   if (typeof window === 'undefined') return;
 
   // Clear cart data first
   clearAllCartData();
+  clearAllNativePersistedCaches();
+  try {
+    localStorage.removeItem(NATIVE_SHELL_STORAGE_KEY);
+    localStorage.removeItem('hc_app_prefs_v1');
+  } catch {
+    /* ignore */
+  }
 
   // Clear all localStorage items related to the app
   const keysToRemove: string[] = [];
@@ -20,6 +31,10 @@ export function clearAllUserData(): void {
     if (!key) continue;
     if (key === 'homecheff-language' || key.startsWith('i18n-')) continue; // keep language + translation cache
     if (
+      key.startsWith('hc_cap_') ||
+      key.startsWith('hc_nat_v1_') ||
+      key.startsWith('hc_npush_') ||
+      key.startsWith('hc_app_prefs') ||
       key.startsWith('homecheff_') ||
       key.startsWith('user_') ||
       key.startsWith('delivery_') ||
@@ -242,9 +257,6 @@ export function setupSessionIsolation(): void {
     sessionStorage.setItem('last_user_id', currentUserId);
   }
 }
-
-// Import cart cleanup function
-import { clearAllCartData } from './cart';
 
 /**
  * Voer een betrouwbare logout uit, ook op Safari/iPhone.

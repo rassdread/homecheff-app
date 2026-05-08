@@ -12,7 +12,14 @@ import {
   readConversationsListCache,
   writeConversationsListCache,
 } from '@/lib/chat/sessionChatCache';
+import {
+  readNativePersistedCache,
+  writeNativePersistedCache,
+} from '@/lib/native/nativePersistedCache';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+
+const NATIVE_CONV_LIST_KIND = 'conv_list';
+const NATIVE_CONV_LIST_TTL_MS = 10 * 60 * 1000;
 
 interface Conversation {
   id: string;
@@ -122,6 +129,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         const list = fallbackData.conversations || [];
         setConversations(list);
         writeConversationsListCache(userId, list);
+        if (nativeMounted) {
+          writeNativePersistedCache(NATIVE_CONV_LIST_KIND, userId, list);
+        }
         return;
       }
 
@@ -129,12 +139,19 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
       setConversations(fetchedConversations);
       writeConversationsListCache(userId, fetchedConversations);
+      if (nativeMounted) {
+        writeNativePersistedCache(
+          NATIVE_CONV_LIST_KIND,
+          userId,
+          fetchedConversations
+        );
+      }
     } catch (error) {
       console.error('[ConversationsList] ❌ Critical error:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, [userId, nativeMounted]);
 
   useEffect(() => {
     if (sessionStatus === 'loading') return;
@@ -143,11 +160,19 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       setIsLoading(false);
       return;
     }
-    const cached = readConversationsListCache<Conversation>(userId);
+    let cached = readConversationsListCache<Conversation>(userId);
+    if (nativeMounted && cached.length === 0) {
+      const persisted = readNativePersistedCache<Conversation[]>(
+        NATIVE_CONV_LIST_KIND,
+        userId,
+        NATIVE_CONV_LIST_TTL_MS
+      );
+      if (persisted?.length) cached = persisted;
+    }
     setConversations(cached);
     setIsLoading(cached.length === 0);
     void loadConversations(cached.length === 0);
-  }, [sessionStatus, userId, loadConversations]);
+  }, [sessionStatus, userId, loadConversations, nativeMounted]);
 
   // Refresh conversations when messages are read
   useEffect(() => {
