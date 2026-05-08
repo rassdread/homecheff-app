@@ -19,25 +19,23 @@ export async function GET(
     const { conversationId } = params;
     const { page = '1', limit = '50' } = Object.fromEntries(req.nextUrl.searchParams);
 
-    // Check cache first
-    const cacheKey = `${conversationId}-${page}-${limit}`;
-    const cached = messageCache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      // Add cache headers for client-side caching
-      const response = NextResponse.json(cached.data);
-      response.headers.set('Cache-Control', 'private, max-age=30');
-      response.headers.set('X-Cache', 'HIT');
-      return response;
-    }
-
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true } // Only select ID for faster query
+      select: { id: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const cacheKey = `${user.id}:${conversationId}:${page}:${limit}`;
+    const cached = messageCache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      const response = NextResponse.json(cached.data);
+      response.headers.set('Cache-Control', 'private, max-age=30');
+      response.headers.set('X-Cache', 'HIT');
+      return response;
     }
 
     // Optimized participant check

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { cn } from '@/lib/utils';
 
 /**
@@ -11,7 +12,10 @@ import { cn } from '@/lib/utils';
  */
 export default function AppPageChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const navHidden = isBottomNavigationHidden(pathname);
+  const nativeMounted = useIsNativeAppMounted();
+  const navHidden = isBottomNavigationHidden(pathname, {
+    nativeShell: nativeMounted,
+  });
 
   return (
     <div

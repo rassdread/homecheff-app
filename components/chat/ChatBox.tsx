@@ -106,7 +106,7 @@ export default function ChatBox({
           const newMessages = data.messages || [];
           if (isInitialLoad) {
             setMessages(newMessages);
-            writeMessagesCache(conversationId, newMessages);
+            writeMessagesCache(conversationId, newMessages, currentUserId);
           } else {
             setMessages((prev) => {
               const existingIds = new Set(prev.map((m) => m.id));
@@ -119,7 +119,7 @@ export default function ChatBox({
                   new Date(a.createdAt).getTime() -
                   new Date(b.createdAt).getTime()
               );
-              writeMessagesCache(conversationId, merged);
+              writeMessagesCache(conversationId, merged, currentUserId);
               return merged;
             });
           }
@@ -138,7 +138,7 @@ export default function ChatBox({
             const fallbackData = await fallbackRes.json();
             const list = fallbackData.messages || [];
             setMessages(list);
-            writeMessagesCache(conversationId, list);
+            writeMessagesCache(conversationId, list, currentUserId);
           }
           setIsLoading(false);
         }
@@ -158,7 +158,9 @@ export default function ChatBox({
     const ac = new AbortController();
     fetchAbortRef.current = ac;
 
-    const cached = readMessagesCache<ChatThreadMessage>(conversationId);
+    const cached = currentUserId
+      ? readMessagesCache<ChatThreadMessage>(conversationId, currentUserId)
+      : [];
     if (cached.length > 0) {
       setMessages(cached);
       setIsLoading(false);
@@ -199,7 +201,7 @@ export default function ChatBox({
     channel.bind('new-message', (data: ChatThreadMessage) => {
       setMessages((prev) => {
         const next = mergePusherChatMessage(prev, data);
-        queueMicrotask(() => writeMessagesCache(conversationId, next));
+        queueMicrotask(() => writeMessagesCache(conversationId, next, currentUserId));
         return next;
       });
       scrollToBottomSoon();
@@ -349,7 +351,7 @@ export default function ChatBox({
           const next = prev.map((msg) =>
             msg.id === tempId ? realMessage : msg
           );
-          writeMessagesCache(conversationId, next);
+          writeMessagesCache(conversationId, next, currentUserId);
           return next;
         });
         scrollToBottomSoon();
@@ -432,10 +434,19 @@ export default function ChatBox({
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {onBack && (
             <button
+              type="button"
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-full lg:hidden shrink-0"
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full p-2 hover:bg-gray-100 ${
+                nativeMounted ? '' : 'lg:hidden'
+              }`}
+              aria-label={t('messages.backToConversations')}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="h-5 w-5" aria-hidden />
+              {nativeMounted ? (
+                <span className="max-w-[7rem] truncate text-sm font-semibold text-gray-900">
+                  {t('messages.backToConversations')}
+                </span>
+              ) : null}
             </button>
           )}
 

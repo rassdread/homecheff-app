@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '@/hooks/useTranslation';
 import { 
   TrendingUp, 
@@ -108,6 +109,7 @@ interface Order {
 export default function SellerDashboardClient() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
+  const lastNativeResumeRefreshRef = useRef(0);
   const createFlowLastOpenRef = useRef(0);
   /** Zelfde gedrag als +-knop: quick-add of login met intent (geen useCreateFlow — werkt altijd, ook buiten edge cases). */
   const openCreateFlow = useCallback(() => {
@@ -156,10 +158,19 @@ export default function SellerDashboardClient() {
     }
   }, [selectedPeriod, activeTab]);
 
-  /** Na betaling/webhook: data vernieuwen wanneer gebruiker terugkomt naar dit tabblad. */
+  /** Na betaling/webhook: data vernieuwen wanneer gebruiker terugkomt — op native iets minder agressief (minder “volledige herlaad”-gevoel). */
   useEffect(() => {
+    const NATIVE_RESUME_GAP_MS = 12_000;
+
     const refresh = () => {
       if (document.visibilityState !== 'visible') return;
+      if (Capacitor.isNativePlatform()) {
+        const now = Date.now();
+        if (now - lastNativeResumeRefreshRef.current < NATIVE_RESUME_GAP_MS) {
+          return;
+        }
+        lastNativeResumeRefreshRef.current = now;
+      }
       if (activeTab === 'dashboard') {
         void loadDashboardData();
       } else if (activeTab === 'orders') {

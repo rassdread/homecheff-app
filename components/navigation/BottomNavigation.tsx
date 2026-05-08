@@ -48,9 +48,12 @@ export default function BottomNavigation() {
   const { data: session, status: sessionStatus } = useSession();
   const { t } = useTranslation();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
-  
-  const shouldHide = isBottomNavigationHidden(pathname);
-  
+
+  const isNativeShell = useIsNativeAppMounted();
+  const shouldHide = isBottomNavigationHidden(pathname, {
+    nativeShell: isNativeShell,
+  });
+
   // Quick Add State
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
   const [quickAddStep, setQuickAddStep] = useState<QuickAddStep>('platform');
@@ -68,7 +71,6 @@ export default function BottomNavigation() {
    */
   const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
-  const isNativeShell = useIsNativeAppMounted();
 
   const isQuickAddDebug =
     typeof process !== 'undefined' &&

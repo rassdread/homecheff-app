@@ -279,6 +279,7 @@ function MessagesPageContent() {
                 flex flex-col bg-white
               `}>
                 <ChatBox
+                  key={selectedConversation.id}
                   conversationId={selectedConversation.id}
                   otherParticipant={
                     selectedConversation.otherParticipant || 

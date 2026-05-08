@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { MessageCircle, CheckCheck, Package } from 'lucide-react';
@@ -85,85 +85,96 @@ function sanitizeConversationPreviewText(text: string): string {
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const { t } = useTranslation();
   const nativeMounted = useIsNativeAppMounted();
-  const cachedInitial = readConversationsListCache<Conversation>();
-  const [conversations, setConversations] = useState<Conversation[]>(cachedInitial);
-  const [isLoading, setIsLoading] = useState(() => cachedInitial.length === 0);
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
 
-  useEffect(() => {
-    loadConversations();
-  }, []);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async (showLoading: boolean) => {
+    if (!userId) {
+      setConversations([]);
+      setIsLoading(false);
+      return;
+    }
+    if (showLoading) {
+      setIsLoading(true);
+    }
     try {
-      if (conversations.length === 0) setIsLoading(true);
-
       const response = await fetch('/api/conversations-fast', {
         cache: 'no-store',
         credentials: 'include',
         headers: {
-          'Cache-Control': 'no-cache'
-        }
+          'Cache-Control': 'no-cache',
+        },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[ConversationsList] ❌ Fast API failed:', response.status, errorText);
-        
-        // Fallback to regular API
 
         const fallbackResponse = await fetch('/api/conversations', {
           cache: 'no-store',
           credentials: 'include',
           headers: {
-            'Cache-Control': 'no-cache'
-          }
+            'Cache-Control': 'no-cache',
+          },
         });
-        
+
         if (!fallbackResponse.ok) {
           throw new Error(`Failed to load conversations: ${fallbackResponse.status}`);
         }
-        
+
         const fallbackData = await fallbackResponse.json();
         const list = fallbackData.conversations || [];
         setConversations(list);
-        writeConversationsListCache(list);
-        setIsLoading(false);
+        writeConversationsListCache(userId, list);
         return;
       }
 
       const { conversations: fetchedConversations } = await response.json();
 
       setConversations(fetchedConversations);
-      writeConversationsListCache(fetchedConversations);
+      writeConversationsListCache(userId, fetchedConversations);
     } catch (error) {
       console.error('[ConversationsList] ❌ Critical error:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (sessionStatus === 'loading') return;
+    if (sessionStatus !== 'authenticated' || !userId) {
+      setConversations([]);
+      setIsLoading(false);
+      return;
+    }
+    const cached = readConversationsListCache<Conversation>(userId);
+    setConversations(cached);
+    setIsLoading(cached.length === 0);
+    void loadConversations(cached.length === 0);
+  }, [sessionStatus, userId, loadConversations]);
 
   // Refresh conversations when messages are read
   useEffect(() => {
-    if (onMessagesRead) {
-      const handleRefresh = () => {
-        loadConversations();
-      };
+    if (!onMessagesRead) return;
+    const handleRefresh = () => {
+      void loadConversations(false);
+    };
 
-      const handleUnreadCountUpdate = () => {
-        loadConversations();
-      };
+    const handleUnreadCountUpdate = () => {
+      void loadConversations(false);
+    };
 
-      // Listen for custom events to refresh conversations
-      window.addEventListener('messagesRead', handleRefresh);
-      window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate);
-      
-      return () => {
-        window.removeEventListener('messagesRead', handleRefresh);
-        window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate);
-      };
-    }
-  }, [onMessagesRead]);
+    window.addEventListener('messagesRead', handleRefresh);
+    window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate);
+
+    return () => {
+      window.removeEventListener('messagesRead', handleRefresh);
+      window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate);
+    };
+  }, [onMessagesRead, loadConversations]);
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
