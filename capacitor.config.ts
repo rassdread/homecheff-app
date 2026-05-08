@@ -29,11 +29,11 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Native splash blijft staan tot React expliciet hide() aanroept. */
-      launchShowDuration: 0,
-      launchAutoHide: false,
+      /** Simpele stabiele splash: native auto-hide na vaste duur. */
+      launchShowDuration: 1500,
+      launchAutoHide: true,
       backgroundColor: '#ffffff',
-      androidSplashResourceName: 'splash_brand',
+      androidSplashResourceName: 'splash',
       androidScaleType: 'FIT_CENTER',
       showSpinner: false,
       splashFullScreen: true,

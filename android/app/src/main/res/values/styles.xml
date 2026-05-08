@@ -24,15 +24,16 @@
 
 
     <!--
-      Minimale systeem-splash: wit, geen merk-logo (dat is NativeStartupSplash in de WebView).
-      Android 12+: verplicht icoon → splash_a12_icon_blank (wit op wit, geen “mannetje”).
+      Simpele Android 12 systeem-splash:
+      - achtergrond wit
+      - veilige vierkante icon PNG (geen adaptive/portrait crop-flash).
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:windowBackground">@android:color/white</item>
         <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="android:windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_blank</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_blank</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_a12_safe_icon</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_a12_safe_icon</item>
         <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="31">@android:color/white</item>
         <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">200</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>

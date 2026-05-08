@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Valideert public/homecheff-native-splash.png en synchroniseert naar Android drawable
- * voor Capacitor SplashScreen (native startup cover).
+ * Valideert public/homecheff-native-splash.png en synchroniseert naar alle
+ * Android splash drawables (pre-12 + Capacitor).
+ * Android 12 icon gebruikt een veilige vierkante bron: public/icon-192.png.
  * Run vóór `npx cap sync` (zie npm script cap:sync).
  */
 import {
@@ -13,10 +14,11 @@ import {
   copyFileSync,
   mkdirSync,
 } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const root = join(import.meta.dirname, "..");
-const src = join(root, "public/homecheff-native-splash.png");
+const srcPortrait = join(root, "public/homecheff-native-splash.png");
+const srcA12Square = join(root, "public/icon-192.png");
 
 const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
@@ -81,15 +83,37 @@ function validateSplashSource(path) {
   }
 }
 
-validateSplashSource(src);
-const target = join(
+validateSplashSource(srcPortrait);
+
+const targets = [
+  "android/app/src/main/res/drawable/splash.png",
+  "android/app/src/main/res/drawable-land-hdpi/splash.png",
+  "android/app/src/main/res/drawable-land-mdpi/splash.png",
+  "android/app/src/main/res/drawable-land-xhdpi/splash.png",
+  "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
+  "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
+  "android/app/src/main/res/drawable-port-hdpi/splash.png",
+  "android/app/src/main/res/drawable-port-mdpi/splash.png",
+  "android/app/src/main/res/drawable-port-xhdpi/splash.png",
+  "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
+  "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
+];
+
+for (const rel of targets) {
+  const dest = join(root, rel);
+  mkdirSync(dirname(dest), { recursive: true });
+  copyFileSync(srcPortrait, dest);
+}
+
+const a12Dest = join(
   root,
-  "android/app/src/main/res/drawable/splash_brand.png"
+  "android/app/src/main/res/drawable/splash_a12_safe_icon.png"
 );
-mkdirSync(join(root, "android/app/src/main/res/drawable"), {
-  recursive: true,
-});
-copyFileSync(src, target);
-console.log(
-  `sync-android-splash: synced ${src} -> ${target}`
-);
+if (!existsSync(srcA12Square)) {
+  console.error("sync-android-splash: missing public/icon-192.png");
+  process.exit(1);
+}
+copyFileSync(srcA12Square, a12Dest);
+
+console.log(`sync-android-splash: copied splash.png to ${targets.length} targets`);
+console.log(`sync-android-splash: copied Android12 icon -> ${a12Dest}`);
