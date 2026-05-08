@@ -10,6 +10,7 @@ import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
+import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   // This hook ensures session isolation
@@ -28,6 +29,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <NativeAppRootClass />
       <Suspense fallback={null}>
         <NativeAppUxFoundation />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AppResumeCoordinator />
       </Suspense>
       <NativeLifecycleDiagnostics />
       <NativePushTokenSync />

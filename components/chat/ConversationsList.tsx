@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { MessageCircle, CheckCheck, Package } from 'lucide-react';
@@ -90,6 +90,36 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const el = listScrollRef.current;
+    if (!el || conversations.length === 0) return;
+    const key = 'ui:messages-list';
+    const tick = () => {
+      if (scrollSaveTimerRef.current != null) return;
+      scrollSaveTimerRef.current = window.setTimeout(() => {
+        scrollSaveTimerRef.current = null;
+        const y = el.scrollTop;
+        if (y > 2) {
+          try {
+            saveScrollPosition(key, y);
+          } catch {
+            /* ignore */
+          }
+        }
+      }, 450);
+    };
+    el.addEventListener('scroll', tick, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', tick);
+      if (scrollSaveTimerRef.current != null) {
+        clearTimeout(scrollSaveTimerRef.current);
+        scrollSaveTimerRef.current = null;
+      }
+    };
+  }, [conversations.length]);
 
   const loadConversations = useCallback(async (showLoading: boolean) => {
     if (!userId) {
@@ -396,7 +426,11 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div
+        ref={listScrollRef}
+        data-hc-app-scroll="messages-list"
+        className="flex-1 overflow-y-auto overscroll-contain"
+      >
         {conversations.map((conversation) => {
           const href = profileHrefFor(conversation);
           const unread = rowUnread(conversation);

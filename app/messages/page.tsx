@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Bell, Package } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
 import ChatBox from '@/components/chat/ChatBox';
@@ -82,6 +82,8 @@ interface Notification {
 }
 
 function MessagesPageContent() {
+  const router = useRouter();
+  const messagesPath = usePathname() ?? '/messages';
   const nativeMounted = useIsNativeAppMounted();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'conversations' | 'notifications' | 'orders'>('conversations');
@@ -89,7 +91,26 @@ function MessagesPageContent() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [unreadOrdersCount, setUnreadOrdersCount] = useState(0);
   const searchParams = useSearchParams();
-  
+
+  /** Native: één keer per tab gesprek-URL herstellen uit resume-hint (API blijft leidend). */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!nativeMounted) return;
+    if (!searchParams) return;
+    if (searchParams.get('conversation')) return;
+    try {
+      if (sessionStorage.getItem(APP_RESUME_MSG_CONV_HINT)) return;
+      const id = readLastConversationIdIfFresh();
+      if (!id) return;
+      sessionStorage.setItem(APP_RESUME_MSG_CONV_HINT, '1');
+      router.replace(
+        `${messagesPath}?conversation=${encodeURIComponent(id)}`
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [nativeMounted, searchParams, router, messagesPath]);
+
   // Load hints for this page
   const pageHints = getHintsForPage('messages');
 
@@ -153,6 +174,11 @@ function MessagesPageContent() {
     
     const conversationId = searchParams.get('conversation');
     if (conversationId) {
+      try {
+        saveLastConversationId(conversationId);
+      } catch {
+        /* ignore */
+      }
 
       // Set active tab to conversations
       setActiveTab('conversations');

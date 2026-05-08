@@ -31,6 +31,7 @@ export function clearAllUserData(): void {
     if (!key) continue;
     if (key === 'homecheff-language' || key.startsWith('i18n-')) continue; // keep language + translation cache
     if (
+      key.startsWith('hc_app_resume') ||
       key.startsWith('hc_cap_') ||
       key.startsWith('hc_nat_v1_') ||
       key.startsWith('hc_npush_') ||

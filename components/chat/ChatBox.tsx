@@ -15,11 +15,9 @@ import {
   readMessagesCache,
   writeMessagesCache,
 } from '@/lib/chat/sessionChatCache';
-import {
-  readNativePersistedCache,
-  writeNativePersistedCache,
-} from '@/lib/native/nativePersistedCache';
+import { readNativePersistedCache } from '@/lib/native/nativePersistedCache';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { saveLastConversationId } from '@/lib/appResumeCache';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
 import type { ChatThreadMessage } from './chatThreadTypes';
 
@@ -58,16 +56,57 @@ export default function ChatBox({
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  /** Pusher "typing cleared" timer: opruimen bij unmount om setState na unmount te vermijden (mobile/WebView). */
+  const pusherTypingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pusherRef = useRef<any>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
+  /** Monotoon per hydrate-run: trage fetches na gesprekswissel of effect-restart worden genegeerd. */
+  const conversationEpochRef = useRef(0);
+  /** Aborteren van lopende send bij unmount (geen state-updates van trage POST). */
+  const sendFlightRef = useRef<AbortController | null>(null);
+  /** Pusher effect generation: events van een vorig subscribe-blok negeren tot unsubscribe klaar is. */
+  const pusherUiGenRef = useRef(0);
+  /** REST online-status run id: overschrijf geen state van een vorige effect-run. */
+  const statusPollRunIdRef = useRef(0);
   const nativeMounted = useIsNativeAppMounted();
   const { data: session } = useSession();
+
+  useEffect(() => {
+    return () => {
+      sendFlightRef.current?.abort();
+      sendFlightRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    try {
+      saveLastConversationId(conversationId);
+    } catch {
+      /* ignore */
+    }
+  }, [conversationId]);
 
   const scrollToBottomSoon = useCallback((behavior: ScrollBehavior = 'smooth') => {
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior });
     });
   }, []);
+
+  /** Sync thread naar session cache (zelfde bron als hydrate); mag nooit crashen. */
+  const persistThreadMsgs = useCallback(
+    (msgs: ChatThreadMessage[]) => {
+      if (!conversationId) return;
+      try {
+        writeMessagesCache(conversationId, msgs, currentUserId || null);
+      } catch {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[ChatBox] writeMessagesCache failed (non-fatal)');
+        }
+      }
+    },
+    [conversationId, currentUserId]
+  );
 
   // Current user: JWT sessie bevat id — voorkomt extra roundtrip naar /api/profile/me
   useEffect(() => {
@@ -92,12 +131,25 @@ export default function ChatBox({
   }, [session]);
 
   const loadMessages = useCallback(
-    async (isInitialLoad = false, signal?: AbortSignal) => {
-      if (!conversationId) return;
+    async (
+      isInitialLoad = false,
+      signal?: AbortSignal,
+      requestEpoch?: number
+    ) => {
+      const cid = conversationId;
+      if (!cid) return;
+
+      const epochAtStart =
+        requestEpoch !== undefined
+          ? requestEpoch
+          : conversationEpochRef.current;
+      const stale = () =>
+        signal?.aborted ||
+        epochAtStart !== conversationEpochRef.current;
 
       try {
         const res = await fetch(
-          `/api/conversations/${conversationId}/messages-fast?limit=50`,
+          `/api/conversations/${cid}/messages-fast?limit=50`,
           {
             cache: 'no-store',
             headers: { 'Cache-Control': 'no-cache' },
@@ -105,16 +157,26 @@ export default function ChatBox({
           }
         );
 
-        if (signal?.aborted) return;
+        if (stale()) return;
 
         if (res.ok) {
-          const data = await res.json();
+          let data: { messages?: ChatThreadMessage[] };
+          try {
+            data = await res.json();
+          } catch {
+            if (stale()) return;
+            setIsLoading(false);
+            return;
+          }
+          if (stale()) return;
+
           const newMessages = data.messages || [];
           if (isInitialLoad) {
             setMessages(newMessages);
             persistThreadMsgs(newMessages);
           } else {
             setMessages((prev) => {
+              if (epochAtStart !== conversationEpochRef.current) return prev;
               const merged = mergeServerChatMessages(prev, newMessages);
               if (
                 merged.length === prev.length &&
@@ -132,43 +194,61 @@ export default function ChatBox({
             });
           }
 
+          if (stale()) return;
           setIsLoading(false);
           if (isInitialLoad || (data.messages && data.messages.length > 0)) {
             scrollToBottomSoon();
           }
         } else {
           const fallbackRes = await fetch(
-            `/api/conversations/${conversationId}/messages?limit=50`,
+            `/api/conversations/${cid}/messages?limit=50`,
             { signal }
           );
-          if (signal?.aborted) return;
+          if (stale()) return;
           if (fallbackRes.ok) {
-            const fallbackData = await fallbackRes.json();
+            let fallbackData: { messages?: ChatThreadMessage[] };
+            try {
+              fallbackData = await fallbackRes.json();
+            } catch {
+              if (stale()) return;
+              setIsLoading(false);
+              return;
+            }
+            if (stale()) return;
+
             const list = fallbackData.messages || [];
             if (isInitialLoad) {
               setMessages(list);
               persistThreadMsgs(list);
             } else {
               setMessages((prev) => {
+                if (epochAtStart !== conversationEpochRef.current) return prev;
                 const merged = mergeServerChatMessages(prev, list);
                 persistThreadMsgs(merged);
                 return merged;
               });
             }
           }
+          if (stale()) return;
           setIsLoading(false);
         }
       } catch (error) {
         if ((error as Error)?.name === 'AbortError') return;
+        if (epochAtStart !== conversationEpochRef.current) {
+          return;
+        }
         setIsLoading(false);
       }
     },
-    [conversationId, scrollToBottomSoon, currentUserId, persistThreadMsgs]
+    [conversationId, scrollToBottomSoon, persistThreadMsgs]
   );
 
   // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
+
+    conversationEpochRef.current += 1;
+    const epoch = conversationEpochRef.current;
 
     fetchAbortRef.current?.abort();
     const ac = new AbortController();
@@ -197,7 +277,7 @@ export default function ChatBox({
       setIsLoading(true);
     }
 
-    void loadMessages(true, ac.signal);
+    void loadMessages(true, ac.signal, epoch);
 
     return () => {
       ac.abort();
@@ -207,6 +287,7 @@ export default function ChatBox({
   // Setup Pusher real-time
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
+    const boundGen = ++pusherUiGenRef.current;
     const pusher = getPusherClient();
     if (!pusher) {
       console.warn('⚠️ Pusher not available');
@@ -218,78 +299,137 @@ export default function ChatBox({
     
     // Connection events
     channel.bind('pusher:subscription_succeeded', () => {
+      if (boundGen !== pusherUiGenRef.current) return;
       setPusherConnected(true);
     });
     
     channel.bind('pusher:subscription_error', (error: any) => {
+      if (boundGen !== pusherUiGenRef.current) return;
       console.error('❌ Pusher error:', error);
       setPusherConnected(false);
     });
     
     channel.bind('new-message', (data: ChatThreadMessage) => {
+      if (boundGen !== pusherUiGenRef.current) return;
+      const epochSnap = conversationEpochRef.current;
       setMessages((prev) => {
+        if (boundGen !== pusherUiGenRef.current) return prev;
+        if (epochSnap !== conversationEpochRef.current) return prev;
         const next = mergePusherChatMessage(prev, data);
-        queueMicrotask(() => persistThreadMsgs(next));
+        queueMicrotask(() => {
+          if (boundGen !== pusherUiGenRef.current) return;
+          if (epochSnap !== conversationEpochRef.current) return;
+          persistThreadMsgs(next);
+        });
         return next;
       });
+      if (boundGen !== pusherUiGenRef.current) return;
+      if (epochSnap !== conversationEpochRef.current) return;
       scrollToBottomSoon();
     });
     
     // Typing indicator
     channel.bind('user-typing', (data: { userId: string; typing: boolean }) => {
+      if (boundGen !== pusherUiGenRef.current) return;
       if (data.userId !== currentUserId) {
+        const epochSnap = conversationEpochRef.current;
         setOtherUserTyping(data.typing);
-        
-        // Clear typing after 3 seconds
+
         if (data.typing) {
-          setTimeout(() => setOtherUserTyping(false), 3000);
+          if (pusherTypingClearRef.current) {
+            clearTimeout(pusherTypingClearRef.current);
+            pusherTypingClearRef.current = null;
+          }
+          pusherTypingClearRef.current = setTimeout(() => {
+            pusherTypingClearRef.current = null;
+            if (boundGen !== pusherUiGenRef.current) return;
+            if (epochSnap !== conversationEpochRef.current) return;
+            setOtherUserTyping(false);
+          }, 3000);
         }
       }
     });
     
     // Online status
     channel.bind('user-online', (data: { userId: string; online: boolean; lastSeenAt?: string }) => {
-      if (data.userId === otherParticipant.id) {
-        setIsOnline(data.online);
-        if (data.lastSeenAt) {
-          setLastSeenAt(data.lastSeenAt);
+      if (boundGen !== pusherUiGenRef.current) return;
+      if (data.userId !== otherParticipant.id) return;
+      const epochSnap = conversationEpochRef.current;
+      const online = data.online;
+      const seen = data.lastSeenAt;
+      queueMicrotask(() => {
+        if (boundGen !== pusherUiGenRef.current) return;
+        if (epochSnap !== conversationEpochRef.current) return;
+        setIsOnline(online);
+        if (seen) {
+          setLastSeenAt(seen);
         }
-      }
+      });
     });
     
     return () => {
+      if (pusherTypingClearRef.current) {
+        clearTimeout(pusherTypingClearRef.current);
+        pusherTypingClearRef.current = null;
+      }
       if (pusher) {
         pusher.unsubscribe(`conversation-${conversationId}`);
       }
     };
-  }, [conversationId, currentUserId, otherParticipant.id, persistThreadMsgs, scrollToBottomSoon]);
+  }, [
+    conversationId,
+    currentUserId,
+    otherParticipant.id,
+    persistThreadMsgs,
+    scrollToBottomSoon,
+    nativeMounted,
+  ]);
 
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
-    void loadOtherUserStatus();
+    const ac = new AbortController();
+    const peerId = otherParticipant.id;
+    const epochAtStart = conversationEpochRef.current;
+    const runId = ++statusPollRunIdRef.current;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/users/online-status?userId=${encodeURIComponent(peerId)}`,
+          { signal: ac.signal }
+        );
+        if (ac.signal.aborted) return;
+        if (runId !== statusPollRunIdRef.current) return;
+        if (epochAtStart !== conversationEpochRef.current) return;
+        if (!response.ok) return;
+        let data: { isOnline?: boolean; lastSeenAt?: string | null };
+        try {
+          data = await response.json();
+        } catch {
+          return;
+        }
+        if (ac.signal.aborted) return;
+        if (runId !== statusPollRunIdRef.current) return;
+        if (epochAtStart !== conversationEpochRef.current) return;
+        setIsOnline(!!data.isOnline);
+        setLastSeenAt(data.lastSeenAt ?? null);
+      } catch (error) {
+        if ((error as Error)?.name === 'AbortError') return;
+        console.error('Error loading user status:', error);
+      }
+    })();
+
+    return () => ac.abort();
   }, [conversationId, currentUserId, otherParticipant.id]);
 
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
     const ms = pusherConnected ? 45000 : 8000;
     const id = setInterval(() => {
-      void loadMessages(false);
+      void loadMessages(false, undefined, conversationEpochRef.current);
     }, ms);
     return () => clearInterval(id);
   }, [conversationId, currentUserId, pusherConnected, loadMessages]);
-
-  const loadOtherUserStatus = async () => {
-    try {
-      const response = await fetch(`/api/users/online-status?userId=${otherParticipant.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsOnline(data.isOnline);
-        setLastSeenAt(data.lastSeenAt);
-      }
-    } catch (error) {
-      console.error('Error loading user status:', error);
-    }
-  };
 
   // Handle typing
   const handleTyping = (value: string) => {
@@ -365,16 +505,50 @@ export default function ChatBox({
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
     
+    sendFlightRef.current?.abort();
+    const sendAc = new AbortController();
+    sendFlightRef.current = sendAc;
+    const epochAtSend = conversationEpochRef.current;
+
     try {
       const res = await fetch(`/api/conversations/${conversationId}/messages/quick`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, messageType: 'TEXT' })
+        body: JSON.stringify({ text, messageType: 'TEXT' }),
+        signal: sendAc.signal,
       });
-      
+
+      if (sendAc.signal.aborted) return;
+      if (epochAtSend !== conversationEpochRef.current) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+        return;
+      }
+
       if (res.ok) {
-        const data = await res.json();
+        let data: { message?: ChatThreadMessage };
+        try {
+          data = await res.json();
+        } catch {
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          setNewMessage(text);
+          alert(t('chat.couldNotSend'));
+          return;
+        }
+
+        if (sendAc.signal.aborted) return;
+        if (epochAtSend !== conversationEpochRef.current) {
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          return;
+        }
+
         const realMessage = data.message;
+        if (!realMessage) {
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          setNewMessage(text);
+          alert(t('chat.couldNotSend'));
+          return;
+        }
+
         setMessages((prev) => {
           const next = prev.map((msg) =>
             msg.id === tempId ? realMessage : msg
@@ -384,27 +558,40 @@ export default function ChatBox({
         });
         scrollToBottomSoon();
       } else {
+        if (sendAc.signal.aborted) return;
+        if (epochAtSend !== conversationEpochRef.current) {
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          return;
+        }
         console.error('❌ Failed to send:', res.status);
-        
-        // Remove optimistic message and restore input
-        setMessages(prev => prev.filter(msg => msg.id !== tempId));
+
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
         setNewMessage(text);
         alert(t('chat.couldNotSend'));
       }
     } catch (error) {
+      if ((error as Error)?.name === 'AbortError') {
+        return;
+      }
+      if (epochAtSend !== conversationEpochRef.current) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+        return;
+      }
       console.error('❌ Error sending:', error);
-      
-      // Remove optimistic message and restore input
-      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
       setNewMessage(text);
       alert(t('errors.sendError'));
     } finally {
+      if (sendFlightRef.current === sendAc) {
+        sendFlightRef.current = null;
+      }
       setIsSending(false);
     }
   };
 
   const handleManualReload = () => {
-    void loadMessages(true);
+    void loadMessages(true, undefined, conversationEpochRef.current);
   };
 
   const handleDeleteConversation = async () => {
