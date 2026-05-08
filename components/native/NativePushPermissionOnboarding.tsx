@@ -13,18 +13,13 @@ import {
 } from "@/lib/native/pushIntroStorage";
 import {
   NativePushError,
+  nativePushDevLog,
   requestAndRegisterNativePush,
   getNativePushPermissionState,
 } from "@/lib/native/push";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 
 const GATE_KEY = "hc_npush_gate";
-
-function devLog(...args: unknown[]) {
-  if (process.env.NODE_ENV === "development") {
-    console.log("[hc-native-push-onboarding]", ...args);
-  }
-}
 
 /**
  * Eén keer na login (native gate / welcome= URL) of bij eerste bezoek aan Berichten of Profiel (native):
@@ -42,14 +37,25 @@ export default function NativePushPermissionOnboarding() {
   const shownRef = useRef(false);
 
   useEffect(() => {
-    devLog("mounted", { nativeMounted, status, userId, pathname });
+    nativePushDevLog("onboarding mounted", {
+      nativeMounted,
+      status,
+      hasUserId: Boolean(userId),
+      pathname,
+    });
   }, [nativeMounted, status, userId, pathname]);
+
+  useEffect(() => {
+    if (open) {
+      nativePushDevLog("onboarding visible");
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!nativeMounted) return;
     if (status !== "authenticated" || !userId) return;
     if (!shouldOfferPushIntroAuto(userId)) {
-      devLog("skip: intro already finished for user", userId);
+      nativePushDevLog("skip: intro already finished for user", userId);
       return;
     }
 
@@ -70,18 +76,17 @@ export default function NativePushPermissionOnboarding() {
     const onProfileShell =
       typeof pathname === "string" && pathname.startsWith("/profile");
 
-    devLog("evaluate", {
+    nativePushDevLog("evaluate open conditions", {
       gate,
       welcome,
       onMessages,
       onProfileShell,
-      search: typeof window !== "undefined" ? window.location.search : "",
     });
 
     if (!gate && !welcome && !onMessages && !onProfileShell) return;
 
     void getNativePushPermissionState().then((perm) =>
-      devLog("permission snapshot", perm)
+      nativePushDevLog("permission snapshot (pre-modal)", perm)
     );
 
     const tmr = window.setTimeout(() => {
@@ -92,7 +97,7 @@ export default function NativePushPermissionOnboarding() {
       } catch {
         /* ignore */
       }
-      devLog("opening explainer modal");
+      nativePushDevLog("opening explainer modal");
       setOpen(true);
     }, 900);
 
@@ -100,7 +105,7 @@ export default function NativePushPermissionOnboarding() {
   }, [nativeMounted, status, userId, pathname, searchParams]);
 
   const handleLater = () => {
-    devLog("intro dismissed (later)");
+    nativePushDevLog("intro dismissed (later)");
     if (userId) markPushIntroFinished(userId);
     setOpen(false);
   };
@@ -108,31 +113,43 @@ export default function NativePushPermissionOnboarding() {
   const handleEnable = async () => {
     if (!userId || busy) return;
     setBusy(true);
-    devLog("enable tapped → OS prompt");
+    nativePushDevLog("enable tapped → permission + register chain");
     try {
       const token = await requestAndRegisterNativePush();
       const platform =
         Capacitor.getPlatform() === "ios" ? "ios" : "android";
+      nativePushDevLog("server register started", { platform });
       const reg = await registerFcmTokenWithServer(token, platform);
+      nativePushDevLog("server register result", reg);
       if (reg !== "ok") {
         alert(t("nativePush.registerError"));
       } else {
-        await fetch("/api/notifications/preferences", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ pushNewMessages: true }),
-        }).catch(() => {});
+        try {
+          const prefRes = await fetch("/api/notifications/preferences", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ pushNewMessages: true }),
+          });
+          nativePushDevLog("preferences update result", prefRes.status);
+        } catch (prefErr) {
+          nativePushDevLog("preferences update failed (non-fatal)", prefErr);
+        }
       }
     } catch (e) {
+      nativePushDevLog("enable flow error (caught)", e);
       const msg =
         e instanceof NativePushError
           ? e.message
           : t("nativePush.registerError");
       alert(msg);
     } finally {
-      markPushIntroFinished(userId);
-      devLog("intro finished after attempt");
+      try {
+        markPushIntroFinished(userId);
+      } catch {
+        /* ignore */
+      }
+      nativePushDevLog("onboarding finished (closing UI)");
       setBusy(false);
       setOpen(false);
     }
@@ -142,7 +159,7 @@ export default function NativePushPermissionOnboarding() {
 
   return (
     <div
-      className="fixed inset-0 z-[245] flex items-end justify-center bg-black/55 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 sm:items-center sm:p-4"
       role="presentation"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleLater();

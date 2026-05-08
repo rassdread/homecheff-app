@@ -49,6 +49,12 @@ export default function PromoModal({
     ? `/register?returnUrl=${encodeURIComponent(currentUrl)}`
     : ctaLink;
 
+  useEffect(() => {
+    if (isOpen && session?.user) {
+      onClose();
+    }
+  }, [isOpen, session?.user, onClose]);
+
   // Track modal view for non-logged users
   useEffect(() => {
     if (isOpen && !session?.user) {
@@ -79,6 +85,8 @@ export default function PromoModal({
   };
 
   if (!isOpen) return null;
+
+  if (session?.user) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">

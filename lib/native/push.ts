@@ -1,4 +1,29 @@
 import { isNativeApp } from "@/lib/native/capacitor";
+import { isValidFcmTokenShape } from "@/lib/pushTokenValidation";
+
+/** Development of `NEXT_PUBLIC_NATIVE_PUSH_DEBUG=true`: gestapelde push-stappen (geen raw tokens). */
+export function nativePushDevLog(...args: unknown[]): void {
+  const enabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_NATIVE_PUSH_DEBUG === "true";
+  if (!enabled || typeof console === "undefined") return;
+  console.log("[hc-native-push]", ...args);
+}
+
+/**
+ * Serialiseert alle Capacitor push-register flows. Parallelle `register()` calls
+ * kunnen de Android-bridge laten crashen / undefined gedrag geven.
+ */
+let pushOpChain: Promise<void> = Promise.resolve();
+
+export function enqueueNativePushOperation<T>(fn: () => Promise<T>): Promise<T> {
+  const next = pushOpChain.then(() => fn());
+  pushOpChain = next.then(
+    () => undefined,
+    () => undefined
+  );
+  return next;
+}
 
 export type NativePushStatusCode =
   | "unsupported"
@@ -56,14 +81,18 @@ export async function getNativePushPermissionState(): Promise<NativeOsPushPermis
   if (!isPushAvailable()) {
     return "prompt";
   }
-  const { PushNotifications } = await import("@capacitor/push-notifications");
-  const perm = await PushNotifications.checkPermissions();
-  const receive = String(
-    (perm as { receive?: string }).receive ?? "prompt"
-  );
-  if (receive === "granted") return "granted";
-  if (receive === "denied") return "denied";
-  return "prompt";
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+    const perm = await PushNotifications.checkPermissions();
+    const receive = String(
+      (perm as { receive?: string }).receive ?? "prompt"
+    );
+    if (receive === "granted") return "granted";
+    if (receive === "denied") return "denied";
+    return "prompt";
+  } catch {
+    return "prompt";
+  }
 }
 
 export async function requestNativePushPermission(): Promise<{
@@ -76,12 +105,18 @@ export async function requestNativePushPermission(): Promise<{
       "Push is alleen beschikbaar in de native HomeCheff-app."
     );
   }
-  const { PushNotifications } = await import("@capacitor/push-notifications");
-  const status = await PushNotifications.requestPermissions();
-  const receive = String(
-    (status as { receive?: string }).receive ?? "prompt"
-  );
-  return { granted: receive === "granted", receive };
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+    const status = await PushNotifications.requestPermissions();
+    const receive = String(
+      (status as { receive?: string }).receive ?? "prompt"
+    );
+    return { granted: receive === "granted", receive };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    nativePushDevLog("requestPermissions threw", msg);
+    throw mapRegistrationFailure(msg);
+  }
 }
 
 /**
@@ -95,8 +130,14 @@ export async function registerNativePushNotifications(): Promise<void> {
       "Push is alleen beschikbaar in de native HomeCheff-app."
     );
   }
-  const { PushNotifications } = await import("@capacitor/push-notifications");
-  await PushNotifications.register();
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+    await PushNotifications.register();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    nativePushDevLog("registerNativePushNotifications threw", msg);
+    throw mapRegistrationFailure(msg);
+  }
 }
 
 export type NativePushDebugListenerOptions = {
@@ -120,40 +161,51 @@ export async function setupNativePushDebugListeners(
   }
   const { PushNotifications } = await import("@capacitor/push-notifications");
 
-  const h1 = await PushNotifications.addListener(
-    "pushNotificationReceived",
-    (notification) => {
-      console.log("[HomeCheff push] notification received", notification);
-      options.onNotificationReceived?.({
-        title: notification.title,
-        body: notification.body,
-        id: notification.id,
-      });
-    }
-  );
+  let h1: { remove: () => Promise<void> } | null = null;
+  let h2: { remove: () => Promise<void> } | null = null;
 
-  const h2 = await PushNotifications.addListener(
-    "pushNotificationActionPerformed",
-    (event) => {
-      console.log("[HomeCheff push] action performed", event);
-      const n = event.notification;
-      const summary =
-        [n.title, n.body].filter(Boolean).join(" — ") || "notification tap";
-      options.onActionPerformed?.({
-        actionId: event.actionId ?? "",
-        summary,
-      });
-    }
-  );
+  try {
+    h1 = await PushNotifications.addListener(
+      "pushNotificationReceived",
+      (notification) => {
+        nativePushDevLog("notification received", notification?.id);
+        options.onNotificationReceived?.({
+          title: notification.title,
+          body: notification.body,
+          id: notification.id,
+        });
+      }
+    );
+  } catch (e) {
+    nativePushDevLog("addListener pushNotificationReceived failed", e);
+  }
+
+  try {
+    h2 = await PushNotifications.addListener(
+      "pushNotificationActionPerformed",
+      (event) => {
+        nativePushDevLog("action performed", event?.actionId);
+        const n = event.notification;
+        const summary =
+          [n.title, n.body].filter(Boolean).join(" — ") || "notification tap";
+        options.onActionPerformed?.({
+          actionId: event.actionId ?? "",
+          summary,
+        });
+      }
+    );
+  } catch (e) {
+    nativePushDevLog("addListener pushNotificationActionPerformed failed", e);
+  }
 
   return async () => {
     try {
-      await h1.remove();
+      await h1?.remove();
     } catch {
       /* ignore */
     }
     try {
-      await h2.remove();
+      await h2?.remove();
     } catch {
       /* ignore */
     }
@@ -166,88 +218,130 @@ const REGISTRATION_TIMEOUT_MS = 45_000;
  * User action: permissie + register + wacht op FCM-token (via registration event).
  */
 export async function requestAndRegisterNativePush(): Promise<string> {
-  if (!isPushAvailable()) {
-    throw new NativePushError(
-      "unsupported",
-      "Push is alleen beschikbaar in de native HomeCheff-app."
-    );
-  }
-
-  const { PushNotifications } = await import("@capacitor/push-notifications");
-
-  const perm = await PushNotifications.requestPermissions();
-  const receive = String(
-    (perm as { receive?: string }).receive ?? "prompt"
-  );
-  if (receive !== "granted") {
-    throw new NativePushError(
-      "permission_denied",
-      "Pushmeldingen zijn geweigerd. Schakel meldingen in via Android-instellingen."
-    );
-  }
-
-  let settled = false;
-  let resolveToken: (value: string) => void;
-  let rejectToken: (reason: Error) => void;
-  const tokenPromise = new Promise<string>((resolve, reject) => {
-    resolveToken = resolve;
-    rejectToken = reject;
-  });
-
-  const regHandle = await PushNotifications.addListener(
-    "registration",
-    ({ value }) => {
-      if (settled) return;
-      settled = true;
-      resolveToken(value);
-    }
-  );
-
-  const errHandle = await PushNotifications.addListener(
-    "registrationError",
-    (err) => {
-      if (settled) return;
-      settled = true;
-      rejectToken(
-        mapRegistrationFailure(
-          typeof err?.error === "string" ? err.error : "registrationError"
-        )
+  return enqueueNativePushOperation(async () => {
+    if (!isPushAvailable()) {
+      throw new NativePushError(
+        "unsupported",
+        "Push is alleen beschikbaar in de native HomeCheff-app."
       );
     }
-  );
 
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(
-        new NativePushError(
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+
+    nativePushDevLog("permission request started");
+    let receive: string;
+    try {
+      const perm = await PushNotifications.requestPermissions();
+      receive = String((perm as { receive?: string }).receive ?? "prompt");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      nativePushDevLog("requestPermissions threw", msg);
+      throw mapRegistrationFailure(msg);
+    }
+    nativePushDevLog("permission result", receive);
+
+    if (receive !== "granted") {
+      throw new NativePushError(
+        "permission_denied",
+        "Pushmeldingen zijn geweigerd. Schakel meldingen in via Android-instellingen."
+      );
+    }
+
+    let settled = false;
+    let resolveToken!: (value: string) => void;
+    let rejectToken!: (reason: Error) => void;
+    const tokenPromise = new Promise<string>((resolve, reject) => {
+      resolveToken = resolve;
+      rejectToken = reject;
+    });
+
+    let regHandle: { remove: () => Promise<void> } | null = null;
+    let errHandle: { remove: () => Promise<void> } | null = null;
+
+    try {
+      regHandle = await PushNotifications.addListener(
+        "registration",
+        ({ value }) => {
+          if (settled) return;
+          settled = true;
+          resolveToken(value);
+        }
+      );
+    } catch (e) {
+      nativePushDevLog("addListener registration failed", e);
+      throw mapRegistrationFailure(
+        e instanceof Error ? e.message : "addListener registration"
+      );
+    }
+
+    try {
+      errHandle = await PushNotifications.addListener(
+        "registrationError",
+        (err) => {
+          if (settled) return;
+          settled = true;
+          rejectToken(
+            mapRegistrationFailure(
+              typeof err?.error === "string" ? err.error : "registrationError"
+            )
+          );
+        }
+      );
+    } catch (e) {
+      nativePushDevLog("addListener registrationError failed", e);
+      try {
+        await regHandle?.remove();
+      } catch {
+        /* ignore */
+      }
+      throw mapRegistrationFailure(
+        e instanceof Error ? e.message : "addListener registrationError"
+      );
+    }
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(
+          new NativePushError(
+            "registration_error",
+            "Timeout bij ophalen van push-token. Controleer google-services.json en netwerk."
+          )
+        );
+      }, REGISTRATION_TIMEOUT_MS);
+    });
+
+    try {
+      try {
+        await PushNotifications.register();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        nativePushDevLog("PushNotifications.register threw", msg);
+        throw mapRegistrationFailure(msg);
+      }
+      const token = await Promise.race([tokenPromise, timeoutPromise]);
+      nativePushDevLog("token received (masked)", maskPushTokenForDisplay(token));
+      if (!isValidFcmTokenShape(token)) {
+        throw new NativePushError(
           "registration_error",
-          "Timeout bij ophalen van push-token. Controleer google-services.json en netwerk."
-        )
-      );
-    }, REGISTRATION_TIMEOUT_MS);
+          "Ongeldig push-token ontvangen. Controleer Firebase/google-services configuratie."
+        );
+      }
+      return token;
+    } finally {
+      try {
+        await regHandle?.remove();
+      } catch {
+        /* ignore */
+      }
+      try {
+        await errHandle?.remove();
+      } catch {
+        /* ignore */
+      }
+    }
   });
-
-  try {
-    await PushNotifications.register();
-    const token = await Promise.race([tokenPromise, timeoutPromise]);
-    if (process.env.NODE_ENV === "development") {
-      console.log("[HomeCheff push] FCM token", maskPushTokenForDisplay(token));
-    }
-    return token;
-  } finally {
-    try {
-      await regHandle.remove();
-    } catch {
-      /* ignore */
-    }
-    try {
-      await errHandle.remove();
-    } catch {
-      /* ignore */
-    }
-  }
 }
 
 const REGISTRATION_TIMEOUT_MS_GRANTED = 45_000;
@@ -262,76 +356,98 @@ export async function getNativeFcmTokenWhenAlreadyGranted(): Promise<string | nu
     return null;
   }
   const { PushNotifications } = await import("@capacitor/push-notifications");
-  const perm = await PushNotifications.checkPermissions();
-  const receive = String(
-    (perm as { receive?: string }).receive ?? "prompt"
-  );
+  let receive: string;
+  try {
+    const perm = await PushNotifications.checkPermissions();
+    receive = String((perm as { receive?: string }).receive ?? "prompt");
+  } catch {
+    return null;
+  }
   if (receive !== "granted") {
     return null;
   }
 
-  let settled = false;
-  let resolveToken: (value: string) => void;
-  let rejectToken: (reason: Error) => void;
-  const tokenPromise = new Promise<string>((resolve, reject) => {
-    resolveToken = resolve;
-    rejectToken = reject;
-  });
-
-  const regHandle = await PushNotifications.addListener(
-    "registration",
-    ({ value }) => {
-      if (settled) return;
-      settled = true;
-      resolveToken(value);
-    }
-  );
-
-  const errHandle = await PushNotifications.addListener(
-    "registrationError",
-    (err) => {
-      if (settled) return;
-      settled = true;
-      rejectToken(
-        mapRegistrationFailure(
-          typeof err?.error === "string" ? err.error : "registrationError"
-        )
-      );
-    }
-  );
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(
-        new NativePushError(
-          "registration_error",
-          "Timeout bij ophalen van push-token."
-        )
-      );
-    }, REGISTRATION_TIMEOUT_MS_GRANTED);
-  });
+  nativePushDevLog("getNativeFcmTokenWhenAlreadyGranted: queued register");
 
   try {
-    await PushNotifications.register();
-    const token = await Promise.race([tokenPromise, timeoutPromise]);
-    if (process.env.NODE_ENV === "development") {
-      console.log("[HomeCheff push] FCM token (already granted)", maskPushTokenForDisplay(token));
-    }
-    return token;
+    return await enqueueNativePushOperation(async () => {
+      let settled = false;
+      let resolveToken!: (value: string) => void;
+      let rejectToken!: (reason: Error) => void;
+      const tokenPromise = new Promise<string>((resolve, reject) => {
+        resolveToken = resolve;
+        rejectToken = reject;
+      });
+
+      let regHandle: { remove: () => Promise<void> } | null = null;
+      let errHandle: { remove: () => Promise<void> } | null = null;
+
+      try {
+        regHandle = await PushNotifications.addListener(
+          "registration",
+          ({ value }) => {
+            if (settled) return;
+            settled = true;
+            resolveToken(value);
+          }
+        );
+        errHandle = await PushNotifications.addListener(
+          "registrationError",
+          (err) => {
+            if (settled) return;
+            settled = true;
+            rejectToken(
+              mapRegistrationFailure(
+                typeof err?.error === "string" ? err.error : "registrationError"
+              )
+            );
+          }
+        );
+      } catch {
+        return null;
+      }
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          reject(
+            new NativePushError(
+              "registration_error",
+              "Timeout bij ophalen van push-token."
+            )
+          );
+        }, REGISTRATION_TIMEOUT_MS_GRANTED);
+      });
+
+      try {
+        try {
+          await PushNotifications.register();
+        } catch {
+          return null;
+        }
+        const token = await Promise.race([tokenPromise, timeoutPromise]);
+        nativePushDevLog(
+          "token sync (masked)",
+          maskPushTokenForDisplay(token)
+        );
+        return isValidFcmTokenShape(token) ? token : null;
+      } catch {
+        return null;
+      } finally {
+        try {
+          await regHandle?.remove();
+        } catch {
+          /* ignore */
+        }
+        try {
+          await errHandle?.remove();
+        } catch {
+          /* ignore */
+        }
+      }
+    });
   } catch {
     return null;
-  } finally {
-    try {
-      await regHandle.remove();
-    } catch {
-      /* ignore */
-    }
-    try {
-      await errHandle.remove();
-    } catch {
-      /* ignore */
-    }
   }
 }

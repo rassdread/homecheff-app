@@ -261,6 +261,13 @@ export default function BottomNavigation() {
 
   const isFeedDiscoverActive = pathname === '/';
 
+  // Signup promo modals: niet tonen tijdens sessie-loading (voorkomt "community" achter native push).
+  useEffect(() => {
+    if (session?.user && activePromoModal !== null) {
+      setActivePromoModal(null);
+    }
+  }, [session?.user, activePromoModal]);
+
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const openQuickAddFlow = useCallback(() => {
     if (sessionStatus !== 'authenticated' || !session?.user) return;
@@ -278,6 +285,7 @@ export default function BottomNavigation() {
   }, [session?.user, sessionStatus, shouldHide, router]);
 
   const handleQuickAddClick = () => {
+    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('add');
       return;
@@ -323,6 +331,7 @@ export default function BottomNavigation() {
   }, [session?.user, router, pathname]);
 
   const handleDashboardClick = () => {
+    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('dashboard');
       return;
@@ -332,6 +341,7 @@ export default function BottomNavigation() {
   };
 
   const handleMessagesClick = () => {
+    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('messages');
       return;
@@ -342,6 +352,7 @@ export default function BottomNavigation() {
   };
 
   const handleProfileClick = () => {
+    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('profile');
       return;
