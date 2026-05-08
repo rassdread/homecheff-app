@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 /**
- * Valideert public/homecheff-native-splash.png (WebView NativeStartupSplash + web).
- * Geen kopie naar Android res meer: native splash is minimaal wit; branding zit in de app.
+ * Valideert public/homecheff-native-splash.png en synchroniseert naar Android drawable
+ * voor Capacitor SplashScreen (native startup cover).
  * Run vóór `npx cap sync` (zie npm script cap:sync).
  */
-import { existsSync, openSync, readSync, closeSync, statSync } from "node:fs";
+import {
+  existsSync,
+  openSync,
+  readSync,
+  closeSync,
+  statSync,
+  copyFileSync,
+  mkdirSync,
+} from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dirname, "..");
@@ -74,6 +82,14 @@ function validateSplashSource(path) {
 }
 
 validateSplashSource(src);
+const target = join(
+  root,
+  "android/app/src/main/res/drawable/splash_brand.png"
+);
+mkdirSync(join(root, "android/app/src/main/res/drawable"), {
+  recursive: true,
+});
+copyFileSync(src, target);
 console.log(
-  `sync-android-splash: OK ${src} (native Android splash is white-only; branding in WebView)`
+  `sync-android-splash: synced ${src} -> ${target}`
 );

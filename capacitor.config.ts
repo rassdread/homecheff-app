@@ -29,11 +29,11 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Kort wit scherm; branding via WebView NativeStartupSplash (geen tweede logo-bitmap). */
-      launchShowDuration: 200,
-      launchAutoHide: true,
+      /** Native splash blijft staan tot React expliciet hide() aanroept. */
+      launchShowDuration: 0,
+      launchAutoHide: false,
       backgroundColor: '#ffffff',
-      androidSplashResourceName: 'splash_blank',
+      androidSplashResourceName: 'splash_brand',
       androidScaleType: 'FIT_CENTER',
       showSpinner: false,
       splashFullScreen: true,
