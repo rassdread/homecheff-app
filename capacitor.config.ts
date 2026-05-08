@@ -30,7 +30,7 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       /** Simpele stabiele splash: native auto-hide na vaste duur. */
-      launchShowDuration: 1500,
+      launchShowDuration: 4000,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
       androidSplashResourceName: 'splash',
