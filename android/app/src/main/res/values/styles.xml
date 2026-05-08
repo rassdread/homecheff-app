@@ -24,16 +24,17 @@
 
 
     <!--
-      Android 12+: animatedIcon wordt door OEMs als adaptive/cirkel getoond — gebruik een vierkante PNG
-      (splash_a12_safe_icon), geen layer-list (betrouwbaarder op cold start).
-      Pre-12: android:windowBackground = splash_full (fullscreen portrait splash.png).
+      Minimale systeem-splash: wit, geen merk-logo (dat is NativeStartupSplash in de WebView).
+      Android 12+: verplicht icoon → splash_a12_icon_blank (wit op wit, geen “mannetje”).
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:windowBackground">@drawable/splash_full</item>
+        <item name="android:windowBackground">@android:color/white</item>
         <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="android:windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_a12_safe_icon</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_a12_safe_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_blank</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_a12_icon_blank</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="31">@android:color/white</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">200</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

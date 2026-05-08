@@ -29,12 +29,11 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      /** Kortere Capacitor-overlay na OS-splash om lege wit-fase te beperken (remote WebView laadt async). */
-      launchShowDuration: 900,
+      /** Kort wit scherm; branding via WebView NativeStartupSplash (geen tweede logo-bitmap). */
+      launchShowDuration: 200,
       launchAutoHide: true,
       backgroundColor: '#ffffff',
-      androidSplashResourceName: 'splash',
-      // Fit hele splash-bitmap (wit + gecentreerd logo); voorkomt undesired crop op afwijkende aspect ratios
+      androidSplashResourceName: 'splash_blank',
       androidScaleType: 'FIT_CENTER',
       showSpinner: false,
       splashFullScreen: true,

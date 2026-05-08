@@ -1,18 +1,11 @@
 #!/usr/bin/env node
 /**
- * Kopieert public/homecheff-native-splash.png naar alle Android res/splash.png-resources.
+ * Valideert public/homecheff-native-splash.png (WebView NativeStartupSplash + web).
+ * Geen kopie naar Android res meer: native splash is minimaal wit; branding zit in de app.
  * Run vóór `npx cap sync` (zie npm script cap:sync).
  */
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  openSync,
-  readSync,
-  closeSync,
-  statSync,
-} from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, openSync, readSync, closeSync, statSync } from "node:fs";
+import { join } from "node:path";
 
 const root = join(import.meta.dirname, "..");
 const src = join(root, "public/homecheff-native-splash.png");
@@ -80,26 +73,7 @@ function validateSplashSource(path) {
   }
 }
 
-const targets = [
-  "android/app/src/main/res/drawable/splash.png",
-  "android/app/src/main/res/drawable-land-hdpi/splash.png",
-  "android/app/src/main/res/drawable-land-mdpi/splash.png",
-  "android/app/src/main/res/drawable-land-xhdpi/splash.png",
-  "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
-  "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
-  "android/app/src/main/res/drawable-port-hdpi/splash.png",
-  "android/app/src/main/res/drawable-port-mdpi/splash.png",
-  "android/app/src/main/res/drawable-port-xhdpi/splash.png",
-  "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
-  "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
-];
-
 validateSplashSource(src);
-
-for (const rel of targets) {
-  const dest = join(root, rel);
-  mkdirSync(dirname(dest), { recursive: true });
-  copyFileSync(src, dest);
-}
-
-console.log(`sync-android-splash: copied ${src} to ${targets.length} paths`);
+console.log(
+  `sync-android-splash: OK ${src} (native Android splash is white-only; branding in WebView)`
+);
