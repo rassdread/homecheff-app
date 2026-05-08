@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ChatBox from '@/components/chat/ChatBox';
+import ChatShell from '@/components/chat/ChatShell';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
@@ -25,6 +26,7 @@ interface Conversation {
     profileImage: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    sellerVerified?: boolean;
   };
   lastMessageAt: string | null;
   isActive: boolean;
@@ -33,7 +35,7 @@ interface Conversation {
 
 function ThreadSkeleton() {
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="hc-messages-root flex flex-col overflow-hidden bg-[#e8eaed]">
       <div className="flex items-center gap-3 border-b p-4 shadow-sm">
         <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
         <div className="flex-1 space-y-2">
@@ -70,6 +72,14 @@ export default function ConversationPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const conversationId = params?.conversationId as string;
+
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add('hc-messages-chat-open');
+    return () => {
+      html.classList.remove('hc-messages-chat-open');
+    };
+  }, []);
 
   useEffect(() => {
     if (!conversationId) {
@@ -130,27 +140,31 @@ export default function ConversationPage() {
 
   if (!conversation) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-600">
+      <div className="hc-messages-root flex items-center justify-center bg-[#e8eaed] text-gray-600">
         <p className="text-sm">Terug naar berichten…</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen min-h-0 flex-col">
-      <ChatBox
-        key={conversation.id}
-        conversationId={conversation.id}
-        otherParticipant={{
-          id: conversation.otherParticipant?.id || 'unknown',
-          name: conversation.otherParticipant?.name || undefined,
-          username: conversation.otherParticipant?.username || undefined,
-          profileImage: conversation.otherParticipant?.profileImage || undefined,
-          displayFullName: conversation.otherParticipant?.displayFullName ?? undefined,
-          displayNameOption: conversation.otherParticipant?.displayNameOption ?? undefined,
-        }}
-        onBack={handleBackToList}
-      />
+    <div className="hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]">
+      <ChatShell className="flex-1">
+        <ChatBox
+          key={conversation.id}
+          conversationId={conversation.id}
+          otherParticipant={{
+            id: conversation.otherParticipant?.id || 'unknown',
+            name: conversation.otherParticipant?.name || undefined,
+            username: conversation.otherParticipant?.username || undefined,
+            profileImage: conversation.otherParticipant?.profileImage || undefined,
+            displayFullName: conversation.otherParticipant?.displayFullName ?? undefined,
+            displayNameOption: conversation.otherParticipant?.displayNameOption ?? undefined,
+            sellerVerified: conversation.otherParticipant?.sellerVerified,
+          }}
+          onBack={handleBackToList}
+          showBackOnDesktop
+        />
+      </ChatShell>
     </div>
   );
 }

@@ -5,6 +5,9 @@
 
 const COMPACT_PREFIXES = [
   "/messages",
+  "/berichten",
+  "/conversations",
+  "/chat",
   "/profile",
   "/verkoper",
   "/delivery",

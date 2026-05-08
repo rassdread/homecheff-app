@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { Bell, X } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -11,6 +11,7 @@ import {
   markPushIntroFinished,
   setNativePushSyncHold,
   shouldOfferPushIntroAuto,
+  waitUntilNativePushSyncHoldReleased,
 } from "@/lib/native/pushIntroStorage";
 import {
   NativePushError,
@@ -19,16 +20,17 @@ import {
   getNativePushPermissionState,
 } from "@/lib/native/push";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
+import { getOrCreatePushDeviceId } from "@/lib/native/pushClientPrefs";
 
 const GATE_KEY = "hc_npush_gate";
 
 /**
- * Eén keer na login (native gate / welcome= URL) of bij eerste bezoek aan Berichten of Profiel (native):
- * eigen uitleg → daarna OS-permissie + FCM + POST /api/push/register.
+ * Eén keer na login (sessionStorage gate) of via welcome/native_push URL:
+ * uitleg → gebruiker tikt "Aanzetten" → OS-permissie + FCM + server.
+ * Geen automatische modal meer bij elk bezoek aan Berichten/Profiel (App Store / UX).
  */
 export default function NativePushPermissionOnboarding() {
   const { data: session, status } = useSession();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const nativeMounted = useIsNativeAppMounted();
   const { t } = useTranslation();
@@ -42,9 +44,8 @@ export default function NativePushPermissionOnboarding() {
       nativeMounted,
       status,
       hasUserId: Boolean(userId),
-      pathname,
     });
-  }, [nativeMounted, status, userId, pathname]);
+  }, [nativeMounted, status, userId]);
 
   useEffect(() => {
     if (open) {
@@ -55,55 +56,65 @@ export default function NativePushPermissionOnboarding() {
   useEffect(() => {
     if (!nativeMounted) return;
     if (status !== "authenticated" || !userId) return;
-    if (!shouldOfferPushIntroAuto(userId)) {
-      nativePushDevLog("skip: intro already finished for user", userId);
-      return;
-    }
 
-    let gate = false;
-    try {
-      gate = sessionStorage.getItem(GATE_KEY) === "1";
-    } catch {
-      /* ignore */
-    }
+    let cancelled = false;
+    let tmr: ReturnType<typeof setTimeout> | null = null;
 
-    const welcome =
-      searchParams?.get("welcome") === "true" ||
-      searchParams?.get("native_push") === "1";
+    void (async () => {
+      await waitUntilNativePushSyncHoldReleased();
+      if (cancelled) return;
 
-    const onMessages =
-      typeof pathname === "string" && pathname.startsWith("/messages");
+      const osPerm = await getNativePushPermissionState();
+      if (cancelled) return;
 
-    const onProfileShell =
-      typeof pathname === "string" && pathname.startsWith("/profile");
+      if (osPerm === "granted" || osPerm === "denied") {
+        markPushIntroFinished(userId);
+        nativePushDevLog("skip intro: OS permission already", osPerm);
+        return;
+      }
 
-    nativePushDevLog("evaluate open conditions", {
-      gate,
-      welcome,
-      onMessages,
-      onProfileShell,
-    });
+      if (!shouldOfferPushIntroAuto(userId)) {
+        nativePushDevLog("skip intro: already finished", userId);
+        return;
+      }
 
-    if (!gate && !welcome && !onMessages && !onProfileShell) return;
-
-    void getNativePushPermissionState().then((perm) =>
-      nativePushDevLog("permission snapshot (pre-modal)", perm)
-    );
-
-    const tmr = window.setTimeout(() => {
-      if (shownRef.current) return;
-      shownRef.current = true;
+      let gate = false;
       try {
-        sessionStorage.removeItem(GATE_KEY);
+        gate = sessionStorage.getItem(GATE_KEY) === "1";
       } catch {
         /* ignore */
       }
-      nativePushDevLog("opening explainer modal");
-      setOpen(true);
-    }, 900);
 
-    return () => window.clearTimeout(tmr);
-  }, [nativeMounted, status, userId, pathname, searchParams]);
+      const welcome =
+        searchParams?.get("welcome") === "true" ||
+        searchParams?.get("native_push") === "1";
+
+      nativePushDevLog("evaluate open conditions", { gate, welcome });
+
+      if (!gate && !welcome) {
+        nativePushDevLog("skip intro: no gate or welcome param");
+        return;
+      }
+
+      tmr = window.setTimeout(() => {
+        if (cancelled) return;
+        if (shownRef.current) return;
+        shownRef.current = true;
+        try {
+          sessionStorage.removeItem(GATE_KEY);
+        } catch {
+          /* ignore */
+        }
+        nativePushDevLog("opening explainer modal");
+        setOpen(true);
+      }, 900);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (tmr != null) window.clearTimeout(tmr);
+    };
+  }, [nativeMounted, status, userId, searchParams]);
 
   const handleLater = () => {
     nativePushDevLog("intro dismissed (later)");
@@ -119,8 +130,11 @@ export default function NativePushPermissionOnboarding() {
       const token = await requestAndRegisterNativePush();
       const platform =
         Capacitor.getPlatform() === "ios" ? "ios" : "android";
+      const deviceId = getOrCreatePushDeviceId();
       nativePushDevLog("server register started", { platform });
-      const reg = await registerFcmTokenWithServer(token, platform);
+      const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
+        force: true,
+      });
       nativePushDevLog("server register result", reg);
       if (reg !== "ok") {
         alert(t("nativePush.registerError"));

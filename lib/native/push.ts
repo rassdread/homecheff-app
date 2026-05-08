@@ -111,6 +111,13 @@ export async function requestNativePushPermission(): Promise<{
     );
   }
   try {
+    try {
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("hc_notification_permission_asked", "1");
+      }
+    } catch {
+      /* ignore */
+    }
     const { PushNotifications } = await import("@capacitor/push-notifications");
     const status = await PushNotifications.requestPermissions();
     const receive = String(

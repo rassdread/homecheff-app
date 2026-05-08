@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { SessionProvider } from 'next-auth/react';
-import NativeAppRootClass from '@/components/native/NativeAppRootClass';
+import AppShellHtmlClasses from '@/components/layout/AppShellHtmlClasses';
 import NativeAppUxFoundation from '@/components/native/NativeAppUxFoundation';
 import NativeLifecycleDiagnostics from '@/components/native/NativeLifecycleDiagnostics';
 import NativePushTokenSync from '@/components/native/NativePushTokenSync';
@@ -26,7 +26,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       // Uit: refetch bij tab-focus kan op Safari falen (CORS/cookie) en dan status 'unauthenticated' geven – blijf ingelogd.
       refetchOnWindowFocus={false}
     >
-      <NativeAppRootClass />
+      <AppShellHtmlClasses />
       <Suspense fallback={null}>
         <NativeAppUxFoundation />
       </Suspense>

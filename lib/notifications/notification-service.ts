@@ -18,6 +18,10 @@ import {
   isValidFcmTokenShape,
   maskPushTokenForLogs,
 } from '@/lib/pushTokenValidation';
+import {
+  pickSenderAvatarUrlForFcm,
+  resolveHttpsPublicImageUrlForFcm,
+} from '@/lib/notifications/fcmPublicImageUrl';
 
 /** Alleen waarden uit Prisma `NotificationType` — voorkomt mislukte DB-writes bij bestel-/bezorgmeldingen. */
 function mapDataTypeToPrismaNotificationType(dataType: string | undefined): NotificationType {
@@ -577,29 +581,45 @@ export class NotificationService {
 
   /**
    * Register push token (for future mobile support)
+   * @param deviceId Optioneel stabiel client-device-id: andere actieve tokens voor zelfde user+device worden gedeactiveerd.
    */
   static async registerPushToken(
     userId: string,
     token: string,
     platform: 'web' | 'android' | 'ios',
-    type: 'WEB_PUSH' | 'FCM' | 'APNS'
+    type: 'WEB_PUSH' | 'FCM' | 'APNS',
+    deviceId?: string | null
   ): Promise<void> {
-    // Use raw SQL until Prisma client is regenerated
+    const trimmedDevice =
+      typeof deviceId === 'string' && deviceId.trim().length > 0
+        ? deviceId.trim().slice(0, 128)
+        : null;
+
+    if (trimmedDevice) {
+      await prisma.$executeRaw`
+        UPDATE "PushToken"
+        SET "isActive" = false, "updatedAt" = ${new Date()}
+        WHERE "userId" = ${userId}
+          AND "deviceId" = ${trimmedDevice}
+          AND "token" <> ${token}
+      `;
+    }
+
     const existing = await prisma.$queryRaw<any[]>`
       SELECT * FROM "PushToken" WHERE "token" = ${token} LIMIT 1
     `.then(rows => rows[0]).catch(() => null);
-    
+
     if (existing) {
       await prisma.$executeRaw`
         UPDATE "PushToken" 
-        SET "userId" = ${userId}, "platform" = ${platform}, "type" = ${type}, "isActive" = true, "lastUsedAt" = ${new Date()}, "updatedAt" = ${new Date()}
+        SET "userId" = ${userId}, "platform" = ${platform}, "type" = ${type}, "deviceId" = ${trimmedDevice}, "isActive" = true, "lastUsedAt" = ${new Date()}, "updatedAt" = ${new Date()}
         WHERE "token" = ${token}
       `;
     } else {
       const id = crypto.randomUUID();
       await prisma.$executeRaw`
-        INSERT INTO "PushToken" ("id", "userId", "token", "platform", "type", "isActive", "lastUsedAt", "createdAt", "updatedAt")
-        VALUES (${id}, ${userId}, ${token}, ${platform}, ${type}, true, ${new Date()}, ${new Date()}, ${new Date()})
+        INSERT INTO "PushToken" ("id", "userId", "token", "platform", "type", "deviceId", "isActive", "lastUsedAt", "createdAt", "updatedAt")
+        VALUES (${id}, ${userId}, ${token}, ${platform}, ${type}, ${trimmedDevice}, true, ${new Date()}, ${new Date()}, ${new Date()})
       `;
     }
   }
@@ -649,7 +669,7 @@ export class NotificationService {
   }
 
   /**
-   * FCM alleen voor chat (NEW_MESSAGE / MESSAGE_RECEIVED). Android + actieve FCM-tokens.
+   * FCM voor chat (NEW_MESSAGE / MESSAGE_RECEIVED). Android, iOS en web met actieve FCM-tokens.
    */
   private static async sendFcmNotificationsForMessage(
     pushTokens: any[],
@@ -688,30 +708,83 @@ export class NotificationService {
       data.senderId = senderId;
     }
 
-    for (const row of pushTokens) {
-      if (row?.type !== 'FCM' || row?.isActive !== true) continue;
-      const platform = String(row.platform || '').toLowerCase();
-      if (platform !== 'android') continue;
+    const rawAvatar = message.data?.senderAvatarUrl;
+    const avatarUrl =
+      typeof rawAvatar === 'string'
+        ? resolveHttpsPublicImageUrlForFcm(rawAvatar)
+        : null;
+    if (avatarUrl) {
+      data.senderAvatarUrl = avatarUrl;
+      data.senderAvatar = 'true';
+    } else {
+      data.senderAvatar = 'false';
+    }
 
+    const fcmTargets = pushTokens.filter((row) => {
+      if (row?.type !== 'FCM' || row?.isActive !== true) return false;
+      const platform = String(row.platform || '').toLowerCase();
+      return platform === 'android' || platform === 'ios' || platform === 'web';
+    });
+
+    if (fcmTargets.length > 0) {
+      console.info('[FCM] chat push', {
+        senderAvatar: Boolean(avatarUrl),
+        targets: fcmTargets.length,
+      });
+    }
+
+    for (const row of fcmTargets) {
       const token = row.token as string;
       if (!isValidFcmTokenShape(token)) continue;
 
-      try {
-        await messaging.send({
-          token,
+      const notification: {
+        title: string;
+        body: string;
+        imageUrl?: string;
+      } = {
+        title: notificationTitle,
+        body: notificationBody,
+      };
+      if (avatarUrl) {
+        notification.imageUrl = avatarUrl;
+      }
+
+      const androidNotification: {
+        channelId: string;
+        sound: string;
+        imageUrl?: string;
+      } = {
+        channelId: 'chat_messages',
+        sound: 'default',
+      };
+      if (avatarUrl) {
+        androidNotification.imageUrl = avatarUrl;
+      }
+
+      const payload: Parameters<typeof messaging.send>[0] = {
+        token,
+        notification,
+        data,
+        android: {
+          priority: 'high',
+          notification: androidNotification,
+        },
+      };
+
+      if (avatarUrl) {
+        payload.apns = {
+          fcmOptions: { imageUrl: avatarUrl },
+        };
+        payload.webpush = {
           notification: {
-            title: notificationTitle,
-            body: notificationBody,
+            image: avatarUrl,
+            icon: avatarUrl,
           },
-          data,
-          android: {
-            priority: 'high',
-            notification: {
-              channelId: 'chat_messages',
-              sound: 'default',
-            },
-          },
-        });
+        };
+      }
+
+      try {
+        await messaging.send(payload);
       } catch (err: unknown) {
         const code = this.fcmErrorCode(err);
         const msg = err instanceof Error ? err.message : String(err);
@@ -764,9 +837,16 @@ export class NotificationService {
       select: {
         name: true,
         username: true,
-        displayNameOption: true
-      }
+        displayNameOption: true,
+        profileImage: true,
+        image: true,
+      },
     });
+
+    const senderAvatarUrl = pickSenderAvatarUrlForFcm(
+      sender?.profileImage,
+      sender?.image
+    );
 
     const senderName = sender?.name || sender?.username || 'Iemand';
     const usePreview = preferences?.chatNotificationPreview !== false;
@@ -787,6 +867,9 @@ export class NotificationService {
         senderId,
         actionUrl: `/messages/${conversationId}/`,
         route: `/messages/${conversationId}/`,
+        ...(senderAvatarUrl
+          ? { senderAvatarUrl, senderAvatar: 'true' }
+          : { senderAvatar: 'false' }),
       },
       actions: [
         { label: 'Bekijk bericht', action: 'VIEW_MESSAGE' },

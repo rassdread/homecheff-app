@@ -52,9 +52,12 @@ export async function GET(
                 username: true,
                 profileImage: true,
                 displayFullName: true,
-                displayNameOption: true
-              }
-            }
+                displayNameOption: true,
+                DeliveryProfile: {
+                  select: { isVerified: true },
+                },
+              },
+            },
           }
         },
         Product: {
@@ -88,7 +91,9 @@ export async function GET(
          username: otherParticipantData.username,
          profileImage: otherParticipantData.profileImage,
          displayFullName: otherParticipantData.displayFullName,
-         displayNameOption: otherParticipantData.displayNameOption
+         displayNameOption: otherParticipantData.displayNameOption,
+         sellerVerified:
+           otherParticipantData.DeliveryProfile?.isVerified === true,
        } : null;
 
     // Transform to match the expected format

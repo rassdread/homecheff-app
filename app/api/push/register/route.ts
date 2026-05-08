@@ -48,6 +48,12 @@ export async function POST(req: NextRequest) {
 
     const platform = parsePlatform(body.platform);
 
+    const deviceIdRaw = body.deviceId;
+    const deviceId =
+      typeof deviceIdRaw === "string" && deviceIdRaw.trim().length > 0
+        ? deviceIdRaw.trim().slice(0, 128)
+        : null;
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true },
@@ -56,7 +62,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    await NotificationService.registerPushToken(user.id, token, platform, "FCM");
+    await NotificationService.registerPushToken(
+      user.id,
+      token,
+      platform,
+      "FCM",
+      deviceId
+    );
 
     if (process.env.NODE_ENV === "development") {
       console.info(

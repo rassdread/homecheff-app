@@ -1,6 +1,10 @@
 "use client";
 
 import { isNativeApp } from "@/lib/native/capacitor";
+import {
+  recordPushServerSyncTime,
+  shouldThrottlePushServerSync,
+} from "@/lib/native/pushClientPrefs";
 import { setCachedPushRegistrationId } from "@/lib/native/pushRegistrationCache";
 import { maskPushTokenForLogs } from "@/lib/pushTokenValidation";
 
@@ -16,20 +20,34 @@ export type PushTokenServerResult =
  */
 export async function registerFcmTokenWithServer(
   token: string,
-  platform: "android" | "ios" | "web" = "android"
+  platform: "android" | "ios" | "web" = "android",
+  deviceId?: string | null,
+  options?: { force?: boolean }
 ): Promise<PushTokenServerResult> {
   if (!isNativeApp()) return "error";
+  if (!options?.force && shouldThrottlePushServerSync(token)) {
+    return "ok";
+  }
   try {
+    const body: Record<string, unknown> = {
+      token,
+      platform,
+      type: "FCM",
+    };
+    if (deviceId?.trim()) {
+      body.deviceId = deviceId.trim().slice(0, 128);
+    }
     const res = await fetch("/api/push/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ token, platform, type: "FCM" }),
+      body: JSON.stringify(body),
     });
     if (res.status === 401) return "unauthorized";
     if (res.status === 400) return "bad_request";
     if (!res.ok) return "error";
     setCachedPushRegistrationId(token);
+    recordPushServerSyncTime();
     if (process.env.NODE_ENV === "development") {
       console.info(
         "[HomeCheff push] server register OK",

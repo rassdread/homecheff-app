@@ -1,16 +1,23 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Bell, Package } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
 import ChatBox from '@/components/chat/ChatBox';
+import ChatShell from '@/components/chat/ChatShell';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import InfoIcon from '@/components/onboarding/InfoIcon';
 import { getHintsForPage } from '@/lib/onboarding/hints';
 import OrdersTab from '@/components/notifications/OrdersTab';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import {
+  APP_RESUME_MSG_CONV_HINT,
+  readLastConversationIdIfFresh,
+  saveLastConversationId,
+} from '@/lib/appResumeCache';
 
 interface Conversation {
   id: string;
@@ -39,6 +46,7 @@ interface Conversation {
     profileImage: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    sellerVerified?: boolean;
   };
   lastMessage?: {
     id: string;
@@ -85,6 +93,7 @@ function MessagesPageContent() {
   const router = useRouter();
   const messagesPath = usePathname() ?? '/messages';
   const nativeMounted = useIsNativeAppMounted();
+  const isLargeDisplay = useMediaQuery('(min-width: 1024px)');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'conversations' | 'notifications' | 'orders'>('conversations');
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -119,9 +128,27 @@ function MessagesPageContent() {
     setSelectedConversation(conversation);
   };
 
-  const handleBackToList = () => {
+  const handleBackToList = useCallback(() => {
     setSelectedConversation(null);
-  };
+    try {
+      router.replace(messagesPath);
+    } catch {
+      /* ignore */
+    }
+  }, [router, messagesPath]);
+
+  /** Mobiel: geen body-scroll zolang een gesprek open is. */
+  useEffect(() => {
+    const narrow = !isLargeDisplay;
+    const chatOpen =
+      !!selectedConversation && activeTab === 'conversations';
+    if (!narrow || !chatOpen) return;
+    const html = document.documentElement;
+    html.classList.add('hc-messages-chat-open');
+    return () => {
+      html.classList.remove('hc-messages-chat-open');
+    };
+  }, [isLargeDisplay, selectedConversation, activeTab]);
 
   // Load notifications when tab changes to notifications
   const loadNotifications = async () => {
@@ -205,15 +232,22 @@ function MessagesPageContent() {
     }
   }, [searchParams]);
 
+  const hidePageChromeForMobileChat =
+    !!selectedConversation && !isLargeDisplay && activeTab === 'conversations';
+
   return (
     <main
-      className={`h-screen bg-gray-50 flex flex-col ${nativeMounted ? 'hc-native-messages-page' : ''}`}
+      className={`hc-messages-root flex flex-col overflow-hidden bg-[#e8eaed] ${nativeMounted ? 'hc-native-messages-page' : ''}`}
     >
       {/* Onboarding Tour */}
       <OnboardingTour pageId="messages" autoStart={false} />
       
-      {/* Header */}
-      <header className="w-full border-b bg-white flex-shrink-0">
+      {/* Header — verborgen op smalle viewport zolang een gesprek open is (native chat-scherm) */}
+      <header
+        className={`w-full flex-shrink-0 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm ${
+          hidePageChromeForMobileChat ? 'hidden lg:block' : ''
+        }`}
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -280,51 +314,62 @@ function MessagesPageContent() {
         </div>
       </header>
       
-      {/* Main Content - WhatsApp-like layout */}
+      {/* Split inbox + thread; mobiel: actieve thread als vaste laag onder navbar */}
       <div
-        className={`flex-1 flex overflow-hidden min-h-0 ${nativeMounted ? 'hc-native-chat-shell' : ''}`}
+        className={`flex min-h-0 flex-1 overflow-hidden p-0 lg:gap-3 lg:p-3 ${nativeMounted ? 'hc-native-chat-shell' : ''}`}
       >
         {activeTab === 'conversations' ? (
           <>
-            {/* Conversations List - Left Side */}
-            <div 
+            <div
               data-tour="conversations-list"
-              className={`
-              ${selectedConversation ? 'hidden lg:flex lg:w-96' : 'w-full'} 
-              border-r border-gray-200 bg-white flex-col transition-all duration-300
-            `}>
-              <div className="flex-1 overflow-hidden">
+              className={`flex min-h-0 flex-col border-r border-gray-200/80 bg-white transition-[width] duration-200 ease-out ${
+                selectedConversation
+                  ? 'hidden w-0 min-w-0 lg:flex lg:w-[22rem] lg:min-w-[22rem] xl:w-96 xl:min-w-[24rem]'
+                  : 'w-full min-w-0 lg:max-w-md xl:max-w-sm'
+              }`}
+            >
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <ConversationsList onSelectConversation={handleSelectConversation} />
               </div>
             </div>
-            
-            {/* Chat Window - Right Side */}
+
             {selectedConversation && (
-              <div className={`
-                ${selectedConversation ? 'w-full' : 'hidden'} 
-                flex flex-col bg-white
-              `}>
-                <ChatBox
-                  key={selectedConversation.id}
-                  conversationId={selectedConversation.id}
-                  otherParticipant={
-                    selectedConversation.otherParticipant || 
-                    (selectedConversation.participants && selectedConversation.participants[0]) ||
-                    { id: '', name: 'Gebruiker', username: null, profileImage: null }
-                  }
-                  onBack={handleBackToList}
-                />
+              <div
+                className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
+                  hidePageChromeForMobileChat
+                    ? 'fixed inset-x-0 top-16 bottom-0 z-50 lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-0'
+                    : 'lg:min-w-0'
+                }`}
+              >
+                <ChatShell>
+                  <ChatBox
+                    key={selectedConversation.id}
+                    conversationId={selectedConversation.id}
+                    otherParticipant={
+                      selectedConversation.otherParticipant ||
+                      (selectedConversation.participants &&
+                        selectedConversation.participants[0]) || {
+                        id: '',
+                        name: 'Gebruiker',
+                        username: null,
+                        profileImage: null,
+                      }
+                    }
+                    onBack={handleBackToList}
+                  />
+                </ChatShell>
               </div>
             )}
-            
-            {/* Welcome Message when no conversation selected (Desktop only) */}
+
             {!selectedConversation && (
-              <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-50">
-                <div className="text-center p-8">
-                  <MessageCircle className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">Selecteer een gesprek</h3>
-                  <p className="text-gray-500 max-w-md">
-                    Klik op een gesprek aan de linkerkant om te beginnen met chatten
+              <div className="hidden min-h-0 flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-300/80 bg-white/60 lg:flex">
+                <div className="p-8 text-center">
+                  <MessageCircle className="mx-auto mb-4 h-20 w-20 text-gray-300" />
+                  <h3 className="mb-2 text-xl font-medium text-gray-900">
+                    Selecteer een gesprek
+                  </h3>
+                  <p className="max-w-md text-gray-500">
+                    Klik links op een gesprek om te chatten
                   </p>
                 </div>
               </div>
@@ -332,7 +377,7 @@ function MessagesPageContent() {
           </>
         ) : activeTab === 'notifications' ? (
           /* Notifications Tab */
-          <div className="flex-1 flex flex-col bg-white">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
             {/* Notifications Header */}
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
@@ -362,7 +407,7 @@ function MessagesPageContent() {
             </div>
 
             {/* Notifications List */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {notificationsLoading ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -445,13 +490,13 @@ function MessagesPageContent() {
           </div>
         ) : (
           /* Orders Tab */
-          <div className="flex-1 flex flex-col bg-white">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">
                 Bestellingen
               </h2>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <OrdersTab />
             </div>
           </div>
@@ -465,9 +510,9 @@ export default function MessagesPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen bg-gray-50 flex flex-col">
-          <div className="h-16 border-b bg-white animate-pulse" />
-          <div className="flex-1 flex min-h-0">
+        <div className="hc-messages-root flex flex-col overflow-hidden bg-[#e8eaed]">
+          <div className="h-16 flex-shrink-0 border-b bg-white animate-pulse" />
+          <div className="flex min-h-0 flex-1">
             <div className="w-full max-w-sm border-r bg-white p-4 space-y-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex gap-3 animate-pulse">

@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send, Loader2, Circle, Trash2, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft,
+  Send,
+  Loader2,
+  Circle,
+  Trash2,
+  RefreshCw,
+  BadgeCheck,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getDisplayName } from '@/lib/displayName';
@@ -30,10 +38,14 @@ export interface ChatBoxProps {
     profileImage?: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    /** Verkoper met geverifieerd bezorgprofiel (optioneel, van conversation-API). */
+    sellerVerified?: boolean | null;
   };
   onBack?: () => void;
   /** Profiel/mobiel: handmatig verversen + gesprek wissen. */
   showConversationTools?: boolean;
+  /** bv. `/messages/[id]`: terug altijd tonen, ook op desktop */
+  showBackOnDesktop?: boolean;
 }
 
 export default function ChatBox({
@@ -41,6 +53,7 @@ export default function ChatBox({
   otherParticipant,
   onBack,
   showConversationTools = false,
+  showBackOnDesktop = false,
 }: ChatBoxProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
@@ -53,8 +66,13 @@ export default function ChatBox({
   const [isOnline, setIsOnline] = useState(false);
   const [lastSeenAt, setLastSeenAt] = useState<string | null>(null);
   const [pusherConnected, setPusherConnected] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const hasMoreOlderRef = useRef(false);
+  const oldestLoadedPageRef = useRef(1);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   /** Pusher "typing cleared" timer: opruimen bij unmount om setState na unmount te vermijden (mobile/WebView). */
   const pusherTypingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -91,6 +109,21 @@ export default function ChatBox({
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior });
     });
+  }, []);
+
+  const updateNearBottom = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const threshold = 160;
+    isNearBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }, []);
+
+  const scrollToBottomInstant = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    isNearBottomRef.current = true;
   }, []);
 
   /** Sync thread naar session cache (zelfde bron als hydrate); mag nooit crashen. */
@@ -160,7 +193,7 @@ export default function ChatBox({
         if (stale()) return;
 
         if (res.ok) {
-          let data: { messages?: ChatThreadMessage[] };
+          let data: { messages?: ChatThreadMessage[]; hasMore?: boolean };
           try {
             data = await res.json();
           } catch {
@@ -174,6 +207,8 @@ export default function ChatBox({
           if (isInitialLoad) {
             setMessages(newMessages);
             persistThreadMsgs(newMessages);
+            oldestLoadedPageRef.current = 1;
+            hasMoreOlderRef.current = Boolean(data.hasMore);
           } else {
             setMessages((prev) => {
               if (epochAtStart !== conversationEpochRef.current) return prev;
@@ -196,8 +231,12 @@ export default function ChatBox({
 
           if (stale()) return;
           setIsLoading(false);
-          if (isInitialLoad || (data.messages && data.messages.length > 0)) {
-            scrollToBottomSoon();
+          if (isInitialLoad) {
+            requestAnimationFrame(() => {
+              scrollToBottomInstant();
+            });
+          } else if (isNearBottomRef.current) {
+            scrollToBottomSoon('smooth');
           }
         } else {
           const fallbackRes = await fetch(
@@ -220,6 +259,8 @@ export default function ChatBox({
             if (isInitialLoad) {
               setMessages(list);
               persistThreadMsgs(list);
+              oldestLoadedPageRef.current = 1;
+              hasMoreOlderRef.current = list.length >= 50;
             } else {
               setMessages((prev) => {
                 if (epochAtStart !== conversationEpochRef.current) return prev;
@@ -231,6 +272,13 @@ export default function ChatBox({
           }
           if (stale()) return;
           setIsLoading(false);
+          if (isInitialLoad) {
+            requestAnimationFrame(() => {
+              scrollToBottomInstant();
+            });
+          } else if (isNearBottomRef.current) {
+            scrollToBottomSoon('smooth');
+          }
         }
       } catch (error) {
         if ((error as Error)?.name === 'AbortError') return;
@@ -240,8 +288,74 @@ export default function ChatBox({
         setIsLoading(false);
       }
     },
-    [conversationId, scrollToBottomSoon, persistThreadMsgs]
+    [
+      conversationId,
+      scrollToBottomSoon,
+      scrollToBottomInstant,
+      persistThreadMsgs,
+    ]
   );
+
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingOlder || !hasMoreOlderRef.current) return;
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const cid = conversationId;
+    if (!cid) return;
+    const epochSnap = conversationEpochRef.current;
+    const prevScrollHeight = el.scrollHeight;
+    const prevScrollTop = el.scrollTop;
+    const nextPage = oldestLoadedPageRef.current + 1;
+    setLoadingOlder(true);
+    try {
+      const res = await fetch(
+        `/api/conversations/${cid}/messages-fast?limit=50&page=${nextPage}`,
+        {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        }
+      );
+      if (!res.ok) return;
+      let data: { messages?: ChatThreadMessage[]; hasMore?: boolean };
+      try {
+        data = await res.json();
+      } catch {
+        return;
+      }
+      if (epochSnap !== conversationEpochRef.current) return;
+      const older = data.messages || [];
+      if (older.length === 0) {
+        hasMoreOlderRef.current = false;
+        return;
+      }
+      oldestLoadedPageRef.current = nextPage;
+      hasMoreOlderRef.current = Boolean(data.hasMore);
+      setMessages((prev) => {
+        const seen = new Set(prev.map((m) => m.id));
+        const prepend = older.filter((m) => !seen.has(m.id));
+        const merged = [...prepend, ...prev];
+        persistThreadMsgs(merged);
+        return merged;
+      });
+      requestAnimationFrame(() => {
+        if (epochSnap !== conversationEpochRef.current) return;
+        const sc = messagesScrollRef.current;
+        if (!sc) return;
+        const delta = sc.scrollHeight - prevScrollHeight;
+        sc.scrollTop = prevScrollTop + delta;
+        updateNearBottom();
+      });
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [
+    conversationId,
+    loadingOlder,
+    persistThreadMsgs,
+    updateNearBottom,
+  ]);
 
   // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
   useEffect(() => {
@@ -249,6 +363,9 @@ export default function ChatBox({
 
     conversationEpochRef.current += 1;
     const epoch = conversationEpochRef.current;
+    hasMoreOlderRef.current = false;
+    oldestLoadedPageRef.current = 1;
+    isNearBottomRef.current = true;
 
     fetchAbortRef.current?.abort();
     const ac = new AbortController();
@@ -312,6 +429,7 @@ export default function ChatBox({
     channel.bind('new-message', (data: ChatThreadMessage) => {
       if (boundGen !== pusherUiGenRef.current) return;
       const epochSnap = conversationEpochRef.current;
+      const fromSelf = data.senderId === currentUserId;
       setMessages((prev) => {
         if (boundGen !== pusherUiGenRef.current) return prev;
         if (epochSnap !== conversationEpochRef.current) return prev;
@@ -325,7 +443,9 @@ export default function ChatBox({
       });
       if (boundGen !== pusherUiGenRef.current) return;
       if (epochSnap !== conversationEpochRef.current) return;
-      scrollToBottomSoon();
+      if (fromSelf || isNearBottomRef.current) {
+        scrollToBottomSoon();
+      }
     });
     
     // Typing indicator
@@ -431,6 +551,20 @@ export default function ChatBox({
     return () => clearInterval(id);
   }, [conversationId, currentUserId, pusherConnected, loadMessages]);
 
+  const handleMessagesScroll = useCallback(() => {
+    updateNearBottom();
+    const el = messagesScrollRef.current;
+    if (!el || loadingOlder || !hasMoreOlderRef.current) return;
+    if (el.scrollTop < 90) {
+      void loadOlderMessages();
+    }
+  }, [updateNearBottom, loadingOlder, loadOlderMessages]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    updateNearBottom();
+  }, [messages.length, isLoading, updateNearBottom]);
+
   // Handle typing
   const handleTyping = (value: string) => {
     setNewMessage(value);
@@ -500,10 +634,9 @@ export default function ChatBox({
     // Add optimistic message immediately to UI
     setMessages(prev => [...prev, optimisticMessage]);
     
-    // Scroll to bottom immediately
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
+    requestAnimationFrame(() => {
+      scrollToBottomInstant();
+    });
     
     sendFlightRef.current?.abort();
     const sendAc = new AbortController();
@@ -642,22 +775,26 @@ export default function ChatBox({
     });
   };
 
+  const showBackButton = Boolean(onBack);
+  const backButtonCompactClass =
+    showBackOnDesktop || nativeMounted ? '' : 'lg:hidden';
+
   return (
     <div
-      className={`flex flex-col h-full min-h-0 bg-white hc-native-chat-root ${
+      className={`flex flex-col h-full min-h-0 bg-[#f4f6f8] hc-native-chat-root ${
         nativeMounted ? 'hc-native-chat-root-native' : ''
       }`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-white shadow-sm">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          {onBack && (
+      <div
+        className="flex shrink-0 items-center gap-2 border-b border-gray-200/90 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-md supports-[padding:max(0px,1px)]:pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:gap-3 sm:px-4 sm:py-3"
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          {showBackButton && onBack && (
             <button
               type="button"
               onClick={onBack}
-              className={`inline-flex shrink-0 items-center gap-1 rounded-full p-2 min-h-[44px] min-w-[44px] justify-center hover:bg-gray-100 ${
-                nativeMounted ? '' : 'lg:hidden'
-              }`}
+              className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1 rounded-full p-2 hover:bg-gray-100/90 ${backButtonCompactClass}`}
               aria-label={t('messages.backToConversations')}
             >
               <ArrowLeft className="h-5 w-5" aria-hidden />
@@ -683,18 +820,26 @@ export default function ChatBox({
                   className="rounded-full shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-white font-bold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700">
+                  <span className="font-bold text-white">
                     {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
                   </span>
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-semibold text-gray-900 truncate">
-                  {getDisplayName(otherParticipant)}
-                </h2>
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex min-w-0 items-center gap-1">
+                  <h2 className="truncate text-base font-semibold tracking-tight text-gray-900">
+                    {getDisplayName(otherParticipant)}
+                  </h2>
+                  {otherParticipant.sellerVerified ? (
+                    <BadgeCheck
+                      className="h-4 w-4 shrink-0 text-emerald-600"
+                      aria-label={t('profilePage.sidebar.verified')}
+                    />
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
                   {otherUserTyping ? (
                     <>
                       <div className="flex gap-1">
@@ -733,18 +878,26 @@ export default function ChatBox({
                   className="rounded-full shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-white font-bold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700">
+                  <span className="font-bold text-white">
                     {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
                   </span>
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-semibold text-gray-900 truncate">
-                  {getDisplayName(otherParticipant)}
-                </h2>
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex min-w-0 items-center gap-1">
+                  <h2 className="truncate text-base font-semibold tracking-tight text-gray-900">
+                    {getDisplayName(otherParticipant)}
+                  </h2>
+                  {otherParticipant.sellerVerified ? (
+                    <BadgeCheck
+                      className="h-4 w-4 shrink-0 text-emerald-600"
+                      aria-label={t('profilePage.sidebar.verified')}
+                    />
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
                   {otherUserTyping ? (
                     <>
                       <div className="flex gap-1">
@@ -797,10 +950,19 @@ export default function ChatBox({
         ) : null}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-3 bg-gray-50 hc-native-chat-scroll touch-pan-y">
+      {/* Messages — enige scrollzone */}
+      <div
+        ref={messagesScrollRef}
+        onScroll={handleMessagesScroll}
+        className="hc-native-chat-scroll flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-[#eef1f4] px-3 py-3 touch-pan-y sm:px-4 sm:py-4"
+      >
+        {loadingOlder ? (
+          <div className="flex shrink-0 justify-center py-2" aria-live="polite">
+            <Loader2 className="h-5 w-5 animate-spin text-gray-400" aria-hidden />
+          </div>
+        ) : null}
         {isLoading ? (
-          <div className="space-y-3 py-2" aria-busy>
+          <div className="space-y-4 py-2" aria-busy>
             {[0, 1, 2, 3, 4].map((i) => (
               <div
                 key={i}
@@ -818,13 +980,13 @@ export default function ChatBox({
             </div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <div className="text-5xl mb-4">💬</div>
+          <div className="flex h-full flex-col items-center justify-center text-gray-500">
+            <div className="mb-4 text-5xl">💬</div>
             <p>{t('messages.noMessages')}</p>
             <p className="text-sm">{t('messages.sendFirstMessage')}</p>
           </div>
         ) : (
-          <>
+          <div className="flex flex-col gap-4">
             {messages.map((msg) => (
               <ChatThreadMessageRow
                 key={msg.id}
@@ -833,15 +995,15 @@ export default function ChatBox({
                 formatTime={formatTime}
               />
             ))}
-            <div ref={messagesEndRef} />
-          </>
+            <div ref={messagesEndRef} className="h-px shrink-0" aria-hidden />
+          </div>
         )}
       </div>
 
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className={`shrink-0 p-4 border-t bg-white hc-native-chat-composer ${
+        className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 py-3 backdrop-blur-md supports-[padding:max(0px,1px)]:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:py-3.5 ${
           nativeMounted ? 'hc-native-chat-composer-native' : ''
         }`}
       >
@@ -861,15 +1023,15 @@ export default function ChatBox({
             onChange={(e) => handleTyping(e.target.value)}
             placeholder={t('messages.typeMessage')}
             disabled={isSending}
-            className={`flex-1 min-w-0 px-4 py-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
-              nativeMounted ? 'text-base py-3.5' : ''
+            className={`min-h-[48px] flex-1 min-w-0 rounded-full border border-gray-200 bg-gray-50/90 px-4 py-3 text-[15px] leading-snug text-gray-900 shadow-inner focus:border-emerald-500/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:bg-gray-100 sm:text-base ${
+              nativeMounted ? 'py-3.5' : ''
             }`}
             autoComplete="off"
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || isSending}
-            className={`shrink-0 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+            className={`flex shrink-0 items-center justify-center gap-2 rounded-full bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-300 ${
               nativeMounted ? 'min-h-[48px] min-w-[48px] px-5' : 'px-6 py-3'
             }`}
             aria-label={t('common.send')}

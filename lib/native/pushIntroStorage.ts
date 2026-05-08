@@ -41,7 +41,7 @@ export function markPushIntroFinished(userId: string): void {
   }
 }
 
-/** Voorkomt dat NativePushTokenSync parallel register() aanroept tijdens onboarding-flow. */
+/** Voorkomt dat NativePushTokenSync parallel register() aanroept tijdens onboarding / instellingen-flow. */
 const SYNC_HOLD_KEY = "hc_npush_sync_hold";
 
 export function setNativePushSyncHold(active: boolean): void {

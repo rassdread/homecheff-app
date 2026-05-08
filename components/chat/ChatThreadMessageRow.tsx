@@ -141,8 +141,8 @@ export default function ChatThreadMessageRow({
       <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
         <div className="max-w-[85%] sm:max-w-[70%] space-y-1">
           <div
-            className={`rounded-2xl overflow-hidden border ${
-              isOwn ? "border-blue-400 bg-blue-500" : "border-gray-200 bg-white"
+            className={`overflow-hidden rounded-2xl border ${
+              isOwn ? "border-emerald-600/90 bg-emerald-600" : "border-gray-200 bg-white"
             }`}
           >
             <Image
@@ -156,7 +156,7 @@ export default function ChatThreadMessageRow({
           </div>
           {msg.text ? (
             <p
-              className={`text-sm px-2 ${isOwn ? "text-blue-100 text-right" : "text-gray-700"}`}
+              className={`px-2 text-sm ${isOwn ? "text-right text-emerald-100" : "text-gray-700"}`}
             >
               {stripReferralNoise(msg.text)}
             </p>
@@ -171,7 +171,7 @@ export default function ChatThreadMessageRow({
               (msg.id.startsWith("temp-") ? (
                 <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
               ) : msg.readAt ? (
-                <CheckCheck className="w-3 h-3 text-blue-400" />
+                <CheckCheck className="h-3 w-3 text-emerald-200" />
               ) : msg.deliveredAt ? (
                 <CheckCheck className="w-3 h-3 text-gray-400" />
               ) : (
@@ -193,8 +193,8 @@ export default function ChatThreadMessageRow({
           <div
             className={`rounded-2xl px-3 py-2 border ${
               isOwn
-                ? "bg-blue-500 text-white border-blue-400"
-                : "bg-white text-gray-900 border-gray-200"
+                ? "border-emerald-600/90 bg-emerald-600 text-white"
+                : "border-gray-200 bg-white text-gray-900"
             }`}
           >
             <Link
@@ -230,16 +230,16 @@ export default function ChatThreadMessageRow({
       {!isOwn && <PeerAvatarLink user={msg.User} />}
       <div className="max-w-[85%] sm:max-w-[70%]">
         <div
-          className={`px-3.5 py-2 rounded-2xl break-words shadow-sm ${
+            className={`break-words rounded-2xl px-3.5 py-2 shadow-sm ${
             isOwn
-              ? "bg-blue-500 text-white rounded-br-md"
-              : "bg-white text-gray-900 border border-gray-200 rounded-bl-md"
+              ? "rounded-br-md bg-emerald-600 text-white"
+              : "rounded-bl-md border border-gray-200 bg-white text-gray-900"
           }`}
         >
           {msg.orderNumber && mt === "TEXT" ? (
             <p
               className={`text-[11px] font-medium mb-1 ${
-                isOwn ? "text-blue-100" : "text-emerald-700"
+                isOwn ? "text-emerald-100" : "text-emerald-700"
               }`}
             >
               #{msg.orderNumber}
@@ -255,11 +255,11 @@ export default function ChatThreadMessageRow({
             (msg.id.startsWith("temp-") ? (
               <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
             ) : msg.readAt ? (
-              <CheckCheck className="w-3 h-3 text-blue-400" />
+              <CheckCheck className="h-3 w-3 text-emerald-200" />
             ) : msg.deliveredAt ? (
-              <CheckCheck className="w-3 h-3 text-gray-400" />
+              <CheckCheck className="h-3 w-3 text-gray-400" />
             ) : (
-              <Check className="w-3 h-3 text-gray-400" />
+              <Check className="h-3 w-3 text-gray-400" />
             ))}
         </div>
       </div>

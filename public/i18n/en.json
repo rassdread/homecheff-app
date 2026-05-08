@@ -4475,7 +4475,10 @@
     "appearance": "Appearance",
     "appearanceDescription": "Theme and interface settings",
     "help": "Help & Support",
-    "helpDescription": "Frequently asked questions and contact"
+    "helpDescription": "Frequently asked questions and contact",
+    "legalLinksTitle": "Legal & contact",
+    "legalLinksAria": "Legal information and contact",
+    "legalLinksHint": "In the app the website footer is hidden; you can open the same pages here."
   },
   "profilePage": {
     "tabs": {

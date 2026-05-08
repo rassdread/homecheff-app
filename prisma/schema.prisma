@@ -1239,6 +1239,8 @@ model PushToken {
   token      String   @unique
   platform   String
   type       String
+  /// Stabiel apparaat-id (client); oude tokens voor zelfde user+device worden bij sync gedeactiveerd.
+  deviceId   String?
   isActive   Boolean  @default(true)
   lastUsedAt DateTime @default(now())
   createdAt  DateTime @default(now())
@@ -1246,6 +1248,7 @@ model PushToken {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, deviceId])
   @@index([token])
   @@map("PushToken")
 }

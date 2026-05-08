@@ -76,7 +76,10 @@ export default function Footer() {
   );
 
   return (
-    <footer className="bg-white border-t border-gray-200 mt-auto">
+    <footer
+      data-homecheff-site-footer
+      className="mt-auto border-t border-gray-200 bg-white"
+    >
       <div
         className={`max-w-6xl mx-auto px-4 sm:px-6 ${
           compactPath ? 'py-3 md:py-8' : 'py-8'

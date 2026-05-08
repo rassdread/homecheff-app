@@ -3321,7 +3321,10 @@
     "appearance": "Weergave",
     "appearanceDescription": "Thema en interface-instellingen",
     "help": "Help & Support",
-    "helpDescription": "Veelgestelde vragen en contact"
+    "helpDescription": "Veelgestelde vragen en contact",
+    "legalLinksTitle": "Juridisch & contact",
+    "legalLinksAria": "Juridische informatie en contact",
+    "legalLinksHint": "In de app is de onderste websit-footer verborgen; hier vind je dezelfde links."
   },
   "profilePage": {
     "tabs": {

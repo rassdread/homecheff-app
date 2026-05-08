@@ -112,14 +112,6 @@ export default function DeliveryNotificationListener() {
     };
   }, [userId, audio, router]);
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-      });
-    }
-  }, []);
-
   const handleAction = async (notificationDisplayId: number, action: string) => {
     if (action === 'GO_ONLINE') {
       try {

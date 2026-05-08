@@ -379,8 +379,20 @@ ul, ol { padding: 0; margin: 0; list-style: none; }
   .card-pad   { @apply p-4 md:p-6; }
 }
 
-/* Capacitor native shell — class wordt gezet door components/native/NativeAppRootClass.tsx */
-html.hc-native-capacitor body {
+/**
+ * Site-footer (SEO-blok): verborgen in native app, PWA standalone en smalle viewport op
+ * app-achtige routes (zie isCompactMobileFooterPath). Juridische links: profiel → Help.
+ * Classes: components/layout/AppShellHtmlClasses.tsx
+ */
+html.hc-native-capacitor footer[data-homecheff-site-footer],
+html.hc-pwa-standalone footer[data-homecheff-site-footer],
+html.hc-suppress-site-footer footer[data-homecheff-site-footer] {
+  display: none !important;
+}
+
+/* Capacitor native shell — class wordt gezet door AppShellHtmlClasses */
+html.hc-native-capacitor body,
+html.hc-pwa-standalone body {
   min-height: 100dvh;
   min-height: 100vh;
   /* contain kan op sommige Android WebViews scroll door de pagina beperken; laat default overscroll. */
@@ -389,22 +401,25 @@ html.hc-native-capacitor body {
 }
 
 /* Portal-root mag nooit fullscreen touches vangen (alleen echte children met pointer-events-auto). */
-html.hc-native-capacitor #navbar-dropdown-portal-root {
+html.hc-native-capacitor #navbar-dropdown-portal-root,
+html.hc-pwa-standalone #navbar-dropdown-portal-root {
   pointer-events: none;
 }
 
 /*
- * Hogere ondermarge voor native bottom nav + touch targets + safe-area.
+ * Hogere ondermarge voor native / PWA bottom nav + touch targets + safe-area.
  * Alleen als bottom-nav zichtbaar (data attribuut gezet door AppPageChrome).
  */
-html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"],
+html.hc-pwa-standalone [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
   padding-bottom: calc(
     6.75rem + env(safe-area-inset-bottom, 0px)
   ) !important;
 }
 
 @media (min-width: 640px) {
-  html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+  html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"],
+  html.hc-pwa-standalone [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
     padding-bottom: calc(
       6.35rem + env(safe-area-inset-bottom, 0px)
     ) !important;
@@ -551,6 +566,30 @@ html.hc-native-capacitor .hc-native-messages-page .hc-native-chat-shell {
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Berichten-overzicht: één kolomhoogte minus navbar + bottom-nav chrome (match AppPageChrome pb) */
+.hc-messages-root {
+  height: calc(100svh - 4rem - 5.75rem);
+  max-height: calc(100svh - 4rem - 5.75rem);
+  min-height: 0;
+}
+@media (min-width: 640px) {
+  .hc-messages-root {
+    height: calc(100svh - 4rem - 5.25rem);
+    max-height: calc(100svh - 4rem - 5.25rem);
+  }
+}
+html.hc-native-capacitor .hc-messages-root {
+  height: calc(100svh - 4rem);
+  max-height: calc(100svh - 4rem);
+}
+
+/* Mobiel: actief gesprek — geen body-scroll achter de chat */
+html.hc-messages-chat-open,
+html.hc-messages-chat-open body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 html.hc-native-capacitor .hc-native-product-msg-modal .product-msg-modal-inner {
