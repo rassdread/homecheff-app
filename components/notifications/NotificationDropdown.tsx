@@ -146,8 +146,16 @@ export default function NotificationDropdown() {
           .map((notif: any) => {
             // Extract sender name from notification payload
             const payload = notif.payload || {};
+            const payloadData = payload.data || {};
             const title = notif.title || payload.title || 'Nieuw bericht';
-            const senderName = title.replace('💬 Nieuw bericht van ', '').replace('Nieuw bericht van ', '') || 'Iemand';
+            const senderName =
+              (typeof payloadData.senderDisplayName === 'string' &&
+                payloadData.senderDisplayName.trim()) ||
+              title
+                .replace(/^💬\s*Nieuw bericht van\s+/i, '')
+                .replace(/^Nieuw bericht van\s+/i, '')
+                .trim() ||
+              'Iemand';
             const messagePreview = notif.message || payload.body || payload.message || 'Je hebt een nieuw bericht ontvangen';
             
             return {

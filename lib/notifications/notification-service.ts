@@ -24,6 +24,7 @@ import {
   pickSenderAvatarUrlForFcm,
   resolveHttpsPublicImageUrlForFcm,
 } from '@/lib/notifications/fcmPublicImageUrl';
+import { getDisplayName, type User as DisplayNameUser } from '@/lib/displayName';
 
 /** Alleen waarden uit Prisma `NotificationType` — voorkomt mislukte DB-writes bij bestel-/bezorgmeldingen. */
 function mapDataTypeToPrismaNotificationType(dataType: string | undefined): NotificationType {
@@ -652,6 +653,52 @@ export class NotificationService {
     return `${t.slice(0, Math.max(0, max - 1))}…`;
   }
 
+  /** Verwijdert ruwe HTML/markdown uit push-preview (geen tags/markers tonen). */
+  private static stripHtmlAndMarkdownForPushPreview(text: string): string {
+    let s = text.replace(/<[^>]*>/g, ' ');
+    s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+    s = s.replace(/`+/g, '');
+    s = s.replace(/\*{1,2}|_{1,2}|~~/g, '');
+    s = s.replace(/^#{1,6}\s*/gm, '');
+    return s;
+  }
+
+  /**
+   * Chat-push body: whitespace/newlines genormaliseerd, max lengte, geen HTML/markdown.
+   */
+  private static formatChatPushBody(
+    raw: string | null | undefined,
+    maxLen: number
+  ): string {
+    const step1 = this.stripHtmlAndMarkdownForPushPreview(String(raw ?? ''));
+    const collapsed = step1.replace(/\s+/g, ' ').trim();
+    const cleaned = stripReferralNoise(collapsed, '').trim();
+    if (!cleaned) return 'Nieuw bericht ontvangen';
+    return this.truncateFcmVisibleText(cleaned, maxLen);
+  }
+
+  /**
+   * Zichtbare afzendernaam voor chat-push (FCM titel). Respecteert privacy via getDisplayName.
+   */
+  private static chatPushSenderTitle(sender: {
+    name: string | null;
+    username: string | null;
+    displayFullName: boolean | null;
+    displayNameOption: string | null;
+  } | null): { title: string; senderNamePresent: boolean } {
+    if (!sender) {
+      return { title: 'HomeCheff', senderNamePresent: false };
+    }
+    const dn = getDisplayName(sender as DisplayNameUser);
+    if (dn && dn !== 'Gebruiker') {
+      return {
+        title: this.truncateFcmVisibleText(dn, 64),
+        senderNamePresent: true,
+      };
+    }
+    return { title: 'HomeCheff', senderNamePresent: false };
+  }
+
   private static fcmErrorCode(err: unknown): string {
     if (err && typeof err === 'object') {
       const o = err as { code?: string; errorInfo?: { code?: string } };
@@ -697,14 +744,14 @@ export class NotificationService {
     const messaging = getFirebaseMessaging();
     if (!messaging) return;
 
-    const notificationTitle = 'Nieuw bericht';
-    const notificationBody = this.truncateFcmVisibleText(
-      stripReferralNoise(
-        message.body || 'Je hebt een nieuw bericht op HomeCheff',
-        'Je hebt een nieuw bericht op HomeCheff'
-      ),
-      160
+    const notificationTitle = this.truncateFcmVisibleText(
+      (message.title || '').trim() || 'HomeCheff',
+      64
     );
+    const notificationBody = this.formatChatPushBody(message.body, 110);
+
+    const senderNamePresent =
+      message.data?.chatPushSenderNamePresent === true;
 
     const data: Record<string, string> = {
       type: 'chat',
@@ -736,10 +783,13 @@ export class NotificationService {
 
     if (fcmTargets.length > 0) {
       console.info('[FCM] chat push', {
-        senderAvatar: Boolean(avatarUrl),
+        chatPushSenderAvatar: Boolean(avatarUrl),
+        chatPushSenderNamePresent: senderNamePresent,
         targets: fcmTargets.length,
       });
     }
+
+    const webIcon = `${getPublicAppUrl()}/icon.png`;
 
     for (const row of fcmTargets) {
       const token = row.token as string;
@@ -760,10 +810,14 @@ export class NotificationService {
       const androidNotification: {
         channelId: string;
         sound: string;
+        title: string;
+        body: string;
         imageUrl?: string;
       } = {
         channelId: 'chat_messages',
         sound: 'default',
+        title: notificationTitle,
+        body: notificationBody,
       };
       if (avatarUrl) {
         androidNotification.imageUrl = avatarUrl;
@@ -777,19 +831,28 @@ export class NotificationService {
           priority: 'high',
           notification: androidNotification,
         },
-      };
-
-      if (avatarUrl) {
-        payload.apns = {
-          fcmOptions: { imageUrl: avatarUrl },
-        };
-        payload.webpush = {
-          notification: {
-            image: avatarUrl,
-            icon: avatarUrl,
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: notificationTitle,
+                body: notificationBody,
+              },
+              sound: 'default',
+            },
           },
-        };
-      }
+          ...(avatarUrl ? { fcmOptions: { imageUrl: avatarUrl } } : {}),
+        },
+        webpush: {
+          notification: {
+            title: notificationTitle,
+            body: notificationBody,
+            icon: webIcon,
+            badge: webIcon,
+            ...(avatarUrl ? { image: avatarUrl } : {}),
+          },
+        },
+      };
 
       try {
         await messaging.send(payload);
@@ -845,6 +908,7 @@ export class NotificationService {
       select: {
         name: true,
         username: true,
+        displayFullName: true,
         displayNameOption: true,
         profileImage: true,
         image: true,
@@ -856,18 +920,23 @@ export class NotificationService {
       sender?.image
     );
 
-    const senderName = sender?.name || sender?.username || 'Iemand';
+    const { title: pushSenderTitle, senderNamePresent } =
+      this.chatPushSenderTitle(sender);
+
+    if (process.env.CHAT_PUSH_SENDER_AVATAR_DEBUG === 'true') {
+      console.info('[FCM] sendChatNotification', {
+        chatPushSenderAvatar: Boolean(senderAvatarUrl),
+        chatPushSenderNamePresent: senderNamePresent,
+      });
+    }
+
     const usePreview = preferences?.chatNotificationPreview !== false;
-    const clipped = (messagePreview || '').slice(0, 100);
     const body = usePreview
-      ? this.truncateFcmVisibleText(
-          stripReferralNoise(clipped, 'Nieuw bericht'),
-          120
-        )
-      : 'Je hebt een nieuw bericht op HomeCheff';
+      ? this.formatChatPushBody(messagePreview, 110)
+      : 'Nieuw bericht ontvangen';
 
     const message: NotificationMessage = {
-      title: `💬 Nieuw bericht van ${senderName}`,
+      title: pushSenderTitle,
       body,
       data: {
         type: 'NEW_MESSAGE',
@@ -875,6 +944,8 @@ export class NotificationService {
         senderId,
         actionUrl: `/messages/${conversationId}/`,
         route: `/messages/${conversationId}/`,
+        senderDisplayName: pushSenderTitle,
+        chatPushSenderNamePresent: senderNamePresent,
         ...(senderAvatarUrl
           ? { senderAvatarUrl, senderAvatar: 'true' }
           : { senderAvatar: 'false' }),
