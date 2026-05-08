@@ -7,11 +7,10 @@ const MIN_VISIBLE_MS = 850;
 const FADE_OUT_MS = 260;
 
 /**
- * Branded startup overlay (alleen native). Houdt content verborgen tot fade klaar is.
+ * Stuurt static HTML startup splash lifecycle (alleen native).
  */
 export default function NativeStartupSplash() {
   const [isNative, setIsNative] = useState(() => isNativeApp());
-  const [phase, setPhase] = useState<'show' | 'fade' | 'gone'>('show');
   const startedRef = useRef(false);
   const mountedAtRef = useRef<number>(0);
 
@@ -26,8 +25,10 @@ export default function NativeStartupSplash() {
   useEffect(() => {
     if (!isNative) return;
     document.documentElement.classList.add('hc-native-splash-active');
+    document.documentElement.classList.remove('hc-native-splash-done');
     return () => {
       document.documentElement.classList.remove('hc-native-splash-active');
+      document.documentElement.classList.remove('hc-native-splash-fade');
     };
   }, [isNative]);
 
@@ -46,11 +47,11 @@ export default function NativeStartupSplash() {
         const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
         hideTimer = window.setTimeout(() => {
           if (cancelled) return;
-          setPhase('fade');
+          document.documentElement.classList.add('hc-native-splash-fade');
           doneTimer = window.setTimeout(() => {
             if (cancelled) return;
-            setPhase('gone');
             document.documentElement.classList.remove('hc-native-splash-active');
+            document.documentElement.classList.remove('hc-native-splash-fade');
             document.documentElement.classList.add('hc-native-splash-done');
           }, FADE_OUT_MS);
         }, wait);
@@ -66,26 +67,5 @@ export default function NativeStartupSplash() {
     };
   }, [isNative]);
 
-  if (!isNative || phase === 'gone') return null;
-
-  return (
-    <div
-      className={`native-startup-splash fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity ease-out motion-reduce:transition-none ${
-        phase === 'show' ? 'opacity-100' : 'pointer-events-none opacity-0'
-      }`}
-      style={{ transitionDuration: `${FADE_OUT_MS}ms` }}
-      aria-hidden
-    >
-      <div className="relative mx-auto h-[min(78vh,800px)] w-[min(92vw,420px)]">
-        <img
-          src="/homecheff-native-splash.png"
-          alt=""
-          className="h-full w-full object-contain object-center"
-          decoding="sync"
-          fetchPriority="high"
-          draggable={false}
-        />
-      </div>
-    </div>
-  );
+  return null;
 }

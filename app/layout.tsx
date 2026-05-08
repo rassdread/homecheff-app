@@ -182,7 +182,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){document.documentElement.classList.add('hc-native-capacitor');}}catch(e){}})();",
+              "(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){document.documentElement.classList.add('hc-native-capacitor');document.documentElement.classList.add('hc-native-splash-active');}}catch(e){}})();",
           }}
         />
         <link rel="preload" as="image" href="/homecheff-native-splash.png" />
@@ -203,6 +203,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
       </head>
       <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-hidden max-w-[100vw] w-full">
+        <div id="hc-static-startup-splash" aria-hidden>
+          <img
+            src="/homecheff-native-splash.png"
+            alt=""
+            className="h-[min(78vh,800px)] w-[min(92vw,420px)] object-contain object-center"
+            decoding="sync"
+            fetchPriority="high"
+            draggable={false}
+          />
+        </div>
         <Providers>
           <SkipLink />
           <PerformanceMonitor />

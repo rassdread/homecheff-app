@@ -388,6 +388,29 @@ html.hc-native-capacitor body {
   touch-action: pan-y pinch-zoom;
 }
 
+/* Static HTML startup splash (direct zichtbaar na Android system splash). */
+#hc-static-startup-splash {
+  display: none;
+}
+html.hc-native-capacitor #hc-static-startup-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  opacity: 1;
+  transition: opacity 260ms ease-out;
+}
+html.hc-native-capacitor.hc-native-splash-fade #hc-static-startup-splash {
+  opacity: 0;
+  pointer-events: none;
+}
+html.hc-native-capacitor.hc-native-splash-done #hc-static-startup-splash {
+  display: none;
+}
+
 /* Native startup first-frame guard:
  * voorkom Hero/content flash vóór branded splash.
  */
