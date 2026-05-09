@@ -12,6 +12,7 @@ import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
 import {
   HcpLockedBadgeButton,
@@ -594,7 +595,10 @@ export default function MijnHcpClient() {
                       <span className="ml-2 text-[10px] font-bold uppercase text-amber-800">Jij</span>
                     ) : null}
                   </p>
-                  <p className="truncate text-xs text-gray-500">@{r.username ?? '—'} · Level {r.level}</p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
+                    <span className="truncate text-xs text-gray-500">@{r.username ?? '—'}</span>
+                    <HcpLevelPill level={r.level} size="xs" tone="amber" className="shrink-0" />
+                  </div>
                   <UserBadgeChips
                     badges={r.badgeSummaries.map((b) => ({ key: b.key, name: b.name, icon: b.icon }))}
                     max={2}

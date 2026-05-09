@@ -7,6 +7,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { RankingPromoCard } from '@/lib/gamification/ranking-promo-build';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 
 const BG: Record<string, string> = {
   amber: 'bg-gradient-to-br from-amber-50 via-white to-amber-50/50',
@@ -153,11 +154,10 @@ export default function HcpRankingPromoPanel({ lang, gpsLat, gpsLng, className }
                             </span>
                           )}
                         </div>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 space-y-1.5">
                           <p className="font-semibold text-gray-900 truncate">{slide.spotlight.displayName}</p>
-                          <p className="text-xs text-gray-600 mt-0.5">
-                            L{slide.spotlight.level} · {slide.spotlight.subtitle}
-                          </p>
+                          <HcpLevelPill level={slide.spotlight.level} size="sm" tone="emerald" />
+                          <p className="text-xs text-gray-600 leading-relaxed">{slide.spotlight.subtitle}</p>
                         </div>
                       </div>
                       {slide.ctaUrl ? (

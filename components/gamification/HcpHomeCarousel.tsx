@@ -8,6 +8,7 @@ import type { HomeCarouselSlide } from '@/lib/gamification/home-carousel-types';
 import { publicProfileHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 
 const HP = 'home.hcpActivation';
 
@@ -111,7 +112,8 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-semibold text-gray-900">{sp.displayName}</p>
-        <p className="mt-0.5 text-[10px] leading-snug text-emerald-900/90 line-clamp-3">{sp.subtitle}</p>
+        <HcpLevelPill level={sp.level} size="xs" tone="emerald" className="mt-1" />
+        <p className="mt-1.5 text-[10px] leading-relaxed text-emerald-900/88 line-clamp-3">{sp.subtitle}</p>
       </div>
     </>
   ) : null;

@@ -10,6 +10,7 @@ import HcpHomeCarousel from '@/components/gamification/HcpHomeCarousel';
 import type { HomeCarouselSlide } from '@/lib/gamification/home-carousel-types';
 import { interleaveCommunityFirst } from '@/lib/gamification/home-carousel-merge';
 import { cn } from '@/lib/utils';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 
 function isUtcToday(iso: string): boolean {
   const d = new Date(iso);
@@ -179,16 +180,19 @@ export default function HcpActivationCard({ className }: { className?: string })
 
   const leftColumn = (
     <div className="min-w-0 space-y-3 lg:space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <h2 id="hcp-activation-heading" className="sr-only">
           {tk('sectionTitle')}
         </h2>
-        <p className="text-base sm:text-lg font-bold text-gray-900 tabular-nums">
-          <span aria-hidden className="mr-1">
-            ⭐
-          </span>
-          {data.totalHcp.toLocaleString()} HCP · {tk('level', { level: data.level })}
-        </p>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="text-base sm:text-lg font-bold text-gray-900 tabular-nums">
+            <span aria-hidden className="mr-1">
+              ⭐
+            </span>
+            {data.totalHcp.toLocaleString()} HCP
+          </p>
+          <HcpLevelPill level={data.level} size="sm" tone="amber" />
+        </div>
         <p
           className={cn(
             'text-sm font-medium text-amber-900 tabular-nums inline-flex items-center gap-1',

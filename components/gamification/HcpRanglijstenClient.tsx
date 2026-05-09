@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import HcpRankingPromoPanel from '@/components/gamification/HcpRankingPromoPanel';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 
 type LbScope = 'nearby' | 'country' | 'worldwide';
 type LbPeriod = 'week' | 'month' | 'year' | 'all';
@@ -35,9 +36,10 @@ function RankRow({ row }: { row: LeaderboardRow }) {
             <span className="ml-2 text-[10px] font-bold uppercase text-amber-800">Jij</span>
           ) : null}
         </p>
-        <p className="text-xs text-gray-600 truncate">
-          @{row.username ?? '—'} · Level {row.level}
-        </p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
+          <span className="truncate text-xs text-gray-600">@{row.username ?? '—'}</span>
+          <HcpLevelPill level={row.level} size="xs" tone="amber" className="shrink-0" />
+        </div>
         <UserBadgeChips
           badges={row.badgeSummaries.map((b) => ({ key: b.key, name: b.name, icon: b.icon }))}
           max={2}

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Flame, Sparkles } from 'lucide-react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
+import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 
 function rankLabel(level: number): string {
   if (level <= 1) return 'HomeCheff Starter';
@@ -62,9 +63,10 @@ export default function HomeCheffPointsCompactCard() {
             </span>
             {data.totalHcp.toLocaleString('nl-NL')} HCP
           </p>
-          <p className="text-xs text-gray-700 mt-0.5">
-            Level {data.level} — {rankLabel(data.level)}
-          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <HcpLevelPill level={data.level} size="xs" tone="amber" />
+            <span className="text-xs font-normal text-gray-600 leading-snug">{rankLabel(data.level)}</span>
+          </div>
           <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
             <Flame className="h-3.5 w-3.5 shrink-0 text-orange-600" aria-hidden />
             <span>{streakText}</span>
