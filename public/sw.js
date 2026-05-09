@@ -1,7 +1,8 @@
 // Service Worker voor supersnelle caching
-const CACHE_NAME = 'homecheff-v2';
-const STATIC_CACHE = 'homecheff-static-v2';
-const DYNAMIC_CACHE = 'homecheff-dynamic-v2';
+// v3: Next `_next/static` niet meer cache-first (voorkomt oude Capacitor/JS-bundels).
+const CACHE_NAME = 'homecheff-v3';
+const STATIC_CACHE = 'homecheff-static-v3';
+const DYNAMIC_CACHE = 'homecheff-dynamic-v3';
 
 // Statische assets die altijd gecached moeten worden
 const STATIC_ASSETS = [
@@ -114,6 +115,11 @@ self.addEventListener('fetch', (event) => {
             });
         })
     );
+    return;
+  }
+
+  // Next.js hashed chunks: nooit via SW (anders oude login/native Google code in WebView).
+  if (url.pathname.includes('/_next/static/')) {
     return;
   }
 

@@ -161,10 +161,12 @@ export function NativeGoogleSignInButton({
           mode: 'online',
         },
       });
-      const login = await SocialLogin.login({
-        provider: 'google',
-        options: { scopes: ['email', 'profile'] },
-      });
+      // Geen custom scopes: Capgo Android weigert scopes zonder ModifiedMainActivity.
+      // Alleen { provider } sturen zodat de bridge géén options-object serialiseert
+      // (oude bundles + SW-cache-first op .js stuurden nog scopes: ["email","profile"]).
+      const login = await SocialLogin.login(
+        { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
+      );
 
       const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(login);
       const accessTok =
@@ -252,6 +254,8 @@ export function NativeGoogleSignInButton({
       });
       if (/cancel|canceled|12501|user_cancel|10:/i.test(msg)) {
         setError(null);
+      } else if (/scopes|main activity/i.test(msg)) {
+        setError('Google login configuratie moet opnieuw worden opgebouwd.');
       } else {
         setError(
           'Google inloggen is mislukt (onverwachte fout). Controleer je verbinding of gebruik e-mail en wachtwoord.',
