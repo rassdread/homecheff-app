@@ -25,55 +25,57 @@ function slideSurfaceClass(style: string | null | undefined): string {
   return BG_PRESETS[key] ?? style;
 }
 
-/** Vaste hoogte carousel-paneel — voorkomt layout-shift en excessieve witruimte. */
+/** Iets hoger paneel zodat 5 compacte rankingrijen zichtbaar zijn (mobiel + desktop). */
 const TRACK_FRAME =
-  'h-[200px] min-h-[200px] sm:h-[218px] sm:min-h-[218px] lg:h-[226px] lg:min-h-[226px]';
+  'min-h-[268px] h-[268px] sm:min-h-[276px] sm:h-[276px] lg:min-h-[284px] lg:h-[284px]';
 
 function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
   const { t } = useTranslation();
   const rows = slide.rows ?? [];
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="mb-2 shrink-0">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900/85 line-clamp-1">
-          {slide.title}
-        </p>
-        {slide.subtitle ? (
-          <p className="text-[10px] text-gray-600 mt-0.5 leading-snug line-clamp-2">{slide.subtitle}</p>
-        ) : null}
+      <div className="mb-1 flex shrink-0 flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase leading-tight tracking-wide text-amber-900/90 line-clamp-1">
+            {slide.title}
+          </p>
+          {slide.subtitle ? (
+            <p className="mt-0.5 text-[9px] leading-snug text-gray-600 line-clamp-1">{slide.subtitle}</p>
+          ) : null}
+        </div>
         <Link
           href="/hcp-ranglijsten"
-          className="text-[10px] font-semibold text-amber-800 hover:text-amber-950 hover:underline mt-1 inline-block"
+          className="shrink-0 text-[9px] font-semibold text-amber-800 hover:text-amber-950 hover:underline"
         >
           {t('home.hcpCarousel.openRankings')}
         </Link>
       </div>
-      <ol className="min-h-0 flex-1 space-y-1 overflow-hidden">
+      <ol className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-y-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
         {rows.slice(0, 5).map((row) => {
           const href = publicProfileHref(row.userId, row.username);
           const inner = (
             <>
-              <span className="text-[11px] font-bold text-amber-900 tabular-nums w-4 shrink-0">{row.rank}</span>
-              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-amber-100 ring-1 ring-white">
+              <span className="w-3.5 shrink-0 text-[10px] font-bold tabular-nums text-amber-900">{row.rank}</span>
+              <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-amber-100 ring-1 ring-white">
                 {row.avatar ? (
-                  <SafeImage src={row.avatar} alt="" fill className="object-cover" sizes="32px" />
+                  <SafeImage src={row.avatar} alt="" fill className="object-cover" sizes="24px" />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-[9px] font-bold text-amber-900">
+                  <span className="flex h-full w-full items-center justify-center text-[8px] font-bold text-amber-900">
                     HC
                   </span>
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-gray-900 truncate">{row.displayName}</p>
-                <p className="text-[10px] text-gray-600 tabular-nums truncate">{row.score.toLocaleString()} HCP</p>
+                <p className="truncate text-[10px] font-semibold leading-tight text-gray-900">{row.displayName}</p>
+                <p className="truncate text-[9px] tabular-nums text-gray-600">{row.score.toLocaleString()} HCP</p>
               </div>
             </>
           );
           const shell = cn(
-            'flex items-center gap-1.5 rounded-lg border px-1.5 py-1 transition-colors',
+            'flex min-h-[26px] items-center gap-1 rounded-md border px-1 py-0.5 transition-colors',
             row.isCurrentUser
-              ? 'border-amber-400 bg-amber-50/90 ring-1 ring-amber-300/60'
-              : 'border-amber-100/90 bg-white/70',
+              ? 'border-amber-400 bg-amber-50/95 ring-1 ring-amber-300/50'
+              : 'border-amber-100/80 bg-white/65',
             href && 'hover:bg-white'
           );
           return (
@@ -98,43 +100,43 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
   const href = sp ? publicProfileHref(sp.userId, sp.username) : null;
   const spotlightInner = sp ? (
     <>
-      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-emerald-100 ring-2 ring-white shadow-sm">
+      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-emerald-100 ring-2 ring-white shadow-sm">
         {sp.avatar ? (
-          <SafeImage src={sp.avatar} alt="" fill className="object-cover" sizes="48px" />
+          <SafeImage src={sp.avatar} alt="" fill className="object-cover" sizes="40px" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-emerald-800">
+          <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-emerald-800">
             HC
           </span>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-gray-900 truncate">{sp.displayName}</p>
-        <p className="text-[11px] text-emerald-900/90 mt-0.5 leading-snug line-clamp-2">{sp.subtitle}</p>
+        <p className="truncate text-xs font-semibold text-gray-900">{sp.displayName}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-emerald-900/90 line-clamp-3">{sp.subtitle}</p>
       </div>
     </>
   ) : null;
   return (
     <div className="flex h-full min-h-0 flex-col justify-center overflow-hidden">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-900/85 mb-2 line-clamp-2 shrink-0">
+      <p className="mb-1.5 line-clamp-2 shrink-0 text-[10px] font-bold uppercase tracking-wide text-emerald-900/85">
         {slide.title}
       </p>
       {sp ? (
         href ? (
           <Link
             href={href}
-            className="flex min-h-0 items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2.5 py-2 hover:bg-emerald-50 transition-colors"
+            className="flex min-h-0 items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5 hover:bg-emerald-50 transition-colors"
           >
             {spotlightInner}
           </Link>
         ) : (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2.5 py-2">
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5">
             {spotlightInner}
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-dashed border-amber-200/90 bg-amber-50/40 px-2.5 py-2">
+        <div className="rounded-lg border border-dashed border-amber-200/90 bg-amber-50/40 px-2 py-2">
           {slide.subtitle ? (
-            <p className="text-xs text-gray-700 leading-snug line-clamp-4">{slide.subtitle}</p>
+            <p className="text-[11px] leading-snug text-gray-700 line-clamp-5">{slide.subtitle}</p>
           ) : null}
         </div>
       )}
@@ -142,50 +144,40 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
   );
 }
 
-function CarouselPromoSlide({
-  slide,
-  promoColumn,
-}: {
-  slide: HomeCarouselSlide;
-  promoColumn?: boolean;
-}) {
+function CarouselPromoSlide({ slide, embedded }: { slide: HomeCarouselSlide; embedded?: boolean }) {
   const { t } = useTranslation();
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-xl border border-amber-200/60 p-3 shadow-sm ring-1 ring-amber-500/5',
-        slideSurfaceClass(slide.backgroundStyle)
+        'flex h-full min-h-0 flex-col justify-between overflow-hidden',
+        embedded
+          ? 'rounded-lg border border-amber-200/45 bg-white/55 p-2.5 shadow-none ring-0'
+          : cn(
+              'rounded-xl border border-amber-200/60 p-3 shadow-sm ring-1 ring-amber-500/5',
+              slideSurfaceClass(slide.backgroundStyle)
+            )
       )}
     >
       <div className="min-w-0 flex-1 overflow-hidden">
         {slide.imageUrl ? (
-          <div
-            className={cn(
-              'relative mb-2 w-full overflow-hidden rounded-lg border border-white/80 bg-white/50',
-              promoColumn ? 'h-14' : 'h-16 sm:h-[4.5rem]'
-            )}
-          >
+          <div className="relative mb-1.5 h-14 w-full overflow-hidden rounded-md border border-white/80 bg-white/50 sm:h-16">
             <SafeImage src={slide.imageUrl} alt="" fill className="object-cover" sizes="280px" />
           </div>
         ) : null}
+        {!embedded ? null : slide.imageUrl ? null : (
+          <div className="pointer-events-none mb-1 border-b border-dotted border-amber-200/50 pb-1" aria-hidden />
+        )}
         <p className="text-sm font-bold leading-snug text-gray-900 line-clamp-2">{slide.title}</p>
         {slide.subtitle ? (
-          <p
-            className={cn(
-              'mt-1.5 leading-snug text-gray-600 line-clamp-3',
-              promoColumn ? 'text-[10px]' : 'text-[11px] sm:text-xs'
-            )}
-          >
-            {slide.subtitle}
-          </p>
+          <p className="mt-1 text-[10px] leading-snug text-gray-600 line-clamp-3 sm:text-[11px]">{slide.subtitle}</p>
         ) : null}
       </div>
-      <div className="mt-2 shrink-0 space-y-1.5">
+      <div className="mt-1.5 shrink-0 space-y-1">
         {slide.ctaLabel && slide.ctaUrl ? (
           <Link
             href={slide.ctaUrl}
             className={cn(
-              'inline-flex min-h-[40px] w-full items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold sm:text-sm',
+              'inline-flex min-h-[38px] w-full items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-semibold',
               'bg-gradient-to-r from-amber-500/90 to-emerald-600/85 text-white shadow-sm',
               'hover:from-amber-500 hover:to-emerald-600 transition-colors',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
@@ -205,14 +197,14 @@ function CarouselPromoSlide({
   );
 }
 
-function renderSlide(slide: HomeCarouselSlide, promoColumn?: boolean) {
+function renderSlide(slide: HomeCarouselSlide, embedded?: boolean) {
   switch (slide.kind) {
     case 'ranking':
       return <CarouselRankingSlide slide={slide} />;
     case 'spotlight':
       return <CarouselSpotlightSlide slide={slide} />;
     default:
-      return <CarouselPromoSlide slide={slide} promoColumn={promoColumn} />;
+      return <CarouselPromoSlide slide={slide} embedded={embedded} />;
   }
 }
 
@@ -220,11 +212,9 @@ export type HcpHomeCarouselProps = {
   slides: HomeCarouselSlide[];
   loading?: boolean;
   failed?: boolean;
-  /** Rechterkolom desktop: iets compactere promo’s. */
-  promoColumn?: boolean;
-  /** Footer met juridische teaser + ranglijst-link (één keer op mobiel / onderaan desktop-grid). */
+  /** Geen tweede kaart-rand: onderdeel van het grote HCP-dashboardpaneel. */
+  embedded?: boolean;
   showFooter?: boolean;
-  /** Tekst bij lege slide-set (geen API-fout). */
   emptyLabel?: string;
   className?: string;
 };
@@ -233,8 +223,9 @@ export default function HcpHomeCarousel({
   slides,
   loading = false,
   failed = false,
-  promoColumn = false,
+  embedded = false,
   showFooter = true,
+  emptyLabel,
   className,
 }: HcpHomeCarouselProps) {
   const { t } = useTranslation();
@@ -282,12 +273,22 @@ export default function HcpHomeCarousel({
 
   const showFooterBlock = showFooter && !loading && !failed;
 
+  const fadeLeft = embedded
+    ? 'bg-gradient-to-r from-amber-50/85 via-white/35 to-transparent'
+    : 'bg-gradient-to-r from-white/95 via-white/40 to-transparent';
+  const fadeRight = embedded
+    ? 'bg-gradient-to-l from-amber-50/85 via-white/35 to-transparent'
+    : 'bg-gradient-to-l from-white/95 via-white/40 to-transparent';
+
   return (
     <aside
       className={cn(
-        'rounded-xl border border-amber-200/65 bg-gradient-to-b from-white/95 to-amber-50/40',
-        'p-3 shadow-sm ring-1 ring-emerald-600/10',
-        promoColumn ? 'lg:p-2.5' : 'sm:p-3.5',
+        embedded
+          ? 'rounded-lg border-0 bg-transparent p-0 shadow-none ring-0'
+          : cn(
+              'rounded-xl border border-amber-200/65 bg-gradient-to-b from-white/95 to-amber-50/40',
+              'p-3 shadow-sm ring-1 ring-emerald-600/10 sm:p-3.5'
+            ),
         className
       )}
       aria-label={t('home.hcpCarousel.aria')}
@@ -307,16 +308,14 @@ export default function HcpHomeCarousel({
           </div>
         ) : n === 0 ? (
           <div className="flex h-full items-center px-2">
-            <p className="text-xs text-gray-500 text-center leading-snug w-full">
-              {emptyLabel ?? tk('carousel.empty')}
-            </p>
+            <p className="w-full text-center text-xs leading-snug text-gray-500">{emptyLabel ?? tk('carousel.empty')}</p>
           </div>
         ) : (
           <>
             <div
               className={cn(
                 'pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-11 min-[400px]:flex items-center justify-start pl-1',
-                'bg-gradient-to-r from-white/95 via-white/40 to-transparent'
+                fadeLeft
               )}
             >
               <button
@@ -331,7 +330,7 @@ export default function HcpHomeCarousel({
             <div
               className={cn(
                 'pointer-events-none absolute inset-y-0 right-0 z-20 hidden w-11 min-[400px]:flex items-center justify-end pr-1',
-                'bg-gradient-to-l from-white/95 via-white/40 to-transparent'
+                fadeRight
               )}
             >
               <button
@@ -344,7 +343,7 @@ export default function HcpHomeCarousel({
               </button>
             </div>
 
-            <div className="absolute inset-x-0 top-0 bottom-8 min-[400px]:px-10 px-2 py-1 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 bottom-8 min-[400px]:px-10 px-2 py-0.5 overflow-hidden">
               {slides.map((slide, i) => (
                 <div
                   key={slide.id}
@@ -354,7 +353,7 @@ export default function HcpHomeCarousel({
                   )}
                   aria-hidden={i !== safeIndex}
                 >
-                  {renderSlide(slide, promoColumn)}
+                  {renderSlide(slide, embedded)}
                 </div>
               ))}
             </div>

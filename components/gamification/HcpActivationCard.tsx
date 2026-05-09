@@ -8,7 +8,7 @@ import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { useTranslation } from '@/hooks/useTranslation';
 import HcpHomeCarousel from '@/components/gamification/HcpHomeCarousel';
 import type { HomeCarouselSlide } from '@/lib/gamification/home-carousel-types';
-import { interleaveDataAndPromoSlides } from '@/lib/gamification/home-carousel-merge';
+import { interleaveCommunityFirst } from '@/lib/gamification/home-carousel-merge';
 import { cn } from '@/lib/utils';
 
 function isUtcToday(iso: string): boolean {
@@ -88,18 +88,8 @@ export default function HcpActivationCard({ className }: { className?: string })
   }, [loggedIn, language]);
 
   const mergedSlides = useMemo(
-    () => interleaveDataAndPromoSlides(dataSlides, promoSlides),
+    () => interleaveCommunityFirst(dataSlides, promoSlides, { dataBeforePromo: 3 }),
     [dataSlides, promoSlides]
-  );
-
-  /** Voorkomt lange reeksen alleen admin-tekst in de promo-kolom (desktop). */
-  const promoBalanced = useMemo(
-    () =>
-      interleaveDataAndPromoSlides(
-        promoSlides.filter((s) => !s.id.startsWith('admin:')),
-        promoSlides.filter((s) => s.id.startsWith('admin:'))
-      ),
-    [promoSlides]
   );
 
   const missions = useMemo((): MissionRow[] => {
@@ -264,7 +254,7 @@ export default function HcpActivationCard({ className }: { className?: string })
         </ul>
       </div>
 
-      <div className="pt-1 lg:pt-0 border-t border-amber-100/80 lg:border-transparent">
+      <div className="pt-1 border-t border-dotted border-amber-200/50 lg:border-amber-200/35">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-2">
           {tk('quickActions')}
         </p>
@@ -311,69 +301,51 @@ export default function HcpActivationCard({ className }: { className?: string })
     <section
       id="homecheff-hcp-activation"
       className={cn(
-        'rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 p-3 sm:p-4 lg:p-4 shadow-sm ring-1 ring-amber-500/5',
+        'rounded-2xl border border-amber-200/65 bg-gradient-to-br from-amber-50/92 via-white to-emerald-50/36 shadow-md ring-1 ring-amber-400/10 overflow-hidden',
         className
       )}
       aria-labelledby="hcp-activation-heading"
     >
-      <div className="flex flex-col gap-4 lg:hidden">
-        <div className="min-w-0">{leftColumn}</div>
-        <HcpHomeCarousel
-          slides={mergedSlides}
-          loading={carouselLoading}
-          failed={carouselFailed}
-          showFooter
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-12 lg:min-h-[280px] divide-y lg:divide-y-0 lg:divide-x divide-amber-200/30">
+        <div className="lg:col-span-3 min-w-0 bg-white/[0.06] p-3 sm:p-4">{leftColumn}</div>
+
+        <div className="lg:col-span-9 flex min-h-0 flex-col bg-white/[0.03] p-2 sm:p-3 lg:p-4">
+          <p className="mb-1.5 flex shrink-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-amber-900/75">
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse motion-reduce:animate-none"
+              aria-hidden
+            />
+            {tk('carousel.liveHeading')}
+          </p>
+          <div className="min-h-0 flex-1">
+            <HcpHomeCarousel
+              embedded
+              slides={mergedSlides}
+              loading={carouselLoading}
+              failed={carouselFailed}
+              showFooter={false}
+              emptyLabel={tk('carousel.empty')}
+              className="h-full min-h-0"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="hidden lg:grid lg:grid-cols-12 lg:gap-x-4 lg:items-stretch lg:min-h-[248px]">
-        <div className="lg:col-span-3 flex flex-col min-w-0">{leftColumn}</div>
-        <div className="lg:col-span-5 flex flex-col min-w-0 min-h-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-amber-900/75 mb-1 shrink-0">
-            {tk('carousel.dataHeading')}
-          </p>
-          <div className="min-h-0 flex-1">
-            <HcpHomeCarousel
-              slides={dataSlides}
-              loading={carouselLoading}
-              failed={carouselFailed}
-              showFooter={false}
-              emptyLabel={tk('carousel.empty')}
-              className="h-full"
-            />
-          </div>
-        </div>
-        <div className="lg:col-span-4 flex flex-col min-w-0 min-h-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-violet-900/75 mb-1 shrink-0">
-            {tk('carousel.promoHeading')}
-          </p>
-          <div className="min-h-0 flex-1">
-            <HcpHomeCarousel
-              slides={promoBalanced}
-              loading={carouselLoading}
-              failed={carouselFailed}
-              promoColumn
-              showFooter={false}
-              emptyLabel={tk('carousel.empty')}
-              className="h-full"
-            />
-          </div>
-        </div>
-
-        <div className="lg:col-span-12 mt-3 pt-3 border-t border-amber-100/80 flex flex-col sm:flex-row sm:items-center gap-3">
-          <p className="text-[11px] text-gray-600 leading-snug line-clamp-3 flex-1 min-w-0">{tk('rewards.teaser')}</p>
-          <Link
-            href="/hcp-ranglijsten"
-            className={cn(
-              'shrink-0 inline-flex items-center justify-center rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/15 to-emerald-600/15',
-              'min-h-[40px] px-4 py-2 text-xs font-semibold text-amber-950 whitespace-nowrap',
-              'hover:from-amber-500/25 hover:to-emerald-600/20 transition-colors',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
-            )}
-          >
-            {tk('ctaLeaderboards')}
-          </Link>
-        </div>
+      <div className="flex flex-col gap-2 border-t border-amber-200/25 bg-white/[0.06] px-3 py-2.5 sm:flex-row sm:items-center sm:px-4 sm:py-3">
+        <p className="min-w-0 flex-1 text-[11px] leading-snug text-gray-600 line-clamp-2 sm:line-clamp-3">
+          {tk('rewards.teaser')}
+        </p>
+        <Link
+          href="/hcp-ranglijsten"
+          className={cn(
+            'inline-flex shrink-0 items-center justify-center rounded-xl border border-amber-300/90 bg-gradient-to-r from-amber-500/12 to-emerald-600/12',
+            'min-h-[40px] whitespace-nowrap px-4 py-2 text-xs font-semibold text-amber-950',
+            'hover:from-amber-500/22 hover:to-emerald-600/18 transition-colors',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
+          )}
+        >
+          {tk('ctaLeaderboards')}
+        </Link>
       </div>
     </section>
   );

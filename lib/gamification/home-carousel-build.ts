@@ -15,7 +15,7 @@ import {
 } from '@/lib/gamification/carousel-slide-filters';
 import {
   dedupeConsecutiveSlides,
-  interleaveDataAndPromoSlides,
+  interleaveCommunityFirst,
 } from '@/lib/gamification/home-carousel-merge';
 
 function slimFromLeaderboard(r: LeaderboardRow) {
@@ -436,5 +436,5 @@ export async function buildHomeCarouselSlides(opts: {
   lang: CarouselLang;
 }): Promise<HomeCarouselSlide[]> {
   const { dataSlides, promoSlides } = await buildHomeCarouselPayload(opts);
-  return dedupeConsecutiveSlides(interleaveDataAndPromoSlides(dataSlides, promoSlides));
+  return dedupeConsecutiveSlides(interleaveCommunityFirst(dataSlides, promoSlides, { dataBeforePromo: 3 }));
 }

@@ -3261,7 +3261,8 @@
       "carousel": {
         "empty": "No slides for this view.",
         "dataHeading": "Rankings & highlights",
-        "promoHeading": "Tips & campaigns"
+        "promoHeading": "Tips & campaigns",
+        "liveHeading": "Live · makers & activity"
       },
       "ranking": {
         "title": "Top this week",

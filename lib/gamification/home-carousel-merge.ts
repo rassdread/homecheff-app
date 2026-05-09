@@ -33,3 +33,31 @@ export function interleaveDataAndPromoSlides(
   while (j < P.length) out.push(P[j++]);
   return dedupeConsecutiveSlides(out);
 }
+
+/**
+ * Homepage: gemeenschap eerst — meerdere ranking/spotlight-slides achter elkaar, dan pas een promo.
+ * @param dataBeforePromo hoeveel data-slides per promo-blok (default 3).
+ */
+export function interleaveCommunityFirst(
+  data: HomeCarouselSlide[],
+  promo: HomeCarouselSlide[],
+  opts?: { dataBeforePromo?: number }
+): HomeCarouselSlide[] {
+  const chunk = Math.max(1, opts?.dataBeforePromo ?? 3);
+  const D = [...data].sort((a, b) => a.sortKey - b.sortKey);
+  const P = [...promo].sort((a, b) => a.sortKey - b.sortKey);
+  const out: HomeCarouselSlide[] = [];
+  let di = 0;
+  let pi = 0;
+  while (di < D.length || pi < P.length) {
+    let took = 0;
+    while (took < chunk && di < D.length) {
+      out.push(D[di++]);
+      took++;
+    }
+    if (pi < P.length) {
+      out.push(P[pi++]);
+    }
+  }
+  return dedupeConsecutiveSlides(out);
+}

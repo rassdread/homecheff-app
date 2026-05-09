@@ -4368,7 +4368,8 @@
       "carousel": {
         "empty": "Geen slides voor deze weergave.",
         "dataHeading": "Ranglijsten & uitgelicht",
-        "promoHeading": "Tips & campagnes"
+        "promoHeading": "Tips & campagnes",
+        "liveHeading": "Live · makers & activiteit"
       },
       "ranking": {
         "title": "Top deze week",
