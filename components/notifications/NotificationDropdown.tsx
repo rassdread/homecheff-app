@@ -1,395 +1,228 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, MessageCircle, Package, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import OrdersTab from './OrdersTab';
 import { useTranslation } from '@/hooks/useTranslation';
-
-type TabType = 'messages' | 'orders';
-
-interface MessageNotification {
-  id: string;
-  conversationId: string;
-  senderName: string;
-  messagePreview: string;
-  isRead: boolean;
-  createdAt: string;
-  link: string;
-}
+import NotificationFeedItems, {
+  type NotificationFeedItem,
+} from '@/components/notifications/NotificationFeedItems';
 
 export default function NotificationDropdown() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('messages');
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
-  const [unreadOrdersCount, setUnreadOrdersCount] = useState(0);
-  const [messages, setMessages] = useState<MessageNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [items, setItems] = useState<NotificationFeedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
-  // Fetch unread counts
-  const fetchUnreadCounts = useCallback(async () => {
-    if (!session?.user?.email) {
-      setUnreadMessagesCount(0);
-      setUnreadOrdersCount(0);
-      return;
-    }
-    try {
-      // Fetch messages unread count
-      const messagesResponse = await fetch('/api/messages/unread-count');
-      if (messagesResponse.ok) {
-        const messagesData = await messagesResponse.json();
-        setUnreadMessagesCount(messagesData.count || 0);
-      }
+  const mapApiToFeed = useCallback((raw: unknown[]): NotificationFeedItem[] => {
+    return (raw as any[]).map((n) => ({
+      id: n.id,
+      type: n.type || 'notice',
+      title: n.title || 'Melding',
+      message: n.message || '',
+      link: n.link || n.targetRoute,
+      isRead: !!n.isRead,
+      createdAt: n.createdAt,
+    }));
+  }, []);
 
-      // Fetch orders unread count (only buyer orders for notification bell)
-      const ordersResponse = await fetch('/api/notifications/orders');
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json();
-        // Use buyerUnreadCount for notification bell (only buyer order notifications)
-        setUnreadOrdersCount(ordersData.buyerUnreadCount || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching unread counts:', error);
-    }
-  }, [session?.user?.email]);
-
-  // Fetch messages for messages tab
-  const fetchMessages = useCallback(async () => {
+  const loadFeed = useCallback(async () => {
     if (!session?.user?.email) {
-      setMessages([]);
+      setItems([]);
+      setUnreadCount(0);
       return;
     }
     setLoading(true);
     try {
-      // Fetch both conversations and chat notifications
-      const [conversationsResponse, notificationsResponse] = await Promise.all([
-        fetch('/api/conversations', { credentials: 'include' }),
-        fetch('/api/notifications?limit=50')
-      ]);
-
-      const messageNotifications: MessageNotification[] = [];
-
-      // 1. Add conversations
-      if (conversationsResponse.ok) {
-        const conversationsData = await conversationsResponse.json();
-        const conversationNotifications = (conversationsData.conversations || [])
-          .map((conv: any) => {
-            // Get other participant (not current user)
-            const otherParticipant = conv.otherParticipant || 
-                                    conv.participants?.[0] ||
-                                    null;
-            
-            // Get display name based on displayNameOption
-            let senderName = 'Onbekend';
-            if (otherParticipant) {
-              if (otherParticipant.displayNameOption === 'FULL_NAME' && otherParticipant.displayFullName) {
-                senderName = otherParticipant.displayFullName;
-              } else if (otherParticipant.name) {
-                senderName = otherParticipant.name;
-              } else if (otherParticipant.username) {
-                senderName = otherParticipant.username;
-              }
-            }
-            
-            // Get last message
-            const lastMessage = conv.lastMessage;
-            
-            // Check if message is read
-            // Message is unread if: last message exists, is not from current user, and readAt is null
-            const isRead = !lastMessage || 
-                          lastMessage.readAt !== null ||
-                          false; // We don't have currentUserId here, so assume read if readAt is set
-            
-            // Get message preview
-            let messagePreview = 'Geen bericht';
-            if (lastMessage?.text) {
-              messagePreview = lastMessage.text.substring(0, 100);
-            } else if (conv.title) {
-              messagePreview = conv.title;
-            }
-            
-            return {
-              id: conv.id,
-              conversationId: conv.id,
-              senderName: senderName,
-              messagePreview: messagePreview,
-              isRead: isRead,
-              createdAt: lastMessage?.createdAt || 
-                       conv.lastMessageAt || 
-                       conv.createdAt,
-              link: `/messages?conversation=${conv.id}`
-            };
-          })
-          .filter((msg: MessageNotification) => {
-            // Show if: has a message preview OR is unread
-            return msg.messagePreview !== 'Geen bericht' || !msg.isRead;
-          });
-        
-        messageNotifications.push(...conversationNotifications);
-      }
-
-      // 2. Add chat notifications from Notification table
-      if (notificationsResponse.ok) {
-        const notificationsData = await notificationsResponse.json();
-        const chatNotifications = (notificationsData.notifications || [])
-          .filter((notif: any) => {
-            // Filter for MESSAGE_RECEIVED notifications
-            return notif.type === 'MESSAGE_RECEIVED' || 
-                   notif.type === 'message_received' ||
-                   (notif.metadata?.conversationId && notif.type?.toLowerCase().includes('message'));
-          })
-          .map((notif: any) => {
-            // Extract sender name from notification payload
-            const payload = notif.payload || {};
-            const payloadData = payload.data || {};
-            const title = notif.title || payload.title || 'Nieuw bericht';
-            const senderName =
-              (typeof payloadData.senderDisplayName === 'string' &&
-                payloadData.senderDisplayName.trim()) ||
-              title
-                .replace(/^💬\s*Nieuw bericht van\s+/i, '')
-                .replace(/^Nieuw bericht van\s+/i, '')
-                .trim() ||
-              'Iemand';
-            const messagePreview = notif.message || payload.body || payload.message || 'Je hebt een nieuw bericht ontvangen';
-            
-            return {
-              id: notif.id,
-              conversationId: notif.metadata?.conversationId || notif.link?.split('conversation=')[1]?.split('&')[0] || '',
-              senderName: senderName,
-              messagePreview: messagePreview.substring(0, 100),
-              isRead: notif.isRead || false,
-              createdAt: notif.createdAt,
-              link: notif.link || `/messages?conversation=${notif.metadata?.conversationId || ''}`
-            };
-          });
-        
-        messageNotifications.push(...chatNotifications);
-      }
-
-      // Sort by date and remove duplicates (same conversationId)
-      const uniqueMessages = Array.from(
-        new Map(
-          messageNotifications
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .map(msg => [msg.conversationId || msg.id, msg])
-        ).values()
-      ).slice(0, 10); // Show max 10 recent messages
-      
-      setMessages(uniqueMessages);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
+      const res = await fetch('/api/notifications?limit=50');
+      if (!res.ok) return;
+      const data = await res.json();
+      setItems(mapApiToFeed(data.notifications || []));
+      setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+    } catch (e) {
+      console.error('notifications feed', e);
     } finally {
       setLoading(false);
+    }
+  }, [session?.user?.email, mapApiToFeed]);
+
+  const refreshUnreadOnly = useCallback(async () => {
+    if (!session?.user?.email) {
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const res = await fetch('/api/notifications?limit=1');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (typeof data.unreadCount === 'number') setUnreadCount(data.unreadCount);
+    } catch {
+      /* ignore */
     }
   }, [session?.user?.email]);
 
   useEffect(() => {
     if (!session?.user?.email) {
-      setUnreadMessagesCount(0);
-      setUnreadOrdersCount(0);
+      setUnreadCount(0);
+      setItems([]);
       return;
     }
 
-    const scheduleInitial = () => {
-      void fetchUnreadCounts();
-    };
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let idleId: number | null = null;
-    if (typeof requestIdleCallback !== 'undefined') {
-      idleId = requestIdleCallback(scheduleInitial, { timeout: 3000 });
-    } else {
-      timer = setTimeout(scheduleInitial, 1200);
-    }
+    void refreshUnreadOnly();
 
-    // Open dropdown = strakker verversen; gesloten = lage frequentie voor badge.
     const interval = setInterval(
       () => {
-        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
-        void fetchUnreadCounts();
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible')
+          return;
+        void refreshUnreadOnly();
       },
-      isOpen ? 30000 : 90000
+      isOpen ? 25000 : 75000
     );
 
-    const handleMessagesRead = () => {
-      void fetchUnreadCounts();
-    };
-
-    const handleUnreadCountUpdate = (event: CustomEvent) => {
-      const { unreadCount: newCount } = event.detail;
-      if (typeof newCount === 'number') {
-        setUnreadMessagesCount(newCount);
-      }
-      void fetchUnreadCounts();
-    };
-
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        void fetchUnreadCounts();
-      }
-    };
-
-    window.addEventListener('messagesRead', handleMessagesRead);
-    window.addEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
+    const onUpdated = () => void refreshUnreadOnly();
+    window.addEventListener('notificationsUpdated', onUpdated);
 
     return () => {
       clearInterval(interval);
-      if (idleId !== null && typeof cancelIdleCallback !== 'undefined') {
-        cancelIdleCallback(idleId);
-      }
-      if (timer) clearTimeout(timer);
-      window.removeEventListener('messagesRead', handleMessagesRead);
-      window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('notificationsUpdated', onUpdated);
     };
-  }, [session?.user?.email, isOpen, fetchUnreadCounts]);
+  }, [session?.user?.email, isOpen, refreshUnreadOnly]);
 
-  // Fetch messages when messages tab is active and dropdown is open
   useEffect(() => {
-    if (isOpen && session?.user?.email) {
-      if (activeTab === 'messages') {
-        fetchMessages();
-      }
-      // OrdersTab fetches its own data when mounted
-    }
-  }, [isOpen, activeTab, session?.user?.email, fetchMessages]);
+    if (isOpen && session?.user?.email) void loadFeed();
+  }, [isOpen, session?.user?.email, loadFeed]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const totalUnread = unreadMessagesCount + unreadOrdersCount;
+  const markRead = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationIds: ids }),
+      });
+      window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+    } catch {
+      /* ignore */
+    }
+  };
 
-  const handleNotificationClick = (link: string) => {
+  const handleSelect = async (n: NotificationFeedItem) => {
+    if (!n.isRead) await markRead([n.id]);
     setIsOpen(false);
-    router.push(link);
+    const dest = n.link?.trim();
+    if (dest) {
+      if (dest.startsWith('http')) {
+        window.location.href = dest;
+      } else {
+        router.push(dest);
+      }
+      return;
+    }
+    router.push('/notifications');
+  };
+
+  const markAllRead = async () => {
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+      window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+      await loadFeed();
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
       <button
+        type="button"
+        data-tour="notification-bell"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+        className="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2.5 transition-colors hover:bg-gray-100"
         aria-label={t('common.notifications')}
       >
-        <Bell className="w-5 h-5 text-gray-600" />
-        {totalUnread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 min-w-[20px] flex items-center justify-center shadow-sm">
-            {totalUnread > 9 ? '9+' : totalUnread}
+        <Bell className="h-5 w-5 text-gray-600" />
+        {unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white shadow-sm">
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <>
-          {/* Mobile overlay backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/20 z-40 md:hidden"
+          <div
+            className="fixed inset-0 z-40 bg-black/20 md:hidden"
+            aria-hidden
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed inset-x-4 top-20 bottom-4 md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:w-[420px] md:max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden flex flex-col md:max-h-[600px]">
-            {/* Header */}
-            <div className="px-4 py-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50 flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">{t('common.notifications')}</h3>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  aria-label="Sluiten"
-                >
-                  <X className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-
-              {/* Tabs */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('messages')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
-                    activeTab === 'messages'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <MessageCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Berichten</span>
-                  {unreadMessagesCount > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      activeTab === 'messages'
-                        ? 'bg-white/20 text-white'
-                        : 'bg-red-500 text-white'
-                    }`}>
-                      {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
-                    </span>
+          <div className="fixed inset-x-4 bottom-4 top-20 z-50 flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:h-auto md:max-h-[min(560px,calc(100vh-6rem))] md:w-[min(100vw-2rem,440px)] md:rounded-xl md:shadow-2xl">
+            <div className="flex-shrink-0 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('common.notifications')}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => void markAllRead()}
+                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+                    >
+                      Alles gelezen
+                    </button>
                   )}
-                </button>
-                <button
-                  onClick={() => setActiveTab('orders')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
-                    activeTab === 'orders'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Package className="w-4 h-4 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Bestellingen</span>
-                  {unreadOrdersCount > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      activeTab === 'orders'
-                        ? 'bg-white/20 text-white'
-                        : 'bg-red-500 text-white'
-                    }`}>
-                      {unreadOrdersCount > 9 ? '9+' : unreadOrdersCount}
-                    </span>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-200/80"
+                    aria-label="Sluiten"
+                  >
+                    <X className="h-5 w-5 text-gray-600" />
+                  </button>
+                </div>
               </div>
+              <p className="mt-1 text-xs text-gray-600">
+                Chat, bestellingen, account en meer — één overzicht.
+              </p>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto min-h-0">
-              {activeTab === 'messages' ? (
-                <MessagesTabContent 
-                  messages={messages} 
-                  loading={loading}
-                  onMessageClick={handleNotificationClick}
-                />
-              ) : (
-                <OrdersTab />
-              )}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <NotificationFeedItems
+                items={items}
+                loading={loading}
+                onSelect={handleSelect}
+              />
             </div>
 
-            {/* Footer */}
-            <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3">
               <button
+                type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  router.push(activeTab === 'messages' ? '/messages' : '/orders');
+                  router.push('/notifications');
                 }}
-                className="w-full text-sm text-emerald-600 hover:text-emerald-700 font-semibold text-center py-2 rounded-lg hover:bg-emerald-50 transition-colors"
+                className="w-full rounded-lg py-2 text-center text-sm font-semibold text-emerald-600 hover:bg-emerald-50"
               >
-                Alle {activeTab === 'messages' ? 'berichten' : 'bestellingen'} bekijken →
+                Alle meldingen bekijken →
               </button>
             </div>
           </div>
@@ -398,93 +231,3 @@ export default function NotificationDropdown() {
     </div>
   );
 }
-
-interface MessagesTabContentProps {
-  messages: MessageNotification[];
-  loading: boolean;
-  onMessageClick: (link: string) => void;
-}
-
-function MessagesTabContent({ messages, loading, onMessageClick }: MessagesTabContentProps) {
-  const { t } = useTranslation();
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64 py-12">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mb-3"></div>
-          <p className="text-sm text-gray-500">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (messages.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center p-8">
-        <MessageCircle className="w-16 h-16 text-gray-300 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {t('messages.noMessages')}
-        </h3>
-        <p className="text-gray-500 text-sm">
-          {t('messages.noMessagesReceived')}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="divide-y divide-gray-100">
-      {messages.map((message) => {
-        const messageDate = new Date(message.createdAt);
-        const isToday = messageDate.toDateString() === new Date().toDateString();
-        
-        return (
-          <div
-            key={message.id}
-            className={`p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer ${
-              !message.isRead ? 'bg-blue-50/50 border-l-4 border-l-blue-500' : ''
-            }`}
-            onClick={() => onMessageClick(message.link)}
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                <div className={`w-2.5 h-2.5 rounded-full ${
-                  !message.isRead ? 'bg-blue-500' : 'bg-gray-300'
-                }`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <p className={`text-sm font-semibold truncate ${
-                    !message.isRead ? 'text-gray-900' : 'text-gray-700'
-                  }`}>
-                    {message.senderName}
-                  </p>
-                  <p className="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
-                    {isToday
-                      ? messageDate.toLocaleTimeString('nl-NL', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })
-                      : messageDate.toLocaleDateString('nl-NL', {
-                          day: 'numeric',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })
-                    }
-                  </p>
-                </div>
-                <p className={`text-sm leading-relaxed break-words ${
-                  !message.isRead ? 'text-gray-800 font-medium' : 'text-gray-600'
-                }`}>
-                  {message.messagePreview}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-

@@ -59,7 +59,7 @@ export default function BusinessUpgradeCallout() {
       role="region"
       aria-label={t('seller.businessUpgradeCallout.regionLabel')}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3 min-w-0">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
             <Building2 className="h-5 w-5" aria-hidden />
@@ -76,7 +76,7 @@ export default function BusinessUpgradeCallout() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-shrink-0 sm:min-w-[200px]">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-shrink-0 sm:min-w-[200px]">
           {needsCompanyInfo ? (
             <Link
               href="/verkoper/instellingen"

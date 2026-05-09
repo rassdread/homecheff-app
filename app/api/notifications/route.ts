@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import {
+  extractNotificationMetadata,
+  notificationVisibleToSellerAndBuyer,
+  resolveNotificationTargetUrl,
+} from '@/lib/notifications/notificationRouting';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +42,8 @@ export async function GET(req: NextRequest) {
         type: true,
         payload: true,
         readAt: true,
-        createdAt: true
+        createdAt: true,
+        orderId: true,
       }
     });
 
@@ -51,68 +57,74 @@ export async function GET(req: NextRequest) {
     // Transform notifications to match the expected format
     const transformedNotifications = notifications
       .map(notification => {
-        const payload = notification.payload as any;
-        const dataType = payload?.data?.type || '';
-        const link = getNotificationLink(notification.type, payload) || payload?.link || payload?.actionUrl;
-        
+        const payload = notification.payload as Record<string, unknown>;
+        const dataType = String(
+          (payload?.data as Record<string, unknown> | undefined)?.type || ''
+        );
+        const prismaType = String(notification.type);
+        const resolvedLink =
+          resolveNotificationTargetUrl(prismaType, payload) ||
+          (typeof payload?.link === 'string' ? payload.link : undefined) ||
+          (typeof payload?.actionUrl === 'string' ? payload.actionUrl : undefined);
+        const meta = extractNotificationMetadata(
+          prismaType,
+          payload,
+          notification.orderId
+        );
+
         return {
           id: notification.id,
           type: notification.type.toLowerCase(),
-          dataType: dataType, // Store original data.type for filtering
-          title: getNotificationTitle(notification.type, payload),
-          message: payload.body || payload.message || 'Nieuwe notificatie',
-          link: link,
+          prismaType,
+          dataType,
+          title: getNotificationTitle(prismaType, payload),
+          message:
+            (typeof payload.body === 'string' && payload.body) ||
+            (typeof payload.message === 'string' && payload.message) ||
+            'Nieuwe notificatie',
+          link: resolvedLink,
+          ...meta,
           isRead: !!notification.readAt,
           createdAt: notification.createdAt.toISOString(),
-          from: payload.from ? {
-            id: payload.fromId || 'admin',
-            name: payload.from,
-            username: payload.fromUsername,
-            image: payload.fromImage
-          } : undefined,
+          from: (payload as any).from
+            ? {
+                id: (payload as any).fromId || 'admin',
+                name: (payload as any).from,
+                username: (payload as any).fromUsername,
+                image: (payload as any).fromImage,
+              }
+            : undefined,
           metadata: {
-            productId: payload.productId,
-            orderId: payload.orderId,
-            conversationId: payload.conversationId || payload.data?.conversationId,
-            senderId: payload.senderId || payload.data?.senderId
+            productId: (payload as any).productId,
+            orderId: (payload as any).orderId || notification.orderId,
+            conversationId:
+              (payload as any).conversationId ||
+              (payload as any).data?.conversationId,
+            senderId:
+              (payload as any).senderId || (payload as any).data?.senderId,
           },
-          payload: payload // Include full payload for access to all data
+          payload,
         };
       })
-      .filter(notif => {
-        // Filter order notifications based on user role
-        // Only filter ORDER_RECEIVED and ORDER_UPDATE type notifications
-        if (notif.type === 'order_received' || notif.type === 'order_update') {
-          const isBuyerNotification = 
-            notif.dataType === 'ORDER_PLACED' || 
-            notif.dataType === 'ORDER_PAID' ||
-            notif.dataType === 'ORDER_READY_FOR_PICKUP' ||
-            notif.dataType === 'ORDER_DELIVERED' ||
-            notif.dataType === 'ORDER_CANCELLED' ||
-            (notif.dataType === 'ORDER_STATUS_UPDATE' && notif.link && notif.link.startsWith('/orders/') && !notif.link.startsWith('/verkoper/')) ||
-            (notif.link && notif.link.startsWith('/orders/') && !notif.link.startsWith('/verkoper/'));
-          
-          const isSellerNotification = 
-            notif.dataType === 'NEW_ORDER' ||
-            notif.dataType === 'PAYMENT_RECEIVED' ||
-            (notif.dataType === 'ORDER_STATUS_UPDATE' && notif.link && notif.link.startsWith('/verkoper/orders')) ||
-            (notif.link && notif.link.startsWith('/verkoper/orders'));
-          
-          // If user is both buyer and seller, show both types
-          if (isSeller) {
-            return isBuyerNotification || isSellerNotification;
-          }
-          
-          // If user is only a buyer, show only buyer notifications
-          return isBuyerNotification;
-        }
-        
-        // Show all other notification types
-        return true;
-      });
+      .filter(notif =>
+        notificationVisibleToSellerAndBuyer(
+          notif.prismaType,
+          notif.payload as Record<string, unknown>,
+          isSeller
+        )
+      );
 
-    // Calculate unread count
-    const unreadCount = transformedNotifications.filter(n => !n.isRead).length;
+    const unreadRows = await prisma.notification.findMany({
+      where: { userId: user.id, readAt: null },
+      select: { type: true, payload: true },
+    });
+    const unreadCount = unreadRows.filter(row =>
+      notificationVisibleToSellerAndBuyer(
+        String(row.type),
+        row.payload as Record<string, unknown>,
+        isSeller
+      )
+    ).length;
 
     return NextResponse.json(
       { notifications: transformedNotifications, unreadCount },
@@ -177,9 +189,12 @@ export async function PATCH(req: NextRequest) {
 }
 
 function getNotificationTitle(type: string, payload: any): string {
+  if (payload?.title && typeof payload.title === 'string') {
+    return payload.title;
+  }
   switch (type) {
     case 'ADMIN_NOTICE':
-      return 'Admin Bericht';
+      return 'HomeCheff melding';
     case 'FAN_REQUEST':
       return 'Nieuwe Fan';
     case 'PROP_RECEIVED':
@@ -200,27 +215,5 @@ function getNotificationTitle(type: string, payload: any): string {
       return 'Nieuw Gesprek';
     default:
       return 'Notificatie';
-  }
-}
-
-function getNotificationLink(type: string, payload: any): string | undefined {
-  switch (type) {
-    case 'MESSAGE_RECEIVED':
-    case 'NEW_CONVERSATION':
-      // Check both payload.conversationId and payload.data.conversationId
-      const conversationId = payload.conversationId || payload.data?.conversationId;
-      return conversationId ? `/messages?conversation=${conversationId}` : '/messages';
-    case 'FAVORITE_RECEIVED':
-      return payload.productId ? `/product/${payload.productId}` : undefined;
-    case 'REVIEW_RECEIVED':
-      return payload.productId ? `/product/${payload.productId}` : undefined;
-    case 'ORDER_RECEIVED':
-    case 'ORDER_UPDATE':
-      return payload.orderId ? `/orders` : undefined;
-    case 'FAN_REQUEST':
-    case 'FOLLOW_RECEIVED':
-      return payload.fromId ? `/user/${payload.fromUsername || payload.fromId}` : undefined;
-    default:
-      return undefined;
   }
 }

@@ -30,6 +30,7 @@ export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
   const DROPDOWN_WIDTH = 224;
@@ -165,6 +166,7 @@ export default function NavBar() {
       // wiping cookies would log the user out. clearNextAuthData() is only for explicit logout (handleLogout).
       setCartUserId(null);
       setUnreadCount(0);
+      setSellerOrdersUnread(0);
       setUserProfile(null);
       hasFetchedProfileRef.current = false;
     }
@@ -183,10 +185,10 @@ export default function NavBar() {
     }
   }, [isProfileDropdownOpen, fetchUserProfile]);
 
-  // Fetch unread messages count
+  // Berichten-unread + verkoper order-meldingen (orange badge bij verkoper-dashboardlink)
   const fetchUnreadCount = async () => {
     if (!session?.user?.email) return;
-    
+
     try {
       const response = await fetch('/api/messages/unread-count');
       if (response.ok) {
@@ -195,6 +197,28 @@ export default function NavBar() {
       }
     } catch {
       // Silent: network/CORS
+    }
+
+    const u = user as Record<string, unknown> | undefined;
+    const roles = u?.sellerRoles as unknown[] | undefined;
+    const isSeller =
+      (Array.isArray(roles) && roles.length > 0) ||
+      u?.role === 'SELLER' ||
+      ((u?.role === 'ADMIN' || u?.role === 'SUPERADMIN') &&
+        Array.isArray(roles) &&
+        roles.length > 0);
+    if (!isSeller) {
+      setSellerOrdersUnread(0);
+      return;
+    }
+    try {
+      const res = await fetch('/api/notifications/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setSellerOrdersUnread(data.sellerUnreadCount || 0);
+      }
+    } catch {
+      /* silent */
     }
   };
 
@@ -210,6 +234,13 @@ export default function NavBar() {
     setIsMobileMenuOpen(false);
     openCreateFlow();
   };
+
+  useEffect(() => {
+    const onNotif = () => void fetchUnreadCount();
+    window.addEventListener('notificationsUpdated', onNotif);
+    return () => window.removeEventListener('notificationsUpdated', onNotif);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchUnreadCount refreshed each render
+  }, [session?.user?.email, user]);
 
   return (
     <header
@@ -418,7 +449,7 @@ export default function NavBar() {
                           <Link 
                             href="/verkoper/dashboard" 
                             prefetch={true}
-                            className="flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
+                            className="relative flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
                             onClick={() => {
                               setIsProfileDropdownOpen(false);
                               router.prefetch('/verkoper/dashboard');
@@ -426,6 +457,11 @@ export default function NavBar() {
                           >
                             <LayoutGrid className="w-4 h-4" />
                             <span>{t('navbar.sellerDashboard')}</span>
+                            {sellerOrdersUnread > 0 && (
+                              <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
+                                {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
+                              </span>
+                            )}
                           </Link>
                         </>
                       )}
@@ -702,9 +738,14 @@ export default function NavBar() {
                         router.prefetch('/verkoper/dashboard');
                       }}
                     >
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600">
+                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600 relative">
                         <LayoutGrid className="w-4 h-4" />
                         <span>{t('navbar.sellerDashboard')}</span>
+                        {sellerOrdersUnread > 0 && (
+                          <span className="ml-auto bg-orange-500 text-white text-xs rounded-full h-5 min-w-[20px] flex items-center justify-center px-1 font-semibold">
+                            {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
+                          </span>
+                        )}
                       </Button>
                     </Link>
                   )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -15,8 +15,6 @@ import {
   Eye, 
   Download,
   Calendar,
-  Filter,
-  Search,
   BarChart3,
   PieChart,
   Activity,
@@ -26,10 +24,8 @@ import {
   Minus,
   CheckCircle,
   Clock,
-  XCircle,
   MessageCircle,
   Truck,
-  Printer,
   ExternalLink,
   MapPin,
   LayoutGrid,
@@ -85,35 +81,6 @@ interface TopProduct {
   rating: number;
 }
 
-interface ShippingLabel {
-  id: string;
-  pdfUrl: string;
-  trackingNumber: string;
-  carrier: string;
-  status: string;
-  ectaroShipLabelId: string;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  productTitle: string;
-  productImage?: string;
-  amount: number;
-  status: string;
-  deliveryMode: string;
-  deliveryAddress?: string;
-  createdAt: string;
-  paidAt?: string;
-  deliveredAt?: string;
-  conversationId?: string;
-  shippingLabel?: ShippingLabel | null;
-  /** Alleen bij afhaal (PICKUP) of als verkoper de toegewezen bezorger is */
-  sellerCanSetDelivered?: boolean;
-}
-
 type DashboardHomeCache = {
   period: string;
   stats: DashboardStats | null;
@@ -123,6 +90,7 @@ type DashboardHomeCache = {
 
 export default function SellerDashboardClient() {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session, status: sessionStatus } = useSession();
   const nativeMounted = useIsNativeAppMounted();
   const lastNativeResumeRefreshRef = useRef(0);
@@ -151,14 +119,7 @@ export default function SellerDashboardClient() {
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
   const periodDropdownRef = useRef<HTMLDivElement>(null);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'deliveries'>('dashboard');
-  
-  // Orders tab state
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'deliveries'>('dashboard');
   
   // Deliveries tab state
   const [deliveryOrders, setDeliveryOrders] = useState<any[]>([]);
@@ -167,8 +128,6 @@ export default function SellerDashboardClient() {
   useEffect(() => {
     if (activeTab === 'dashboard') {
       loadDashboardData();
-    } else if (activeTab === 'orders') {
-      loadOrders();
     } else if (activeTab === 'deliveries') {
       loadDeliveryOrders();
     }
@@ -189,8 +148,6 @@ export default function SellerDashboardClient() {
       }
       if (activeTab === 'dashboard') {
         void loadDashboardData();
-      } else if (activeTab === 'orders') {
-        void loadOrders();
       } else if (activeTab === 'deliveries') {
         void loadDeliveryOrders();
       }
@@ -202,12 +159,6 @@ export default function SellerDashboardClient() {
       window.removeEventListener('focus', refresh);
     };
   }, [activeTab, selectedPeriod]);
-
-  useEffect(() => {
-    if (activeTab === 'orders') {
-      filterOrders();
-    }
-  }, [orders, statusFilter, searchQuery, activeTab]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -281,26 +232,6 @@ export default function SellerDashboardClient() {
     }
   };
 
-  const loadOrders = async () => {
-    try {
-      setOrdersLoading(true);
-      const response = await fetch('/api/seller/dashboard/orders?limit=100&period=1y', {
-        cache: 'no-store',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setOrders(data.orders || []);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Error loading orders:', response.status, errorData);
-      }
-    } catch (error) {
-      console.error('Error loading orders:', error);
-    } finally {
-      setOrdersLoading(false);
-    }
-  };
-
   const loadDeliveryOrders = async () => {
     try {
       setDeliveriesLoading(true);
@@ -329,60 +260,6 @@ export default function SellerDashboardClient() {
     } finally {
       setDeliveriesLoading(false);
     }
-  };
-
-  const filterOrders = () => {
-    let filtered = [...orders];
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => {
-        const orderStatus = (order.status || '').toLowerCase();
-        const filterStatus = statusFilter.toLowerCase();
-        return orderStatus === filterStatus || 
-               (filterStatus === 'bevestigd' && orderStatus === 'confirmed') ||
-               (filterStatus === 'in behandeling' && orderStatus === 'processing') ||
-               (filterStatus === 'verzonden' && orderStatus === 'shipped') ||
-               (filterStatus === 'voltooid' && orderStatus === 'delivered') ||
-               (filterStatus === 'geannuleerd' && orderStatus === 'cancelled');
-      });
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(order =>
-        (order.customerName || '').toLowerCase().includes(query) ||
-        (order.productTitle || '').toLowerCase().includes(query) ||
-        (order.orderNumber || '').toLowerCase().includes(query)
-      );
-    }
-
-    filtered.sort((a, b) => {
-      const dateCompare = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (dateCompare !== 0) return dateCompare;
-      return (b.orderNumber || '').localeCompare(a.orderNumber || '');
-    });
-
-    setFilteredOrders(filtered);
-  };
-
-  const getStatusIcon = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'confirmed' || statusLower === 'bevestigd') {
-      return <CheckCircle className="w-5 h-5 text-blue-600" />;
-    }
-    if (statusLower === 'processing' || statusLower === 'in behandeling') {
-      return <Package className="w-5 h-5 text-purple-600" />;
-    }
-    if (statusLower === 'shipped' || statusLower === 'verzonden') {
-      return <Truck className="w-5 h-5 text-indigo-600" />;
-    }
-    if (statusLower === 'delivered' || statusLower === 'voltooid') {
-      return <CheckCircle className="w-5 h-5 text-green-600" />;
-    }
-    if (statusLower === 'cancelled' || statusLower === 'geannuleerd') {
-      return <XCircle className="w-5 h-5 text-red-600" />;
-    }
-    return <Clock className="w-5 h-5 text-yellow-600" />;
   };
 
   const getStatusText = (status: string) => {
@@ -435,14 +312,8 @@ export default function SellerDashboardClient() {
       });
       
       if (response.ok) {
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: newStatus }
-              : order
-          )
-        );
-        await loadOrders();
+        await loadDeliveryOrders();
+        await loadDashboardData();
       } else {
         const errorData = await response.json().catch(() => ({}));
         alert(errorData.error || t('orders.updateError') || 'Fout bij bijwerken van bestelling');
@@ -628,17 +499,17 @@ export default function SellerDashboardClient() {
                 <LayoutGrid className="w-4 h-4 sm:hidden" />
                 <span>{t('seller.dashboard')}</span>
               </button>
-              <button
-                onClick={() => setActiveTab('orders')}
+              <Link
+                href="/verkoper/orders"
                 className={`${
-                  activeTab === 'orders'
+                  pathname?.startsWith('/verkoper/orders')
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 } whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-0`}
               >
                 <Package className="w-4 h-4 sm:hidden" />
                 <span>{t('seller.salesOrders')}</span>
-              </button>
+              </Link>
               <button
                 onClick={() => setActiveTab('deliveries')}
                 className={`${
@@ -697,22 +568,22 @@ export default function SellerDashboardClient() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setActiveTab('orders')}
+                <Link
+                  href="/verkoper/orders"
                   className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>{t('common.allSalesOrders')}</span>
-                </button>
+                </Link>
               </div>
               
               {/* Preview van eerste 3 nieuwe bestellingen */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {newOrders.slice(0, 3).map((order) => (
-                  <div 
+                  <Link
+                    href="/verkoper/orders"
                     key={order.id}
-                    onClick={() => setActiveTab('orders')}
-                    className="bg-white rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-blue-100"
+                    className="block bg-white rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-blue-100"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -731,19 +602,19 @@ export default function SellerDashboardClient() {
                       <p className="text-lg font-bold text-gray-900">{formatCurrency(order.amount)}</p>
                       <p className="text-xs text-gray-500">{formatDate(order.createdAt)}</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
               
               {/* Als er meer dan 3 nieuwe bestellingen zijn */}
               {newOrders.length > 3 && (
                 <div className="mt-4 text-center">
-                  <button
-                    onClick={() => setActiveTab('orders')}
-                    className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
+                  <Link
+                    href="/verkoper/orders"
+                    className="inline-block text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
                     {t('seller.viewMoreOrders', { count: newOrders.length - 3 })}
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -900,21 +771,21 @@ export default function SellerDashboardClient() {
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">{t('common.allSalesOrders')}</h3>
-                <button
-                  onClick={() => setActiveTab('orders')}
+                <Link
+                  href="/verkoper/orders"
                   className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                 >
                   {t('common.viewAll')} →
-                </button>
+                </Link>
               </div>
             </div>
             <div className="p-4 sm:p-6">
               {recentOrders.length > 0 ? (
                 <div className="space-y-3 sm:space-y-4">
                   {recentOrders.map((order) => (
-                    <div 
-                      key={order.id} 
-                      onClick={() => setActiveTab('orders')}
+                    <Link
+                      href="/verkoper/orders"
+                      key={order.id}
                       className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors rounded-lg px-2 -mx-2"
                     >
                       <div className="flex-1 min-w-0">
@@ -928,19 +799,19 @@ export default function SellerDashboardClient() {
                           {order.status}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-6 sm:py-8">
                   <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
                   <p className="text-gray-500 text-sm sm:text-base">{t('seller.noSalesOrders')}</p>
-                  <button
-                    onClick={() => setActiveTab('orders')}
-                    className="mt-3 sm:mt-4 text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
+                  <Link
+                    href="/verkoper/orders"
+                    className="mt-3 sm:mt-4 inline-block text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
                     {t('seller.manageOrders')}
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -1079,291 +950,6 @@ export default function SellerDashboardClient() {
           </>
         )}
 
-        {/* Orders Tab Content */}
-        {activeTab === 'orders' && (
-          <>
-            {/* Filters */}
-            <div className="mb-4 sm:mb-6 bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-neutral-200">
-              <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
-                {/* Search */}
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-neutral-400" />
-                    <input
-                      type="text"
-                      placeholder={t('seller.searchOrders')}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base border border-neutral-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
-                {/* Status Filter */}
-                <div className="flex gap-1.5 sm:gap-2 flex-wrap overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
-                  {['all', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setStatusFilter(status === 'all' ? 'all' : status.toLowerCase())}
-                      className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                        statusFilter === (status === 'all' ? 'all' : status.toLowerCase())
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white text-neutral-700 hover:bg-neutral-50 border border-neutral-200'
-                      }`}
-                    >
-                      {status === 'all' ? (t('seller.all') || 'Alle') : (t(`seller.${status}`) || status)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Orders List */}
-            {ordersLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200 animate-pulse">
-                    <div className="h-4 bg-neutral-200 rounded w-1/4 mb-4"></div>
-                    <div className="h-3 bg-neutral-200 rounded w-1/2 mb-2"></div>
-                    <div className="h-3 bg-neutral-200 rounded w-1/3"></div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-neutral-200">
-                <Package className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                  {searchQuery || statusFilter !== 'all' 
-                    ? (t('seller.noOrdersFound') || 'Geen orders gevonden')
-                    : (t('seller.noSalesOrders') || 'Nog geen verkooporders')}
-                </h3>
-                <p className="text-neutral-600 mb-6">
-                  {searchQuery || statusFilter !== 'all'
-                    ? (t('seller.tryDifferentFilters') || 'Probeer andere filters')
-                    : (t('seller.noIncomingOrders') || 'Je hebt nog geen inkomende orders ontvangen')}
-                </p>
-                {(searchQuery || statusFilter !== 'all') && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setStatusFilter('all');
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    {t('seller.clearFilters') || 'Filters wissen'}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4 sm:space-y-6">
-                {filteredOrders.map((order) => (
-                  <div 
-                    key={order.id} 
-                    className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow"
-                  >
-                    {/* Order Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        {getStatusIcon(order.status)}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-neutral-900 text-sm sm:text-base truncate">
-                            🛍️ {order.orderNumber || `HC-${order.id.slice(-6).toUpperCase()}`}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-neutral-600">
-                            {formatOrderDate(order.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
-                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getOrderStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                        <span className="text-base sm:text-lg font-semibold text-neutral-900">
-                          {formatCurrency(order.amount)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Order Details */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600">
-                        <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">{order.customerName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600">
-                        <Package className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">{order.productTitle}</span>
-                      </div>
-                      {order.deliveryAddress && (
-                        <div className="flex items-start gap-2 text-xs sm:text-sm text-neutral-600 col-span-1 sm:col-span-2">
-                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
-                          <span className="truncate">{order.deliveryAddress}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600">
-                        <Truck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="capitalize">{order.deliveryMode.toLowerCase()}</span>
-                      </div>
-                    </div>
-
-                    {/* Shipping Label Section - Only for SHIPPING orders */}
-                    {order.deliveryMode === 'SHIPPING' && (
-                      <div className="mb-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
-                          <h4 className="font-semibold text-blue-900 flex items-center gap-2 text-sm sm:text-base">
-                            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-                            {t('seller.shippingLabel') || 'Verzendlabel'}
-                          </h4>
-                          {order.shippingLabel && (
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              order.shippingLabel.status === 'generated' ? 'bg-green-100 text-green-800' :
-                              order.shippingLabel.status === 'printed' ? 'bg-blue-100 text-blue-800' :
-                              order.shippingLabel.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {order.shippingLabel.status === 'generated' ? (t('seller.labelGenerated') || 'Gegenereerd') :
-                               order.shippingLabel.status === 'printed' ? (t('seller.labelPrinted') || 'Geprint') :
-                               order.shippingLabel.status === 'shipped' ? (t('seller.labelShipped') || 'Verzonden') : 
-                               (t('seller.labelPending') || 'In behandeling')}
-                            </span>
-                          )}
-                        </div>
-                        
-                        {order.shippingLabel ? (
-                          <div className="space-y-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
-                              {order.shippingLabel.trackingNumber && (
-                                <div className="break-words">
-                                  <span className="font-medium text-blue-900">{t('seller.trackingNumber') || 'Tracking nummer'}:</span>
-                                  <span className="ml-2 text-blue-700 break-all">{order.shippingLabel.trackingNumber}</span>
-                                </div>
-                              )}
-                              {order.shippingLabel.carrier && (
-                                <div>
-                                  <span className="font-medium text-blue-900">{t('seller.carrier') || 'Vervoerder'}:</span>
-                                  <span className="ml-2 text-blue-700">{order.shippingLabel.carrier}</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2">
-                              {order.shippingLabel.pdfUrl && (
-                                <>
-                                  <button
-                                    onClick={() => window.open(order.shippingLabel!.pdfUrl, '_blank')}
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                                  >
-                                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span>{t('seller.viewLabel') || 'Label bekijken'}</span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const link = document.createElement('a');
-                                      link.href = order.shippingLabel!.pdfUrl;
-                                      link.download = `verzendlabel-${order.orderNumber}.pdf`;
-                                      link.target = '_blank';
-                                      document.body.appendChild(link);
-                                      link.click();
-                                      document.body.removeChild(link);
-                                    }}
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                                  >
-                                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span>{t('seller.downloadLabel') || 'Download'}</span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const printWindow = window.open(order.shippingLabel!.pdfUrl, '_blank');
-                                      if (printWindow) {
-                                        printWindow.onload = () => {
-                                          printWindow.print();
-                                        };
-                                      }
-                                    }}
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                                  >
-                                    <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span>{t('seller.printLabel') || 'Printen'}</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-xs sm:text-sm text-blue-700">
-                            <p className="mb-2">{t('seller.labelAutoCreated') || 'Het verzendlabel wordt automatisch aangemaakt na betaling.'}</p>
-                            <p className="text-xs text-blue-600">{t('seller.labelGenerating') || 'Als het label nog niet beschikbaar is, wordt het binnen enkele minuten gegenereerd.'}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-200">
-                      {/* Status Update Buttons */}
-                      <div className="flex flex-wrap gap-2 sm:gap-3 flex-1">
-                        {(order.status === 'Bevestigd' || order.status === 'CONFIRMED') && (
-                          <button
-                            onClick={() => handleStatusUpdate(order.id, 'PROCESSING')}
-                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                          >
-                            <Package className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span>{t('seller.productReady') || 'Product klaar'}</span>
-                          </button>
-                        )}
-                        {(order.status === 'In behandeling' || order.status === 'PROCESSING') && order.deliveryMode === 'PICKUP' && (
-                          <button
-                            onClick={() => handleStatusUpdate(order.id, 'SHIPPED')}
-                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                          >
-                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span>{t('seller.readyForPickup') || 'Klaar voor afhalen'}</span>
-                          </button>
-                        )}
-                        {(order.status === 'In behandeling' || order.status === 'PROCESSING') && order.deliveryMode === 'DELIVERY' && (
-                          <button
-                            onClick={() => handleStatusUpdate(order.id, 'SHIPPED')}
-                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                          >
-                            <Truck className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span>{t('seller.readyForDelivery') || 'Klaar voor bezorging'}</span>
-                          </button>
-                        )}
-                        {(order.status === 'Verzonden' || order.status === 'SHIPPED') && order.sellerCanSetDelivered && (
-                          <button
-                            onClick={() => handleStatusUpdate(order.id, 'DELIVERED')}
-                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                          >
-                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span>{t('seller.markAsDelivered') || 'Markeer als bezorgd'}</span>
-                          </button>
-                        )}
-                      </div>
-                      
-                      {/* View & Chat */}
-                      <div className="flex gap-2 sm:ml-auto">
-                        {order.conversationId && (
-                          <Link href={`/messages/${order.conversationId}`}>
-                            <button className="px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                              <MessageCircle className="w-4 h-4" />
-                            </button>
-                          </Link>
-                        )}
-                        <button
-                          onClick={() => router.push(`/orders/${order.id}`)}
-                          className="px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                        >
-                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="sm:inline">{t('seller.details') || 'Details'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
 
         {/* Deliveries Tab Content */}
         {activeTab === 'deliveries' && (
@@ -1487,7 +1073,9 @@ export default function SellerDashboardClient() {
                       {/* View & Chat */}
                       <div className="flex gap-2 sm:ml-auto">
                         {order.conversationId && (
-                          <Link href={`/messages/${order.conversationId}`}>
+                          <Link
+                            href={`/messages?conversation=${encodeURIComponent(order.conversationId)}`}
+                          >
                             <button className="px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                               <MessageCircle className="w-4 h-4" />
                             </button>

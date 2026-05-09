@@ -130,8 +130,9 @@ export const PAGE_HINTS: Record<string, PageHints> = {
       },
       notifications: {
         id: 'messages-notifications',
-        title: '🔔 Notificaties',
-        description: 'Blijf op de hoogte van nieuwe props, fans, bestellingen en berichten. Klik hier om al je updates te zien.',
+        title: '🔔 Meldingen',
+        description:
+          'Alle updates (chat, bestellingen, account, enz.) staan centraal onder het belletje rechtsboven in de navigatie.',
       },
       startChat: {
         id: 'messages-start-chat',
@@ -147,8 +148,9 @@ export const PAGE_HINTS: Record<string, PageHints> = {
     tourSteps: [
       {
         id: 'tour-messages-welcome',
-        title: '💬 Je berichtencentrum',
-        description: 'Hier beheer je al je gesprekken en notificaties. Blijf in contact met verkopers en kopers, en krijg updates over je activiteit.',
+        title: '💬 Je berichten',
+        description:
+          'Hier beheer je je gesprekken. Andere meldingen vind je via het belletje in de navigatie.',
         placement: 'bottom',
       },
       {
@@ -160,10 +162,11 @@ export const PAGE_HINTS: Record<string, PageHints> = {
       },
       {
         id: 'tour-messages-notifications',
-        title: '🔔 Notificaties tab',
-        description: 'Klik hier om alle updates te zien: nieuwe props, fans, bestellingen en meer. Blijf op de hoogte van alles wat er gebeurt!',
+        title: '🔔 Meldingencentrum',
+        description:
+          'Klik op het belletje in de menubalk voor alle meldingen: nieuwe berichten, bestellingen, reviews en meer.',
         placement: 'bottom',
-        targetSelector: '[data-tour="notifications-tab"]',
+        targetSelector: '[data-tour="notification-bell"]',
       },
     ],
   },

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { auth } from '@/lib/auth';
 import { hasSellerAccess } from '@/lib/seller-access';
 import { redirect } from 'next/navigation';
@@ -21,6 +22,10 @@ export default async function SellerOrdersPageWrapper() {
     redirect('/');
   }
 
-  return <SellerOrdersPageClient />;
+  return (
+    <Suspense fallback={<div className="min-h-[40vh] bg-neutral-50" />}>
+      <SellerOrdersPageClient />
+    </Suspense>
+  );
 }
 

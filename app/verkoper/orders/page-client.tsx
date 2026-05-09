@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Package, 
   Clock, 
@@ -52,13 +52,47 @@ interface Order {
   sellerCanSetDelivered?: boolean;
 }
 
+type SellerOrderTab =
+  | 'all'
+  | 'new'
+  | 'ongoing'
+  | 'shipped'
+  | 'completed'
+  | 'cancelled';
+
+function orderMatchesTab(order: Order, tab: SellerOrderTab): boolean {
+  const s = order.status.toLowerCase();
+  switch (tab) {
+    case 'all':
+      return true;
+    case 'new':
+      return (
+        s === 'wachtend' ||
+        s === 'bevestigd' ||
+        s === 'pending' ||
+        s === 'confirmed'
+      );
+    case 'ongoing':
+      return s === 'in behandeling' || s === 'processing';
+    case 'shipped':
+      return s === 'verzonden' || s === 'shipped';
+    case 'completed':
+      return s === 'voltooid' || s === 'delivered';
+    case 'cancelled':
+      return s === 'geannuleerd' || s === 'cancelled';
+    default:
+      return true;
+  }
+}
+
 export default function SellerOrdersPageClient() {
   const { t, language } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<SellerOrderTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -68,6 +102,17 @@ export default function SellerOrdersPageClient() {
   useEffect(() => {
     filterOrders();
   }, [orders, statusFilter, searchQuery]);
+
+  useEffect(() => {
+    const hid = searchParams.get('highlight');
+    if (!hid || isLoading || filteredOrders.length === 0) return;
+    requestAnimationFrame(() => {
+      document.getElementById(`seller-order-${hid}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+  }, [searchParams, filteredOrders, isLoading]);
 
   const loadOrders = async () => {
     try {
@@ -93,16 +138,7 @@ export default function SellerOrdersPageClient() {
     let filtered = [...orders]; // Create copy to avoid mutating original
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => {
-        const orderStatus = order.status.toLowerCase();
-        const filterStatus = statusFilter.toLowerCase();
-        return orderStatus === filterStatus || 
-               (filterStatus === 'bevestigd' && orderStatus === 'confirmed') ||
-               (filterStatus === 'in behandeling' && orderStatus === 'processing') ||
-               (filterStatus === 'verzonden' && orderStatus === 'shipped') ||
-               (filterStatus === 'voltooid' && orderStatus === 'delivered') ||
-               (filterStatus === 'geannuleerd' && orderStatus === 'cancelled');
-      });
+      filtered = filtered.filter((order) => orderMatchesTab(order, statusFilter));
     }
 
     if (searchQuery) {
@@ -300,19 +336,29 @@ export default function SellerOrdersPageClient() {
               </div>
             </div>
 
-            {/* Status Filter */}
-            <div className="flex gap-2 flex-wrap">
-              {['all', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'].map((status) => (
+            {/* Status tabs — semantisch voor verkopers */}
+            <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+              {(
+                [
+                  ['all', t('seller.all')],
+                  ['new', 'Nieuw'],
+                  ['ongoing', 'Lopend'],
+                  ['shipped', t('seller.shipped')],
+                  ['completed', t('seller.completed')],
+                  ['cancelled', t('seller.cancelled')],
+                ] as const
+              ).map(([key, label]) => (
                 <button
-                  key={status}
-                  onClick={() => setStatusFilter(status === 'all' ? 'all' : status.toLowerCase())}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    statusFilter === (status === 'all' ? 'all' : status.toLowerCase())
+                  type="button"
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
+                  className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:px-4 ${
+                    statusFilter === key
                       ? 'bg-primary-600 text-white'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-50 border border-neutral-200'
+                      : 'border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'
                   }`}
                 >
-                  {status === 'all' ? t('seller.all') : t(`seller.${status}`)}
+                  {label}
                 </button>
               ))}
             </div>
@@ -364,10 +410,11 @@ export default function SellerOrdersPageClient() {
         ) : (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
-              <div 
-                key={order.id} 
-                className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow"
-              >
+                  <div 
+                    key={order.id}
+                    id={`seller-order-${order.id}`}
+                    className="scroll-mt-24 bg-white rounded-2xl p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow"
+                  >
                 {/* Order Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -550,7 +597,9 @@ export default function SellerOrdersPageClient() {
                   {/* View & Chat */}
                   <div className="flex gap-2 ml-auto">
                     {order.conversationId && (
-                      <Link href={`/messages/${order.conversationId}`}>
+                      <Link
+                        href={`/messages?conversation=${encodeURIComponent(order.conversationId)}`}
+                      >
                         <Button variant="ghost" className="px-3 py-2">
                           <MessageCircle className="w-4 h-4" />
                         </Button>
