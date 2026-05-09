@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
+import { orderStatusToSellerLabel } from '@/lib/orders/sellerOrderTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || '30d';
     const limit = parseInt(searchParams.get('limit') || '10');
+    const includeAllHistory = period === 'all';
 
     // Get user
     const user = await prisma.user.findUnique({
@@ -125,7 +127,12 @@ export async function GET(request: Request) {
           select: {
             deliveryProfile: { select: { userId: true } }
           }
-        }
+        },
+        conversations: {
+          select: { id: true },
+          take: 1,
+          orderBy: { createdAt: 'asc' },
+        },
       }
     });
 
@@ -159,11 +166,9 @@ export async function GET(request: Request) {
           ? sellerItems[0].Product?.title || 'Onbekend product'
           : `${sellerItems.length} producten`,
         amount: totalAmount,
-        status: order.status === 'DELIVERED' ? 'Voltooid' : 
-                order.status === 'CONFIRMED' ? 'Bevestigd' :
-                order.status === 'PROCESSING' ? 'In behandeling' :
-                order.status === 'CANCELLED' ? 'Geannuleerd' :
-                order.status === 'SHIPPED' ? 'Verzonden' : 'Wachtend',
+        status: orderStatusToSellerLabel(order.status),
+        statusRaw: order.status,
+        conversationId: order.conversations?.[0]?.id,
         deliveryMode: order.deliveryMode || 'PICKUP',
         deliveryAddress: order.deliveryAddress || undefined,
         sellerCanSetDelivered:

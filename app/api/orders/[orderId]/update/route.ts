@@ -240,33 +240,6 @@ export async function PATCH(
                 link: `/orders/${orderId}`
               }
             );
-
-            // Send additional push notification for important status changes
-            const statusMessages = {
-              'PROCESSING': `🔄 Je bestelling wordt klaargezet door ${sellerName}`,
-              'SHIPPED': `🚚 Je bestelling is klaar! ${updatedOrder.deliveryMode === 'PICKUP' ? 'Je kunt het ophalen' : 'Het wordt bezorgd'}`,
-              'DELIVERED': `🎉 Je bestelling is bezorgd! Laat een review achter voor ${sellerName}`
-            };
-
-            if (statusMessages[status as keyof typeof statusMessages]) {
-              await NotificationService.send({
-                userId: orderWithBuyer.userId,
-                message: {
-                  title: `Bestelling ${orderWithBuyer.orderNumber}`,
-                  body: statusMessages[status as keyof typeof statusMessages],
-                  urgent: status === 'SHIPPED' || status === 'DELIVERED',
-                  data: {
-                    type: 'ORDER_STATUS_UPDATE',
-                    orderId: orderId,
-                    orderNumber: orderWithBuyer.orderNumber,
-                    status: status,
-                    link: `/orders/${orderId}`
-                  }
-                },
-                channels: ['push'],
-                saveToDatabase: true
-              });
-            }
           }
 
           console.log(`✅ Notifications sent for order ${orderId} status ${status}`);
@@ -480,7 +453,7 @@ export async function PATCH(
     return NextResponse.json({ 
       success: true, 
       order: updatedOrder,
-      message: 'Order updated successfully and notification sent to chat'
+      message: 'Order updated successfully'
     });
 
   } catch (error) {

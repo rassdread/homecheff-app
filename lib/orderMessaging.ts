@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { orderChatContextLine } from '@/lib/orders/sellerOrderTabs';
 
 const prisma = new PrismaClient();
 
@@ -14,104 +15,58 @@ export interface OrderUpdateData {
   notes?: string;
 }
 
+/** Korte systeemregel: geen orderbeheer in chat, alleen context + verwijzing. */
+function minimalOrderNotice(displayNumber: string, kind: string): string {
+  const base = orderChatContextLine(displayNumber);
+  switch (kind) {
+    case 'ORDER_CONFIRMED':
+      return `${base} Status: bevestigd.`;
+    case 'ORDER_PROCESSING':
+      return `${base} Status: in behandeling.`;
+    case 'ORDER_READY_PICKUP':
+      return `${base} Status: klaar voor ophalen.`;
+    case 'ORDER_SHIPPED':
+      return `${base} Status: verzonden / onderweg.`;
+    case 'ORDER_DELIVERED':
+      return `${base} Status: afgerond.`;
+    case 'ORDER_CANCELLED':
+      return `${base} Status: geannuleerd.`;
+    case 'ADDRESS_UPDATE':
+      return `${base} Adres bijgewerkt.`;
+    case 'PICKUP_TIME_UPDATE':
+    case 'DELIVERY_TIME_UPDATE':
+      return `${base} Tijd bijgewerkt.`;
+    default:
+      return base;
+  }
+}
+
 export class OrderMessagingService {
   /**
-   * Send automatic order update message to chat
+   * Minimale chatregel bij order-events (orderbeheer blijft bij Verkooporders / Mijn bestellingen).
    */
   static async sendOrderUpdate(data: OrderUpdateData, updateType: string) {
     try {
-      // Find conversation for this order
       const conversation = await prisma.conversation.findFirst({
         where: { orderId: data.orderId },
         include: {
-          ConversationParticipant: true
-        }
+          ConversationParticipant: true,
+        },
       });
 
       if (!conversation) {
         return;
       }
 
-      let messageText = '';
-      let messageType: string = 'SYSTEM';
+      const text = minimalOrderNotice(data.orderNumber, updateType);
 
-      switch (updateType) {
-        case 'ORDER_CONFIRMED':
-          messageText = `✅ Bestelling ${data.orderNumber} is bevestigd!\n\nJe bestelling is ontvangen en wordt voorbereid.`;
-          messageType = 'ORDER_STATUS_UPDATE';
-          break;
-
-        case 'ORDER_PROCESSING':
-          messageText = `🔄 Bestelling ${data.orderNumber} wordt verwerkt\n\nDe verkoper bereidt je bestelling voor.`;
-          messageType = 'ORDER_STATUS_UPDATE';
-          break;
-
-        case 'ORDER_READY_PICKUP':
-          messageText = `📦 Bestelling ${data.orderNumber} is klaar voor afhaling!\n\n` +
-                       `📍 Afhaaladres: ${data.pickupAddress}\n` +
-                       `📅 Afhaaldatum: ${data.pickupDate ? new Date(data.pickupDate).toLocaleDateString('nl-NL') : 'Af te spreken'}\n\n` +
-                       `Neem contact op met de verkoper voor de exacte afhaaltijd.`;
-          messageType = 'ORDER_PICKUP_INFO';
-          break;
-
-        case 'ORDER_SHIPPED':
-          messageText = `🚚 Bestelling ${data.orderNumber} is onderweg!\n\n` +
-                       `📍 Bezorgadres: ${data.deliveryAddress}\n` +
-                       `📅 Verwachte bezorging: ${data.deliveryDate ? new Date(data.deliveryDate).toLocaleDateString('nl-NL') : 'Binnenkort'}\n\n` +
-                       `Je ontvangt een bericht zodra de bestelling is bezorgd.`;
-          messageType = 'ORDER_DELIVERY_INFO';
-          break;
-
-        case 'ORDER_DELIVERED':
-          messageText = `🎉 Bestelling ${data.orderNumber} is bezorgd!\n\n` +
-                       `Je bestelling is succesvol bezorgd. Bedankt voor je aankoop! 🛍️\n\n` +
-                       `Je kunt nu een review achterlaten voor de verkoper.`;
-          messageType = 'ORDER_STATUS_UPDATE';
-          break;
-
-        case 'ORDER_CANCELLED':
-          messageText = `❌ Bestelling ${data.orderNumber} is geannuleerd\n\n` +
-                       `Je bestelling is geannuleerd. ${data.notes || 'Neem contact op voor meer informatie.'}`;
-          messageType = 'ORDER_STATUS_UPDATE';
-          break;
-
-        case 'ADDRESS_UPDATE':
-          if (data.deliveryMode === 'PICKUP') {
-            messageText = `📍 Afhaaladres bijgewerkt voor bestelling ${data.orderNumber}\n\n` +
-                         `Nieuw afhaaladres: ${data.pickupAddress}`;
-            messageType = 'ORDER_ADDRESS_UPDATE';
-          } else {
-            messageText = `📍 Bezorgadres bijgewerkt voor bestelling ${data.orderNumber}\n\n` +
-                         `Nieuw bezorgadres: ${data.deliveryAddress}`;
-            messageType = 'ORDER_ADDRESS_UPDATE';
-          }
-          break;
-
-        case 'PICKUP_TIME_UPDATE':
-          messageText = `⏰ Afhaaltijd bijgewerkt voor bestelling ${data.orderNumber}\n\n` +
-                       `Nieuwe afhaaltijd: ${data.pickupDate ? new Date(data.pickupDate).toLocaleString('nl-NL') : 'Af te spreken'}`;
-          messageType = 'ORDER_PICKUP_INFO';
-          break;
-
-        case 'DELIVERY_TIME_UPDATE':
-          messageText = `⏰ Bezorgtijd bijgewerkt voor bestelling ${data.orderNumber}\n\n` +
-                       `Nieuwe bezorgtijd: ${data.deliveryDate ? new Date(data.deliveryDate).toLocaleString('nl-NL') : 'Binnenkort'}`;
-          messageType = 'ORDER_DELIVERY_INFO';
-          break;
-
-        default:
-          messageText = `ℹ️ Update voor bestelling ${data.orderNumber}\n\n${data.notes || 'Er is een update voor je bestelling.'}`;
-          messageType = 'SYSTEM';
-      }
-
-      // Create system message
       const message = await prisma.message.create({
         data: {
           conversationId: conversation.id,
-          senderId: conversation.ConversationParticipant[0].userId, // Use first participant as sender (system message)
-          text: messageText,
-          messageType: messageType as any,
-          orderNumber: data.orderNumber
+          senderId: conversation.ConversationParticipant[0].userId,
+          text,
+          messageType: 'SYSTEM',
+          orderNumber: data.orderNumber,
         },
         include: {
           User: {
@@ -119,24 +74,21 @@ export class OrderMessagingService {
               id: true,
               name: true,
               username: true,
-              profileImage: true
-            }
-          }
-        }
+              profileImage: true,
+            },
+          },
+        },
       });
 
-      // Update conversation last message time
       await prisma.conversation.update({
         where: { id: conversation.id },
-        data: { lastMessageAt: new Date() }
+        data: { lastMessageAt: new Date() },
       });
 
-      // Emit socket event if available
       if (typeof global !== 'undefined' && (global as any).io) {
         (global as any).io.to(conversation.id).emit('new-message', message);
       }
       return message;
-
     } catch (error) {
       console.error('Error sending order update message:', error);
       throw error;
@@ -144,7 +96,7 @@ export class OrderMessagingService {
   }
 
   /**
-   * Send pickup/delivery information when order is confirmed
+   * Eén korte bevestigingsregel na plaatsing (geen pickup/verzend-spam in chat).
    */
   static async sendOrderConfirmation(orderId: string) {
     const order = await prisma.order.findUnique({
@@ -155,12 +107,12 @@ export class OrderMessagingService {
           include: {
             Product: {
               include: {
-                seller: true
-              }
-            }
-          }
-        }
-      }
+                seller: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!order) {
@@ -169,83 +121,72 @@ export class OrderMessagingService {
 
     const orderData: OrderUpdateData = {
       orderId: order.id,
-      orderNumber: (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
+      orderNumber: (
+        await import('@/lib/orderNumberGenerator')
+      ).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
       deliveryMode: order.deliveryMode as any,
       pickupAddress: order.pickupAddress || undefined,
       deliveryAddress: order.deliveryAddress || undefined,
       pickupDate: order.pickupDate || undefined,
       deliveryDate: order.deliveryDate || undefined,
-      notes: order.notes || undefined
+      notes: order.notes || undefined,
     };
 
-    // Send confirmation message
     await this.sendOrderUpdate(orderData, 'ORDER_CONFIRMED');
-
-    // Send pickup/delivery info if available
-    if (order.deliveryMode === 'PICKUP' && order.pickupAddress) {
-      await this.sendOrderUpdate(orderData, 'ORDER_READY_PICKUP');
-    } else if (order.deliveryMode === 'DELIVERY' && order.deliveryAddress) {
-      await this.sendOrderUpdate(orderData, 'ORDER_SHIPPED');
-    }
   }
 
-  /**
-   * Update order status and send notification
-   */
-  static async updateOrderStatus(orderId: string, newStatus: string, additionalData?: Partial<OrderUpdateData>) {
+  static async updateOrderStatus(
+    orderId: string,
+    newStatus: string,
+    additionalData?: Partial<OrderUpdateData>
+  ) {
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
     });
 
     if (!order) {
       throw new Error('Order not found');
     }
 
-    // Update order status
     await prisma.order.update({
       where: { id: orderId },
       data: {
         status: newStatus as any,
-        ...additionalData
-      }
+        ...additionalData,
+      },
     });
 
     const orderData: OrderUpdateData = {
       orderId: order.id,
-      orderNumber: (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
-      ...additionalData
+      orderNumber: (
+        await import('@/lib/orderNumberGenerator')
+      ).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
+      ...additionalData,
     };
 
-    // Send appropriate update message
-    switch (newStatus) {
-      case 'CONFIRMED':
-        await this.sendOrderUpdate(orderData, 'ORDER_CONFIRMED');
-        break;
-      case 'PROCESSING':
-        await this.sendOrderUpdate(orderData, 'ORDER_PROCESSING');
-        break;
-      case 'SHIPPED':
-        await this.sendOrderUpdate(orderData, 'ORDER_SHIPPED');
-        break;
-      case 'DELIVERED':
-        await this.sendOrderUpdate(orderData, 'ORDER_DELIVERED');
-        break;
-      case 'CANCELLED':
-        await this.sendOrderUpdate(orderData, 'ORDER_CANCELLED');
-        break;
+    const typeMap: Record<string, string> = {
+      CONFIRMED: 'ORDER_CONFIRMED',
+      PROCESSING: 'ORDER_PROCESSING',
+      SHIPPED: 'ORDER_SHIPPED',
+      DELIVERED: 'ORDER_DELIVERED',
+      CANCELLED: 'ORDER_CANCELLED',
+    };
+    const updateType = typeMap[newStatus] || 'ORDER_PROCESSING';
+    if (typeMap[newStatus]) {
+      await this.sendOrderUpdate(orderData, updateType);
     }
   }
 
-  /**
-   * Update pickup/delivery address and notify
-   */
-  static async updateOrderAddress(orderId: string, addressData: {
-    pickupAddress?: string;
-    deliveryAddress?: string;
-    deliveryMode?: 'PICKUP' | 'DELIVERY' | 'BOTH';
-  }) {
+  static async updateOrderAddress(
+    orderId: string,
+    addressData: {
+      pickupAddress?: string;
+      deliveryAddress?: string;
+      deliveryMode?: 'PICKUP' | 'DELIVERY' | 'BOTH';
+    }
+  ) {
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
     });
 
     if (!order) {
@@ -254,27 +195,29 @@ export class OrderMessagingService {
 
     await prisma.order.update({
       where: { id: orderId },
-      data: addressData
+      data: addressData,
     });
 
     const orderData: OrderUpdateData = {
       orderId: order.id,
-      orderNumber: (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
-      ...addressData
+      orderNumber: (
+        await import('@/lib/orderNumberGenerator')
+      ).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
+      ...addressData,
     };
 
     await this.sendOrderUpdate(orderData, 'ADDRESS_UPDATE');
   }
 
-  /**
-   * Update pickup/delivery time and notify
-   */
-  static async updateOrderTime(orderId: string, timeData: {
-    pickupDate?: Date;
-    deliveryDate?: Date;
-  }) {
+  static async updateOrderTime(
+    orderId: string,
+    timeData: {
+      pickupDate?: Date;
+      deliveryDate?: Date;
+    }
+  ) {
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
     });
 
     if (!order) {
@@ -283,13 +226,15 @@ export class OrderMessagingService {
 
     await prisma.order.update({
       where: { id: orderId },
-      data: timeData
+      data: timeData,
     });
 
     const orderData: OrderUpdateData = {
       orderId: order.id,
-      orderNumber: (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
-      ...timeData
+      orderNumber: (
+        await import('@/lib/orderNumberGenerator')
+      ).OrderNumberGenerator.getDisplayNumber(order.orderNumber, order.id),
+      ...timeData,
     };
 
     if (timeData.pickupDate) {
@@ -299,4 +244,3 @@ export class OrderMessagingService {
     }
   }
 }
-

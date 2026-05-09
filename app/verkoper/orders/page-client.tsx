@@ -22,6 +22,11 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  orderMatchesSellerTab,
+  orderStatusToSellerLabel,
+} from '@/lib/orders/sellerOrderTabs';
+import type { OrderStatus } from '@prisma/client';
 
 interface ShippingLabel {
   id: string;
@@ -50,6 +55,8 @@ interface Order {
   shippingLabel?: ShippingLabel | null;
   /** Alleen bij afhaal (PICKUP) of als verkoper de toegewezen bezorger is */
   sellerCanSetDelivered?: boolean;
+  /** Prisma OrderStatus (optioneel, voor robuuste filters) */
+  statusRaw?: string;
 }
 
 type SellerOrderTab =
@@ -59,31 +66,6 @@ type SellerOrderTab =
   | 'shipped'
   | 'completed'
   | 'cancelled';
-
-function orderMatchesTab(order: Order, tab: SellerOrderTab): boolean {
-  const s = order.status.toLowerCase();
-  switch (tab) {
-    case 'all':
-      return true;
-    case 'new':
-      return (
-        s === 'wachtend' ||
-        s === 'bevestigd' ||
-        s === 'pending' ||
-        s === 'confirmed'
-      );
-    case 'ongoing':
-      return s === 'in behandeling' || s === 'processing';
-    case 'shipped':
-      return s === 'verzonden' || s === 'shipped';
-    case 'completed':
-      return s === 'voltooid' || s === 'delivered';
-    case 'cancelled':
-      return s === 'geannuleerd' || s === 'cancelled';
-    default:
-      return true;
-  }
-}
 
 export default function SellerOrdersPageClient() {
   const { t, language } = useTranslation();
@@ -133,7 +115,7 @@ export default function SellerOrdersPageClient() {
   const loadOrders = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/seller/dashboard/orders?limit=100&period=1y', {
+      const response = await fetch('/api/seller/dashboard/orders?limit=200&period=all', {
         cache: 'no-store',
       });
       if (response.ok) {
@@ -154,7 +136,9 @@ export default function SellerOrdersPageClient() {
     let filtered = [...orders]; // Create copy to avoid mutating original
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((order) => orderMatchesTab(order, statusFilter));
+      filtered = filtered.filter((order) =>
+        orderMatchesSellerTab(order.statusRaw || order.status, statusFilter)
+      );
     }
 
     if (searchQuery) {
@@ -193,7 +177,12 @@ export default function SellerOrdersPageClient() {
     if (statusLower === 'delivered' || statusLower === 'voltooid') {
       return <CheckCircle className="w-5 h-5 text-green-600" />;
     }
-    if (statusLower === 'cancelled' || statusLower === 'geannuleerd') {
+    if (
+      statusLower === 'cancelled' ||
+      statusLower === 'geannuleerd' ||
+      statusLower === 'refunded' ||
+      statusLower === 'terugbetaald'
+    ) {
       return <XCircle className="w-5 h-5 text-red-600" />;
     }
     return <Clock className="w-5 h-5 text-yellow-600" />;
@@ -206,6 +195,7 @@ export default function SellerOrdersPageClient() {
     if (statusLower === 'shipped' || statusLower === 'verzonden') return t('seller.shipped');
     if (statusLower === 'delivered' || statusLower === 'voltooid') return t('seller.completed');
     if (statusLower === 'cancelled' || statusLower === 'geannuleerd') return t('seller.cancelled');
+    if (statusLower === 'refunded' || statusLower === 'terugbetaald') return 'Terugbetaald';
     return t('seller.pending');
   };
 
@@ -225,6 +215,9 @@ export default function SellerOrdersPageClient() {
     }
     if (statusLower === 'cancelled' || statusLower === 'geannuleerd') {
       return 'bg-red-100 text-red-800';
+    }
+    if (statusLower === 'refunded' || statusLower === 'terugbetaald') {
+      return 'bg-orange-100 text-orange-900';
     }
     return 'bg-yellow-100 text-yellow-800';
   };
@@ -257,10 +250,14 @@ export default function SellerOrdersPageClient() {
       
       if (response.ok) {
         // Update the order in the local state immediately for better UX
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: newStatus }
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order.id === orderId
+              ? {
+                  ...order,
+                  status: orderStatusToSellerLabel(newStatus as OrderStatus),
+                  statusRaw: newStatus,
+                }
               : order
           )
         );
@@ -591,13 +588,16 @@ export default function SellerOrdersPageClient() {
                       {t('seller.readyForPickup')}
                     </Button>
                   )}
-                  {(order.status === 'In behandeling' || order.status === 'PROCESSING') && order.deliveryMode === 'DELIVERY' && (
+                  {(order.status === 'In behandeling' || order.status === 'PROCESSING') &&
+                    (order.deliveryMode === 'DELIVERY' || order.deliveryMode === 'SHIPPING') && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'SHIPPED')}
                       className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
                     >
                       <Truck className="w-4 h-4 mr-2" />
-                      {t('seller.readyForDelivery')}
+                      {order.deliveryMode === 'SHIPPING'
+                        ? t('seller.shipped') || 'Verzonden'
+                        : t('seller.readyForDelivery')}
                     </Button>
                   )}
                   {(order.status === 'Verzonden' || order.status === 'SHIPPED') && order.sellerCanSetDelivered && (

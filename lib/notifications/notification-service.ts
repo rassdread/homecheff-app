@@ -1213,7 +1213,7 @@ export class NotificationService {
         type: 'ORDER_READY',
         orderId,
         orderNumber,
-        link: `/verkoper/orders`
+        link: `/verkoper/orders?highlight=${encodeURIComponent(orderId)}`,
       }
     };
 
@@ -1260,7 +1260,7 @@ export class NotificationService {
         type: 'ORDER_READY',
         orderId,
         orderNumber,
-        link: `/verkoper/orders`
+        link: `/verkoper/orders?highlight=${encodeURIComponent(orderId)}`,
       }
     };
 
@@ -1613,19 +1613,21 @@ export class NotificationService {
     additionalData?: Record<string, any>
   ): Promise<void> {
     const statusLabels: Record<string, string> = {
-      'CONFIRMED': 'Bevestigd',
-      'PROCESSING': 'In behandeling',
-      'SHIPPED': 'Verzonden',
-      'DELIVERED': 'Bezorgd',
-      'CANCELLED': 'Geannuleerd'
+      CONFIRMED: 'Bevestigd',
+      PROCESSING: 'In behandeling',
+      SHIPPED: 'Verzonden',
+      DELIVERED: 'Bezorgd',
+      CANCELLED: 'Geannuleerd',
+      REFUNDED: 'Terugbetaald',
     };
 
     const statusIcons: Record<string, string> = {
-      'CONFIRMED': '✅',
-      'PROCESSING': '🔄',
-      'SHIPPED': '🚚',
-      'DELIVERED': '🎉',
-      'CANCELLED': '❌'
+      CONFIRMED: '✅',
+      PROCESSING: '🔄',
+      SHIPPED: '🚚',
+      DELIVERED: '🎉',
+      CANCELLED: '❌',
+      REFUNDED: '↩️',
     };
 
     const statusLabel = statusLabels[status] || status;
