@@ -7,10 +7,6 @@ import ConversationsList from '@/components/chat/ConversationsList';
 import ChatBox from '@/components/chat/ChatBox';
 import ChatShell from '@/components/chat/ChatShell';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import OnboardingTour from '@/components/onboarding/OnboardingTour';
-import TourTrigger from '@/components/onboarding/TourTrigger';
-import InfoIcon from '@/components/onboarding/InfoIcon';
-import { getHintsForPage } from '@/lib/onboarding/hints';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import {
   APP_RESUME_MSG_CONV_HINT,
@@ -92,8 +88,6 @@ function MessagesPageContent() {
     }
   }, [nativeMounted, searchParams, router, messagesPath]);
 
-  const pageHints = getHintsForPage('messages');
-
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
   };
@@ -156,8 +150,6 @@ function MessagesPageContent() {
     <main
       className={`hc-messages-root flex flex-col overflow-hidden bg-[#e8eaed] ${nativeMounted ? 'hc-native-messages-page' : ''}`}
     >
-      <OnboardingTour pageId="messages" autoStart={false} />
-
       <header
         className={`w-full flex-shrink-0 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm ${
           hidePageChromeForMobileChat ? 'hidden lg:block' : ''
@@ -170,7 +162,6 @@ function MessagesPageContent() {
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                   Berichten
                 </h1>
-                <TourTrigger pageId="messages" variant="button" />
               </div>
               <p className="mt-1 text-sm text-gray-600 sm:text-base">
                 Je gesprekken met kopers en verkopers.{' '}
@@ -179,13 +170,6 @@ function MessagesPageContent() {
                 </span>
               </p>
             </div>
-            {pageHints?.hints.conversations && (
-              <InfoIcon
-                hint={pageHints.hints.conversations}
-                pageId="messages"
-                size="sm"
-              />
-            )}
           </div>
         </div>
       </header>

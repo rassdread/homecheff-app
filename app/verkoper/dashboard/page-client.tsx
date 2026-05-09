@@ -30,7 +30,8 @@ import {
   MapPin,
   LayoutGrid,
   ChevronDown,
-  Wallet
+  Wallet,
+  Plus
 } from 'lucide-react';
 import Link from 'next/link';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
@@ -476,6 +477,14 @@ export default function SellerDashboardClient() {
                   )}
                 </div>
               )}
+              <button
+                type="button"
+                onClick={openCreateFlow}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base font-medium whitespace-nowrap shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              >
+                <Plus className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t('seller.newProductDescription')}</span>
+              </button>
               <Link
                 href="/verkoper/instellingen"
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"

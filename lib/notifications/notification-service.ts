@@ -307,7 +307,11 @@ export class NotificationService {
     // 4. Mobile push (FCM) — alleen chat, zelfde gate als Pusher; faalt nooit de hele send().
     if (channels.includes('push') && pushEnabled && pushTokens.length > 0) {
       try {
-        await this.sendFcmNotificationsForMessage(pushTokens, message);
+        await this.sendFcmNotificationsForMessage(
+          pushTokens,
+          message,
+          userId
+        );
       } catch (e) {
         console.error(
           '[FCM] Onverwachte fout:',
@@ -728,7 +732,8 @@ export class NotificationService {
    */
   private static async sendFcmNotificationsForMessage(
     pushTokens: any[],
-    message: NotificationMessage
+    message: NotificationMessage,
+    receiverId: string
   ): Promise<void> {
     const dataType = message.data?.type as string | undefined;
     const isChat =
@@ -781,15 +786,12 @@ export class NotificationService {
       return platform === 'android' || platform === 'ios' || platform === 'web';
     });
 
-    if (fcmTargets.length > 0) {
-      console.info('[FCM] chat push', {
-        chatPushSenderAvatar: Boolean(avatarUrl),
-        chatPushSenderNamePresent: senderNamePresent,
-        targets: fcmTargets.length,
-      });
-    }
-
     const webIcon = `${getPublicAppUrl()}/icon.png`;
+
+    const platformAttempted: Record<string, number> = {};
+    const platformSucceeded: Record<string, number> = {};
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const row of fcmTargets) {
       const token = row.token as string;
@@ -823,6 +825,9 @@ export class NotificationService {
         androidNotification.imageUrl = avatarUrl;
       }
 
+      const plat = String(row.platform || 'unknown').toLowerCase();
+      platformAttempted[plat] = (platformAttempted[plat] || 0) + 1;
+
       const payload: Parameters<typeof messaging.send>[0] = {
         token,
         notification,
@@ -832,6 +837,10 @@ export class NotificationService {
           notification: androidNotification,
         },
         apns: {
+          headers: {
+            'apns-priority': '10',
+            'apns-push-type': 'alert',
+          },
           payload: {
             aps: {
               alert: {
@@ -856,7 +865,10 @@ export class NotificationService {
 
       try {
         await messaging.send(payload);
+        successCount += 1;
+        platformSucceeded[plat] = (platformSucceeded[plat] || 0) + 1;
       } catch (err: unknown) {
+        failureCount += 1;
         const code = this.fcmErrorCode(err);
         const msg = err instanceof Error ? err.message : String(err);
         const invalid =
@@ -879,6 +891,21 @@ export class NotificationService {
           );
         }
       }
+    }
+
+    if (fcmTargets.length > 0) {
+      console.info('[FCM] chat push summary', {
+        receiverId,
+        tokenCount: fcmTargets.length,
+        successCount,
+        failureCount,
+        hasSound: true,
+        androidChannelId: 'chat_messages',
+        chatPushSenderAvatar: Boolean(avatarUrl),
+        chatPushSenderNamePresent: senderNamePresent,
+        platformAttempted,
+        platformSucceeded,
+      });
     }
   }
 

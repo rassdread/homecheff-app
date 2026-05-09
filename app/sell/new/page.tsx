@@ -104,7 +104,9 @@ function HomeCheffProductNieuwPageContent() {
   const [hubSelectionComplete, setHubSelectionComplete] = useState(false);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [rolesLoaded, setRolesLoaded] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const cameraPhotoInputRef = useRef<HTMLInputElement>(null);
+  const cameraVideoInputRef = useRef<HTMLInputElement>(null);
 
   /** fromInspiratie: vóór paint category/location/phase zetten (geen form-sell flash). */
   useLayoutEffect(() => {
@@ -354,18 +356,15 @@ function HomeCheffProductNieuwPageContent() {
   };
 
   const openGallery = () => {
-    const el = fileInputRef.current;
-    if (!el) return;
-    el.removeAttribute("capture");
-    el.click();
+    galleryFileInputRef.current?.click();
   };
 
-  const openCamera = () => {
-    const el = fileInputRef.current;
-    if (!el) return;
-    el.setAttribute("capture", "environment");
-    el.click();
-    setTimeout(() => el.removeAttribute("capture"), 150);
+  const openCameraPhoto = () => {
+    cameraPhotoInputRef.current?.click();
+  };
+
+  const openCameraVideo = () => {
+    cameraVideoInputRef.current?.click();
   };
 
   const skipPhotoStep = () => {
@@ -386,9 +385,25 @@ function HomeCheffProductNieuwPageContent() {
   return (
     <main className="min-h-screen bg-neutral-50">
       <input
-        ref={fileInputRef}
+        ref={galleryFileInputRef}
         type="file"
         accept="image/*,video/*"
+        className="hidden"
+        onChange={onFileChange}
+      />
+      <input
+        ref={cameraPhotoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={onFileChange}
+      />
+      <input
+        ref={cameraVideoInputRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
         className="hidden"
         onChange={onFileChange}
       />
@@ -532,14 +547,13 @@ function HomeCheffProductNieuwPageContent() {
                 }}
                 className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
               >
-                ← Terug
+                {t("buttons.back")}
               </button>
               <h1 className="text-2xl font-bold text-gray-900 mt-2">
-                Foto toevoegen
+                {t("sellNew.mediaStepTitle")}
               </h1>
               <p className="mt-1 text-sm text-gray-600">
-                Kies een foto of video uit je galerij of maak een nieuwe — of ga
-                door zonder.
+                {t("sellNew.mediaStepSubtitle")}
               </p>
             </div>
             <div className="space-y-3 max-w-md">
@@ -549,20 +563,31 @@ function HomeCheffProductNieuwPageContent() {
                 className="w-full p-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all text-left"
               >
                 <div className="text-2xl mb-1">📷</div>
-                <div className="text-lg font-bold">Galerij</div>
+                <div className="text-lg font-bold">{t("sellNew.galleryTitle")}</div>
                 <div className="text-sm opacity-90">
-                  Kies een foto of video uit je galerij
+                  {t("sellNew.gallerySubtitle")}
                 </div>
               </button>
               <button
                 type="button"
-                onClick={openCamera}
+                onClick={openCameraPhoto}
                 className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all text-left"
               >
                 <div className="text-2xl mb-1">📸</div>
-                <div className="text-lg font-bold">Camera</div>
+                <div className="text-lg font-bold">{t("sellNew.takePhotoTitle")}</div>
                 <div className="text-sm opacity-90">
-                  Maak een nieuwe foto of video
+                  {t("sellNew.takePhotoSubtitle")}
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={openCameraVideo}
+                className="w-full p-5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all text-left"
+              >
+                <div className="text-2xl mb-1">🎬</div>
+                <div className="text-lg font-bold">{t("sellNew.takeVideoTitle")}</div>
+                <div className="text-sm opacity-90">
+                  {t("sellNew.takeVideoSubtitle")}
                 </div>
               </button>
               <button
@@ -570,7 +595,7 @@ function HomeCheffProductNieuwPageContent() {
                 onClick={skipPhotoStep}
                 className="w-full p-4 rounded-xl border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-all"
               >
-                Doorgaan zonder foto
+                {t("sellNew.continueWithoutMedia")}
               </button>
             </div>
           </>

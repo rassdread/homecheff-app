@@ -17,6 +17,7 @@ import {
   writeNativePersistedCache,
 } from '@/lib/native/nativePersistedCache';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+import { saveScrollPosition } from '@/lib/appResumeCache';
 
 const NATIVE_CONV_LIST_KIND = 'conv_list';
 const NATIVE_CONV_LIST_TTL_MS = 10 * 60 * 1000;
@@ -204,9 +205,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     void loadConversations(cached.length === 0);
   }, [sessionStatus, userId, loadConversations, nativeMounted]);
 
-  // Refresh conversations when messages are read
+  // Altijd lijst verversen bij read/unread-events — ook op /messages zonder onMessagesRead-prop.
   useEffect(() => {
-    if (!onMessagesRead) return;
     const handleRefresh = () => {
       void loadConversations(false);
     };
@@ -222,7 +222,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       window.removeEventListener('messagesRead', handleRefresh);
       window.removeEventListener('unreadCountUpdate', handleUnreadCountUpdate);
     };
-  }, [onMessagesRead, loadConversations]);
+  }, [loadConversations]);
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
@@ -275,25 +275,46 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const markConversationAsRead = async (conversationId: string) => {
     try {
-      // Mark all unread messages in this conversation as read
-      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages?limit=1`,
+        {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+        }
+      );
+
       if (response.ok) {
-        // Trigger refresh of conversation list
         if (onMessagesRead) {
           onMessagesRead();
         }
-        
-        // Dispatch custom event to refresh other components
+        try {
+          const countRes = await fetch('/api/messages/unread-count', {
+            cache: 'no-store',
+            credentials: 'include',
+          });
+          const countData = countRes.ok ? await countRes.json() : {};
+          if (typeof countData.count === 'number') {
+            window.dispatchEvent(
+              new CustomEvent('unreadCountUpdate', {
+                detail: { unreadCount: countData.count },
+              })
+            );
+          }
+        } catch {
+          /* ignore */
+        }
         window.dispatchEvent(new CustomEvent('messagesRead'));
+      } else {
+        void loadConversations(false);
       }
     } catch (error) {
       console.error('Error marking conversation as read:', error);
+      void loadConversations(false);
     }
   };
 
@@ -335,6 +356,26 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   }
 
   const openConversation = (conversation: Conversation) => {
+    const uid = getCurrentUserId();
+    const lm = conversation.lastMessage;
+    if (
+      lm &&
+      lm.User?.id &&
+      lm.User.id !== uid &&
+      !lm.readAt
+    ) {
+      const nowIso = new Date().toISOString();
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id !== conversation.id || !c.lastMessage
+            ? c
+            : {
+                ...c,
+                lastMessage: { ...c.lastMessage, readAt: nowIso },
+              }
+        )
+      );
+    }
     onSelectConversation(conversation);
     void markConversationAsRead(conversation.id);
   };

@@ -61,13 +61,15 @@ export default function BottomNavigation() {
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [userRolesLoaded, setUserRolesLoaded] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const cameraPhotoInputRef = useRef<HTMLInputElement>(null);
+  const cameraVideoInputRef = useRef<HTMLInputElement>(null);
   /**
    * Guard tegen Safari/mobile "phantom" click of focus events vlak na het sluiten van de
    * native file picker. Sommige iOS-builds vuren een synthetische tap af op de coördinaten
    * van de oorspronkelijke tap zodra de picker sluit; als die op de modal-overlay valt,
    * sluit de quick-add modal ongewenst en valt de gebruiker terug op het homescreen.
-   * Wordt gezet vlak vóór `fileInputRef.click()` en verlengd tijdens FileReader/compression.
+   * Wordt gezet vlak vóór file-input `.click()` en verlengd tijdens FileReader/compression.
    */
   const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -373,31 +375,20 @@ export default function BottomNavigation() {
     sessionStorage.setItem('quickAddStep', 'photoSource');
   };
   
-  const handlePhotoSourceSelect = (source: 'camera' | 'gallery') => {
+  const handlePhotoSourceSelect = (
+    source: 'gallery' | 'cameraPhoto' | 'cameraVideo'
+  ) => {
     // Arm guard vóór het openen van de native picker. Safari/mobile vuurt soms na het
     // sluiten van de picker een synthetische click af; die mag de modal niet sluiten.
     armFilePickerGuard(1500);
     quickAddDebug('handlePhotoSourceSelect', { source });
-    if (source === 'camera') {
-      // For camera, set capture attribute and open file picker directly
-      // This will show camera option in the file picker on mobile
-      if (fileInputRef.current) {
-        fileInputRef.current.setAttribute('capture', 'environment');
-        fileInputRef.current.click();
-        // Remove capture after click so gallery works normally next time
-        setTimeout(() => {
-          if (fileInputRef.current) {
-            fileInputRef.current.removeAttribute('capture');
-          }
-        }, 100);
-      }
-    } else {
-      // Gallery selected - open file picker without capture
-      if (fileInputRef.current) {
-        fileInputRef.current.removeAttribute('capture');
-        fileInputRef.current.click();
-      }
-    }
+    const ref =
+      source === 'gallery'
+        ? galleryFileInputRef
+        : source === 'cameraPhoto'
+          ? cameraPhotoInputRef
+          : cameraVideoInputRef;
+    ref.current?.click();
   };
 
 
@@ -872,11 +863,27 @@ export default function BottomNavigation() {
 
   return (
     <>
-      {/* Hidden file input - without capture so file picker shows both gallery and camera options */}
+      {/* Aparte inputs: gecombineerd accept + capture laat Android vaak in videomodus starten */}
       <input
-        ref={fileInputRef}
+        ref={galleryFileInputRef}
         type="file"
         accept="image/*,video/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      <input
+        ref={cameraPhotoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      <input
+        ref={cameraVideoInputRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -983,12 +990,22 @@ export default function BottomNavigation() {
                   
                   <button
                     type="button"
-                    onClick={() => handlePhotoSourceSelect('camera')}
+                    onClick={() => handlePhotoSourceSelect('cameraPhoto')}
                     className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
                     <div className="text-2xl mb-1">📸</div>
-                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.cameraTitle')}</div>
-                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.cameraSubtitle')}</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.takePhotoTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.takePhotoSubtitle')}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePhotoSourceSelect('cameraVideo')}
+                    className="w-full p-5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
+                  >
+                    <div className="text-2xl mb-1">🎬</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.takeVideoTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.takeVideoSubtitle')}</div>
                   </button>
                 </div>
               </div>

@@ -43,6 +43,7 @@ export default function VideoUploader({
   const [preview, setPreview] = useState<string | null>(value?.url || null);
   const [thumbnail, setThumbnail] = useState<string | null>(value?.thumbnail || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraVideoInputRef = useRef<HTMLInputElement>(null);
 
   // Update preview and thumbnail when value prop changes (e.g., when editing existing recipe)
   useEffect(() => {
@@ -605,9 +606,11 @@ export default function VideoUploader({
       setCompressing(false);
       setCompressionProgress(0);
       onUploadEnd?.();
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
+      }
+      if (cameraVideoInputRef.current) {
+        cameraVideoInputRef.current.value = '';
       }
       
       // Ensure scroll container is still functional after upload/compression
@@ -683,11 +686,21 @@ export default function VideoUploader({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (cameraVideoInputRef.current) {
+      cameraVideoInputRef.current.value = '';
+    }
   };
 
   const handleClick = () => {
     if (!disabled && !uploading) {
       fileInputRef.current?.click();
+    }
+  };
+
+  const handleCameraVideoClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!disabled && !uploading) {
+      cameraVideoInputRef.current?.click();
     }
   };
 
@@ -781,6 +794,15 @@ export default function VideoUploader({
             disabled={disabled || uploading}
             className="hidden"
           />
+          <input
+            ref={cameraVideoInputRef}
+            type="file"
+            accept="video/*"
+            capture="environment"
+            onChange={handleFileSelect}
+            disabled={disabled || uploading}
+            className="hidden"
+          />
           
           {uploading || compressing ? (
             <div className="space-y-2">
@@ -815,6 +837,16 @@ export default function VideoUploader({
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Max {maxDuration}s • Max 50MB
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCameraVideoClick}
+                  className="mt-3 text-sm font-medium text-emerald-700 hover:text-emerald-800 underline"
+                >
+                  {t('bottomNav.quickAdd.takeVideoTitle')}
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('bottomNav.quickAdd.takeVideoSubtitle')}
                 </p>
               </div>
             </div>

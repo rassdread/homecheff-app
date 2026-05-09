@@ -254,10 +254,11 @@ export default function QuickCamera({ onCapture, onClose, onBack }: QuickCameraP
         )}
       </div>
 
+      {/* Alleen beeld: gecombineerd image+video met capture opent op veel Android-toestellen in videomodus */}
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/jpg,image/png,image/webp,video/*"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/*"
         capture="environment"
         onChange={handleFileSelect}
         className="hidden"

@@ -71,15 +71,20 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
               headers: {
                 'Content-Type': 'application/json',
               },
+              credentials: 'include',
             })
           )
         );
-        
-        const allSuccessful = results.every(response => response.ok);
-        
-        if (allSuccessful) {
+
+        const allSuccessful = results.every((response) => response.ok);
+        const anySuccessful = results.some((response) => response.ok);
+
+        if (anySuccessful) {
           try {
-            const countRes = await fetch('/api/messages/unread-count');
+            const countRes = await fetch('/api/messages/unread-count', {
+              cache: 'no-store',
+              credentials: 'include',
+            });
             const countData = countRes.ok ? await countRes.json() : {};
             if (typeof countData.count === 'number') {
               window.dispatchEvent(
@@ -98,9 +103,18 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
           }
 
           window.dispatchEvent(new CustomEvent('messagesRead'));
+        } else {
+          window.dispatchEvent(new CustomEvent('messagesRead'));
+        }
+
+        if (!allSuccessful) {
+          console.warn(
+            '[MessageList] Sommige read-PUTs mislukten; UI vernieuwt via messagesRead'
+          );
         }
       } catch (error) {
         console.error('Error marking messages as read:', error);
+        window.dispatchEvent(new CustomEvent('messagesRead'));
       }
     };
     
@@ -147,15 +161,20 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                       headers: {
                         'Content-Type': 'application/json',
                       },
+                      credentials: 'include',
                     })
                   )
                 );
-                
-                const allSuccessful = results.every(response => response.ok);
 
-                if (allSuccessful) {
+                const allSuccessful = results.every((response) => response.ok);
+                const anySuccessful = results.some((response) => response.ok);
+
+                if (anySuccessful) {
                   try {
-                    const countRes = await fetch('/api/messages/unread-count');
+                    const countRes = await fetch('/api/messages/unread-count', {
+                      cache: 'no-store',
+                      credentials: 'include',
+                    });
                     const countData = countRes.ok ? await countRes.json() : {};
                     if (typeof countData.count === 'number') {
                       window.dispatchEvent(
@@ -172,9 +191,18 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                     onMessagesRead();
                   }
                   window.dispatchEvent(new CustomEvent('messagesRead'));
+                } else {
+                  window.dispatchEvent(new CustomEvent('messagesRead'));
+                }
+
+                if (!allSuccessful) {
+                  console.warn(
+                    '[MessageList] Sommige read-PUTs mislukten (scroll); lijst vernieuwt'
+                  );
                 }
               } catch (error) {
                 console.error('Error marking messages as read:', error);
+                window.dispatchEvent(new CustomEvent('messagesRead'));
               }
             };
             

@@ -163,6 +163,57 @@ export default function ChatBox({
     void fetchUser();
   }, [session]);
 
+  /**
+   * messages-fast markeert niet als gelezen; deze sync roept dezelfde GET aan als de lijst
+   * (updateMany readAt) zodat deep links en thread zonder list-klik toch de DB bijwerken.
+   */
+  const syncReadReceiptsWithServer = useCallback(
+    async (cid: string) => {
+      if (!cid || !currentUserId) return;
+      try {
+        const r = await fetch(`/api/conversations/${cid}/messages?limit=1`, {
+          cache: 'no-store',
+          credentials: 'include',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!r.ok) return;
+        const nowIso = new Date().toISOString();
+        setMessages((prev) => {
+          const next = prev.map((m) =>
+            m.senderId !== currentUserId && !m.readAt
+              ? { ...m, readAt: nowIso }
+              : m
+          );
+          queueMicrotask(() => {
+            persistThreadMsgs(next);
+          });
+          return next;
+        });
+        try {
+          const countRes = await fetch('/api/messages/unread-count', {
+            cache: 'no-store',
+            credentials: 'include',
+          });
+          const countData = countRes.ok ? await countRes.json() : {};
+          if (typeof countData.count === 'number') {
+            window.dispatchEvent(
+              new CustomEvent('unreadCountUpdate', {
+                detail: { unreadCount: countData.count },
+              })
+            );
+          }
+        } catch {
+          /* ignore */
+        }
+        window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+        window.dispatchEvent(new CustomEvent('messagesRead'));
+      } catch {
+        /* ignore */
+      }
+    },
+    [currentUserId, persistThreadMsgs]
+  );
+
   const loadMessages = useCallback(
     async (
       isInitialLoad = false,
@@ -185,6 +236,7 @@ export default function ChatBox({
           `/api/conversations/${cid}/messages-fast?limit=50`,
           {
             cache: 'no-store',
+            credentials: 'include',
             headers: { 'Cache-Control': 'no-cache' },
             signal,
           }
@@ -209,6 +261,7 @@ export default function ChatBox({
             persistThreadMsgs(newMessages);
             oldestLoadedPageRef.current = 1;
             hasMoreOlderRef.current = Boolean(data.hasMore);
+            void syncReadReceiptsWithServer(cid);
           } else {
             setMessages((prev) => {
               if (epochAtStart !== conversationEpochRef.current) return prev;
@@ -241,7 +294,12 @@ export default function ChatBox({
         } else {
           const fallbackRes = await fetch(
             `/api/conversations/${cid}/messages?limit=50`,
-            { signal }
+            {
+              cache: 'no-store',
+              credentials: 'include',
+              headers: { 'Cache-Control': 'no-cache' },
+              signal,
+            }
           );
           if (stale()) return;
           if (fallbackRes.ok) {
@@ -261,6 +319,7 @@ export default function ChatBox({
               persistThreadMsgs(list);
               oldestLoadedPageRef.current = 1;
               hasMoreOlderRef.current = list.length >= 50;
+              void syncReadReceiptsWithServer(cid);
             } else {
               setMessages((prev) => {
                 if (epochAtStart !== conversationEpochRef.current) return prev;
@@ -293,6 +352,7 @@ export default function ChatBox({
       scrollToBottomSoon,
       scrollToBottomInstant,
       persistThreadMsgs,
+      syncReadReceiptsWithServer,
     ]
   );
 

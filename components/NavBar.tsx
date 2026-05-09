@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, Gift, TrendingUp, DollarSign, Info } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -17,7 +17,6 @@ import { validateAndCleanSession, setupSessionIsolation, performLogout } from '@
 import { getDisplayName } from '@/lib/displayName';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { devBadgeLog } from '@/lib/devBadgeLog';
@@ -26,7 +25,6 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation();
-  const { openCreateFlow } = useCreateFlow();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -289,11 +287,6 @@ export default function NavBar() {
     await performLogout('/');
   };
 
-  const handleVerdienenClick = () => {
-    setIsMobileMenuOpen(false);
-    openCreateFlow();
-  };
-
   useEffect(() => {
     const onNotif = () => void fetchUnreadCount();
     window.addEventListener('notificationsUpdated', onNotif);
@@ -335,15 +328,6 @@ export default function NavBar() {
             >
               <Home className="w-4 h-4" />
               <span>{t("navbar.home")}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex items-center space-x-2"
-              onClick={handleVerdienenClick}
-            >
-              <DollarSign className="w-4 h-4" />
-              <span>{t("bottomNav.earn")}</span>
             </Button>
             <Link href="/werken-bij">
               <Button variant="ghost" className="flex items-center space-x-2">
@@ -467,16 +451,6 @@ export default function NavBar() {
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}
-                      </Link>
-                      
-                      {/* Verdiensten - Gecombineerd overzicht */}
-                      <Link 
-                        href="/verdiensten" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <DollarSign className="w-4 h-4" />
-                        <span>{t("earningsPage.title")}</span>
                       </Link>
                       
                       <Link 
@@ -635,16 +609,6 @@ export default function NavBar() {
                 <span>{t("navbar.home")}</span>
               </Button>
               
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full justify-start flex items-center space-x-2"
-                onClick={handleVerdienenClick}
-              >
-                <DollarSign className="w-4 h-4" />
-                <span>{t("bottomNav.earn")}</span>
-              </Button>
-              
               <Link href="/werken-bij" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
                   <Lightbulb className="w-4 h-4" />
@@ -758,13 +722,6 @@ export default function NavBar() {
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       )}
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/verdiensten" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <DollarSign className="w-4 h-4" />
-                      <span>{t("earningsPage.title")}</span>
                     </Button>
                   </Link>
                   
