@@ -189,8 +189,9 @@ export default function MijnHcpClient() {
 
   const rewardStatusLabel = (s: string) => {
     const map: Record<string, string> = {
-      coming_soon: 'Binnenkort',
-      unlocked: 'Behaald',
+      coming_soon: 'Later beschikbaar',
+      locked: 'Nog niet vrijgespeeld',
+      unlocked: 'Vrijgespeeld',
       active: 'Actief',
       expired: 'Verlopen',
     };
@@ -199,7 +200,7 @@ export default function MijnHcpClient() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10 space-y-4">
+      <div className="mx-auto max-w-2xl space-y-4 px-4 py-10 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))]">
         <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
         <div className="h-36 rounded-2xl bg-gray-100 animate-pulse" />
         <div className="h-28 rounded-xl bg-gray-100 animate-pulse" />
@@ -209,7 +210,7 @@ export default function MijnHcpClient() {
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10 text-center text-red-700">
+      <div className="mx-auto max-w-2xl px-4 py-10 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))] text-center text-red-700">
         {error ?? 'Kon je voortgang niet laden.'}
       </div>
     );
@@ -231,7 +232,7 @@ export default function MijnHcpClient() {
   const challenges = data.weeklyChallenges?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 pb-24 space-y-8">
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))]">
       <HcpWelcomeGate />
 
       <header>
@@ -395,52 +396,34 @@ export default function MijnHcpClient() {
       </section>
 
       {/* Automatische beloningen (server) */}
-      <section aria-labelledby="hcp-rew-heading">
+      <section aria-labelledby="hcp-rew-heading" className="scroll-mt-2">
         <h2 id="hcp-rew-heading" className="text-lg font-bold text-gray-900">
           Beschikbare beloningen
         </h2>
-        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{t(`${HP_REWARDS}.teaser`)}</p>
-        <ul className="mt-3 space-y-2">
+        <p className="mt-1.5 text-xs leading-relaxed text-gray-600">{t(`${HP_REWARDS}.teaser`)}</p>
+        <ul className="mt-4 space-y-3">
           {(data.hcpRewards ?? []).map((r) => (
             <li
               key={r.id}
               className={cn(
-                'rounded-xl border px-3 py-2.5',
+                'rounded-xl border px-3.5 py-3 shadow-sm',
                 r.displayStatus === 'active'
-                  ? 'border-emerald-200 bg-emerald-50/80'
+                  ? 'border-emerald-200/90 bg-emerald-50/70'
                   : r.displayStatus === 'expired'
-                    ? 'border-gray-200 bg-gray-50/80 opacity-80'
+                    ? 'border-gray-200 bg-gray-50/90 opacity-85'
                     : r.displayStatus === 'unlocked'
-                      ? 'border-amber-200 bg-amber-50/60'
+                      ? 'border-amber-200/90 bg-amber-50/50'
                       : r.displayStatus === 'locked'
-                        ? 'border-gray-200 bg-white'
-                        : 'border-violet-100 bg-violet-50/50'
+                        ? 'border-gray-200/90 bg-white'
+                        : 'border-violet-100 bg-violet-50/40'
               )}
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900">{r.title}</p>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                    r.displayStatus === 'active'
-                      ? 'bg-emerald-600 text-white'
-                      : r.displayStatus === 'expired'
-                        ? 'bg-gray-400 text-white'
-                        : r.displayStatus === 'unlocked'
-                          ? 'bg-amber-600 text-white'
-                          : r.displayStatus === 'locked'
-                            ? 'bg-gray-200 text-gray-800'
-                            : 'bg-violet-200 text-violet-900'
-                  )}
-                >
-                  {rewardStatusLabel(r.displayStatus)}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">{r.description}</p>
-              <p className="mt-1 text-[11px] font-medium text-violet-800">{r.requirement}</p>
+              <p className="text-[15px] font-semibold leading-snug text-gray-900">{r.title}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-gray-700">{r.description}</p>
+              <p className="mt-2 text-xs font-medium leading-snug text-teal-800/90">{r.requirement}</p>
               {r.expiresAt ? (
-                <p className="mt-1 text-[10px] text-gray-500">
-                  {r.displayStatus === 'expired' ? 'Verlopen per ' : 'Tot '}
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  {r.displayStatus === 'expired' ? 'Verlopen per ' : 'Geldig tot '}
                   {new Date(r.expiresAt).toLocaleString('nl-NL', {
                     day: 'numeric',
                     month: 'short',
@@ -449,27 +432,48 @@ export default function MijnHcpClient() {
                   })}
                 </p>
               ) : null}
+              <div className="mt-2.5 flex justify-end">
+                <span
+                  className={cn(
+                    'inline-flex max-w-full rounded-full border px-2.5 py-0.5 text-[10px] font-medium leading-tight text-gray-800',
+                    r.displayStatus === 'active'
+                      ? 'border-emerald-200 bg-white/90 text-emerald-900'
+                      : r.displayStatus === 'expired'
+                        ? 'border-gray-200 bg-white/80 text-gray-600'
+                        : r.displayStatus === 'unlocked'
+                          ? 'border-amber-200 bg-white/90 text-amber-950'
+                          : r.displayStatus === 'locked'
+                            ? 'border-gray-200 bg-gray-50 text-gray-700'
+                            : 'border-violet-200 bg-white/90 text-violet-900'
+                  )}
+                >
+                  {rewardStatusLabel(r.displayStatus)}
+                </span>
+              </div>
             </li>
           ))}
         </ul>
       </section>
 
       {/* Leaderboard — scoped */}
-      <section aria-labelledby="hcp-lb-heading">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="hcp-lb-heading" className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-600" aria-hidden />
-            Ranglijsten
+      <section aria-labelledby="hcp-lb-heading" className="scroll-mt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <h2
+            id="hcp-lb-heading"
+            className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-bold text-gray-900"
+          >
+            <Trophy className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+            <span className="min-w-0">Ranglijsten</span>
           </h2>
           <Link
             href="/hcp-ranglijsten"
-            className="text-sm font-semibold text-teal-800 hover:text-teal-950 hover:underline shrink-0"
+            className="inline-flex min-h-[44px] min-w-0 max-w-full shrink-0 items-center self-start text-left text-sm font-semibold leading-snug text-teal-800 underline-offset-2 [overflow-wrap:anywhere] hover:text-teal-950 hover:underline sm:max-w-[min(100%,15rem)] sm:justify-end sm:self-center sm:text-right"
           >
             Bekijk alle ranglijsten →
           </Link>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Gebied">
+        <div className="mt-3 flex flex-wrap gap-2 sm:mt-4" role="tablist" aria-label="Gebied">
           {(
             [
               ['nearby', 'In de buurt'],
@@ -495,7 +499,7 @@ export default function MijnHcpClient() {
           ))}
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-2" role="tablist" aria-label="Periode">
+        <div className="mt-2.5 flex flex-wrap gap-2 sm:mt-3" role="tablist" aria-label="Periode">
           {(
             [
               ['week', 'Deze week'],
