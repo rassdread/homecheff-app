@@ -87,6 +87,7 @@ if (process.env.DATABASE_URL) {
 // 4) Kritieke app-routes bestaan (statisch)
 const routes = [
   "app/api/auth/[...nextauth]/route.ts",
+  "app/api/auth/native/google/route.ts",
   "app/api/register/route.ts",
   "app/api/checkout/session/route.ts",
   "app/api/stripe/webhook/route.ts",

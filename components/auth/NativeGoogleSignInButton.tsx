@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAndroidBridgePresent } from '@/lib/native/useAndroidBridgePresent';
 import { useNativeAndroid } from '@/lib/native/useNativeAndroid';
@@ -14,29 +14,6 @@ const WEB_CLIENT_ID =
   typeof process !== 'undefined'
     ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || ''
     : '';
-
-let googleInitPromise: Promise<void> | null = null;
-
-async function ensureSocialLoginGoogle(webClientId: string): Promise<void> {
-  if (!webClientId) {
-    throw new Error('missing_web_client_id');
-  }
-  if (!googleInitPromise) {
-    googleInitPromise = (async () => {
-      const { SocialLogin } = await import('@capgo/capacitor-social-login');
-      await SocialLogin.initialize({
-        google: {
-          webClientId,
-          mode: 'online',
-        },
-      });
-    })().catch((e) => {
-      googleInitPromise = null;
-      throw e;
-    });
-  }
-  await googleInitPromise;
-}
 
 export type NativeGoogleSignInButtonProps = {
   rememberMe?: boolean;
@@ -60,6 +37,10 @@ export function NativeGoogleSignInButton({
   const showNativeGoogle = androidBridge || nativeAndroid;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Lazy module load: alleen na user-tap; geen top-level import van @capgo/… */
+  const capgoModulePromiseRef = useRef<Promise<
+    typeof import('@capgo/capacitor-social-login')
+  > | null>(null);
 
   const onClick = useCallback(async () => {
     if (busy || disabled) return;
@@ -74,8 +55,27 @@ export function NativeGoogleSignInButton({
       }
 
       setRememberPreference(rememberMe);
-      await ensureSocialLoginGoogle(webClientId);
-      const { SocialLogin } = await import('@capgo/capacitor-social-login');
+
+      if (typeof window === 'undefined') {
+        setError('Google login is alleen beschikbaar in de app.');
+        return;
+      }
+
+      if (!capgoModulePromiseRef.current) {
+        capgoModulePromiseRef.current = import('@capgo/capacitor-social-login').catch(
+          (e) => {
+            capgoModulePromiseRef.current = null;
+            throw e;
+          },
+        );
+      }
+      const { SocialLogin } = await capgoModulePromiseRef.current;
+      await SocialLogin.initialize({
+        google: {
+          webClientId,
+          mode: 'online',
+        },
+      });
       const login = await SocialLogin.login({
         provider: 'google',
         options: { scopes: ['email', 'profile'] },

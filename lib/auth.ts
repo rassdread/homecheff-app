@@ -9,6 +9,7 @@ import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 import { getNextAuthSharedCookieDomain } from "./auth-cookie-domain";
+import { syncGoogleProfileToDatabase } from "./auth/google-account-sync";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -155,94 +156,17 @@ export const authOptions: NextAuthOptions = {
             console.error(`❌ No email provided by ${account.provider}`);
             return false;
           }
-          
-          let existingUser = await prisma.user.findUnique({
-            where: { email: user.email }
+
+          const sync = await syncGoogleProfileToDatabase({
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            firstName: (user as any).firstName,
+            lastName: (user as any).lastName,
           });
 
-          // Single account per email: update existing row only; never second user for same email.
-          if (existingUser) {
-            // Update existing user with latest social data
-            // BUT preserve custom uploaded photos - only use social image if user has no custom photo
-            const updateData: any = {
-              name: user.name || existingUser.name,
-            };
-            
-            // Mark email as verified for social login (provider verified it)
-            if (!existingUser.emailVerified) {
-              updateData.emailVerified = new Date();
-            }
-            
-            // Only update images if user hasn't uploaded a custom profile photo
-            // Check if existing image is from social provider (starts with http) or is a data URL (custom upload)
-            const hasCustomPhoto = existingUser.profileImage && 
-              (!existingUser.profileImage.startsWith('http') || 
-               existingUser.profileImage.startsWith('data:') ||
-               existingUser.profileImage.includes('vercel-storage') ||
-               existingUser.profileImage.includes('blob.vercel-storage'));
-            
-            if (!hasCustomPhoto && user.image) {
-              updateData.image = user.image;
-              updateData.profileImage = user.image;
-            }
-            
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: updateData
-            });
-
-          } else {
-            // NEW USER - Create with temp data, onboarding required
-            let tempUsername = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            
-            // Check if temp username already exists (very unlikely but possible)
-            let usernameExists = await prisma.user.findUnique({ where: { username: tempUsername } });
-            let attempts = 0;
-            while (usernameExists && attempts < 5) {
-              tempUsername = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-              usernameExists = await prisma.user.findUnique({ where: { username: tempUsername } });
-              attempts++;
-            }
-            
-            if (usernameExists) {
-              console.error('❌ Failed to generate unique temp username after 5 attempts');
-              return false;
-            }
-            
-            existingUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name || "",
-                username: tempUsername,
-                image: user.image,
-                profileImage: user.image,
-                passwordHash: "",
-                role: UserRole.BUYER,
-                interests: [],
-                bio: "",
-                socialOnboardingCompleted: false, // Needs onboarding!
-                termsAccepted: false,
-                privacyPolicyAccepted: false,
-                // Mark email as verified for social login (provider verified it)
-                emailVerified: new Date(),
-                // Set default values to match regular registration
-                displayFullName: true,
-                displayNameOption: 'full',
-                showFansList: true,
-                marketingAccepted: false,
-                messageGuidelinesAccepted: false,
-                encryptionEnabled: false,
-                // Initialize empty arrays for consistency
-                sellerRoles: [],
-                buyerRoles: []
-              }
-            });
-
-            // Set flag in user object to indicate new social user
+          if (sync.isNewSocialUser) {
             (user as any).isNewSocialUser = true;
-            
-            // Store firstName and lastName from provider for onboarding form
-            // These come from the provider profile functions (e.g. Google: given_name/family_name)
             (user as any).firstName = (user as any).firstName || '';
             (user as any).lastName = (user as any).lastName || '';
           }
