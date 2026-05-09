@@ -53,11 +53,12 @@ export default function NotificationBell() {
   }, [session?.user?.email]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
     void refreshUnread('mount');
 
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState !== 'visible')
-        return;
+      if (document.visibilityState !== 'visible') return;
       void refreshUnread('poll');
     }, 45000);
 
@@ -71,17 +72,27 @@ export default function NotificationBell() {
     const onPageShow = (event: PageTransitionEvent) =>
       void refreshUnread(event.persisted ? 'pageshow:bfcache' : 'pageshow');
 
-    window.addEventListener('notificationsUpdated', onUpdated);
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('pageshow', onPageShow);
+    try {
+      window.addEventListener('notificationsUpdated', onUpdated);
+      window.addEventListener('focus', onFocus);
+      document.addEventListener('visibilitychange', onVisibility);
+      window.addEventListener('pageshow', onPageShow);
+    } catch (e) {
+      console.warn('[NotificationBell] addEventListener failed', {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('notificationsUpdated', onUpdated);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('pageshow', onPageShow);
+      try {
+        window.removeEventListener('notificationsUpdated', onUpdated);
+        window.removeEventListener('focus', onFocus);
+        document.removeEventListener('visibilitychange', onVisibility);
+        window.removeEventListener('pageshow', onPageShow);
+      } catch {
+        /* ignore */
+      }
     };
   }, [refreshUnread]);
 

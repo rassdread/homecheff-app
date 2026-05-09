@@ -144,46 +144,6 @@ export default function NavBar() {
     }
   }, [ensureProfile]);
 
-  // Sync cart with user ID for isolation and validate session
-  useEffect(() => {
-    // Debug session state
-
-    // Setup session isolation to prevent data leakage
-    setupSessionIsolation();
-    
-    // Validate session integrity
-    validateAndCleanSession();
-
-    if (session?.user?.email) {
-      // Use email as user identifier for cart isolation
-      setCartUserId(session.user.email);
-      // Fetch unread count
-      void fetchUnreadCount('session-change');
-    } else {
-      // No session: clear only UI state. Do NOT call clearNextAuthData() here –
-      // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
-      // wiping cookies would log the user out. clearNextAuthData() is only for explicit logout (handleLogout).
-      setCartUserId(null);
-      setUnreadCount(0);
-      setSellerOrdersUnread(0);
-      setUserProfile(null);
-      hasFetchedProfileRef.current = false;
-    }
-  }, [session, status, user, fetchUnreadCount]);
-
-  useEffect(() => {
-    if (bootstrapProfile) {
-      setUserProfile(bootstrapProfile);
-      hasFetchedProfileRef.current = true;
-    }
-  }, [bootstrapProfile]);
-
-  useEffect(() => {
-    if (isProfileDropdownOpen && !hasFetchedProfileRef.current) {
-      fetchUserProfile();
-    }
-  }, [isProfileDropdownOpen, fetchUserProfile]);
-
   // Berichten-unread + verkoper order-meldingen (orange badge bij verkoper-dashboardlink)
   const fetchUnreadCount = useCallback(async (source: string = 'unknown') => {
     if (!session?.user?.email) return;
@@ -282,6 +242,46 @@ export default function NavBar() {
     });
   }, [session?.user?.email, user]);
 
+  // Sync cart with user ID for isolation and validate session
+  useEffect(() => {
+    // Debug session state
+
+    // Setup session isolation to prevent data leakage
+    setupSessionIsolation();
+    
+    // Validate session integrity
+    validateAndCleanSession();
+
+    if (session?.user?.email) {
+      // Use email as user identifier for cart isolation
+      setCartUserId(session.user.email);
+      // Fetch unread count
+      void fetchUnreadCount('session-change');
+    } else {
+      // No session: clear only UI state. Do NOT call clearNextAuthData() here –
+      // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
+      // wiping cookies would log the user out. clearNextAuthData() is only for explicit logout (handleLogout).
+      setCartUserId(null);
+      setUnreadCount(0);
+      setSellerOrdersUnread(0);
+      setUserProfile(null);
+      hasFetchedProfileRef.current = false;
+    }
+  }, [session, status, user, fetchUnreadCount]);
+
+  useEffect(() => {
+    if (bootstrapProfile) {
+      setUserProfile(bootstrapProfile);
+      hasFetchedProfileRef.current = true;
+    }
+  }, [bootstrapProfile]);
+
+  useEffect(() => {
+    if (isProfileDropdownOpen && !hasFetchedProfileRef.current) {
+      fetchUserProfile();
+    }
+  }, [isProfileDropdownOpen, fetchUserProfile]);
+
   const handleLogout = async () => {
     // performLogout() doet: lokale cleanup → POST /api/auth/force-logout (wist alle cookie-varianten
     // server-side, incl. host-only, .homecheff.eu, __Secure-/__Host- prefixes en chunked .0/.1) →
@@ -291,6 +291,8 @@ export default function NavBar() {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
     const onNotif = () => void fetchUnreadCount('notificationsUpdated');
     const onFocus = () => void fetchUnreadCount('focus');
     const onMessagesRead = () => void fetchUnreadCount('messagesRead');
@@ -302,32 +304,54 @@ export default function NavBar() {
     };
     const onPageShow = (event: PageTransitionEvent) =>
       void fetchUnreadCount(event.persisted ? 'pageshow:bfcache' : 'pageshow');
-    window.addEventListener('notificationsUpdated', onNotif);
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('messagesRead', onMessagesRead);
-    window.addEventListener('unreadCountUpdate', onUnreadUpdate);
-    window.addEventListener('pageshow', onPageShow);
-    document.addEventListener('visibilitychange', onVisibility);
+    try {
+      window.addEventListener('notificationsUpdated', onNotif);
+      window.addEventListener('focus', onFocus);
+      window.addEventListener('messagesRead', onMessagesRead);
+      window.addEventListener('unreadCountUpdate', onUnreadUpdate);
+      window.addEventListener('pageshow', onPageShow);
+      document.addEventListener('visibilitychange', onVisibility);
+    } catch (e) {
+      console.warn('[NavBar] badge listeners attach failed', {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
     return () => {
-      window.removeEventListener('notificationsUpdated', onNotif);
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('messagesRead', onMessagesRead);
-      window.removeEventListener('unreadCountUpdate', onUnreadUpdate);
-      window.removeEventListener('pageshow', onPageShow);
-      document.removeEventListener('visibilitychange', onVisibility);
+      try {
+        window.removeEventListener('notificationsUpdated', onNotif);
+        window.removeEventListener('focus', onFocus);
+        window.removeEventListener('messagesRead', onMessagesRead);
+        window.removeEventListener('unreadCountUpdate', onUnreadUpdate);
+        window.removeEventListener('pageshow', onPageShow);
+        document.removeEventListener('visibilitychange', onVisibility);
+      } catch {
+        /* ignore */
+      }
     };
   }, [fetchUnreadCount]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const onMessagesUnread = (e: Event) => {
       const d = (e as CustomEvent<{ unreadCount?: number }>).detail;
       if (typeof d?.unreadCount === 'number') {
         setUnreadCount(d.unreadCount);
       }
     };
-    window.addEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
-    return () =>
-      window.removeEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
+    try {
+      window.addEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
+    } catch (e) {
+      console.warn('[NavBar] unreadCountUpdate listener attach failed', {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+    return () => {
+      try {
+        window.removeEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
+      } catch {
+        /* ignore */
+      }
+    };
   }, []);
 
   return (
