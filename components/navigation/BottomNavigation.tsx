@@ -13,7 +13,6 @@ import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
-import { useGamificationMe } from '@/hooks/useGamificationMe';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -61,7 +60,6 @@ export default function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, status: sessionStatus } = useSession();
-  const { data: gamificationMe } = useGamificationMe();
   const { t } = useTranslation();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
 
@@ -1492,17 +1490,10 @@ export default function BottomNavigation() {
                 )}
                 aria-label={t('bottomNav.hcpCapsuleAria')}
               >
-                <span className="text-[0.65rem] leading-none sm:text-xs" aria-hidden>
+                <span className="text-[0.7rem] leading-none sm:text-sm" aria-hidden>
                   ⭐
                 </span>
-                {gamificationMe?.level != null ? (
-                  <span className="text-[10px] sm:text-[11px] font-bold text-emerald-950 tabular-nums leading-tight mt-0.5">
-                    L{gamificationMe.level}
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-semibold text-emerald-800/70 mt-0.5 animate-pulse">···</span>
-                )}
-                <span className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wider text-teal-700/95 leading-none mt-0.5">
+                <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-teal-800 leading-tight mt-1">
                   {t('bottomNav.hcpCapsuleBadge')}
                 </span>
               </Link>

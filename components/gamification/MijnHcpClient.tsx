@@ -34,6 +34,8 @@ export default function MijnHcpClient() {
   const [lbLoading, setLbLoading] = useState(true);
   const [lbTab, setLbTab] = useState<Tab>('allTime');
   const [rankMovement, setRankMovement] = useState<string | null>(null);
+  /** Welke vergrendelde badge het uitleg-sheet toont (`null` = gesloten). */
+  const [lockedBadgeSlug, setLockedBadgeSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +91,12 @@ export default function MijnHcpClient() {
     () => (lockedBadgeSlug ? lockedCatalog.find((b) => b.slug === lockedBadgeSlug) ?? null : null),
     [lockedBadgeSlug, lockedCatalog]
   );
+
+  useEffect(() => {
+    if (lockedBadgeSlug != null && lockedSheetEntry == null) {
+      setLockedBadgeSlug(null);
+    }
+  }, [lockedBadgeSlug, lockedSheetEntry]);
 
   const extraEarned = useMemo(
     () =>
@@ -418,8 +426,9 @@ export default function MijnHcpClient() {
           <li>Referrals en uitnodigingen</li>
         </ul>
         <p className="mt-4 text-xs text-gray-600">
-          Nog geen echte geldprijzen of externe koppelingen — HCP is nu vooral zichtbaarheid en plezier op het
-          platform.
+          Er zijn nu geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP. In de toekomst kunnen
+          punten wel worden gekoppeld aan extra zichtbaarheid, beloningen en acties — dat communiceert HomeCheff dan
+          apart en vooraf.
         </p>
       </section>
 
@@ -435,6 +444,12 @@ export default function MijnHcpClient() {
           Terug naar Mijn HC
         </Link>
       </p>
+
+      <HcpLockedBadgeDetailSheet
+        entry={lockedSheetEntry}
+        open={lockedSheetEntry != null}
+        onClose={() => setLockedBadgeSlug(null)}
+      />
     </div>
   );
 }

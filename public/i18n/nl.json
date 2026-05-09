@@ -2872,6 +2872,14 @@
     "exampleAddress": "Bijv. Main Street 123",
     "addressLookupFailed": "Adres lookup mislukt"
   },
+  "hcpWelcome": {
+    "closeBackdrop": "Sluiten",
+    "closeButton": "Sluiten",
+    "title": "Welkom bij HomeCheff Points",
+    "intro": "Met HomeCheff Points verdien je punten door actief te zijn op HomeCheff. Plaats inspiratie, voeg foto's toe, bouw je streak op en verzamel badges. In de toekomst kunnen HCP ook gekoppeld worden aan extra zichtbaarheid, beloningen en acties.",
+    "skip": "Overslaan",
+    "cta": "Start met verdienen"
+  },
   "bottomNav": {
     "discoverTab": "Ontdekken",
     "dorpsplein": "Dorpsplein",
@@ -2880,7 +2888,7 @@
     "shareIdeas": "Ideeën delen",
     "addItems": "➕ Items Toevoegen",
     "addItemsDesc": "Voeg producten of inspiraties toe via galerij.",
-    "hcpCapsuleAria": "HomeCheff Points: bekijk je level en voortgang",
+    "hcpCapsuleAria": "Naar HomeCheff Points",
     "hcpCapsuleBadge": "HCP",
     "messages": "Berichten",
     "messagesDesc": "Verbind met de community. Deel inspiraties en bouw relaties.",

@@ -3438,6 +3438,14 @@
     "clearFilters": "Clear filters",
     "maxPrice": "Max €"
   },
+  "hcpWelcome": {
+    "closeBackdrop": "Close",
+    "closeButton": "Close",
+    "title": "Welcome to HomeCheff Points",
+    "intro": "With HomeCheff Points, you earn points by being active on HomeCheff. Post inspiration, add photos, build your streak and collect badges. In the future, HCP may also be linked to extra visibility, rewards and campaigns.",
+    "skip": "Skip",
+    "cta": "Start earning"
+  },
   "bottomNav": {
     "discoverTab": "Discover",
     "dorpsplein": "Village Square",
@@ -3446,7 +3454,7 @@
     "shareIdeas": "Share ideas",
     "addItems": "➕ Add Items",
     "addItemsDesc": "Add products or inspirations via gallery.",
-    "hcpCapsuleAria": "HomeCheff Points: your level and progress",
+    "hcpCapsuleAria": "Go to HomeCheff Points",
     "hcpCapsuleBadge": "HCP",
     "messages": "Messages",
     "messagesDesc": "Connect with the community. Share inspirations and build relationships.",
