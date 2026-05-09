@@ -3235,7 +3235,30 @@
     "gpsLocationActive": "GPS location active",
     "checkPostcodeAndHouseNumber": "Check postcode and house number",
     "errorLookingUpLocationTitle": "Error looking up location",
-    "locationUnknown": "Location unknown"
+    "locationUnknown": "Location unknown",
+    "hcpActivation": {
+      "sectionTitle": "HomeCheff Points on your home feed",
+      "loadingAria": "Loading HomeCheff Points",
+      "loadError": "Could not load your progress. Try opening My HCP.",
+      "level": "Level {level}",
+      "streakNone": "No login streak yet",
+      "streakOne": "1-day streak",
+      "streakMany": "{count}-day streak",
+      "toNextLevel": "{amount} HCP to level {next}",
+      "freshUserHint": "Earn your first HCP by posting — inspiration or a product on the village square.",
+      "missionsHeading": "Today & this week",
+      "missionLoginToday": "Log in today",
+      "quickActions": "Quick actions",
+      "ctaInspiration": "Post inspiration",
+      "ctaProduct": "Add product",
+      "ctaMijnHcp": "My HCP",
+      "challengeIds": {
+        "insp_1": "Post 1 inspiration item",
+        "photos_5": "Add 5 photos",
+        "login_7": "Log in on 7 days",
+        "video_1": "Post a video"
+      }
+    }
   },
   "deliverySignup": {
     "title": "Become a HomeCheff Ambassador!",
@@ -3423,6 +3446,8 @@
     "shareIdeas": "Share ideas",
     "addItems": "➕ Add Items",
     "addItemsDesc": "Add products or inspirations via gallery.",
+    "hcpCapsuleAria": "HomeCheff Points: your level and progress",
+    "hcpCapsuleBadge": "HCP",
     "messages": "Messages",
     "messagesDesc": "Connect with the community. Share inspirations and build relationships.",
     "profile": "Profile",

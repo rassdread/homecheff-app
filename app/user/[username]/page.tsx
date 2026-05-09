@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { getCurrentDomain } from "@/lib/seo/metadata";
 import { formatCityLabel } from "@/lib/seo/productSlug";
 import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
+import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
 import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
 import PublicProfileClient from "./PublicProfileClient";
 
@@ -409,7 +410,7 @@ export default async function PublicProfilePage({
   const [hcpStats, badgeRows] = await Promise.all([
     prisma.userHcpStats.findUnique({
       where: { userId: user.id },
-      select: { totalHcp: true },
+      select: { totalHcp: true, currentStreak: true },
     }),
     prisma.userBadge.findMany({
       where: { userId: user.id },
@@ -419,8 +420,13 @@ export default async function PublicProfilePage({
     }),
   ]);
 
+  const totalHcp = hcpStats?.totalHcp ?? 0;
+  const level = hcpLevelFromTotal(totalHcp);
   const publicHcp = {
-    level: hcpLevelFromTotal(hcpStats?.totalHcp ?? 0),
+    totalHcp,
+    level,
+    levelTitle: hcpPublicLevelTitle(level),
+    currentStreak: hcpStats?.currentStreak ?? 0,
     badges: badgeRows.map((ub) => ({
       key: ub.badge.slug,
       name: ub.badge.name,

@@ -10,6 +10,7 @@ import RecipeViewer from "./RecipeViewer";
 import GardenManager from "./GardenManager";
 import DesignManager from "../designs/DesignManager";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
 
 type Dish = {
   id: string;
@@ -165,6 +166,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
   const { t } = useTranslation();
   const router = useRouter();
   const safeFetch = useSafeFetch();
+  const hcpRewardUi = useHcpRewardUi();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Dish[]>([]);
   
@@ -531,6 +533,7 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
         setMessage({type: 'success', text: 'Item succesvol opgeslagen!'});
         await load();
         onStatsUpdate?.();
+        await hcpRewardUi?.refetchGamification();
       } else {
         const j = await res.json().catch(() => ({} as any));
         setMessage({type: 'error', text: j?.error ?? t('common.saveFailed')});

@@ -21,6 +21,7 @@ import StripeConnectSetup from './StripeConnectSetup';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import HomeCheffPointsCompactCard from '@/components/gamification/HomeCheffPointsCompactCard';
+import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
 
 // Lazy load heavy components for better performance
 const MyDishesManager = dynamic(() => import('./MyDishesManager'), {
@@ -391,6 +392,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden max-w-[100vw] w-full box-border overflow-hidden">
+      <HcpWelcomeGate />
       {/* Settings Button - Floating */}
       <div className="fixed top-20 right-2 sm:right-4 z-40">
         <button

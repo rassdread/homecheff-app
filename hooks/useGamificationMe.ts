@@ -2,33 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import type { GamificationMeResponse } from '@/lib/gamification/gamification-me-types';
 
-export type GamificationMeData = {
-  totalHcp: number;
-  level: number;
-  currentStreak: number;
-  longestStreak: number;
-  nextLevelHcp: number;
-  hcpToNextLevel: number;
-  recentEvents: Array<{
-    id: string;
-    action: string;
-    points: number;
-    createdAt: string;
-  }>;
-  badges: Array<{
-    slug: string;
-    name: string;
-    description?: string | null;
-    iconKey?: string | null;
-    awardedAt: string;
-  }>;
-};
+export type GamificationMeData = GamificationMeResponse;
 
 type CacheEntry = {
   userId: string;
-  data: GamificationMeData | null;
-  promise: Promise<GamificationMeData | null> | null;
+  data: GamificationMeResponse | null;
+  promise: Promise<GamificationMeResponse | null> | null;
   /** After the first attempt for `userId` finishes (success or failure). */
   settled: boolean;
 };
@@ -39,10 +20,10 @@ function resetCache() {
   cache = null;
 }
 
-async function fetchGamificationMe(): Promise<GamificationMeData | null> {
+async function fetchGamificationMe(): Promise<GamificationMeResponse | null> {
   const res = await fetch('/api/gamification/me', { credentials: 'include' });
   if (!res.ok) return null;
-  return (await res.json()) as GamificationMeData;
+  return (await res.json()) as GamificationMeResponse;
 }
 
 /**
@@ -56,19 +37,19 @@ export function useGamificationMe() {
     [session?.user]
   );
 
-  const [data, setData] = useState<GamificationMeData | null>(null);
+  const [data, setData] = useState<GamificationMeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = useCallback(() => {
-    if (!userId) return;
+  const refetch = useCallback((): Promise<GamificationMeResponse | null> => {
+    if (!userId) return Promise.resolve(null);
     resetCache();
     cache = { userId, data: null, promise: null, settled: false };
     setLoading(true);
     setError(null);
     const p = fetchGamificationMe();
     cache.promise = p;
-    void p
+    return p
       .then((d) => {
         if (cache?.userId === userId) {
           cache.data = d;
@@ -77,6 +58,7 @@ export function useGamificationMe() {
           setData(d);
         }
         setLoading(false);
+        return d;
       })
       .catch(() => {
         setError('Kon HomeCheff Points niet laden');
@@ -86,6 +68,7 @@ export function useGamificationMe() {
           cache.settled = true;
           cache.promise = null;
         }
+        return null;
       });
   }, [userId]);
 

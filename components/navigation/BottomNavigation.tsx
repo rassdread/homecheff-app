@@ -20,6 +20,20 @@ type Platform = 'dorpsplein' | 'inspiratie';
 type Category = 'CHEFF' | 'GARDEN' | 'DESIGNER';
 type Location = 'keuken' | 'tuin' | 'atelier' | 'recepten' | 'kweken' | 'designs';
 
+/** Bottom tabs: soft pill active state, calm hover — aligns with HomeCheff emerald/teal. */
+function navTabClasses(active: boolean, isNativeShell: boolean) {
+  return cn(
+    'flex flex-col items-center justify-center w-full max-w-[5rem] mx-auto rounded-2xl transition-all duration-200 ease-out',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+    active
+      ? 'text-primary-brand bg-gradient-to-b from-emerald-500/[0.18] to-teal-600/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-emerald-400/35'
+      : 'text-gray-600 hover:text-gray-900 hover:bg-slate-50/95 active:bg-slate-100/85',
+    isNativeShell
+      ? 'min-h-[52px] min-w-[48px] px-1 py-2 touch-manipulation active:scale-[0.97]'
+      : 'min-h-[48px] px-1 py-1.5 sm:py-2'
+  );
+}
+
 function QuickAddMediaPreview({ media, alt }: { media: string; alt: string }) {
   const isVideo = media.startsWith('data:video/');
   if (isVideo) {
@@ -266,6 +280,7 @@ export default function BottomNavigation() {
   };
 
   const isFeedDiscoverActive = pathname === '/';
+  const isHcpRouteActive = pathname === '/mijn-hcp';
 
   // Signup promo modals: niet tonen tijdens sessie-loading (voorkomt "community" achter native push).
   useEffect(() => {
@@ -313,7 +328,7 @@ export default function BottomNavigation() {
     if (!session?.user || !pathname) return;
 
     const runPrefetch = () => {
-      const routesToPrefetch = ['/messages', '/profile', '/'];
+      const routesToPrefetch = ['/messages', '/profile', '/mijn-hcp', '/'];
       routesToPrefetch.forEach((route) => {
         if (pathname === route || pathname.startsWith(route)) return;
         router.prefetch(route);
@@ -1339,57 +1354,45 @@ export default function BottomNavigation() {
         data-hc-bottom-nav
         className={cn(
           /* Geen pointer-events-none hier: op Android WebView kan dat scroll-gesture routing breken. */
-          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden bg-white border-t border-gray-200 px-2 sm:px-4 z-40 transition-[box-shadow,padding,border-color] duration-200 ease-out',
+          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden z-40 transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
+          'bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/88 border-t border-emerald-100/70',
+          'shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
           isNativeShell
-            ? 'shadow-[0_-6px_28px_-2px_rgba(0,0,0,0.12)] border-primary-brand/15 py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))]'
-            : 'shadow-lg py-2'
+            ? 'py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))] px-2 sm:px-3'
+            : 'py-2.5 px-2 sm:px-4'
         )}
       >
         <div
           className={cn(
-            'flex items-center justify-around max-w-4xl mx-auto min-w-0 gap-0 sm:gap-1',
-            isNativeShell && 'gap-0.5'
+            'flex items-center max-w-4xl mx-auto min-w-0',
+            'gap-x-1 sm:gap-x-2 md:gap-x-3'
           )}
         >
           {/* Home Button */}
-          <button
-            onClick={feedDiscoverConfig.onClick}
-            className={cn(
-              'flex flex-col items-center justify-center min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none rounded-lg transition-all duration-150 ease-out',
-              isFeedDiscoverActive
-                ? 'text-primary-brand'
-                : 'text-gray-600 hover:text-gray-900',
-              isNativeShell
-                ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
-                : 'p-1.5 sm:p-2',
-              isNativeShell &&
-                isFeedDiscoverActive &&
-                'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
-            )}
-          >
-            <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{feedDiscoverConfig.icon}</div>
-            <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{feedDiscoverConfig.label}</span>
-          </button>
+          <div className="flex-1 min-w-0 flex justify-center">
+            <button
+              type="button"
+              onClick={feedDiscoverConfig.onClick}
+              className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
+            >
+              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">{feedDiscoverConfig.icon}</div>
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                {feedDiscoverConfig.label}
+              </span>
+            </button>
+          </div>
 
           {/* Dashboard */}
-          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
+          <div className="relative group flex-1 min-w-0 flex justify-center">
             <button
+              type="button"
               onClick={handleDashboardClick}
-              className={cn(
-                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
-                pathname?.startsWith('/verkoper')
-                  ? 'text-primary-brand'
-                  : 'text-gray-600 hover:text-gray-900',
-                isNativeShell
-                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
-                  : 'p-1.5 sm:p-2',
-                isNativeShell &&
-                  pathname?.startsWith('/verkoper') &&
-                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
-              )}
+              className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
             >
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💰</div>
-              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}</span>
+              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                {session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}
+              </span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
@@ -1404,23 +1407,31 @@ export default function BottomNavigation() {
             )}
           </div>
 
-          {/* ADD Button (FAB) */}
-          <div className="relative group flex-shrink-0">
+          {/* ADD Button (FAB) — blijft dominant met zachte emerald-glow */}
+          <div className="relative group flex-shrink-0 flex justify-center px-0.5 sm:px-1.5">
             <button
+              type="button"
               onClick={handleQuickAddClick}
               className={cn(
-                'relative bg-gradient-to-r from-primary-brand to-primary-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-110 active:scale-95',
+                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation active:scale-95',
+                'bg-gradient-to-br from-primary-brand via-emerald-600 to-teal-600',
+                'shadow-[0_8px_26px_-6px_rgba(16,185,129,0.55),0_4px_14px_-4px_rgba(14,116,144,0.35)]',
+                'hover:shadow-[0_10px_32px_-6px_rgba(16,185,129,0.6)] hover:scale-[1.06]',
+                'ring-[3px] ring-white/95 ring-offset-2 ring-offset-transparent',
+                'focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/45 focus-visible:ring-offset-2',
                 /* Native: geen negatieve top — anders reikt de hit-box van z-40-laag ver de feed in (Android WebView blokkeert scroll). */
                 isNativeShell
-                  ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem] ring-[3px] ring-white/80'
-                  : '-top-4 p-3 sm:p-4'
+                  ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem]'
+                  : '-top-3 sm:-top-4 p-3 sm:p-[1.05rem]'
               )}
+              aria-label={t('bottomNav.addItems')}
             >
               <svg
-                className={cn(isNativeShell ? 'w-9 h-9' : 'w-8 h-8')}
+                className={cn(isNativeShell ? 'w-9 h-9' : 'w-8 h-8 sm:w-9 sm:h-9')}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4"></path>
               </svg>
@@ -1439,24 +1450,16 @@ export default function BottomNavigation() {
           </div>
 
           {/* Berichten */}
-          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
+          <div className="relative group flex-1 min-w-0 flex justify-center">
             <button
+              type="button"
               onClick={handleMessagesClick}
-              className={cn(
-                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
-                isActive('/messages')
-                  ? 'text-primary-brand'
-                  : 'text-gray-600 hover:text-gray-900',
-                isNativeShell
-                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
-                  : 'p-1.5 sm:p-2',
-                isNativeShell &&
-                  isActive('/messages') &&
-                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
-              )}
+              className={navTabClasses(isActive('/messages'), isNativeShell)}
             >
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">💬</div>
-              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{t('bottomNav.messages')}</span>
+              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                {t('bottomNav.messages')}
+              </span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
@@ -1471,38 +1474,52 @@ export default function BottomNavigation() {
             )}
           </div>
 
+          {/* HomeCheff Points — eigen capsule tussen Berichten en Mijn HC (zelfde design-taal als de balk) */}
+          {session?.user ? (
+            <div className="flex-shrink-0 flex items-center justify-center px-0.5 sm:px-1 md:px-1.5">
+              <Link
+                href="/mijn-hcp"
+                prefetch
+                className={cn(
+                  'flex flex-col items-center justify-center rounded-2xl touch-manipulation transition-all duration-200 ease-out',
+                  'min-h-[52px] min-w-[3.25rem] sm:min-w-[3.5rem] px-2 py-1.5',
+                  'bg-gradient-to-b from-emerald-50/98 via-teal-50/92 to-cyan-50/75',
+                  'border border-emerald-200/60 shadow-[0_3px_16px_-6px_rgba(13,148,136,0.28),inset_0_1px_0_rgba(255,255,255,0.85)]',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+                  isHcpRouteActive
+                    ? 'ring-2 ring-emerald-400/50 ring-offset-2 ring-offset-white scale-[1.02]'
+                    : 'hover:border-teal-300/85 hover:shadow-[0_5px_20px_-6px_rgba(13,148,136,0.38)] active:scale-[0.97]'
+                )}
+                aria-label={t('bottomNav.hcpCapsuleAria')}
+              >
+                <span className="text-[0.65rem] leading-none sm:text-xs" aria-hidden>
+                  ⭐
+                </span>
+                {gamificationMe?.level != null ? (
+                  <span className="text-[10px] sm:text-[11px] font-bold text-emerald-950 tabular-nums leading-tight mt-0.5">
+                    L{gamificationMe.level}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-emerald-800/70 mt-0.5 animate-pulse">···</span>
+                )}
+                <span className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wider text-teal-700/95 leading-none mt-0.5">
+                  {t('bottomNav.hcpCapsuleBadge')}
+                </span>
+              </Link>
+            </div>
+          ) : null}
+
           {/* Profiel */}
-          <div className="relative group min-w-0 flex-1 max-w-[4.5rem] sm:max-w-none">
+          <div className="relative group flex-1 min-w-0 flex justify-center">
             <button
+              type="button"
               onClick={handleProfileClick}
-              className={cn(
-                'relative flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
-                isActive('/profile')
-                  ? 'text-primary-brand'
-                  : 'text-gray-600 hover:text-gray-900',
-                isNativeShell
-                  ? 'min-h-[48px] p-2 sm:p-2.5 touch-manipulation active:scale-[0.97]'
-                  : 'p-1.5 sm:p-2',
-                isNativeShell &&
-                  isActive('/profile') &&
-                  'bg-primary-brand/[0.12] ring-2 ring-primary-brand/35'
-              )}
+              className={navTabClasses(isActive('/profile'), isNativeShell)}
             >
-              <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">👤</div>
-              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}</span>
-              {session?.user && gamificationMe?.level != null ? (
-                <Link
-                  href="/mijn-hcp"
-                  onClick={(e) => e.stopPropagation()}
-                  className={cn(
-                    'absolute z-10 flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full border border-amber-400/70 bg-amber-100 px-1 text-[9px] font-bold leading-none text-amber-950 shadow-sm hover:bg-amber-200 touch-manipulation',
-                    isNativeShell ? 'right-1 top-0.5' : 'right-2 top-0'
-                  )}
-                  aria-label="Bekijk je HomeCheff Points"
-                >
-                  L{gamificationMe.level}
-                </Link>
-              ) : null}
+              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                {session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}
+              </span>
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">

@@ -11,6 +11,7 @@ import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
 type Uploaded = { 
   url: string; 
@@ -56,6 +57,7 @@ export default function CompactChefForm({
     ? (tagSuggestionsRaw as unknown[]).filter((v): v is string => typeof v === 'string')
     : [];
   const { data: session } = useSession();
+  const hcpRewardUi = useHcpRewardUi();
   const searchParams = useSearchParams();
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -472,6 +474,7 @@ export default function CompactChefForm({
       
       if (res.ok) {
         console.log('✅ [CompactChefForm] Product created/updated successfully');
+        await hcpRewardUi?.refetchGamification();
         if (onSave) {
           onSave(data.product || data);
         } else {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, Award, CheckCircle } from 'lucide-react';
+import { Plus, Grid, List, Filter, Search, Heart, Users, ShoppingBag, Calendar, MapPin, User, Clock, Star, Eye, Truck, Camera, CheckCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -105,12 +105,20 @@ interface Tab {
   role?: string;
 }
 
+export type PublicProfileHcpPayload = {
+  totalHcp: number;
+  level: number;
+  levelTitle: string;
+  currentStreak: number;
+  badges: Array<{ key: string; name: string; icon: string }>;
+};
+
 interface PublicProfileClientProps {
   user: User;
   openNewProducts: boolean;
   isOwnProfile?: boolean;
-  /** Publiek zichtbaar: level + badges — géén exacte HCP-totaal. */
-  publicHcp?: { level: number; badges: Array<{ key: string; name: string; icon: string }> } | null;
+  /** Publieke HCP-weergave (geen eventgeschiedenis). */
+  publicHcp?: PublicProfileHcpPayload | null;
 }
 
 export default function PublicProfileClient({
@@ -120,6 +128,15 @@ export default function PublicProfileClient({
   publicHcp = null,
 }: PublicProfileClientProps) {
   const { t } = useTranslation();
+  const [showAllPublicBadges, setShowAllPublicBadges] = useState(false);
+  const hcpPublic =
+    publicHcp ?? ({
+      totalHcp: 0,
+      level: 1,
+      levelTitle: 'Nieuwkomer',
+      currentStreak: 0,
+      badges: [],
+    } satisfies PublicProfileHcpPayload);
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
   const [workspaceSubTab, setWorkspaceSubTab] = useState<'chef' | 'garden' | 'designer'>('chef');
@@ -544,6 +561,57 @@ export default function PublicProfileClient({
                 </div>
               </div>
 
+              {/* HomeCheff Points — publiek (level, badges, streak; geen HCP-eventlog) */}
+              <div
+                className="mb-4 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 px-3 py-3 sm:px-4 sm:py-3.5 shadow-sm"
+                aria-label="HomeCheff Points op dit profiel"
+              >
+                <p className="text-sm font-semibold text-gray-900">
+                  Level {hcpPublic.level}{' '}
+                  <span className="font-normal text-gray-600">· {hcpPublic.levelTitle}</span>
+                  {hcpPublic.currentStreak >= 1 ? (
+                    <span className="font-normal text-amber-900">
+                      {' '}
+                      · 🔥{' '}
+                      {hcpPublic.currentStreak === 1
+                        ? '1 dag streak'
+                        : `${hcpPublic.currentStreak} dagen streak`}
+                    </span>
+                  ) : null}
+                </p>
+                {hcpPublic.badges.length > 0 ? (
+                  <div className="mt-2.5 space-y-2">
+                    <div className="flex flex-wrap justify-center lg:justify-start gap-2">
+                      <UserBadgeChips badges={hcpPublic.badges.slice(0, 3)} max={3} size="md" />
+                    </div>
+                    {hcpPublic.badges.length > 3 ? (
+                      <div className="text-center lg:text-left">
+                        <button
+                          type="button"
+                          className="text-xs sm:text-sm font-semibold text-emerald-800 hover:underline"
+                          aria-expanded={showAllPublicBadges}
+                          onClick={() => setShowAllPublicBadges((v) => !v)}
+                        >
+                          {showAllPublicBadges ? 'Minder tonen' : 'Bekijk alle badges'}
+                        </button>
+                        {showAllPublicBadges ? (
+                          <div className="mt-2 flex flex-wrap justify-center lg:justify-start gap-2">
+                            <UserBadgeChips badges={hcpPublic.badges.slice(3)} max={24} size="sm" />
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : isOwnProfile ? (
+                  <p className="mt-2 text-xs text-gray-600">
+                    Nog geen badges zichtbaar voor anderen —{' '}
+                    <Link href="/mijn-hcp" className="font-semibold text-emerald-800 hover:underline">
+                      bekijk HomeCheff Points
+                    </Link>
+                  </p>
+                ) : null}
+              </div>
+
               {/* Quote */}
               {user.quote && (
                 <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
@@ -599,73 +667,42 @@ export default function PublicProfileClient({
                 ))}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-6">
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100">
-                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                  <span className="font-medium text-gray-900">{allProducts.length}</span>
-                  <span className="hidden sm:inline">items</span>
+              {/* Stats — grid blijft stabiel op mobiel (o.a. 2 kolommen, daarna meer) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-6">
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100 min-w-0">
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-blue-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">{allProducts.length}</span>
+                  <span className="hidden sm:inline truncate">items</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-2 rounded-lg border border-yellow-100">
-                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600" />
-                  <span className="font-medium text-gray-900">{userStats.reviews}</span>
-                  <span className="hidden sm:inline">reviews</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-2 rounded-lg border border-yellow-100 min-w-0">
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-yellow-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">{userStats.reviews}</span>
+                  <span className="hidden sm:inline truncate">reviews</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100">
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
-                  <span className="font-medium text-gray-900">{userStats.followers}</span>
-                  <span className="hidden sm:inline">fans</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100 min-w-0">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-purple-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">{userStats.followers}</span>
+                  <span className="hidden sm:inline truncate">fans</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-pink-50 to-red-50 px-3 py-2 rounded-lg border border-pink-100">
-                  <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-600" />
-                  <span className="font-medium text-gray-900">{userStats.props}</span>
-                  <span className="hidden sm:inline">props</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-pink-50 to-red-50 px-3 py-2 rounded-lg border border-pink-100 min-w-0">
+                  <Heart className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-pink-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">{userStats.props}</span>
+                  <span className="hidden sm:inline truncate">props</span>
                 </div>
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-teal-50 to-cyan-50 px-3 py-2 rounded-lg border border-teal-100">
-                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-teal-600" />
-                  <span className="font-medium text-gray-900">{user.profileViews || 0}</span>
-                  <span className="hidden sm:inline">views</span>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-teal-50 to-cyan-50 px-3 py-2 rounded-lg border border-teal-100 min-w-0">
+                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-teal-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">{user.profileViews || 0}</span>
+                  <span className="hidden sm:inline truncate">views</span>
+                </div>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-amber-50 to-yellow-50 px-3 py-2 rounded-lg border border-amber-200 min-w-0">
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-amber-600" />
+                  <span className="font-medium text-gray-900 tabular-nums">
+                    {hcpPublic.totalHcp.toLocaleString('nl-NL')}
+                  </span>
+                  <span className="truncate text-gray-700 font-medium">HCP</span>
                 </div>
               </div>
 
-              {publicHcp && (publicHcp.badges.length > 0 || isOwnProfile) ? (
-                <div
-                  id="hc-competenties"
-                  className="mb-6 rounded-xl border border-amber-100 bg-amber-50/50 px-4 py-4 text-left"
-                >
-                  <h3 className="text-sm font-bold text-amber-950 uppercase tracking-wide">Competenties</h3>
-                  <p className="mt-1 text-xs text-gray-600">
-                    Level <span className="font-semibold text-gray-900">{publicHcp.level}</span> op HomeCheff
-                  </p>
-                  {publicHcp.badges.length > 0 ? (
-                    <div className="mt-3 space-y-3">
-                      <UserBadgeChips badges={publicHcp.badges.slice(0, 3)} max={3} size="md" />
-                      {publicHcp.badges.length > 3 ? (
-                        <div>
-                          <Link
-                            href="#hc-competenties-alle"
-                            className="text-sm font-semibold text-emerald-800 hover:underline"
-                          >
-                            Bekijk alle badges
-                          </Link>
-                          <div id="hc-competenties-alle" className="mt-2">
-                            <UserBadgeChips badges={publicHcp.badges.slice(3)} max={12} size="sm" />
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : isOwnProfile ? (
-                    <p className="mt-2 text-sm text-gray-600">
-                      Nog geen badges — verdien HCP via je activiteit (zie{' '}
-                      <Link href="/mijn-hcp" className="font-semibold text-emerald-800 hover:underline">
-                        Mijn HCP
-                      </Link>
-                      ).
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-              
               {/* Action Buttons - Volledig Responsive */}
               <div className="grid grid-cols-2 gap-3">
                 <FollowButton 

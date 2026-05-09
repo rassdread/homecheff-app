@@ -10,6 +10,7 @@ export function iconKeyToDisplayIcon(iconKey: string | null | undefined): string
   if (!iconKey) return FALLBACK_ICON;
   const k = iconKey.trim().toLowerCase();
   const map: Record<string, string> = {
+    medal: '🥇',
     photo: '📸',
     fotokoning: '📸',
     active: '🔥',
@@ -20,7 +21,14 @@ export function iconKeyToDisplayIcon(iconKey: string | null | undefined): string
     verkoper: '🛒',
     community: '🤝',
     review: '⭐',
+    star: '⭐',
+    spark: '✨',
+    user: '👤',
+    heart: '❤️',
+    rocket: '🚀',
     streak: '🔥',
+    fire: '🔥',
+    cart: '🛒',
     chef: '👨‍🍳',
     garden: '🌿',
     design: '🎨',

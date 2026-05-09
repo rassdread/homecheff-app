@@ -22,6 +22,7 @@ export type DailyLoginResult = { recorded: boolean; duplicate?: boolean };
 export async function recordDailyLoginIfNeeded(userId: string): Promise<DailyLoginResult> {
   const today = utcCalendarDateString();
   const yesterday = utcYesterdayCalendarString();
+  const streakBox = { sevenPoints: 0 };
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -89,6 +90,7 @@ export async function recordDailyLoginIfNeeded(userId: string): Promise<DailyLog
             where: { userId },
             data: { totalHcp: { increment: seven } },
           });
+          streakBox.sevenPoints = seven;
         } catch (e: unknown) {
           if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) {
             throw e;
@@ -101,6 +103,12 @@ export async function recordDailyLoginIfNeeded(userId: string): Promise<DailyLog
       return { recorded: false, duplicate: true };
     }
     throw e;
+  }
+
+  const { runPostHcpAwardEffects } = await import('@/lib/gamification/hcp-side-effects');
+  await runPostHcpAwardEffects(userId, 'DAILY_LOGIN', HCP_ACTION_POINTS.DAILY_LOGIN);
+  if (streakBox.sevenPoints > 0) {
+    await runPostHcpAwardEffects(userId, 'SEVEN_DAY_STREAK', streakBox.sevenPoints);
   }
 
   return { recorded: true };

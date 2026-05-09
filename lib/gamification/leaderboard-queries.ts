@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { hcpLevelFromTotal } from '@/lib/gamification/hcp-level';
 import { fetchAuthorBadgeSummariesByUserIds, type AuthorBadgeChip } from '@/lib/gamification/author-badge-summaries';
+import { hcpIsoWeekKeyUtc } from '@/lib/gamification/weekly-challenges';
 
 export type LeaderboardRow = {
   rank: number;
@@ -11,6 +12,7 @@ export type LeaderboardRow = {
   level: number;
   score: number;
   badgeSummaries: AuthorBadgeChip[];
+  isCurrentUser: boolean;
 };
 
 function mondayStartUtc(now = new Date()): Date {
@@ -67,7 +69,8 @@ async function buildRowsFromUserIds(
   orderedUserIds: string[],
   scoreFn: (userId: string) => number,
   levelFn: (userId: string) => number,
-  take: number
+  take: number,
+  viewerId: string | null | undefined
 ): Promise<LeaderboardRow[]> {
   const slice = orderedUserIds.slice(0, take);
   const users = await usersForIds(slice);
@@ -83,6 +86,7 @@ async function buildRowsFromUserIds(
       level: levelFn(userId),
       score: scoreFn(userId),
       badgeSummaries: badges.get(userId) ?? [],
+      isCurrentUser: Boolean(viewerId && viewerId === userId),
     };
   });
 }
@@ -143,24 +147,29 @@ export async function getLeaderboardPayload(opts: { take?: number; currentUserId
 
   const levelFor = (userId: string) => hcpLevelFromTotal(allTimeTotal.get(userId) ?? 0);
 
+  const viewer = opts.currentUserId ?? null;
+
   const [allTime, weekly, monthly] = await Promise.all([
     buildRowsFromUserIds(
       allTimeUserIds,
       (uid) => allTimeStats.find((s) => s.userId === uid)?.totalHcp ?? 0,
       levelFor,
-      take
+      take,
+      viewer
     ),
     buildRowsFromUserIds(
       weeklySorted,
       (uid) => weeklyScore.get(uid) ?? 0,
       levelFor,
-      take
+      take,
+      viewer
     ),
     buildRowsFromUserIds(
       monthlySorted,
       (uid) => monthlyScore.get(uid) ?? 0,
       levelFor,
-      take
+      take,
+      viewer
     ),
   ]);
 
@@ -183,5 +192,15 @@ export async function getLeaderboardPayload(opts: { take?: number; currentUserId
     };
   }
 
-  return { allTime, weekly, monthly, me };
+  return {
+    allTime,
+    weekly,
+    monthly,
+    me,
+    meta: {
+      weekKey: hcpIsoWeekKeyUtc(),
+      weekStartUtc: weekStart.toISOString(),
+      monthStartUtc: monthStart.toISOString(),
+    },
+  };
 }

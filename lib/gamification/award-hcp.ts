@@ -70,5 +70,10 @@ export async function awardHcpTx(
 }
 
 export async function awardHcp(input: AwardHcpInput): Promise<AwardHcpResult> {
-  return prisma.$transaction((tx) => awardHcpTx(tx, input));
+  const result = await prisma.$transaction((tx) => awardHcpTx(tx, input));
+  if (result.awarded && result.points != null) {
+    const { runPostHcpAwardEffects } = await import('@/lib/gamification/hcp-side-effects');
+    void runPostHcpAwardEffects(input.userId, String(input.action), result.points);
+  }
+  return result;
 }

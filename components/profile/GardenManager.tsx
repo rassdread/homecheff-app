@@ -7,6 +7,7 @@ import GardenGrowthPhotos from "./GardenGrowthPhotos";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
 type GardenPhoto = {
   id: string;
@@ -135,6 +136,7 @@ interface GardenManagerProps {
 }
 
 export default function GardenManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: GardenManagerProps) {
+  const hcpRewardUi = useHcpRewardUi();
   const { t } = useTranslation();
   const [projects, setProjects] = useState<GardenProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -541,6 +543,7 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
 
       if (response.ok) {
         const result = await response.json();
+        await hcpRewardUi?.refetchGamification();
 
         // Reset form
         setFormData({

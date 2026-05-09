@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, X, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
@@ -96,6 +97,7 @@ interface RecipeManagerProps {
 }
 
 export default function RecipeManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: RecipeManagerProps) {
+  const hcpRewardUi = useHcpRewardUi();
   const { t, getTranslationObject } = useTranslation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -679,6 +681,7 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
       });
 
       if (response.ok) {
+        await hcpRewardUi?.refetchGamification();
         // Reset form
         setFormData({
           title: '',

@@ -6,6 +6,9 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { recordDailyLoginIfNeeded } from '@/lib/gamification/daily-login-hcp';
 import { hcpProgressToNextLevel } from '@/lib/gamification/hcp-level';
+import { consumePendingClientRewards } from '@/lib/gamification/hcp-pending-client';
+import { getWeeklyChallengesForUser } from '@/lib/gamification/weekly-challenges';
+import type { GamificationMeResponse } from '@/lib/gamification/gamification-me-types';
 
 export async function GET() {
   try {
@@ -21,9 +24,17 @@ export async function GET() {
       console.warn('[gamification/me] daily login', e);
     }
 
-    const stats = await prisma.userHcpStats.findUnique({
-      where: { userId },
-    });
+    const [user, pendingRewards, stats, weekly] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { hcpWelcomeSeenAt: true },
+      }),
+      consumePendingClientRewards(userId),
+      prisma.userHcpStats.findUnique({
+        where: { userId },
+      }),
+      getWeeklyChallengesForUser(userId),
+    ]);
 
     const totalHcp = stats?.totalHcp ?? 0;
     const { level, nextLevelHcp, hcpToNextLevel } = hcpProgressToNextLevel(totalHcp);
@@ -65,7 +76,7 @@ export async function GET() {
       awardedAt: ub.awardedAt.toISOString(),
     }));
 
-    return NextResponse.json({
+    const body: GamificationMeResponse = {
       totalHcp,
       level,
       currentStreak: stats?.currentStreak ?? 0,
@@ -77,7 +88,12 @@ export async function GET() {
       badges,
       nextLevelHcp,
       hcpToNextLevel,
-    });
+      pendingClientRewards: pendingRewards,
+      hcpWelcomePending: user?.hcpWelcomeSeenAt == null,
+      weeklyChallenges: { weekKey: weekly.weekKey, items: weekly.items },
+    };
+
+    return NextResponse.json(body);
   } catch (e) {
     console.error('[gamification/me]', e);
     return NextResponse.json({ error: 'Serverfout' }, { status: 500 });

@@ -6,6 +6,7 @@ import ReviewList from '@/components/reviews/ReviewList';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
 interface DishReviewSectionProps {
   dishId: string;
@@ -36,6 +37,7 @@ interface DishReview {
 
 export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
   const { t } = useTranslation();
+  const hcpRewardUi = useHcpRewardUi();
   const { data: session } = useSession();
   const [reviews, setReviews] = useState<DishReview[]>([]);
   const [reviewCount, setReviewCount] = useState(0);
@@ -116,6 +118,7 @@ export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
         setShowReviewForm(false);
         // Recalculate average rating
         await fetchReviewCount();
+        await hcpRewardUi?.refetchGamification();
       } else {
         const error = await response.json();
         console.error('❌ Review submission error:', error);

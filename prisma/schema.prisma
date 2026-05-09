@@ -77,6 +77,8 @@ model User {
   hideHomeHero                           Boolean                   @default(false)
   /// Homepage: gebruiker heeft de sectie "Hoe het werkt" gesloten
   hideHowItWorks                         Boolean                   @default(false)
+  /// HCP V2: welkom-onboarding (Mijn HC / Mijn HCP) eenmalig afgehandeld
+  hcpWelcomeSeenAt                       DateTime?
   dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
   Account                                Account[]
   AdminAction                            AdminAction[]
@@ -1566,6 +1568,10 @@ model UserHcpStats {
   longestStreak    Int     @default(0)
   /// UTC calendar date (YYYY-MM-DD) when DAILY_LOGIN was last awarded.
   lastDailyHcpDate String?
+  /// Client toasts (+HCP, badge, streak) — gelezen en gewist via GET /api/gamification/me
+  pendingClientRewards Json?
+  /// V2 weekly challenges progress (weekKey + per-challenge counters)
+  weeklyChallengesJson Json?
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

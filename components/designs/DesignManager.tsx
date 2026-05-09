@@ -6,6 +6,7 @@ import DesignPhotoUpload from "./DesignPhotoUpload";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
 type DesignPhoto = {
   id: string;
@@ -74,6 +75,7 @@ interface DesignManagerProps {
 
 export default function DesignManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: DesignManagerProps) {
   const { t, tOr } = useTranslation();
+  const hcpRewardUi = useHcpRewardUi();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -444,6 +446,7 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
       });
       if (response.ok) {
         const result = await response.json();
+        await hcpRewardUi?.refetchGamification();
         // Clear localStorage draft
         localStorage.removeItem('designFormDraft');
         setHasDraft(false);

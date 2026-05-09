@@ -6,6 +6,7 @@ import ReviewList from '@/components/reviews/ReviewList';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
 interface ProductReviewSectionProps {
   productId: string;
@@ -48,6 +49,7 @@ interface ProductReview {
 
 export default function ProductReviewSection({ productId }: ProductReviewSectionProps) {
   const { t } = useTranslation();
+  const hcpRewardUi = useHcpRewardUi();
   const { data: session } = useSession();
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [reviewCount, setReviewCount] = useState(0);
@@ -162,6 +164,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
         setShowReviewForm(false);
         // Recalculate average rating
         await fetchReviewCount();
+        await hcpRewardUi?.refetchGamification();
       } else {
         const error = await response.json();
         alert(error.error || 'Er is een fout opgetreden bij het plaatsen van je review');

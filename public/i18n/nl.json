@@ -2880,6 +2880,8 @@
     "shareIdeas": "Ideeën delen",
     "addItems": "➕ Items Toevoegen",
     "addItemsDesc": "Voeg producten of inspiraties toe via galerij.",
+    "hcpCapsuleAria": "HomeCheff Points: bekijk je level en voortgang",
+    "hcpCapsuleBadge": "HCP",
     "messages": "Berichten",
     "messagesDesc": "Verbind met de community. Deel inspiraties en bouw relaties.",
     "profile": "Profiel",
@@ -4332,7 +4334,30 @@
     "gpsLocationActive": "GPS locatie actief",
     "checkPostcodeAndHouseNumber": "Controleer postcode en huisnummer",
     "errorLookingUpLocationTitle": "Fout bij locatie opzoeken",
-    "locationUnknown": "Locatie onbekend"
+    "locationUnknown": "Locatie onbekend",
+    "hcpActivation": {
+      "sectionTitle": "HomeCheff Points op je home",
+      "loadingAria": "HomeCheff Points worden geladen",
+      "loadError": "Kon je voortgang niet laden. Probeer Mijn HCP te openen.",
+      "level": "Level {level}",
+      "streakNone": "Nog geen login-streak",
+      "streakOne": "1 dag streak",
+      "streakMany": "{count} dagen streak",
+      "toNextLevel": "Nog {amount} HCP tot level {next}",
+      "freshUserHint": "Verdien je eerste HCP door iets te plaatsen — inspiratie of een product op het dorpsplein.",
+      "missionsHeading": "Vandaag & deze week",
+      "missionLoginToday": "Log vandaag in",
+      "quickActions": "Snel aan de slag",
+      "ctaInspiration": "Plaats inspiratie",
+      "ctaProduct": "Product toevoegen",
+      "ctaMijnHcp": "Mijn HCP",
+      "challengeIds": {
+        "insp_1": "Plaats 1 inspiratie-item",
+        "photos_5": "Voeg 5 foto's toe",
+        "login_7": "Log 7 dagen in",
+        "video_1": "Plaats een video"
+      }
+    }
   },
   "filterBar": {
     "clearFilters": "Wis filters",

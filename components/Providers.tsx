@@ -11,6 +11,7 @@ import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
 import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
+import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   // This hook ensures session isolation
@@ -41,7 +42,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <SessionGuard />
       <SessionIsolationWrapper>
         <UserBootstrapProvider>
-          <CreateFlowProvider>{children}</CreateFlowProvider>
+          <HcpRewardProvider>
+            <CreateFlowProvider>{children}</CreateFlowProvider>
+          </HcpRewardProvider>
         </UserBootstrapProvider>
       </SessionIsolationWrapper>
     </SessionProvider>

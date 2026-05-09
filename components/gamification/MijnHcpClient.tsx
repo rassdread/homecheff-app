@@ -8,14 +8,22 @@ import { HCP_BADGE_CATALOG } from '@/lib/gamification/badge-catalog';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
 import { iconKeyToDisplayIcon } from '@/lib/gamification/author-badge-summaries';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
+import { HCP_V2_REWARD_CATALOG } from '@/lib/gamification/v2-reward-catalog';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
+import UserBadgeChips from '@/components/gamification/UserBadgeChips';
+import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
+import {
+  HcpLockedBadgeButton,
+  HcpLockedBadgeDetailSheet,
+} from '@/components/gamification/HcpLockedBadgeExplainer';
 
 type LeaderboardPayload = {
   allTime: LeaderboardRow[];
   weekly: LeaderboardRow[];
   monthly: LeaderboardRow[];
   me?: { allTimeRank: number | null; weeklyRank: number | null; monthlyRank: number | null };
+  meta?: { weekKey: string; weekStartUtc: string; monthStartUtc: string };
 };
 
 type Tab = 'allTime' | 'weekly' | 'monthly';
@@ -25,6 +33,7 @@ export default function MijnHcpClient() {
   const [lb, setLb] = useState<LeaderboardPayload | null>(null);
   const [lbLoading, setLbLoading] = useState(true);
   const [lbTab, setLbTab] = useState<Tab>('allTime');
+  const [rankMovement, setRankMovement] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +54,25 @@ export default function MijnHcpClient() {
     };
   }, []);
 
+  useEffect(() => {
+    setRankMovement(null);
+    if (typeof window === 'undefined' || !lb?.meta || !lb.me) return;
+    const curr =
+      lbTab === 'allTime' ? lb.me.allTimeRank : lbTab === 'weekly' ? lb.me.weeklyRank : lb.me.monthlyRank;
+    if (curr == null) return;
+    const periodId =
+      lbTab === 'monthly' ? lb.meta.monthStartUtc : lbTab === 'weekly' ? lb.meta.weekKey : 'all';
+    const key = `hc_lb_prev_${lbTab}_${periodId}`;
+    const prevS = localStorage.getItem(key);
+    if (prevS != null) {
+      const prev = Number(prevS);
+      if (Number.isFinite(prev) && prev !== curr) {
+        setRankMovement(curr < prev ? '↑ Gestegen' : '↓ Gedaald');
+      }
+    }
+    localStorage.setItem(key, String(curr));
+  }, [lb, lbTab]);
+
   const earnedSlugs = useMemo(() => new Set((data?.badges ?? []).map((b) => b.slug)), [data?.badges]);
 
   const earnedCatalog = useMemo(
@@ -57,6 +85,11 @@ export default function MijnHcpClient() {
     [earnedSlugs]
   );
 
+  const lockedSheetEntry = useMemo(
+    () => (lockedBadgeSlug ? lockedCatalog.find((b) => b.slug === lockedBadgeSlug) ?? null : null),
+    [lockedBadgeSlug, lockedCatalog]
+  );
+
   const extraEarned = useMemo(
     () =>
       (data?.badges ?? []).filter((b) => !HCP_BADGE_CATALOG.some((c) => c.slug === b.slug)),
@@ -67,8 +100,10 @@ export default function MijnHcpClient() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10 text-center text-gray-600">
-        HomeCheff Points laden…
+      <div className="mx-auto max-w-2xl px-4 py-10 space-y-4">
+        <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
+        <div className="h-36 rounded-2xl bg-gray-100 animate-pulse" />
+        <div className="h-28 rounded-xl bg-gray-100 animate-pulse" />
       </div>
     );
   }
@@ -94,9 +129,12 @@ export default function MijnHcpClient() {
         : `${data.currentStreak} dagen streak`;
 
   const lastEvent = data.recentEvents?.[0];
+  const challenges = data.weeklyChallenges?.items ?? [];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 pb-24 space-y-8">
+      <HcpWelcomeGate />
+
       <header>
         <h1 className="text-2xl font-bold text-gray-900">HomeCheff Points</h1>
         <p className="text-sm text-gray-600 mt-1">Jouw voortgang, badges en ranglijsten.</p>
@@ -112,7 +150,7 @@ export default function MijnHcpClient() {
           <span aria-hidden>⭐</span> {data.totalHcp.toLocaleString('nl-NL')} HCP
         </p>
         <p className="mt-2 text-gray-800">
-          Level <span className="font-bold">{data.level}</span>
+          Level <span className="font-bold text-amber-900">{data.level}</span>
         </p>
         <p className="mt-1 text-sm text-gray-700">
           <span aria-hidden>🔥</span> {streakText}
@@ -121,8 +159,11 @@ export default function MijnHcpClient() {
           ) : null}
         </p>
         <div className="mt-4">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-amber-100" aria-hidden>
-            <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${progressPct}%` }} />
+          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-amber-100/90 shadow-inner" aria-hidden>
+            <div
+              className="relative h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
           <p className="mt-2 text-xs text-gray-600">
             Nog {data.hcpToNextLevel.toLocaleString('nl-NL')} HCP tot level {data.level + 1} (doel:{' '}
@@ -196,16 +237,17 @@ export default function MijnHcpClient() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-500 mb-2">Nog te behalen</h3>
+            <p className="text-xs text-gray-500 mb-2">
+              Tik op een badge voor uitleg (mobiel). Op desktop zie je ook een hint bij hover of toetsenbordfocus.
+            </p>
             <div className="flex flex-wrap gap-2">
               {lockedCatalog.map((b) => (
-                <span
+                <HcpLockedBadgeButton
                   key={b.slug}
-                  className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500"
-                  title={b.description}
-                >
-                  <span aria-hidden>{iconKeyToDisplayIcon(b.iconKey)}</span>
-                  {b.name}
-                </span>
+                  entry={b}
+                  expanded={lockedBadgeSlug === b.slug}
+                  onOpen={() => setLockedBadgeSlug(b.slug)}
+                />
               ))}
               {lockedCatalog.length === 0 ? (
                 <span className="text-sm text-gray-600">Je hebt alle catalogus-badges! 🎉</span>
@@ -215,18 +257,65 @@ export default function MijnHcpClient() {
         </div>
       </section>
 
+      {/* Weekly challenges */}
+      <section aria-labelledby="hcp-ch-heading">
+        <h2 id="hcp-ch-heading" className="text-lg font-bold text-gray-900">
+          Uitdagingen van deze week
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">Korte doelen — automatisch gevolgd op basis van je activiteit.</p>
+        <ul className="mt-3 space-y-2">
+          {challenges.length === 0 ? (
+            <li className="text-sm text-gray-600">Challenges worden geladen bij je volgende bezoek.</li>
+          ) : (
+            challenges.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2.5"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{c.title}</p>
+                  <p className="text-xs text-gray-500">{c.description}</p>
+                </div>
+                <span className="shrink-0 text-xs font-semibold text-emerald-800 tabular-nums">
+                  {c.completed ? '✓' : `${c.progress}/${c.target}`}
+                </span>
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
+
+      {/* Placeholder rewards */}
+      <section aria-labelledby="hcp-rew-heading">
+        <h2 id="hcp-rew-heading" className="text-lg font-bold text-gray-900">
+          Beschikbare beloningen
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Placeholders voor toekomstige visibility-spotlights — nog geen automatische uitbetaling of Stripe.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {HCP_V2_REWARD_CATALOG.map((r) => (
+            <li key={r.id} className="rounded-xl border border-violet-100 bg-violet-50/50 px-3 py-2.5">
+              <p className="text-sm font-semibold text-violet-950">{r.title}</p>
+              <p className="text-xs text-gray-600">{r.description}</p>
+              <p className="mt-1 text-[11px] font-medium text-violet-800">{r.requirement}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Leaderboard */}
       <section aria-labelledby="hcp-lb-heading">
         <h2 id="hcp-lb-heading" className="text-lg font-bold text-gray-900 flex items-center gap-2">
           <Trophy className="h-5 w-5 text-amber-600" aria-hidden />
           Ranglijsten
         </h2>
-        <p className="text-xs text-gray-500 mt-1">Top HomeCheffers — algemeen, deze week en deze maand.</p>
+        <p className="text-xs text-gray-500 mt-1">Tabs: algemeen · deze week · deze maand. Jouw rij is gemarkeerd.</p>
 
         <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Periode ranglijst">
           {(
             [
-              ['allTime', 'Top algemeen'],
+              ['allTime', 'Algemeen'],
               ['weekly', 'Deze week'],
               ['monthly', 'Deze maand'],
             ] as const
@@ -254,6 +343,9 @@ export default function MijnHcpClient() {
             Jouw plek: algemeen #{lb.me.allTimeRank ?? '—'}
             {lb.me.weeklyRank != null ? ` · deze week #${lb.me.weeklyRank}` : ''}
             {lb.me.monthlyRank != null ? ` · deze maand #${lb.me.monthlyRank}` : ''}
+            {rankMovement ? (
+              <span className="ml-2 font-semibold text-emerald-800">{rankMovement}</span>
+            ) : null}
           </p>
         ) : null}
 
@@ -266,7 +358,12 @@ export default function MijnHcpClient() {
             {rows.map((r) => (
               <li
                 key={`${lbTab}-${r.userId}`}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2"
+                className={cn(
+                  'flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2 sm:flex-nowrap',
+                  r.isCurrentUser
+                    ? 'border-amber-300 bg-amber-50/70 ring-2 ring-amber-400/40'
+                    : 'border-gray-100 bg-white'
+                )}
               >
                 <span className="w-7 text-center text-sm font-bold text-amber-800 tabular-nums">{r.rank}</span>
                 <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
@@ -277,8 +374,19 @@ export default function MijnHcpClient() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900">{r.displayName}</p>
+                  <p className="truncate font-medium text-gray-900">
+                    {r.displayName}
+                    {r.isCurrentUser ? (
+                      <span className="ml-2 text-[10px] font-bold uppercase text-amber-800">Jij</span>
+                    ) : null}
+                  </p>
                   <p className="truncate text-xs text-gray-500">@{r.username ?? '—'} · Level {r.level}</p>
+                  <UserBadgeChips
+                    badges={r.badgeSummaries.map((b) => ({ key: b.key, name: b.name, icon: b.icon }))}
+                    max={2}
+                    size="sm"
+                    className="mt-1"
+                  />
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-emerald-800 tabular-nums">
                   {r.score.toLocaleString('nl-NL')} HCP

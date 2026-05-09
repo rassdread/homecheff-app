@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import { MAIN_DOMAIN } from "@/lib/seo/constants";
+import HcpActivationCard from "@/components/gamification/HcpActivationCard";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -241,6 +242,7 @@ export default function HomePageClient({
               {welcomeLine}
             </p>
           )}
+          {session?.user ? <HcpActivationCard className="mb-4 sm:mb-5" /> : null}
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}
