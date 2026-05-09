@@ -55,28 +55,28 @@ export default function BusinessUpgradeCallout() {
 
   return (
     <div
-      className="mb-6 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50/90 to-white p-4 sm:p-5 shadow-sm"
+      className="mb-6 w-full min-w-0 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50/90 to-white p-4 sm:p-5 shadow-sm"
       role="region"
       aria-label={t('seller.businessUpgradeCallout.regionLabel')}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-3 min-w-0">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
+      <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+        <div className="flex min-w-0 flex-1 gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
             <Building2 className="h-5 w-5" aria-hidden />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-gray-900 sm:text-base">
+          <div className="min-w-0 flex-1">
+            <h2 className="break-words text-sm font-semibold text-gray-900 sm:text-base">
               {t('seller.businessUpgradeCallout.title')}
             </h2>
-            <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+            <p className="mt-1 break-words text-sm leading-relaxed text-gray-700">
               {t('seller.businessUpgradeCallout.body')}
             </p>
-            <p className="mt-2 text-xs text-gray-600">
+            <p className="mt-2 break-words text-xs text-gray-600">
               {t('seller.businessUpgradeCallout.buyersNote')}
             </p>
           </div>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-shrink-0 sm:min-w-[200px]">
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-[min(100%,20rem)]">
           {needsCompanyInfo ? (
             <Link
               href="/verkoper/instellingen"

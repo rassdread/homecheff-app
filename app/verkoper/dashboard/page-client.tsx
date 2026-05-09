@@ -408,7 +408,7 @@ export default function SellerDashboardClient() {
         {/* Header: titel + beschrijving altijd boven de periode/instellingen, geen overlap */}
         <div className="mb-6 sm:mb-8">
           {/* Regel 1: Titel en beschrijving volle breedte, eigen blok - nooit bedekt door periode */}
-          <div className="w-full block mb-4">
+          <div className="mb-4 block w-full min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
             <StripeConnectPaymentsBanner />
