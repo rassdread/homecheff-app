@@ -39,6 +39,8 @@ function LoginForm() {
     showPassword: false,
     loginMethod: 'email',
   });
+  const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
+  const [googleAuthChecked, setGoogleAuthChecked] = useState(false);
 
   const message = searchParams?.get('message');
   const rawCallbackUrl = searchParams?.get('callbackUrl') || '/';
@@ -57,6 +59,39 @@ function LoginForm() {
     if (!nativeMounted) return;
     setState((prev) => ({ ...prev, rememberMe: true }));
   }, [nativeMounted]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkGoogleProvider = async () => {
+      try {
+        const res = await fetch('/api/auth/providers', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          if (!cancelled) {
+            setGoogleAuthEnabled(false);
+            setGoogleAuthChecked(true);
+          }
+          return;
+        }
+        const providers = (await res.json()) as Record<string, unknown>;
+        if (!cancelled) {
+          setGoogleAuthEnabled(Boolean(providers?.google));
+          setGoogleAuthChecked(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setGoogleAuthEnabled(false);
+          setGoogleAuthChecked(true);
+        }
+      }
+    };
+    void checkGoogleProvider();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   
   // Pre-fill email if provided in URL (bijv. na registratie)
   useEffect(() => {
@@ -300,13 +335,13 @@ function LoginForm() {
       // Don't fail login if GA tracking fails
     }
 
-    if (isNativeApp() && provider === "google") {
+    if (provider === "google" && !googleAuthEnabled) {
       setState({
         ...state,
         isLoading: false,
         error:
-          t("login.errors.googleUnavailableInApp") ||
-          "In de app werkt inloggen met Google nog niet betrouwbaar. Gebruik je e-mailadres en wachtwoord.",
+          t("login.errors.socialLoginError", { provider }) ||
+          "Google login is momenteel niet beschikbaar.",
         success: false,
       });
       return;
@@ -590,7 +625,7 @@ function LoginForm() {
                   e.stopPropagation();
                   handleSocialLogin("google");
                 }}
-                disabled={state.isLoading || nativeMounted}
+                disabled={state.isLoading || !googleAuthEnabled}
                 className="w-full inline-flex justify-center items-center px-6 py-4 border-2 border-gray-200 rounded-2xl shadow-sm bg-white text-base font-semibold text-gray-800 hover:border-emerald-300 hover:bg-emerald-50 active:bg-emerald-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 group"
               >
                 <svg className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
@@ -601,6 +636,11 @@ function LoginForm() {
                 </svg>
                 <span className="group-hover:text-emerald-700 transition-colors duration-200">{t('login.loginWithGoogle')}</span>
               </button>
+              {!googleAuthEnabled && googleAuthChecked && (
+                <p className="text-xs text-center text-gray-500">
+                  Google login is tijdelijk niet beschikbaar door ontbrekende configuratie.
+                </p>
+              )}
             </div>
           </div>
 

@@ -21,6 +21,12 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
 }
 
 const sharedSessionCookieDomain = getNextAuthSharedCookieDomain();
+const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim() || "";
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim() || "";
+const isGoogleAuthConfigured = Boolean(googleClientId && googleClientSecret);
+if (!isGoogleAuthConfigured) {
+  console.warn("[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET");
+}
 const sessionCookieOptions = {
   httpOnly: true,
   sameSite: 'lax' as const,
@@ -60,26 +66,30 @@ export const authOptions: NextAuthOptions = {
     },
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      authorization: {
-        params: {
-          scope: "openid email profile",
-        },
-      },
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-          // Google provides given_name and family_name separately
-          firstName: profile.given_name || '',
-          lastName: profile.family_name || '',
-        };
-      },
-    }),
+    ...(isGoogleAuthConfigured
+      ? [
+          GoogleProvider({
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+            authorization: {
+              params: {
+                scope: "openid email profile",
+              },
+            },
+            profile(profile) {
+              return {
+                id: profile.sub,
+                name: profile.name,
+                email: profile.email,
+                image: profile.picture,
+                // Google provides given_name and family_name separately
+                firstName: profile.given_name || '',
+                lastName: profile.family_name || '',
+              };
+            },
+          }),
+        ]
+      : []),
     Credentials({
       name: "Inloggen",
       credentials: {

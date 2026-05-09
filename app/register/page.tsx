@@ -240,6 +240,8 @@ function RegisterPageContent() {
   const { data: session, status, update: updateSession } = useSession();
   const { t } = useTranslation();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
+  const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
+  const [googleAuthChecked, setGoogleAuthChecked] = useState(false);
   
   // Get inviteToken from URL (for sub-affiliate signup)
   const inviteToken = searchParams?.get('inviteToken');
@@ -287,6 +289,40 @@ function RegisterPageContent() {
     }
   }, [searchParams, router]);
   const isSocialLogin = searchParams?.get('social') === 'true';
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkGoogleProvider = async () => {
+      try {
+        const res = await fetch('/api/auth/providers', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          if (!cancelled) {
+            setGoogleAuthEnabled(false);
+            setGoogleAuthChecked(true);
+          }
+          return;
+        }
+        const providers = (await res.json()) as Record<string, unknown>;
+        if (!cancelled) {
+          setGoogleAuthEnabled(Boolean(providers?.google));
+          setGoogleAuthChecked(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setGoogleAuthEnabled(false);
+          setGoogleAuthChecked(true);
+        }
+      }
+    };
+
+    void checkGoogleProvider();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   
   // Load hints for this page
   const pageHints = getHintsForPage('register');
@@ -1445,6 +1481,15 @@ function RegisterPageContent() {
 
 
   async function handleSocialLogin(provider: string) {
+    if (provider === "google" && !googleAuthEnabled) {
+      setState(prev => ({
+        ...prev,
+        error:
+          t('register.errors.socialLoginError', { provider }) ||
+          'Google login is momenteel niet beschikbaar.',
+      }));
+      return;
+    }
     try {
       // For social login, redirect to registration page to complete profile
       // Note: This will go through social-login-success which checks onboarding status
@@ -2055,7 +2100,8 @@ function RegisterPageContent() {
                         e.stopPropagation();
                         handleSocialLogin("google");
                       }}
-                      className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md"
+                      disabled={!googleAuthEnabled}
+                      className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -2065,6 +2111,11 @@ function RegisterPageContent() {
                       </svg>
                       {t('register.continueWithGoogle')}
                     </button>
+                    {!googleAuthEnabled && googleAuthChecked && (
+                      <p className="text-xs text-center text-gray-500">
+                        Google login is tijdelijk niet beschikbaar door ontbrekende configuratie.
+                      </p>
+                    )}
                   </div>
                 )}
 
