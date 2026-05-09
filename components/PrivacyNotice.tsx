@@ -32,7 +32,7 @@ const PrivacyNotice: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md">
+    <div className="fixed right-4 z-[35] max-w-md bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))]">
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-6">
         <div className="flex items-start space-x-3 mb-4">
           <Shield className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-1" />

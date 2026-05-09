@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { Info, MapPin, Sparkles, Trophy } from 'lucide-react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { useTranslation } from '@/hooks/useTranslation';
-import { HCP_BADGE_CATALOG } from '@/lib/gamification/badge-catalog';
+import {
+  HCP_BADGE_CATALOG,
+  badgeCatalogEntryBySlug,
+  type BadgeCatalogEntry,
+} from '@/lib/gamification/badge-catalog';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
-import { iconKeyToDisplayIcon } from '@/lib/gamification/author-badge-summaries';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
@@ -15,8 +18,9 @@ import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
 import {
+  HcpBadgeDetailSheet,
+  HcpEarnedBadgeButton,
   HcpLockedBadgeButton,
-  HcpLockedBadgeDetailSheet,
 } from '@/components/gamification/HcpLockedBadgeExplainer';
 
 type ScopedLbResponse = {
@@ -52,8 +56,10 @@ export default function MijnHcpClient() {
   const [gpsPos, setGpsPos] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [rankMovement, setRankMovement] = useState<string | null>(null);
-  /** Welke vergrendelde badge het uitleg-sheet toont (`null` = gesloten). */
-  const [lockedBadgeSlug, setLockedBadgeSlug] = useState<string | null>(null);
+  /** Open badge-detail (zelfde sheet): vergrendeld of behaald. */
+  const [badgeSheet, setBadgeSheet] = useState<{ mode: 'locked' | 'earned'; slug: string } | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -142,16 +148,36 @@ export default function MijnHcpClient() {
     [earnedSlugs]
   );
 
-  const lockedSheetEntry = useMemo(
-    () => (lockedBadgeSlug ? lockedCatalog.find((b) => b.slug === lockedBadgeSlug) ?? null : null),
-    [lockedBadgeSlug, lockedCatalog]
-  );
-
   useEffect(() => {
-    if (lockedBadgeSlug != null && lockedSheetEntry == null) {
-      setLockedBadgeSlug(null);
+    if (!badgeSheet) return;
+    if (badgeSheet.mode === 'locked') {
+      if (!lockedCatalog.some((b) => b.slug === badgeSheet.slug)) setBadgeSheet(null);
+    } else if (!earnedSlugs.has(badgeSheet.slug)) {
+      setBadgeSheet(null);
     }
-  }, [lockedBadgeSlug, lockedSheetEntry]);
+  }, [badgeSheet, lockedCatalog, earnedSlugs]);
+
+  const badgeSheetModel = useMemo(() => {
+    if (!badgeSheet || !data) return null;
+    const { mode, slug } = badgeSheet;
+    if (mode === 'locked') {
+      const e = lockedCatalog.find((b) => b.slug === slug);
+      return e ? ({ mode, entry: e, earnedAtIso: null } as const) : null;
+    }
+    const apiBadge = data.badges.find((b) => b.slug === slug);
+    if (!apiBadge) return null;
+    const catalog = badgeCatalogEntryBySlug(slug);
+    const entry: BadgeCatalogEntry =
+      catalog ??
+      ({
+        slug: apiBadge.slug,
+        name: apiBadge.name,
+        description: apiBadge.description ?? 'Speciale badge op je account.',
+        iconKey: apiBadge.iconKey ?? 'spark',
+        unlockHint: '',
+      } satisfies BadgeCatalogEntry);
+    return { mode: 'earned' as const, entry, earnedAtIso: apiBadge.awardedAt };
+  }, [badgeSheet, data, lockedCatalog]);
 
   const extraEarned = useMemo(
     () =>
@@ -282,24 +308,34 @@ export default function MijnHcpClient() {
         <div className="mt-4 space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-emerald-800 mb-2">Behaald</h3>
+            <p className="text-xs text-gray-500 mb-2">
+              Tik op een behaalde badge voor datum en uitleg; tik op een open badge om te zien hoe je die verdient.
+            </p>
             <div className="flex flex-wrap gap-2">
-              {extraEarned.map((b) => (
-                <span
-                  key={b.slug}
-                  className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-900"
-                >
-                  <span aria-hidden>{iconKeyToDisplayIcon(b.iconKey)}</span>
-                  {b.name}
-                </span>
-              ))}
+              {extraEarned.map((b) => {
+                const entry: BadgeCatalogEntry = {
+                  slug: b.slug,
+                  name: b.name,
+                  description: b.description ?? 'Speciale badge op je account.',
+                  iconKey: b.iconKey ?? 'spark',
+                  unlockHint: '',
+                };
+                return (
+                  <HcpEarnedBadgeButton
+                    key={b.slug}
+                    entry={entry}
+                    expanded={badgeSheet?.mode === 'earned' && badgeSheet.slug === b.slug}
+                    onOpen={() => setBadgeSheet({ mode: 'earned', slug: b.slug })}
+                  />
+                );
+              })}
               {earnedCatalog.map((b) => (
-                <span
+                <HcpEarnedBadgeButton
                   key={b.slug}
-                  className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-900"
-                >
-                  <span aria-hidden>{iconKeyToDisplayIcon(b.iconKey)}</span>
-                  {b.name}
-                </span>
+                  entry={b}
+                  expanded={badgeSheet?.mode === 'earned' && badgeSheet.slug === b.slug}
+                  onOpen={() => setBadgeSheet({ mode: 'earned', slug: b.slug })}
+                />
               ))}
               {earnedCatalog.length === 0 && extraEarned.length === 0 ? (
                 <span className="text-sm text-gray-600">
@@ -311,15 +347,15 @@ export default function MijnHcpClient() {
           <div>
             <h3 className="text-sm font-semibold text-gray-500 mb-2">Nog te behalen</h3>
             <p className="text-xs text-gray-500 mb-2">
-              Tik op een badge voor uitleg (mobiel). Op desktop zie je ook een hint bij hover of toetsenbordfocus.
+              Op desktop zie je bij open badges ook een hint bij hover of toetsenbordfocus.
             </p>
             <div className="flex flex-wrap gap-2">
               {lockedCatalog.map((b) => (
                 <HcpLockedBadgeButton
                   key={b.slug}
                   entry={b}
-                  expanded={lockedBadgeSlug === b.slug}
-                  onOpen={() => setLockedBadgeSlug(b.slug)}
+                  expanded={badgeSheet?.mode === 'locked' && badgeSheet.slug === b.slug}
+                  onOpen={() => setBadgeSheet({ mode: 'locked', slug: b.slug })}
                 />
               ))}
               {lockedCatalog.length === 0 ? (
@@ -651,10 +687,12 @@ export default function MijnHcpClient() {
         </Link>
       </p>
 
-      <HcpLockedBadgeDetailSheet
-        entry={lockedSheetEntry}
-        open={lockedSheetEntry != null}
-        onClose={() => setLockedBadgeSlug(null)}
+      <HcpBadgeDetailSheet
+        open={badgeSheetModel != null}
+        onClose={() => setBadgeSheet(null)}
+        mode={badgeSheetModel?.mode ?? 'locked'}
+        entry={badgeSheetModel?.entry ?? null}
+        earnedAtIso={badgeSheetModel?.mode === 'earned' ? badgeSheetModel.earnedAtIso : null}
       />
     </div>
   );

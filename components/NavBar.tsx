@@ -20,6 +20,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { devBadgeLog } from '@/lib/devBadgeLog';
+import { cn } from '@/lib/utils';
+import { navDebug } from '@/lib/nav-debug';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -57,6 +59,13 @@ export default function NavBar() {
     };
   }, []);
   const nativeShell = useIsNativeAppMounted();
+
+  /** Geen geneste <Link><Button> — één klikbaar element voor WebView/touch. */
+  const mobileNavRowClass = cn(
+    'inline-flex w-full min-h-[44px] items-center justify-start gap-2 rounded-2xl px-3 py-3 text-base font-medium',
+    'text-gray-700 transition-colors hover:bg-gray-50',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand'
+  );
 
   const user =
     session && 'user' in session
@@ -630,8 +639,11 @@ export default function NavBar() {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors touch-manipulation"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="navbar-mobile-menu"
           >
             {isMobileMenuOpen ? (
               <X className="w-6 h-6" />
@@ -643,83 +655,101 @@ export default function NavBar() {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div id="navbar-mobile-menu" className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start flex items-center space-x-2"
+              <Link
+                href="/"
+                prefetch={false}
+                className={mobileNavRowClass}
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  router.push('/');
+                  navDebug('navbar:mobile', { href: '/' });
                 }}
               >
-                <Home className="w-4 h-4" />
-                <span>{t("navbar.home")}</span>
-              </Button>
-              
-              <Link href="/werken-bij" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <Lightbulb className="w-4 h-4" />
-                  <span>{t("navbar.werkenBij")}</span>
-                </Button>
+                <Home className="w-4 h-4 shrink-0" />
+                <span>{t('navbar.home')}</span>
               </Link>
 
-              <Link href={user ? "/profile" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                  <User className="w-4 h-4" />
-                  <span>{t("bottomNav.profile")}</span>
-                </Button>
+              <Link
+                href="/werken-bij"
+                prefetch={false}
+                className={mobileNavRowClass}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navDebug('navbar:mobile', { href: '/werken-bij' });
+                }}
+              >
+                <Lightbulb className="w-4 h-4 shrink-0" />
+                <span>{t('navbar.werkenBij')}</span>
+              </Link>
+
+              <Link
+                href={user ? '/profile' : '/login'}
+                prefetch={false}
+                className={mobileNavRowClass}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navDebug('navbar:mobile', { href: user ? '/profile' : '/login' });
+                }}
+              >
+                <User className="w-4 h-4 shrink-0" />
+                <span>{t('bottomNav.profile')}</span>
               </Link>
 
               <div className="px-3 py-2">
                 <LanguageSwitcher />
               </div>
 
-              {user && (
-                <>
-                  <Link href="/checkout" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
-                      <ShoppingCart className="w-4 h-4" />
-                      <span>{t('navbar.cart')}</span>
-                      {cartItemCount > 0 && (
-                        <span className="ml-auto bg-primary-brand text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {cartItemCount > 99 ? '99+' : cartItemCount}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>{t('navbar.messages')}</span>
-                      {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
-                </>
-              )}
-
               {status === 'unauthenticated' && !user && (
                 <>
-                  <Link href="/login" className="block" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-primary-brand" type="button">
-                      {t('navbar.login')}
-                    </Button>
+                  <Link
+                    href="/login"
+                    prefetch={false}
+                    className={cn(mobileNavRowClass, 'text-gray-700 hover:text-primary-brand')}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/login' });
+                    }}
+                  >
+                    {t('navbar.login')}
                   </Link>
-                  <Link href="/register" className="block" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-primary-brand hover:bg-primary-700 text-white" type="button">
-                      {t('navbar.register')}
-                    </Button>
+                  <Link
+                    href="/register"
+                    prefetch={false}
+                    className={cn(
+                      mobileNavRowClass,
+                      'justify-center bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white'
+                    )}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/register' });
+                    }}
+                  >
+                    {t('navbar.register')}
                   </Link>
                 </>
               )}
 
               {user && (
                 <>
+                  <Link
+                    href="/checkout"
+                    prefetch={false}
+                    className={cn(mobileNavRowClass, 'relative')}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/checkout' });
+                    }}
+                  >
+                    <ShoppingCart className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.cart')}</span>
+                    {cartItemCount > 0 && (
+                      <span className="ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-primary-brand px-1 text-xs text-white">
+                        {cartItemCount > 99 ? '99+' : cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
                     {(userProfile?.profileImage || userProfile?.image || user?.image) ? (
                       <SafeImage
@@ -741,11 +771,17 @@ export default function NavBar() {
                   
                   {/* Profile Link - Always goes to normal profile page */}
                   {user ? (
-                    <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                        <User className="w-4 h-4" />
-                        <span>{t('navbar.myProfile')}</span>
-                      </Button>
+                    <Link
+                      href="/profile"
+                      prefetch={false}
+                      className={mobileNavRowClass}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: '/profile' });
+                      }}
+                    >
+                      <User className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.myProfile')}</span>
                     </Link>
                   ) : (
                     <Button 
@@ -761,90 +797,118 @@ export default function NavBar() {
                     </Button>
                   )}
                   
-                  <Link href="/messages" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 relative">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>{t('navbar.messages')}</span>
-                      {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <Package className="w-4 h-4" />
-                      <span>{t('navbar.orders')}</span>
-                    </Button>
+                  <Link
+                    href="/messages"
+                    prefetch={false}
+                    className={cn(mobileNavRowClass, 'relative')}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/messages' });
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.messages')}</span>
+                    {unreadCount > 0 && (
+                      <span className="ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </Link>
 
-                  <Link href="/profile/privacy" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
-                      <Shield className="w-4 h-4" />
-                      <span>{t('navbar.privacy')}</span>
-                    </Button>
+                  <Link
+                    href="/orders"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/orders' });
+                    }}
+                  >
+                    <Package className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.orders')}</span>
+                  </Link>
+
+                  <Link
+                    href="/profile/privacy"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/profile/privacy' });
+                    }}
+                  >
+                    <Shield className="w-4 h-4 shrink-0" />
+                    <span>{t('navbar.privacy')}</span>
                   </Link>
 
                   {/* Multi-role Dashboard Links - Based on user roles (zelfde logica als desktop) */}
                   {/* Admin Dashboard - Show for ADMIN/SUPERADMIN role OR if user has adminRoles */}
                   {(((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') || ((user as any)?.adminRoles && (user as any)?.adminRoles.length > 0)) && (
-                    <Link 
-                      href="/admin" 
-                      prefetch={true}
+                    <Link
+                      href="/admin"
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'text-red-600 hover:bg-red-50')}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        router.prefetch('/admin');
+                        navDebug('navbar:mobile', { href: '/admin' });
                       }}
                     >
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-red-600">
-                        <Shield className="w-4 h-4" />
-                        <span>{t('navbar.adminDashboard')}</span>
-                      </Button>
+                      <Shield className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.adminDashboard')}</span>
                     </Link>
                   )}
                   
                   {/* Seller Dashboard - Show if user has seller roles OR is SELLER role OR admin met seller roles */}
                   {(((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') || 
                     (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && (user as any)?.sellerRoles?.length > 0)) && (
-                    <Link 
-                      href="/verkoper/dashboard" 
-                      prefetch={true}
+                    <Link
+                      href="/verkoper/dashboard"
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'relative text-green-600 hover:bg-green-50')}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        router.prefetch('/verkoper/dashboard');
+                        navDebug('navbar:mobile', { href: '/verkoper/dashboard' });
                       }}
                     >
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-green-600 relative">
-                        <LayoutGrid className="w-4 h-4" />
-                        <span>{t('navbar.sellerDashboard')}</span>
-                        {sellerOrdersUnread > 0 && (
-                          <span className="ml-auto bg-orange-500 text-white text-xs rounded-full h-5 min-w-[20px] flex items-center justify-center px-1 font-semibold">
-                            {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
-                          </span>
-                        )}
-                      </Button>
+                      <LayoutGrid className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.sellerDashboard')}</span>
+                      {sellerOrdersUnread > 0 && (
+                        <span className="ml-auto flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
+                          {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
+                        </span>
+                      )}
                     </Link>
                   )}
                   
                   {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel */}
                   {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
-                    <Link href="/delivery/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-blue-600">
-                        <Package className="w-4 h-4" />
-                        <span>{t('navbar.deliveryDashboard')}</span>
-                      </Button>
+                    <Link
+                      href="/delivery/dashboard"
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'text-blue-600 hover:bg-blue-50')}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: '/delivery/dashboard' });
+                      }}
+                    >
+                      <Package className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.deliveryDashboard')}</span>
                     </Link>
                   )}
 
                   {/* Affiliate Dashboard - Show if user has affiliate account */}
                   {(user as any)?.hasAffiliate && (
-                    <Link href="/affiliate/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start flex items-center space-x-2 text-emerald-600">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>{t("navbar.affiliateDashboard")}</span>
-                      </Button>
+                    <Link
+                      href="/affiliate/dashboard"
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'text-emerald-600 hover:bg-emerald-50')}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: '/affiliate/dashboard' });
+                      }}
+                    >
+                      <TrendingUp className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.affiliateDashboard')}</span>
                     </Link>
                   )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { navDebug } from '@/lib/nav-debug';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -257,19 +258,9 @@ export default function BottomNavigation() {
   // Promo modals state
   const [activePromoModal, setActivePromoModal] = useState<'dashboard' | 'add' | 'messages' | 'profile' | 'dorpsplein-product' | 'inspiratie-item' | null>(null);
 
-  /** Hoofdfeed staat op `/` (HomeCheff feed + GeoFeed); geen toggle meer naar losse dorpsplein-/inspiratie-hoofdroutes. */
-  const feedDiscoverConfig = useMemo(
-    () => ({
-      href: '/',
-      label: t('bottomNav.discoverTab'),
-      icon: '🧭',
-      onClick: () => {
-        router.prefetch('/');
-        router.push('/#homecheff-feed');
-      },
-    }),
-    [router, t]
-  );
+  /** Eén navigatiemechanisme: client Link naar feed-hash (geen prefetch+push dubbel). */
+  const discoverLabel = t('bottomNav.discoverTab');
+  const discoverIcon = '🧭';
 
   const isActive = (href: string) => {
     if (!pathname) return false;
@@ -279,6 +270,9 @@ export default function BottomNavigation() {
 
   const isFeedDiscoverActive = pathname === '/';
   const isHcpRouteActive = pathname === '/mijn-hcp';
+
+  /** Directe routes op eerste tap; tijdens sessie-load alvast Link (geen lege onClick). */
+  const useDirectTabLinks = Boolean(session?.user) || sessionStatus === 'loading';
 
   // Signup promo modals: niet tonen tijdens sessie-loading (voorkomt "community" achter native push).
   useEffect(() => {
@@ -350,34 +344,26 @@ export default function BottomNavigation() {
   }, [session?.user, router, pathname]);
 
   const handleDashboardClick = () => {
-    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('dashboard');
       return;
     }
-    router.prefetch('/verkoper/dashboard');
     router.push('/verkoper/dashboard');
   };
 
   const handleMessagesClick = () => {
-    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('messages');
       return;
     }
-    // Prefetch before navigation for instant feel
-    router.prefetch('/messages');
     router.push('/messages');
   };
 
   const handleProfileClick = () => {
-    if (sessionStatus === "loading") return;
     if (!session?.user) {
       setActivePromoModal('profile');
       return;
     }
-    // Prefetch before navigation for instant feel
-    router.prefetch('/profile');
     router.push('/profile');
   };
 
@@ -1352,7 +1338,8 @@ export default function BottomNavigation() {
         data-hc-bottom-nav
         className={cn(
           /* Geen pointer-events-none hier: op Android WebView kan dat scroll-gesture routing breken. */
-          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden z-40 transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
+          /* z-[58]: boven o.a. cookie-banner (z-30) en gelijk met/onder promo-modals (z-[70]). */
+          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden z-[58] transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
           'bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/88 border-t border-emerald-100/70',
           'shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
           isNativeShell
@@ -1366,32 +1353,52 @@ export default function BottomNavigation() {
             'gap-x-1 sm:gap-x-2 md:gap-x-3'
           )}
         >
-          {/* Home Button */}
+          {/* Ontdekken — één Link (geen router.push + prefetch dubbel) */}
           <div className="flex-1 min-w-0 flex justify-center">
-            <button
-              type="button"
-              onClick={feedDiscoverConfig.onClick}
+            <Link
+              href="/#homecheff-feed"
+              prefetch={false}
+              scroll={false}
               className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
+              onClick={() =>
+                navDebug('bottom-nav:tap', { tab: 'discover', href: '/#homecheff-feed', path: pathname })
+              }
             >
-              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">{feedDiscoverConfig.icon}</div>
+              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">{discoverIcon}</div>
               <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                {feedDiscoverConfig.label}
+                {discoverLabel}
               </span>
-            </button>
+            </Link>
           </div>
 
           {/* Dashboard */}
           <div className="relative group flex-1 min-w-0 flex justify-center">
-            <button
-              type="button"
-              onClick={handleDashboardClick}
-              className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
-            >
-              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                {session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}
-              </span>
-            </button>
+            {useDirectTabLinks ? (
+              <Link
+                href="/verkoper/dashboard"
+                prefetch={false}
+                className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
+                onClick={() =>
+                  navDebug('bottom-nav:tap', { tab: 'dashboard', href: '/verkoper/dashboard', path: pathname })
+                }
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDashboardClick}
+                className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {t('bottomNav.earn')}
+                </span>
+              </button>
+            )}
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
@@ -1449,16 +1456,32 @@ export default function BottomNavigation() {
 
           {/* Berichten */}
           <div className="relative group flex-1 min-w-0 flex justify-center">
-            <button
-              type="button"
-              onClick={handleMessagesClick}
-              className={navTabClasses(isActive('/messages'), isNativeShell)}
-            >
-              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                {t('bottomNav.messages')}
-              </span>
-            </button>
+            {useDirectTabLinks ? (
+              <Link
+                href="/messages"
+                prefetch={false}
+                className={navTabClasses(isActive('/messages'), isNativeShell)}
+                onClick={() =>
+                  navDebug('bottom-nav:tap', { tab: 'messages', href: '/messages', path: pathname })
+                }
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {t('bottomNav.messages')}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={handleMessagesClick}
+                className={navTabClasses(isActive('/messages'), isNativeShell)}
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {t('bottomNav.messages')}
+                </span>
+              </button>
+            )}
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
@@ -1477,7 +1500,7 @@ export default function BottomNavigation() {
             <div className="flex-shrink-0 flex items-center justify-center px-0.5 sm:px-1 md:px-1.5">
               <Link
                 href="/mijn-hcp"
-                prefetch
+                prefetch={false}
                 className={cn(
                   'flex flex-col items-center justify-center rounded-2xl touch-manipulation transition-all duration-200 ease-out',
                   'min-h-[52px] min-w-[3.25rem] sm:min-w-[3.5rem] px-2 py-1.5',
@@ -1489,6 +1512,9 @@ export default function BottomNavigation() {
                     : 'hover:border-teal-300/85 hover:shadow-[0_5px_20px_-6px_rgba(13,148,136,0.38)] active:scale-[0.97]'
                 )}
                 aria-label={t('bottomNav.hcpCapsuleAria')}
+                onClick={() =>
+                  navDebug('bottom-nav:tap', { tab: 'hcp', href: '/mijn-hcp', path: pathname })
+                }
               >
                 <span className="text-[0.7rem] leading-none sm:text-sm" aria-hidden>
                   ⭐
@@ -1502,16 +1528,32 @@ export default function BottomNavigation() {
 
           {/* Profiel */}
           <div className="relative group flex-1 min-w-0 flex justify-center">
-            <button
-              type="button"
-              onClick={handleProfileClick}
-              className={navTabClasses(isActive('/profile'), isNativeShell)}
-            >
-              <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                {session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}
-              </span>
-            </button>
+            {useDirectTabLinks ? (
+              <Link
+                href="/profile"
+                prefetch={false}
+                className={navTabClasses(isActive('/profile'), isNativeShell)}
+                onClick={() =>
+                  navDebug('bottom-nav:tap', { tab: 'profile', href: '/profile', path: pathname })
+                }
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={handleProfileClick}
+                className={navTabClasses(isActive('/profile'), isNativeShell)}
+              >
+                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">👤</div>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                  {t('bottomNav.profile')}
+                </span>
+              </button>
+            )}
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
