@@ -70,6 +70,8 @@ const SHOW_CAPACITOR_PUSH_DEBUG =
   process.env.NODE_ENV === "development" ||
   process.env.NEXT_PUBLIC_CAPACITOR_PUSH_DEBUG === "true";
 
+type AuthorBadgeChip = { key: string; name: string; icon: string };
+
 type FeedItem = {
   id: string;
   title: string | null;
@@ -98,6 +100,7 @@ type FeedItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerBadges?: AuthorBadgeChip[];
 };
 
 type FeedChip = "all" | "sale" | "inspiration";
@@ -169,6 +172,13 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
   const sellerDisplayNameOption =
     user?.displayNameOption ?? seller?.displayNameOption ?? null;
 
+  const sellerBadgesRaw = raw.sellerBadges;
+  const sellerBadges = Array.isArray(sellerBadgesRaw)
+    ? (sellerBadgesRaw as AuthorBadgeChip[]).filter(
+        (b) => b && typeof b.key === 'string' && typeof b.name === 'string' && typeof b.icon === 'string'
+      )
+    : undefined;
+
   return {
     id: String(raw.id ?? ""),
     title: (raw.title as string) ?? null,
@@ -203,6 +213,7 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       raw.viewCount != null ? Number(raw.viewCount) : undefined,
     propsCount:
       raw.propsCount != null ? Number(raw.propsCount) : undefined,
+    sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
   };
 }
 
@@ -412,6 +423,7 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
     sellerAvatar: it.sellerAvatar,
     sellerDisplayFullName: it.sellerDisplayFullName,
     sellerDisplayNameOption: it.sellerDisplayNameOption,
+    sellerBadges: it.sellerBadges,
   };
 }
 

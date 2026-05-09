@@ -9,6 +9,7 @@ import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { calculateDistance } from "@/lib/geocoding";
+import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -548,6 +549,25 @@ export async function GET(req: NextRequest) {
     });
   }
   
+  const sellerIdsForBadges: string[] = [];
+  const seenBadges = new Set<string>();
+  for (const item of sortedItems) {
+    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
+    if (!uid || seenBadges.has(uid)) continue;
+    seenBadges.add(uid);
+    sellerIdsForBadges.push(uid);
+  }
+  const badgeMap =
+    sellerIdsForBadges.length > 0
+      ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
+      : new Map<string, { key: string; name: string; icon: string }[]>();
+  for (const item of sortedItems) {
+    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
+    if (!uid) continue;
+    const chips = badgeMap.get(uid);
+    if (chips?.length) (item as Record<string, unknown>).sellerBadges = chips;
+  }
+
   let statsPreview:
     | Awaited<ReturnType<typeof batchComputeUserStatsPreview>>
     | undefined;

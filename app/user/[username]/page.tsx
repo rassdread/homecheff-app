@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Script from "next/script";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 import { getCurrentDomain } from "@/lib/seo/metadata";
 import { formatCityLabel } from "@/lib/seo/productSlug";
+import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
+import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
 import PublicProfileClient from "./PublicProfileClient";
 
 export const revalidate = 0;
@@ -398,6 +402,32 @@ export default async function PublicProfilePage({
     notFound(); // Return 404 to hide that the profile exists
   }
 
+  const session = await getServerSession(authOptions as any);
+  const viewerId = (session?.user as { id?: string } | undefined)?.id;
+  const isOwnProfile = Boolean(viewerId && viewerId === user.id);
+
+  const [hcpStats, badgeRows] = await Promise.all([
+    prisma.userHcpStats.findUnique({
+      where: { userId: user.id },
+      select: { totalHcp: true },
+    }),
+    prisma.userBadge.findMany({
+      where: { userId: user.id },
+      include: { badge: { select: { slug: true, name: true, iconKey: true } } },
+      orderBy: { awardedAt: "desc" },
+      take: 24,
+    }),
+  ]);
+
+  const publicHcp = {
+    level: hcpLevelFromTotal(hcpStats?.totalHcp ?? 0),
+    badges: badgeRows.map((ub) => ({
+      key: ub.badge.slug,
+      name: ub.badge.name,
+      icon: iconKeyToDisplayIcon(ub.badge.iconKey),
+    })),
+  };
+
   const currentDomain = await getCurrentDomain();
   const profileDisplay = user.name || user.username || "Profiel";
   const locality = formatCityLabel(user.place);
@@ -425,7 +455,12 @@ export default async function PublicProfilePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
       />
       <div className="min-h-screen bg-gray-50 w-full min-w-0 max-w-[100vw] overflow-x-auto overflow-y-visible">
-        <PublicProfileClient user={user as any} openNewProducts={false} />
+        <PublicProfileClient
+          user={user as any}
+          openNewProducts={false}
+          isOwnProfile={isOwnProfile}
+          publicHcp={publicHcp}
+        />
       </div>
     </>
   );

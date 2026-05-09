@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isStripeTestId } from "@/lib/stripe";
 import { sanitizeInput } from "@/lib/security";
 import { sanitizeProductForPublic } from "@/lib/data-isolation";
+import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -343,6 +344,18 @@ export async function GET(req: Request) {
       favoriteCountMap.set(item.productId, item._count.productId);
     });
 
+    const sellerUserIds = [
+      ...new Set(
+        products
+          .map((p: { seller?: { User?: { id?: string } } }) => p.seller?.User?.id)
+          .filter(Boolean) as string[]
+      ),
+    ];
+    const sellerBadgeMap =
+      sellerUserIds.length > 0
+        ? await fetchAuthorBadgeSummariesByUserIds(sellerUserIds, 2)
+        : new Map<string, { key: string; name: string; icon: string }[]>();
+
     // COMPLETE RESPONSE - alle data terug
     const items = products.map((p: any) => {
       // Get all images, filter out null/undefined/empty
@@ -391,6 +404,12 @@ export async function GET(req: Request) {
           isBusiness: !!(p.seller?.kvk && p.seller?.companyName),
           companyName: p.seller?.companyName ?? null,
           kvk: p.seller?.kvk ?? null,
+          badges: (() => {
+            const uid = p.seller?.User?.id as string | undefined;
+            if (!uid) return undefined;
+            const b = sellerBadgeMap.get(uid);
+            return b && b.length > 0 ? b : undefined;
+          })(),
         },
         favoriteCount: favoriteCountMap.get(p.id) || 0,
         isFavorited: userId ? userFavorites.has(p.id) : undefined,

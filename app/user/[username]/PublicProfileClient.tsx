@@ -17,6 +17,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import type { FeedMediaLightboxPayload } from '@/components/feed/FeedMediaLightbox';
 import { hrefForProfileGridItem } from '@/lib/profile/profilePublicItemHref';
+import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 
 interface User {
   id: string;
@@ -108,9 +109,16 @@ interface PublicProfileClientProps {
   user: User;
   openNewProducts: boolean;
   isOwnProfile?: boolean;
+  /** Publiek zichtbaar: level + badges — géén exacte HCP-totaal. */
+  publicHcp?: { level: number; badges: Array<{ key: string; name: string; icon: string }> } | null;
 }
 
-export default function PublicProfileClient({ user, openNewProducts, isOwnProfile = false }: PublicProfileClientProps) {
+export default function PublicProfileClient({
+  user,
+  openNewProducts,
+  isOwnProfile = false,
+  publicHcp = null,
+}: PublicProfileClientProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
@@ -619,6 +627,44 @@ export default function PublicProfileClient({ user, openNewProducts, isOwnProfil
                   <span className="hidden sm:inline">views</span>
                 </div>
               </div>
+
+              {publicHcp && (publicHcp.badges.length > 0 || isOwnProfile) ? (
+                <div
+                  id="hc-competenties"
+                  className="mb-6 rounded-xl border border-amber-100 bg-amber-50/50 px-4 py-4 text-left"
+                >
+                  <h3 className="text-sm font-bold text-amber-950 uppercase tracking-wide">Competenties</h3>
+                  <p className="mt-1 text-xs text-gray-600">
+                    Level <span className="font-semibold text-gray-900">{publicHcp.level}</span> op HomeCheff
+                  </p>
+                  {publicHcp.badges.length > 0 ? (
+                    <div className="mt-3 space-y-3">
+                      <UserBadgeChips badges={publicHcp.badges.slice(0, 3)} max={3} size="md" />
+                      {publicHcp.badges.length > 3 ? (
+                        <div>
+                          <Link
+                            href="#hc-competenties-alle"
+                            className="text-sm font-semibold text-emerald-800 hover:underline"
+                          >
+                            Bekijk alle badges
+                          </Link>
+                          <div id="hc-competenties-alle" className="mt-2">
+                            <UserBadgeChips badges={publicHcp.badges.slice(3)} max={12} size="sm" />
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : isOwnProfile ? (
+                    <p className="mt-2 text-sm text-gray-600">
+                      Nog geen badges — verdien HCP via je activiteit (zie{' '}
+                      <Link href="/mijn-hcp" className="font-semibold text-emerald-800 hover:underline">
+                        Mijn HCP
+                      </Link>
+                      ).
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               
               {/* Action Buttons - Volledig Responsive */}
               <div className="grid grid-cols-2 gap-3">

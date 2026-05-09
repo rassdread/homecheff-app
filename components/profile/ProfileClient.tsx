@@ -20,6 +20,7 @@ import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
+import HomeCheffPointsCompactCard from '@/components/gamification/HomeCheffPointsCompactCard';
 
 // Lazy load heavy components for better performance
 const MyDishesManager = dynamic(() => import('./MyDishesManager'), {
@@ -586,6 +587,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   <div className="text-xs text-gray-500">{t('profilePage.sidebar.fan')}</div>
                 </div>
               </div>
+
+              <HomeCheffPointsCompactCard />
               
               {/* Active Delivery Role - Mijn Bijdrage */}
               {user.DeliveryProfile && (

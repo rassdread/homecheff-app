@@ -1,75 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Sparkles } from 'lucide-react';
-
-type GamificationMe = {
-  totalHcp: number;
-  level: number;
-  currentStreak: number;
-  longestStreak: number;
-  nextLevelHcp: number;
-  hcpToNextLevel: number;
-  recentEvents: Array<{
-    id: string;
-    action: string;
-    points: number;
-    createdAt: string;
-  }>;
-};
-
-const actionLabels: Record<string, string> = {
-  ACCOUNT_CREATED: 'Account aangemaakt',
-  PROFILE_COMPLETED: 'Profiel voltooid',
-  PRODUCT_CREATED: 'Product toegevoegd',
-  PRODUCT_HAS_3_PHOTOS: '3 productfoto’s',
-  PRODUCT_HAS_5_PHOTOS: '5 productfoto’s',
-  FIRST_SALE: 'Eerste verkoop',
-  REVIEW_RECEIVED: 'Review ontvangen',
-  DAILY_LOGIN: 'Dagelijkse login',
-  SEVEN_DAY_STREAK: '7-dagen streak',
-  CONTENT_POST_CREATED: 'Inspiratiepost geplaatst',
-  CONTENT_HAS_3_MEDIA: '3 media bij content',
-  CONTENT_HAS_VIDEO: 'Video bij content',
-};
-
-function labelForAction(action: string): string {
-  return actionLabels[action] ?? action.replace(/_/g, ' ');
-}
+import { useGamificationMe } from '@/hooks/useGamificationMe';
+import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
 
 export default function HomeCheffPointsWidget() {
   const { status } = useSession();
-  const [data, setData] = useState<GamificationMe | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    if (status !== 'authenticated') {
-      setLoading(false);
-      return;
-    }
-    setErr(null);
-    try {
-      const res = await fetch('/api/gamification/me', { cache: 'no-store' });
-      if (!res.ok) {
-        setErr('Kon HomeCheff Points niet laden');
-        setData(null);
-        return;
-      }
-      const json = (await res.json()) as GamificationMe;
-      setData(json);
-    } catch {
-      setErr('Kon HomeCheff Points niet laden');
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [status]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { data, loading, error } = useGamificationMe();
 
   if (status === 'loading' || loading) {
     return (
@@ -79,7 +18,7 @@ export default function HomeCheffPointsWidget() {
     );
   }
 
-  if (status !== 'authenticated' || err || !data) {
+  if (status !== 'authenticated' || error || !data) {
     return null;
   }
 
@@ -134,13 +73,19 @@ export default function HomeCheffPointsWidget() {
           <ul className="max-h-36 space-y-1.5 overflow-y-auto text-sm">
             {data.recentEvents.slice(0, 6).map((ev) => (
               <li key={ev.id} className="flex justify-between gap-2 text-gray-800">
-                <span className="min-w-0 truncate">{labelForAction(ev.action)}</span>
+                <span className="min-w-0 truncate">{labelForHcpAction(ev.action)}</span>
                 <span className="shrink-0 font-medium text-amber-800">+{ev.points} HCP</span>
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      <div className="border-t border-amber-100/80 px-4 py-2 text-right">
+        <Link href="/mijn-hcp" className="text-xs font-semibold text-emerald-800 hover:underline">
+          Bekijk volledige voortgang
+        </Link>
+      </div>
     </div>
   );
 }

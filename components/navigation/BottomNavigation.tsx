@@ -13,6 +13,7 @@ import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { useGamificationMe } from '@/hooks/useGamificationMe';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -46,6 +47,7 @@ export default function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, status: sessionStatus } = useSession();
+  const { data: gamificationMe } = useGamificationMe();
   const { t } = useTranslation();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
 
@@ -1474,7 +1476,7 @@ export default function BottomNavigation() {
             <button
               onClick={handleProfileClick}
               className={cn(
-                'flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
+                'relative flex flex-col items-center justify-center min-w-0 w-full rounded-lg transition-all duration-150 ease-out',
                 isActive('/profile')
                   ? 'text-primary-brand'
                   : 'text-gray-600 hover:text-gray-900',
@@ -1488,6 +1490,19 @@ export default function BottomNavigation() {
             >
               <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">👤</div>
               <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{session?.user ? t('bottomNav.myHC') : t('bottomNav.profile')}</span>
+              {session?.user && gamificationMe?.level != null ? (
+                <Link
+                  href="/mijn-hcp"
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    'absolute z-10 flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full border border-amber-400/70 bg-amber-100 px-1 text-[9px] font-bold leading-none text-amber-950 shadow-sm hover:bg-amber-200 touch-manipulation',
+                    isNativeShell ? 'right-1 top-0.5' : 'right-2 top-0'
+                  )}
+                  aria-label="Bekijk je HomeCheff Points"
+                >
+                  L{gamificationMe.level}
+                </Link>
+              ) : null}
             </button>
             {!session?.user && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">

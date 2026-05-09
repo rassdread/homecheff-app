@@ -8,6 +8,7 @@ import type { InspirationItem } from './InspiratieContent';
 import ShareButton from '@/components/ui/ShareButton';
 import PropsButton from '@/components/props/PropsButton';
 import { Eye } from 'lucide-react';
+import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 
 type TranslateFn = (
   key: string,
@@ -112,6 +113,7 @@ export default function InspirationCard({
           displayNameOption={item.user.displayNameOption}
           className="!pt-3"
         />
+        <UserBadgeChips badges={item.user.badges} max={2} size="sm" className="mt-1" />
       </div>
     ) : (
       <div className="mt-2 min-h-[5.5rem]" aria-hidden />

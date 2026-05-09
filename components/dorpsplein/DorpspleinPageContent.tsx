@@ -25,6 +25,7 @@ import ItemCard from "@/components/ItemCard";
 import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 import ClickableName from "@/components/ui/ClickableName";
 import UserStatsTile from "@/components/ui/UserStatsTile";
+import UserBadgeChips from "@/components/gamification/UserBadgeChips";
 import { calculateDistance } from "@/lib/geocoding";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
@@ -71,6 +72,7 @@ type HomeItem = {
     followerCount?: number;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    badges?: Array<{ key: string; name: string; icon: string }>;
   } | null;
 };
 
@@ -1696,6 +1698,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             displayFullName={item.seller.displayFullName}
                             displayNameOption={item.seller.displayNameOption}
                           />
+                          <UserBadgeChips badges={item.seller.badges} max={2} size="sm" className="mt-1" />
                         </div>
                       )}
 

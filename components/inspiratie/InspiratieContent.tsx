@@ -56,6 +56,7 @@ export type InspirationItem = {
     profileImage: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    badges?: Array<{ key: string; name: string; icon: string }>;
   };
 };
 

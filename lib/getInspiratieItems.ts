@@ -3,6 +3,7 @@
  * Gebruikt o.a. op de homepage zodat de feed direct met data wordt geserveerd (geen lege skeleton).
  */
 import { prisma } from '@/lib/prisma';
+import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 
 export type GetInspiratieOptions = {
   category?: string | null;
@@ -135,6 +136,16 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   } else {
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
+
+  const authorIds = [...new Set(items.map((it) => it.user.id))];
+  const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
+  items = items.map((it) => ({
+    ...it,
+    user: {
+      ...it.user,
+      badges: badgeMap.get(it.user.id) ?? [],
+    },
+  }));
 
   return { items };
 }

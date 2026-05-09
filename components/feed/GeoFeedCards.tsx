@@ -16,6 +16,8 @@ import {
   getInspirationFeedItemHref,
   getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
+import UserBadgeChips from "@/components/gamification/UserBadgeChips";
+
 export type GeoFeedCardItem = {
   id: string;
   title: string | null;
@@ -40,6 +42,7 @@ export type GeoFeedCardItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerBadges?: Array<{ key: string; name: string; icon: string }>;
 };
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -146,6 +149,7 @@ export function FeedSaleCard({
               displayNameOption={it.sellerDisplayNameOption}
               className="!pt-3"
             />
+            <UserBadgeChips badges={it.sellerBadges} max={2} size="sm" className="mt-1" />
           </div>
         ) : null}
         <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-1">
@@ -200,6 +204,7 @@ type NormalizedInspirationCard = {
     avatar: string | null;
     displayFullName?: boolean | null;
     displayNameOption?: string | null;
+    badges?: Array<{ key: string; name: string; icon: string }>;
   } | null;
 };
 
@@ -225,6 +230,7 @@ function fromGeoFeedItem(it: GeoFeedCardItem, t: TFn): NormalizedInspirationCard
           avatar: it.sellerAvatar ?? null,
           displayFullName: it.sellerDisplayFullName,
           displayNameOption: it.sellerDisplayNameOption,
+          badges: it.sellerBadges,
         }
       : null,
   };
@@ -260,6 +266,7 @@ function fromInspirationApiItem(item: InspirationItem, t: TFn): NormalizedInspir
           avatar: item.user.profileImage ?? null,
           displayFullName: item.user.displayFullName,
           displayNameOption: item.user.displayNameOption,
+          badges: item.user.badges,
         }
       : null,
   };
@@ -331,6 +338,7 @@ function FeedInspirationCard({
               displayNameOption={data.user.displayNameOption}
               className="!pt-3"
             />
+            <UserBadgeChips badges={data.user.badges} max={2} size="sm" className="mt-1" />
           </div>
         ) : (
           <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]" aria-hidden />
