@@ -23,41 +23,65 @@ export default function NotificationBell() {
   const { data: session } = useSession();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const refreshUnread = useCallback(async () => {
+  const refreshUnread = useCallback(async (source: string = 'unknown') => {
     if (!session?.user?.email) {
       setUnreadCount(0);
       return;
     }
     try {
       const res = await fetch('/api/notifications?limit=1', BADGE_FETCH);
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.warn('[NotificationBell] unread fetch failed', {
+          source,
+          status: res.status,
+        });
+        return;
+      }
       const data = await res.json();
       const uc = typeof data.unreadCount === 'number' ? data.unreadCount : 0;
       setUnreadCount(uc);
       devBadgeLog({
         notificationsUnreadCount: uc,
-        source: 'bell:/api/notifications?limit=1',
+        source: `bell:${source}:/api/notifications?limit=1`,
       });
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.warn('[NotificationBell] unread fetch error', {
+        source,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }, [session?.user?.email]);
 
   useEffect(() => {
-    void refreshUnread();
+    void refreshUnread('mount');
 
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible')
         return;
-      void refreshUnread();
+      void refreshUnread('poll');
     }, 45000);
 
-    const onUpdated = () => void refreshUnread();
+    const onUpdated = () => void refreshUnread('notificationsUpdated');
+    const onFocus = () => void refreshUnread('focus');
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshUnread('visibilitychange');
+      }
+    };
+    const onPageShow = (event: PageTransitionEvent) =>
+      void refreshUnread(event.persisted ? 'pageshow:bfcache' : 'pageshow');
+
     window.addEventListener('notificationsUpdated', onUpdated);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onPageShow);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('notificationsUpdated', onUpdated);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', onPageShow);
     };
   }, [refreshUnread]);
 

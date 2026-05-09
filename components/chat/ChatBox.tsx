@@ -206,7 +206,11 @@ export default function ChatBox({
           /* ignore */
         }
         window.dispatchEvent(new CustomEvent('notificationsUpdated'));
-        window.dispatchEvent(new CustomEvent('messagesRead'));
+        window.dispatchEvent(
+          new CustomEvent('messagesRead', {
+            detail: { conversationId: cid },
+          })
+        );
       } catch {
         /* ignore */
       }

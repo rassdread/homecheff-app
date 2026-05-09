@@ -224,6 +224,28 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     };
   }, [loadConversations]);
 
+  useEffect(() => {
+    const refreshFromLifecycle = () => {
+      void loadConversations(false);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshFromLifecycle();
+      }
+    };
+    const onPageShow = (_event: PageTransitionEvent) => {
+      refreshFromLifecycle();
+    };
+    window.addEventListener('focus', refreshFromLifecycle);
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', refreshFromLifecycle);
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [loadConversations]);
+
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
     
@@ -308,7 +330,11 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         } catch {
           /* ignore */
         }
-        window.dispatchEvent(new CustomEvent('messagesRead'));
+        window.dispatchEvent(
+          new CustomEvent('messagesRead', {
+            detail: { conversationId },
+          })
+        );
       } else {
         void loadConversations(false);
       }

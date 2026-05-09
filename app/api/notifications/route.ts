@@ -12,10 +12,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
+  const headers = {
+    ...cors,
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+  };
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: cors });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
     const user = await prisma.user.findUnique({
@@ -24,7 +28,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers });
     }
 
     const { searchParams } = new URL(req.url);
@@ -128,13 +132,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { notifications: transformedNotifications, unreadCount },
-      { headers: cors }
+      { headers }
     );
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500, headers: cors }
+      { status: 500, headers }
     );
   }
 }

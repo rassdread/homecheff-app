@@ -158,7 +158,7 @@ export default function NavBar() {
       // Use email as user identifier for cart isolation
       setCartUserId(session.user.email);
       // Fetch unread count
-      fetchUnreadCount();
+      void fetchUnreadCount('session-change');
     } else {
       // No session: clear only UI state. Do NOT call clearNextAuthData() here –
       // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
@@ -169,7 +169,7 @@ export default function NavBar() {
       setUserProfile(null);
       hasFetchedProfileRef.current = false;
     }
-  }, [session, status, user]);
+  }, [session, status, user, fetchUnreadCount]);
 
   useEffect(() => {
     if (bootstrapProfile) {
@@ -185,7 +185,7 @@ export default function NavBar() {
   }, [isProfileDropdownOpen, fetchUserProfile]);
 
   // Berichten-unread + verkoper order-meldingen (orange badge bij verkoper-dashboardlink)
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async (source: string = 'unknown') => {
     if (!session?.user?.email) return;
 
     let messagesUnread = 0;
@@ -201,8 +201,11 @@ export default function NavBar() {
         messagesUnread = typeof data.count === 'number' ? data.count : 0;
         setUnreadCount(messagesUnread);
       }
-    } catch {
-      // Silent: network/CORS
+    } catch (error) {
+      console.warn('[NavBar] /api/messages/unread-count failed', {
+        source,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     const u = user as Record<string, unknown> | undefined;
@@ -235,7 +238,7 @@ export default function NavBar() {
         notificationsUnreadCount: notifUnreadBuyer,
         sellerOrderBadgeCount: 0,
         source:
-          'messages:/api/messages/unread-count | notifications:/api/notifications | seller:—',
+          `${source}:messages:/api/messages/unread-count | notifications:/api/notifications | seller:—`,
       });
       return;
     }
@@ -275,9 +278,9 @@ export default function NavBar() {
       notificationsUnreadCount: notifUnread,
       sellerOrderBadgeCount: sellerUnread,
       source:
-        'messages:/api/messages/unread-count | notifications:/api/notifications | seller:/api/notifications/orders',
+        `${source}:messages:/api/messages/unread-count | notifications:/api/notifications | seller:/api/notifications/orders`,
     });
-  };
+  }, [session?.user?.email, user]);
 
   const handleLogout = async () => {
     // performLogout() doet: lokale cleanup → POST /api/auth/force-logout (wist alle cookie-varianten
@@ -288,11 +291,32 @@ export default function NavBar() {
   };
 
   useEffect(() => {
-    const onNotif = () => void fetchUnreadCount();
+    const onNotif = () => void fetchUnreadCount('notificationsUpdated');
+    const onFocus = () => void fetchUnreadCount('focus');
+    const onMessagesRead = () => void fetchUnreadCount('messagesRead');
+    const onUnreadUpdate = () => void fetchUnreadCount('unreadCountUpdate');
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchUnreadCount('visibilitychange');
+      }
+    };
+    const onPageShow = (event: PageTransitionEvent) =>
+      void fetchUnreadCount(event.persisted ? 'pageshow:bfcache' : 'pageshow');
     window.addEventListener('notificationsUpdated', onNotif);
-    return () => window.removeEventListener('notificationsUpdated', onNotif);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchUnreadCount refreshed each render
-  }, [session?.user?.email, user]);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('messagesRead', onMessagesRead);
+    window.addEventListener('unreadCountUpdate', onUnreadUpdate);
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('notificationsUpdated', onNotif);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('messagesRead', onMessagesRead);
+      window.removeEventListener('unreadCountUpdate', onUnreadUpdate);
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [fetchUnreadCount]);
 
   useEffect(() => {
     const onMessagesUnread = (e: Event) => {

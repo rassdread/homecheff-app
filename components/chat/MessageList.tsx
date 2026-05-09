@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageCircle, User, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import ClickableName from '@/components/ui/ClickableName';
@@ -19,6 +19,7 @@ interface MessageType {
   attachmentType?: string | null;
   orderNumber?: string | null; // For order-related messages
   createdAt: string;
+  conversationId?: string;
   readAt?: string | null;
   User: {
     id: string;
@@ -41,6 +42,17 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState<{ [userId: string]: boolean }>({});
+  const activeConversationId = messages[0]?.conversationId;
+
+  const dispatchMessagesRead = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent('messagesRead', {
+        detail: activeConversationId
+          ? { conversationId: activeConversationId }
+          : undefined,
+      })
+    );
+  }, [activeConversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,9 +114,9 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
             onMessagesRead();
           }
 
-          window.dispatchEvent(new CustomEvent('messagesRead'));
+          dispatchMessagesRead();
         } else {
-          window.dispatchEvent(new CustomEvent('messagesRead'));
+          dispatchMessagesRead();
         }
 
         if (!allSuccessful) {
@@ -114,7 +126,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
         }
       } catch (error) {
         console.error('Error marking messages as read:', error);
-        window.dispatchEvent(new CustomEvent('messagesRead'));
+        dispatchMessagesRead();
       }
     };
     
@@ -124,7 +136,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
     }, 1000); // Reduced delay to 1 second for better responsiveness
     
     return () => clearTimeout(timer);
-  }, [messages, currentUserId, onMessagesRead]);
+  }, [messages, currentUserId, onMessagesRead, dispatchMessagesRead]);
 
   // Also mark as read when user scrolls to bottom
   useEffect(() => {
@@ -190,9 +202,9 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                   if (onMessagesRead) {
                     onMessagesRead();
                   }
-                  window.dispatchEvent(new CustomEvent('messagesRead'));
+                  dispatchMessagesRead();
                 } else {
-                  window.dispatchEvent(new CustomEvent('messagesRead'));
+                  dispatchMessagesRead();
                 }
 
                 if (!allSuccessful) {
@@ -202,7 +214,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                 }
               } catch (error) {
                 console.error('Error marking messages as read:', error);
-                window.dispatchEvent(new CustomEvent('messagesRead'));
+                dispatchMessagesRead();
               }
             };
             
@@ -221,7 +233,7 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
         clearTimeout(scrollTimeout);
       }
     };
-  }, [messages, currentUserId, onMessagesRead]);
+  }, [messages, currentUserId, onMessagesRead, dispatchMessagesRead]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);

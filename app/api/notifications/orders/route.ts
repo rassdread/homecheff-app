@@ -30,10 +30,14 @@ function isBuyerFacingOrderNotification(
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
+  const headers = {
+    ...cors,
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+  };
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401, headers: cors });
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401, headers });
     }
 
     const user = await prisma.user.findUnique({
@@ -42,7 +46,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404, headers: cors });
+      return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404, headers });
     }
 
     const sellerProfile = await prisma.sellerProfile.findUnique({
@@ -140,13 +144,13 @@ export async function GET(req: NextRequest) {
         buyerUnreadCount,
         sellerUnreadCount,
       },
-      { headers: cors }
+      { headers }
     );
   } catch (error) {
     console.error('Error fetching order notifications:', error);
     return NextResponse.json(
       { error: 'Er is een fout opgetreden bij het ophalen van notificaties' },
-      { status: 500, headers: cors }
+      { status: 500, headers }
     );
   }
 }
