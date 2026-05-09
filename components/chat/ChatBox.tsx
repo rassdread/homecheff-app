@@ -18,6 +18,7 @@ import { getPusherClient } from '@/lib/pusher';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
 import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
+import { dispatchConversationListActivity } from '@/lib/chat/conversationListSort';
 import { mergeServerChatMessages } from '@/lib/chat/mergeServerChatMessages';
 import {
   readMessagesCache,
@@ -567,6 +568,7 @@ export default function ChatBox({
     persistThreadMsgs,
     scrollToBottomSoon,
     nativeMounted,
+    notifyConversationListActivity,
   ]);
 
   useEffect(() => {
@@ -753,6 +755,7 @@ export default function ChatBox({
           persistThreadMsgs(next);
           return next;
         });
+        notifyConversationListActivity(conversationId, realMessage);
         scrollToBottomSoon();
       } else {
         if (sendAc.signal.aborted) return;

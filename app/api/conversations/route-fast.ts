@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sortConversationsByActivity } from '@/lib/chat/conversationListSort';
 
 // In-memory cache for conversations
 const conversationCache = new Map<string, { data: any; timestamp: number }>();
@@ -21,7 +22,11 @@ export async function GET(req: NextRequest) {
     const cached = conversationCache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      const response = NextResponse.json(cached.data);
+      const data = {
+        ...cached.data,
+        conversations: sortConversationsByActivity(cached.data.conversations ?? []),
+      };
+      const response = NextResponse.json(data);
       response.headers.set('Cache-Control', 'private, max-age=30');
       response.headers.set('X-Cache', 'HIT');
       return response;
@@ -60,6 +65,7 @@ export async function GET(req: NextRequest) {
                   }
                 },
                 Message: {
+                  where: { deletedAt: null },
                   take: 1,
                   orderBy: { createdAt: 'desc' },
                   select: {
@@ -137,15 +143,11 @@ export async function GET(req: NextRequest) {
         otherParticipant: otherParticipant,
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,
-        createdAt: conversation.createdAt
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt,
       };
-    })
-    .sort((a, b) => {
-      const aTime = a.lastMessageAt || a.createdAt;
-      const bTime = b.lastMessageAt || b.createdAt;
-      return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
-    const responseData = { conversations };
+    const responseData = { conversations: sortConversationsByActivity(conversations) };
 
     // Cache the result
     conversationCache.set(cacheKey, {

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sortConversationsByActivity } from "@/lib/chat/conversationListSort";
 
 export type LoadedConversation = {
   id: string;
@@ -52,6 +53,7 @@ export type LoadedConversation = {
   lastMessageAt: Date | null;
   isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 /**
@@ -74,6 +76,7 @@ export async function loadConversationsForSessionUser(
               lastMessageAt: true,
               isActive: true,
               createdAt: true,
+              updatedAt: true,
               Product: {
                 select: {
                   id: true,
@@ -175,13 +178,12 @@ export async function loadConversationsForSessionUser(
         lastMessageAt: conversation.lastMessageAt,
         isActive: conversation.isActive,
         createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt,
       };
     }
-  ).sort((a, b) => {
-    const aTime = a.lastMessageAt || a.createdAt;
-    const bTime = b.lastMessageAt || b.createdAt;
-    return new Date(bTime).getTime() - new Date(aTime).getTime();
-  });
+  );
 
-  return { userId: user.id, conversations };
+  const conversationsSorted = sortConversationsByActivity(conversations);
+
+  return { userId: user.id, conversations: conversationsSorted };
 }

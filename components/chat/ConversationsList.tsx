@@ -18,6 +18,11 @@ import {
 } from '@/lib/native/nativePersistedCache';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { saveScrollPosition } from '@/lib/appResumeCache';
+import {
+  CONVERSATION_LIST_ACTIVITY_EVENT,
+  sortConversationsByActivity,
+  type ConversationListActivityDetail,
+} from '@/lib/chat/conversationListSort';
 
 const NATIVE_CONV_LIST_KIND = 'conv_list';
 const NATIVE_CONV_LIST_TTL_MS = 10 * 60 * 1000;
@@ -76,6 +81,8 @@ interface Conversation {
   lastMessageAt: string | null;
   isActive: boolean;
   createdAt: string;
+  /** Optioneel; voor toekomstige sortering / defensieve client-logica. */
+  updatedAt?: string | null;
 }
 
 interface ConversationsListProps {
@@ -157,7 +164,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         }
 
         const fallbackData = await fallbackResponse.json();
-        const list = fallbackData.conversations || [];
+        const list = sortConversationsByActivity(fallbackData.conversations || []);
         setConversations(list);
         writeConversationsListCache(userId, list);
         if (nativeMounted) {
@@ -168,13 +175,14 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
       const { conversations: fetchedConversations } = await response.json();
 
-      setConversations(fetchedConversations);
-      writeConversationsListCache(userId, fetchedConversations);
+      const sorted = sortConversationsByActivity(fetchedConversations ?? []);
+      setConversations(sorted);
+      writeConversationsListCache(userId, sorted);
       if (nativeMounted) {
         writeNativePersistedCache(
           NATIVE_CONV_LIST_KIND,
           userId,
-          fetchedConversations
+          sorted
         );
       }
     } catch (error) {
@@ -200,7 +208,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       );
       if (persisted?.length) cached = persisted;
     }
-    setConversations(cached);
+    setConversations(sortConversationsByActivity(cached));
     setIsLoading(cached.length === 0);
     void loadConversations(cached.length === 0);
   }, [sessionStatus, userId, loadConversations, nativeMounted]);
@@ -224,6 +232,61 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     };
   }, [loadConversations]);
 
+  /** Open thread: nieuw bericht (zenden/ontvangen) → direct bovenaan sorteren. */
+  useEffect(() => {
+    const onActivity = (ev: Event) => {
+      const e = ev as CustomEvent<ConversationListActivityDetail>;
+      const d = e.detail;
+      if (!d?.conversationId || !d.lastMessage) return;
+
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c.id === d.conversationId);
+        if (idx === -1) {
+          void loadConversations(false);
+          return prev;
+        }
+        const lm = d.lastMessage;
+        const merged = prev.map((c) =>
+          c.id !== d.conversationId
+            ? c
+            : {
+                ...c,
+                lastMessageAt: d.lastMessageAt,
+                lastMessage: {
+                  id: lm.id,
+                  text: lm.text,
+                  messageType: lm.messageType as NonNullable<
+                    Conversation['lastMessage']
+                  >['messageType'],
+                  orderNumber: lm.orderNumber,
+                  createdAt: lm.createdAt,
+                  readAt: lm.readAt ?? null,
+                  User: {
+                    id: lm.User.id,
+                    name: lm.User.name ?? null,
+                    username: lm.User.username ?? null,
+                    profileImage: lm.User.profileImage ?? null,
+                    displayFullName: lm.User.displayFullName ?? null,
+                    displayNameOption: lm.User.displayNameOption ?? null,
+                  },
+                },
+              }
+        );
+        const sorted = sortConversationsByActivity(merged);
+        writeConversationsListCache(userId, sorted);
+        if (nativeMounted) {
+          writeNativePersistedCache(NATIVE_CONV_LIST_KIND, userId, sorted);
+        }
+        return sorted;
+      });
+    };
+
+    window.addEventListener(CONVERSATION_LIST_ACTIVITY_EVENT, onActivity as EventListener);
+    return () => {
+      window.removeEventListener(CONVERSATION_LIST_ACTIVITY_EVENT, onActivity as EventListener);
+    };
+  }, [loadConversations, nativeMounted, userId]);
+
   useEffect(() => {
     const refreshFromLifecycle = () => {
       void loadConversations(false);
@@ -245,6 +308,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [loadConversations]);
+
+  /** Tijdstip voor rij (defensief: API kan lastMessageAt tijdelijk missen). */
+  const listActivityTimestamp = (c: Conversation): string | null =>
+    c.lastMessageAt ?? c.lastMessage?.createdAt ?? c.updatedAt ?? c.createdAt ?? null;
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
@@ -544,9 +611,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                     )}
                     <time
                       className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
-                      dateTime={conversation.lastMessageAt ?? undefined}
+                      dateTime={listActivityTimestamp(conversation) ?? undefined}
                     >
-                      {formatTime(conversation.lastMessageAt)}
+                      {formatTime(listActivityTimestamp(conversation))}
                     </time>
                   </span>
                 </div>
