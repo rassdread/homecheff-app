@@ -100,6 +100,22 @@ export default function SellerOrdersPageClient() {
   }, []);
 
   useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/notifications/seller-orders/ack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (res.ok) {
+          window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     filterOrders();
   }, [orders, statusFilter, searchQuery]);
 

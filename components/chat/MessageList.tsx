@@ -75,35 +75,28 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
           )
         );
         
-        // Check if all requests were successful and get unread counts
-        const responses = await Promise.all(
-          results.map(async response => {
-            if (response.ok) {
-              const data = await response.json();
-              return { success: true, unreadCount: data.unreadCount };
-            }
-            return { success: false, unreadCount: null };
-          })
-        );
-        
-        const allSuccessful = responses.every(r => r.success);
+        const allSuccessful = results.every(response => response.ok);
         
         if (allSuccessful) {
-          // Get the latest unread count from the last response
-          const lastResponse = responses[responses.length - 1];
-          if (lastResponse.unreadCount !== null) {
-            // Dispatch event with unread count update
-            window.dispatchEvent(new CustomEvent('unreadCountUpdate', { 
-              detail: { unreadCount: lastResponse.unreadCount } 
-            }));
+          try {
+            const countRes = await fetch('/api/messages/unread-count');
+            const countData = countRes.ok ? await countRes.json() : {};
+            if (typeof countData.count === 'number') {
+              window.dispatchEvent(
+                new CustomEvent('unreadCountUpdate', {
+                  detail: { unreadCount: countData.count },
+                })
+              );
+            }
+          } catch {
+            /* ignore */
           }
-          
-          // Trigger a refresh of the conversation list to update unread counts
+          window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+
           if (onMessagesRead) {
             onMessagesRead();
           }
-          
-          // Dispatch custom event to refresh other components
+
           window.dispatchEvent(new CustomEvent('messagesRead'));
         }
       } catch (error) {
@@ -159,10 +152,25 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
                 );
                 
                 const allSuccessful = results.every(response => response.ok);
-                
-                if (allSuccessful && onMessagesRead) {
-                  onMessagesRead();
-                  // Dispatch custom event to refresh other components
+
+                if (allSuccessful) {
+                  try {
+                    const countRes = await fetch('/api/messages/unread-count');
+                    const countData = countRes.ok ? await countRes.json() : {};
+                    if (typeof countData.count === 'number') {
+                      window.dispatchEvent(
+                        new CustomEvent('unreadCountUpdate', {
+                          detail: { unreadCount: countData.count },
+                        })
+                      );
+                    }
+                  } catch {
+                    /* ignore */
+                  }
+                  window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+                  if (onMessagesRead) {
+                    onMessagesRead();
+                  }
                   window.dispatchEvent(new CustomEvent('messagesRead'));
                 }
               } catch (error) {

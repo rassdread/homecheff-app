@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { markChatNotificationsReadForConversation } from '@/lib/notifications/markChatNotificationsRead';
 
 export async function PUT(
   req: NextRequest,
@@ -69,14 +70,31 @@ export async function PUT(
       }
     });
 
-    // Recalculate unread count for the conversation
-    const unreadCount = await prisma.message.count({
+    // Unread still in this conversation (for this user as recipient)
+    const conversationUnreadCount = await prisma.message.count({
       where: {
         conversationId: message.conversationId,
         readAt: null,
-        NOT: { senderId: user.id } // Exclude messages sent by the current user
-      }
+        NOT: { senderId: user.id },
+      },
     });
+
+    // Total unread across all conversations — must match GET /api/messages/unread-count
+    const globalUnreadCount = await prisma.message.count({
+      where: {
+        Conversation: {
+          ConversationParticipant: {
+            some: { userId: user.id },
+          },
+        },
+        readAt: null,
+        NOT: { senderId: user.id },
+      },
+    });
+
+    if (conversationUnreadCount === 0) {
+      await markChatNotificationsReadForConversation(user.id, message.conversationId);
+    }
 
     // Create analytics event for message read
     try {
@@ -101,9 +119,11 @@ export async function PUT(
       message: {
         id: message.id,
         isRead: !!message.readAt,
-        readAt: message.readAt
+        readAt: message.readAt,
       },
-      unreadCount: unreadCount
+      unreadCount: globalUnreadCount,
+      conversationUnreadCount,
+      globalUnreadCount,
     });
 
   } catch (error) {

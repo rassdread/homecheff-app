@@ -128,6 +128,20 @@ export function extractNotificationMetadata(
   };
 }
 
+/** Nav badge: alleen ordermeldingen die naar het verkoper-orderoverzicht routeren. */
+export function isSellerDashboardOrderBadgeNotification(
+  prismaType: string,
+  payload: Record<string, unknown> | null | undefined
+): boolean {
+  const typeUpper = prismaType.toUpperCase();
+  if (typeUpper !== 'ORDER_RECEIVED' && typeUpper !== 'ORDER_UPDATE') {
+    return false;
+  }
+  const link =
+    resolveNotificationTargetUrl(typeUpper, payload || {}) || '';
+  return link.includes('/verkoper/orders');
+}
+
 /** Zelfde filter als GET /api/notifications (buyer vs seller ordermeldingen). */
 export function notificationVisibleToSellerAndBuyer(
   prismaType: string,

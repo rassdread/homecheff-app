@@ -20,6 +20,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { devBadgeLog } from '@/lib/devBadgeLog';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -189,11 +190,15 @@ export default function NavBar() {
   const fetchUnreadCount = async () => {
     if (!session?.user?.email) return;
 
+    let messagesUnread = 0;
+    let sellerUnread = 0;
+
     try {
       const response = await fetch('/api/messages/unread-count');
       if (response.ok) {
         const data = await response.json();
-        setUnreadCount(data.count || 0);
+        messagesUnread = typeof data.count === 'number' ? data.count : 0;
+        setUnreadCount(messagesUnread);
       }
     } catch {
       // Silent: network/CORS
@@ -209,17 +214,59 @@ export default function NavBar() {
         roles.length > 0);
     if (!isSeller) {
       setSellerOrdersUnread(0);
+      let notifUnreadBuyer: number | undefined;
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const nr = await fetch('/api/notifications?limit=1');
+          if (nr.ok) {
+            const nd = await nr.json();
+            if (typeof nd.unreadCount === 'number') notifUnreadBuyer = nd.unreadCount;
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      devBadgeLog({
+        messagesUnreadCount: messagesUnread,
+        notificationsUnreadCount: notifUnreadBuyer,
+        sellerOrderBadgeCount: 0,
+        source:
+          'messages:/api/messages/unread-count | notifications:/api/notifications | seller:—',
+      });
       return;
     }
     try {
       const res = await fetch('/api/notifications/orders');
       if (res.ok) {
         const data = await res.json();
-        setSellerOrdersUnread(data.sellerUnreadCount || 0);
+        sellerUnread =
+          typeof data.sellerUnreadCount === 'number' ? data.sellerUnreadCount : 0;
+        setSellerOrdersUnread(sellerUnread);
       }
     } catch {
       /* silent */
     }
+
+    let notifUnread: number | undefined;
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const nr = await fetch('/api/notifications?limit=1');
+        if (nr.ok) {
+          const nd = await nr.json();
+          if (typeof nd.unreadCount === 'number') notifUnread = nd.unreadCount;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    devBadgeLog({
+      messagesUnreadCount: messagesUnread,
+      notificationsUnreadCount: notifUnread,
+      sellerOrderBadgeCount: sellerUnread,
+      source:
+        'messages:/api/messages/unread-count | notifications:/api/notifications | seller:/api/notifications/orders',
+    });
   };
 
   const handleLogout = async () => {
@@ -242,6 +289,18 @@ export default function NavBar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchUnreadCount refreshed each render
   }, [session?.user?.email, user]);
 
+  useEffect(() => {
+    const onMessagesUnread = (e: Event) => {
+      const d = (e as CustomEvent<{ unreadCount?: number }>).detail;
+      if (typeof d?.unreadCount === 'number') {
+        setUnreadCount(d.unreadCount);
+      }
+    };
+    window.addEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
+    return () =>
+      window.removeEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
+  }, []);
+
   return (
     <header
       className={`w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
@@ -256,7 +315,7 @@ export default function NavBar() {
           </div>
 
           {/* Desktop Navigation - mag inkrimpen zodat rechts in beeld blijft */}
-          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-hidden">
+          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-visible">
             <Button
               variant="ghost"
               className="flex items-center space-x-2"
@@ -309,7 +368,9 @@ export default function NavBar() {
             {user && (
               <div className="hidden md:flex items-center flex-shrink-0 min-w-0 gap-1">
                 <CartIcon />
-                <NotificationBell />
+                <div className="relative z-[110] shrink-0">
+                  <NotificationBell />
+                </div>
                 
                 {/* Profile Dropdown */}
                 <div className="relative z-[100] min-w-0" ref={profileDropdownRef}>

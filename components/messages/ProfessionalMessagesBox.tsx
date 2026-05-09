@@ -397,12 +397,22 @@ export default function ProfessionalMessagesBox({ className = '', onMessagesRead
             unreadCount: conv.messages.filter(msg => !msg.isRead && msg.senderId !== (session as any)?.user?.id).length
           }))
         );
-        
-        // Recalculate total unread count
-        const newUnreadCount = messages
-          .filter(msg => !msg.isRead && msg.senderId !== (session as any)?.user?.id)
-          .length;
-        setUnreadCount(newUnreadCount);
+
+        try {
+          const countRes = await fetch('/api/messages/unread-count');
+          const countData = countRes.ok ? await countRes.json() : {};
+          if (typeof countData.count === 'number') {
+            setUnreadCount(countData.count);
+            window.dispatchEvent(
+              new CustomEvent('unreadCountUpdate', {
+                detail: { unreadCount: countData.count },
+              })
+            );
+          }
+        } catch {
+          /* ignore */
+        }
+        window.dispatchEvent(new CustomEvent('notificationsUpdated'));
       } else if (response.status === 404) {
         // Message not found, remove it from local state
         setMessages(prevMessages => 

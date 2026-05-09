@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import NotificationFeedItems, {
   type NotificationFeedItem,
 } from '@/components/notifications/NotificationFeedItems';
+import { devBadgeLog } from '@/lib/devBadgeLog';
 
 export default function NotificationDropdown() {
   const { t } = useTranslation();
@@ -43,7 +44,13 @@ export default function NotificationDropdown() {
       if (!res.ok) return;
       const data = await res.json();
       setItems(mapApiToFeed(data.notifications || []));
-      setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+      const uc =
+        typeof data.unreadCount === 'number' ? data.unreadCount : 0;
+      setUnreadCount(uc);
+      devBadgeLog({
+        notificationsUnreadCount: uc,
+        source: 'bell-feed:/api/notifications',
+      });
     } catch (e) {
       console.error('notifications feed', e);
     } finally {
@@ -122,7 +129,11 @@ export default function NotificationDropdown() {
   };
 
   const handleSelect = async (n: NotificationFeedItem) => {
-    if (!n.isRead) await markRead([n.id]);
+    if (!n.isRead) {
+      setUnreadCount((c) => Math.max(0, c - 1));
+      await markRead([n.id]);
+      await refreshUnreadOnly();
+    }
     setIsOpen(false);
     const dest = n.link?.trim();
     if (dest) {
@@ -143,15 +154,17 @@ export default function NotificationDropdown() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAllAsRead: true }),
       });
+      setUnreadCount(0);
       window.dispatchEvent(new CustomEvent('notificationsUpdated'));
       await loadFeed();
+      await refreshUnreadOnly();
     } catch {
       /* ignore */
     }
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative z-[110]" ref={dropdownRef}>
       <button
         type="button"
         data-tour="notification-bell"
@@ -210,6 +223,8 @@ export default function NotificationDropdown() {
                 items={items}
                 loading={loading}
                 onSelect={handleSelect}
+                emptyTitle="Geen nieuwe meldingen"
+                emptyHint="Je bent helemaal bij."
               />
             </div>
 
