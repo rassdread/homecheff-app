@@ -23,6 +23,7 @@ function subtitleForAction(action: string): string | undefined {
     CONTENT_HAS_3_MEDIA: 'Media-milestone',
     CONTENT_HAS_VIDEO: 'Video toegevoegd',
     ACCOUNT_CREATED: 'Welkom',
+    BETA_TESTER_JOINED: 'Beta tester bonus',
   };
   return map[action];
 }

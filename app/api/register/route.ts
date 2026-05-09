@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
+import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 // Define UserRole enum manually
 enum UserRole {
@@ -160,6 +161,7 @@ export async function POST(req: NextRequest) {
     try {
       const cookieHeader = req.headers.get('cookie');
       await processAttributionOnSignup(user.id, cookieHeader, isBusiness || false);
+      await maybeClaimBetaTesterFromSignupCookies(user.id, cookieHeader);
     } catch (attributionError) {
       console.error('Failed to process attribution:', attributionError);
       // Don't fail registration if attribution fails

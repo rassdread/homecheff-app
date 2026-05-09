@@ -91,6 +91,13 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
     iconKey: 'rocket',
     unlockHint: 'Bereik level 4 of hoger door HCP te verdienen (o.a. posts, streak en reviews).',
   },
+  {
+    slug: 'beta-tester',
+    name: 'Beta Tester',
+    description: 'Je neemt deel aan de Android-beta en helpt HomeCheff verbeteren.',
+    iconKey: 'rocket',
+    unlockHint: 'Download de beta via homecheff.eu/app en voltooi de beta-startflow (of registreer via die pagina).',
+  },
 ];
 
 export function badgeCatalogEntryBySlug(slug: string): BadgeCatalogEntry | undefined {

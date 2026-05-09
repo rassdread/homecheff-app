@@ -11,6 +11,9 @@ import { MAIN_DOMAIN, getMetadataBaseFromHeaders, seoHreflangLanguagesOnEu } fro
 const PrivacyNotice = dynamic(() => import('@/components/PrivacyNotice'), {
   ssr: false,
 });
+const AndroidBetaOnboardingGate = dynamic(() => import('@/components/beta/AndroidBetaOnboardingGate'), {
+  ssr: false,
+});
 const UserValidation = dynamic(() => import('@/components/UserValidation'), {
   ssr: false,
 });
@@ -218,6 +221,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Footer />
           </AppPageChrome>
           <BottomNavigation />
+          <AndroidBetaOnboardingGate />
           <PrivacyNotice />
         </Providers>
       </body>

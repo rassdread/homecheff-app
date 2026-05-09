@@ -13,6 +13,7 @@ export const HCP_ACTIONS = [
   'CONTENT_POST_CREATED',
   'CONTENT_HAS_3_MEDIA',
   'CONTENT_HAS_VIDEO',
+  'BETA_TESTER_JOINED',
 ] as const;
 
 export type HcpAction = (typeof HCP_ACTIONS)[number];
@@ -30,6 +31,7 @@ export const HCP_ACTION_POINTS: Record<HcpAction, number> = {
   CONTENT_POST_CREATED: 25,
   CONTENT_HAS_3_MEDIA: 10,
   CONTENT_HAS_VIDEO: 15,
+  BETA_TESTER_JOINED: 50,
 };
 
 export function isHcpAction(value: string): value is HcpAction {

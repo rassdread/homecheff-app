@@ -46,6 +46,24 @@ export function middleware(request: NextRequest) {
         secure: true,
       });
     }
+    const hcBetaSrc = request.cookies.get('hc_beta_src')?.value;
+    if (hcBetaSrc) {
+      redirectResponse.cookies.set('hc_beta_src', hcBetaSrc, {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30,
+        secure: true,
+      });
+    }
+    const hcBetaIntent = request.cookies.get('hc_beta_intent')?.value;
+    if (hcBetaIntent) {
+      redirectResponse.cookies.set('hc_beta_intent', hcBetaIntent, {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30,
+        secure: true,
+      });
+    }
     return redirectResponse;
   }
 
@@ -82,8 +100,10 @@ export function middleware(request: NextRequest) {
       const cleanUrl = new URL(request.url);
       cleanUrl.searchParams.delete('ref');
       const redirectUrl = cleanUrl.pathname + cleanUrl.search;
+      const isBetaAppLanding = pathname === '/app' || pathname.startsWith('/app/');
+      const betaQs = isBetaAppLanding ? '&androidBeta=1' : '';
       const url = new URL(
-        `/api/affiliate/referral?code=${encodeURIComponent(refCode)}&redirect=${encodeURIComponent(redirectUrl)}`,
+        `/api/affiliate/referral?code=${encodeURIComponent(refCode)}&redirect=${encodeURIComponent(redirectUrl)}${betaQs}`,
         request.url
       );
       return NextResponse.redirect(url);

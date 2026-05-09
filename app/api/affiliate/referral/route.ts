@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
     const redirect = searchParams.get('redirect') || '/';
+    const androidBeta = searchParams.get('androidBeta') === '1';
 
     if (!code) {
       return NextResponse.redirect(new URL(redirect, req.url));
@@ -41,6 +42,17 @@ export async function GET(req: NextRequest) {
         path: "/",
         sameSite: "lax",
         httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+
+    if (androidBeta) {
+      response.cookies.set("hc_beta_src", "android_beta_download", {
+        expires,
+        path: "/",
+        sameSite: "lax",
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
       });
     }
 

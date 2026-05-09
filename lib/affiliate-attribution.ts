@@ -11,6 +11,10 @@ import { AttributionType, AttributionSource } from '@prisma/client';
 const COOKIE_NAME = 'hc_ref';
 const COOKIE_TTL_DAYS = 30;
 
+/** Landing /app: signup-attributiebron ANDROID_BETA_DOWNLOAD als deze cookie gezet is. */
+export const HC_BETA_SRC_COOKIE = 'hc_beta_src';
+export const HC_BETA_SRC_VALUE = 'android_beta_download';
+
 function safeDecodeURIComponent(s: string): string {
   try {
     return decodeURIComponent(s);
@@ -103,10 +107,20 @@ export async function createAttribution(
  * Get affiliate ID from cookie (for server-side)
  * Note: In Next.js App Router, cookies are handled via headers
  */
-export function getAffiliateIdFromCookie(cookieHeader: string | null): string | null {
+export function getCookieFromHeader(cookieHeader: string | null | undefined, name: string): string | null {
   if (!cookieHeader) return null;
   const cookies = parseCookieHeader(cookieHeader);
-  return cookies[COOKIE_NAME] || null;
+  const v = cookies[name]?.trim();
+  return v || null;
+}
+
+/** Waarde van hc_ref (referralcode), niet affiliate-ID — historische functienaam. */
+export function getAffiliateIdFromCookie(cookieHeader: string | null): string | null {
+  return getCookieFromHeader(cookieHeader, COOKIE_NAME);
+}
+
+export function hasAndroidBetaDownloadCookie(cookieHeader: string | null | undefined): boolean {
+  return getCookieFromHeader(cookieHeader, HC_BETA_SRC_COOKIE) === HC_BETA_SRC_VALUE;
 }
 
 /**
@@ -206,7 +220,10 @@ export async function processAttributionOnSignup(
 
     // Create attribution record
     const type = isBusiness ? AttributionType.BUSINESS_SIGNUP : AttributionType.USER_SIGNUP;
-    await createAttribution(userId, affiliateId, type, AttributionSource.REF_LINK);
+    const source = hasAndroidBetaDownloadCookie(cookieHeader)
+      ? AttributionSource.ANDROID_BETA_DOWNLOAD
+      : AttributionSource.REF_LINK;
+    await createAttribution(userId, affiliateId, type, source);
   } catch (error) {
     console.error('Error processing attribution on signup:', error);
     // Don't throw - attribution failure shouldn't break signup

@@ -16,6 +16,7 @@ export const HCP_V2_BADGE_SLUGS = [
   'hcp-100',
   'community-actief',
   'early-homecheff',
+  'beta-tester',
 ] as const;
 
 export type HcpV2BadgeSlug = (typeof HCP_V2_BADGE_SLUGS)[number];
@@ -98,5 +99,11 @@ export const BADGE_ROW_META: Record<HcpV2BadgeSlug, BadgeRowMeta> = {
     description: 'Level 4 of meer — je bouwt echt mee.',
     iconKey: 'rocket',
     unlockHint: catalogUnlockHint('early-homecheff'),
+  },
+  'beta-tester': {
+    name: 'Beta Tester',
+    description: 'Je test mee met de HomeCheff Android-beta en helpt het platform verbeteren.',
+    iconKey: 'rocket',
+    unlockHint: catalogUnlockHint('beta-tester'),
   },
 };

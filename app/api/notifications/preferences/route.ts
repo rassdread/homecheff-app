@@ -134,6 +134,18 @@ export async function PUT(req: NextRequest) {
       updateFields.push('"pushSecurityAlerts" = $' + (updateValues.length + 1));
       updateValues.push(body.pushSecurityAlerts);
     }
+    if ('pushHcpRewards' in body) {
+      updateFields.push('"pushHcpRewards" = $' + (updateValues.length + 1));
+      updateValues.push(body.pushHcpRewards);
+    }
+    if ('pushPromotionalUpdates' in body) {
+      updateFields.push('"pushPromotionalUpdates" = $' + (updateValues.length + 1));
+      updateValues.push(body.pushPromotionalUpdates);
+    }
+    if ('betaFeaturesEnabled' in body) {
+      updateFields.push('"betaFeaturesEnabled" = $' + (updateValues.length + 1));
+      updateValues.push(body.betaFeaturesEnabled);
+    }
 
     // SMS settings
     if ('smsOrderUpdates' in body) {

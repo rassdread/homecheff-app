@@ -79,6 +79,10 @@ model User {
   hideHowItWorks                         Boolean                   @default(false)
   /// HCP V2: welkom-onboarding (Mijn HC / Mijn HCP) eenmalig afgehandeld
   hcpWelcomeSeenAt                       DateTime?
+  /// Android/web beta: eerste sessie na download-/beta-flow (HCP + badge, idempotent)
+  betaTesterJoinedAt                     DateTime?
+  /// Beta onboarding sheet (meldingen/locatie-stappen) afgerond
+  androidBetaOnboardingCompletedAt       DateTime?
   dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
   Account                                Account[]
   AdminAction                            AdminAction[]
@@ -204,6 +208,7 @@ enum AttributionSource {
   REF_LINK
   PROMO_CODE
   MANUAL
+  ANDROID_BETA_DOWNLOAD
 }
 
 model Attribution {
@@ -1284,12 +1289,26 @@ model NotificationPreferences {
   quietHoursEnabled       Boolean  @default(false)
   quietHoursStart         String?  @default("22:00")
   quietHoursEnd           String?  @default("08:00")
+  pushHcpRewards          Boolean  @default(true)
+  pushPromotionalUpdates  Boolean  @default(false)
+  betaFeaturesEnabled     Boolean  @default(true)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("NotificationPreferences")
+}
+
+/// Ruwe teller voor beta-downloadpagina (kliks); geen persoonsgegevens verplicht.
+model BetaDownloadEvent {
+  id        String   @id @default(cuid())
+  refCode   String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([refCode])
 }
 
 model DynamicSeller {

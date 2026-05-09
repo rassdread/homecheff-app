@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
+import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 // import { UserRole } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest) {
     try {
       const cookieHeader = request.headers.get('cookie');
       await processAttributionOnSignup(existingUser.id, cookieHeader, false);
+      await maybeClaimBetaTesterFromSignupCookies(existingUser.id, cookieHeader);
     } catch (e) {
       console.error('Affiliate attribution after social onboarding:', e);
     }

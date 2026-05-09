@@ -9,6 +9,7 @@ import { geocodeAddress } from "@/lib/global-geocoding";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
+import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
@@ -360,6 +361,7 @@ export async function POST(req: NextRequest) {
     try {
       const cookieHeader = req.headers.get('cookie');
       await processAttributionOnSignup(user.id, cookieHeader, isBusiness || false);
+      await maybeClaimBetaTesterFromSignupCookies(user.id, cookieHeader);
     } catch (attributionError) {
       console.error('Failed to process attribution:', attributionError);
       // Don't fail registration if attribution fails

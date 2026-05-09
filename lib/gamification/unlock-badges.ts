@@ -76,6 +76,7 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
         profileImage: true,
         image: true,
         createdAt: true,
+        betaTesterJoinedAt: true,
       },
     }),
     prisma.userHcpStats.findUnique({
@@ -206,6 +207,7 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
     ['hcp-100', totalHcp >= 100],
     ['community-actief', favCount >= 5 || propsReceived >= 5],
     ['early-homecheff', level >= 4],
+    ['beta-tester', Boolean(user.betaTesterJoinedAt)],
   ];
 
   for (const [slug, ok] of checks) {

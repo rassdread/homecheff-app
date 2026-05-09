@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   DollarSign,
@@ -709,6 +710,12 @@ export default function AffiliateManagement() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900 flex flex-wrap items-center justify-between gap-2">
+        <span>Android beta: downloadpagina en referralbron ANDROID_BETA_DOWNLOAD.</span>
+        <Link href="/admin/beta" className="font-medium text-emerald-800 underline hover:no-underline shrink-0">
+          Bekijk beta-inzichten →
+        </Link>
+      </div>
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="border-b border-gray-200">
