@@ -1,8 +1,84 @@
 'use client';
 
-import NotificationDropdown from './NotificationDropdown';
+import { useState, useEffect, useCallback } from 'react';
+import { Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useTranslation } from '@/hooks/useTranslation';
+import { devBadgeLog } from '@/lib/devBadgeLog';
 
+/** Voorkomt dat CDN/browser oude JSON voor badge-counts cached. */
+const BADGE_FETCH: RequestInit = {
+  cache: 'no-store',
+  credentials: 'same-origin',
+};
+
+/**
+ * Meldingsbel: badge = GET /api/notifications unreadCount.
+ * Klik opent altijd /notifications (geen dropdown onder sticky header / overflow-clipping).
+ */
 export default function NotificationBell() {
-  return <NotificationDropdown />;
-}
+  const { t } = useTranslation();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [unreadCount, setUnreadCount] = useState(0);
 
+  const refreshUnread = useCallback(async () => {
+    if (!session?.user?.email) {
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const res = await fetch('/api/notifications?limit=1', BADGE_FETCH);
+      if (!res.ok) return;
+      const data = await res.json();
+      const uc = typeof data.unreadCount === 'number' ? data.unreadCount : 0;
+      setUnreadCount(uc);
+      devBadgeLog({
+        notificationsUnreadCount: uc,
+        source: 'bell:/api/notifications?limit=1',
+      });
+    } catch {
+      /* ignore */
+    }
+  }, [session?.user?.email]);
+
+  useEffect(() => {
+    void refreshUnread();
+
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible')
+        return;
+      void refreshUnread();
+    }, 45000);
+
+    const onUpdated = () => void refreshUnread();
+    window.addEventListener('notificationsUpdated', onUpdated);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notificationsUpdated', onUpdated);
+    };
+  }, [refreshUnread]);
+
+  if (!session?.user?.email) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      data-tour="notification-bell"
+      onClick={() => router.push('/notifications')}
+      className="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2.5 transition-colors hover:bg-gray-100"
+      aria-label={t('common.notifications')}
+    >
+      <Bell className="h-5 w-5 text-gray-600" />
+      {unreadCount > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white shadow-sm">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}

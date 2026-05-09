@@ -23,7 +23,10 @@ export default function BottomNav() {
       return;
     }
     try {
-      const res = await fetch('/api/messages/unread-count');
+      const res = await fetch('/api/messages/unread-count', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
       if (!res.ok) return;
       const data = await res.json();
       const c = typeof data.count === 'number' ? data.count : 0;

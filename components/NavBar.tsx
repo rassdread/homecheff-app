@@ -194,7 +194,10 @@ export default function NavBar() {
     let sellerUnread = 0;
 
     try {
-      const response = await fetch('/api/messages/unread-count');
+      const response = await fetch('/api/messages/unread-count', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
       if (response.ok) {
         const data = await response.json();
         messagesUnread = typeof data.count === 'number' ? data.count : 0;
@@ -217,7 +220,10 @@ export default function NavBar() {
       let notifUnreadBuyer: number | undefined;
       if (process.env.NODE_ENV === 'development') {
         try {
-          const nr = await fetch('/api/notifications?limit=1');
+          const nr = await fetch('/api/notifications?limit=1', {
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
           if (nr.ok) {
             const nd = await nr.json();
             if (typeof nd.unreadCount === 'number') notifUnreadBuyer = nd.unreadCount;
@@ -236,7 +242,10 @@ export default function NavBar() {
       return;
     }
     try {
-      const res = await fetch('/api/notifications/orders');
+      const res = await fetch('/api/notifications/orders', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
       if (res.ok) {
         const data = await res.json();
         sellerUnread =
@@ -250,7 +259,10 @@ export default function NavBar() {
     let notifUnread: number | undefined;
     if (process.env.NODE_ENV === 'development') {
       try {
-        const nr = await fetch('/api/notifications?limit=1');
+        const nr = await fetch('/api/notifications?limit=1', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
         if (nr.ok) {
           const nd = await nr.json();
           if (typeof nd.unreadCount === 'number') notifUnread = nd.unreadCount;
@@ -303,7 +315,7 @@ export default function NavBar() {
 
   return (
     <header
-      className={`w-full max-w-[100vw] overflow-x-hidden border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
+      className={`w-full max-w-[100vw] overflow-visible border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm lg:sticky lg:top-0 z-[100] border-gray-200 dark:border-gray-800 ${
         nativeShell ? 'pt-[env(safe-area-inset-top,0px)]' : ''
       }`}
     >
