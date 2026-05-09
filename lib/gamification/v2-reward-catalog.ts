@@ -1,6 +1,6 @@
 /**
- * V2 placeholder “beloningen” — geen uitbetaling, geen Stripe.
- * Admin / productie kan later echte workflows koppelen.
+ * Catalogus voor UI + `/api/gamification/me` — automatisch gekoppeld aan `UserHcpReward.slug`.
+ * Geen uitbetaling / geen Stripe.
  */
 export type HcpV2CatalogReward = {
   id: string;
@@ -14,28 +14,31 @@ export const HCP_V2_REWARD_CATALOG: HcpV2CatalogReward[] = [
   {
     id: 'boost-500',
     title: 'Profielboost',
-    description: 'Tijdelijk extra zichtbaarheid in je buurt (placeholder).',
+    description:
+      'Interne zichtbaarheidsboost (we tonen dit op je profiel/Mijn HCP). Geen harde feed-ranking wijziging in V3.',
     requirement: '500 HCP totaal',
     kind: 'boost',
   },
   {
     id: 'featured-1000',
     title: 'Featured creator',
-    description: 'Kans op uitgelichte plek op de homepage (placeholder).',
+    description:
+      'Geschikt voor latere homepage-spotlights. Nu: eligibility vastgelegd in je account — geen automatische ranking shuffle.',
     requirement: '1000 HCP totaal',
     kind: 'spotlight',
   },
   {
     id: 'weekly-top3',
     title: 'Creator van de week',
-    description: 'Spotlight voor top 3 weekly leaderboard (placeholder).',
+    description:
+      'Wekelijkse spotlight-status als je in de top 3 staat voor deze week (UTC-week). Verloopt aan het einde van de week.',
     requirement: 'Top 3 deze week',
     kind: 'spotlight',
   },
   {
     id: 'streak-30',
-    title: 'Speciale profiel-badge',
-    description: 'Unieke glow/badge na 30 dagen streak (placeholder).',
+    title: 'Speciale profiel-badge / glow',
+    description: 'Interne beloning na 30 dagen login-streak (weergave op Mijn HCP).',
     requirement: '30 dagen login-streak',
     kind: 'badge',
   },

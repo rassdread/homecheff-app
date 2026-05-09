@@ -3257,7 +3257,70 @@
         "photos_5": "Add 5 photos",
         "login_7": "Log in on 7 days",
         "video_1": "Post a video"
-      }
+      },
+      "ranking": {
+        "title": "Top this week",
+        "empty": "No scores yet this week — earn HCP to appear here.",
+        "loadError": "Leaderboard temporarily unavailable.",
+        "line": "{name} · {score} HCP"
+      },
+      "spotlight": {
+        "featuredTitle": "Featured",
+        "reasonTopWeek": "Highest HCP this week",
+        "reasonBadge": "{badge}",
+        "fallbackTitle": "Get visible this week",
+        "fallbackBody": "Earn HCP and climb the leaderboard."
+      },
+      "rewards": {
+        "title": "Rewards",
+        "teaser": "Rewards are processed automatically once you meet the conditions. This can include extra visibility, badges, profile boosts, spotlight placements or promotions in the HCP screens. HCP does not include fixed cash prizes or automatic payouts unless HomeCheff communicates this separately in advance."
+      },
+      "ctaLeaderboards": "View leaderboards"
+    },
+    "hcpCarousel": {
+      "aria": "HCP competition and promos",
+      "prev": "Previous slide",
+      "next": "Next slide",
+      "dot": "Go to slide {n}",
+      "openRankings": "All rankings →"
+    },
+    "hcpRankingsPage": {
+      "title": "HomeCheff Leaderboards",
+      "intro": "Explore makers by HomeCheff Points across areas and time periods. Nearby boards use a rough radius around your saved profile — or your current location only for this session if you allow it. Rewards are processed automatically once you meet the conditions. This can include extra visibility, badges, profile boosts, spotlight placements or promotions in the HCP screens. HCP does not include fixed cash prizes or automatic payouts unless HomeCheff communicates this separately in advance.",
+      "backHome": "Back to home",
+      "ctaMijnHcp": "My HCP",
+      "ctaProfile": "Edit profile",
+      "promoAria": "Promotions and featured makers",
+      "promoHeading": "Campaigns & highlights",
+      "promoFallback": "No extra campaigns for this view.",
+      "viewProfile": "View profile",
+      "scopeNearby": "Near you",
+      "scopeCountry": "Country",
+      "scopeWorldwide": "Worldwide",
+      "periodWeek": "This week",
+      "periodMonth": "This month",
+      "periodYear": "This year",
+      "periodAll": "All-time",
+      "ariaScope": "Area",
+      "ariaPeriod": "Period",
+      "nearbyExplainer": "We start from your saved profile location. Tap “Use current location” to temporarily use GPS — useful when you’re on the move. Exact coordinates are never shown publicly.",
+      "radiusLabel": "Radius",
+      "gpsButton": "Use current location",
+      "useProfileLocation": "Use profile location again",
+      "sourceProfile": "Location source: saved profile.",
+      "sourceGps": "Location source: current session only.",
+      "countryExplainer": "Leaderboard for country {code}.",
+      "worldwideExplainer": "Worldwide leaderboard based on HomeCheff Points.",
+      "yourRank": "Your position in this view: #{rank}",
+      "notRankedYet": "You’re not on this board yet — earn HCP in this period to appear.",
+      "inThisView": "in this view",
+      "loginHint": "Sign in to see your position on the leaderboard.",
+      "emptyNearbyNoLocation": "Add your location to see nearby leaderboards.",
+      "emptyGeneric": "Not enough data for this leaderboard yet.",
+      "rankUp": "↑ Moved up",
+      "rankDown": "↓ Moved down",
+      "gpsUnsupported": "Location is not supported in this browser.",
+      "gpsDenied": "Location permission denied. We’ll fall back to your profile location when available."
     }
   },
   "deliverySignup": {
@@ -3442,7 +3505,7 @@
     "closeBackdrop": "Close",
     "closeButton": "Close",
     "title": "Welcome to HomeCheff Points",
-    "intro": "With HomeCheff Points, you earn points by being active on HomeCheff. Post inspiration, add photos, build your streak and collect badges. In the future, HCP may also be linked to extra visibility, rewards and campaigns.",
+    "intro": "With HomeCheff Points, you earn points by being active on HomeCheff. Post inspiration, add photos, build your streak and collect badges.\n\nRewards are processed automatically once you meet the conditions. This can include extra visibility, badges, profile boosts, spotlight placements or promotions in the HCP screens. HCP does not include fixed cash prizes or automatic payouts unless HomeCheff communicates this separately in advance.",
     "skip": "Skip",
     "cta": "Start earning"
   },

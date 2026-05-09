@@ -58,7 +58,7 @@ export default function HcpWelcomeSheet({ open, onDismiss }: Props) {
         <h2 id="hcp-welcome-title" className="text-xl font-bold text-gray-900 pr-10">
           {t('hcpWelcome.title')}
         </h2>
-        <p className="mt-2 text-sm text-gray-600 leading-relaxed">{t('hcpWelcome.intro')}</p>
+        <p className="mt-2 text-sm text-gray-600 leading-relaxed whitespace-pre-line">{t('hcpWelcome.intro')}</p>
         <div className="mt-6 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
           <button
             type="button"

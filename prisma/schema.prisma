@@ -123,6 +123,7 @@ model User {
   hcpEvents                              HcpEvent[]
   hcpStats                               UserHcpStats?
   userBadges                             UserBadge[]
+  userHcpRewards                         UserHcpReward[]
 
   @@index([username])
   @@index([name])
@@ -1562,17 +1563,17 @@ model HcpEvent {
 
 /// Aggregated HCP and login streak per user (transactionally updated with HcpEvent inserts).
 model UserHcpStats {
-  userId           String  @id
-  totalHcp         Int     @default(0)
-  currentStreak    Int     @default(0)
-  longestStreak    Int     @default(0)
+  userId               String  @id
+  totalHcp             Int     @default(0)
+  currentStreak        Int     @default(0)
+  longestStreak        Int     @default(0)
   /// UTC calendar date (YYYY-MM-DD) when DAILY_LOGIN was last awarded.
-  lastDailyHcpDate String?
+  lastDailyHcpDate     String?
   /// Client toasts (+HCP, badge, streak) — gelezen en gewist via GET /api/gamification/me
   pendingClientRewards Json?
   /// V2 weekly challenges progress (weekKey + per-challenge counters)
   weeklyChallengesJson Json?
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Badge {
@@ -1595,6 +1596,85 @@ model UserBadge {
 
   @@unique([userId, badgeId])
   @@index([userId])
+}
+
+/// Automatische HCP-beloningen (geen uitbetaling / geen Stripe). Status via engine + optionele vervaldatum.
+enum HcpRewardStatus {
+  ACTIVE
+  EXPIRED
+}
+
+model UserHcpReward {
+  id        String          @id @default(uuid())
+  userId    String
+  /// bv. profile_boost_500, featured_creator_1000, weekly_spotlight_top3, streak_glow_30
+  slug      String
+  status    HcpRewardStatus @default(ACTIVE)
+  grantedAt DateTime?
+  expiresAt DateTime?
+  metadata  Json?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@index([status])
+}
+
+/// Handmatige homepage HCP-carousel slides (promo, campagne, sponsored spotlight).
+enum HcpCarouselSlideType {
+  RANKING
+  PROMO
+  SPOTLIGHT
+  SPONSORED
+  INFO
+}
+
+enum HcpCarouselPlacement {
+  HOME
+  RANKINGS
+  BOTH
+}
+
+enum HcpCarouselTargetType {
+  GLOBAL
+  COUNTRY
+  RADIUS
+}
+
+model HcpCarouselSlide {
+  id              String                @id @default(uuid())
+  title           String
+  subtitle        String?
+  imageUrl        String?
+  ctaLabel        String?
+  ctaUrl          String?
+  /// Optioneel: preset zoals "amber", "emerald", "violet" of ruwe Tailwind-klassen fragment.
+  backgroundStyle String?
+  isActive        Boolean               @default(true)
+  sortOrder       Int                   @default(0)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  slideType       HcpCarouselSlideType  @default(PROMO)
+  /// Waar de slide verschijnt: alleen home-carousel, alleen ranglijsten-pagina, of beide.
+  placement       HcpCarouselPlacement  @default(BOTH)
+  /// Geo-/land-targeting voor promo (geen precieze gebruikers-GPS opslaan in deze rij).
+  targetType      HcpCarouselTargetType @default(GLOBAL)
+  targetCountry   String?
+  targetLat       Float?
+  targetLng       Float?
+  targetRadiusKm  Int?
+  /// null = alle talen; anders "nl" of "en"
+  localeFilter    String?
+  /// ISO landcode (bv. NL); null = alle landen (legacy eenvoudige filter)
+  countryFilter   String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([startsAt, endsAt])
+  @@index([placement])
 }
 
 model EncryptionKey {

@@ -5,6 +5,7 @@ import { badgeCatalogEntryBySlug } from '@/lib/gamification/badge-catalog';
  * Evaluated in `unlock-badges.ts` (idempotent UserBadge rows).
  */
 export const HCP_V2_BADGE_SLUGS = [
+  'welkom-homecheff',
   'eerste-product',
   'fotokoning',
   'streak-starter',
@@ -32,6 +33,12 @@ function catalogUnlockHint(slug: HcpV2BadgeSlug): string {
 }
 
 export const BADGE_ROW_META: Record<HcpV2BadgeSlug, BadgeRowMeta> = {
+  'welkom-homecheff': {
+    name: 'Welkom bij HomeCheff',
+    description: 'Je bent gestart met HomeCheff Points.',
+    iconKey: 'spark',
+    unlockHint: catalogUnlockHint('welkom-homecheff'),
+  },
   'eerste-product': {
     name: 'Eerste product',
     description: 'Je eerste product op het dorpsplein.',
@@ -40,7 +47,7 @@ export const BADGE_ROW_META: Record<HcpV2BadgeSlug, BadgeRowMeta> = {
   },
   fotokoning: {
     name: 'Fotokoning',
-    description: 'Minstens 5 productfoto’s geüpload (totaal).',
+    description: 'Minstens 5 stuks media op producten of inspiratie (foto’s/video/werkruimte).',
     iconKey: 'photo',
     unlockHint: catalogUnlockHint('fotokoning'),
   },

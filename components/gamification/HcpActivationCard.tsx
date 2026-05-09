@@ -6,6 +6,7 @@ import { Leaf, Package, Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { useTranslation } from '@/hooks/useTranslation';
+import HcpHomeCarousel from '@/components/gamification/HcpHomeCarousel';
 import { cn } from '@/lib/utils';
 
 function isUtcToday(iso: string): boolean {
@@ -26,10 +27,14 @@ type MissionRow = {
   target?: number;
 };
 
+const HP = 'home.hcpActivation';
+
 export default function HcpActivationCard({ className }: { className?: string }) {
   const { data: session, status } = useSession();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data, loading, error } = useGamificationMe();
+
+  const tk = (key: string, opts?: Record<string, string | number>) => t(`${HP}.${key}`, opts);
 
   const loggedIn = status === 'authenticated' && Boolean(session?.user);
 
@@ -41,7 +46,7 @@ export default function HcpActivationCard({ className }: { className?: string })
     const rows: MissionRow[] = [
       {
         key: 'daily-login',
-        label: t('home.hcpActivation.missionLoginToday'),
+        label: tk('missionLoginToday'),
         done: loggedInToday,
       },
     ];
@@ -89,7 +94,7 @@ export default function HcpActivationCard({ className }: { className?: string })
           className
         )}
         aria-busy="true"
-        aria-label={t('home.hcpActivation.loadingAria')}
+        aria-label={tk('loadingAria')}
       >
         <div className="h-4 w-40 rounded-md bg-amber-100/80 animate-pulse mb-3" />
         <div className="h-3 w-full rounded-full bg-amber-100/60 animate-pulse mb-2" />
@@ -106,36 +111,29 @@ export default function HcpActivationCard({ className }: { className?: string })
           className
         )}
       >
-        {t('home.hcpActivation.loadError')}
+        {tk('loadError')}
       </section>
     );
   }
 
   const streakLabel =
     data.currentStreak === 0
-      ? t('home.hcpActivation.streakNone')
+      ? tk('streakNone')
       : data.currentStreak === 1
-        ? t('home.hcpActivation.streakOne')
-        : t('home.hcpActivation.streakMany', { count: data.currentStreak });
+        ? tk('streakOne')
+        : tk('streakMany', { count: data.currentStreak });
 
-  return (
-    <section
-      id="homecheff-hcp-activation"
-      className={cn(
-        'rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 p-4 sm:p-5 shadow-sm ring-1 ring-amber-500/5',
-        className
-      )}
-      aria-labelledby="hcp-activation-heading"
-    >
+  const leftColumn = (
+    <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="hcp-activation-heading" className="sr-only">
-          {t('home.hcpActivation.sectionTitle')}
+          {tk('sectionTitle')}
         </h2>
         <p className="text-base sm:text-lg font-bold text-gray-900 tabular-nums">
           <span aria-hidden className="mr-1">
             ⭐
           </span>
-          {data.totalHcp.toLocaleString()} HCP · {t('home.hcpActivation.level', { level: data.level })}
+          {data.totalHcp.toLocaleString()} HCP · {tk('level', { level: data.level })}
         </p>
         <p
           className={cn(
@@ -148,7 +146,7 @@ export default function HcpActivationCard({ className }: { className?: string })
         </p>
       </div>
 
-      <div className="mt-3 relative">
+      <div className="relative">
         <div
           className="relative h-2.5 w-full overflow-hidden rounded-full bg-amber-100/90 shadow-inner"
           aria-hidden
@@ -159,7 +157,7 @@ export default function HcpActivationCard({ className }: { className?: string })
           />
         </div>
         <p className="mt-2 text-xs text-gray-600">
-          {t('home.hcpActivation.toNextLevel', {
+          {tk('toNextLevel', {
             amount: data.hcpToNextLevel.toLocaleString(),
             next: data.level + 1,
           })}
@@ -167,14 +165,14 @@ export default function HcpActivationCard({ className }: { className?: string })
       </div>
 
       {isFreshUser ? (
-        <p className="mt-3 text-sm text-emerald-900/90 leading-snug rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2">
-          {t('home.hcpActivation.freshUserHint')}
+        <p className="text-sm text-emerald-900/90 leading-snug rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2">
+          {tk('freshUserHint')}
         </p>
       ) : null}
 
-      <div className="mt-4">
+      <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-amber-900/80 mb-2">
-          {t('home.hcpActivation.missionsHeading')}
+          {tk('missionsHeading')}
         </p>
         <ul className="space-y-2">
           {missions.map((m) => (
@@ -202,9 +200,9 @@ export default function HcpActivationCard({ className }: { className?: string })
         </ul>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-amber-100/80">
+      <div className="pt-1 border-t border-amber-100/80">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-2">
-          {t('home.hcpActivation.quickActions')}
+          {tk('quickActions')}
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -216,7 +214,7 @@ export default function HcpActivationCard({ className }: { className?: string })
             )}
           >
             <Leaf className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {t('home.hcpActivation.ctaInspiration')}
+            {tk('ctaInspiration')}
           </Link>
           <Link
             href="/sell/new"
@@ -227,7 +225,7 @@ export default function HcpActivationCard({ className }: { className?: string })
             )}
           >
             <Package className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {t('home.hcpActivation.ctaProduct')}
+            {tk('ctaProduct')}
           </Link>
           <Link
             href="/mijn-hcp"
@@ -238,8 +236,26 @@ export default function HcpActivationCard({ className }: { className?: string })
             )}
           >
             <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {t('home.hcpActivation.ctaMijnHcp')}
+            {tk('ctaMijnHcp')}
           </Link>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <section
+      id="homecheff-hcp-activation"
+      className={cn(
+        'rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 p-4 sm:p-5 shadow-sm ring-1 ring-amber-500/5',
+        className
+      )}
+      aria-labelledby="hcp-activation-heading"
+    >
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:items-start">
+        <div className="order-1 min-w-0 lg:order-none">{leftColumn}</div>
+        <div className="order-2 min-w-0 lg:order-none">
+          <HcpHomeCarousel lang={language} />
         </div>
       </div>
     </section>

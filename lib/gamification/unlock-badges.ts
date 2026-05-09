@@ -47,14 +47,24 @@ async function tryAwardBadge(userId: string, slug: HcpV2BadgeSlug): Promise<Unlo
   }
 }
 
+const PAID_ORDER_STATUSES = ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'] as const;
+
 /**
- * Evaluate V2 badge rules once. Idempotent (unique UserBadge).
+ * Evaluate V3 badge rules from database truth. Idempotent (unique UserBadge).
  * Returns newly unlocked badges for toasts / notifications.
  */
 export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge[]> {
   const unlocked: UnlockedBadge[] = [];
 
-  const [user, stats, seller, dishCount, hcpEvents] = await Promise.all([
+  const [
+    user,
+    stats,
+    seller,
+    dishCount,
+    hasAccountCreatedEvent,
+    hasProfileCompletedEvent,
+    hasFirstSaleEvent,
+  ] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -77,10 +87,17 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
       select: { id: true },
     }),
     prisma.dish.count({ where: { userId, status: 'PUBLISHED' } }),
-    prisma.hcpEvent.findMany({
-      where: { userId, action: { in: ['FIRST_SALE', 'PROFILE_COMPLETED'] } },
-      select: { action: true },
-      take: 20,
+    prisma.hcpEvent.findFirst({
+      where: { userId, action: 'ACCOUNT_CREATED' },
+      select: { id: true },
+    }),
+    prisma.hcpEvent.findFirst({
+      where: { userId, action: 'PROFILE_COMPLETED' },
+      select: { id: true },
+    }),
+    prisma.hcpEvent.findFirst({
+      where: { userId, action: 'FIRST_SALE' },
+      select: { id: true },
     }),
   ]);
 
@@ -94,32 +111,76 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
     ? await prisma.product.count({ where: { sellerId: seller.id, isActive: true } })
     : 0;
 
-  const productImageCount = seller
-    ? await prisma.image.count({
-        where: { product: { sellerId: seller.id } },
-      })
-    : 0;
-
-  const reviewCount = seller
-    ? await prisma.productReview.count({
-        where: {
-          product: { sellerId: seller.id },
-          reviewSubmittedAt: { not: null },
-          rating: { gt: 0 },
-        },
-      })
-    : 0;
-
-  const favCount =
-    (await prisma.favorite.count({ where: { dish: { userId } } })) +
-    (seller
-      ? await prisma.favorite.count({
+  const [
+    productImageCount,
+    dishPhotoCount,
+    workspacePhotoCount,
+    productVideoCount,
+    dishVideoCount,
+    reviewCount,
+    favCount,
+    propsReceived,
+    hasSellerPaidOrder,
+  ] = await Promise.all([
+    seller
+      ? prisma.image.count({
+          where: { Product: { sellerId: seller.id } },
+        })
+      : Promise.resolve(0),
+    prisma.dishPhoto.count({
+      where: { dish: { userId, status: 'PUBLISHED' } },
+    }),
+    prisma.workspaceContentPhoto.count({
+      where: { workspaceContent: { sellerProfile: { userId } } },
+    }),
+    seller
+      ? prisma.productVideo.count({
           where: { product: { sellerId: seller.id } },
         })
-      : 0);
+      : Promise.resolve(0),
+    prisma.dishVideo.count({
+      where: { dish: { userId, status: 'PUBLISHED' } },
+    }),
+    seller
+      ? prisma.productReview.count({
+          where: {
+            product: { sellerId: seller.id },
+            reviewSubmittedAt: { not: null },
+            rating: { gt: 0 },
+          },
+        })
+      : Promise.resolve(0),
+    Promise.all([
+      prisma.favorite.count({ where: { Dish: { userId } } }),
+      seller
+        ? prisma.favorite.count({
+            where: { Product: { sellerId: seller.id } },
+          })
+        : Promise.resolve(0),
+    ]).then(([a, b]) => a + b),
+    prisma.workspaceContentProp.count({
+      where: {
+        workspaceContent: { sellerProfile: { userId } },
+        userId: { not: userId },
+      },
+    }),
+    seller
+      ? prisma.orderItem
+          .findFirst({
+            where: {
+              Product: { sellerId: seller.id },
+              Order: { status: { in: [...PAID_ORDER_STATUSES] } },
+            },
+            select: { id: true },
+          })
+          .then(Boolean)
+      : Promise.resolve(false),
+  ]);
 
-  const hasFirstSale = hcpEvents.some((e) => e.action === 'FIRST_SALE');
-  const hasProfileCompleted = hcpEvents.some((e) => e.action === 'PROFILE_COMPLETED');
+  const totalMediaCount =
+    productImageCount + dishPhotoCount + workspacePhotoCount + productVideoCount + dishVideoCount;
+
+  const hasFirstSale = Boolean(hasFirstSaleEvent || hasSellerPaidOrder);
 
   const profileFields: ProfileFieldsForHcp = {
     name: user.name,
@@ -129,18 +190,21 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
     profileImage: user.profileImage,
     image: user.image,
   };
-  const profileComplete = isProfileCompleteForHcp(profileFields) || hasProfileCompleted;
+  const profileComplete = isProfileCompleteForHcp(profileFields) || Boolean(hasProfileCompletedEvent);
+
+  const hasWelcomeSignal = Boolean(hasAccountCreatedEvent || totalHcp > 0);
 
   const checks: Array<[HcpV2BadgeSlug, boolean]> = [
+    ['welkom-homecheff', hasWelcomeSignal],
     ['eerste-product', productCount >= 1],
-    ['fotokoning', productImageCount >= 5],
+    ['fotokoning', totalMediaCount >= 5],
     ['streak-starter', streak >= 7],
     ['eerste-review', reviewCount >= 1],
     ['eerste-verkoop', hasFirstSale],
     ['inspiratie-maker', dishCount >= 5],
     ['profiel-compleet', profileComplete],
     ['hcp-100', totalHcp >= 100],
-    ['community-actief', favCount >= 5],
+    ['community-actief', favCount >= 5 || propsReceived >= 5],
     ['early-homecheff', level >= 4],
   ];
 
@@ -153,4 +217,9 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
   }
 
   return unlocked;
+}
+
+/** Alias voor scripts en documentatie — zelfde pipeline als na elke `awardHcp`. */
+export async function runBadgeEvaluationForUser(userId: string): Promise<UnlockedBadge[]> {
+  return unlockBadgesForUser(userId);
 }

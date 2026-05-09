@@ -1,6 +1,6 @@
 /**
- * Static catalog for “locked” badges on /mijn-hcp (no DB rows required).
- * Earned rows still come from `UserBadge` + `Badge` via `/api/gamification/me`.
+ * Static catalog for “locked” badges on /mijn-hcp (sync met `HCP_V2_BADGE_SLUGS` / DB `Badge.slug`).
+ * Earned rows komen uit `UserBadge` via `/api/gamification/me`.
  */
 export type BadgeCatalogEntry = {
   slug: string;
@@ -13,46 +13,11 @@ export type BadgeCatalogEntry = {
 
 export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
   {
-    slug: 'fotokoning',
-    name: 'Fotokoning',
-    description: 'Voeg rijke foto’s en video toe aan je posts en producten.',
-    iconKey: 'photo',
-    unlockHint: 'Voeg 5 foto’s toe aan één product of inspiratiepost.',
-  },
-  {
-    slug: 'actief',
-    name: 'Actief',
-    description: 'Blijf actief met login-streaks en community-momenten.',
-    iconKey: 'active',
-    unlockHint: 'Log 7 dagen achter elkaar in.',
-  },
-  {
-    slug: 'inspiratie-maker',
-    name: 'Inspiratie Maker',
-    description: 'Deel inspiratie en ideeën met de community.',
-    iconKey: 'inspiration',
-    unlockHint: 'Plaats 5 inspiratie-items.',
-  },
-  {
-    slug: 'verkoper',
-    name: 'Verkoper',
-    description: 'Bouw je dorpsplein-aanbod op en maak verkopen.',
-    iconKey: 'seller',
-    unlockHint: 'Behaal je eerste verkoop.',
-  },
-  {
-    slug: 'community',
-    name: 'Community',
-    description: 'Props, berichten en uitnodigingen helpen HomeCheff groeien.',
-    iconKey: 'community',
-    unlockHint: 'Geef likes, reacties of volg andere makers.',
-  },
-  {
-    slug: 'reviews',
-    name: 'Gewaardeerd',
-    description: 'Verzamel reviews en waardering van kopers.',
-    iconKey: 'review',
-    unlockHint: 'Ontvang je eerste review.',
+    slug: 'welkom-homecheff',
+    name: 'Welkom bij HomeCheff',
+    description: 'Je eerste stappen op het platform met HomeCheff Points.',
+    iconKey: 'spark',
+    unlockHint: 'Maak een account en verdien je eerste HCP (welkombonus).',
   },
   {
     slug: 'eerste-product',
@@ -60,6 +25,14 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
     description: 'Je eerste product op het dorpsplein.',
     iconKey: 'medal',
     unlockHint: 'Publiceer je eerste betaalde product op het dorpsplein.',
+  },
+  {
+    slug: 'fotokoning',
+    name: 'Fotokoning',
+    description: 'Voeg rijke foto’s en video toe aan je posts en producten.',
+    iconKey: 'photo',
+    unlockHint:
+      'Upload minstens vijf keer media (productfoto’s, inspiratie, werkruimte-foto’s of video’s) verspreid over je aanbod.',
   },
   {
     slug: 'streak-starter',
@@ -83,6 +56,13 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
     unlockHint: 'Rond je eerste succesvolle verkoop af via HomeCheff.',
   },
   {
+    slug: 'inspiratie-maker',
+    name: 'Inspiratie Maker',
+    description: 'Deel inspiratie en ideeën met de community.',
+    iconKey: 'inspiration',
+    unlockHint: 'Plaats 5 openbare inspiratie-items.',
+  },
+  {
     slug: 'profiel-compleet',
     name: 'Profiel helder',
     description: 'Profiel volledig ingevuld.',
@@ -99,9 +79,10 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
   {
     slug: 'community-actief',
     name: 'Community actief',
-    description: 'Favorieten op je content.',
+    description: 'Favorieten op je content (of props van anderen op je werkruimte).',
     iconKey: 'heart',
-    unlockHint: 'Zorg dat anderen je content minstens vijf keer als favoriet opslaan.',
+    unlockHint:
+      'Laat anderen je content minstens vijf keer als favoriet opslaan, of ontvang vijf props van anderen op je inspiratie/werkruimte.',
   },
   {
     slug: 'early-homecheff',

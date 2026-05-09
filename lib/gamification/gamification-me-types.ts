@@ -18,6 +18,18 @@ export type WeeklyChallengeItemDto = {
   completed: boolean;
 };
 
+export type GamificationRewardDto = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  requirement: string;
+  kind: string;
+  displayStatus: 'coming_soon' | 'locked' | 'unlocked' | 'active' | 'expired';
+  grantedAt?: string | null;
+  expiresAt?: string | null;
+};
+
 export type GamificationMeResponse = {
   totalHcp: number;
   level: number;
@@ -43,4 +55,6 @@ export type GamificationMeResponse = {
   pendingClientRewards?: PendingClientReward[];
   hcpWelcomePending?: boolean;
   weeklyChallenges?: { weekKey: string; items: WeeklyChallengeItemDto[] };
+  /** Automatische HCP-beloningen (server truth). */
+  hcpRewards?: GamificationRewardDto[];
 };

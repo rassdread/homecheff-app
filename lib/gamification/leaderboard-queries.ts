@@ -15,7 +15,7 @@ export type LeaderboardRow = {
   isCurrentUser: boolean;
 };
 
-function mondayStartUtc(now = new Date()): Date {
+export function mondayStartUtc(now = new Date()): Date {
   const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const dow = d.getUTCDay(); // 0 Sun … 6 Sat
   const daysFromMonday = dow === 0 ? 6 : dow - 1;
@@ -24,8 +24,13 @@ function mondayStartUtc(now = new Date()): Date {
   return d;
 }
 
-function monthStartUtc(now = new Date()): Date {
+export function monthStartUtc(now = new Date()): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+}
+
+/** Calendar year start (UTC), for yearly period leaderboards. */
+export function yearStartUtc(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
 }
 
 async function usersForIds(ids: string[]) {
@@ -48,7 +53,7 @@ function avatarFor(u: { image: string | null; profileImage: string | null } | un
 }
 
 /** Rank within a period: 1 = highest points (ties: stable sort by userId). */
-function periodRankFromGroups(
+export function periodRankFromGroups(
   groups: Array<{ userId: string; _sum: { points: number | null } }>,
   myUserId: string
 ): number | null {
@@ -65,16 +70,20 @@ function periodRankFromGroups(
   return idx >= 0 ? idx + 1 : null;
 }
 
-async function buildRowsFromUserIds(
+export async function buildRowsFromUserIds(
   orderedUserIds: string[],
   scoreFn: (userId: string) => number,
   levelFn: (userId: string) => number,
   take: number,
-  viewerId: string | null | undefined
+  viewerId: string | null | undefined,
+  options?: { includeBadges?: boolean }
 ): Promise<LeaderboardRow[]> {
   const slice = orderedUserIds.slice(0, take);
   const users = await usersForIds(slice);
-  const badges = await fetchAuthorBadgeSummariesByUserIds(slice, 2);
+  const includeBadges = options?.includeBadges !== false;
+  const badges = includeBadges
+    ? await fetchAuthorBadgeSummariesByUserIds(slice, 2)
+    : new Map<string, AuthorBadgeChip[]>();
   return slice.map((userId, i) => {
     const u = users.get(userId);
     return {

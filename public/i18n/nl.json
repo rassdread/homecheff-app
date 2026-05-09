@@ -2876,7 +2876,7 @@
     "closeBackdrop": "Sluiten",
     "closeButton": "Sluiten",
     "title": "Welkom bij HomeCheff Points",
-    "intro": "Met HomeCheff Points verdien je punten door actief te zijn op HomeCheff. Plaats inspiratie, voeg foto's toe, bouw je streak op en verzamel badges. In de toekomst kunnen HCP ook gekoppeld worden aan extra zichtbaarheid, beloningen en acties.",
+    "intro": "Met HomeCheff Points verdien je punten door actief te zijn op HomeCheff. Plaats inspiratie, voeg foto's toe, bouw je streak op en verzamel badges.\n\nBeloningen worden automatisch verwerkt zodra je aan de voorwaarden voldoet. Denk aan extra zichtbaarheid, badges, profielboosts, spotlight-plekken of promoties in de HCP-schermen. Er zijn geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP, tenzij HomeCheff dat apart en vooraf communiceert.",
     "skip": "Overslaan",
     "cta": "Start met verdienen"
   },
@@ -4364,7 +4364,70 @@
         "photos_5": "Voeg 5 foto's toe",
         "login_7": "Log 7 dagen in",
         "video_1": "Plaats een video"
-      }
+      },
+      "ranking": {
+        "title": "Top deze week",
+        "empty": "Nog geen scores deze week — verdien HCP om hier te verschijnen.",
+        "loadError": "Ranglijst tijdelijk niet beschikbaar.",
+        "line": "{name} · {score} HCP"
+      },
+      "spotlight": {
+        "featuredTitle": "Uitgelicht",
+        "reasonTopWeek": "Hoogste HCP deze week",
+        "reasonBadge": "{badge}",
+        "fallbackTitle": "Word deze week zichtbaar",
+        "fallbackBody": "Verdien HCP en stijg in de ranglijst."
+      },
+      "rewards": {
+        "title": "Beloningen",
+        "teaser": "Beloningen worden automatisch verwerkt zodra je aan de voorwaarden voldoet. Denk aan extra zichtbaarheid, badges, profielboosts, spotlight-plekken of promoties in de HCP-schermen. Er zijn geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP, tenzij HomeCheff dat apart en vooraf communiceert."
+      },
+      "ctaLeaderboards": "Bekijk ranglijsten"
+    },
+    "hcpCarousel": {
+      "aria": "HCP-competitie en promoties",
+      "prev": "Vorige slide",
+      "next": "Volgende slide",
+      "dot": "Ga naar slide {n}",
+      "openRankings": "Alle ranglijsten →"
+    },
+    "hcpRankingsPage": {
+      "title": "HomeCheff Ranglijsten",
+      "intro": "Vergelijk makers op HomeCheff Points per gebied en periode. Buurtlijsten gebruiken een ruwe straal rond je profiel of — als je het toestaat — je huidige locatie alleen in deze sessie. Beloningen worden automatisch verwerkt zodra je aan de voorwaarden voldoet. Denk aan extra zichtbaarheid, badges, profielboosts, spotlight-plekken of promoties in de HCP-schermen. Er zijn geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP, tenzij HomeCheff dat apart en vooraf communiceert.",
+      "backHome": "Terug naar home",
+      "ctaMijnHcp": "Naar Mijn HCP",
+      "ctaProfile": "Profiel bewerken",
+      "promoAria": "Promoties en uitgelichte makers",
+      "promoHeading": "Acties & uitlichtingen",
+      "promoFallback": "Geen extra campagnes voor deze weergave.",
+      "viewProfile": "Bekijk profiel",
+      "scopeNearby": "In de buurt",
+      "scopeCountry": "Land",
+      "scopeWorldwide": "Wereldwijd",
+      "periodWeek": "Deze week",
+      "periodMonth": "Deze maand",
+      "periodYear": "Dit jaar",
+      "periodAll": "Algemeen",
+      "ariaScope": "Gebied",
+      "ariaPeriod": "Periode",
+      "nearbyExplainer": "We gebruiken eerst je opgeslagen profiel-locatie. Tik op ‘Gebruik huidige locatie’ om tijdelijk GPS te gebruiken — handig als je onderweg bent. Er worden geen exacte coördinaten publiek getoond.",
+      "radiusLabel": "Straal",
+      "gpsButton": "Gebruik huidige locatie",
+      "useProfileLocation": "Terug naar profiel-locatie",
+      "sourceProfile": "Locatiebron: opgeslagen profiel.",
+      "sourceGps": "Locatiebron: huidige locatie (alleen deze sessie).",
+      "countryExplainer": "Ranglijst voor land {code}.",
+      "worldwideExplainer": "Wereldwijde ranglijst op basis van HomeCheff Points.",
+      "yourRank": "Jouw plek in deze weergave: #{rank}",
+      "notRankedYet": "Je staat nog niet in deze weergave — verdien HCP in deze periode om mee te tellen.",
+      "inThisView": "in deze weergave",
+      "loginHint": "Log in om je eigen plek in de ranglijst te zien.",
+      "emptyNearbyNoLocation": "Voeg je locatie toe om ranglijsten in je buurt te zien.",
+      "emptyGeneric": "Nog onvoldoende data voor deze ranglijst.",
+      "rankUp": "↑ Gestegen",
+      "rankDown": "↓ Gedaald",
+      "gpsUnsupported": "Locatie wordt niet ondersteund in deze browser.",
+      "gpsDenied": "Geen toegang tot locatie. We vallen terug op je profiel-locatie als die er is."
     }
   },
   "filterBar": {

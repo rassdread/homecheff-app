@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Info, Sparkles, Trophy } from 'lucide-react';
+import { Info, MapPin, Sparkles, Trophy } from 'lucide-react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
+import { useTranslation } from '@/hooks/useTranslation';
 import { HCP_BADGE_CATALOG } from '@/lib/gamification/badge-catalog';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
 import { iconKeyToDisplayIcon } from '@/lib/gamification/author-badge-summaries';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
-import { HCP_V2_REWARD_CATALOG } from '@/lib/gamification/v2-reward-catalog';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
@@ -18,21 +18,38 @@ import {
   HcpLockedBadgeDetailSheet,
 } from '@/components/gamification/HcpLockedBadgeExplainer';
 
-type LeaderboardPayload = {
-  allTime: LeaderboardRow[];
-  weekly: LeaderboardRow[];
-  monthly: LeaderboardRow[];
-  me?: { allTimeRank: number | null; weeklyRank: number | null; monthlyRank: number | null };
-  meta?: { weekKey: string; weekStartUtc: string; monthStartUtc: string };
+type ScopedLbResponse = {
+  rows: LeaderboardRow[];
+  me?: { rank: number | null; score: number };
+  meta: {
+    scope: string;
+    period: string;
+    radiusKm?: number;
+    locationSource?: string;
+    hint?: string;
+    weekKey: string;
+    weekStartUtc: string;
+    monthStartUtc: string;
+    yearStartUtc?: string;
+    countryCode?: string | null;
+  };
 };
 
-type Tab = 'allTime' | 'weekly' | 'monthly';
+type LbScope = 'nearby' | 'country' | 'worldwide';
+type LbPeriod = 'week' | 'month' | 'year' | 'all';
+
+const HP_REWARDS = 'home.hcpActivation.rewards';
 
 export default function MijnHcpClient() {
+  const { t } = useTranslation();
   const { data, loading, error } = useGamificationMe();
-  const [lb, setLb] = useState<LeaderboardPayload | null>(null);
+  const [scopedLb, setScopedLb] = useState<ScopedLbResponse | null>(null);
   const [lbLoading, setLbLoading] = useState(true);
-  const [lbTab, setLbTab] = useState<Tab>('allTime');
+  const [lbScope, setLbScope] = useState<LbScope>('nearby');
+  const [lbPeriod, setLbPeriod] = useState<LbPeriod>('week');
+  const [radiusKm, setRadiusKm] = useState<25 | 50 | 100>(50);
+  const [gpsPos, setGpsPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const [rankMovement, setRankMovement] = useState<string | null>(null);
   /** Welke vergrendelde badge het uitleg-sheet toont (`null` = gesloten). */
   const [lockedBadgeSlug, setLockedBadgeSlug] = useState<string | null>(null);
@@ -40,13 +57,27 @@ export default function MijnHcpClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLbLoading(true);
       try {
-        const res = await fetch('/api/gamification/leaderboard', { credentials: 'include' });
+        const params = new URLSearchParams({
+          scope: lbScope,
+          period: lbPeriod,
+        });
+        if (lbScope === 'nearby') {
+          params.set('radiusKm', String(radiusKm));
+          if (gpsPos) {
+            params.set('lat', String(gpsPos.lat));
+            params.set('lng', String(gpsPos.lng));
+          }
+        }
+        const res = await fetch(`/api/gamification/leaderboard?${params.toString()}`, {
+          credentials: 'include',
+        });
         if (!res.ok) throw new Error('leaderboard');
-        const json = (await res.json()) as LeaderboardPayload;
-        if (!cancelled) setLb(json);
+        const json = (await res.json()) as ScopedLbResponse;
+        if (!cancelled) setScopedLb(json);
       } catch {
-        if (!cancelled) setLb(null);
+        if (!cancelled) setScopedLb(null);
       } finally {
         if (!cancelled) setLbLoading(false);
       }
@@ -54,17 +85,21 @@ export default function MijnHcpClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lbScope, lbPeriod, radiusKm, gpsPos]);
 
   useEffect(() => {
     setRankMovement(null);
-    if (typeof window === 'undefined' || !lb?.meta || !lb.me) return;
-    const curr =
-      lbTab === 'allTime' ? lb.me.allTimeRank : lbTab === 'weekly' ? lb.me.weeklyRank : lb.me.monthlyRank;
-    if (curr == null) return;
-    const periodId =
-      lbTab === 'monthly' ? lb.meta.monthStartUtc : lbTab === 'weekly' ? lb.meta.weekKey : 'all';
-    const key = `hc_lb_prev_${lbTab}_${periodId}`;
+    if (typeof window === 'undefined' || !scopedLb?.meta || scopedLb.me?.rank == null) return;
+    const curr = scopedLb.me.rank;
+    const periodKey =
+      lbPeriod === 'month'
+        ? scopedLb.meta.monthStartUtc
+        : lbPeriod === 'year'
+          ? scopedLb.meta.yearStartUtc ?? 'year'
+          : lbPeriod === 'week'
+            ? scopedLb.meta.weekKey
+            : 'all';
+    const key = `hc_lb_prev_${lbScope}_${lbPeriod}_${periodKey}_${radiusKm}_${gpsPos ? 'gps' : 'prof'}`;
     const prevS = localStorage.getItem(key);
     if (prevS != null) {
       const prev = Number(prevS);
@@ -73,7 +108,26 @@ export default function MijnHcpClient() {
       }
     }
     localStorage.setItem(key, String(curr));
-  }, [lb, lbTab]);
+  }, [scopedLb, lbPeriod, lbScope, radiusKm, gpsPos]);
+
+  const requestGps = () => {
+    setGpsError(null);
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGpsError('Locatie wordt niet ondersteund in deze browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        setGpsError(
+          'Geen toegang tot locatie. Controleer je browserinstellingen, of we gebruiken je profiel-locatie.'
+        );
+      },
+      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 12_000 }
+    );
+  };
 
   const earnedSlugs = useMemo(() => new Set((data?.badges ?? []).map((b) => b.slug)), [data?.badges]);
 
@@ -104,7 +158,17 @@ export default function MijnHcpClient() {
     [data?.badges]
   );
 
-  const rows = lbTab === 'allTime' ? lb?.allTime : lbTab === 'weekly' ? lb?.weekly : lb?.monthly;
+  const lbRows = scopedLb?.rows ?? [];
+
+  const rewardStatusLabel = (s: string) => {
+    const map: Record<string, string> = {
+      coming_soon: 'Binnenkort',
+      unlocked: 'Behaald',
+      active: 'Actief',
+      expired: 'Verlopen',
+    };
+    return map[s] ?? s;
+  };
 
   if (loading) {
     return (
@@ -293,50 +357,125 @@ export default function MijnHcpClient() {
         </ul>
       </section>
 
-      {/* Placeholder rewards */}
+      {/* Automatische beloningen (server) */}
       <section aria-labelledby="hcp-rew-heading">
         <h2 id="hcp-rew-heading" className="text-lg font-bold text-gray-900">
           Beschikbare beloningen
         </h2>
-        <p className="text-xs text-gray-500 mt-1">
-          Placeholders voor toekomstige visibility-spotlights — nog geen automatische uitbetaling of Stripe.
-        </p>
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{t(`${HP_REWARDS}.teaser`)}</p>
         <ul className="mt-3 space-y-2">
-          {HCP_V2_REWARD_CATALOG.map((r) => (
-            <li key={r.id} className="rounded-xl border border-violet-100 bg-violet-50/50 px-3 py-2.5">
-              <p className="text-sm font-semibold text-violet-950">{r.title}</p>
-              <p className="text-xs text-gray-600">{r.description}</p>
+          {(data.hcpRewards ?? []).map((r) => (
+            <li
+              key={r.id}
+              className={cn(
+                'rounded-xl border px-3 py-2.5',
+                r.displayStatus === 'active'
+                  ? 'border-emerald-200 bg-emerald-50/80'
+                  : r.displayStatus === 'expired'
+                    ? 'border-gray-200 bg-gray-50/80 opacity-80'
+                    : r.displayStatus === 'unlocked'
+                      ? 'border-amber-200 bg-amber-50/60'
+                      : r.displayStatus === 'locked'
+                        ? 'border-gray-200 bg-white'
+                        : 'border-violet-100 bg-violet-50/50'
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-gray-900">{r.title}</p>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+                    r.displayStatus === 'active'
+                      ? 'bg-emerald-600 text-white'
+                      : r.displayStatus === 'expired'
+                        ? 'bg-gray-400 text-white'
+                        : r.displayStatus === 'unlocked'
+                          ? 'bg-amber-600 text-white'
+                          : r.displayStatus === 'locked'
+                            ? 'bg-gray-200 text-gray-800'
+                            : 'bg-violet-200 text-violet-900'
+                  )}
+                >
+                  {rewardStatusLabel(r.displayStatus)}
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">{r.description}</p>
               <p className="mt-1 text-[11px] font-medium text-violet-800">{r.requirement}</p>
+              {r.expiresAt ? (
+                <p className="mt-1 text-[10px] text-gray-500">
+                  {r.displayStatus === 'expired' ? 'Verlopen per ' : 'Tot '}
+                  {new Date(r.expiresAt).toLocaleString('nl-NL', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>
       </section>
 
-      {/* Leaderboard */}
+      {/* Leaderboard — scoped */}
       <section aria-labelledby="hcp-lb-heading">
-        <h2 id="hcp-lb-heading" className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-600" aria-hidden />
-          Ranglijsten
-        </h2>
-        <p className="text-xs text-gray-500 mt-1">Tabs: algemeen · deze week · deze maand. Jouw rij is gemarkeerd.</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="hcp-lb-heading" className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-600" aria-hidden />
+            Ranglijsten
+          </h2>
+          <Link
+            href="/hcp-ranglijsten"
+            className="text-sm font-semibold text-teal-800 hover:text-teal-950 hover:underline shrink-0"
+          >
+            Bekijk alle ranglijsten →
+          </Link>
+        </div>
 
-        <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Periode ranglijst">
+        <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Gebied">
           {(
             [
-              ['allTime', 'Algemeen'],
-              ['weekly', 'Deze week'],
-              ['monthly', 'Deze maand'],
+              ['nearby', 'In de buurt'],
+              ['country', 'Land'],
+              ['worldwide', 'Wereldwijd'],
             ] as const
           ).map(([id, label]) => (
             <button
               key={id}
               type="button"
               role="tab"
-              aria-selected={lbTab === id}
-              onClick={() => setLbTab(id)}
+              aria-selected={lbScope === id}
+              onClick={() => setLbScope(id)}
               className={cn(
                 'rounded-full px-3 py-1.5 text-sm font-medium border transition-colors',
-                lbTab === id
+                lbScope === id
+                  ? 'bg-teal-700 text-white border-teal-700'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-teal-300'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2" role="tablist" aria-label="Periode">
+          {(
+            [
+              ['week', 'Deze week'],
+              ['month', 'Deze maand'],
+              ['year', 'Dit jaar'],
+              ['all', 'Algemeen'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={lbPeriod === id}
+              onClick={() => setLbPeriod(id)}
+              className={cn(
+                'rounded-full px-3 py-1.5 text-sm font-medium border transition-colors',
+                lbPeriod === id
                   ? 'bg-amber-600 text-white border-amber-600'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-amber-300'
               )}
@@ -346,11 +485,74 @@ export default function MijnHcpClient() {
           ))}
         </div>
 
-        {lb?.me ? (
+        {lbScope === 'nearby' ? (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-gray-600">
+              Ranglijst in een straal van {radiusKm} km. Gebaseerd op je profiel-locatie of huidige locatie als je die
+              toestaat.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs font-medium text-gray-700" htmlFor="hcp-radius">
+                Straal
+              </label>
+              <select
+                id="hcp-radius"
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(Number(e.target.value) as 25 | 50 | 100)}
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+              >
+                <option value={25}>25 km</option>
+                <option value={50}>50 km</option>
+                <option value={100}>100 km</option>
+              </select>
+              <button
+                type="button"
+                onClick={requestGps}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
+              >
+                <MapPin className="h-3.5 w-3.5" aria-hidden />
+                Gebruik huidige locatie
+              </button>
+              {gpsPos ? (
+                <button
+                  type="button"
+                  onClick={() => setGpsPos(null)}
+                  className="text-xs font-medium text-gray-600 underline"
+                >
+                  Profiel-locatie gebruiken
+                </button>
+              ) : null}
+            </div>
+            {gpsError ? <p className="text-xs text-amber-800">{gpsError}</p> : null}
+            {scopedLb?.meta?.locationSource === 'profile' && !gpsPos ? (
+              <p className="text-[11px] text-gray-500">Locatiebron: opgeslagen profiel.</p>
+            ) : null}
+            {scopedLb?.meta?.locationSource === 'gps' || gpsPos ? (
+              <p className="text-[11px] text-gray-500">Locatiebron: huidige locatie (alleen deze sessie).</p>
+            ) : null}
+          </div>
+        ) : lbScope === 'country' ? (
           <p className="mt-3 text-xs text-gray-600">
-            Jouw plek: algemeen #{lb.me.allTimeRank ?? '—'}
-            {lb.me.weeklyRank != null ? ` · deze week #${lb.me.weeklyRank}` : ''}
-            {lb.me.monthlyRank != null ? ` · deze maand #${lb.me.monthlyRank}` : ''}
+            Ranglijst voor je land ({scopedLb?.meta?.countryCode ?? 'NL'}). Wereldwijd blijft stabiel; in de buurt volgt
+            je reis alleen als je GPS deelt.
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-gray-600">Wereldwijde ranglijst op basis van HomeCheff Points.</p>
+        )}
+
+        {scopedLb?.meta?.hint ? (
+          <p className="mt-3 text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            {scopedLb.meta.hint}
+          </p>
+        ) : null}
+
+        {scopedLb?.me ? (
+          <p className="mt-3 text-xs text-gray-600">
+            Jouw plek in deze weergave:{' '}
+            <span className="font-semibold">#{scopedLb.me.rank ?? '—'}</span>
+            {scopedLb.me.score > 0 ? (
+              <span className="text-gray-500"> · {scopedLb.me.score.toLocaleString('nl-NL')} HCP in deze periode</span>
+            ) : null}
             {rankMovement ? (
               <span className="ml-2 font-semibold text-emerald-800">{rankMovement}</span>
             ) : null}
@@ -359,13 +561,17 @@ export default function MijnHcpClient() {
 
         {lbLoading ? (
           <p className="mt-4 text-sm text-gray-500">Ranglijst laden…</p>
-        ) : !rows?.length ? (
-          <p className="mt-4 text-sm text-gray-600">Nog onvoldoende data voor deze ranglijst.</p>
+        ) : !lbRows.length ? (
+          <p className="mt-4 text-sm text-gray-600">
+            {lbScope === 'nearby' && scopedLb?.meta?.locationSource === 'fallback'
+              ? 'Voeg je locatie toe om de ranglijst in je buurt te zien.'
+              : 'Nog onvoldoende data voor deze ranglijst.'}
+          </p>
         ) : (
           <ol className="mt-4 space-y-2">
-            {rows.map((r) => (
+            {lbRows.map((r) => (
               <li
-                key={`${lbTab}-${r.userId}`}
+                key={`${lbScope}-${lbPeriod}-${r.userId}`}
                 className={cn(
                   'flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2 sm:flex-nowrap',
                   r.isCurrentUser
@@ -425,11 +631,7 @@ export default function MijnHcpClient() {
           <li>Community-acties (props, betrokkenheid)</li>
           <li>Referrals en uitnodigingen</li>
         </ul>
-        <p className="mt-4 text-xs text-gray-600">
-          Er zijn nu geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP. In de toekomst kunnen
-          punten wel worden gekoppeld aan extra zichtbaarheid, beloningen en acties — dat communiceert HomeCheff dan
-          apart en vooraf.
-        </p>
+        <p className="mt-4 text-xs text-gray-600 leading-relaxed">{t(`${HP_REWARDS}.teaser`)}</p>
       </section>
 
       {lastEvent ? (

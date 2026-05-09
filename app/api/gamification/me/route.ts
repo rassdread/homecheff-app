@@ -9,6 +9,8 @@ import { hcpProgressToNextLevel } from '@/lib/gamification/hcp-level';
 import { consumePendingClientRewards } from '@/lib/gamification/hcp-pending-client';
 import { getWeeklyChallengesForUser } from '@/lib/gamification/weekly-challenges';
 import type { GamificationMeResponse } from '@/lib/gamification/gamification-me-types';
+import { mondayStartUtc, periodRankFromGroups } from '@/lib/gamification/leaderboard-queries';
+import { buildGamificationRewardsDto } from '@/lib/gamification/me-rewards-dto';
 
 export async function GET() {
   try {
@@ -22,6 +24,15 @@ export async function GET() {
       await recordDailyLoginIfNeeded(userId);
     } catch (e) {
       console.warn('[gamification/me] daily login', e);
+    }
+
+    try {
+      const { runBadgeEvaluationForUser } = await import('@/lib/gamification/unlock-badges');
+      const { evaluateHcpRewardsForUser } = await import('@/lib/gamification/hcp-rewards-engine');
+      await runBadgeEvaluationForUser(userId);
+      await evaluateHcpRewardsForUser(userId);
+    } catch (e) {
+      console.warn('[gamification/me] badge/reward sync', e);
     }
 
     const [user, pendingRewards, stats, weekly] = await Promise.all([
@@ -38,6 +49,25 @@ export async function GET() {
 
     const totalHcp = stats?.totalHcp ?? 0;
     const { level, nextLevelHcp, hcpToNextLevel } = hcpProgressToNextLevel(totalHcp);
+
+    const weekStart = mondayStartUtc();
+    const [weeklyGroups, dbRewards] = await Promise.all([
+      prisma.hcpEvent.groupBy({
+        by: ['userId'],
+        where: { createdAt: { gte: weekStart } },
+        _sum: { points: true },
+      }),
+      prisma.userHcpReward.findMany({ where: { userId } }),
+    ]);
+    const weeklyRank = periodRankFromGroups(weeklyGroups, userId);
+
+    const hcpRewards = buildGamificationRewardsDto({
+      totalHcp,
+      weeklyRank,
+      currentStreak: stats?.currentStreak ?? 0,
+      longestStreak: stats?.longestStreak ?? 0,
+      dbRewards,
+    });
 
     const recentEvents = await prisma.hcpEvent.findMany({
       where: { userId },
@@ -91,6 +121,7 @@ export async function GET() {
       pendingClientRewards: pendingRewards,
       hcpWelcomePending: user?.hcpWelcomeSeenAt == null,
       weeklyChallenges: { weekKey: weekly.weekKey, items: weekly.items },
+      hcpRewards,
     };
 
     return NextResponse.json(body);

@@ -54,6 +54,8 @@ export async function runPostHcpAwardEffects(userId: string, action: string, poi
     }
 
     const newBadges = await unlockBadgesForUser(userId);
+    const { evaluateHcpRewardsForUser } = await import('@/lib/gamification/hcp-rewards-engine');
+    await evaluateHcpRewardsForUser(userId);
     if (newBadges.length === 1) {
       const b = newBadges[0];
       await appendPendingClientRewards(userId, [
