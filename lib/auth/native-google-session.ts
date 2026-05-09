@@ -11,13 +11,39 @@ import { syncGoogleProfileToDatabase } from '@/lib/auth/google-account-sync';
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
 const SESSION_COOKIE_NAME = 'next-auth.session-token';
 
-function googleAudiences(): string[] {
-  const web = process.env.GOOGLE_CLIENT_ID?.trim();
-  const pub = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
-  const set = new Set<string>();
-  if (web) set.add(web);
-  if (pub && pub !== web) set.add(pub);
-  return [...set];
+const LOG_PREFIX = '[HomeCheff native-google session]';
+
+/** Alleen voor logs: client-id is geen geheim; toch ingekort. */
+function clientIdPreview(id: string): string {
+  const t = id.trim();
+  if (t.length <= 24) return `${t.slice(0, 8)}…`;
+  return `${t.slice(0, 12)}…${t.slice(-20)}`;
+}
+
+function resolveGoogleVerifyAudience(): {
+  audience: string;
+  publicClientId: string | null;
+} | null {
+  const audience = process.env.GOOGLE_CLIENT_ID?.trim() || '';
+  const publicClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || null;
+  if (!audience) {
+    console.info(LOG_PREFIX, {
+      verifyFailed: true,
+      reason: 'GOOGLE_CLIENT_ID ontbreekt op de server (vereist voor verifyIdToken audience).',
+      hasNextPublicGoogleClientId: Boolean(publicClientId),
+    });
+    return null;
+  }
+  if (publicClientId && publicClientId !== audience) {
+    console.info(LOG_PREFIX, {
+      verifyFailed: true,
+      reason: 'GOOGLE_CLIENT_ID en NEXT_PUBLIC_GOOGLE_CLIENT_ID verschillen; moeten dezelfde Web OAuth client ID zijn.',
+      audienceUsed: clientIdPreview(audience),
+      nextPublicPreview: clientIdPreview(publicClientId),
+    });
+    return null;
+  }
+  return { audience, publicClientId };
 }
 
 function buildSessionCookieAttributes(maxAge: number): string[] {
@@ -47,17 +73,29 @@ export async function createSessionFromNativeGoogleIdToken(
     return { ok: false, status: 503, code: 'auth_not_configured' };
   }
 
-  const audiences = googleAudiences();
-  if (audiences.length === 0) {
+  const resolved = resolveGoogleVerifyAudience();
+  if (!resolved) {
+    const pub = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
+    const web = process.env.GOOGLE_CLIENT_ID?.trim();
+    if (web && pub && pub !== web) {
+      return { ok: false, status: 503, code: 'google_client_id_mismatch' };
+    }
     return { ok: false, status: 503, code: 'google_not_configured' };
   }
+
+  const { audience } = resolved;
+  console.info(LOG_PREFIX, {
+    verifyStarted: true,
+    hasIdToken: Boolean(idToken?.length),
+    audienceUsed: clientIdPreview(audience),
+  });
 
   const client = new OAuth2Client();
 
   try {
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: audiences,
+      audience,
     });
     const p = ticket.getPayload();
     if (!p?.email) {
@@ -135,8 +173,18 @@ export async function createSessionFromNativeGoogleIdToken(
       ...buildSessionCookieAttributes(SESSION_MAX_AGE_SEC),
     ].join('; ');
 
+    console.info(LOG_PREFIX, { verifySuccess: true });
     return { ok: true, setCookie };
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const safe = msg.replace(/Bearer\s+[^\s]+/gi, 'Bearer [redacted]');
+    console.info(LOG_PREFIX, {
+      verifyFailed: true,
+      reason: safe.slice(0, 240),
+    });
+    if (/audience|recipient|wrong number of segments|invalid token signature/i.test(safe)) {
+      return { ok: false, status: 401, code: 'token_audience_mismatch' };
+    }
     return { ok: false, status: 401, code: 'invalid_token' };
   }
 }

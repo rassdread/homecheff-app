@@ -15,6 +15,91 @@ const WEB_CLIENT_ID =
     ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || ''
     : '';
 
+const CLIENT_LOG = '[HomeCheff native-google client]';
+
+type NativeGoogleLoginShape = {
+  provider?: string;
+  result?: unknown;
+};
+
+/**
+ * Capgo kan per platform iets andere vormen teruggeven; nooit tokens loggen.
+ */
+function extractNativeGoogleIdToken(login: unknown): {
+  idToken: string | null;
+  /** Waar idToken vandaan kwam of waarom hij ontbreekt (structuur-hint). */
+  pluginPayloadHint: string;
+} {
+  if (!login || typeof login !== 'object') {
+    return { idToken: null, pluginPayloadHint: 'login_not_object' };
+  }
+  const L = login as NativeGoogleLoginShape;
+  if (L.provider !== 'google') {
+    return {
+      idToken: null,
+      pluginPayloadHint: `provider:${String(L.provider ?? 'undefined')}`,
+    };
+  }
+  const raw = L.result;
+  if (!raw || typeof raw !== 'object') {
+    return { idToken: null, pluginPayloadHint: 'result_missing' };
+  }
+  const r = raw as Record<string, unknown>;
+  if (r.responseType === 'offline') {
+    return {
+      idToken: null,
+      pluginPayloadHint: 'offline_mode_no_id_token_use_online',
+    };
+  }
+  if (typeof r.idToken === 'string' && r.idToken.length > 20) {
+    return { idToken: r.idToken.trim(), pluginPayloadHint: 'result.idToken' };
+  }
+  const nested = r.result;
+  if (nested && typeof nested === 'object') {
+    const n = nested as Record<string, unknown>;
+    if (typeof n.idToken === 'string' && n.idToken.length > 20) {
+      return { idToken: n.idToken.trim(), pluginPayloadHint: 'result.result.idToken' };
+    }
+  }
+  const auth = r.authentication;
+  if (auth && typeof auth === 'object') {
+    const a = auth as Record<string, unknown>;
+    if (typeof a.idToken === 'string' && a.idToken.length > 20) {
+      return {
+        idToken: a.idToken.trim(),
+        pluginPayloadHint: 'result.authentication.idToken',
+      };
+    }
+  }
+  return {
+    idToken: null,
+    pluginPayloadHint: `result_keys:${Object.keys(r).sort().join(',')}`,
+  };
+}
+
+function mapNativeGoogleApiError(code: string): string {
+  switch (code) {
+    case 'missing_id_token':
+      return 'Geen Google token ontvangen.';
+    case 'invalid_token':
+    case 'token_audience_mismatch':
+      return 'Google token verificatie mislukt.';
+    case 'google_not_configured':
+    case 'google_client_id_mismatch':
+    case 'auth_not_configured':
+      return 'Google configuratie mismatch. Controleer server-omgeving (GOOGLE_CLIENT_ID).';
+    case 'email_not_verified':
+      return 'Je Google-e-mail is niet geverifieerd.';
+    case 'user_create_failed':
+    case 'sync_failed':
+      return 'Account kon niet worden bijgewerkt. Probeer opnieuw of gebruik e-mail en wachtwoord.';
+    case 'encode_failed':
+      return 'Sessie starten mislukt. Probeer opnieuw.';
+    default:
+      return 'Google token verificatie mislukt.';
+  }
+}
+
 export type NativeGoogleSignInButtonProps = {
   rememberMe?: boolean;
   disabled?: boolean;
@@ -80,11 +165,34 @@ export function NativeGoogleSignInButton({
         provider: 'google',
         options: { scopes: ['email', 'profile'] },
       });
-      const res = login.result as { idToken?: string | null } | undefined;
-      const idToken = res?.idToken;
+
+      const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(login);
+      const accessTok =
+        login &&
+        typeof login === 'object' &&
+        (login as NativeGoogleLoginShape).provider === 'google' &&
+        (login as NativeGoogleLoginShape).result &&
+        typeof (login as { result: Record<string, unknown> }).result === 'object'
+          ? (login as { result: { accessToken?: { token?: string } | null } }).result
+              .accessToken
+          : null;
+      const hasAccessToken = Boolean(
+        accessTok && typeof accessTok === 'object' && typeof accessTok.token === 'string',
+      );
+
+      console.info(CLIENT_LOG, {
+        nativeGoogleLoginStarted: true,
+        hasIdToken: Boolean(idToken),
+        provider: (login as NativeGoogleLoginShape).provider,
+        hasAccessToken,
+        pluginPayloadHint,
+      });
+
       if (!idToken) {
         setError(
-          'Geen Google-token ontvangen. Controleer SHA-1 in Google Cloud en herbouw de app.',
+          pluginPayloadHint.includes('offline')
+            ? 'Geen Google token ontvangen (offline-modus). Zet native login op online/idToken.'
+            : 'Geen Google token ontvangen. Controleer app-configuratie (SHA-1, Web client id) en herbouw de app.',
         );
         return;
       }
@@ -101,11 +209,12 @@ export function NativeGoogleSignInButton({
       };
       if (!post.ok || !payload.ok) {
         const code = typeof payload.code === 'string' ? payload.code : '';
-        if (code === 'email_not_verified') {
-          setError('Je Google-e-mail is niet geverifieerd.');
-        } else {
-          setError('Inloggen met Google is mislukt. Probeer opnieuw of gebruik e-mail en wachtwoord.');
-        }
+        console.info(CLIENT_LOG, {
+          nativeGooglePostFailed: true,
+          httpStatus: post.status,
+          code: code || 'unknown',
+        });
+        setError(mapNativeGoogleApiError(code));
         return;
       }
 
@@ -137,11 +246,15 @@ export function NativeGoogleSignInButton({
       router.replace('/auth/social-success');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      console.info(CLIENT_LOG, {
+        nativeGoogleClientException: true,
+        message: msg.replace(/ya29\.[a-zA-Z0-9._-]+/gi, '[redacted]').slice(0, 200),
+      });
       if (/cancel|canceled|12501|user_cancel|10:/i.test(msg)) {
         setError(null);
       } else {
         setError(
-          'Google inloggen is mislukt. Controleer je verbinding of gebruik e-mail en wachtwoord.',
+          'Google inloggen is mislukt (onverwachte fout). Controleer je verbinding of gebruik e-mail en wachtwoord.',
         );
       }
     } finally {
