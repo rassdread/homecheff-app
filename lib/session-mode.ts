@@ -3,7 +3,7 @@
  *
  * Voor credentials login kunnen we de voorkeur direct in de body van het session-mode
  * endpoint sturen. Voor social (OAuth) login is dat niet mogelijk omdat we naar de
- * provider redirecten en pas later op `/social-login-success` terugkomen — daar moet
+ * provider redirecten en pas later op `/auth/social-success` terugkomen — daar moet
  * de voorkeur dus tijdens de redirect ergens bewaard worden. Daarvoor zetten we een
  * korte (10 min) niet-HttpOnly voorkeur-cookie + localStorage backup.
  */
@@ -47,7 +47,7 @@ export function setRememberPreference(remember: boolean): void {
     `${PREFERENCE_COOKIE_NAME}=${remember ? '1' : '0'}; Path=/; Max-Age=${PREFERENCE_TTL_SECONDS}; SameSite=Lax${secure}${domainPart}`;
 }
 
-/** Voorkeur lezen op de social-login-success page. */
+/** Voorkeur lezen op de /auth/social-success page. */
 export function readRememberPreference(): boolean | null {
   if (typeof window === 'undefined') return null;
 

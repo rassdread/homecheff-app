@@ -1491,11 +1491,10 @@ function RegisterPageContent() {
       return;
     }
     try {
-      // For social login, redirect to registration page to complete profile
-      // Note: This will go through social-login-success which checks onboarding status
-      await signIn(provider, { 
-        callbackUrl: '/register?social=true',
-        redirect: true 
+      // OAuth eindigt op /auth/social-success (sessie + doorverwijzing naar / of /register?social=true).
+      await signIn(provider, {
+        callbackUrl: '/auth/social-success',
+        redirect: true,
       });
     } catch (error) {
       console.error("Social login error:", error);

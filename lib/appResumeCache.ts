@@ -211,6 +211,7 @@ export function shouldPersistRoute(pathname: string, search: string): boolean {
     "/reset-password",
     "/checkout",
     "/social-login-success",
+    "/auth/social-success",
   ];
   for (const b of blockPrefixes) {
     if (p === b || p.startsWith(`${b}/`)) return false;

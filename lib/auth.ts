@@ -541,10 +541,10 @@ export const authOptions: NextAuthOptions = {
 
       try {
         if (url.includes('/api/auth/callback/google') || url.includes('/api/auth/callback/apple')) {
-          return actualBaseUrl + '/social-login-success';
+          return actualBaseUrl + '/auth/social-success';
         }
-        if (url.includes('/social-login-success')) {
-          return actualBaseUrl + '/social-login-success';
+        if (url.includes('/social-login-success') || url.includes('/auth/social-success')) {
+          return actualBaseUrl + '/auth/social-success';
         }
         if (url.startsWith('/')) {
           return actualBaseUrl + url;
@@ -559,7 +559,7 @@ export const authOptions: NextAuthOptions = {
       } catch (error) {
         console.error('🔍 Redirect error:', error);
         if (url.includes('google') || url.includes('apple')) {
-          return actualBaseUrl + '/social-login-success';
+          return actualBaseUrl + '/auth/social-success';
         }
         return actualBaseUrl + '/';
       }

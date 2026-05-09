@@ -92,7 +92,35 @@ function LoginForm() {
       cancelled = true;
     };
   }, []);
-  
+
+  // Android WebView / bfcache: OAuth kan terugkeren met oude "bezig met inloggen"-state in geheugen.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted || isNativeApp()) {
+        setState((s) => ({ ...s, isLoading: false }));
+      }
+    };
+    const onVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && isNativeApp()) {
+        setState((s) => ({ ...s, isLoading: false }));
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pageshow', onPageShow);
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisible);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('pageshow', onPageShow);
+      }
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisible);
+      }
+    };
+  }, []);
+
   // Pre-fill email if provided in URL (bijv. na registratie)
   useEffect(() => {
     if (prefillEmail && !state.emailOrUsername) {
@@ -349,13 +377,12 @@ function LoginForm() {
     
     try {
       // "Onthoud mij" voorkeur klaarzetten zodat hij de OAuth-redirect overleeft.
-      // De /social-login-success page leest dit en past het sessie-cookie aan.
+      // /auth/social-success past sessie-modus toe en stuurt door naar / of /register?social=true.
       setRememberPreference(state.rememberMe);
 
-      // For social login, redirect to registration page to complete profile
-      await signIn(provider, { 
-        callbackUrl: '/register?social=true',
-        redirect: true 
+      await signIn(provider, {
+        callbackUrl: '/auth/social-success',
+        redirect: true,
       });
     } catch (error) {
       setState({ 

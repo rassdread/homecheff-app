@@ -10,14 +10,14 @@ import { usePathname } from 'next/navigation';
  * ONLY activates for social login users who haven't completed onboarding
  * 
  * PRIORITY: This component has LOWER priority than:
- * - social-login-success page (handles initial redirect after social login)
+ * - /auth/social-success (OAuth terugkeer + sessie)
  * - register page (handles its own onboarding check)
  * 
  * This component ONLY acts as a safety net for users who navigate away from onboarding
  * 
  * Flow:
  * 1. User logs in with social (e.g. Google)
- * 2. social-login-success page redirects to /register?social=true
+ * 2. /auth/social-success redirect naar /register?social=true indien nodig
  * 3. register page handles onboarding
  * 4. If user navigates away, this component redirects back to /register?social=true
  * 5. Only after onboarding is complete, user gets full access
@@ -40,13 +40,14 @@ export default function SocialLoginRedirect() {
 
     // CRITICAL: Don't redirect if already on these pages (they handle their own logic)
     // - /register: Handles onboarding form and its own redirects
-    // - /social-login-success: Handles initial redirect after social login
+    // - /auth/social-success: OAuth callback landing
     // - /login: User is logging in
     // - /api/*: API routes should not be redirected
     if (
       !pathname ||
       pathname === '/register' ||
       pathname === '/social-login-success' ||
+      pathname === '/auth/social-success' ||
       pathname === '/login' ||
       pathname.startsWith('/api/')
     ) {
@@ -66,7 +67,7 @@ export default function SocialLoginRedirect() {
     lastCheckTime.current = now;
 
     // Add a small delay to prevent race conditions with other components
-    // This ensures social-login-success and register page have priority
+    // This ensures /auth/social-success and register page have priority
     if (checkTimeoutRef.current) {
       clearTimeout(checkTimeoutRef.current);
     }
