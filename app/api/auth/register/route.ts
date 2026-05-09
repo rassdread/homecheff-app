@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 // import { UserRole } from "@prisma/client";
 import { geocodeAddress } from "@/lib/global-geocoding";
+import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { randomBytes } from "crypto";
@@ -310,6 +311,8 @@ export async function POST(req: NextRequest) {
         select: { id: true }
       });
     }
+
+    void tryAwardAccountCreated(user.id).catch(() => {});
 
     // Process sub-affiliate invite if token is provided
     if (subAffiliateInviteToken) {

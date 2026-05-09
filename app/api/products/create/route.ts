@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
+import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -395,6 +396,10 @@ export async function POST(req: Request) {
       console.error('Failed to generate initial analytics data:', analyticsError);
       // Don't fail the product creation if analytics fail
     }
+
+    void awardProductLifecycleHcp(user.id, result.id, result.Image?.length ?? 0).catch((e) =>
+      console.warn('[gamification] product lifecycle', e),
+    );
 
     // Return product with explicit isActive field
     return NextResponse.json({ 

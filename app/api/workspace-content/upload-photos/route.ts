@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  awardWorkspaceContentHcp,
+  getWorkspaceContentMetrics,
+} from '@/lib/gamification/content-hcp';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -81,6 +85,14 @@ export async function POST(req: NextRequest) {
 
       uploadedPhotos.push(savedPhoto);
     }
+
+    const wsMetrics = await getWorkspaceContentMetrics(workspaceContentId);
+    void awardWorkspaceContentHcp(
+      workspaceContent.sellerProfile.userId,
+      workspaceContentId,
+      wsMetrics.imageLikeCount,
+      wsMetrics.hasVideo,
+    ).catch((e) => console.warn('[gamification] workspace photos', e));
 
     return NextResponse.json({ 
       success: true, 

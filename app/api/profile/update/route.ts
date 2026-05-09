@@ -8,6 +8,7 @@ import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { geocodeAddress } from '@/lib/global-geocoding';
 import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
 import { validateUsernameCandidate } from '@/lib/username-validation';
+import { tryAwardProfileCompleted } from '@/lib/gamification/profile-hcp';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -152,6 +153,9 @@ export async function PUT(request: NextRequest) {
         messageGuidelinesAccepted: true,
         messageGuidelinesAcceptedAt: true,
         profileImage: true,
+        image: true,
+        city: true,
+        place: true,
         updatedAt: true,
       }
     });
@@ -163,6 +167,15 @@ export async function PUT(request: NextRequest) {
         bio: bio ?? null,
       });
     }
+
+    void tryAwardProfileCompleted(updatedUser.id, {
+      name: updatedUser.name,
+      username: updatedUser.username,
+      city: updatedUser.city,
+      place: updatedUser.place,
+      profileImage: updatedUser.profileImage,
+      image: updatedUser.image,
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

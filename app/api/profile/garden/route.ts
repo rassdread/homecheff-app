@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import {
+  awardDishInspirationContentHcp,
+  getDishContentMetrics,
+} from "@/lib/gamification/content-hcp";
 
 export async function GET(request: NextRequest) {
   try {
@@ -265,6 +269,14 @@ export async function POST(req: NextRequest) {
     if (!completeProject) {
       return NextResponse.json({ error: "Garden project not found after creation" }, { status: 404 });
     }
+
+    const gardenMetrics = await getDishContentMetrics(completeProject.id);
+    void awardDishInspirationContentHcp(
+      user.id,
+      completeProject.id,
+      gardenMetrics.imageLikeCount,
+      gardenMetrics.hasVideo,
+    ).catch((e) => console.warn("[gamification] garden inspiration", e));
 
     // Transform to match expected format (same as GET endpoint)
     const transformedProject = {

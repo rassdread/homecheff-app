@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
+import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 // Define UserRole enum manually
 enum UserRole {
   ADMIN = "ADMIN",
@@ -152,6 +153,9 @@ export async function POST(req: NextRequest) {
         select: { id: true, email: true, username: true, name: true },
       });
     }
+
+    void tryAwardAccountCreated(user.id).catch(() => {});
+
     // Process affiliate attribution (if referral cookie exists)
     try {
       const cookieHeader = req.headers.get('cookie');

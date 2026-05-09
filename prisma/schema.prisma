@@ -118,6 +118,9 @@ model User {
   dishReviewsAsReviewer                  DishReview[]              @relation("DishReviewReviewer")
   affiliate                              Affiliate?
   attributions                           Attribution[]
+  hcpEvents                              HcpEvent[]
+  hcpStats                               UserHcpStats?
+  userBadges                             UserBadge[]
 
   @@index([username])
   @@index([name])
@@ -1537,6 +1540,55 @@ model AnalyticsEvent {
   @@index([createdAt])
   @@index([createdAt], map: "idx_analytics_event_created_at")
   @@index([userId], map: "idx_analytics_event_user")
+}
+
+/// HomeCheff Points ledger row; unique (userId, action, sourceType, sourceId) makes awards idempotent.
+model HcpEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  points     Int
+  sourceType String
+  sourceId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, action, sourceType, sourceId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/// Aggregated HCP and login streak per user (transactionally updated with HcpEvent inserts).
+model UserHcpStats {
+  userId           String  @id
+  totalHcp         Int     @default(0)
+  currentStreak    Int     @default(0)
+  longestStreak    Int     @default(0)
+  /// UTC calendar date (YYYY-MM-DD) when DAILY_LOGIN was last awarded.
+  lastDailyHcpDate String?
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  slug        String      @unique
+  name        String
+  description String?
+  iconKey     String?
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
 }
 
 model EncryptionKey {

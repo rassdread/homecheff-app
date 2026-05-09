@@ -4,6 +4,7 @@
  */
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
+import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created';
 
 export type SyncGoogleProfileInput = {
   email: string;
@@ -103,6 +104,7 @@ export async function syncGoogleProfileToDatabase(
         buyerRoles: [],
       },
     });
+    void tryAwardAccountCreated(existingUser.id).catch(() => {});
   }
 
   return {

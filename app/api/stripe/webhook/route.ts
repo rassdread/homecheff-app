@@ -9,6 +9,7 @@ import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
+import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -806,6 +807,15 @@ export async function POST(req: NextRequest) {
           sellerIds = fallbackProducts
             .map((product) => product.seller?.User?.id)
             .filter((id): id is string => Boolean(id));
+        }
+
+        const uniqueSellerUserIds = [...new Set(sellerIds.filter(Boolean))] as string[];
+        for (const sellerUserId of uniqueSellerUserIds) {
+          try {
+            await tryAwardFirstSaleForSeller(sellerUserId, createdOrder.id);
+          } catch (hcpErr) {
+            console.warn("[gamification] FIRST_SALE", hcpErr);
+          }
         }
 
         // Create order conversation for communication

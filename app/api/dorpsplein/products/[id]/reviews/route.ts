@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { tryAwardReviewReceivedHcp } from '@/lib/gamification/review-hcp';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -368,6 +369,10 @@ export async function POST(
         // Don't fail the review creation if notification fails
       }
     }
+
+    void tryAwardReviewReceivedHcp(review.product?.seller?.User?.id, review.id).catch((e) =>
+      console.warn('[gamification] REVIEW_RECEIVED', e),
+    );
 
     return NextResponse.json({ review }, { status: 201 });
   } catch (error: any) {

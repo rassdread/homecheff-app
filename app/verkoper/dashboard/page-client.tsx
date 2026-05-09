@@ -36,6 +36,7 @@ import {
 import Link from 'next/link';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
+import HomeCheffPointsWidget from '@/components/seller/HomeCheffPointsWidget';
 import { dispatchOpenQuickAdd } from '@/lib/quickAddOpen';
 import { getCreateAuthReturnUrls } from '@/lib/createAuthReturnUrls';
 import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
@@ -414,6 +415,7 @@ export default function SellerDashboardClient() {
             <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
             <StripeConnectPaymentsBanner />
             <BusinessUpgradeCallout />
+            <HomeCheffPointsWidget />
           </div>
 
           {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}

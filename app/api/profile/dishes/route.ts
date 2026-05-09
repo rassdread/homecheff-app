@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import {
+  awardDishInspirationContentHcp,
+  getDishContentMetrics,
+} from "@/lib/gamification/content-hcp";
 
 export async function GET(request: NextRequest) {
   try {
@@ -256,6 +260,14 @@ export async function POST(req: NextRequest) {
     if (!completeDish) {
       return NextResponse.json({ error: "Dish not found after creation" }, { status: 404 });
     }
+
+    const dishMetrics = await getDishContentMetrics(completeDish.id);
+    void awardDishInspirationContentHcp(
+      user.id,
+      completeDish.id,
+      dishMetrics.imageLikeCount,
+      dishMetrics.hasVideo,
+    ).catch((e) => console.warn("[gamification] dish inspiration", e));
 
     // Transform to match expected format (same as GET endpoint)
     const transformedDish = {

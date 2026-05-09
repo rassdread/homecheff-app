@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created';
 // import { string } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -176,6 +177,7 @@ export async function POST(req: NextRequest) {
           buyerRoles: []
         }
       });
+      void tryAwardAccountCreated(user.id).catch(() => {});
     }
 
     // Validate and convert transportation modes (for both new and existing users)

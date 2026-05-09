@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { randomUUID } from 'crypto';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
+import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
 
 export const dynamic = 'force-dynamic';
 
@@ -394,6 +395,14 @@ export async function PATCH(
               Video: true
             }
           });
+          const sellerUid = (product as { seller?: { User?: { id?: string } } }).seller?.User?.id;
+          if (sellerUid) {
+            void awardProductLifecycleHcp(
+              sellerUid,
+              updatedProduct.id,
+              updatedProduct.Image?.length ?? 0,
+            ).catch((e) => console.warn('[gamification] product PATCH', e));
+          }
           return NextResponse.json({ product: updatedProduct });
         } else {
           const updatedListing = await prisma.listing.update({
@@ -546,6 +555,14 @@ export async function PATCH(
               Video: true
             }
           });
+          const sellerUidV4 = (product as { seller?: { User?: { id?: string } } }).seller?.User?.id;
+          if (sellerUidV4) {
+            void awardProductLifecycleHcp(
+              sellerUidV4,
+              updatedProduct.id,
+              updatedProduct.Image?.length ?? 0,
+            ).catch((e) => console.warn('[gamification] product PATCH', e));
+          }
           return NextResponse.json({ product: updatedProduct });
         } else {
           const updatedListing = await prisma.listing.update({

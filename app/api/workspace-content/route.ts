@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  awardWorkspaceContentHcp,
+  getWorkspaceContentMetrics,
+} from '@/lib/gamification/content-hcp';
 
 // GET - Fetch workspace content for a seller
 export async function GET(req: NextRequest) {
@@ -180,6 +184,14 @@ export async function POST(req: NextRequest) {
         designItem: true
       }
     });
+
+    const wsMetrics = await getWorkspaceContentMetrics(workspaceContent.id);
+    void awardWorkspaceContentHcp(
+      sellerProfile.userId,
+      workspaceContent.id,
+      wsMetrics.imageLikeCount,
+      wsMetrics.hasVideo,
+    ).catch((e) => console.warn('[gamification] workspace content', e));
 
     return NextResponse.json({ 
       success: true, 

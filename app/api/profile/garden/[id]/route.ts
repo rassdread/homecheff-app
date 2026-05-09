@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import {
+  awardDishInspirationContentHcp,
+  getDishContentMetrics,
+} from "@/lib/gamification/content-hcp";
 
 export async function GET(
   req: NextRequest,
@@ -250,6 +254,14 @@ export async function PATCH(
       }
       // If video is null, it's already deleted above, so we're done
     }
+
+    const gardenMetrics = await getDishContentMetrics(id);
+    void awardDishInspirationContentHcp(
+      user.id,
+      id,
+      gardenMetrics.imageLikeCount,
+      gardenMetrics.hasVideo,
+    ).catch((e) => console.warn("[gamification] garden inspiration PATCH", e));
 
     return NextResponse.json({ item: updatedProject });
   } catch (error) {

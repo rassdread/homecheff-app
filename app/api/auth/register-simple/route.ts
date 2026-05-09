@@ -8,6 +8,7 @@ import {
   getVerificationExpires,
 } from "@/lib/verification";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
+import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 
 export const dynamic = 'force-dynamic';
 
@@ -164,6 +165,8 @@ export async function POST(req: NextRequest) {
         select: { id: true }
       });
     }
+
+    void tryAwardAccountCreated(user.id).catch(() => {});
 
     // Process sub-affiliate invite if token is provided
     if (subAffiliateInviteToken) {
