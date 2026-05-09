@@ -3258,6 +3258,11 @@
         "login_7": "Log in on 7 days",
         "video_1": "Post a video"
       },
+      "carousel": {
+        "empty": "No slides for this view.",
+        "dataHeading": "Rankings & highlights",
+        "promoHeading": "Tips & campaigns"
+      },
       "ranking": {
         "title": "Top this week",
         "empty": "No scores yet this week — earn HCP to appear here.",
@@ -3282,7 +3287,8 @@
       "prev": "Previous slide",
       "next": "Next slide",
       "dot": "Go to slide {n}",
-      "openRankings": "All rankings →"
+      "openRankings": "All rankings →",
+      "viewMore": "See more"
     },
     "hcpRankingsPage": {
       "title": "HomeCheff Leaderboards",

@@ -76,9 +76,14 @@ export function carouselStrings(lang: CarouselLang) {
     },
     promoFuture: {
       title: L ? 'Rewards & visibility' : 'Beloningen & zichtbaarheid',
+      /** Langere tekst o.a. voor ranglijst-promo endpoint. */
       subtitle: L
         ? 'Rewards are processed automatically once you meet the conditions. This can include extra visibility, badges, profile boosts, spotlight placements or promotions in the HCP screens. HCP does not include fixed cash prizes or automatic payouts unless HomeCheff communicates this separately in advance.'
         : 'Beloningen worden automatisch verwerkt zodra je aan de voorwaarden voldoet. Denk aan extra zichtbaarheid, badges, profielboosts, spotlight-plekken of promoties in de HCP-schermen. Er zijn geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP, tenzij HomeCheff dat apart en vooraf communiceert.',
+      /** Homepage-carousel (compact). */
+      subtitleShort: L
+        ? 'Processed automatically when you qualify — badges, boosts & spotlights. No fixed cash prizes unless announced.'
+        : 'Automatisch bij voorwaarden: badges, boosts en spotlights. Geen vaste geldprijzen tenzij vooraf bekend.',
       cta: L ? 'Leaderboards' : 'Ranglijsten',
     },
   };

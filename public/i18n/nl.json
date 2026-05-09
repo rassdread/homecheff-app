@@ -4365,6 +4365,11 @@
         "login_7": "Log 7 dagen in",
         "video_1": "Plaats een video"
       },
+      "carousel": {
+        "empty": "Geen slides voor deze weergave.",
+        "dataHeading": "Ranglijsten & uitgelicht",
+        "promoHeading": "Tips & campagnes"
+      },
       "ranking": {
         "title": "Top deze week",
         "empty": "Nog geen scores deze week — verdien HCP om hier te verschijnen.",
@@ -4389,7 +4394,8 @@
       "prev": "Vorige slide",
       "next": "Volgende slide",
       "dot": "Ga naar slide {n}",
-      "openRankings": "Alle ranglijsten →"
+      "openRankings": "Alle ranglijsten →",
+      "viewMore": "Meer bekijken"
     },
     "hcpRankingsPage": {
       "title": "HomeCheff Ranglijsten",

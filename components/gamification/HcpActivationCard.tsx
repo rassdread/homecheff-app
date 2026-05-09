@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Leaf, Package, Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { useTranslation } from '@/hooks/useTranslation';
 import HcpHomeCarousel from '@/components/gamification/HcpHomeCarousel';
+import type { HomeCarouselSlide } from '@/lib/gamification/home-carousel-types';
+import { interleaveDataAndPromoSlides } from '@/lib/gamification/home-carousel-merge';
 import { cn } from '@/lib/utils';
 
 function isUtcToday(iso: string): boolean {
@@ -34,9 +36,71 @@ export default function HcpActivationCard({ className }: { className?: string })
   const { t, language } = useTranslation();
   const { data, loading, error } = useGamificationMe();
 
+  const [carouselLoading, setCarouselLoading] = useState(true);
+  const [carouselFailed, setCarouselFailed] = useState(false);
+  const [dataSlides, setDataSlides] = useState<HomeCarouselSlide[]>([]);
+  const [promoSlides, setPromoSlides] = useState<HomeCarouselSlide[]>([]);
+
   const tk = (key: string, opts?: Record<string, string | number>) => t(`${HP}.${key}`, opts);
 
   const loggedIn = status === 'authenticated' && Boolean(session?.user);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+    let cancelled = false;
+    setCarouselLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/gamification/home-carousel?lang=${language}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('carousel');
+        const json = (await res.json()) as {
+          dataSlides?: HomeCarouselSlide[];
+          promoSlides?: HomeCarouselSlide[];
+          slides?: HomeCarouselSlide[];
+        };
+        if (cancelled) return;
+        const d =
+          json.dataSlides ??
+          json.slides?.filter((s) => s.kind === 'ranking' || s.kind === 'spotlight') ??
+          [];
+        const p =
+          json.promoSlides ??
+          json.slides?.filter((s) => s.kind === 'promo' || s.kind === 'admin') ??
+          [];
+        setDataSlides(d);
+        setPromoSlides(p);
+        setCarouselFailed(false);
+      } catch {
+        if (!cancelled) {
+          setCarouselFailed(true);
+          setDataSlides([]);
+          setPromoSlides([]);
+        }
+      } finally {
+        if (!cancelled) setCarouselLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loggedIn, language]);
+
+  const mergedSlides = useMemo(
+    () => interleaveDataAndPromoSlides(dataSlides, promoSlides),
+    [dataSlides, promoSlides]
+  );
+
+  /** Voorkomt lange reeksen alleen admin-tekst in de promo-kolom (desktop). */
+  const promoBalanced = useMemo(
+    () =>
+      interleaveDataAndPromoSlides(
+        promoSlides.filter((s) => !s.id.startsWith('admin:')),
+        promoSlides.filter((s) => s.id.startsWith('admin:'))
+      ),
+    [promoSlides]
+  );
 
   const missions = useMemo((): MissionRow[] => {
     if (!data) return [];
@@ -124,7 +188,7 @@ export default function HcpActivationCard({ className }: { className?: string })
         : tk('streakMany', { count: data.currentStreak });
 
   const leftColumn = (
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 space-y-3 lg:space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="hcp-activation-heading" className="sr-only">
           {tk('sectionTitle')}
@@ -200,7 +264,7 @@ export default function HcpActivationCard({ className }: { className?: string })
         </ul>
       </div>
 
-      <div className="pt-1 border-t border-amber-100/80">
+      <div className="pt-1 lg:pt-0 border-t border-amber-100/80 lg:border-transparent">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-2">
           {tk('quickActions')}
         </p>
@@ -247,15 +311,68 @@ export default function HcpActivationCard({ className }: { className?: string })
     <section
       id="homecheff-hcp-activation"
       className={cn(
-        'rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 p-4 sm:p-5 shadow-sm ring-1 ring-amber-500/5',
+        'rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/40 p-3 sm:p-4 lg:p-4 shadow-sm ring-1 ring-amber-500/5',
         className
       )}
       aria-labelledby="hcp-activation-heading"
     >
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:items-start">
-        <div className="order-1 min-w-0 lg:order-none">{leftColumn}</div>
-        <div className="order-2 min-w-0 lg:order-none">
-          <HcpHomeCarousel lang={language} />
+      <div className="flex flex-col gap-4 lg:hidden">
+        <div className="min-w-0">{leftColumn}</div>
+        <HcpHomeCarousel
+          slides={mergedSlides}
+          loading={carouselLoading}
+          failed={carouselFailed}
+          showFooter
+        />
+      </div>
+
+      <div className="hidden lg:grid lg:grid-cols-12 lg:gap-x-4 lg:items-stretch lg:min-h-[248px]">
+        <div className="lg:col-span-3 flex flex-col min-w-0">{leftColumn}</div>
+        <div className="lg:col-span-5 flex flex-col min-w-0 min-h-0">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-amber-900/75 mb-1 shrink-0">
+            {tk('carousel.dataHeading')}
+          </p>
+          <div className="min-h-0 flex-1">
+            <HcpHomeCarousel
+              slides={dataSlides}
+              loading={carouselLoading}
+              failed={carouselFailed}
+              showFooter={false}
+              emptyLabel={tk('carousel.empty')}
+              className="h-full"
+            />
+          </div>
+        </div>
+        <div className="lg:col-span-4 flex flex-col min-w-0 min-h-0">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-violet-900/75 mb-1 shrink-0">
+            {tk('carousel.promoHeading')}
+          </p>
+          <div className="min-h-0 flex-1">
+            <HcpHomeCarousel
+              slides={promoBalanced}
+              loading={carouselLoading}
+              failed={carouselFailed}
+              promoColumn
+              showFooter={false}
+              emptyLabel={tk('carousel.empty')}
+              className="h-full"
+            />
+          </div>
+        </div>
+
+        <div className="lg:col-span-12 mt-3 pt-3 border-t border-amber-100/80 flex flex-col sm:flex-row sm:items-center gap-3">
+          <p className="text-[11px] text-gray-600 leading-snug line-clamp-3 flex-1 min-w-0">{tk('rewards.teaser')}</p>
+          <Link
+            href="/hcp-ranglijsten"
+            className={cn(
+              'shrink-0 inline-flex items-center justify-center rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/15 to-emerald-600/15',
+              'min-h-[40px] px-4 py-2 text-xs font-semibold text-amber-950 whitespace-nowrap',
+              'hover:from-amber-500/25 hover:to-emerald-600/20 transition-colors',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
+            )}
+          >
+            {tk('ctaLeaderboards')}
+          </Link>
         </div>
       </div>
     </section>

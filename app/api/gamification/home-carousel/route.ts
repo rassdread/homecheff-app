@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { buildHomeCarouselSlides } from '@/lib/gamification/home-carousel-build';
+import { buildHomeCarouselPayload } from '@/lib/gamification/home-carousel-build';
 import type { CarouselLang } from '@/lib/gamification/home-carousel-i18n';
 
 export const dynamic = 'force-dynamic';
@@ -29,13 +29,16 @@ export async function GET(req: Request) {
     });
     const geo = geoBucket(profile?.lat ?? null, profile?.lng ?? null);
 
-    const slides = await unstable_cache(
-      async () => buildHomeCarouselSlides({ userId, lang }),
+    const payload = await unstable_cache(
+      async () => buildHomeCarouselPayload({ userId, lang }),
       ['home-hcp-carousel', userId, lang, geo],
       { revalidate: 120 }
     )();
 
-    return NextResponse.json({ slides }, { headers: { 'Cache-Control': 'private, max-age=60' } });
+    return NextResponse.json(
+      { dataSlides: payload.dataSlides, promoSlides: payload.promoSlides },
+      { headers: { 'Cache-Control': 'private, max-age=60' } }
+    );
   } catch (e) {
     console.error('[gamification/home-carousel]', e);
     return NextResponse.json({ error: 'Serverfout' }, { status: 500 });

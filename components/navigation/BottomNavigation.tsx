@@ -1494,7 +1494,7 @@ export default function BottomNavigation() {
                   ⭐
                 </span>
                 <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-teal-800 leading-tight mt-1">
-                  {t('bottomNav.hcpCapsuleBadge')}
+                  HCP
                 </span>
               </Link>
             </div>

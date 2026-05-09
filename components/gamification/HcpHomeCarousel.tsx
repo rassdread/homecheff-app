@@ -25,48 +25,52 @@ function slideSurfaceClass(style: string | null | undefined): string {
   return BG_PRESETS[key] ?? style;
 }
 
+/** Vaste hoogte carousel-paneel — voorkomt layout-shift en excessieve witruimte. */
+const TRACK_FRAME =
+  'h-[200px] min-h-[200px] sm:h-[218px] sm:min-h-[218px] lg:h-[226px] lg:min-h-[226px]';
+
 function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
   const { t } = useTranslation();
   const rows = slide.rows ?? [];
   return (
-    <div className="flex flex-col h-full min-h-[220px]">
-      <div className="mb-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-amber-900/85">{slide.title}</p>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="mb-2 shrink-0">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900/85 line-clamp-1">
+          {slide.title}
+        </p>
         {slide.subtitle ? (
-          <p className="text-[11px] text-gray-600 mt-1 leading-snug">{slide.subtitle}</p>
+          <p className="text-[10px] text-gray-600 mt-0.5 leading-snug line-clamp-2">{slide.subtitle}</p>
         ) : null}
         <Link
           href="/hcp-ranglijsten"
-          className="text-[11px] font-semibold text-amber-800 hover:text-amber-950 hover:underline mt-1.5 inline-block min-h-[44px] py-1"
+          className="text-[10px] font-semibold text-amber-800 hover:text-amber-950 hover:underline mt-1 inline-block"
         >
           {t('home.hcpCarousel.openRankings')}
         </Link>
       </div>
-      <ol className="space-y-2 flex-1 min-h-0">
-        {rows.map((row) => {
+      <ol className="min-h-0 flex-1 space-y-1 overflow-hidden">
+        {rows.slice(0, 5).map((row) => {
           const href = publicProfileHref(row.userId, row.username);
           const inner = (
             <>
-              <span className="text-xs font-bold text-amber-900 tabular-nums w-5 shrink-0">{row.rank}</span>
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-amber-100 ring-1 ring-white">
+              <span className="text-[11px] font-bold text-amber-900 tabular-nums w-4 shrink-0">{row.rank}</span>
+              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-amber-100 ring-1 ring-white">
                 {row.avatar ? (
-                  <SafeImage src={row.avatar} alt="" fill className="object-cover" sizes="36px" />
+                  <SafeImage src={row.avatar} alt="" fill className="object-cover" sizes="32px" />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-amber-900">
+                  <span className="flex h-full w-full items-center justify-center text-[9px] font-bold text-amber-900">
                     HC
                   </span>
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{row.displayName}</p>
-                <p className="text-[11px] text-gray-600 tabular-nums">
-                  L{row.level} · {row.score.toLocaleString()} HCP
-                </p>
+                <p className="text-xs font-semibold text-gray-900 truncate">{row.displayName}</p>
+                <p className="text-[10px] text-gray-600 tabular-nums truncate">{row.score.toLocaleString()} HCP</p>
               </div>
             </>
           );
           const shell = cn(
-            'flex items-center gap-2 rounded-lg border px-2 py-1.5 transition-colors min-h-[44px]',
+            'flex items-center gap-1.5 rounded-lg border px-1.5 py-1 transition-colors',
             row.isCurrentUser
               ? 'border-amber-400 bg-amber-50/90 ring-1 ring-amber-300/60'
               : 'border-amber-100/90 bg-white/70',
@@ -94,43 +98,43 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
   const href = sp ? publicProfileHref(sp.userId, sp.username) : null;
   const spotlightInner = sp ? (
     <>
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-emerald-100 ring-2 ring-white shadow-sm">
+      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-emerald-100 ring-2 ring-white shadow-sm">
         {sp.avatar ? (
-          <SafeImage src={sp.avatar} alt="" fill className="object-cover" sizes="56px" />
+          <SafeImage src={sp.avatar} alt="" fill className="object-cover" sizes="48px" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-sm font-bold text-emerald-800">
+          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-emerald-800">
             HC
           </span>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-base font-semibold text-gray-900 truncate">{sp.displayName}</p>
-        <p className="text-xs text-emerald-900/90 mt-0.5 leading-snug">
-          L{sp.level} · {sp.subtitle}
-        </p>
+        <p className="text-sm font-semibold text-gray-900 truncate">{sp.displayName}</p>
+        <p className="text-[11px] text-emerald-900/90 mt-0.5 leading-snug line-clamp-2">{sp.subtitle}</p>
       </div>
     </>
   ) : null;
   return (
-    <div className="flex flex-col justify-center h-full min-h-[220px]">
-      <p className="text-xs font-bold uppercase tracking-wide text-emerald-900/85 mb-3">{slide.title}</p>
+    <div className="flex h-full min-h-0 flex-col justify-center overflow-hidden">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-900/85 mb-2 line-clamp-2 shrink-0">
+        {slide.title}
+      </p>
       {sp ? (
         href ? (
           <Link
             href={href}
-            className="flex gap-3 items-center rounded-xl bg-emerald-50/70 border border-emerald-100 px-3 py-3 min-h-[52px] hover:bg-emerald-50 transition-colors"
+            className="flex min-h-0 items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2.5 py-2 hover:bg-emerald-50 transition-colors"
           >
             {spotlightInner}
           </Link>
         ) : (
-          <div className="flex gap-3 items-center rounded-xl bg-emerald-50/70 border border-emerald-100 px-3 py-3 min-h-[52px]">
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2.5 py-2">
             {spotlightInner}
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-dashed border-amber-200/90 bg-amber-50/40 px-3 py-4">
+        <div className="rounded-xl border border-dashed border-amber-200/90 bg-amber-50/40 px-2.5 py-2">
           {slide.subtitle ? (
-            <p className="text-sm text-gray-700 leading-snug">{slide.subtitle}</p>
+            <p className="text-xs text-gray-700 leading-snug line-clamp-4">{slide.subtitle}</p>
           ) : null}
         </div>
       )}
@@ -138,92 +142,109 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
   );
 }
 
-function CarouselPromoSlide({ slide }: { slide: HomeCarouselSlide }) {
+function CarouselPromoSlide({
+  slide,
+  promoColumn,
+}: {
+  slide: HomeCarouselSlide;
+  promoColumn?: boolean;
+}) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
-        'flex flex-col justify-between h-full min-h-[220px] rounded-xl border border-amber-200/60 p-4 shadow-sm ring-1 ring-amber-500/5',
+        'flex h-full min-h-0 flex-col justify-between overflow-hidden rounded-xl border border-amber-200/60 p-3 shadow-sm ring-1 ring-amber-500/5',
         slideSurfaceClass(slide.backgroundStyle)
       )}
     >
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1 overflow-hidden">
         {slide.imageUrl ? (
-          <div className="relative w-full h-24 mb-3 rounded-lg overflow-hidden bg-white/50 border border-white/80">
+          <div
+            className={cn(
+              'relative mb-2 w-full overflow-hidden rounded-lg border border-white/80 bg-white/50',
+              promoColumn ? 'h-14' : 'h-16 sm:h-[4.5rem]'
+            )}
+          >
             <SafeImage src={slide.imageUrl} alt="" fill className="object-cover" sizes="280px" />
           </div>
         ) : null}
-        <p className="text-sm font-bold text-gray-900 leading-snug">{slide.title}</p>
+        <p className="text-sm font-bold leading-snug text-gray-900 line-clamp-2">{slide.title}</p>
         {slide.subtitle ? (
-          <p className="text-xs text-gray-600 mt-2 leading-relaxed">{slide.subtitle}</p>
+          <p
+            className={cn(
+              'mt-1.5 leading-snug text-gray-600 line-clamp-3',
+              promoColumn ? 'text-[10px]' : 'text-[11px] sm:text-xs'
+            )}
+          >
+            {slide.subtitle}
+          </p>
         ) : null}
       </div>
-      {slide.ctaLabel && slide.ctaUrl ? (
+      <div className="mt-2 shrink-0 space-y-1.5">
+        {slide.ctaLabel && slide.ctaUrl ? (
+          <Link
+            href={slide.ctaUrl}
+            className={cn(
+              'inline-flex min-h-[40px] w-full items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold sm:text-sm',
+              'bg-gradient-to-r from-amber-500/90 to-emerald-600/85 text-white shadow-sm',
+              'hover:from-amber-500 hover:to-emerald-600 transition-colors',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
+            )}
+          >
+            {slide.ctaLabel}
+          </Link>
+        ) : null}
         <Link
-          href={slide.ctaUrl}
-          className={cn(
-            'mt-4 inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold',
-            'bg-gradient-to-r from-amber-500/90 to-emerald-600/85 text-white shadow-sm',
-            'hover:from-amber-500 hover:to-emerald-600 transition-colors',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
-          )}
+          href="/hcp-ranglijsten"
+          className="block text-center text-[10px] font-semibold text-amber-900/90 underline-offset-2 hover:underline"
         >
-          {slide.ctaLabel}
+          {t('home.hcpCarousel.viewMore')}
         </Link>
-      ) : null}
+      </div>
     </div>
   );
 }
 
-function renderSlide(slide: HomeCarouselSlide) {
+function renderSlide(slide: HomeCarouselSlide, promoColumn?: boolean) {
   switch (slide.kind) {
     case 'ranking':
       return <CarouselRankingSlide slide={slide} />;
     case 'spotlight':
       return <CarouselSpotlightSlide slide={slide} />;
     default:
-      return <CarouselPromoSlide slide={slide} />;
+      return <CarouselPromoSlide slide={slide} promoColumn={promoColumn} />;
   }
 }
 
-type Props = {
-  lang: 'nl' | 'en';
+export type HcpHomeCarouselProps = {
+  slides: HomeCarouselSlide[];
+  loading?: boolean;
+  failed?: boolean;
+  /** Rechterkolom desktop: iets compactere promo’s. */
+  promoColumn?: boolean;
+  /** Footer met juridische teaser + ranglijst-link (één keer op mobiel / onderaan desktop-grid). */
+  showFooter?: boolean;
+  /** Tekst bij lege slide-set (geen API-fout). */
+  emptyLabel?: string;
   className?: string;
 };
 
-export default function HcpHomeCarousel({ lang, className }: Props) {
+export default function HcpHomeCarousel({
+  slides,
+  loading = false,
+  failed = false,
+  promoColumn = false,
+  showFooter = true,
+  className,
+}: HcpHomeCarouselProps) {
   const { t } = useTranslation();
   const tk = (key: string, opts?: Record<string, string | number>) => t(`${HP}.${key}`, opts);
 
-  const [slides, setSlides] = useState<HomeCarouselSlide[] | null>(null);
-  const [failed, setFailed] = useState(false);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/gamification/home-carousel?lang=${lang}`, {
-          credentials: 'include',
-        });
-        if (!res.ok) throw new Error('carousel');
-        const json = (await res.json()) as { slides?: HomeCarouselSlide[] };
-        const list = Array.isArray(json.slides) ? json.slides : [];
-        if (!cancelled) setSlides(list);
-      } catch {
-        if (!cancelled) {
-          setFailed(true);
-          setSlides([]);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [lang]);
-
-  const n = slides?.length ?? 0;
+  const n = slides.length;
   const safeIndex = n > 0 ? index % n : 0;
 
   useEffect(() => {
@@ -259,107 +280,133 @@ export default function HcpHomeCarousel({ lang, className }: Props) {
     else if (dx < -52) go(1);
   };
 
-  const loading = slides === null && !failed;
+  const showFooterBlock = showFooter && !loading && !failed;
 
   return (
     <aside
       className={cn(
         'rounded-xl border border-amber-200/65 bg-gradient-to-b from-white/95 to-amber-50/40',
-        'p-3.5 sm:p-4 shadow-sm ring-1 ring-emerald-600/10 space-y-4 min-h-[240px]',
+        'p-3 shadow-sm ring-1 ring-emerald-600/10',
+        promoColumn ? 'lg:p-2.5' : 'sm:p-3.5',
         className
       )}
       aria-label={t('home.hcpCarousel.aria')}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div
-        className="relative min-h-[228px]"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className={cn('relative overflow-hidden rounded-lg', TRACK_FRAME)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {loading ? (
-          <div className="space-y-3 animate-pulse pt-1" aria-busy="true">
-            <div className="h-4 w-44 rounded-md bg-amber-100/80" />
-            <div className="h-24 rounded-xl bg-amber-100/50" />
-            <div className="h-24 rounded-xl bg-amber-100/50" />
+          <div className="flex h-full flex-col justify-center space-y-2 px-2 animate-pulse" aria-busy="true">
+            <div className="h-3 w-40 rounded-md bg-amber-100/80" />
+            <div className="h-20 rounded-xl bg-amber-100/50" />
+            <div className="h-16 rounded-xl bg-amber-100/40" />
           </div>
-        ) : failed || n === 0 ? (
-          <p className="text-xs text-gray-600 leading-snug">{tk('ranking.loadError')}</p>
+        ) : failed ? (
+          <div className="flex h-full items-center px-2">
+            <p className="text-xs text-gray-600 leading-snug">{tk('ranking.loadError')}</p>
+          </div>
+        ) : n === 0 ? (
+          <div className="flex h-full items-center px-2">
+            <p className="text-xs text-gray-500 text-center leading-snug w-full">
+              {emptyLabel ?? tk('carousel.empty')}
+            </p>
+          </div>
         ) : (
           <>
-            <div className="relative overflow-hidden min-h-[228px]">
-              {slides!.map((slide, i) => (
+            <div
+              className={cn(
+                'pointer-events-none absolute inset-y-0 left-0 z-20 hidden w-11 min-[400px]:flex items-center justify-start pl-1',
+                'bg-gradient-to-r from-white/95 via-white/40 to-transparent'
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-9 sm:w-9 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                aria-label={t('home.hcpCarousel.prev')}
+              >
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+              </button>
+            </div>
+            <div
+              className={cn(
+                'pointer-events-none absolute inset-y-0 right-0 z-20 hidden w-11 min-[400px]:flex items-center justify-end pr-1',
+                'bg-gradient-to-l from-white/95 via-white/40 to-transparent'
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => go(1)}
+                className="pointer-events-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-9 sm:w-9 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                aria-label={t('home.hcpCarousel.next')}
+              >
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+              </button>
+            </div>
+
+            <div className="absolute inset-x-0 top-0 bottom-8 min-[400px]:px-10 px-2 py-1 overflow-hidden">
+              {slides.map((slide, i) => (
                 <div
                   key={slide.id}
                   className={cn(
-                    'transition-opacity duration-300 ease-out motion-reduce:transition-none',
-                    i === safeIndex ? 'opacity-100 relative z-[1]' : 'opacity-0 absolute inset-0 z-0 pointer-events-none'
+                    'h-full transition-opacity duration-300 ease-out motion-reduce:transition-none',
+                    i === safeIndex ? 'relative z-[1] opacity-100' : 'pointer-events-none absolute inset-0 z-0 opacity-0'
                   )}
                   aria-hidden={i !== safeIndex}
                 >
-                  {renderSlide(slide)}
+                  {renderSlide(slide, promoColumn)}
                 </div>
               ))}
             </div>
 
             {n > 1 ? (
-              <div className="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-amber-100/80">
-                <button
-                  type="button"
-                  onClick={() => go(-1)}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-amber-900 hover:bg-amber-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  aria-label={t('home.hcpCarousel.prev')}
-                >
-                  <ChevronLeft className="h-5 w-5" aria-hidden />
-                </button>
-                <div className="flex flex-wrap justify-center gap-1.5 flex-1">
-                  {slides!.map((s, i) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setIndex(i)}
-                      className={cn(
-                        'h-2 rounded-full transition-all motion-reduce:transition-none',
-                        i === safeIndex ? 'w-6 bg-amber-600' : 'w-2 bg-amber-200 hover:bg-amber-300'
-                      )}
-                      aria-label={t('home.hcpCarousel.dot', { n: i + 1 })}
-                      aria-current={i === safeIndex}
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => go(1)}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-amber-900 hover:bg-amber-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  aria-label={t('home.hcpCarousel.next')}
-                >
-                  <ChevronRight className="h-5 w-5" aria-hidden />
-                </button>
+              <div
+                className="absolute bottom-1 left-0 right-0 z-30 flex justify-center gap-1.5 px-2 pt-1"
+                role="tablist"
+                aria-label={t('home.hcpCarousel.aria')}
+              >
+                {slides.map((s, i) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="tab"
+                    onClick={() => setIndex(i)}
+                    className={cn(
+                      'h-1.5 rounded-full transition-all motion-reduce:transition-none',
+                      i === safeIndex ? 'w-5 bg-amber-600' : 'w-1.5 bg-amber-200 hover:bg-amber-300'
+                    )}
+                    aria-label={t('home.hcpCarousel.dot', { n: i + 1 })}
+                    aria-selected={i === safeIndex}
+                  />
+                ))}
               </div>
             ) : null}
           </>
         )}
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-emerald-200/70 to-transparent" aria-hidden />
-
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-violet-900/80 mb-1">
-          {tk('rewards.title')}
-        </p>
-        <p className="text-[11px] sm:text-xs text-gray-600 leading-snug">{tk('rewards.teaser')}</p>
-      </div>
-
-      <Link
-        href="/hcp-ranglijsten"
-        className={cn(
-          'flex w-full items-center justify-center rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/15 to-emerald-600/15',
-          'min-h-[44px] px-3 py-2.5 text-sm font-semibold text-amber-950 hover:from-amber-500/25 hover:to-emerald-600/20 transition-colors',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
-        )}
-      >
-        {tk('ctaLeaderboards')}
-      </Link>
+      {showFooterBlock ? (
+        <>
+          <div className="my-3 h-px bg-gradient-to-r from-transparent via-emerald-200/70 to-transparent" aria-hidden />
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-violet-900/80">{tk('rewards.title')}</p>
+            <p className="text-[10px] text-gray-600 leading-snug line-clamp-3 sm:text-[11px] sm:line-clamp-4">
+              {tk('rewards.teaser')}
+            </p>
+            <Link
+              href="/hcp-ranglijsten"
+              className={cn(
+                'flex w-full items-center justify-center rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/15 to-emerald-600/15',
+                'min-h-[44px] px-3 py-2 text-xs font-semibold text-amber-950 sm:text-sm',
+                'hover:from-amber-500/25 hover:to-emerald-600/20 transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
+              )}
+            >
+              {tk('ctaLeaderboards')}
+            </Link>
+          </div>
+        </>
+      ) : null}
     </aside>
   );
 }

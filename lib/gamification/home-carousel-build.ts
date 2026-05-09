@@ -13,6 +13,10 @@ import {
   placementMatchesSlide,
   type CarouselViewerContext,
 } from '@/lib/gamification/carousel-slide-filters';
+import {
+  dedupeConsecutiveSlides,
+  interleaveDataAndPromoSlides,
+} from '@/lib/gamification/home-carousel-merge';
 
 function slimFromLeaderboard(r: LeaderboardRow) {
   return {
@@ -116,21 +120,16 @@ async function pickNewTalentFromWeeklyTop(
   };
 }
 
-function dedupeConsecutive(slides: HomeCarouselSlide[]): HomeCarouselSlide[] {
-  const out: HomeCarouselSlide[] = [];
-  let prev: string | null = null;
-  for (const s of slides) {
-    if (s.variantKey === prev) continue;
-    prev = s.variantKey;
-    out.push(s);
-  }
-  return out;
-}
+export type HomeCarouselPayload = {
+  dataSlides: HomeCarouselSlide[];
+  promoSlides: HomeCarouselSlide[];
+};
 
-export async function buildHomeCarouselSlides(opts: {
+/** Homepage: data (ranglijsten + spotlights) en promo (tekst/admin) apart voor desktop lay-out en mobiele interleave. */
+export async function buildHomeCarouselPayload(opts: {
   userId: string;
   lang: CarouselLang;
-}): Promise<HomeCarouselSlide[]> {
+}): Promise<HomeCarouselPayload> {
   const copy = carouselStrings(opts.lang);
 
   const viewerProfile = await prisma.user.findUnique({
@@ -206,7 +205,8 @@ export async function buildHomeCarouselSlides(opts: {
     buildRiserRows(opts.userId),
   ]);
 
-  const slides: HomeCarouselSlide[] = [];
+  const dataSlides: HomeCarouselSlide[] = [];
+  const promoSlides: HomeCarouselSlide[] = [];
 
   const pushRanking = (
     variantKey: string,
@@ -216,7 +216,7 @@ export async function buildHomeCarouselSlides(opts: {
     rows: LeaderboardRow[]
   ) => {
     if (!rows?.length) return;
-    slides.push({
+    dataSlides.push({
       id: `rank:${variantKey}`,
       kind: 'ranking',
       variantKey,
@@ -275,7 +275,7 @@ export async function buildHomeCarouselSlides(opts: {
 
   if (weekLeader) {
     pushedSpotlightUser = true;
-    slides.push({
+    dataSlides.push({
       id: 'spot:week-leader',
       kind: 'spotlight',
       variantKey: 'spotlight:week_leader',
@@ -296,7 +296,7 @@ export async function buildHomeCarouselSlides(opts: {
   const riserTop = riserRows[0];
   if (riserTop && !exclude.has(riserTop.userId)) {
     pushedSpotlightUser = true;
-    slides.push({
+    dataSlides.push({
       id: 'spot:riser',
       kind: 'spotlight',
       variantKey: 'spotlight:riser',
@@ -321,7 +321,7 @@ export async function buildHomeCarouselSlides(opts: {
   );
   if (newTalent && !exclude.has(newTalent.userId)) {
     pushedSpotlightUser = true;
-    slides.push({
+    dataSlides.push({
       id: 'spot:new',
       kind: 'spotlight',
       variantKey: 'spotlight:new_talent',
@@ -340,7 +340,7 @@ export async function buildHomeCarouselSlides(opts: {
   }
 
   if (!pushedSpotlightUser) {
-    slides.push({
+    dataSlides.push({
       id: 'spot:fallback',
       kind: 'spotlight',
       variantKey: 'spotlight:fallback',
@@ -350,7 +350,7 @@ export async function buildHomeCarouselSlides(opts: {
     });
   }
 
-  slides.push(
+  promoSlides.push(
     {
       id: 'promo:join',
       kind: 'promo',
@@ -397,16 +397,16 @@ export async function buildHomeCarouselSlides(opts: {
       variantKey: 'promo:future',
       sortKey: 200,
       title: copy.promoFuture.title,
-      subtitle: copy.promoFuture.subtitle,
+      subtitle: copy.promoFuture.subtitleShort,
       ctaLabel: copy.promoFuture.cta,
-      ctaUrl: '/mijn-hcp',
+      ctaUrl: '/hcp-ranglijsten',
     }
   );
 
   for (const a of adminDb) {
     if (!placementMatchesSlide('HOME', a)) continue;
     if (!adminSlideMatchesTargeting(a, carouselCtx)) continue;
-    slides.push({
+    promoSlides.push({
       id: `admin:${a.id}`,
       /** Admin slides render as promo-style cards (CTA/image); type is metadata for the dashboard. */
       kind: 'admin',
@@ -421,6 +421,20 @@ export async function buildHomeCarouselSlides(opts: {
     });
   }
 
-  slides.sort((a, b) => a.sortKey - b.sortKey);
-  return dedupeConsecutive(slides);
+  dataSlides.sort((a, b) => a.sortKey - b.sortKey);
+  promoSlides.sort((a, b) => a.sortKey - b.sortKey);
+
+  return {
+    dataSlides: dedupeConsecutiveSlides(dataSlides),
+    promoSlides: dedupeConsecutiveSlides(promoSlides),
+  };
+}
+
+/** @deprecated Gebruik `buildHomeCarouselPayload` + client-side merge of aparte kolommen. */
+export async function buildHomeCarouselSlides(opts: {
+  userId: string;
+  lang: CarouselLang;
+}): Promise<HomeCarouselSlide[]> {
+  const { dataSlides, promoSlides } = await buildHomeCarouselPayload(opts);
+  return dedupeConsecutiveSlides(interleaveDataAndPromoSlides(dataSlides, promoSlides));
 }
