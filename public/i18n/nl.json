@@ -4369,7 +4369,10 @@
       "shareHintCopied": "Link gekopieerd naar het klembord.",
       "shareHintManual": "Kon niet automatisch kopiëren — selecteer en kopieer de link hieronder.",
       "shareNativeTitle": "HomeCheff Android-beta",
-      "shareNativeText": "Probeer de HomeCheff Android-beta — via homecheff.eu."
+      "shareNativeText": "Probeer de HomeCheff Android-beta — via homecheff.eu.",
+      "nativeShareCompactTitle": "Deel HomeCheff beta",
+      "nativeShareCompactBody": "Nodig anderen uit om de beta te testen.",
+      "nativeShareCompactCta": "Deel beta-app"
     },
     "hcpActivation": {
       "sectionTitle": "HomeCheff Points op je home",

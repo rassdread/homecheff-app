@@ -19,6 +19,7 @@ import {
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { saveScrollPosition } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
+import { isNativeAndroid } from '@/lib/native/capacitor';
 import {
   CONVERSATION_LIST_ACTIVITY_EVENT,
   sortConversationsByActivity,
@@ -110,12 +111,16 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     if (!debugOn) return;
     const el = listScrollRef.current;
     if (!el) return;
+    const columnEl = el.closest('.hc-native-messages-list-column') as HTMLElement | null;
     const log = () => {
       const listEl = listScrollRef.current;
       if (!listEl) return;
       const root = listEl.closest('.hc-messages-root');
+      const column = listEl.closest('.hc-native-messages-list-column') as HTMLElement | null;
+      const scrollPort = column ?? listEl;
       const main = document.getElementById('main-content');
       const cs = window.getComputedStyle(listEl);
+      const cCol = column ? window.getComputedStyle(column) : null;
       const html = document.documentElement;
       const body = document.body;
       console.debug('[messages-scroll-debug]', {
@@ -123,9 +128,16 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         rootScrollHeight: root?.scrollHeight,
         mainClientHeight: main?.clientHeight,
         mainScrollHeight: main?.scrollHeight,
+        columnClientHeight: column?.clientHeight,
+        columnScrollHeight: column?.scrollHeight,
+        columnOverflowY: cCol?.overflowY,
+        scrollPortClientHeight: scrollPort.clientHeight,
+        scrollPortScrollHeight: scrollPort.scrollHeight,
         listClientHeight: listEl.clientHeight,
         listScrollHeight: listEl.scrollHeight,
         overflowY: cs.overflowY,
+        touchAction: cs.touchAction,
+        pointerEvents: cs.pointerEvents,
         bodyOverflow: window.getComputedStyle(body).overflowY,
         htmlOverflow: window.getComputedStyle(html).overflowY,
         viewportHeight: window.innerHeight,
@@ -135,7 +147,57 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     log();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(log) : null;
     ro?.observe(el);
+    if (columnEl) ro?.observe(columnEl);
     return () => ro?.disconnect();
+  }, [conversations.length, nativeMounted]);
+
+  /** Dev: rode/groene/blauwe outlines + touch/scroll logs (alleen Android native shell). */
+  useEffect(() => {
+    const debugOn =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true';
+    if (!debugOn || !nativeMounted || !isNativeAndroid()) return;
+    const el = listScrollRef.current;
+    if (!el) return;
+    const html = document.documentElement;
+    html.classList.add('hc-messages-scroll-debug');
+
+    const column = el.closest('.hc-native-messages-list-column') as HTMLElement | null;
+    const scrollPort = column ?? el;
+    let lastEp = 0;
+    const onTouchStart = () => {
+      console.debug('[messages-touch]', 'touchstart', { target: el.tagName });
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      const now = Date.now();
+      if (now - lastEp < 180) return;
+      lastEp = now;
+      const top = document.elementFromPoint(t.clientX, t.clientY);
+      console.debug('[messages-touch]', 'touchmove', {
+        x: Math.round(t.clientX),
+        y: Math.round(t.clientY),
+        topTag: top?.tagName,
+        topClass: typeof (top as HTMLElement)?.className === 'string' ? (top as HTMLElement).className : '',
+      });
+    };
+    const onScroll = () => {
+      console.debug('[messages-touch]', 'scroll', {
+        scrollTop: scrollPort.scrollTop,
+        port: column ? 'column' : 'list',
+      });
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    scrollPort.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      html.classList.remove('hc-messages-scroll-debug');
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      scrollPort.removeEventListener('scroll', onScroll);
+    };
   }, [conversations.length, nativeMounted]);
 
   useEffect(() => {
@@ -464,12 +526,16 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   if (isLoading && conversations.length === 0) {
     return (
       <div
-        className={`flex min-h-0 flex-1 flex-col overflow-hidden ${listShellPad} animate-pulse`}
+        className={cn(
+          'flex min-h-0 flex-1 flex-col animate-pulse',
+          listShellPad,
+          nativeMounted ? 'max-lg:overflow-visible lg:overflow-hidden' : 'overflow-hidden'
+        )}
         aria-busy
       >
         <div
           ref={listScrollRef}
-          className="hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+          className="hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-scroll overscroll-y-contain [-webkit-overflow-scrolling:touch]"
         >
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <div
@@ -621,8 +687,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         ref={listScrollRef}
         data-hc-app-scroll="messages-list"
         className={cn(
-          'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
-          'max-md:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))]',
+          'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y overflow-y-scroll overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+          !nativeMounted && 'max-md:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))]',
           listScrollPadBottom
         )}
       >

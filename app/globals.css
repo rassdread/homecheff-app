@@ -602,21 +602,75 @@ html.hc-native-capacitor .hc-messages-root {
   max-height: calc(100dvh - 4rem - 5.75rem);
 }
 
-/* Android WebView: scrollcontainer krijgt expliciet flex-basis 0 + max-h uit viewport (naast min-h-0-keten). */
+/* WebView: geen backdrop-filter op berichten-header — stacking/compositing breekt soms nested scroll. */
+html.hc-native-capacitor .hc-messages-root > header {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/*
+ * Native Android (max-lg): ÉÉN scroll-owner = gesprekkenkolom (.hc-native-messages-list-column).
+ * Geneste overflow-y op inner div faalt vaak in WebView; desktop/lg+ blijft inner .hc-conversations-list-scroll.
+ */
+@media (max-width: 1023.98px) {
+  html.hc-native-capacitor:not(.hc-messages-chat-open) .hc-native-messages-list-column {
+    flex: 1 1 0% !important;
+    flex-basis: 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    pointer-events: auto !important;
+  }
+
+  html.hc-native-capacitor:not(.hc-messages-chat-open)
+    .hc-native-messages-list-column
+    .hc-conversations-list-scroll {
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    max-height: none !important;
+    height: auto !important;
+    flex: 1 1 auto !important;
+    flex-basis: auto !important;
+    min-height: min-content !important;
+    -webkit-overflow-scrolling: auto !important;
+    touch-action: pan-y !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* lg+ / desktop: inner blijft het scrollvlak (overflow-y: scroll i.p.v. auto — WebView). */
 html.hc-native-capacitor .hc-conversations-list-scroll {
   flex: 1 1 0%;
   flex-basis: 0;
   min-height: 0;
-  overflow-y: auto !important;
+  overflow-y: scroll !important;
   overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
 }
 
-@media (max-width: 1023.98px) {
-  html.hc-native-capacitor:not(.hc-messages-chat-open) .hc-conversations-list-scroll {
-    max-height: calc(100dvh - 10rem - env(safe-area-inset-bottom, 0px));
+@media (min-width: 1024px) {
+  html.hc-native-capacitor .hc-native-messages-list-column {
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
+}
+
+/* chrome://inspect: tijdelijke outlines (NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL of dev + class op html) */
+html.hc-messages-scroll-debug.hc-native-capacitor .hc-messages-root {
+  box-shadow: inset 0 0 0 3px rgba(220, 38, 38, 0.9);
+}
+html.hc-messages-scroll-debug.hc-native-capacitor .hc-conversations-list-scroll {
+  box-shadow: inset 0 0 0 3px rgba(22, 163, 74, 0.85);
+}
+html.hc-messages-scroll-debug.hc-native-capacitor [data-hc-bottom-nav] {
+  box-shadow: inset 0 0 0 3px rgba(37, 99, 235, 0.85);
 }
 
 /* Mobiel: actief gesprek — geen body-scroll achter de chat */

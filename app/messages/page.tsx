@@ -150,8 +150,7 @@ function MessagesPageContent() {
   return (
     <main
       className={cn(
-        'hc-messages-root flex min-h-0 flex-col bg-[#e8eaed]',
-        nativeMounted ? 'max-lg:overflow-visible lg:overflow-hidden overflow-hidden' : 'overflow-hidden',
+        'hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]',
         nativeMounted && 'hc-native-messages-page'
       )}
     >
@@ -181,12 +180,8 @@ function MessagesPageContent() {
 
       <div
         className={cn(
-          'flex min-h-0 flex-1 p-0 lg:gap-3 lg:p-3',
-          nativeMounted ? 'hc-native-chat-shell' : '',
-          /* Native mobiel: geen overflow-hidden op tussenliggende flex — WebView blokkeert soms nested scroll. */
-          nativeMounted
-            ? 'max-lg:overflow-visible lg:overflow-hidden overflow-hidden'
-            : 'overflow-hidden'
+          'flex min-h-0 flex-1 overflow-hidden p-0 lg:gap-3 lg:p-3',
+          nativeMounted && 'hc-native-chat-shell'
         )}
       >
         <div
@@ -196,13 +191,15 @@ function MessagesPageContent() {
             selectedConversation
               ? 'hidden w-0 min-w-0 lg:flex lg:w-[22rem] lg:min-w-[22rem] xl:w-96 xl:min-w-[24rem]'
               : 'w-full min-w-0 lg:max-w-md xl:max-w-sm',
-            nativeMounted && 'max-lg:flex-1 max-lg:min-h-0'
+            nativeMounted && 'hc-native-messages-list-column max-lg:min-h-0 max-lg:flex-1'
           )}
         >
           <div
             className={cn(
-              'flex min-h-0 flex-1 flex-col',
-              nativeMounted ? 'max-lg:overflow-visible lg:overflow-hidden overflow-hidden' : 'overflow-hidden'
+              'hc-native-messages-list-inner flex min-h-0 flex-1 flex-col',
+              nativeMounted
+                ? 'max-lg:overflow-visible lg:overflow-hidden'
+                : 'overflow-hidden'
             )}
           >
             <ConversationsList onSelectConversation={handleSelectConversation} />

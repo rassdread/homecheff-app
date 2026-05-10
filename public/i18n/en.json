@@ -3262,7 +3262,10 @@
       "shareHintCopied": "Link copied to clipboard.",
       "shareHintManual": "Could not copy automatically — copy the link below manually.",
       "shareNativeTitle": "HomeCheff Android beta",
-      "shareNativeText": "Try the HomeCheff Android beta — via homecheff.eu."
+      "shareNativeText": "Try the HomeCheff Android beta — via homecheff.eu.",
+      "nativeShareCompactTitle": "Share the HomeCheff beta",
+      "nativeShareCompactBody": "Invite others to try the beta.",
+      "nativeShareCompactCta": "Share beta link"
     },
     "hcpActivation": {
       "sectionTitle": "HomeCheff Points on your home feed",

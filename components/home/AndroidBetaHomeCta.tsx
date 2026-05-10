@@ -5,12 +5,15 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react';
 import { Smartphone, X, Share2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { isNativeAndroid } from '@/lib/native/capacitor';
 import { cn } from '@/lib/utils';
 
 const HK = 'home.androidBeta';
 
 export default function AndroidBetaHomeCta({ className }: { className?: string }) {
   const { t } = useTranslation();
+  const nativeMounted = useIsNativeAppMounted();
   const { data: session, status } = useSession();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -67,7 +70,10 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
 
   const shareUrl = useMemo(() => {
     if (typeof window === 'undefined') return 'https://homecheff.eu/app';
-    const origin = window.location.origin || 'https://homecheff.eu';
+    const origin =
+      window.location.origin && /^https?:\/\//i.test(window.location.origin)
+        ? window.location.origin
+        : 'https://homecheff.eu';
     if (shareCode) return `${origin}/app?ref=${encodeURIComponent(shareCode)}`;
     return `${origin}/app`;
   }, [shareCode]);
@@ -121,6 +127,47 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
   const showApkWarning = apkOk === false;
 
   const shareBusyLabel = t(`${HK}.shareBusy`);
+
+  /** Geïnstalleerde Android-app: geen download-CTA; subtiele uitnodiging met referral-link. */
+  const nativeAndroidShell = nativeMounted && isNativeAndroid();
+
+  if (nativeAndroidShell) {
+    return (
+      <section
+        className={cn(
+          'rounded-xl border border-gray-200/80 bg-gray-50/90 px-3 py-2.5 shadow-sm sm:px-4 sm:py-3',
+          className
+        )}
+        aria-labelledby="home-android-beta-native-share-title"
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            <h2
+              id="home-android-beta-native-share-title"
+              className="text-sm font-semibold leading-snug text-gray-800"
+            >
+              {t(`${HK}.nativeShareCompactTitle`)}
+            </h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-gray-600">
+              {t(`${HK}.nativeShareCompactBody`)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void onShareInvite()}
+            disabled={shareBusy}
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gray-300/90 bg-white/90 px-3 py-2 text-xs font-medium text-gray-800 shadow-sm transition hover:bg-white disabled:opacity-60 sm:min-h-0 sm:py-1.5 touch-manipulation"
+          >
+            <Share2 className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+            {shareBusy ? shareBusyLabel : t(`${HK}.nativeShareCompactCta`)}
+          </button>
+        </div>
+        {shareHint ? (
+          <p className="mt-2 break-all text-[11px] leading-snug text-gray-600">{shareHint}</p>
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <>
