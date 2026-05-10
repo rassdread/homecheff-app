@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { isNativeAndroid } from '@/lib/native/capacitor';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
 import {
+  ANDROID_BETA_EXPORT_APK_FILE_NAME,
+  copyCachedBetaApkToDownloads,
   downloadApkAndOpenInstaller,
   openCachedApkInstallerOnly,
   type ApkInstallPhase,
   type ApkInstallFailureKind,
 } from '@/lib/native/androidApkUpdateInstall';
+import { writeAndroidBetaInstallerOpened } from '@/lib/native/android-beta-install-state';
 import type { AppVersionApiResponse } from '@/lib/app-version-config';
 import { useTranslation } from '@/hooks/useTranslation';
 import { markOptionalDismissedSession } from '@/lib/android-beta-update-derived';
@@ -74,6 +77,10 @@ export default function AppUpdateGate() {
   const [showPostGuide, setShowPostGuide] = useState(false);
   const [installFallbackReason, setInstallFallbackReason] = useState<string | null>(null);
   const [installCachedApkAvailable, setInstallCachedApkAvailable] = useState(false);
+  const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [exportAllowsDownloadsFolder, setExportAllowsDownloadsFolder] = useState(false);
+  const [saveToDownloadsBusy, setSaveToDownloadsBusy] = useState(false);
+  const [exportSaveError, setExportSaveError] = useState<string | null>(null);
   const nativeMounted = useIsNativeAppMounted();
 
   const runSoftWebRefresh = useCallback(
@@ -197,13 +204,51 @@ export default function AppUpdateGate() {
     }
   }, []);
 
-  const openSystemDownloads = useCallback(async () => {
+  const openDownloadsFolderAfterExport = useCallback(async () => {
     try {
       await HomecheffApkInstaller.openSystemDownloads();
     } catch {
       /* OEM */
     }
   }, []);
+
+  const onSaveApkToDownloads = useCallback(async () => {
+    if (typeof window === 'undefined' || !payload) return;
+    setExportSaveError(null);
+    setSaveToDownloadsBusy(true);
+    const r = await copyCachedBetaApkToDownloads();
+    setSaveToDownloadsBusy(false);
+    if (!r.success) {
+      setExportSaveError(t('appUpdateGate.exportSaveFailed'));
+      return;
+    }
+    const isPublic = r.method === 'mediastore' || r.method === 'public_dir';
+    setExportAllowsDownloadsFolder(isPublic);
+    setExportNotice(
+      isPublic
+        ? t('appUpdateGate.exportedToDownloadsPublic', {
+            file: ANDROID_BETA_EXPORT_APK_FILE_NAME,
+          })
+        : t('appUpdateGate.exportedToAppStorage'),
+    );
+    try {
+      await HomecheffApkInstaller.openPackageInstaller({ uri: r.uri });
+      writeAndroidBetaInstallerOpened();
+      syncInstallPersist();
+      setInstallError(null);
+      setFailureKind(null);
+      setInstallFallbackReason(null);
+      setInstallCachedApkAvailable(false);
+      setExportNotice(null);
+      setExportAllowsDownloadsFolder(false);
+      setInstallPhase('done');
+      setShowPostGuide(true);
+    } catch (e) {
+      setInstallFallbackReason(
+        e instanceof Error ? `export_then_installer:${e.message}` : 'export_then_installer',
+      );
+    }
+  }, [payload, syncInstallPersist, t]);
 
   const onOpenCachedApk = useCallback(async () => {
     if (typeof window === 'undefined' || !payload) return;
@@ -245,7 +290,8 @@ export default function AppUpdateGate() {
   const busyNative =
     installPhase === 'downloading' ||
     installPhase === 'preparing' ||
-    installPhase === 'opening';
+    installPhase === 'opening' ||
+    saveToDownloadsBusy;
 
   const rank: Record<ApkInstallPhase, number> = {
     idle: 0,
@@ -363,6 +409,11 @@ export default function AppUpdateGate() {
                       {installPct}%
                     </p>
                   ) : null}
+                  {step3Active ? (
+                    <p className="text-center text-sm font-semibold text-emerald-900" role="status">
+                      {t('appUpdateGate.openingInstallerStatus')}
+                    </p>
+                  ) : null}
                 </div>
               )}
 
@@ -406,16 +457,23 @@ export default function AppUpdateGate() {
                       <p className="text-xs leading-relaxed text-amber-900/95">
                         {failureKind === 'download_timeout'
                           ? t('appUpdateGate.downloadStalled')
-                          : t('appUpdateGate.errorOpenFromNotifications')}
+                          : installCachedApkAvailable
+                            ? t('appUpdateGate.cacheFallbackLead')
+                            : t('appUpdateGate.errorBodyNoCache')}
+                      </p>
+                      {installCachedApkAvailable && exportNotice ? (
+                        <p className="rounded-lg border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-950">
+                          {exportNotice}
+                        </p>
+                      ) : null}
+                      {exportSaveError ? (
+                        <p className="text-xs font-medium text-red-800">{exportSaveError}</p>
+                      ) : null}
+                      <p className="text-[11px] leading-relaxed text-amber-900/80">
+                        {t('appUpdateGate.browserLastResortHint')}
                       </p>
                     </>
                   )}
-                  <p className="text-[11px] leading-relaxed text-amber-900/85">
-                    {t('appUpdateGate.fallbackPathHint')}
-                  </p>
-                  <p className="text-[11px] leading-relaxed text-amber-900/80">
-                    {t('appUpdateGate.browserFallbackHint')}
-                  </p>
                   {installFallbackReason &&
                   (shouldLogAppUpdateDebug() ||
                     process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') ? (
@@ -424,39 +482,71 @@ export default function AppUpdateGate() {
                     </p>
                   ) : null}
                   <div className="flex flex-col gap-2">
-                    {installCachedApkAvailable ? (
+                    {failureKind !== 'unknown_sources' && installCachedApkAvailable ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => void onOpenCachedApk()}
+                          className="w-full rounded-xl border border-emerald-700 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-100 touch-manipulation"
+                        >
+                          {t('appUpdateGate.btnOpenCachedApk')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void onSaveApkToDownloads()}
+                          disabled={saveToDownloadsBusy}
+                          className="w-full rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-50 touch-manipulation disabled:opacity-60"
+                        >
+                          {saveToDownloadsBusy
+                            ? t('appUpdateGate.saveToDownloadsBusy')
+                            : t('appUpdateGate.btnSaveApkToDownloads')}
+                        </button>
+                      </>
+                    ) : null}
+                    {failureKind !== 'unknown_sources' ? (
                       <button
                         type="button"
-                        onClick={() => void onOpenCachedApk()}
-                        className="w-full rounded-xl border border-emerald-700 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-100 touch-manipulation"
+                        onClick={() => {
+                          resetInstallUi();
+                          void onUpdateNow();
+                        }}
+                        className="w-full rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
                       >
-                        {t('appUpdateGate.btnOpenCachedApk')}
+                        {t('appUpdateGate.btnRetryDownload')}
                       </button>
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => void openSystemDownloads()}
-                      className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100 touch-manipulation"
-                    >
-                      {t('appUpdateGate.btnOpenDownloads')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetInstallUi();
-                        void onUpdateNow();
-                      }}
-                      className="w-full rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
-                    >
-                      {t('appUpdateGate.btnRetryDownload')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void openBrowserDownloadFallback()}
-                      className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 touch-manipulation"
-                    >
-                      {t('appUpdateGate.btnDownloadViaBrowser')}
-                    </button>
+                    {failureKind !== 'unknown_sources' &&
+                    exportAllowsDownloadsFolder &&
+                    installCachedApkAvailable ? (
+                      <button
+                        type="button"
+                        onClick={() => void openDownloadsFolderAfterExport()}
+                        className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100 touch-manipulation"
+                      >
+                        {t('appUpdateGate.btnOpenDownloadsFolder')}
+                      </button>
+                    ) : null}
+                    {failureKind !== 'unknown_sources' ? (
+                      <button
+                        type="button"
+                        onClick={() => void openBrowserDownloadFallback()}
+                        className="w-full rounded-xl border border-gray-400 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 touch-manipulation"
+                      >
+                        {t('appUpdateGate.btnDownloadAgainViaBrowser')}
+                      </button>
+                    ) : null}
+                    {failureKind === 'unknown_sources' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetInstallUi();
+                          void onUpdateNow();
+                        }}
+                        className="w-full rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                      >
+                        {t('appUpdateGate.btnRetryDownload')}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => resetInstallUi()}

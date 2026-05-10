@@ -1,7 +1,10 @@
 'use client';
 
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
+import {
+  HomecheffApkInstaller,
+  type CopyCachedApkToDownloadsResult,
+} from '@/lib/native/homecheffApkInstaller';
 import {
   writeAndroidBetaInstallStarted,
   writeAndroidBetaInstallerOpened,
@@ -10,6 +13,9 @@ import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 
 /** Relatief pad onder {@link Directory.Cache}; moet matchen met FileProvider `cache-path`. */
 export const ANDROID_BETA_CACHE_APK_RELATIVE_PATH = 'updates/homecheff-beta.apk';
+
+/** Bestandsnaam in gebruikers-Downloads / HomeCheff-map. */
+export const ANDROID_BETA_EXPORT_APK_FILE_NAME = 'homecheff-beta.apk';
 
 const CACHE_APK_PATH = ANDROID_BETA_CACHE_APK_RELATIVE_PATH;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
@@ -64,6 +70,38 @@ export type ApkInstallResult =
       /** Installer faalde ná download; APK kan nog in cache staan (retry zonder opnieuw te downloaden). */
       cachedApkMayExist?: boolean;
     };
+
+function parseCopyCachedApkResult(raw: unknown): CopyCachedApkToDownloadsResult {
+  if (!raw || typeof raw !== 'object') {
+    return { success: false, reason: 'invalid_response' };
+  }
+  const o = raw as Record<string, unknown>;
+  if (o.success === true && typeof o.displayPath === 'string' && typeof o.uri === 'string') {
+    return {
+      success: true,
+      displayPath: o.displayPath,
+      uri: o.uri,
+      method: typeof o.method === 'string' ? o.method : 'unknown',
+    };
+  }
+  return {
+    success: false,
+    reason: typeof o.reason === 'string' ? o.reason : 'copy_failed',
+  };
+}
+
+/** Cache-APK naar Downloads (MediaStore / public map / app-external), voor zichtbare fallback. */
+export async function copyCachedBetaApkToDownloads(): Promise<CopyCachedApkToDownloadsResult> {
+  const raw = await HomecheffApkInstaller.copyCachedApkToDownloads({
+    cacheRelativePath: CACHE_APK_PATH,
+    fileName: ANDROID_BETA_EXPORT_APK_FILE_NAME,
+  });
+  const parsed = parseCopyCachedApkResult(raw);
+  if (shouldLogAppUpdateDebug() || process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') {
+    console.info('[apk-installer]', 'copy_to_downloads_ts', parsed);
+  }
+  return parsed;
+}
 
 function dispatchInstallPersistChanged(): void {
   if (typeof window === 'undefined') return;
@@ -235,7 +273,7 @@ export async function downloadApkAndOpenInstaller(
           probeUriScheme: probeUri?.split(':')[0],
         });
       }
-      await HomecheffApkInstaller.openPackageInstaller({
+      await HomecheffApkInstaller.openDownloadedApkFromCache({
         cacheRelativePath: CACHE_APK_PATH,
       });
     } catch (installerErr) {
@@ -243,7 +281,7 @@ export async function downloadApkAndOpenInstaller(
       const kind = classifyApkInstallError(installerErr);
       const reason = `installer_plugin:${msg}`;
       storeFailure({
-        stage: 'openPackageInstaller',
+        stage: 'openDownloadedApkFromCache',
         reason,
         message: msg,
         cacheRelativePath: CACHE_APK_PATH,
@@ -319,7 +357,7 @@ export async function openCachedApkInstallerOnly(
     if (shouldLogAppUpdateDebug() || process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') {
       console.info('[apk-installer]', 'ts_retry_cached', { cacheRelativePath: CACHE_APK_PATH });
     }
-    await HomecheffApkInstaller.openPackageInstaller({
+    await HomecheffApkInstaller.openDownloadedApkFromCache({
       cacheRelativePath: CACHE_APK_PATH,
     });
     writeAndroidBetaInstallerOpened();

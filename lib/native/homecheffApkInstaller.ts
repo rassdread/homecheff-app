@@ -7,8 +7,18 @@ export type OpenPackageInstallerOptions = {
   uri?: string;
 };
 
+export type CopyCachedApkToDownloadsResult =
+  | { success: true; displayPath: string; uri: string; method: string }
+  | { success: false; reason: string };
+
 export interface HomecheffApkInstallerPlugin {
   openPackageInstaller(options: OpenPackageInstallerOptions): Promise<void>;
+  /** Expliciete cache → installer (zelfde als openPackageInstaller met cacheRelativePath). */
+  openDownloadedApkFromCache(options: { cacheRelativePath: string }): Promise<void>;
+  copyCachedApkToDownloads(options: {
+    cacheRelativePath: string;
+    fileName?: string;
+  }): Promise<Record<string, unknown>>;
   openManageUnknownAppSources(): Promise<void>;
   openSystemDownloads(): Promise<void>;
 }
