@@ -19,7 +19,7 @@ public class HomecheffApkInstallerPlugin extends Plugin {
     public void openPackageInstaller(PluginCall call) {
         String uriString = call.getString("uri");
         if (uriString == null || uriString.isEmpty()) {
-            call.reject("uri_required", "Missing uri", null);
+            call.reject("uri_required", "Missing uri", (Exception) null);
             return;
         }
         try {
@@ -31,7 +31,7 @@ public class HomecheffApkInstallerPlugin extends Plugin {
 
             PackageManager pm = getActivity().getPackageManager();
             if (intent.resolveActivity(pm) == null) {
-                call.reject("no_install_handler", "No app can handle this APK intent", null);
+                call.reject("no_install_handler", "No app can handle this APK intent", (Exception) null);
                 return;
             }
 
