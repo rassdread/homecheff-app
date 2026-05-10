@@ -565,7 +565,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   /** Native scrollport (iOS): laatste rij boven bottom-nav. */
   const listScrollPadNative = 'pb-[calc(env(safe-area-inset-bottom,0px)+6rem)]';
   /** Android native: body scroll — extra ruimte onder lijst t.o.v. bottom nav. */
-  const listBodyScrollPadBottom = 'pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]';
+  /** Match bottom-nav chrome (~5.75rem) + safe-area; voorkomt dubbele “7rem + AppPageChrome” witruimte. */
+  const listBodyScrollPadBottom =
+    'pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)]';
 
   const searchChrome = (
     <div

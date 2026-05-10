@@ -4855,6 +4855,14 @@
     "emptySaleBody": "Wees de eerste die iets aanbiedt of bekijk inspiratie.",
     "emptySaleViewInspiration": "Bekijk inspiratie",
     "addProductCta": "Product toevoegen",
+    "quickCreate": {
+      "chefDorpsplein": "Keukenproduct op dorpsplein plaatsen",
+      "chefInspiratie": "Recept of inspiratie plaatsen",
+      "gardenDorpsplein": "Tuinproduct plaatsen",
+      "gardenInspiratie": "Tuin-inspiratie plaatsen",
+      "designerDorpsplein": "Atelierproduct plaatsen",
+      "designerInspiratie": "Atelier-inspiratie plaatsen"
+    },
     "emptyInspirationForYou": "Inspiratie voor jou",
     "emptyInspTitle": "Nog geen inspiratie gevonden",
     "emptyInspBody": "Deel een recept, idee of voorbeeld en inspireer anderen.",

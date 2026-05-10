@@ -9,6 +9,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  Plus,
 } from "lucide-react";
 import {
   FeedSaleCard,
@@ -35,6 +36,11 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useCreateFlow } from "@/components/create/CreateFlowContext";
+import type {
+  CreateFlowIntent,
+  CreateFlowMode,
+  CreateFlowVertical,
+} from "@/lib/createFlowIntent";
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import {
   coerceUserStatsPayload,
@@ -104,6 +110,54 @@ type FeedItem = {
 };
 
 type FeedChip = "all" | "sale" | "inspiration";
+
+function createIntentForSaleOrInspiration(
+  categorySlug: string,
+  chip: "sale" | "inspiration"
+): CreateFlowIntent {
+  const mode: CreateFlowMode = chip === "sale" ? "dorpsplein" : "inspiratie";
+  if (categorySlug === "cheff") return { vertical: "CHEFF", mode };
+  if (categorySlug === "garden") return { vertical: "GARDEN", mode };
+  if (categorySlug === "designer") return { vertical: "DESIGNER", mode };
+  return { mode };
+}
+
+/** Volledige 6-way intent: alleen als verticaal én dorpsplein/inspiratie-weergave gekozen. */
+function resolvedVerticalModeIntent(
+  categorySlug: string,
+  feedChip: FeedChip
+): CreateFlowIntent | null {
+  if (categorySlug === "all") return null;
+  if (feedChip !== "sale" && feedChip !== "inspiration") return null;
+  const vertical: CreateFlowVertical | null =
+    categorySlug === "cheff"
+      ? "CHEFF"
+      : categorySlug === "garden"
+        ? "GARDEN"
+        : categorySlug === "designer"
+          ? "DESIGNER"
+          : null;
+  if (!vertical) return null;
+  return createIntentForSaleOrInspiration(categorySlug, feedChip);
+}
+
+function quickCreateLabelKey(intent: CreateFlowIntent): string {
+  const v = intent.vertical;
+  const m = intent.mode;
+  if (v === "CHEFF" && m === "dorpsplein")
+    return "feed.quickCreate.chefDorpsplein";
+  if (v === "CHEFF" && m === "inspiratie")
+    return "feed.quickCreate.chefInspiratie";
+  if (v === "GARDEN" && m === "dorpsplein")
+    return "feed.quickCreate.gardenDorpsplein";
+  if (v === "GARDEN" && m === "inspiratie")
+    return "feed.quickCreate.gardenInspiratie";
+  if (v === "DESIGNER" && m === "dorpsplein")
+    return "feed.quickCreate.designerDorpsplein";
+  if (v === "DESIGNER" && m === "inspiratie")
+    return "feed.quickCreate.designerInspiratie";
+  return m === "dorpsplein" ? "feed.addProductCta" : "feed.shareInspirationCta";
+}
 
 type InspSlot =
   | { kind: "api"; item: InspirationItem }
@@ -1189,6 +1243,11 @@ export default function GeoFeed({
   const emptyAll =
     feedChip === "all" && !loading && feedHydrated && displayCount === 0;
 
+  const feedQuickCreateIntent = useMemo(
+    () => resolvedVerticalModeIntent(category, feedChip),
+    [category, feedChip]
+  );
+
   return (
     <div id="homecheff-feed" className="space-y-4">
       <div
@@ -1241,6 +1300,20 @@ export default function GeoFeed({
               {t("feed.chipInspiration")}
             </button>
           </div>
+          {feedQuickCreateIntent ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  createFlow.openCreateFlowWithIntent(feedQuickCreateIntent)
+                }
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+              >
+                <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                {t(quickCreateLabelKey(feedQuickCreateIntent))}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {feedCompactChrome && sortRowEl}
@@ -1559,10 +1632,18 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "dorpsplein" })}
+              onClick={() =>
+                createFlow.openCreateFlowWithIntent(
+                  createIntentForSaleOrInspiration(category, "sale")
+                )
+              }
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              {t("feed.addProductCta")}
+              {t(
+                quickCreateLabelKey(
+                  createIntentForSaleOrInspiration(category, "sale")
+                )
+              )}
             </button>
             <button
               type="button"
@@ -1600,10 +1681,18 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "inspiratie" })}
+              onClick={() =>
+                createFlow.openCreateFlowWithIntent(
+                  createIntentForSaleOrInspiration(category, "inspiration")
+                )
+              }
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              {t("feed.shareInspirationCta")}
+              {t(
+                quickCreateLabelKey(
+                  createIntentForSaleOrInspiration(category, "inspiration")
+                )
+              )}
             </button>
           </div>
         </div>
@@ -1626,10 +1715,18 @@ export default function GeoFeed({
             </button>
             <button
               type="button"
-              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "inspiratie" })}
+              onClick={() =>
+                createFlow.openCreateFlowWithIntent(
+                  createIntentForSaleOrInspiration(category, "inspiration")
+                )
+              }
               className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
-              {t("feed.shareInspirationCta")}
+              {t(
+                quickCreateLabelKey(
+                  createIntentForSaleOrInspiration(category, "inspiration")
+                )
+              )}
             </button>
           </div>
         </div>

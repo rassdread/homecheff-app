@@ -4309,6 +4309,14 @@
     "emptySaleBody": "Be the first to offer something or browse inspiration.",
     "emptySaleViewInspiration": "Browse inspiration",
     "addProductCta": "Add a product",
+    "quickCreate": {
+      "chefDorpsplein": "List a kitchen item on the village square",
+      "chefInspiratie": "Post a recipe or inspiration",
+      "gardenDorpsplein": "List a garden product",
+      "gardenInspiratie": "Post garden inspiration",
+      "designerDorpsplein": "List a studio product",
+      "designerInspiratie": "Post studio inspiration"
+    },
     "emptyInspirationForYou": "Inspiration for you",
     "emptyInspTitle": "No inspiration found yet",
     "emptyInspBody": "Share a recipe, idea, or example to inspire others.",
