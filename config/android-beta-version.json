@@ -2,7 +2,7 @@
   "enabled": true,
   "latestApkVersion": "1.0.7",
   "minRequiredApkVersion": "1.0.7",
-  "versionCode": 9,
+  "versionCode": 10,
   "forceUpdate": true,
   "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
   "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
@@ -10,7 +10,7 @@
   "updateTitleForced": "Update vereist",
   "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": [
-    "Fix Android installer",
-    "Improve update retry"
+    "Improve Android update installer",
+    "Fix Downloads fallback"
   ]
 }
