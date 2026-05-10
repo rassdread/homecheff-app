@@ -57,8 +57,5 @@ STRIPE_KEYS.txt
 *_KEYS.txt
 *.key
 
-# Gradle (Android/Capacitor build files - should not be committed)
+# Gradle build cache (lokaal); Android Gradle-scripts staan wél in git (Capacitor).
 .gradle/
-gradle/
-*.gradle
-!gradle-wrapper.jar
