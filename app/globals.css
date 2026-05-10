@@ -710,14 +710,14 @@ html.hc-messages-scroll-debug.hc-native-capacitor .hc-native-conversations-scrol
   box-shadow: inset 0 0 0 3px rgba(234, 179, 8, 0.9);
 }
 
-/* Gespreksrij: pan-y + geen manipulation (WebView); scrollport vangt verticale pan. */
-.hc-conversation-row-tap {
+/* Gespreksrij: native verticale pan naar scrollport (geen row-level touch handlers). */
+.conversation-row {
   touch-action: pan-y;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .hc-conversation-avatar-tap {
   touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
 }

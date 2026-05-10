@@ -103,9 +103,6 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const { data: session, status: sessionStatus } = useSession();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
 
-  /** Voorkom open bij tap na verticale pan (>8px) — geen preventDefault op touch. */
-  const rowPanGuardRef = useRef({ startY: 0, moved: false });
-
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const listScrollRef = useRef<HTMLDivElement>(null);
@@ -159,67 +156,33 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return () => ro?.disconnect();
   }, [conversations.length, nativeMounted]);
 
-  /** Dev: rode/groene/blauwe outlines + touch/scroll logs (alleen Android native shell). */
+  /** Native-only: scrollport scroll + touchmove target (tijdelijk; dev of NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL). */
   useEffect(() => {
     const debugOn =
-      process.env.NODE_ENV !== 'production' ||
-      process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true';
-    if (!debugOn || !nativeMounted || !isNativeAndroid()) return;
+      (process.env.NODE_ENV !== 'production' ||
+        process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true') &&
+      nativeMounted &&
+      isNativeAndroid();
+    if (!debugOn) return;
     const el = listScrollRef.current;
     if (!el) return;
-    const html = document.documentElement;
-    html.classList.add('hc-messages-scroll-debug');
-
-    /** Scrollport = lijstcontainer (.hc-conversations-list-scroll), niet de buitenkolom. */
-    const scrollPort = el;
-    let lastEp = 0;
-    const onTouchStart = (e: TouchEvent) => {
-      const tgt = e.target instanceof Element ? e.target : null;
-      console.debug('[messages-touch]', 'touchstart', {
-        targetTag: tgt?.tagName,
-        scrollTop: scrollPort.scrollTop,
-      });
+    const onScroll = () => {
+      console.info('[hc-conv-native-debug]', 'scrollport scroll', { scrollTop: el.scrollTop });
     };
     const onTouchMove = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (!t) return;
-      const now = Date.now();
-      if (now - lastEp < 180) return;
-      lastEp = now;
-      const stBefore = scrollPort.scrollTop;
-      const top = document.elementFromPoint(t.clientX, t.clientY);
-      const moveTarget = e.target instanceof Element ? e.target : null;
-      requestAnimationFrame(() => {
-        console.debug('[messages-touch]', 'touchmove', {
-          x: Math.round(t.clientX),
-          y: Math.round(t.clientY),
-          moveTargetTag: moveTarget?.tagName,
-          elementFromPointTag: top?.tagName,
-          topClass: typeof (top as HTMLElement)?.className === 'string' ? (top as HTMLElement).className : '',
-          scrollTopBefore: stBefore,
-          scrollTopAfter: scrollPort.scrollTop,
-          scrollportClientH: scrollPort.clientHeight,
-          scrollportScrollH: scrollPort.scrollHeight,
-        });
+      const t = e.target;
+      const cls = t instanceof Element ? t.className : '';
+      console.info('[hc-conv-native-debug]', 'scrollport touchmove', {
+        targetClass: typeof cls === 'string' ? cls : String(cls),
       });
     };
-    const onScroll = () => {
-      console.debug('[messages-touch]', 'scroll', {
-        scrollTop: scrollPort.scrollTop,
-        port: nativeSingleScrollPort ? 'native-scrollport' : 'list-scroll',
-      });
-    };
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
     el.addEventListener('touchmove', onTouchMove, { passive: true });
-    scrollPort.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      html.classList.remove('hc-messages-scroll-debug');
-      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('scroll', onScroll);
       el.removeEventListener('touchmove', onTouchMove);
-      scrollPort.removeEventListener('scroll', onScroll);
     };
-  }, [conversations.length, nativeMounted, nativeSingleScrollPort]);
+  }, [conversations.length, nativeMounted]);
 
   useEffect(() => {
     const el = listScrollRef.current;
@@ -737,6 +700,12 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
   };
 
+  const logNativeConvRowClick =
+    nativeMounted &&
+    isNativeAndroid() &&
+    (process.env.NODE_ENV !== 'production' ||
+      process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true');
+
   const renderConversationRows = () =>
     conversations.map((conversation) => {
       const href = profileHrefFor(conversation);
@@ -746,68 +715,35 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       return (
         <div
           key={conversation.id}
-          className={`flex items-stretch gap-2 border-b border-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
+          className={`conversation-row flex cursor-pointer select-none items-stretch gap-2 border-b border-gray-100 transition-colors hover:bg-gray-50 active:bg-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
+          onClick={() => {
+            if (logNativeConvRowClick) {
+              console.info('[hc-conv-native-debug]', 'row click', conversation.id);
+            }
+            openConversation(conversation);
+          }}
         >
           {href ? (
             <div
-              role="link"
-              tabIndex={0}
-              className="hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 cursor-pointer select-none items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
+              className="hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 cursor-pointer select-none items-center justify-center rounded-full"
               aria-label={`${t('common.viewProfile')}: ${displayTitle(conversation)}`}
               onClick={(e) => {
                 e.stopPropagation();
                 void router.push(href);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void router.push(href);
-                }
               }}
             >
               <span className="relative inline-flex">{avatarVisual(conversation)}</span>
             </div>
           ) : (
             <div
-              className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
+              className="conversation-row flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
               aria-hidden
             >
               {avatarVisual(conversation)}
             </div>
           )}
 
-          <div
-            role="link"
-            tabIndex={0}
-            onTouchStart={(e) => {
-              rowPanGuardRef.current = {
-                startY: e.touches[0]?.clientY ?? 0,
-                moved: false,
-              };
-            }}
-            onTouchMove={(e) => {
-              const y = e.touches[0]?.clientY;
-              if (y == null) return;
-              if (Math.abs(y - rowPanGuardRef.current.startY) > 8) {
-                rowPanGuardRef.current.moved = true;
-              }
-            }}
-            onClick={() => {
-              if (rowPanGuardRef.current.moved) {
-                rowPanGuardRef.current.moved = false;
-                return;
-              }
-              openConversation(conversation);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openConversation(conversation);
-              }
-            }}
-            className="hc-conversation-row-tap flex min-h-[48px] min-w-0 flex-1 cursor-pointer touch-pan-y select-none flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
-          >
+          <div className="flex min-h-[48px] min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left">
             <div className="flex items-start justify-between gap-2">
               <span className="truncate text-sm font-medium text-gray-900">
                 {displayTitle(conversation)}
