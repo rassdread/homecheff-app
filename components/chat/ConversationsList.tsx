@@ -114,6 +114,7 @@ function useBoundedPointerTap(onTap: () => void) {
   } | null>(null);
 
   const removeDocListeners = () => {
+    if (typeof document === 'undefined') return;
     const L = listenersRef.current;
     if (L) {
       document.removeEventListener('pointerup', L.up);
@@ -130,6 +131,7 @@ function useBoundedPointerTap(onTap: () => void) {
   }, []);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    if (typeof document === 'undefined') return;
     removeDocListeners();
     startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
 
@@ -961,12 +963,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const rowPad = nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5';
 
       const rowMiddle = (
-        <div
-          className={cn(
-            'flex min-h-[48px] min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left',
-            androidListNoFullRowClick && 'pointer-events-none'
-          )}
-        >
+        <div className="flex min-h-[48px] min-w-0 flex-1 touch-pan-y flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left">
           <div className="flex items-start justify-between gap-2">
             <span className="truncate text-sm font-medium text-gray-900">
               {displayTitle(conversation)}
