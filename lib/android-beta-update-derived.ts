@@ -68,12 +68,15 @@ export function deriveAndroidBetaUpdate(
     isSemverLessThan(currentVersion, latestApkVersionStr) === true;
 
   const forceByMin = belowMin === true;
+  /** Server forces APK update but native semver unavailable — still show forced UI (beta). */
+  const forceByUnreadableCurrent =
+    data.forceUpdate === true && hasComparableLatest && !hasValidCurrent;
   const forceByFlag =
     data.forceUpdate === true &&
     belowLatest === true &&
     hasComparableLatest &&
     hasValidCurrent;
-  const forceUi = forceByMin || forceByFlag;
+  const forceUi = forceByMin || forceByFlag || forceByUnreadableCurrent;
 
   const optionalAvailable =
     hasValidCurrent &&
@@ -83,10 +86,18 @@ export function deriveAndroidBetaUpdate(
     belowMin !== true &&
     data.forceUpdate !== true;
 
-  const optionalModal = optionalAvailable && !dismissedOptional;
-  const optionalReminder = optionalAvailable && dismissedOptional && !forceUi;
+  /** Forced path never respects optional session dismiss / snooze. */
+  const optionalModal =
+    optionalAvailable && !dismissedOptional && !forceUi;
+  const optionalReminder =
+    optionalAvailable && dismissedOptional && !forceUi;
 
-  const apkBlocksSoft = Boolean(forceByMin || (data.forceUpdate === true && belowLatest === true));
+  const apkBlocksSoft = Boolean(
+    forceByMin ||
+      (data.forceUpdate === true &&
+        hasComparableLatest &&
+        (belowLatest === true || !hasValidCurrent)),
+  );
 
   return {
     hasValidCurrent,

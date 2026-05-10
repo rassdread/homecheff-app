@@ -28,6 +28,8 @@ import {
   writeAndroidBetaLastInstalledSeen,
   type AndroidBetaInstallPersist,
 } from '@/lib/native/android-beta-install-state';
+import { isNativeApp } from '@/lib/native/capacitor';
+import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 
 export type AppUpdateStatusLine =
   | 'inactive'
@@ -190,8 +192,11 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
       now,
       suppressModalUntil: installPersist.suppressModalUntil,
       installerOpenedAt: installPersist.installerOpenedAt,
+      lastAttemptedVersion: installPersist.lastAttemptedVersion,
+      currentVersion,
+      latestApkVersion: (payload?.latestApkVersion ?? '').trim(),
     });
-  }, [derivedRaw, scopeActive, installPersist]);
+  }, [derivedRaw, scopeActive, installPersist, currentVersion, payload?.latestApkVersion]);
 
   const latestApkVersion = (payload?.latestApkVersion ?? '').trim();
   const minRequiredApkVersion = (payload?.minRequiredApkVersion ?? '').trim();
@@ -253,6 +258,66 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
   const refresh = useCallback(() => {
     setDismissTick((n) => n + 1);
   }, []);
+
+  useEffect(() => {
+    if (!shouldLogAppUpdateDebug() || typeof window === 'undefined') return;
+    const now = Date.now();
+    void (async () => {
+      let capVersion: string | null = null;
+      try {
+        const info = await getCapacitorAppInfo();
+        capVersion = info.version;
+      } catch {
+        capVersion = null;
+      }
+      console.info('[app-update-debug]', {
+        nativeMounted,
+        isNativeApp: isNativeApp(),
+        isNativeAndroid: isNativeAndroid(),
+        capAppGetInfoVersion: capVersion,
+        dismissedOptional: readOptionalDismissedSession(),
+        scopeActive,
+        currentVersion,
+        latestApkVersion,
+        minRequiredApkVersion,
+        forceUpdate: payload?.forceUpdate,
+        enabled: payload?.enabled,
+        belowMin: derived?.belowMin,
+        belowLatest: derived?.belowLatest,
+        hasValidCurrent: derived?.hasValidCurrent,
+        derivedRawForceUi: derivedRaw?.forceUi,
+        derivedForceUi: derived?.forceUi,
+        dismissedOptional,
+        showForceModal: Boolean(scopeActive && payload?.enabled && derived?.forceUi),
+        showOptionalModal: Boolean(scopeActive && payload?.enabled && derived?.optionalModal),
+        showOptionalReminder: Boolean(scopeActive && payload?.enabled && derived?.optionalReminder),
+        suppressModalUntil: installPersist.suppressModalUntil,
+        suppressModalActive: now < installPersist.suppressModalUntil,
+        installStartedAt: installPersist.installStartedAt,
+        installerOpenedAt: installPersist.installerOpenedAt,
+        loading,
+        hasPayload: Boolean(payload),
+      });
+    })();
+  }, [
+    nativeMounted,
+    scopeActive,
+    currentVersion,
+    latestApkVersion,
+    minRequiredApkVersion,
+    payload?.enabled,
+    payload?.forceUpdate,
+    derived,
+    derivedRaw,
+    showForceModal,
+    showOptionalModal,
+    showOptionalReminder,
+    installPersist.suppressModalUntil,
+    installPersist.installStartedAt,
+    installPersist.installerOpenedAt,
+    loading,
+    dismissTick,
+  ]);
 
   const value = useMemo<Ctx>(
     () => ({
