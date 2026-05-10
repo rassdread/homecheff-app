@@ -139,15 +139,34 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
   
-  // Reset contentSubTab wanneer activeTab verandert
+  // Reset contentSubTab wanneer activeTab verandert; inspiratie-deep-links (quick-add → foto → formulier)
+  // moeten op de Inspiratie-subtab landen — anders rendert geen Recipe/Garden/Design manager en opent het formulier niet.
   useEffect(() => {
-    // Overview tab gebruikt dorpsplein als standaard (beide sub-tabs zijn beschikbaar)
     if (activeTab === 'overview') {
       setContentSubTab('dorpsplein');
-    } else if (activeTab.startsWith('dishes-') || activeTab === 'dishes') {
-      setContentSubTab('dorpsplein');
+      return;
     }
-  }, [activeTab]);
+    if (activeTab.startsWith('dishes-') || activeTab === 'dishes') {
+      const addInspParam =
+        searchParams?.addInspiratie === 'true' ||
+        (Array.isArray(searchParams?.addInspiratie) && searchParams?.addInspiratie[0] === 'true');
+      const openFormParam =
+        searchParams?.openForm === 'true' ||
+        (Array.isArray(searchParams?.openForm) && searchParams?.openForm[0] === 'true');
+      let addInspQs = false;
+      let openFormQs = false;
+      if (typeof window !== 'undefined') {
+        const qs = new URLSearchParams(window.location.search);
+        addInspQs = qs.get('addInspiratie') === 'true';
+        openFormQs = qs.get('openForm') === 'true';
+      }
+      if (addInspParam || openFormParam || addInspQs || openFormQs) {
+        setContentSubTab('inspiratie');
+      } else {
+        setContentSubTab('dorpsplein');
+      }
+    }
+  }, [activeTab, searchParams?.addInspiratie, searchParams?.openForm]);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
   const [isProfileEditing, setIsProfileEditing] = useState(false);

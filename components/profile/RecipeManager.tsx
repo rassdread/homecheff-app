@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
-import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, X, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
+import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
+import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
@@ -106,8 +108,10 @@ export default function RecipeManager({
   autoOpenForm = false,
 }: RecipeManagerProps) {
   const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
+  const router = useRouter();
   const hcpRewardUi = useHcpRewardUi();
   const { t, getTranslationObject } = useTranslation();
+  const [draftClosePrompt, setDraftClosePrompt] = useState<{ mode: "back" | "close" } | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -840,6 +844,52 @@ export default function RecipeManager({
     return matchesSearch && matchesCategory;
   });
 
+  const resetRecipeFormState = () => {
+    setEditingRecipe(null);
+    setFormData({
+      title: '',
+      description: '',
+      ingredients: [''],
+      instructions: [''],
+      prepTime: '',
+      servings: '',
+      difficulty: 'EASY',
+      category: '',
+      tags: [],
+      allowDownload: true,
+      allowPrint: true,
+      photos: [],
+      video: null
+    });
+    setCustomCategory('');
+    setShowCustomCategoryInput(false);
+    setIsPrivate(false);
+  };
+
+  const isRecipeFormDirty = () => {
+    if (editingRecipe) return true;
+    return !!(
+      formData.title.trim() ||
+      (formData.description && formData.description.trim()) ||
+      formData.ingredients.some((x) => String(x).trim()) ||
+      formData.instructions.some((x) => String(x).trim()) ||
+      formData.photos.length > 0 ||
+      formData.video ||
+      (formData.tags && formData.tags.length > 0) ||
+      (formData.category && String(formData.category).trim())
+    );
+  };
+
+  const requestRecipeFormClose = (mode: "back" | "close") => {
+    if (!isRecipeFormDirty()) {
+      resetRecipeFormState();
+      setShowForm(false);
+      if (mode === "back") router.back();
+      return;
+    }
+    setDraftClosePrompt({ mode });
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -913,6 +963,7 @@ export default function RecipeManager({
 
       {/* Recipe Form Modal */}
       {showForm && (
+        <>
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-hidden" 
           style={{ 
@@ -1002,37 +1053,26 @@ export default function RecipeManager({
                 }}
               >
                 <div className="sticky top-0 bg-white p-4 sm:p-6 border-b border-gray-200 z-10 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-xl font-semibold text-gray-900">
                       {editingRecipe ? t('recipe.editRecipe') : t('recipe.newRecipe')}
                     </h2>
-                    <button
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingRecipe(null);
-                        setFormData({
-                          title: '',
-                          description: '',
-                          ingredients: [''],
-                          instructions: [''],
-                          prepTime: '',
-                          servings: '',
-                          difficulty: 'EASY',
-                          category: '',
-                          tags: [],
-                          allowDownload: true,
-                          allowPrint: true,
-                          photos: [],
-                          video: null
-                        });
-                        setCustomCategory('');
-                        setShowCustomCategoryInput(false);
-                        setIsPrivate(false);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => requestRecipeFormClose("back")}
+                        className="px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
+                      >
+                        Terug
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => requestRecipeFormClose("close")}
+                        className="px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
+                      >
+                        Sluiten
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1333,12 +1373,9 @@ export default function RecipeManager({
                   </label>
                   <div className="flex gap-3 w-full sm:w-auto">
                     <button
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingRecipe(null);
-                        setIsPrivate(false);
-                      }}
-                      className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      type="button"
+                      onClick={() => requestRecipeFormClose("close")}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
                     >
                       {t('recipe.cancel')}
                     </button>
@@ -1355,6 +1392,24 @@ export default function RecipeManager({
             </div>
           </div>
         </div>
+        <InspiratieDraftCloseDialog
+          open={draftClosePrompt !== null}
+          onCancel={() => setDraftClosePrompt(null)}
+          onSaveAndClose={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+          onDiscard={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            resetRecipeFormState();
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+        />
+        </>
       )}
 
       {/* Recipe Grid/List */}

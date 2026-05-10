@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Edit3, Trash2, Grid, List, Palette, ShoppingCart, Camera } from "lucide-react";
 import DesignPhotoUpload from "./DesignPhotoUpload";
 import VideoUploader from "@/components/ui/VideoUploader";
@@ -83,8 +84,10 @@ export default function DesignManager({
   autoOpenForm = false,
 }: DesignManagerProps) {
   const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
+  const router = useRouter();
   const { t, tOr } = useTranslation();
   const hcpRewardUi = useHcpRewardUi();
+  const [draftClosePrompt, setDraftClosePrompt] = useState<{ mode: "back" | "close" } | null>(null);
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -563,6 +566,50 @@ export default function DesignManager({
     return matchesSearch && matchesCategory;
   });
 
+  const resetDesignFormState = () => {
+    localStorage.removeItem('designFormDraft');
+    setHasDraft(false);
+    setEditingDesign(null);
+    setFormData({
+      title: '',
+      description: '',
+      materials: [''],
+      dimensions: '',
+      category: '',
+      subcategory: '',
+      tags: [],
+      notes: '',
+      photos: [],
+      video: null
+    });
+  };
+
+  const isDesignFormDirty = () => {
+    if (editingDesign) return true;
+    return !!(
+      formData.title.trim() ||
+      formData.description.trim() ||
+      formData.photos.length > 0 ||
+      formData.video ||
+      formData.materials.some((m) => String(m).trim()) ||
+      formData.dimensions.trim() ||
+      formData.category ||
+      formData.subcategory ||
+      formData.tags.length > 0 ||
+      formData.notes.trim()
+    );
+  };
+
+  const requestDesignFormClose = (mode: "back" | "close") => {
+    if (!isDesignFormDirty()) {
+      resetDesignFormState();
+      setShowForm(false);
+      if (mode === "back") router.back();
+      return;
+    }
+    setDraftClosePrompt({ mode });
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -660,44 +707,33 @@ export default function DesignManager({
 
       {/* Design Form Modal */}
       {showForm && (
+        <>
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-hidden" style={{ touchAction: 'pan-y' }}>
           <div className="absolute inset-0 overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y' }}>
             <div className="min-h-full flex items-start sm:items-center justify-center p-0 sm:p-4">
               <div className="bg-white rounded-none sm:rounded-xl max-w-4xl w-full min-h-full sm:min-h-0 sm:max-h-[90vh] sm:my-auto overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y pinch-zoom', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', overscrollBehaviorY: 'auto' }} data-design-form>
                 <div className="sticky top-0 bg-white p-4 sm:p-6 border-b border-gray-200 z-10 shadow-sm">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                   <Palette className="w-6 h-6 text-yellow-600" />
                   {editingDesign ? t('design.editDesign') : t('design.newDesign')}
                 </h2>
-                <button
-                  onClick={() => {
-                    if (formData.title || formData.description || formData.photos.length > 0) {
-                      const shouldClose = confirm(t('errors.confirmUnsavedChanges'));
-                      if (!shouldClose) return;
-                    }
-                    
-                    localStorage.removeItem('designFormDraft');
-                    setHasDraft(false);
-                    setShowForm(false);
-                    setEditingDesign(null);
-                    setFormData({
-                      title: '',
-                      description: '',
-                      materials: [''],
-                      dimensions: '',
-                      category: '',
-                      subcategory: '',
-                      tags: [],
-                      notes: '',
-                      photos: [],
-                      video: null
-                    });
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  ✕
-                </button>
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => requestDesignFormClose("back")}
+                    className="px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
+                  >
+                    Terug
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => requestDesignFormClose("close")}
+                    className="px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
+                  >
+                    Sluiten
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -897,29 +933,9 @@ export default function DesignManager({
 
                 <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] shadow-sm sm:p-6 sm:pb-6">
                   <button
-                    onClick={() => {
-                      if (formData.title || formData.description || formData.photos.length > 0) {
-                        const shouldCancel = confirm(t('errors.confirmUnsavedChangesCancel'));
-                        if (!shouldCancel) return;
-                      }
-                      
-                      localStorage.removeItem('designFormDraft');
-                      setShowForm(false);
-                      setEditingDesign(null);
-                      setFormData({
-                        title: '',
-                        description: '',
-                        materials: [''],
-                        dimensions: '',
-                        category: '',
-                        subcategory: '',
-                        tags: [],
-                        notes: '',
-                        photos: [],
-                        video: null
-                      });
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    type="button"
+                    onClick={() => requestDesignFormClose("close")}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
                   >
                     {t('common.cancel')}
                   </button>
@@ -936,6 +952,24 @@ export default function DesignManager({
             </div>
           </div>
         </div>
+        <InspiratieDraftCloseDialog
+          open={draftClosePrompt !== null}
+          onCancel={() => setDraftClosePrompt(null)}
+          onSaveAndClose={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+          onDiscard={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            resetDesignFormState();
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+        />
+        </>
       )}
 
       {/* Designs Grid/List */}

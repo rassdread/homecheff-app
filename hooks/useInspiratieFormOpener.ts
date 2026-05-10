@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { createFlowDebug } from '@/lib/create-flow-debug';
 
 interface UseInspiratieFormOpenerOptions {
   isActive: boolean;
@@ -19,11 +21,13 @@ export function useInspiratieFormOpener({
   setShowForm,
   setFormData
 }: UseInspiratieFormOpenerOptions) {
-  const hasLoadedPhoto = useRef(false);
+  /** Voorkomt dubbele opens binnen dezelfde URL-handtekening; reset bij nieuwe search string. */
+  const processedOpenFingerprint = useRef<string | null>(null);
+  const searchParams = useSearchParams();
+  const qsFromRouter = searchParams?.toString() ?? '';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (hasLoadedPhoto.current) return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const openForm = urlParams.get('openForm') === 'true';
@@ -41,6 +45,12 @@ export function useInspiratieFormOpener({
     const shouldOpenForm = forceOpenForm || (openForm && isCorrectTab);
     
     if (!shouldOpenForm) {
+      processedOpenFingerprint.current = null;
+      return;
+    }
+
+    const fingerprint = `${window.location.search}|${expectedLocation}|${urlTab ?? ''}`;
+    if (processedOpenFingerprint.current === fingerprint) {
       return;
     }
 
@@ -65,8 +75,7 @@ export function useInspiratieFormOpener({
     // Open form immediately - don't wait for isActive, open as soon as component mounts
     // The form modal will cover the tab content anyway
     const openFormDirectly = () => {
-      if (hasLoadedPhoto.current) return;
-      hasLoadedPhoto.current = true;
+      processedOpenFingerprint.current = fingerprint;
 
       // When forceOpenForm is set, ALWAYS open form immediately (even without photo)
       if (forceOpenForm) {
@@ -119,6 +128,12 @@ export function useInspiratieFormOpener({
         // Open form immediately (no delay needed when forceOpenForm is set)
         setShowForm(true);
         console.log(`Form opened directly`);
+        createFlowDebug('inspiration-form-opened', {
+          componentName,
+          expectedLocation,
+          forceOpenForm: true,
+          hasPhoto: !!inspiratiePhoto,
+        });
         return;
       }
 
@@ -169,10 +184,20 @@ export function useInspiratieFormOpener({
         setTimeout(() => {
           setShowForm(true);
           console.log(`Form opened with photo`);
+          createFlowDebug('inspiration-form-opened', {
+            componentName,
+            expectedLocation,
+            hasPhoto: true,
+          });
         }, 50);
       } else {
         console.warn(`No photo found, opening form without photo`);
         setShowForm(true);
+        createFlowDebug('inspiration-form-opened', {
+          componentName,
+          expectedLocation,
+          hasPhoto: false,
+        });
       }
 
       // Clean up forceOpenForm flag if it was set
@@ -202,6 +227,6 @@ export function useInspiratieFormOpener({
       const timer = setTimeout(openFormDirectly, 50);
       return () => clearTimeout(timer);
     }
-  }, [isActive, expectedLocation, componentName, setShowForm, setFormData]);
+  }, [isActive, expectedLocation, componentName, setShowForm, setFormData, qsFromRouter]);
 }
 

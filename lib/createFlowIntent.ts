@@ -20,10 +20,11 @@ const VERTICAL_SET = new Set<CreateFlowVertical>(["CHEFF", "GARDEN", "DESIGNER"]
 /** sellerRoles zoals in sessie/profiel: chef | garden | designer */
 export function sellerRolesToAllowedVerticals(sellerRoles: string[]): CreateFlowVertical[] {
   const out: CreateFlowVertical[] = [];
-  if (sellerRoles.includes("chef")) out.push("CHEFF");
-  if (sellerRoles.includes("garden")) out.push("GARDEN");
-  if (sellerRoles.includes("designer")) out.push("DESIGNER");
-  return out;
+  const r = sellerRoles.map((x) => String(x).toLowerCase());
+  if (r.includes("chef") || r.includes("cheff")) out.push("CHEFF");
+  if (r.includes("garden") || r.includes("grower") || r.includes("grown")) out.push("GARDEN");
+  if (r.includes("designer") || r.includes("design")) out.push("DESIGNER");
+  return [...new Set(out)];
 }
 
 /** Schoon intent: vertical moet in allowedVerticals vallen; lege allowedVerticals wordt weggelaten. */

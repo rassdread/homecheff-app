@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Edit3, Trash2, Calendar, Droplet, Sun, Grid, List, Sprout, ShoppingCart } from "lucide-react";
 import GardenPhotoUpload from "./GardenPhotoUpload";
 import GardenGrowthPhotos from "./GardenGrowthPhotos";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
+import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 
@@ -145,8 +147,10 @@ export default function GardenManager({
   autoOpenForm = false,
 }: GardenManagerProps) {
   const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
+  const router = useRouter();
   const hcpRewardUi = useHcpRewardUi();
   const { t } = useTranslation();
+  const [draftClosePrompt, setDraftClosePrompt] = useState<{ mode: "back" | "close" } | null>(null);
   const [projects, setProjects] = useState<GardenProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -749,44 +753,33 @@ export default function GardenManager({
 
       {/* Project Form Modal */}
       {showForm && (
+        <>
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-hidden" style={{ touchAction: 'pan-y' }}>
           <div className="absolute inset-0 overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y' }}>
             <div className="min-h-full flex items-start sm:items-center justify-center p-0 sm:p-4">
               <div className="bg-white rounded-none sm:rounded-xl max-w-4xl w-full min-h-full sm:min-h-0 sm:max-h-[90vh] sm:my-auto overflow-y-auto overscroll-contain" style={{ touchAction: 'pan-y pinch-zoom', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', overscrollBehaviorY: 'auto' }} data-garden-form>
                 <div className="sticky top-0 bg-white p-4 sm:p-6 border-b border-gray-200 z-10 shadow-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                       <Sprout className="w-6 h-6 text-emerald-600" />
                       {editingProject ? t('garden.editGarden') : t('garden.newGarden')}
                     </h2>
-                    <button
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingProject(null);
-                        setFormData({
-                          title: '',
-                          description: '',
-                          plantType: '',
-                          plantDate: '',
-                          harvestDate: '',
-                          growthDuration: '',
-                          sunlight: 'PARTIAL',
-                          waterNeeds: 'MEDIUM',
-                          location: 'OUTDOOR',
-                          soilType: '',
-                          plantDistance: '',
-                          difficulty: 'EASY',
-                          tags: [],
-                          notes: '',
-                          photos: [],
-                          video: null
-                        });
-                        setGrowthPhotos([]); // Reset growth photos when closing
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      ✕
-                    </button>
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => requestGardenFormClose("back")}
+                        className="px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
+                      >
+                        Terug
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => requestGardenFormClose("close")}
+                        className="px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
+                      >
+                        Sluiten
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1145,12 +1138,9 @@ export default function GardenManager({
 
                 <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] shadow-sm sm:p-6 sm:pb-6">
                   <button
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingProject(null);
-                      setGrowthPhotos([]); // Reset growth photos when canceling
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    type="button"
+                    onClick={() => requestGardenFormClose("close")}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
                   >
                     {t('garden.cancel')}
                   </button>
@@ -1172,6 +1162,24 @@ export default function GardenManager({
             </div>
           </div>
         </div>
+        <InspiratieDraftCloseDialog
+          open={draftClosePrompt !== null}
+          onCancel={() => setDraftClosePrompt(null)}
+          onSaveAndClose={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+          onDiscard={() => {
+            const mode = draftClosePrompt?.mode ?? "close";
+            setDraftClosePrompt(null);
+            resetGardenFormState();
+            setShowForm(false);
+            if (mode === "back") router.back();
+          }}
+        />
+        </>
       )}
 
       {/* Projects Grid/List */}

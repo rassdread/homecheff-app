@@ -1823,8 +1823,8 @@ function RegisterPageContent() {
         trackRegistration({
           method: 'email',
           userRole: data?.role || (state.isBusiness ? 'SELLER' : (state.userTypes?.length ? 'SELLER' : 'BUYER')),
-          buyerRoles: state.selectedBuyerType ? [state.selectedBuyerType] : state.userTypes?.filter((t: string) => !['chef', 'grower', 'designer'].includes(t)) || [],
-          sellerRoles: state.userTypes?.filter((t: string) => ['chef', 'grower', 'designer'].includes(t)) || [],
+          buyerRoles: state.selectedBuyerType ? [state.selectedBuyerType] : state.userTypes?.filter((t: string) => !['chef', 'garden', 'designer'].includes(t)) || [],
+          sellerRoles: state.userTypes?.filter((t: string) => ['chef', 'garden', 'designer'].includes(t)) || [],
           hasDelivery: false,
           isBusiness: state.isBusiness || false,
         });

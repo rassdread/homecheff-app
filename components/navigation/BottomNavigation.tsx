@@ -28,6 +28,19 @@ type Platform = 'dorpsplein' | 'inspiratie';
 type Category = 'CHEFF' | 'GARDEN' | 'DESIGNER';
 type Location = 'keuken' | 'tuin' | 'atelier' | 'recepten' | 'kweken' | 'designs';
 
+/** Sessie/API gebruikt soms varianten (grower, CHEFF); quick-add verwacht chef | garden | designer. */
+function normalizeSellerRolesForQuickAdd(raw: unknown): string[] {
+  const arr = Array.isArray(raw) ? raw : [];
+  const out = new Set<string>();
+  for (const x of arr) {
+    const r = String(x).toLowerCase().trim();
+    if (r === 'chef' || r === 'cheff') out.add('chef');
+    else if (r === 'garden' || r === 'grower' || r === 'grown') out.add('garden');
+    else if (r === 'designer' || r === 'design') out.add('designer');
+  }
+  return [...out];
+}
+
 /** Bottom tabs: soft pill active state, calm hover — aligns with HomeCheff emerald/teal. */
 function navTabClasses(active: boolean, isNativeShell: boolean) {
   return cn(
@@ -147,7 +160,8 @@ export default function BottomNavigation() {
     if (session?.user) {
       const sessionRoles = (session.user as any)?.sellerRoles || [];
       const bootstrapRoles = Array.isArray(bootstrapProfile?.sellerRoles) ? bootstrapProfile.sellerRoles : [];
-      setUserRoles(sessionRoles.length > 0 ? sessionRoles : bootstrapRoles);
+      const merged = sessionRoles.length > 0 ? sessionRoles : bootstrapRoles;
+      setUserRoles(normalizeSellerRolesForQuickAdd(merged));
       setUserRolesLoaded(true);
     } else {
       setUserRoles([]);
@@ -161,7 +175,7 @@ export default function BottomNavigation() {
       const profile = await ensureProfile();
       const roles = profile?.sellerRoles || [];
       if (Array.isArray(roles)) {
-        setUserRoles(roles);
+        setUserRoles(normalizeSellerRolesForQuickAdd(roles));
       }
     } catch {
       // fallback blijft sessie-data
@@ -333,6 +347,13 @@ export default function BottomNavigation() {
       autoCategory: pendingAutoCategoryRef.current,
       autoLocation: pendingAutoLocationRef.current,
     });
+    if (intent?.mode === 'inspiratie') {
+      createFlowDebug('inspiration-intent-received', {
+        vertical: intent.vertical,
+        allowedVerticals: intent.allowedVerticals,
+        autoLocation: pendingAutoLocationRef.current,
+      });
+    }
 
     const sellNewSuffix = buildSellNewSearchFromIntent(intent);
 
@@ -919,6 +940,13 @@ export default function BottomNavigation() {
     // gebruiker (na 404 op /api/profile/me in dev) onbedoeld op de homepage
     // achterlaat.
     router.push(targetUrl);
+    createFlowDebug('inspiration-form-opened', {
+      targetUrl,
+      internalLocation,
+      tab,
+      location,
+      hasPhoto: !!finalPhotoUrl,
+    });
   }, [capturedPhoto, t, quickAddDebug, router]);
 
   /** Intent: na foto automatisch door naar /sell/new of profiel als de rol klopt. */
@@ -939,6 +967,17 @@ export default function BottomNavigation() {
       if (!cat) return;
       if (session?.user && userRoles.length === 0) {
         createFlowDebug('auto-category-wait-roles', { cat });
+        createFlowDebug('waiting-for-userRoles', { step: 'category', cat });
+        return;
+      }
+      const allowedCat = intentAllowedVerticalsRef.current;
+      if (allowedCat && allowedCat.length > 0 && !allowedCat.includes(cat)) {
+        pendingAutoCategoryRef.current = null;
+        createFlowDebug('auto-category-blocked', {
+          cat,
+          blockedReason: 'not-in-allowed-verticals',
+          allowedVerticals: allowedCat,
+        });
         return;
       }
       const neededRole = roleForCategory(cat);
@@ -964,6 +1003,20 @@ export default function BottomNavigation() {
       if (loc !== 'recepten' && loc !== 'kweken' && loc !== 'designs') return;
       if (session?.user && userRoles.length === 0) {
         createFlowDebug('auto-location-wait-roles', { loc });
+        createFlowDebug('waiting-for-userRoles', { step: 'location', loc });
+        return;
+      }
+      const vertForLoc: CreateFlowVertical =
+        loc === 'recepten' ? 'CHEFF' : loc === 'kweken' ? 'GARDEN' : 'DESIGNER';
+      const allowedLoc = intentAllowedVerticalsRef.current;
+      if (allowedLoc && allowedLoc.length > 0 && !allowedLoc.includes(vertForLoc)) {
+        pendingAutoLocationRef.current = null;
+        createFlowDebug('auto-location-blocked', {
+          loc,
+          blockedReason: 'not-in-allowed-verticals',
+          allowedVerticals: allowedLoc,
+          vertForLoc,
+        });
         return;
       }
       const neededRole = roleForLocation(loc);
@@ -991,6 +1044,11 @@ export default function BottomNavigation() {
     handleCategorySelect,
     handleLocationSelect,
   ]);
+
+  /** Alleen sheet sluiten; bewaart quick-add state + sessionStorage (concept/foto) voor hervatten. */
+  const softDismissQuickAddMenu = useCallback(() => {
+    setShowQuickAddMenu(false);
+  }, []);
 
   const closeQuickAddMenu = () => {
     pendingAutoCategoryRef.current = null;
@@ -1076,7 +1134,7 @@ export default function BottomNavigation() {
               e.stopPropagation();
               return;
             }
-            closeQuickAddMenu();
+            softDismissQuickAddMenu();
           }}
         >
           <div 
@@ -1128,23 +1186,26 @@ export default function BottomNavigation() {
             {/* Photo Source Selection - Camera or Gallery */}
             {quickAddStep === 'photoSource' && (
               <div className="p-6" key="photoSource-step">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.photoTitle')}</h3>
-                    <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.photoSubtitle')}</p>
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    <button
+                      type="button"
+                      onClick={goBackInQuickAdd}
+                      className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors min-h-[44px]"
+                    >
+                      Terug
+                    </button>
+                    <div className="min-w-0">
+                      <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.photoTitle')}</h3>
+                      <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.photoSubtitle')}</p>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setQuickAddStep('platform');
-                      setSelectedPlatform(null);
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label={t('buttons.back')}
+                    onClick={softDismissQuickAddMenu}
+                    className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
+                    Sluiten
                   </button>
                 </div>
                 
@@ -1185,20 +1246,17 @@ export default function BottomNavigation() {
             {/* Category Selection (Dorpsplein) - ONLY show when step is category */}
             {quickAddStep === 'category' && (
               <div className="p-6" key="category-step">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+                  <div className="min-w-0">
                     <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.categoryTitle')}</h3>
                     <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.categorySubtitle')}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={closeQuickAddMenu}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label={t('buttons.close')}
+                    onClick={softDismissQuickAddMenu}
+                    className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    Sluiten
                   </button>
                 </div>
                 
@@ -1310,20 +1368,17 @@ export default function BottomNavigation() {
             {/* Location Selection (Inspiratie) - ONLY show when step is location */}
             {quickAddStep === 'location' && (
               <div className="p-6" key="location-step">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+                  <div className="min-w-0">
                     <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.locationTitle')}</h3>
                     <p className="text-sm text-gray-600">{t('bottomNav.quickAdd.locationSubtitle')}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={closeQuickAddMenu}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label={t('buttons.close')}
+                    onClick={softDismissQuickAddMenu}
+                    className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    Sluiten
                   </button>
                 </div>
                 
