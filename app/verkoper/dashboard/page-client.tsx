@@ -36,9 +36,7 @@ import {
 import Link from 'next/link';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
-import { dispatchOpenQuickAdd } from '@/lib/quickAddOpen';
-import { getCreateAuthReturnUrls } from '@/lib/createAuthReturnUrls';
-import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import {
   readNativePersistedCache,
@@ -92,23 +90,10 @@ type DashboardHomeCache = {
 export default function SellerDashboardClient() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session } = useSession();
   const nativeMounted = useIsNativeAppMounted();
   const lastNativeResumeRefreshRef = useRef(0);
-  const createFlowLastOpenRef = useRef(0);
-  /** Zelfde gedrag als +-knop: quick-add of login met intent (geen useCreateFlow — werkt altijd, ook buiten edge cases). */
-  const openCreateFlow = useCallback(() => {
-    if (sessionStatus === 'loading') return;
-    const now = Date.now();
-    if (now - createFlowLastOpenRef.current < 400) return;
-    createFlowLastOpenRef.current = now;
-    if (sessionStatus !== 'authenticated' || !session?.user) {
-      setPendingOpenQuickAddAfterLogin();
-      router.push(getCreateAuthReturnUrls().login);
-      return;
-    }
-    dispatchOpenQuickAdd();
-  }, [router, session?.user, sessionStatus]);
+  const { openCreateFlow } = useCreateFlow();
 
   const { t, language } = useTranslation();
   const hasDeliveryProfile = !!(session?.user as any)?.hasDeliveryProfile;

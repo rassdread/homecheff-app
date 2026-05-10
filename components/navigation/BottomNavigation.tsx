@@ -13,6 +13,7 @@ import {
   buildSellNewSearchFromIntent,
   consumeCreateFlowIntent,
   mapVerticalToInspiratieLocation,
+  type CreateFlowVertical,
 } from '@/lib/createFlowIntent';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
@@ -86,6 +87,10 @@ export default function BottomNavigation() {
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const cameraPhotoInputRef = useRef<HTMLInputElement>(null);
   const cameraVideoInputRef = useRef<HTMLInputElement>(null);
+  const pendingAutoCategoryRef = useRef<Category | null>(null);
+  const pendingAutoLocationRef = useRef<Location | null>(null);
+  /** Na consumeCreateFlowIntent: beperk categorie-/locatieknoppen (profiel / tab-intents). */
+  const intentAllowedVerticalsRef = useRef<CreateFlowVertical[] | null>(null);
   /**
    * Guard tegen Safari/mobile "phantom" click of focus events vlak na het sluiten van de
    * native file picker. Sommige iOS-builds vuren een synthetische tap af op de coördinaten
@@ -290,15 +295,33 @@ export default function BottomNavigation() {
   }, [session?.user, activePromoModal]);
 
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
+  const verticalAllowedByIntent = useCallback((v: CreateFlowVertical) => {
+    const allowed = intentAllowedVerticalsRef.current;
+    if (!allowed || allowed.length === 0) return true;
+    return allowed.includes(v);
+  }, []);
+
   const openQuickAddFlow = useCallback(() => {
     const intent = consumeCreateFlowIntent();
     pendingAutoCategoryRef.current = null;
     pendingAutoLocationRef.current = null;
+    intentAllowedVerticalsRef.current =
+      intent?.allowedVerticals && intent.allowedVerticals.length > 0
+        ? [...intent.allowedVerticals]
+        : null;
+
     if (intent?.vertical) {
       if (intent.mode === 'dorpsplein') {
         pendingAutoCategoryRef.current = intent.vertical;
       } else {
         pendingAutoLocationRef.current = mapVerticalToInspiratieLocation(intent.vertical);
+      }
+    } else if (intent?.allowedVerticals?.length === 1) {
+      const only = intent.allowedVerticals[0];
+      if (intent.mode === 'dorpsplein') {
+        pendingAutoCategoryRef.current = only;
+      } else {
+        pendingAutoLocationRef.current = mapVerticalToInspiratieLocation(only);
       }
     }
 
@@ -918,6 +941,7 @@ export default function BottomNavigation() {
   const closeQuickAddMenu = () => {
     pendingAutoCategoryRef.current = null;
     pendingAutoLocationRef.current = null;
+    intentAllowedVerticalsRef.current = null;
     setShowQuickAddMenu(false);
     setQuickAddStep('platform');
     setSelectedPlatform(null);
@@ -1134,34 +1158,20 @@ export default function BottomNavigation() {
                 )}
                 
                 <div className="space-y-3" style={{ position: 'relative', zIndex: 10 }}>
-                  {userRoles.includes('chef') && (
+                  {userRoles.includes('chef') && verticalAllowedByIntent('CHEFF') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        try {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('=== CHEFF button clicked ===');
-                          console.log('Event:', e);
-                          console.log('Calling handleCategorySelect...');
-                          handleCategorySelect('CHEFF').catch((error) => {
-                            console.error('Error in handleCategorySelect:', error);
-                            alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                          });
-                          console.log('handleCategorySelect called successfully');
-                        } catch (error) {
-                          console.error('Error in CHEFF button onClick:', error);
+                      onClick={() => {
+                        void handleCategorySelect('CHEFF').catch((error) => {
+                          console.error('Error in handleCategorySelect:', error);
                           alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                        }
+                        });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">🍳</div>
@@ -1170,32 +1180,20 @@ export default function BottomNavigation() {
                     </button>
                   )}
                   
-                  {userRoles.includes('garden') && (
+                  {userRoles.includes('garden') && verticalAllowedByIntent('GARDEN') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        try {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('=== GARDEN button clicked ===');
-                          handleCategorySelect('GARDEN').catch((error) => {
-                            console.error('Error in handleCategorySelect:', error);
-                            alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                          });
-                          console.log('handleCategorySelect called successfully');
-                        } catch (error) {
-                          console.error('Error in GARDEN button onClick:', error);
+                      onClick={() => {
+                        void handleCategorySelect('GARDEN').catch((error) => {
+                          console.error('Error in handleCategorySelect:', error);
                           alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                        }
+                        });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">🌱</div>
@@ -1204,32 +1202,20 @@ export default function BottomNavigation() {
                     </button>
                   )}
                   
-                  {userRoles.includes('designer') && (
+                  {userRoles.includes('designer') && verticalAllowedByIntent('DESIGNER') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        try {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('=== DESIGNER button clicked ===');
-                          handleCategorySelect('DESIGNER').catch((error) => {
-                            console.error('Error in handleCategorySelect:', error);
-                            alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                          });
-                          console.log('handleCategorySelect called successfully');
-                        } catch (error) {
-                          console.error('Error in DESIGNER button onClick:', error);
+                      onClick={() => {
+                        void handleCategorySelect('DESIGNER').catch((error) => {
+                          console.error('Error in handleCategorySelect:', error);
                           alert(t('errors.categoryClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                        }
+                        });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">🎨</div>
@@ -1297,26 +1283,20 @@ export default function BottomNavigation() {
                 )}
                 
                 <div className="space-y-3" style={{ position: 'relative', zIndex: 10 }}>
-                  {userRoles.includes('chef') && (
+                  {userRoles.includes('chef') && verticalAllowedByIntent('CHEFF') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Recepten button clicked');
-                        handleLocationSelect('recepten').catch((error) => {
+                      onClick={() => {
+                        void handleLocationSelect('recepten').catch((error) => {
                           console.error('Error in handleLocationSelect:', error);
                           alert(t('errors.locationClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
                         });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">📝</div>
@@ -1325,32 +1305,20 @@ export default function BottomNavigation() {
                     </button>
                   )}
                   
-                  {userRoles.includes('garden') && (
+                  {userRoles.includes('garden') && verticalAllowedByIntent('GARDEN') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        try {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('=== KWEKEN button clicked ===');
-                          handleLocationSelect('kweken').catch((error) => {
-                            console.error('Error in handleLocationSelect:', error);
-                            alert(t('errors.locationClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                          });
-                          console.log('handleLocationSelect called successfully');
-                        } catch (error) {
-                          console.error('Error in KWEKEN button onClick:', error);
+                      onClick={() => {
+                        void handleLocationSelect('kweken').catch((error) => {
+                          console.error('Error in handleLocationSelect:', error);
                           alert(t('errors.locationClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                        }
+                        });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">🌱</div>
@@ -1359,32 +1327,20 @@ export default function BottomNavigation() {
                     </button>
                   )}
                   
-                  {userRoles.includes('designer') && (
+                  {userRoles.includes('designer') && verticalAllowedByIntent('DESIGNER') && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        try {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('=== DESIGNS button clicked ===');
-                          handleLocationSelect('designs').catch((error) => {
-                            console.error('Error in handleLocationSelect:', error);
-                            alert(t('errors.locationClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                          });
-                          console.log('handleLocationSelect called successfully');
-                        } catch (error) {
-                          console.error('Error in DESIGNS button onClick:', error);
+                      onClick={() => {
+                        void handleLocationSelect('designs').catch((error) => {
+                          console.error('Error in handleLocationSelect:', error);
                           alert(t('errors.locationClickError') + ': ' + (error instanceof Error ? error.message : t('errors.unknownError')));
-                        }
+                        });
                       }}
-                      className="w-full p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
-                      style={{ 
+                      className="w-full min-h-[44px] p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left touch-manipulation"
+                      style={{
                         WebkitTapHighlightColor: 'transparent',
-                        touchAction: 'manipulation',
-                        cursor: 'pointer',
                         position: 'relative',
                         zIndex: 20,
-                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="text-2xl mb-1">🎨</div>

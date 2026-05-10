@@ -38,6 +38,7 @@ import SellerDeliverySettings from './SellerDeliverySettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import { compressImage } from '@/lib/imageOptimization';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import { sellerRolesToAllowedVerticals } from '@/lib/createFlowIntent';
 
 // Reviews removed for now - can be added later if needed
 
@@ -183,7 +184,7 @@ interface SellerProfileProps {
 
 export default function SellerProfile({ sellerProfile, isOwner = false }: SellerProfileProps) {
   const { t } = useTranslation();
-  const { openCreateFlow } = useCreateFlow();
+  const { openCreateFlowWithIntent } = useCreateFlow();
   const [activeTab, setActiveTab] = useState<'overview' | 'photos' | 'products' | 'workspace' | 'delivery'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -1144,7 +1145,20 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                           <List className="w-4 h-4" />
                         </button>
                         {isOwner && (
-                          <Button className="ml-4 flex items-center gap-2">
+                          <Button
+                            type="button"
+                            className="ml-4 flex min-h-[44px] items-center gap-2 touch-manipulation"
+                            onClick={() => {
+                              const allowedVerticals = sellerRolesToAllowedVerticals(
+                                sellerProfile.User.sellerRoles || []
+                              );
+                              openCreateFlowWithIntent({
+                                mode: 'dorpsplein',
+                                allowedVerticals:
+                                  allowedVerticals.length > 0 ? allowedVerticals : undefined,
+                              });
+                            }}
+                          >
                             <Plus className="w-4 h-4" />
                             Nieuw Product
                           </Button>
@@ -1196,7 +1210,23 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen producten</h3>
                         <p className="text-gray-500 mb-6">Begin met het toevoegen van je eerste product</p>
                         {isOwner && (
-                          <Button type="button" className="flex items-center gap-2" onClick={openCreateFlow}>
+                          <Button
+                            type="button"
+                            className="flex min-h-[44px] items-center gap-2 touch-manipulation"
+                            onClick={() => {
+                              const allowedVerticals = sellerRolesToAllowedVerticals(
+                                sellerProfile.User.sellerRoles || []
+                              );
+                              if (allowedVerticals.length === 0) {
+                                window.location.href = '/onboarding/seller';
+                                return;
+                              }
+                              openCreateFlowWithIntent({
+                                mode: 'dorpsplein',
+                                allowedVerticals,
+                              });
+                            }}
+                          >
                             <Plus className="w-4 h-4" />
                             Eerste Product Toevoegen
                           </Button>

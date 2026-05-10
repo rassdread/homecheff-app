@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import { sellerRolesToAllowedVerticals } from '@/lib/createFlowIntent';
 import type { CreateFlowVertical } from '@/lib/createFlowIntent';
 import { getProfileTabAfterProductFlow } from '@/lib/profileProductTab';
 
@@ -1018,7 +1019,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     {/* Producten Overzicht met sub-tabs */}
                     {(user.role === 'SELLER' || (user.sellerRoles && user.sellerRoles.length > 0)) && (
                       <div>
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="mb-4">
                           <h3 className="text-lg font-semibold text-gray-900">
                             {activeTab === 'overview' && contentSubTab === 'inspiratie' 
                               ? 'Mijn inspiratie items'
@@ -1027,39 +1028,14 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                               : t('profilePage.tabs.myProducts')
                             }
                           </h3>
-                          
-                          {/* Toevoeg knop voor Dorpsplein - alleen bij dorpsplein tab */}
-                          {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
-                            <button
-                              type="button"
-                              onClick={() => createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein' })}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              <span className="hidden sm:inline">Product toevoegen</span>
-                              <span className="sm:hidden">Product</span>
-                            </button>
-                          )}
-                          
-                          {/* Toevoeg knop voor Inspiratie - alleen bij inspiratie tab */}
-                          {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
-                            <button
-                              type="button"
-                              onClick={() => createFlow.openCreateFlowWithIntent({ mode: 'inspiratie' })}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              <span className="hidden sm:inline">Inspiratie toevoegen</span>
-                              <span className="sm:hidden">Inspiratie</span>
-                            </button>
-                          )}
                         </div>
                         
                         {/* Sub-tabs voor Dorpsplein en Inspiratie */}
                         <div className="flex gap-2 border-b border-gray-200 mb-6">
                           <button
+                            type="button"
                             onClick={() => setContentSubTab('dorpsplein')}
-                            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                            className={`min-h-[44px] px-4 py-2 border-b-2 font-medium transition-colors touch-manipulation ${
                               contentSubTab === 'dorpsplein'
                                 ? 'border-emerald-500 text-emerald-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1068,8 +1044,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                             {t('profilePage.tabs.subTabs.villageSquare')}
                           </button>
                           <button
+                            type="button"
                             onClick={() => setContentSubTab('inspiratie')}
-                            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                            className={`min-h-[44px] px-4 py-2 border-b-2 font-medium transition-colors touch-manipulation ${
                               contentSubTab === 'inspiratie'
                                 ? 'border-emerald-500 text-emerald-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1077,6 +1054,62 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           >
                             {t('profilePage.tabs.subTabs.inspiration')}
                           </button>
+                        </div>
+
+                        <div className="mb-6 space-y-3">
+                          {(() => {
+                            const allowedVerticals = sellerRolesToAllowedVerticals(user.sellerRoles || []);
+                            if (allowedVerticals.length === 0) {
+                              return (
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                                  <p className="font-medium">Nog geen maker-profiel</p>
+                                  <p className="mt-1 text-amber-900/90">
+                                    Voeg eerst Keuken, Tuin of Studio toe om op Dorpsplein of Inspiratie te plaatsen.
+                                  </p>
+                                  <Link
+                                    href="/onboarding/seller"
+                                    className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                                  >
+                                    Profiel instellen
+                                  </Link>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                                {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      createFlow.openCreateFlowWithIntent({
+                                        mode: 'dorpsplein',
+                                        allowedVerticals,
+                                      })
+                                    }
+                                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 touch-manipulation"
+                                  >
+                                    <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                                    Item op Dorpsplein zetten
+                                  </button>
+                                )}
+                                {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      createFlow.openCreateFlowWithIntent({
+                                        mode: 'inspiratie',
+                                        allowedVerticals,
+                                      })
+                                    }
+                                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 touch-manipulation"
+                                  >
+                                    <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                                    Inspiratie plaatsen
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Content op basis van sub-tab */}
@@ -1228,72 +1261,37 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
                 {(activeTab.startsWith('dishes-') || activeTab === 'dishes') && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        {(() => {
-                          let title = t('profilePage.tabs.myItems');
-                          let description = t('profilePage.tabs.tabDescriptions.manageItems');
-                          
-                          if (activeTab === 'dishes-chef') {
-                            title = t('profilePage.tabs.myKitchen');
-                            description = t('profilePage.tabs.tabDescriptions.kitchen');
-                          } else if (activeTab === 'dishes-garden') {
-                            title = t('profilePage.tabs.myGarden');
-                            description = t('profilePage.tabs.tabDescriptions.garden');
-                          } else if (activeTab === 'dishes-designer') {
-                            title = t('profilePage.tabs.myStudio');
-                            description = t('profilePage.tabs.tabDescriptions.studio');
-                          }
-                          
-                          return (
-                            <>
-                              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-                              <p className="text-sm text-gray-500">{description}</p>
-                            </>
-                          );
-                        })()}
-                      </div>
-                      
-                      {/* Product op Dorpsplein zetten Knop - alleen bij dorpsplein tab en als er opties beschikbaar zijn */}
-                      {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const v = verticalFromProfileDishesTab(activeTab);
-                            if (v) createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein', vertical: v });
-                            else createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein' });
-                          }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span className="hidden sm:inline">Product toevoegen</span>
-                          <span className="sm:hidden">Product</span>
-                        </button>
-                      )}
-                      
-                      {/* Toevoeg knop voor Inspiratie - alleen bij inspiratie tab en als er opties beschikbaar zijn */}
-                      {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const v = verticalFromProfileDishesTab(activeTab);
-                            if (v) createFlow.openCreateFlowWithIntent({ mode: 'inspiratie', vertical: v });
-                            else createFlow.openCreateFlowWithIntent({ mode: 'inspiratie' });
-                          }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span className="hidden sm:inline">Inspiratie toevoegen</span>
-                          <span className="sm:hidden">Inspiratie</span>
-                        </button>
-                      )}
+                    <div>
+                      {(() => {
+                        let title = t('profilePage.tabs.myItems');
+                        let description = t('profilePage.tabs.tabDescriptions.manageItems');
+                        
+                        if (activeTab === 'dishes-chef') {
+                          title = t('profilePage.tabs.myKitchen');
+                          description = t('profilePage.tabs.tabDescriptions.kitchen');
+                        } else if (activeTab === 'dishes-garden') {
+                          title = t('profilePage.tabs.myGarden');
+                          description = t('profilePage.tabs.tabDescriptions.garden');
+                        } else if (activeTab === 'dishes-designer') {
+                          title = t('profilePage.tabs.myStudio');
+                          description = t('profilePage.tabs.tabDescriptions.studio');
+                        }
+                        
+                        return (
+                          <>
+                            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                            <p className="text-sm text-gray-500">{description}</p>
+                          </>
+                        );
+                      })()}
                     </div>
                     
                     {/* Sub-tabs voor Dorpsplein en Inspiratie */}
                     <div className="flex gap-2 border-b border-gray-200 mb-6">
                       <button
+                        type="button"
                         onClick={() => setContentSubTab('dorpsplein')}
-                        className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                        className={`min-h-[44px] px-4 py-2 border-b-2 font-medium transition-colors touch-manipulation ${
                           contentSubTab === 'dorpsplein'
                             ? 'border-emerald-500 text-emerald-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1302,8 +1300,9 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         {t('profilePage.tabs.subTabs.villageSquare')}
                       </button>
                       <button
+                        type="button"
                         onClick={() => setContentSubTab('inspiratie')}
-                        className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                        className={`min-h-[44px] px-4 py-2 border-b-2 font-medium transition-colors touch-manipulation ${
                           contentSubTab === 'inspiratie'
                             ? 'border-emerald-500 text-emerald-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -1311,6 +1310,171 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       >
                         {t('profilePage.tabs.subTabs.inspiration')}
                       </button>
+                    </div>
+
+                    <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                      {activeTab === 'dishes-chef' && user.sellerRoles?.includes('chef') && (
+                        <>
+                          {contentSubTab === 'dorpsplein' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'dorpsplein',
+                                  vertical: 'CHEFF',
+                                  allowedVerticals: ['CHEFF'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Keukenitem op Dorpsplein zetten
+                            </button>
+                          )}
+                          {contentSubTab === 'inspiratie' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'inspiratie',
+                                  vertical: 'CHEFF',
+                                  allowedVerticals: ['CHEFF'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Recept / inspiratie plaatsen
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {activeTab === 'dishes-garden' && user.sellerRoles?.includes('garden') && (
+                        <>
+                          {contentSubTab === 'dorpsplein' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'dorpsplein',
+                                  vertical: 'GARDEN',
+                                  allowedVerticals: ['GARDEN'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Tuinproduct op Dorpsplein zetten
+                            </button>
+                          )}
+                          {contentSubTab === 'inspiratie' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'inspiratie',
+                                  vertical: 'GARDEN',
+                                  allowedVerticals: ['GARDEN'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Tuin-inspiratie plaatsen
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {activeTab === 'dishes-designer' && user.sellerRoles?.includes('designer') && (
+                        <>
+                          {contentSubTab === 'dorpsplein' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'dorpsplein',
+                                  vertical: 'DESIGNER',
+                                  allowedVerticals: ['DESIGNER'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Studio-item op Dorpsplein zetten
+                            </button>
+                          )}
+                          {contentSubTab === 'inspiratie' && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                createFlow.openCreateFlowWithIntent({
+                                  mode: 'inspiratie',
+                                  vertical: 'DESIGNER',
+                                  allowedVerticals: ['DESIGNER'],
+                                })
+                              }
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Studio-inspiratie plaatsen
+                            </button>
+                          )}
+                        </>
+                      )}
+                      {activeTab === 'dishes' && (
+                        <>
+                          {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allowedVerticals = sellerRolesToAllowedVerticals(user.sellerRoles || []);
+                                const v = verticalFromProfileDishesTab(activeTab);
+                                if (v) {
+                                  createFlow.openCreateFlowWithIntent({
+                                    mode: 'dorpsplein',
+                                    vertical: v,
+                                    allowedVerticals,
+                                  });
+                                } else {
+                                  createFlow.openCreateFlowWithIntent({
+                                    mode: 'dorpsplein',
+                                    allowedVerticals,
+                                  });
+                                }
+                              }}
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Item op Dorpsplein zetten
+                            </button>
+                          )}
+                          {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allowedVerticals = sellerRolesToAllowedVerticals(user.sellerRoles || []);
+                                const v = verticalFromProfileDishesTab(activeTab);
+                                if (v) {
+                                  createFlow.openCreateFlowWithIntent({
+                                    mode: 'inspiratie',
+                                    vertical: v,
+                                    allowedVerticals,
+                                  });
+                                } else {
+                                  createFlow.openCreateFlowWithIntent({
+                                    mode: 'inspiratie',
+                                    allowedVerticals,
+                                  });
+                                }
+                              }}
+                              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 touch-manipulation"
+                            >
+                              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                              Inspiratie plaatsen
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                     
                     <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" />}>

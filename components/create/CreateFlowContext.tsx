@@ -16,6 +16,7 @@ import {
   setCreateFlowIntent,
   type CreateFlowIntent,
 } from "@/lib/createFlowIntent";
+import { clickDebug } from "@/lib/click-debug";
 import { getCreateAuthReturnUrls } from "@/lib/createAuthReturnUrls";
 import {
   AFTER_LOGIN_CREATE_ACTION_KEY,
@@ -50,40 +51,64 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     register: "/register",
   });
   const lastOpenAt = useRef(0);
+  /** Eerste tap tijdens NextAuth `loading`: intent staat al in sessionStorage; dispatch zodra sessie bekend is. */
+  const pendingQuickAddAfterSessionRef = useRef(false);
+
+  const dispatchQuickAddNow = useCallback((reason: string) => {
+    const now = Date.now();
+    if (now - lastOpenAt.current < 400) {
+      clickDebug("CreateFlowProvider", "quick-add", "debounced-skip", reason);
+      return;
+    }
+    lastOpenAt.current = now;
+    clickDebug("CreateFlowProvider", "quick-add", "dispatch", reason);
+    dispatchOpenQuickAdd();
+  }, []);
 
   const openCreateFlow = useCallback(() => {
-    if (status === "loading") return;
-    const now = Date.now();
-    if (now - lastOpenAt.current < 400) return;
-    lastOpenAt.current = now;
-
-    // Alleen quick-add na bevestigde auth — geen dispatch voor gast of twijfelachtige sessie
+    if (status === "loading") {
+      pendingQuickAddAfterSessionRef.current = true;
+      clickDebug("CreateFlowProvider", "openCreateFlow", "defer-until-session", "loading");
+      return;
+    }
     if (status !== "authenticated" || !session?.user) {
+      const now = Date.now();
+      if (now - lastOpenAt.current < 400) return;
+      lastOpenAt.current = now;
       setPendingOpenQuickAddAfterLogin();
       setAuthUrls(getCreateAuthReturnUrls());
       setGuestOpen(true);
       return;
     }
-    dispatchOpenQuickAdd();
-  }, [session?.user, status]);
+    dispatchQuickAddNow("openCreateFlow-authenticated");
+  }, [session?.user, status, dispatchQuickAddNow]);
 
   const openCreateFlowWithIntent = useCallback(
     (intent: CreateFlowIntent) => {
       setCreateFlowIntent(intent);
-      if (status === "loading") return;
-      const now = Date.now();
-      if (now - lastOpenAt.current < 400) return;
-      lastOpenAt.current = now;
+      if (status === "loading") {
+        pendingQuickAddAfterSessionRef.current = true;
+        clickDebug(
+          "CreateFlowProvider",
+          "openCreateFlowWithIntent",
+          "defer-until-session",
+          JSON.stringify({ mode: intent.mode, hasVertical: !!intent.vertical })
+        );
+        return;
+      }
 
       if (status !== "authenticated" || !session?.user) {
+        const now = Date.now();
+        if (now - lastOpenAt.current < 400) return;
+        lastOpenAt.current = now;
         setPendingOpenQuickAddAfterLogin();
         setAuthUrls(getCreateAuthReturnUrls());
         setGuestOpen(true);
         return;
       }
-      dispatchOpenQuickAdd();
+      dispatchQuickAddNow("openCreateFlowWithIntent-authenticated");
     },
-    [session?.user, status]
+    [session?.user, status, dispatchQuickAddNow]
   );
 
   const handleAbandonGuestModal = useCallback(() => {
@@ -95,6 +120,19 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   const handleAuthNavigateFromModal = useCallback(() => {
     setGuestOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      pendingQuickAddAfterSessionRef.current = false;
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return;
+    if (!pendingQuickAddAfterSessionRef.current) return;
+    pendingQuickAddAfterSessionRef.current = false;
+    dispatchQuickAddNow("session-ready-after-loading-tap");
+  }, [status, session?.user, dispatchQuickAddNow]);
 
   /** Na succesvolle login: één keer quick-add openen als er create-intent was. */
   const quickAddIntentScheduledRef = useRef(false);

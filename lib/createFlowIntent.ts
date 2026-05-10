@@ -11,12 +11,42 @@ export type CreateFlowIntent = {
   mode: CreateFlowMode;
   /** Optioneel: na foto automatisch deze categorie/locatie kiezen (als rol dat toelaat). */
   vertical?: CreateFlowVertical;
+  /** Beperk categorie-/locatiekeuze tot deze verticalen (profieltabs / feed); FAB laat dit leeg = alle rollen van de gebruiker. */
+  allowedVerticals?: CreateFlowVertical[];
 };
+
+const VERTICAL_SET = new Set<CreateFlowVertical>(["CHEFF", "GARDEN", "DESIGNER"]);
+
+/** sellerRoles zoals in sessie/profiel: chef | garden | designer */
+export function sellerRolesToAllowedVerticals(sellerRoles: string[]): CreateFlowVertical[] {
+  const out: CreateFlowVertical[] = [];
+  if (sellerRoles.includes("chef")) out.push("CHEFF");
+  if (sellerRoles.includes("garden")) out.push("GARDEN");
+  if (sellerRoles.includes("designer")) out.push("DESIGNER");
+  return out;
+}
+
+/** Schoon intent: vertical moet in allowedVerticals vallen; lege allowedVerticals wordt weggelaten. */
+export function normalizeCreateFlowIntent(intent: CreateFlowIntent): CreateFlowIntent {
+  const out: CreateFlowIntent = { mode: intent.mode };
+  let allowed = intent.allowedVerticals?.filter((v): v is CreateFlowVertical => VERTICAL_SET.has(v));
+  allowed = allowed?.length ? [...new Set(allowed)] : undefined;
+  let vertical = intent.vertical && VERTICAL_SET.has(intent.vertical) ? intent.vertical : undefined;
+  if (vertical && allowed && !allowed.includes(vertical)) {
+    vertical = undefined;
+  }
+  if (vertical) out.vertical = vertical;
+  if (allowed?.length) out.allowedVerticals = allowed;
+  return out;
+}
 
 export function setCreateFlowIntent(intent: CreateFlowIntent): void {
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(HC_CREATE_FLOW_INTENT_KEY, JSON.stringify(intent));
+    sessionStorage.setItem(
+      HC_CREATE_FLOW_INTENT_KEY,
+      JSON.stringify(normalizeCreateFlowIntent(intent))
+    );
   } catch {
     /* quota / private mode */
   }
@@ -33,7 +63,14 @@ export function peekCreateFlowIntent(): CreateFlowIntent | null {
     if (o.vertical === "CHEFF" || o.vertical === "GARDEN" || o.vertical === "DESIGNER") {
       intent.vertical = o.vertical;
     }
-    return intent;
+    const av = o.allowedVerticals;
+    if (Array.isArray(av) && av.length > 0) {
+      const filtered = av.filter((v): v is CreateFlowVertical => VERTICAL_SET.has(v as CreateFlowVertical));
+      if (filtered.length > 0) {
+        intent.allowedVerticals = [...new Set(filtered)];
+      }
+    }
+    return normalizeCreateFlowIntent(intent);
   } catch {
     return null;
   }

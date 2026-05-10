@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
@@ -153,23 +153,6 @@ export default function StartChatButton({
     );
   }
 
-  if (status === 'loading') {
-    return (
-      <button
-        type="button"
-        disabled
-        className={`
-          flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
-          bg-gray-300 text-gray-600 cursor-not-allowed
-          ${className}
-        `}
-      >
-        <MessageCircle className="w-4 h-4" />
-        <span>{t('common.loadingDots')}</span>
-      </button>
-    );
-  }
-
   return (
     <>
       {successConversationId && (
@@ -201,13 +184,26 @@ export default function StartChatButton({
 
       <button
         type="button"
-        onClick={() => setShowModal(true)}
+        onClick={() => {
+          if (status === 'loading') {
+            openModalAfterSessionRef.current = true;
+            return;
+          }
+          setShowModal(true);
+        }}
         disabled={isLoading}
         title={isLoading ? undefined : t('common.startChat')}
-        aria-label={isLoading ? t('common.loadingDots') : t('common.startChat')}
+        aria-busy={status === 'loading'}
+        aria-label={
+          isLoading
+            ? t('common.loadingDots')
+            : status === 'loading'
+              ? t('common.loadingDots')
+              : t('common.startChat')
+        }
         className={`
-          flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200
-          shadow-md hover:shadow-lg
+          flex min-h-[44px] items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200
+          shadow-md hover:shadow-lg touch-manipulation
           bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white
           disabled:opacity-50 disabled:cursor-not-allowed
           w-full sm:w-auto text-sm sm:text-base
@@ -215,7 +211,13 @@ export default function StartChatButton({
         `}
       >
         <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
-        <span>{isLoading ? t('common.sending') : t('common.startChat')}</span>
+        <span>
+          {isLoading
+            ? t('common.sending')
+            : status === 'loading'
+              ? t('common.loadingDots')
+              : t('common.startChat')}
+        </span>
       </button>
 
       {showModal && (
