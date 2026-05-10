@@ -6,6 +6,8 @@ import ChatBox from '@/components/chat/ChatBox';
 import ChatShell from '@/components/chat/ChatShell';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { cn } from '@/lib/utils';
 
 interface Conversation {
   id: string;
@@ -67,6 +69,7 @@ function ThreadSkeleton() {
 export default function ConversationPage() {
   const params = useParams();
   const router = useRouter();
+  const nativeMounted = useIsNativeAppMounted();
   const { data: session, status: sessionStatus } = useSession();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,7 +150,14 @@ export default function ConversationPage() {
   }
 
   return (
-    <div className="hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]">
+    <div
+      className={cn(
+        'hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]',
+        /* Native: ruimte boven vaste bottom-nav — anders verdwijnt composer onder tabbalk (WebView). */
+        nativeMounted &&
+          'hc-native-thread-route pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+      )}
+    >
       <ChatShell className="flex-1">
         <ChatBox
           key={conversation.id}

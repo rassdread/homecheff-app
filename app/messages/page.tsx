@@ -208,11 +208,13 @@ function MessagesPageContent() {
 
         {selectedConversation && (
           <div
-            className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
+            className={cn(
+              'flex min-h-0 flex-1 flex-col overflow-hidden',
               hidePageChromeForMobileChat
-                ? 'fixed inset-x-0 bottom-0 top-16 z-50 lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-0'
+                ? /* Boven bottom-nav (z-[58]): hogere z-index + pb i.p.v. onder tabbalk verdwijnen */
+                  'fixed inset-x-0 bottom-0 top-16 z-[60] pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-0 lg:pb-0'
                 : 'lg:min-w-0'
-            }`}
+            )}
           >
             <ChatShell>
               <ChatBox
