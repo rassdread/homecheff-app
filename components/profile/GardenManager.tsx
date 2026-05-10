@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Plus, Edit3, Trash2, Calendar, Droplet, Sun, Grid, List, Sprout, ShoppingCart } from "lucide-react";
 import GardenPhotoUpload from "./GardenPhotoUpload";
 import GardenGrowthPhotos from "./GardenGrowthPhotos";
@@ -10,6 +11,15 @@ import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+  type CreateFlowDraftIntent,
+} from "@/lib/create-flow-drafts";
+import { createFlowDebug } from "@/lib/create-flow-debug";
+import { resetCreateFlowUiState } from "@/lib/reset-create-flow-ui";
+import { pushAndroidBackHandler } from "@/lib/native/androidCreateFlowBack";
 
 type GardenPhoto = {
   id: string;
@@ -78,6 +88,11 @@ type GardenFormData = {
     thumbnail?: string | null;
     duration?: number | null;
   } | null;
+};
+
+type GardenDraftPayload = {
+  formData: GardenFormData;
+  growthPhotos: GrowthPhoto[];
 };
 
 const DIFFICULTY_LEVELS = [
@@ -199,6 +214,19 @@ export default function GardenManager({
 
   const [growthPhotos, setGrowthPhotos] = useState<GrowthPhoto[]>([]);
 
+  const { data: session } = useSession();
+  const draftIntent: CreateFlowDraftIntent = useMemo(
+    () => ({
+      userId: (session?.user as { id?: string } | undefined)?.id ?? null,
+      vertical: "GARDEN",
+      mode: "inspiratie",
+    }),
+    [session?.user]
+  );
+  const prevShowFormRef = useRef(false);
+  const draftAppliedForSessionRef = useRef(false);
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const mainPhotos = formData.photos.filter(photo => !photo.phaseNumber);
 
   // Load projects on component mount
@@ -216,12 +244,39 @@ export default function GardenManager({
     setFormData
   });
 
+  useEffect(() => {
+    if (!showForm || editingProject) return;
+    if (draftAppliedForSessionRef.current) return;
+    draftAppliedForSessionRef.current = true;
+    const loaded = loadDraft<GardenDraftPayload>(draftIntent);
+    if (!loaded?.data?.formData) return;
+    const d = loaded.data;
+    setFormData(d.formData);
+    if (Array.isArray(d.growthPhotos)) setGrowthPhotos(d.growthPhotos);
+  }, [showForm, editingProject, draftIntent]);
+
   // Auto-open form if autoOpenForm prop is set
   useEffect(() => {
     if (autoOpenForm && !showForm) {
       setShowForm(true);
     }
   }, [autoOpenForm, showForm]);
+
+  useEffect(() => {
+    if (prevShowFormRef.current && !showForm) {
+      resetCreateFlowUiState({ keepDraft: true });
+    }
+    if (!showForm) {
+      draftAppliedForSessionRef.current = false;
+    }
+    prevShowFormRef.current = showForm;
+  }, [showForm]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    createFlowDebug("overlay-mounted", { surface: "garden-form" });
+    return () => createFlowDebug("overlay-unmounted", { surface: "garden-form" });
+  }, [showForm]);
 
   // Prevent aggressive scrolling on mobile when inputs are focused
   useEffect(() => {
@@ -457,6 +512,101 @@ export default function GardenManager({
     }
   };
 
+  const resetGardenFormState = () => {
+    setEditingProject(null);
+    setFormData({
+      title: "",
+      description: "",
+      plantType: "",
+      plantDate: "",
+      harvestDate: "",
+      growthDuration: "",
+      sunlight: "PARTIAL",
+      waterNeeds: "MEDIUM",
+      location: "OUTDOOR",
+      soilType: "",
+      plantDistance: "",
+      difficulty: "EASY",
+      tags: [],
+      notes: "",
+      photos: [],
+      video: null,
+    });
+    setGrowthPhotos([]);
+  };
+
+  const isGardenFormDirty = () => {
+    if (editingProject) return true;
+    return !!(
+      formData.title.trim() ||
+      formData.description.trim() ||
+      formData.plantType.trim() ||
+      formData.plantDate.trim() ||
+      formData.harvestDate.trim() ||
+      formData.growthDuration.trim() ||
+      formData.soilType.trim() ||
+      formData.plantDistance.trim() ||
+      formData.notes.trim() ||
+      formData.photos.length > 0 ||
+      formData.video ||
+      formData.tags.length > 0 ||
+      growthPhotos.length > 0
+    );
+  };
+
+  const persistGardenDraftNow = () => {
+    if (!isGardenFormDirty()) return;
+    saveDraft(draftIntent, "garden-inspiratie", {
+      formData,
+      growthPhotos,
+    } satisfies GardenDraftPayload);
+    createFlowDebug("save-draft", { formType: "garden-inspiratie", immediate: true });
+  };
+
+  const requestGardenFormClose = (mode: "back" | "close") => {
+    createFlowDebug(mode === "back" ? "back-click" : "close-click", {
+      dirty: isGardenFormDirty(),
+      surface: "garden",
+    });
+    if (!isGardenFormDirty()) {
+      resetGardenFormState();
+      clearDraft(draftIntent);
+      setShowForm(false);
+      resetCreateFlowUiState({ keepDraft: false });
+      if (mode === "back") router.back();
+      return;
+    }
+    setDraftClosePrompt({ mode });
+  };
+
+  useEffect(() => {
+    if (!showForm || editingProject) return;
+    if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    draftSaveTimerRef.current = setTimeout(() => {
+      if (!isGardenFormDirty()) return;
+      persistGardenDraftNow();
+    }, 450);
+    return () => {
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    };
+  }, [formData, growthPhotos, showForm, editingProject, draftIntent]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    return pushAndroidBackHandler(() => {
+      if (draftClosePrompt) {
+        setDraftClosePrompt(null);
+        createFlowDebug("blocked close reason", {
+          reason: "android-back-dismiss-draft-dialog",
+          surface: "garden",
+        });
+        return true;
+      }
+      requestGardenFormClose("back");
+      return true;
+    });
+  }, [showForm, draftClosePrompt]);
+
   const handleSaveProject = async () => {
     try {
       // Client-side validation with detailed messages
@@ -557,6 +707,7 @@ export default function GardenManager({
       if (response.ok) {
         const result = await response.json();
         await hcpRewardUi?.refetchGamification();
+        clearDraft(draftIntent);
 
         // Reset form
         setFormData({
@@ -581,7 +732,8 @@ export default function GardenManager({
         setShowForm(false);
         setEditingProject(null);
         setMessage({ type: 'success', text: isEditing ? t('garden.updated') : t('garden.saved') });
-        
+        resetCreateFlowUiState({ keepDraft: false });
+
         // Reload projects
 
         await loadProjects();
@@ -1168,14 +1320,19 @@ export default function GardenManager({
           onSaveAndClose={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            persistGardenDraftNow();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: true });
             if (mode === "back") router.back();
           }}
           onDiscard={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            clearDraft(draftIntent);
+            createFlowDebug("discard-draft", { formType: "garden-inspiratie" });
             resetGardenFormState();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: false });
             if (mode === "back") router.back();
           }}
         />

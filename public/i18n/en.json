@@ -239,8 +239,7 @@
     "noMessagesReceived": "You haven't received any messages yet",
     "conversations": "Conversations",
     "noConversationsYet": "No conversations yet",
-    "searchConversationsPlaceholder": "Search conversations...",
-    "openConversationAria": "Open conversation"
+    "searchConversationsPlaceholder": "Search conversations..."
   },
   "chat": {
     "backToConversations": "Back to conversations",

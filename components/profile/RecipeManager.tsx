@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import dynamic from 'next/dynamic';
 import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
@@ -10,6 +11,18 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+  type CreateFlowDraftIntent,
+} from "@/lib/create-flow-drafts";
+import { createFlowDebug } from "@/lib/create-flow-debug";
+import {
+  isInsideCreateFlowDialog,
+  resetCreateFlowUiState,
+} from "@/lib/reset-create-flow-ui";
+import { pushAndroidBackHandler } from "@/lib/native/androidCreateFlowBack";
 
 // Lazy load heavy components for better performance
 const RecipePhotoUpload = dynamic(() => import("./RecipePhotoUpload"), {
@@ -86,6 +99,14 @@ type RecipeFormData = {
     thumbnail?: string | null;
     duration?: number | null;
   } | null;
+};
+
+type RecipeDraftPayload = {
+  formData: RecipeFormData;
+  stepPhotos: StepPhoto[];
+  customCategory: string;
+  showCustomCategoryInput: boolean;
+  isPrivate: boolean;
 };
 
 // These will be defined inside the component to access t()
@@ -175,6 +196,19 @@ export default function RecipeManager({
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
+  const { data: session } = useSession();
+  const draftIntent: CreateFlowDraftIntent = useMemo(
+    () => ({
+      userId: (session?.user as { id?: string } | undefined)?.id ?? null,
+      vertical: "CHEFF",
+      mode: "inspiratie",
+    }),
+    [session?.user]
+  );
+  const prevShowFormRef = useRef(false);
+  const draftAppliedForSessionRef = useRef(false);
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const mainPhotos = formData.photos.filter(photo => !photo.stepNumber);
 
   // Load recipes on component mount
@@ -191,12 +225,42 @@ export default function RecipeManager({
     setFormData
   });
 
+  useEffect(() => {
+    if (!showForm || editingRecipe) return;
+    if (draftAppliedForSessionRef.current) return;
+    draftAppliedForSessionRef.current = true;
+    const loaded = loadDraft<RecipeDraftPayload>(draftIntent);
+    if (!loaded?.data?.formData) return;
+    const d = loaded.data;
+    setFormData(d.formData);
+    if (Array.isArray(d.stepPhotos)) setStepPhotos(d.stepPhotos);
+    setCustomCategory(d.customCategory ?? "");
+    setShowCustomCategoryInput(!!d.showCustomCategoryInput);
+    setIsPrivate(!!d.isPrivate);
+  }, [showForm, editingRecipe, draftIntent]);
+
   // Auto-open form if autoOpenForm prop is set
   useEffect(() => {
     if (autoOpenForm && !showForm) {
       setShowForm(true);
     }
   }, [autoOpenForm, showForm]);
+
+  useEffect(() => {
+    if (prevShowFormRef.current && !showForm) {
+      resetCreateFlowUiState({ keepDraft: true });
+    }
+    if (!showForm) {
+      draftAppliedForSessionRef.current = false;
+    }
+    prevShowFormRef.current = showForm;
+  }, [showForm]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    createFlowDebug("overlay-mounted", { surface: "recipe-form" });
+    return () => createFlowDebug("overlay-unmounted", { surface: "recipe-form" });
+  }, [showForm]);
 
   // Prevent background scroll when form is open (Chrome-specific fix)
   useEffect(() => {
@@ -262,11 +326,19 @@ export default function RecipeManager({
       const originalHtmlTouchAction = html.style.touchAction;
       html.style.overflow = 'hidden';
       html.style.touchAction = 'none';
+      createFlowDebug("body-lock-set", { surface: "recipe-form-chrome" });
       
+      const allowScrollTarget = (target: EventTarget | null) => {
+        const el = target as HTMLElement;
+        if (!el || typeof el.closest !== "function") return false;
+        return (
+          !!el.closest("[data-recipe-form]") || isInsideCreateFlowDialog(el)
+        );
+      };
+
       // Prevent wheel events on window
       const preventWheel = (e: WheelEvent) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest('[data-recipe-form]')) {
+        if (!allowScrollTarget(e.target)) {
           e.preventDefault();
           e.stopPropagation();
         }
@@ -274,8 +346,7 @@ export default function RecipeManager({
       
       // Prevent touchmove events on window (except on form)
       const preventTouchMove = (e: TouchEvent) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest('[data-recipe-form]')) {
+        if (!allowScrollTarget(e.target)) {
           e.preventDefault();
           e.stopPropagation();
         }
@@ -695,6 +766,7 @@ export default function RecipeManager({
 
       if (response.ok) {
         await hcpRewardUi?.refetchGamification();
+        clearDraft(draftIntent);
         // Reset form
         setFormData({
           title: '',
@@ -714,10 +786,12 @@ export default function RecipeManager({
         setCustomCategory('');
         setShowCustomCategoryInput(false);
         setIsPrivate(false);
+        setStepPhotos([]);
         setShowForm(false);
         setEditingRecipe(null);
         setMessage({ type: 'success', text: isEditing ? t('recipe.updated') : t('recipe.saved') });
-        
+        resetCreateFlowUiState({ keepDraft: false });
+
         // Reload recipes
         loadRecipes();
       } else {
@@ -864,6 +938,7 @@ export default function RecipeManager({
     setCustomCategory('');
     setShowCustomCategoryInput(false);
     setIsPrivate(false);
+    setStepPhotos([]);
   };
 
   const isRecipeFormDirty = () => {
@@ -874,21 +949,76 @@ export default function RecipeManager({
       formData.ingredients.some((x) => String(x).trim()) ||
       formData.instructions.some((x) => String(x).trim()) ||
       formData.photos.length > 0 ||
+      stepPhotos.length > 0 ||
       formData.video ||
       (formData.tags && formData.tags.length > 0) ||
       (formData.category && String(formData.category).trim())
     );
   };
 
+  const persistRecipeDraftNow = () => {
+    if (!isRecipeFormDirty()) return;
+    const payload: RecipeDraftPayload = {
+      formData,
+      stepPhotos,
+      customCategory,
+      showCustomCategoryInput,
+      isPrivate,
+    };
+    saveDraft(draftIntent, "recipe-inspiratie", payload);
+    createFlowDebug("save-draft", { formType: "recipe-inspiratie", immediate: true });
+  };
+
   const requestRecipeFormClose = (mode: "back" | "close") => {
+    createFlowDebug(mode === "back" ? "back-click" : "close-click", {
+      dirty: isRecipeFormDirty(),
+    });
     if (!isRecipeFormDirty()) {
       resetRecipeFormState();
+      clearDraft(draftIntent);
       setShowForm(false);
+      resetCreateFlowUiState({ keepDraft: false });
       if (mode === "back") router.back();
       return;
     }
     setDraftClosePrompt({ mode });
   };
+
+  useEffect(() => {
+    if (!showForm || editingRecipe) return;
+    if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    draftSaveTimerRef.current = setTimeout(() => {
+      if (!isRecipeFormDirty()) return;
+      persistRecipeDraftNow();
+    }, 450);
+    return () => {
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    };
+  }, [
+    formData,
+    stepPhotos,
+    customCategory,
+    showCustomCategoryInput,
+    isPrivate,
+    showForm,
+    editingRecipe,
+    draftIntent,
+  ]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    return pushAndroidBackHandler(() => {
+      if (draftClosePrompt) {
+        setDraftClosePrompt(null);
+        createFlowDebug("blocked close reason", {
+          reason: "android-back-dismiss-draft-dialog",
+        });
+        return true;
+      }
+      requestRecipeFormClose("back");
+      return true;
+    });
+  }, [showForm, draftClosePrompt]);
 
   if (loading) {
     return (
@@ -1398,14 +1528,19 @@ export default function RecipeManager({
           onSaveAndClose={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            persistRecipeDraftNow();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: true });
             if (mode === "back") router.back();
           }}
           onDiscard={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            clearDraft(draftIntent);
+            createFlowDebug("discard-draft", { formType: "recipe-inspiratie" });
             resetRecipeFormState();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: false });
             if (mode === "back") router.back();
           }}
         />

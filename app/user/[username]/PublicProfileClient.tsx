@@ -870,40 +870,47 @@ export default function PublicProfileClient({
                               />
                             </button>
                           ) : null}
-                          <Link
-                            href={itemHref}
-                            className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
-                          >
-                            <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                            <div className="flex items-center justify-between mb-2">
-                              {product.priceCents && product.priceCents > 0 ? (
-                                <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
-                              ) : (
-                                <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
-                              )}
-                              <span className="text-xs text-gray-500">
-                                {getFilteredCategories('')[product.category]?.label || product.category}
-                              </span>
-                            </div>
-                            {(product.reviewCount > 0 || product.averageRating > 0) && (
-                              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                {product.averageRating > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs font-medium text-gray-700">
-                                      {product.averageRating.toFixed(1)}
-                                    </span>
-                                  </div>
+                          {itemHref ? (
+                            <Link
+                              href={itemHref}
+                              className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
+                            >
+                              <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                              <div className="flex items-center justify-between mb-2">
+                                {product.priceCents && product.priceCents > 0 ? (
+                                  <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
+                                ) : (
+                                  <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
                                 )}
-                                {product.reviewCount > 0 && (
-                                  <span className="text-xs text-gray-500">
-                                    ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
-                                  </span>
-                                )}
+                                <span className="text-xs text-gray-500">
+                                  {getFilteredCategories('')[product.category]?.label || product.category}
+                                </span>
                               </div>
-                            )}
-                          </Link>
+                              {(product.reviewCount > 0 || product.averageRating > 0) && (
+                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                  {product.averageRating > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                      <span className="text-xs font-medium text-gray-700">
+                                        {product.averageRating.toFixed(1)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {product.reviewCount > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </Link>
+                          ) : (
+                            <div className="block flex-1 p-4 min-h-[100px] text-gray-500 cursor-default">
+                              <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1271,36 +1278,43 @@ export default function PublicProfileClient({
                               />
                             </button>
                           ) : null}
-                          <Link
-                            href={itemHref}
-                            className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
-                          >
-                            <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                            <div className="flex items-center justify-between mb-2">
-                              {product.priceCents && product.priceCents > 0 ? (
-                                <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
-                              ) : (
-                                <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
-                              )}
-                              <span className="text-xs text-gray-500">
-                                {getFilteredCategories('')[product.category]?.label || product.category}
-                              </span>
-                            </div>
-                            {(product.reviewCount > 0 || product.averageRating > 0) && (
-                              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                {product.averageRating > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs font-medium text-gray-700">{product.averageRating.toFixed(1)}</span>
-                                  </div>
+                          {itemHref ? (
+                            <Link
+                              href={itemHref}
+                              className="block flex-1 p-4 min-h-[100px] hover:bg-gray-50/90 transition-colors"
+                            >
+                              <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                              <div className="flex items-center justify-between mb-2">
+                                {product.priceCents && product.priceCents > 0 ? (
+                                  <span className="font-semibold text-emerald-600">{formatPrice(product.priceCents)}</span>
+                                ) : (
+                                  <span className="text-sm text-gray-500">{t('profilePage.tabs.inspiration') || 'Inspiratie'}</span>
                                 )}
-                                {product.reviewCount > 0 && (
-                                  <span className="text-xs text-gray-500">({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})</span>
-                                )}
+                                <span className="text-xs text-gray-500">
+                                  {getFilteredCategories('')[product.category]?.label || product.category}
+                                </span>
                               </div>
-                            )}
-                          </Link>
+                              {(product.reviewCount > 0 || product.averageRating > 0) && (
+                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                  {product.averageRating > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                      <span className="text-xs font-medium text-gray-700">{product.averageRating.toFixed(1)}</span>
+                                    </div>
+                                  )}
+                                  {product.reviewCount > 0 && (
+                                    <span className="text-xs text-gray-500">({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})</span>
+                                  )}
+                                </div>
+                              )}
+                            </Link>
+                          ) : (
+                            <div className="block flex-1 p-4 min-h-[100px] text-gray-500 cursor-default">
+                              <h4 className="font-medium text-gray-900 mb-2">{product.title}</h4>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

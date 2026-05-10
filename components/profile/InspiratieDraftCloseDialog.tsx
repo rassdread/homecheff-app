@@ -19,7 +19,8 @@ export function InspiratieDraftCloseDialog({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+      data-create-flow-dialog
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4 pointer-events-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="inspiratie-draft-close-title"

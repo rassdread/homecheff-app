@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { MessageCircle, CheckCheck, Package, ChevronRight } from 'lucide-react';
+import { MessageCircle, CheckCheck, Package } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -93,6 +100,150 @@ interface ConversationsListProps {
   onMessagesRead?: () => void;
 }
 
+/** Native Android: short tap opens chat/profile; drag ≥8px → scroll only (no preventDefault / capture). */
+const TAP_MAX_MOVE_PX = 8;
+const TAP_MAX_DURATION_MS = 500;
+
+function useBoundedPointerTap(onTap: () => void) {
+  const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onTapRef = useRef(onTap);
+  onTapRef.current = onTap;
+  const listenersRef = useRef<{
+    up: (e: PointerEvent) => void;
+    cancel: () => void;
+  } | null>(null);
+
+  const removeDocListeners = () => {
+    const L = listenersRef.current;
+    if (L) {
+      document.removeEventListener('pointerup', L.up);
+      document.removeEventListener('pointercancel', L.cancel);
+      listenersRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      removeDocListeners();
+      startRef.current = null;
+    };
+  }, []);
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    removeDocListeners();
+    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+
+    const up = (ev: PointerEvent) => {
+      const s = startRef.current;
+      removeDocListeners();
+      startRef.current = null;
+      if (!s) return;
+      const dx = ev.clientX - s.x;
+      const dy = ev.clientY - s.y;
+      if (Math.hypot(dx, dy) >= TAP_MAX_MOVE_PX) return;
+      if (Date.now() - s.t > TAP_MAX_DURATION_MS) return;
+      onTapRef.current();
+    };
+
+    const cancel = () => {
+      removeDocListeners();
+      startRef.current = null;
+    };
+
+    listenersRef.current = { up, cancel };
+    document.addEventListener('pointerup', up);
+    document.addEventListener('pointercancel', cancel);
+  };
+
+  return { onPointerDown };
+}
+
+function NativeAndroidConversationRow({
+  conversationId,
+  rowPad,
+  href,
+  avatarVisual,
+  rowMiddle,
+  displayTitle,
+  viewProfileLabel,
+  onOpenChat,
+  logTapDebug,
+}: {
+  conversationId: string;
+  rowPad: string;
+  href: string | null;
+  avatarVisual: ReactNode;
+  rowMiddle: ReactNode;
+  displayTitle: string;
+  viewProfileLabel: string;
+  onOpenChat: () => void;
+  logTapDebug: boolean;
+}) {
+  const router = useRouter();
+
+  const chatTap = useBoundedPointerTap(() => {
+    if (logTapDebug) {
+      console.info('[hc-conv-native-debug]', 'row bounded tap → open', conversationId);
+    }
+    onOpenChat();
+  });
+
+  const profileTap = useBoundedPointerTap(() => {
+    if (!href) return;
+    void router.push(href);
+  });
+
+  return (
+    <div
+      className={cn(
+        'conversation-row-native flex w-full touch-pan-y select-none items-stretch gap-2 border-b border-gray-100',
+        rowPad,
+        'sm:px-4'
+      )}
+    >
+      {href ? (
+        <div
+          className="hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 touch-pan-y cursor-pointer items-center justify-center rounded-full"
+          role="button"
+          tabIndex={0}
+          aria-label={viewProfileLabel}
+          onPointerDown={profileTap.onPointerDown}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              void router.push(href);
+            }
+          }}
+        >
+          <span className="relative inline-flex">{avatarVisual}</span>
+        </div>
+      ) : (
+        <div
+          className="flex min-h-[48px] min-w-[48px] shrink-0 touch-pan-y items-center justify-center"
+          aria-hidden
+        >
+          {avatarVisual}
+        </div>
+      )}
+      <div
+        className="flex min-h-[48px] min-w-0 flex-1 touch-pan-y flex-col justify-center"
+        role="button"
+        tabIndex={0}
+        aria-label={displayTitle}
+        onPointerDown={chatTap.onPointerDown}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpenChat();
+          }
+        }}
+      >
+        {rowMiddle}
+      </div>
+    </div>
+  );
+}
+
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -104,8 +255,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const nativeAndroidListBodyScroll = Boolean(
     nativeSingleScrollPort && isNativeAndroid()
   );
-  /** Android: geen full-row click — openen via chevron + profiel via avatar. */
-  const androidListNoFullRowClick = Boolean(nativeSingleScrollPort && isNativeAndroid());
+  /** Android native list: volle rij + bounded pointer-tap (geen chevron). */
+  const nativeAndroidConversationRows = Boolean(
+    nativeSingleScrollPort && isNativeAndroid()
+  );
   const { data: session, status: sessionStatus } = useSession();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
 
@@ -795,10 +948,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
   };
 
-  const logNativeConvRowClick =
-    !androidListNoFullRowClick &&
-    nativeMounted &&
-    isNativeAndroid() &&
+  const logNativeConvRowBoundedTap =
+    nativeAndroidConversationRows &&
     (process.env.NODE_ENV !== 'production' ||
       process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true');
 
@@ -871,47 +1022,22 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         </div>
       );
 
-      if (androidListNoFullRowClick) {
+      if (nativeAndroidConversationRows) {
         return (
-          <div
+          <NativeAndroidConversationRow
             key={conversation.id}
-            className={cn(
-              'conversation-row-native flex select-none items-stretch gap-1 border-b border-gray-100 sm:gap-2',
-              rowPad,
-              'sm:px-4'
-            )}
-          >
-            {href ? (
-              <button
-                type="button"
-                className="avatar-button hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 text-left"
-                aria-label={t('messages.viewProfile', { name: displayTitle(conversation) })}
-                onClick={() => {
-                  void router.push(href);
-                }}
-              >
-                <span className="relative inline-flex">{avatarVisual(conversation)}</span>
-              </button>
-            ) : (
-              <div
-                className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
-                aria-hidden
-              >
-                {avatarVisual(conversation)}
-              </div>
-            )}
-            {rowMiddle}
-            <button
-              type="button"
-              className="open-chat-button flex min-h-[48px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border-0 bg-transparent px-1 text-gray-500 hover:bg-gray-100 active:bg-gray-200"
-              aria-label={t('messages.openConversationAria')}
-              onClick={() => {
-                openConversation(conversation);
-              }}
-            >
-              <ChevronRight className="h-6 w-6 shrink-0" aria-hidden />
-            </button>
-          </div>
+            conversationId={conversation.id}
+            rowPad={rowPad}
+            href={href}
+            avatarVisual={avatarVisual(conversation)}
+            rowMiddle={rowMiddle}
+            displayTitle={displayTitle(conversation)}
+            viewProfileLabel={t('messages.viewProfile', {
+              name: displayTitle(conversation),
+            })}
+            onOpenChat={() => openConversation(conversation)}
+            logTapDebug={logNativeConvRowBoundedTap}
+          />
         );
       }
 
@@ -919,12 +1045,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         <div
           key={conversation.id}
           className={`conversation-row flex cursor-pointer select-none items-stretch gap-2 border-b border-gray-100 transition-colors hover:bg-gray-50 active:bg-gray-100 ${rowPad} sm:px-4`}
-          onClick={() => {
-            if (logNativeConvRowClick) {
-              console.info('[hc-conv-native-debug]', 'row click', conversation.id);
-            }
-            openConversation(conversation);
-          }}
+          onClick={() => openConversation(conversation)}
         >
           {href ? (
             <div

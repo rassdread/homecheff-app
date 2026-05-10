@@ -44,19 +44,40 @@ export function getSaleItemHref(item: FeedClassifiable): string {
 }
 
 /**
- * Content zonder verkoopprijs: sluit aan bij API-inspiratie (CHEFF/GROWN/DESIGNER),
- * met `/product/[slug]` voor productregels (ownerId) en HOMECHEFF/legacy listing.
+ * Content zonder verkoopprijs:
+ * - `type: dish` → id is prisma.Dish → `/recipe` | `/garden` | `/design` (nooit `/product` — dat triggert fetch die faalt → redirect naar `/`).
+ * - `type: product` → id is prisma.Product → `/product/[slug]`.
+ * - Zonder type (legacy feed): route op categorie waar mogelijk; anders product-URL als owner bekend.
  */
 export function getInspirationFeedItemHref(item: FeedClassifiable): string {
   const id = item.id;
-  if (item.ownerId != null && String(item.ownerId).trim() !== "") {
-    return productHrefFromFeedItem(item);
+  if (!id || !String(id).trim()) {
+    return "/inspiratie";
   }
   const cat = (item.category || "").toUpperCase();
+  const kind = (item.type || "").toLowerCase();
+
+  if (kind === "dish") {
+    if (cat === "GROWN") return `/garden/${id}`;
+    if (cat === "DESIGNER") return `/design/${id}`;
+    return `/recipe/${id}`;
+  }
+
+  if (kind === "recipe" || item.isRecipe) {
+    return `/recipe/${id}`;
+  }
+
+  if (kind === "product") {
+    return productHrefFromFeedItem(item);
+  }
+
+  // Legacy payloads zonder `type`: verticale categorieën gaan naar Dish-routes (feed publishedDishes / profiel).
   if (cat === "GROWN") return `/garden/${id}`;
   if (cat === "DESIGNER") return `/design/${id}`;
-  if (item.type === "recipe" || item.isRecipe || cat === "CHEFF") {
-    return `/recipe/${id}`;
+  if (cat === "CHEFF") return `/recipe/${id}`;
+
+  if (item.ownerId != null && String(item.ownerId).trim() !== "") {
+    return productHrefFromFeedItem(item);
   }
   if (cat === "HOMECHEFF" || !cat) {
     return productHrefFromFeedItem(item);

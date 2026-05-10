@@ -16,6 +16,8 @@ import {
   type CreateFlowVertical,
 } from '@/lib/createFlowIntent';
 import { createFlowDebug } from '@/lib/create-flow-debug';
+import { resetCreateFlowUiState } from '@/lib/reset-create-flow-ui';
+import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
@@ -1048,6 +1050,7 @@ export default function BottomNavigation() {
   /** Alleen sheet sluiten; bewaart quick-add state + sessionStorage (concept/foto) voor hervatten. */
   const softDismissQuickAddMenu = useCallback(() => {
     setShowQuickAddMenu(false);
+    resetCreateFlowUiState({ keepDraft: true });
   }, []);
 
   const closeQuickAddMenu = () => {
@@ -1063,6 +1066,7 @@ export default function BottomNavigation() {
     sessionStorage.removeItem('quickAddShouldGoToLocation');
     sessionStorage.removeItem('quickAddStep');
     // Note: We don't remove quickAddPhoto here as it might be needed for form navigation
+    resetCreateFlowUiState({ keepDraft: true });
   };
 
   const goBackInQuickAdd = () => {
@@ -1086,6 +1090,35 @@ export default function BottomNavigation() {
       closeQuickAddMenu();
     }
   };
+
+  useEffect(() => {
+    if (!showQuickAddMenu) return;
+    return pushAndroidBackHandler(() => {
+      if (quickAddStep === "category" || quickAddStep === "location") {
+        pendingAutoCategoryRef.current = null;
+        pendingAutoLocationRef.current = null;
+        setQuickAddStep("photoSource");
+        sessionStorage.setItem("quickAddStep", "photoSource");
+        setCapturedPhoto(null);
+        sessionStorage.removeItem("quickAddPhoto");
+        sessionStorage.removeItem("quickAddShouldGoToCategory");
+        sessionStorage.removeItem("quickAddShouldGoToLocation");
+        return true;
+      }
+      if (quickAddStep === "photoSource") {
+        setQuickAddStep("platform");
+        sessionStorage.setItem("quickAddStep", "platform");
+        setSelectedPlatform(null);
+        sessionStorage.removeItem("quickAddPlatform");
+        return true;
+      }
+      if (quickAddStep === "platform") {
+        closeQuickAddMenu();
+        return true;
+      }
+      return true;
+    });
+  }, [showQuickAddMenu, quickAddStep]);
 
   // Hide navigation on certain pages
   if (shouldHide) return null;

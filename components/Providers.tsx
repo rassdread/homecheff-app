@@ -9,6 +9,7 @@ import NativePushPermissionOnboarding from '@/components/native/NativePushPermis
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
+import AndroidCreateFlowBackBridge from '@/components/native/AndroidCreateFlowBackBridge';
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
 import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 import AppUpdateGate from '@/components/app/AppUpdateGate';
@@ -33,6 +34,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <NativeAppUxFoundation />
       </Suspense>
+      <AndroidCreateFlowBackBridge />
       <Suspense fallback={null}>
         <AppResumeCoordinator />
       </Suspense>

@@ -1,13 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Plus, Edit3, Trash2, Grid, List, Palette, ShoppingCart, Camera } from "lucide-react";
 import DesignPhotoUpload from "./DesignPhotoUpload";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
+import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
+import {
+  clearDraft,
+  hasDraft as hasSessionCreateDraft,
+  loadDraft,
+  saveDraft,
+  type CreateFlowDraftIntent,
+} from "@/lib/create-flow-drafts";
+import { createFlowDebug } from "@/lib/create-flow-debug";
+import { resetCreateFlowUiState } from "@/lib/reset-create-flow-ui";
+import { pushAndroidBackHandler } from "@/lib/native/androidCreateFlowBack";
 
 type DesignPhoto = {
   id: string;
@@ -97,51 +109,45 @@ export default function DesignManager({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
-  // Laad opgeslagen form data uit localStorage bij initialisatie
-  const getInitialFormData = (): DesignFormData => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('designFormDraft');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          return parsed;
-        } catch (e) {
-          console.error('Error parsing saved design draft:', e);
-        }
-      }
-    }
-    return {
-      title: '',
-      description: '',
-      materials: [''],
-      dimensions: '',
-      category: '',
-      subcategory: '',
-      tags: [],
-      notes: '',
-      photos: [],
-      video: null
-    };
-  };
+  const { data: session } = useSession();
+  const draftIntent: CreateFlowDraftIntent = useMemo(
+    () => ({
+      userId: (session?.user as { id?: string } | undefined)?.id ?? null,
+      vertical: "DESIGNER",
+      mode: "inspiratie",
+    }),
+    [session?.user]
+  );
+  const prevShowFormRef = useRef(false);
+  const draftAppliedForSessionRef = useRef(false);
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [formData, setFormData] = useState<DesignFormData>(getInitialFormData());
-  const [hasDraft, setHasDraft] = useState(false);
+  const [formData, setFormData] = useState<DesignFormData>({
+    title: "",
+    description: "",
+    materials: [""],
+    dimensions: "",
+    category: "",
+    subcategory: "",
+    tags: [],
+    notes: "",
+    photos: [],
+    video: null,
+  });
 
-  // Check for draft on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const draft = localStorage.getItem('designFormDraft');
-      setHasDraft(!!draft);
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("designFormDraft");
+      if (!raw) return;
+      if (hasSessionCreateDraft(draftIntent)) return;
+      const parsed = JSON.parse(raw) as DesignFormData;
+      saveDraft(draftIntent, "design-inspiratie", parsed);
+      localStorage.removeItem("designFormDraft");
+    } catch {
+      /* ignore */
     }
-  }, []);
-
-  // Auto-save form data to localStorage
-  useEffect(() => {
-    if (showForm && (formData.title || formData.description || formData.photos.length > 0)) {
-      localStorage.setItem('designFormDraft', JSON.stringify(formData));
-      setHasDraft(true);
-    }
-  }, [formData, showForm]);
+  }, [draftIntent]);
 
   // Waarschuw bij verlaten pagina met niet-opgeslagen data
   useEffect(() => {
@@ -183,6 +189,31 @@ export default function DesignManager({
     setShowForm,
     setFormData
   });
+
+  useEffect(() => {
+    if (!showForm || editingDesign) return;
+    if (draftAppliedForSessionRef.current) return;
+    draftAppliedForSessionRef.current = true;
+    const loaded = loadDraft<DesignFormData>(draftIntent);
+    if (!loaded?.data) return;
+    setFormData(loaded.data);
+  }, [showForm, editingDesign, draftIntent]);
+
+  useEffect(() => {
+    if (prevShowFormRef.current && !showForm) {
+      resetCreateFlowUiState({ keepDraft: true });
+    }
+    if (!showForm) {
+      draftAppliedForSessionRef.current = false;
+    }
+    prevShowFormRef.current = showForm;
+  }, [showForm]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    createFlowDebug("overlay-mounted", { surface: "design-form" });
+    return () => createFlowDebug("overlay-unmounted", { surface: "design-form" });
+  }, [showForm]);
 
   // Auto-open form if autoOpenForm prop is set
   useEffect(() => {
@@ -459,10 +490,8 @@ export default function DesignManager({
       if (response.ok) {
         const result = await response.json();
         await hcpRewardUi?.refetchGamification();
-        // Clear localStorage draft
-        localStorage.removeItem('designFormDraft');
-        setHasDraft(false);
-        
+        clearDraft(draftIntent);
+
         // Reset form
         const emptyForm = {
           title: '',
@@ -480,6 +509,7 @@ export default function DesignManager({
         setShowForm(false);
         setEditingDesign(null);
         setMessage({ type: 'success', text: isEditing ? '✅ Design bijgewerkt!' : '✅ Design opgeslagen!' });
+        resetCreateFlowUiState({ keepDraft: false });
         await loadDesigns();
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -600,15 +630,54 @@ export default function DesignManager({
     );
   };
 
+  const persistDesignDraftNow = () => {
+    if (!isDesignFormDirty()) return;
+    saveDraft(draftIntent, "design-inspiratie", formData);
+    createFlowDebug("save-draft", { formType: "design-inspiratie", immediate: true });
+  };
+
   const requestDesignFormClose = (mode: "back" | "close") => {
+    createFlowDebug(mode === "back" ? "back-click" : "close-click", {
+      dirty: isDesignFormDirty(),
+      surface: "design",
+    });
     if (!isDesignFormDirty()) {
       resetDesignFormState();
       setShowForm(false);
+      resetCreateFlowUiState({ keepDraft: false });
       if (mode === "back") router.back();
       return;
     }
     setDraftClosePrompt({ mode });
   };
+
+  useEffect(() => {
+    if (!showForm || editingDesign) return;
+    if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    draftSaveTimerRef.current = window.setTimeout(() => {
+      if (!isDesignFormDirty()) return;
+      persistDesignDraftNow();
+    }, 450);
+    return () => {
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    };
+  }, [formData, showForm, editingDesign, draftIntent]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    return pushAndroidBackHandler(() => {
+      if (draftClosePrompt) {
+        setDraftClosePrompt(null);
+        createFlowDebug("blocked close reason", {
+          reason: "android-back-dismiss-draft-dialog",
+          surface: "design",
+        });
+        return true;
+      }
+      requestDesignFormClose("back");
+      return true;
+    });
+  }, [showForm, draftClosePrompt]);
 
   if (loading) {
     return (
@@ -636,13 +705,13 @@ export default function DesignManager({
         </div>
         {!isPublic && (
           <div className="flex gap-2">
-            {hasDraft && !suppressPrimaryCreate && (
+            {hasSessionCreateDraft(draftIntent) && !suppressPrimaryCreate && (
               <button
                 type="button"
                 onClick={() => {
-                  const draft = localStorage.getItem('designFormDraft');
-                  if (draft) {
-                    setFormData(JSON.parse(draft));
+                  const loaded = loadDraft<DesignFormData>(draftIntent);
+                  if (loaded?.data) {
+                    setFormData(loaded.data);
                     setShowForm(true);
                     setMessage({ type: 'success', text: '📝 Draft hersteld!' });
                   }
@@ -739,7 +808,7 @@ export default function DesignManager({
 
                 <div className="p-4 sm:p-6 space-y-6 pb-8">
               {/* Auto-save indicator */}
-              {showForm && hasDraft && (
+              {showForm && hasSessionCreateDraft(draftIntent) && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 text-sm text-blue-800">
                     <span className="text-lg">💾</span>
@@ -958,14 +1027,18 @@ export default function DesignManager({
           onSaveAndClose={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            persistDesignDraftNow();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: true });
             if (mode === "back") router.back();
           }}
           onDiscard={() => {
             const mode = draftClosePrompt?.mode ?? "close";
             setDraftClosePrompt(null);
+            createFlowDebug("discard-draft", { formType: "design-inspiratie" });
             resetDesignFormState();
             setShowForm(false);
+            resetCreateFlowUiState({ keepDraft: false });
             if (mode === "back") router.back();
           }}
         />
