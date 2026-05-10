@@ -25,6 +25,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
+        registerPlugin(HomecheffApkInstallerPlugin.class);
         super.onCreate(savedInstanceState);
         ensureChatNotificationChannel();
         applyLightSystemChrome();

@@ -6,6 +6,10 @@ import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { isNativeAndroid } from '@/lib/native/capacitor';
 import { getCapacitorAppInfo } from '@/lib/native/getCapacitorAppInfo';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
+import {
+  downloadApkAndOpenInstaller,
+  type ApkInstallPhase,
+} from '@/lib/native/androidApkUpdateInstall';
 import { isSemverLessThan } from '@/lib/app-version-semver';
 import type { AppVersionApiResponse } from '@/lib/app-version-config';
 
@@ -20,6 +24,9 @@ export default function AppUpdateGate() {
   const [mode, setMode] = useState<GateMode>('idle');
   const [payload, setPayload] = useState<AppVersionApiResponse | null>(null);
   const [webToast, setWebToast] = useState(false);
+  const [installPhase, setInstallPhase] = useState<ApkInstallPhase>('idle');
+  const [installPct, setInstallPct] = useState<number | null>(null);
+  const [installError, setInstallError] = useState<string | null>(null);
   const payloadRef = useRef<AppVersionApiResponse | null>(null);
   payloadRef.current = payload;
 
@@ -97,15 +104,43 @@ export default function AppUpdateGate() {
     };
   }, [nativeMounted, runSoftWebRefresh]);
 
-  const onUpdateNow = useCallback(async () => {
-    if (typeof window === 'undefined') return;
+  const resolveApkUrl = useCallback((): string => {
+    if (typeof window === 'undefined') return '';
     const origin = window.location.origin;
     let apk = payload?.apkUrl?.trim() ?? '';
     if (apk.startsWith('/')) apk = `${origin}${apk}`;
-    const target =
-      apk && /^https?:\/\//i.test(apk) ? apk : `${origin}/app`;
-    await openExternalUrl(target);
+    return apk && /^https?:\/\//i.test(apk) ? apk : `${origin}/app`;
   }, [payload?.apkUrl]);
+
+  const onUpdateNow = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    const origin = window.location.origin;
+    const raw = (payload?.apkUrl ?? '').trim();
+    const resolvedApk = raw.startsWith('/') ? `${origin}${raw}` : raw;
+    const browserTarget = resolveApkUrl();
+    const useNativeInstall = isNativeAndroid() && /^https:\/\//i.test(resolvedApk);
+
+    if (useNativeInstall) {
+      setInstallError(null);
+      setInstallPhase('downloading');
+      const result = await downloadApkAndOpenInstaller(resolvedApk, (phase, pct) => {
+        setInstallPhase(phase);
+        setInstallPct(phase === 'downloading' && pct != null ? pct : null);
+      });
+      if (!result.ok) {
+        setInstallError(result.message);
+        setInstallPhase('error');
+        if (result.fallbackToBrowser) {
+          await openExternalUrl(resolvedApk);
+        }
+        return;
+      }
+      setInstallPhase('idle');
+      return;
+    }
+
+    await openExternalUrl(browserTarget);
+  }, [payload?.apkUrl, resolveApkUrl]);
 
   const onLater = useCallback(() => {
     try {
@@ -162,11 +197,51 @@ export default function AppUpdateGate() {
                 </ul>
               ) : null}
 
+              {installPhase !== 'idle' && installPhase !== 'done' && installPhase !== 'error' ? (
+                <p className="mt-4 text-center text-sm font-medium text-emerald-800" role="status">
+                  {installPhase === 'downloading'
+                    ? installPct != null
+                      ? `Downloaden… ${installPct}%`
+                      : 'Downloaden…'
+                    : installPhase === 'preparing'
+                      ? 'Installatie voorbereiden…'
+                      : installPhase === 'opening'
+                        ? 'Open Android installatie…'
+                        : null}
+                </p>
+              ) : null}
+
+              {installPhase === 'error' && installError ? (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
+                  <p className="font-medium">Installatie kon niet automatisch openen.</p>
+                  <p className="mt-1 text-amber-900/90">
+                    We hebben de download in je browser geopend. Open daarna je Downloads en tik op het
+                    APK-bestand, of probeer opnieuw.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInstallPhase('idle');
+                      setInstallPct(null);
+                      setInstallError(null);
+                    }}
+                    className="mt-2 text-left text-xs font-semibold text-emerald-800 underline touch-manipulation"
+                  >
+                    Opnieuw proberen
+                  </button>
+                </div>
+              ) : null}
+
               <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse sm:justify-end">
                 <button
                   type="button"
                   onClick={() => void onUpdateNow()}
-                  className="min-h-[48px] w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition active:scale-[0.99] sm:w-auto sm:min-w-[10rem] touch-manipulation"
+                  disabled={
+                    installPhase === 'downloading' ||
+                    installPhase === 'preparing' ||
+                    installPhase === 'opening'
+                  }
+                  className="min-h-[48px] w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition active:scale-[0.99] enabled:hover:bg-emerald-700 disabled:opacity-60 sm:w-auto sm:min-w-[10rem] touch-manipulation"
                 >
                   {mode === 'force' ? 'Update downloaden' : 'Nu updaten'}
                 </button>
