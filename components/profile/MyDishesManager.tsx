@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSafeFetch } from "@/hooks/useSafeFetch";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import ProductManagement from "./ProductManagement";
 import RecipeManager from "./RecipeManager";
 import RecipeViewer from "./RecipeViewer";
@@ -160,9 +160,21 @@ interface MyDishesManagerProps {
   showOnlyActive?: boolean;
   contentSubTab?: 'dorpsplein' | 'inspiratie';
   userSellerRoles?: string[];
+  /** Profiel met brede CTA onder Dorpsplein/Inspiratie: verberg dubbele “toevoegen”-knoppen in managers. */
+  hideCreateActions?: boolean;
 }
 
-export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic', userId, isPublic = false, role, showOnlyActive = false, contentSubTab = 'dorpsplein', userSellerRoles = [] }: MyDishesManagerProps) {
+export default function MyDishesManager({
+  onStatsUpdate,
+  activeRole = 'generic',
+  userId,
+  isPublic = false,
+  role,
+  showOnlyActive = false,
+  contentSubTab = 'dorpsplein',
+  userSellerRoles = [],
+  hideCreateActions = false,
+}: MyDishesManagerProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const safeFetch = useSafeFetch();
@@ -629,29 +641,49 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
                 activeRole === 'designer' ? 'DESIGNER' : 
                 null
               }
+              hideCreateActions={hideCreateActions}
             />
           ) : (
             // Inspiratie: show managers or items based on activeRole
             (() => {
-              // Hide add buttons when in overview mode with inspiratie sub-tab (we have a single "Toevoegen" button instead)
-              const shouldHideAddButton = contentSubTab === 'inspiratie' && role === 'overview';
-              
-              // For specific roles, show the appropriate manager with built-in add buttons
+              // For specific roles, show the appropriate manager (create CTAs komen uit ProfileClient)
               if (activeRole === 'chef' && (userSellerRoles.includes('chef') || activeRole === 'chef')) {
-                return <RecipeManager isActive={true} userId={userId} isPublic={isPublic} hideAddButton={shouldHideAddButton} />;
+                return (
+                  <RecipeManager
+                    isActive={true}
+                    userId={userId}
+                    isPublic={isPublic}
+                    hideCreateActions={hideCreateActions}
+                  />
+                );
               } else if (activeRole === 'garden' && (userSellerRoles.includes('garden') || activeRole === 'garden')) {
-                return <GardenManager isActive={true} userId={userId} isPublic={isPublic} hideAddButton={shouldHideAddButton} />;
+                return (
+                  <GardenManager
+                    isActive={true}
+                    userId={userId}
+                    isPublic={isPublic}
+                    hideCreateActions={hideCreateActions}
+                  />
+                );
               } else if (activeRole === 'designer' && (userSellerRoles.includes('designer') || activeRole === 'designer')) {
-                return <DesignManager isActive={true} userId={userId} isPublic={isPublic} hideAddButton={shouldHideAddButton} />;
+                return (
+                  <DesignManager
+                    isActive={true}
+                    userId={userId}
+                    isPublic={isPublic}
+                    hideCreateActions={hideCreateActions}
+                  />
+                );
               } else if (role === 'overview') {
                 // For overview tab with inspiratie sub-tab, show ALL inspiratie items (not just one manager)
                 // This shows all items: recepten, kweken, designs
                 return items.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
-                      <Plus className="w-full h-full" />
-                    </div>
-                    <p>Nog geen inspiratie items</p>
+                    <Sparkles className="mx-auto mb-4 h-12 w-12 text-gray-300" aria-hidden />
+                    <h3 className="text-lg font-medium text-gray-900">Nog geen inspiratie</h3>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Plaats inspiratie via de knop “Inspiratie plaatsen” hierboven.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -701,10 +733,11 @@ export default function MyDishesManager({ onStatsUpdate, activeRole = 'generic',
               // Fallback: show items without price (status PUBLISHED)
               return items.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
-                    <Plus className="w-full h-full" />
-                  </div>
-                  <p>Nog geen inspiratie items</p>
+                  <Sparkles className="mx-auto mb-4 h-12 w-12 text-gray-300" aria-hidden />
+                  <h3 className="text-lg font-medium text-gray-900">Nog geen inspiratie</h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Gebruik de actieknoppen bovenaan dit tabblad om te beginnen.
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

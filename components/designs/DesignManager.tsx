@@ -69,11 +69,20 @@ interface DesignManagerProps {
   isActive?: boolean;
   userId?: string;
   isPublic?: boolean;
-  hideAddButton?: boolean; // Hide the add button when used in overview mode
+  hideAddButton?: boolean;
+  hideCreateActions?: boolean;
   autoOpenForm?: boolean; // Automatically open form when component mounts
 }
 
-export default function DesignManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: DesignManagerProps) {
+export default function DesignManager({
+  isActive = true,
+  userId,
+  isPublic = false,
+  hideAddButton = false,
+  hideCreateActions = false,
+  autoOpenForm = false,
+}: DesignManagerProps) {
+  const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
   const { t, tOr } = useTranslation();
   const hcpRewardUi = useHcpRewardUi();
   const [designs, setDesigns] = useState<Design[]>([]);
@@ -580,8 +589,9 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
         </div>
         {!isPublic && (
           <div className="flex gap-2">
-            {hasDraft && (
+            {hasDraft && !suppressPrimaryCreate && (
               <button
+                type="button"
                 onClick={() => {
                   const draft = localStorage.getItem('designFormDraft');
                   if (draft) {
@@ -597,8 +607,9 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
                 <span className="hidden sm:inline">Herstel Draft</span>
               </button>
             )}
-            {!hideAddButton && (
+            {!suppressPrimaryCreate && (
               <button
+                type="button"
                 onClick={() => setShowForm(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
               >
@@ -932,11 +943,16 @@ export default function DesignManager({ isActive = true, userId, isPublic = fals
         <div className="text-center py-12">
           <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{tOr('design.noDesigns', 'No designs yet', 'Nog geen designs')}</h3>
-          <p className="text-gray-500 mb-4">{tOr('design.noDesignsHint', 'Start by adding your first creation', 'Begin met het toevoegen van je eerste creatie')}</p>
-          {!isPublic && (
+          <p className="text-gray-500">
+            {suppressPrimaryCreate
+              ? 'Voeg een studio-item toe via de knoppen “Studio-item op Dorpsplein zetten” of “Studio-inspiratie plaatsen” boven deze lijst.'
+              : tOr('design.noDesignsHint', 'Start by adding your first creation', 'Begin met het toevoegen van je eerste creatie')}
+          </p>
+          {!isPublic && !suppressPrimaryCreate && (
             <button
+              type="button"
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mx-auto"
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
               Eerste design toevoegen

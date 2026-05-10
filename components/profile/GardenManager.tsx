@@ -131,11 +131,20 @@ interface GardenManagerProps {
   isActive?: boolean;
   userId?: string;
   isPublic?: boolean;
-  hideAddButton?: boolean; // Hide the add button when used in overview mode
+  hideAddButton?: boolean;
+  hideCreateActions?: boolean;
   autoOpenForm?: boolean; // Automatically open form when component mounts
 }
 
-export default function GardenManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: GardenManagerProps) {
+export default function GardenManager({
+  isActive = true,
+  userId,
+  isPublic = false,
+  hideAddButton = false,
+  hideCreateActions = false,
+  autoOpenForm = false,
+}: GardenManagerProps) {
+  const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
   const hcpRewardUi = useHcpRewardUi();
   const { t } = useTranslation();
   const [projects, setProjects] = useState<GardenProject[]>([]);
@@ -689,8 +698,9 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
           </h3>
           <p className="text-sm text-gray-500">{t('garden.documentProjects')}</p>
         </div>
-        {!isPublic && !hideAddButton && (
+        {!isPublic && !suppressPrimaryCreate && (
           <button
+            type="button"
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
           >
@@ -1169,11 +1179,16 @@ export default function GardenManager({ isActive = true, userId, isPublic = fals
         <div className="text-center py-12">
           <Sprout className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('garden.noProjectsYet')}</h3>
-          <p className="text-gray-500 mb-4">{t('garden.startDocumenting')}</p>
-          {!isPublic && (
+          <p className="text-gray-500">
+            {suppressPrimaryCreate
+              ? 'Start een kweek via de knop “Tuin-inspiratie plaatsen” of “Tuinproduct op Dorpsplein zetten” boven deze lijst.'
+              : t('garden.startDocumenting')}
+          </p>
+          {!isPublic && !suppressPrimaryCreate && (
             <button
+              type="button"
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
               {t('garden.addFirstGarden')}

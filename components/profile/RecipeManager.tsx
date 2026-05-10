@@ -92,11 +92,20 @@ interface RecipeManagerProps {
   isActive?: boolean;
   userId?: string;
   isPublic?: boolean;
-  hideAddButton?: boolean; // Hide the add button when used in overview mode
+  hideAddButton?: boolean; // @deprecated gebruik hideCreateActions
+  hideCreateActions?: boolean;
   autoOpenForm?: boolean; // Automatically open form when component mounts
 }
 
-export default function RecipeManager({ isActive = true, userId, isPublic = false, hideAddButton = false, autoOpenForm = false }: RecipeManagerProps) {
+export default function RecipeManager({
+  isActive = true,
+  userId,
+  isPublic = false,
+  hideAddButton = false,
+  hideCreateActions = false,
+  autoOpenForm = false,
+}: RecipeManagerProps) {
+  const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
   const hcpRewardUi = useHcpRewardUi();
   const { t, getTranslationObject } = useTranslation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -853,8 +862,9 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
           <h3 className="text-lg font-semibold text-gray-900">{t('recipe.myRecipes')}</h3>
           <p className="text-sm text-gray-500">{t('recipe.myRecipesDesc')}</p>
         </div>
-        {!isPublic && !hideAddButton && (
+        {!isPublic && !suppressPrimaryCreate && (
           <button
+            type="button"
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
           >
@@ -1352,14 +1362,21 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
         <div className="text-center py-12">
           <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('recipe.noRecipes')}</h3>
-          <p className="text-gray-500 mb-4">{t('recipe.noRecipesDesc')}</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
-          >
-            <Plus className="w-4 h-4" />
-            {t('recipe.addFirstRecipe')}
-          </button>
+          <p className="text-gray-500">
+            {suppressPrimaryCreate
+              ? 'Voeg een recept toe via de knop “Recept / inspiratie plaatsen” boven deze lijst.'
+              : t('recipe.noRecipesDesc')}
+          </p>
+          {!suppressPrimaryCreate && (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="mt-4 flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
+            >
+              <Plus className="w-4 h-4" />
+              {t('recipe.addFirstRecipe')}
+            </button>
+          )}
         </div>
       ) : (
         <div className={viewMode === 'grid' 

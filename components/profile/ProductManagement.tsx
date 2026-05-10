@@ -29,9 +29,15 @@ type Product = {
 interface ProductManagementProps {
   onUpdate: () => void;
   categoryFilter?: 'CHEFF' | 'GROWN' | 'DESIGNER' | null;
+  /** Profiel-subtabs: geen tweede “product toevoegen”-knop naast de brede CTA boven de lijst. */
+  hideCreateActions?: boolean;
 }
 
-export default function ProductManagement({ onUpdate, categoryFilter = null }: ProductManagementProps) {
+export default function ProductManagement({
+  onUpdate,
+  categoryFilter = null,
+  hideCreateActions = false,
+}: ProductManagementProps) {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +154,7 @@ export default function ProductManagement({ onUpdate, categoryFilter = null }: P
           <p className="text-sm text-gray-500">Pas prijzen, voorraad en status aan</p>
         </div>
         <div className="flex items-center gap-4">
-          {categoryFilter && (
+          {categoryFilter && !hideCreateActions && (
             <a
               href={`/sell/new?category=${categoryFilter}`}
               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
@@ -171,7 +177,11 @@ export default function ProductManagement({ onUpdate, categoryFilter = null }: P
             <Package className="mx-auto h-12 w-12" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen producten</h3>
-          <p className="text-sm text-gray-500">Voeg je eerste product toe om te beginnen met verkopen!</p>
+          <p className="text-sm text-gray-500">
+            {hideCreateActions
+              ? 'Gebruik de knop hierboven om je eerste Dorpsplein-item toe te voegen.'
+              : 'Voeg je eerste product toe om te beginnen met verkopen!'}
+          </p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

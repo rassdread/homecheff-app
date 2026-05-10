@@ -15,6 +15,7 @@ import {
   mapVerticalToInspiratieLocation,
   type CreateFlowVertical,
 } from '@/lib/createFlowIntent';
+import { createFlowDebug } from '@/lib/create-flow-debug';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
@@ -325,6 +326,14 @@ export default function BottomNavigation() {
       }
     }
 
+    createFlowDebug('intent-received', {
+      mode: intent?.mode,
+      vertical: intent?.vertical,
+      allowedVerticals: intent?.allowedVerticals,
+      autoCategory: pendingAutoCategoryRef.current,
+      autoLocation: pendingAutoLocationRef.current,
+    });
+
     const sellNewSuffix = buildSellNewSearchFromIntent(intent);
 
     if (shouldHide) {
@@ -542,6 +551,15 @@ export default function BottomNavigation() {
       const verifyStep = sessionStorage.getItem('quickAddStep');
       console.log('Verification - Photo stored:', verifyPhoto ? `Yes (${verifyPhoto.length} chars)` : 'No');
       console.log('Verification - Step stored:', verifyStep || 'No');
+
+      createFlowDebug('photo-selected', {
+        targetStep,
+        platform: platformToUse,
+        isVideo,
+        pendingAutoCategory: pendingAutoCategoryRef.current,
+        pendingAutoLocation: pendingAutoLocationRef.current,
+        allowedVerticals: intentAllowedVerticalsRef.current,
+      });
       
     } catch (error) {
       console.error('Error saving photo:', error);
@@ -773,6 +791,11 @@ export default function BottomNavigation() {
       isVideo,
       sessionStorageKeysBefore: Object.keys(sessionStorage),
     });
+    createFlowDebug('form-open-dorpsplein', {
+      category,
+      targetUrl,
+      hasPhoto: !!compressedPhotoUrl,
+    });
 
     // Sluit de quick-add modal eerst (state-only). Bewust GEEN
     // `closeQuickAddMenu()` aanroepen: die wist `quickAddPhoto` niet maar zou wel
@@ -880,6 +903,12 @@ export default function BottomNavigation() {
       hasPhoto: !!finalPhotoUrl,
       isVideo,
     });
+    createFlowDebug('form-open-inspiratie', {
+      location,
+      internalLocation,
+      targetUrl,
+      hasPhoto: !!finalPhotoUrl,
+    });
 
     setShowQuickAddMenu(false);
     setQuickAddStep('platform');
@@ -908,11 +937,23 @@ export default function BottomNavigation() {
     if (quickAddStep === 'category') {
       const cat = pendingAutoCategoryRef.current;
       if (!cat) return;
-      if (!userRoles.includes(roleForCategory(cat))) {
+      if (session?.user && userRoles.length === 0) {
+        createFlowDebug('auto-category-wait-roles', { cat });
+        return;
+      }
+      const neededRole = roleForCategory(cat);
+      if (!userRoles.includes(neededRole)) {
         pendingAutoCategoryRef.current = null;
+        createFlowDebug('auto-category-blocked', {
+          cat,
+          neededRole,
+          userRoles,
+          blockedReason: 'role-mismatch',
+        });
         return;
       }
       pendingAutoCategoryRef.current = null;
+      createFlowDebug('auto-category-fire', { cat });
       void handleCategorySelect(cat);
       return;
     }
@@ -921,11 +962,23 @@ export default function BottomNavigation() {
       const loc = pendingAutoLocationRef.current;
       if (!loc) return;
       if (loc !== 'recepten' && loc !== 'kweken' && loc !== 'designs') return;
-      if (!userRoles.includes(roleForLocation(loc))) {
+      if (session?.user && userRoles.length === 0) {
+        createFlowDebug('auto-location-wait-roles', { loc });
+        return;
+      }
+      const neededRole = roleForLocation(loc);
+      if (!userRoles.includes(neededRole)) {
         pendingAutoLocationRef.current = null;
+        createFlowDebug('auto-location-blocked', {
+          loc,
+          neededRole,
+          userRoles,
+          blockedReason: 'role-mismatch',
+        });
         return;
       }
       pendingAutoLocationRef.current = null;
+      createFlowDebug('auto-location-fire', { loc });
       void handleLocationSelect(loc);
     }
   }, [
@@ -934,6 +987,7 @@ export default function BottomNavigation() {
     userRolesLoaded,
     userRoles,
     capturedPhoto,
+    session?.user,
     handleCategorySelect,
     handleLocationSelect,
   ]);

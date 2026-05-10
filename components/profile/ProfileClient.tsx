@@ -1122,6 +1122,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                             showOnlyActive={false}
                             contentSubTab={contentSubTab}
                             userSellerRoles={user.sellerRoles || []}
+                            hideCreateActions
                           />
                         </Suspense>
                       </div>
@@ -1486,6 +1487,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         showOnlyActive={false}
                         contentSubTab={contentSubTab}
                         userSellerRoles={user.sellerRoles || []}
+                        hideCreateActions
                       />
                     </Suspense>
                   </div>
