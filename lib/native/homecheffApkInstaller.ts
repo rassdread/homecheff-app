@@ -1,7 +1,14 @@
 import { registerPlugin } from '@capacitor/core';
 
+export type OpenPackageInstallerOptions = {
+  /** Prefer this: pad t.o.v. app cache (matcht FileProvider + downloadFile CACHE). */
+  cacheRelativePath?: string;
+  /** Legacy: Capacitor Filesystem URI; file:// wordt in native omgezet naar FileProvider. */
+  uri?: string;
+};
+
 export interface HomecheffApkInstallerPlugin {
-  openPackageInstaller(options: { uri: string }): Promise<void>;
+  openPackageInstaller(options: OpenPackageInstallerOptions): Promise<void>;
   openManageUnknownAppSources(): Promise<void>;
   openSystemDownloads(): Promise<void>;
 }

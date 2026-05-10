@@ -6,6 +6,10 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="application/vnd.android.package-archive" />
         </intent>
+        <!-- Package visibility (Android 11+): resolveActivity voor APK-installer op OEM-toestellen -->
+        <package android:name="com.google.android.packageinstaller" />
+        <package android:name="com.samsung.android.packageinstaller" />
+        <package android:name="com.android.packageinstaller" />
     </queries>
 
     <application

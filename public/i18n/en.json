@@ -38,6 +38,8 @@
     "stepDownload": "Downloading the update…",
     "stepPrepare": "Preparing installation…",
     "stepAndroidOpen": "Android is opening the installer…",
+    "openingInstallerStatus": "Opening installer…",
+    "btnOpenCachedApk": "Open downloaded APK",
     "stepTapInstall": "Tap Install on the Android screen.",
     "stepReopen": "Then open HomeCheff again — your data stays safe.",
     "reassuranceData": "Your account and data are kept. This only replaces the app on your phone.",

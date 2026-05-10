@@ -8,7 +8,10 @@ import {
 } from '@/lib/native/android-beta-install-state';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 
-const CACHE_APK_PATH = 'updates/homecheff-beta.apk';
+/** Relatief pad onder {@link Directory.Cache}; moet matchen met FileProvider `cache-path`. */
+export const ANDROID_BETA_CACHE_APK_RELATIVE_PATH = 'updates/homecheff-beta.apk';
+
+const CACHE_APK_PATH = ANDROID_BETA_CACHE_APK_RELATIVE_PATH;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 const LS_LAST_FAILURE = 'hc_apk_last_native_failure';
@@ -58,6 +61,8 @@ export type ApkInstallResult =
       kind: ApkInstallFailureKind;
       /** Chain of what failed (for support / debug UI). */
       fallbackReason: string;
+      /** Installer faalde ná download; APK kan nog in cache staan (retry zonder opnieuw te downloaden). */
+      cachedApkMayExist?: boolean;
     };
 
 function dispatchInstallPersistChanged(): void {
@@ -206,51 +211,53 @@ export async function downloadApkAndOpenInstaller(
     logApk('download-success', { path: CACHE_APK_PATH });
 
     onPhase('preparing');
-    let uriResult: { uri: string };
+    let probeUri: string | undefined;
     try {
-      uriResult = await Filesystem.getUri({
+      const u = await Filesystem.getUri({
         directory: Directory.Cache,
         path: CACHE_APK_PATH,
       });
-    } catch (uriErr) {
-      const msg = capErrorDetail(uriErr);
-      const kind = classifyApkInstallError(uriErr);
-      const reason = `getUri_failed:${msg}`;
-      storeFailure({ stage: 'getUri', reason, message: msg });
-      logApk('getUri-fail', { message: msg });
-      onPhase('error');
-      await deleteCachedApkBestEffort();
-      return {
-        ok: false,
-        fallbackToBrowser: true,
-        message: msg,
-        kind,
-        fallbackReason: reason,
-      };
+      probeUri = u.uri;
+      logApk('getUri-probe', {
+        uriScheme: probeUri?.split(':')[0] ?? '(empty)',
+        uriLen: probeUri?.length ?? 0,
+        uriSample: probeUri?.slice(0, 120),
+      });
+    } catch (probeErr) {
+      logApk('getUri-probe-skip', { detail: capErrorDetail(probeErr) });
     }
-
-    logApk('getUri-ok', {
-      uriScheme: uriResult.uri?.split(':')[0] ?? '(empty)',
-      uriLen: uriResult.uri?.length ?? 0,
-    });
 
     onPhase('opening');
     try {
-      await HomecheffApkInstaller.openPackageInstaller({ uri: uriResult.uri });
+      if (shouldLogAppUpdateDebug() || process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') {
+        console.info('[apk-installer]', 'ts_invoke', {
+          cacheRelativePath: CACHE_APK_PATH,
+          probeUriScheme: probeUri?.split(':')[0],
+        });
+      }
+      await HomecheffApkInstaller.openPackageInstaller({
+        cacheRelativePath: CACHE_APK_PATH,
+      });
     } catch (installerErr) {
       const msg = capErrorDetail(installerErr);
       const kind = classifyApkInstallError(installerErr);
       const reason = `installer_plugin:${msg}`;
-      storeFailure({ stage: 'openPackageInstaller', reason, message: msg });
+      storeFailure({
+        stage: 'openPackageInstaller',
+        reason,
+        message: msg,
+        cacheRelativePath: CACHE_APK_PATH,
+        probeUri: probeUri?.slice(0, 200),
+      });
       logApk('installer-fail', { message: msg, kind });
       onPhase('error');
-      await deleteCachedApkBestEffort();
       return {
         ok: false,
         fallbackToBrowser: kind !== 'unknown_sources',
         message: msg,
         kind,
         fallbackReason: reason,
+        cachedApkMayExist: true,
       };
     }
 
@@ -287,5 +294,61 @@ export async function downloadApkAndOpenInstaller(
         /* ignore */
       }
     }
+  }
+}
+
+/**
+ * Opent alleen de installer voor de reeds gedownloade APK in cache (geen netwerk).
+ * Gebruik na een mislukte install-stap zolang het bestand nog bestaat.
+ */
+export async function openCachedApkInstallerOnly(
+  targetVersion: string,
+  onPhase: (phase: ApkInstallPhase, progressPct?: number) => void,
+): Promise<ApkInstallResult> {
+  const ver = targetVersion.trim();
+  if (ver) {
+    writeAndroidBetaInstallStarted(ver);
+    dispatchInstallPersistChanged();
+  }
+
+  logApk('retry-cached-start', { cachePath: CACHE_APK_PATH });
+
+  try {
+    onPhase('preparing');
+    onPhase('opening');
+    if (shouldLogAppUpdateDebug() || process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') {
+      console.info('[apk-installer]', 'ts_retry_cached', { cacheRelativePath: CACHE_APK_PATH });
+    }
+    await HomecheffApkInstaller.openPackageInstaller({
+      cacheRelativePath: CACHE_APK_PATH,
+    });
+    writeAndroidBetaInstallerOpened();
+    dispatchInstallPersistChanged();
+    onPhase('done');
+    logApk('retry-cached-complete', { installerOpened: true });
+    try {
+      sessionStorage.removeItem(LS_LAST_FAILURE);
+    } catch {
+      /* ignore */
+    }
+    return { ok: true };
+  } catch (e: unknown) {
+    const kind = classifyApkInstallError(e);
+    const msg = capErrorDetail(e);
+    const reason = `retry_cached_installer:${msg}`;
+    storeFailure({ stage: 'openCachedApk', reason, message: msg });
+    logApk('retry-cached-fail', { kind, message: msg });
+    onPhase('error');
+    const missing =
+      msg.toLowerCase().includes('apk_not_found') ||
+      msg.toLowerCase().includes('cached apk missing');
+    return {
+      ok: false,
+      fallbackToBrowser: kind !== 'unknown_sources',
+      message: msg,
+      kind,
+      fallbackReason: reason,
+      cachedApkMayExist: !missing,
+    };
   }
 }

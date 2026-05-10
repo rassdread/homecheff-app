@@ -38,6 +38,8 @@
     "stepDownload": "Update downloaden…",
     "stepPrepare": "Installatie voorbereiden…",
     "stepAndroidOpen": "Android opent nu het installatiescherm…",
+    "openingInstallerStatus": "Installatiescherm openen…",
+    "btnOpenCachedApk": "Gedownloade APK openen",
     "stepTapInstall": "Tik op Installeren in het scherm van Android.",
     "stepReopen": "Open daarna opnieuw HomeCheff — je gegevens blijven gewoon staan.",
     "reassuranceData": "Je account en gegevens blijven bewaard. Dit vervangt alleen de app op je telefoon.",

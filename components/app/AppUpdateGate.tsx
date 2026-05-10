@@ -6,6 +6,7 @@ import { isNativeAndroid } from '@/lib/native/capacitor';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
 import {
   downloadApkAndOpenInstaller,
+  openCachedApkInstallerOnly,
   type ApkInstallPhase,
   type ApkInstallFailureKind,
 } from '@/lib/native/androidApkUpdateInstall';
@@ -72,6 +73,7 @@ export default function AppUpdateGate() {
   const [failureKind, setFailureKind] = useState<ApkInstallFailureKind | null>(null);
   const [showPostGuide, setShowPostGuide] = useState(false);
   const [installFallbackReason, setInstallFallbackReason] = useState<string | null>(null);
+  const [installCachedApkAvailable, setInstallCachedApkAvailable] = useState(false);
   const nativeMounted = useIsNativeAppMounted();
 
   const runSoftWebRefresh = useCallback(
@@ -112,6 +114,7 @@ export default function AppUpdateGate() {
     setFailureKind(null);
     setShowPostGuide(false);
     setInstallFallbackReason(null);
+    setInstallCachedApkAvailable(false);
   }, []);
 
   const onUpdateNow = useCallback(async () => {
@@ -148,6 +151,7 @@ export default function AppUpdateGate() {
       setFailureKind(null);
       setShowPostGuide(false);
       setInstallFallbackReason(null);
+      setInstallCachedApkAvailable(false);
       setInstallPhase('downloading');
       const result = await downloadApkAndOpenInstaller(resolvedApk, targetVer, (phase, pct) => {
         setInstallPhase(phase);
@@ -158,6 +162,7 @@ export default function AppUpdateGate() {
         setFailureKind(result.kind);
         setInstallError(result.message);
         setInstallFallbackReason(result.fallbackReason ?? null);
+        setInstallCachedApkAvailable(Boolean(result.cachedApkMayExist));
         setInstallPhase('error');
         logFlow({
           stage: 'native-failed',
@@ -168,6 +173,7 @@ export default function AppUpdateGate() {
         return;
       }
       logFlow({ stage: 'native-ok' });
+      setInstallCachedApkAvailable(false);
       setInstallPhase('done');
       setShowPostGuide(true);
       return;
@@ -198,6 +204,32 @@ export default function AppUpdateGate() {
       /* OEM */
     }
   }, []);
+
+  const onOpenCachedApk = useCallback(async () => {
+    if (typeof window === 'undefined' || !payload) return;
+    const targetVer = (payload.latestApkVersion ?? '').trim();
+    setInstallError(null);
+    setFailureKind(null);
+    setInstallFallbackReason(null);
+    setShowPostGuide(false);
+    setInstallPhase('preparing');
+    const result = await openCachedApkInstallerOnly(targetVer, (phase, pct) => {
+      setInstallPhase(phase);
+      setInstallPct(phase === 'downloading' && pct != null ? pct : null);
+    });
+    syncInstallPersist();
+    if (!result.ok) {
+      setFailureKind(result.kind);
+      setInstallError(result.message);
+      setInstallFallbackReason(result.fallbackReason ?? null);
+      setInstallCachedApkAvailable(Boolean(result.cachedApkMayExist));
+      setInstallPhase('error');
+      return;
+    }
+    setInstallCachedApkAvailable(false);
+    setInstallPhase('done');
+    setShowPostGuide(true);
+  }, [payload, syncInstallPersist]);
 
   const openBrowserDownloadFallback = useCallback(async () => {
     if (!payload || typeof window === 'undefined') return;
@@ -392,6 +424,15 @@ export default function AppUpdateGate() {
                     </p>
                   ) : null}
                   <div className="flex flex-col gap-2">
+                    {installCachedApkAvailable ? (
+                      <button
+                        type="button"
+                        onClick={() => void onOpenCachedApk()}
+                        className="w-full rounded-xl border border-emerald-700 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-emerald-100 touch-manipulation"
+                      >
+                        {t('appUpdateGate.btnOpenCachedApk')}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => void openSystemDownloads()}
