@@ -1,8 +1,8 @@
 {
   "enabled": true,
-  "latestApkVersion": "1.0.4",
-  "minRequiredApkVersion": "1.0.4",
-  "versionCode": 6,
+  "latestApkVersion": "1.0.5",
+  "minRequiredApkVersion": "1.0.5",
+  "versionCode": 7,
   "forceUpdate": true,
   "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
   "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
@@ -10,8 +10,7 @@
   "updateTitleForced": "Update vereist",
   "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": [
-    "Fix chats",
-    "Improve notifications",
-    "Better Android updates"
+    "Fix Android chat scrolling",
+    "Improve update flow"
   ]
 }
