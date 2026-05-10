@@ -560,14 +560,15 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const listShellPad = nativeMounted ? 'p-3' : 'p-4';
 
-  /** Ruimte onder laatste rij (safe area); root-hoogte trekt bottom-nav al af via globals. */
-  const listScrollPadBottom = 'pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))]';
-  /** Native scrollport (iOS): laatste rij boven bottom-nav. */
-  const listScrollPadNative = 'pb-[calc(env(safe-area-inset-bottom,0px)+6rem)]';
-  /** Android native: body scroll — extra ruimte onder lijst t.o.v. bottom nav. */
-  /** Match bottom-nav chrome (~5.75rem) + safe-area; voorkomt dubbele “7rem + AppPageChrome” witruimte. */
+  /** Mobiel web: AppPageChrome reserveert al bottom-nav + safe-area — alleen kleine binnenmarge. */
+  const listScrollPadBottom =
+    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
+  /** Native iOS scrollport: nav zit buiten scrollhoogte (globals); geen dubbele “nav-hoogte”-padding. */
+  const listScrollPadNative =
+    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
+  /** Android native body-scroll: zelfde als web — outer chrome heeft al bottom-nav ruimte. */
   const listBodyScrollPadBottom =
-    'pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)]';
+    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
 
   const searchChrome = (
     <div
@@ -643,7 +644,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
             {searchChrome}
             <div
               className={cn(
-                'hc-conversations-list-scroll flex min-h-full flex-col space-y-2',
+                'hc-conversations-list-scroll flex flex-col space-y-2',
                 listShellPad,
                 listScrollPadNative
               )}
@@ -661,7 +662,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return (
       <div
         className={cn(
-          'flex min-h-0 flex-1 flex-col animate-pulse',
+          'flex min-h-0 flex-col animate-pulse',
+          'h-full flex-1 lg:h-full',
+          'max-lg:flex-none max-lg:h-auto',
           listShellPad,
           nativeMounted ? 'max-lg:overflow-hidden lg:overflow-hidden' : 'overflow-hidden'
         )}
@@ -669,7 +672,11 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       >
         <div
           ref={listScrollRef}
-          className="hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-scroll overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+          className={cn(
+            'hc-conversations-list-scroll min-h-0 touch-pan-y space-y-2 overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+            'lg:flex-1 lg:overflow-y-scroll',
+            'max-lg:flex-none max-lg:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))] max-lg:overflow-y-auto'
+          )}
         >
           {skeletonRows}
         </div>
@@ -973,7 +980,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         {searchChrome}
         <div
           className={cn(
-            'hc-conversations-list-scroll flex min-h-full flex-col',
+            'hc-conversations-list-scroll flex flex-col',
             listShellPad,
             listScrollPadNative
           )}
@@ -983,14 +990,21 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       </div>
     </div>
   ) : (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+    <div
+      className={cn(
+        'flex min-h-0 flex-col',
+        'h-full flex-1 lg:h-full',
+        'max-lg:flex-none max-lg:h-auto'
+      )}
+    >
       {searchChrome}
       <div
         ref={listScrollRef}
         data-hc-app-scroll="messages-list"
         className={cn(
-          'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y overflow-y-scroll overscroll-y-contain [-webkit-overflow-scrolling:touch]',
-          !nativeMounted && 'max-md:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))]',
+          'hc-conversations-list-scroll min-h-0 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+          'lg:flex-1 lg:overflow-y-scroll',
+          'max-lg:flex-none max-lg:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))] max-lg:overflow-y-auto',
           listScrollPadBottom
         )}
       >

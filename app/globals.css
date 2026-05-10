@@ -648,7 +648,7 @@ html.hc-native-capacitor .hc-messages-root > header {
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
     pointer-events: auto !important;
-    /* Lege ruimte onder rijen blijft scrollvlak (wit vult viewport) */
+    /* Scrollport-vlak blijft wit; rijen-hoogte volgt inhoud (geen min-h-full op de lijst). */
     background-color: #ffffff;
   }
 

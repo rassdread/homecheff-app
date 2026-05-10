@@ -208,7 +208,9 @@ function MessagesPageContent() {
             nativeMounted &&
               'hc-native-messages-list-column max-lg:min-h-0 max-lg:flex-1',
             androidListUsesPageScroll &&
-              'max-lg:flex-none max-lg:min-h-0 max-lg:overflow-visible max-lg:self-stretch'
+              'max-lg:flex-none max-lg:min-h-0 max-lg:overflow-visible max-lg:self-stretch',
+            /* Mobiel web: kolom niet full-viewport hoog — voorkomt wit vlak onder korte lijst. */
+            !nativeMounted && 'max-lg:h-auto max-lg:flex-none max-lg:min-h-0'
           )}
         >
           <div
@@ -218,7 +220,7 @@ function MessagesPageContent() {
                 ? 'max-lg:flex-none max-lg:min-h-0 max-lg:overflow-visible lg:min-h-0 lg:flex-1 lg:overflow-hidden'
                 : nativeMounted
                   ? 'max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-hidden lg:overflow-hidden'
-                  : 'overflow-hidden'
+                  : 'overflow-hidden max-lg:h-auto max-lg:min-h-0'
             )}
           >
             <ConversationsList onSelectConversation={handleSelectConversation} />
