@@ -22,6 +22,11 @@ function currentFullPath(pathname: string, search: string): string {
 
 function tryRestoreMessagesListScroll(y: number, attempts: number): void {
   if (typeof document === 'undefined') return;
+  /** Android native: lijst gebruikt window/document scroll i.p.v. inner scrollport. */
+  if (document.querySelector('[data-hc-messages-list-window-scroll="true"]')) {
+    window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
+    return;
+  }
   const el = document.querySelector<HTMLElement>(
     '[data-hc-app-scroll="messages-list"]'
   );
@@ -91,10 +96,14 @@ export default function AppResumeCoordinator() {
       try {
         const key = getScrollStorageKey(path, search);
         if (key === 'ui:messages-list') {
-          const el = document.querySelector<HTMLElement>(
-            '[data-hc-app-scroll="messages-list"]'
-          );
-          if (el) saveScrollPosition(key, el.scrollTop);
+          if (document.querySelector('[data-hc-messages-list-window-scroll="true"]')) {
+            saveScrollPosition(key, window.scrollY);
+          } else {
+            const el = document.querySelector<HTMLElement>(
+              '[data-hc-app-scroll="messages-list"]'
+            );
+            if (el) saveScrollPosition(key, el.scrollTop);
+          }
         } else if (key) {
           saveScrollPosition(key, window.scrollY);
         }

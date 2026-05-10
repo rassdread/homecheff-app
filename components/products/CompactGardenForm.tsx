@@ -923,7 +923,7 @@ export default function CompactGardenForm({
         )}
 
         {/* Submit Buttons - Sticky at bottom */}
-        <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 flex gap-2 shadow-lg -mx-4 -mb-4 mt-4 z-10">
+        <div className="sticky bottom-0 z-10 -mx-4 -mb-4 mt-4 flex gap-2 border-t border-gray-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] shadow-lg sm:pb-4 md:pb-4">
           <button
             type="submit"
             disabled={submitting}

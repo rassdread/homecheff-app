@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { isNativeApp } from '@/lib/native/capacitor';
+import { isNativeAndroid, isNativeApp } from '@/lib/native/capacitor';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 
 const NATIVE_CLASS = 'hc-native-capacitor';
+const NATIVE_ANDROID_CLASS = 'hc-native-android';
 const PWA_STANDALONE_CLASS = 'hc-pwa-standalone';
 const SUPPRESS_SITE_FOOTER_CLASS = 'hc-suppress-site-footer';
 
@@ -45,6 +46,10 @@ export default function AppShellHtmlClasses() {
         !native && !standalone && !wideLg && compactShell;
 
       root.classList.toggle(NATIVE_CLASS, native);
+      root.classList.toggle(
+        NATIVE_ANDROID_CLASS,
+        native && isNativeAndroid()
+      );
       root.classList.toggle(PWA_STANDALONE_CLASS, standalone);
       root.classList.toggle(SUPPRESS_SITE_FOOTER_CLASS, suppressFooter);
     };
@@ -70,7 +75,12 @@ export default function AppShellHtmlClasses() {
     return () => {
       mqWide?.removeEventListener('change', onMq);
       mqDm?.removeEventListener('change', onMq);
-      root.classList.remove(NATIVE_CLASS, PWA_STANDALONE_CLASS, SUPPRESS_SITE_FOOTER_CLASS);
+      root.classList.remove(
+        NATIVE_CLASS,
+        NATIVE_ANDROID_CLASS,
+        PWA_STANDALONE_CLASS,
+        SUPPRESS_SITE_FOOTER_CLASS
+      );
     };
   }, [pathname]);
 

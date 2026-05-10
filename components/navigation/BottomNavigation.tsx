@@ -9,6 +9,11 @@ import PromoModal from '@/components/promo/PromoModal';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
+import {
+  buildSellNewSearchFromIntent,
+  consumeCreateFlowIntent,
+  mapVerticalToInspiratieLocation,
+} from '@/lib/createFlowIntent';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
@@ -286,23 +291,52 @@ export default function BottomNavigation() {
 
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const openQuickAddFlow = useCallback(() => {
+    const intent = consumeCreateFlowIntent();
+    pendingAutoCategoryRef.current = null;
+    pendingAutoLocationRef.current = null;
+    if (intent?.vertical) {
+      if (intent.mode === 'dorpsplein') {
+        pendingAutoCategoryRef.current = intent.vertical;
+      } else {
+        pendingAutoLocationRef.current = mapVerticalToInspiratieLocation(intent.vertical);
+      }
+    }
+
+    const sellNewSuffix = buildSellNewSearchFromIntent(intent);
+
     if (shouldHide) {
-      router.push('/sell/new');
+      router.push(`/sell/new${sellNewSuffix}`);
       return;
     }
     if (!session?.user) {
       if (sessionStatus === 'loading') {
-        router.push('/sell/new');
+        router.push(`/sell/new${sellNewSuffix}`);
       }
       return;
     }
     setShowQuickAddMenu(true);
-    setQuickAddStep('platform');
-    sessionStorage.setItem('quickAddStep', 'platform');
-    setSelectedPlatform(null);
-    setCapturedPhoto(null);
-    sessionStorage.removeItem('quickAddShouldGoToCategory');
-    sessionStorage.removeItem('quickAddShouldGoToLocation');
+    if (intent) {
+      const platform: Platform = intent.mode === 'dorpsplein' ? 'dorpsplein' : 'inspiratie';
+      setSelectedPlatform(platform);
+      sessionStorage.setItem('quickAddPlatform', platform);
+      setQuickAddStep('photoSource');
+      sessionStorage.setItem('quickAddStep', 'photoSource');
+      setCapturedPhoto(null);
+      try {
+        sessionStorage.removeItem('quickAddPhoto');
+        sessionStorage.removeItem('quickAddShouldGoToCategory');
+        sessionStorage.removeItem('quickAddShouldGoToLocation');
+      } catch {
+        /* ignore */
+      }
+    } else {
+      setQuickAddStep('platform');
+      sessionStorage.setItem('quickAddStep', 'platform');
+      setSelectedPlatform(null);
+      setCapturedPhoto(null);
+      sessionStorage.removeItem('quickAddShouldGoToCategory');
+      sessionStorage.removeItem('quickAddShouldGoToLocation');
+    }
   }, [session?.user, sessionStatus, shouldHide, router]);
 
   const handleQuickAddClick = () => {
@@ -835,7 +869,55 @@ export default function BottomNavigation() {
     router.push(targetUrl);
   }, [capturedPhoto, t, quickAddDebug, router]);
 
+  /** Intent: na foto automatisch door naar /sell/new of profiel als de rol klopt. */
+  useEffect(() => {
+    if (!showQuickAddMenu || !userRolesLoaded) return;
+    const photo =
+      capturedPhoto ||
+      (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('quickAddPhoto') : null);
+    if (!photo) return;
+
+    const roleForCategory = (c: Category) =>
+      c === 'CHEFF' ? 'chef' : c === 'GARDEN' ? 'garden' : 'designer';
+    const roleForLocation = (loc: Location) =>
+      loc === 'recepten' ? 'chef' : loc === 'kweken' ? 'garden' : 'designer';
+
+    if (quickAddStep === 'category') {
+      const cat = pendingAutoCategoryRef.current;
+      if (!cat) return;
+      if (!userRoles.includes(roleForCategory(cat))) {
+        pendingAutoCategoryRef.current = null;
+        return;
+      }
+      pendingAutoCategoryRef.current = null;
+      void handleCategorySelect(cat);
+      return;
+    }
+
+    if (quickAddStep === 'location') {
+      const loc = pendingAutoLocationRef.current;
+      if (!loc) return;
+      if (loc !== 'recepten' && loc !== 'kweken' && loc !== 'designs') return;
+      if (!userRoles.includes(roleForLocation(loc))) {
+        pendingAutoLocationRef.current = null;
+        return;
+      }
+      pendingAutoLocationRef.current = null;
+      void handleLocationSelect(loc);
+    }
+  }, [
+    showQuickAddMenu,
+    quickAddStep,
+    userRolesLoaded,
+    userRoles,
+    capturedPhoto,
+    handleCategorySelect,
+    handleLocationSelect,
+  ]);
+
   const closeQuickAddMenu = () => {
+    pendingAutoCategoryRef.current = null;
+    pendingAutoLocationRef.current = null;
     setShowQuickAddMenu(false);
     setQuickAddStep('platform');
     setSelectedPlatform(null);
@@ -849,6 +931,8 @@ export default function BottomNavigation() {
 
   const goBackInQuickAdd = () => {
     if (quickAddStep === 'category' || quickAddStep === 'location') {
+      pendingAutoCategoryRef.current = null;
+      pendingAutoLocationRef.current = null;
       // Go back to photo source selection
       setQuickAddStep('photoSource');
       sessionStorage.setItem('quickAddStep', 'photoSource');

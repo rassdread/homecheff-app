@@ -8,6 +8,7 @@ import ChatBox from '@/components/chat/ChatBox';
 import ChatShell from '@/components/chat/ChatShell';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { isNativeAndroid } from '@/lib/native/capacitor';
 import {
   APP_RESUME_MSG_CONV_HINT,
   readLastConversationIdIfFresh,
@@ -147,10 +148,20 @@ function MessagesPageContent() {
   const hidePageChromeForMobileChat =
     !!selectedConversation && !isLargeDisplay;
 
+  /** Android WebView: gesprekkenlijst scrollt op body/#main-content — geen overflow-trap op main. */
+  const androidListUsesPageScroll =
+    nativeMounted &&
+    isNativeAndroid() &&
+    !selectedConversation &&
+    !isLargeDisplay;
+
   return (
     <main
       className={cn(
-        'hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]',
+        'hc-messages-root flex min-h-0 flex-col bg-[#e8eaed]',
+        androidListUsesPageScroll
+          ? 'overflow-visible max-lg:overflow-visible hc-native-android-messages-list-body'
+          : 'overflow-hidden',
         nativeMounted && 'hc-native-messages-page'
       )}
     >
@@ -180,7 +191,10 @@ function MessagesPageContent() {
 
       <div
         className={cn(
-          'flex min-h-0 flex-1 overflow-hidden p-0 lg:gap-3 lg:p-3',
+          'flex min-h-0 flex-1 p-0 lg:gap-3 lg:p-3',
+          androidListUsesPageScroll
+            ? 'max-lg:overflow-visible max-lg:flex-none lg:overflow-hidden lg:flex-1'
+            : 'flex-1 overflow-hidden',
           nativeMounted && 'hc-native-chat-shell'
         )}
       >
@@ -191,15 +205,20 @@ function MessagesPageContent() {
             selectedConversation
               ? 'hidden w-0 min-w-0 lg:flex lg:w-[22rem] lg:min-w-[22rem] xl:w-96 xl:min-w-[24rem]'
               : 'w-full min-w-0 lg:max-w-md xl:max-w-sm',
-            nativeMounted && 'hc-native-messages-list-column max-lg:min-h-0 max-lg:flex-1'
+            nativeMounted &&
+              'hc-native-messages-list-column max-lg:min-h-0 max-lg:flex-1',
+            androidListUsesPageScroll &&
+              'max-lg:flex-none max-lg:min-h-0 max-lg:overflow-visible max-lg:self-stretch'
           )}
         >
           <div
             className={cn(
-              'hc-native-messages-list-inner flex min-h-0 flex-1 flex-col',
-              nativeMounted
-                ? 'max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-hidden lg:overflow-hidden'
-                : 'overflow-hidden'
+              'hc-native-messages-list-inner flex min-h-0 flex-col',
+              androidListUsesPageScroll
+                ? 'max-lg:flex-none max-lg:min-h-0 max-lg:overflow-visible lg:min-h-0 lg:flex-1 lg:overflow-hidden'
+                : nativeMounted
+                  ? 'max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-hidden lg:overflow-hidden'
+                  : 'overflow-hidden'
             )}
           >
             <ConversationsList onSelectConversation={handleSelectConversation} />

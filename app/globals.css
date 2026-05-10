@@ -620,8 +620,10 @@ html.hc-native-capacitor .hc-messages-root > header {
  * Native Android (max-lg): één scrollport (.hc-native-conversations-scrollport) met zoekbalk + rijen.
  * Geneste flex-scroll + rijen als implicit button/Link brak verticale pan op de rijen (WebView).
  */
+/* iOS / niet-Android native: geneste scrollport (max-lg). Android: zie blok hieronder — body scroll. */
 @media (max-width: 1023.98px) {
-  html.hc-native-capacitor:not(.hc-messages-chat-open) .hc-native-messages-list-column {
+  html.hc-native-capacitor:not(.hc-native-android):not(.hc-messages-chat-open)
+    .hc-native-messages-list-column {
     flex: 1 1 0% !important;
     flex-basis: 0 !important;
     min-height: 0 !important;
@@ -632,7 +634,7 @@ html.hc-native-capacitor .hc-messages-root > header {
     pointer-events: auto !important;
   }
 
-  html.hc-native-capacitor:not(.hc-messages-chat-open)
+  html.hc-native-capacitor:not(.hc-native-android):not(.hc-messages-chat-open)
     .hc-native-messages-list-column
     .hc-native-conversations-scrollport {
     flex: 1 1 0% !important;
@@ -650,7 +652,7 @@ html.hc-native-capacitor .hc-messages-root > header {
     background-color: #ffffff;
   }
 
-  html.hc-native-capacitor:not(.hc-messages-chat-open)
+  html.hc-native-capacitor:not(.hc-native-android):not(.hc-messages-chat-open)
     .hc-native-messages-list-column
     .hc-native-conversations-scrollport
     .hc-conversations-list-scroll {
@@ -663,10 +665,72 @@ html.hc-native-capacitor .hc-messages-root > header {
     overflow-x: hidden !important;
     touch-action: pan-y !important;
   }
+
+  /*
+   * Android native WebView: geen geneste scroll — #main-content/body scrollt.
+   * Overschrijft vaste hoogtes op .hc-messages-root (native) voor alleen lijst (niet chat-open).
+   */
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-messages-root.hc-native-messages-page {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-native-chat-shell {
+    flex: 0 1 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-native-messages-list-column {
+    flex: 0 1 auto !important;
+    flex-basis: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    touch-action: pan-y !important;
+  }
+
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-native-messages-list-inner {
+    flex: 0 1 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-native-conversations-scrollport {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: none !important;
+    min-height: 0 !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: auto !important;
+  }
+
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-native-conversations-scrollport
+    .hc-conversations-list-scroll,
+  html.hc-native-capacitor.hc-native-android:not(.hc-messages-chat-open)
+    .hc-conversations-list-scroll {
+    overflow: visible !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex: none !important;
+    min-height: 0 !important;
+    -webkit-overflow-scrolling: auto !important;
+  }
 }
 
 @media (max-width: 1023.98px) and (min-width: 640px) {
-  html.hc-native-capacitor:not(.hc-messages-chat-open)
+  html.hc-native-capacitor:not(.hc-native-android):not(.hc-messages-chat-open)
     .hc-native-messages-list-column
     .hc-native-conversations-scrollport {
     height: calc(100dvh - 4rem - 5.25rem - env(safe-area-inset-bottom, 0px)) !important;

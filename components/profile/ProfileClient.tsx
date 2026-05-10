@@ -9,7 +9,15 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import type { CreateFlowVertical } from '@/lib/createFlowIntent';
 import { getProfileTabAfterProductFlow } from '@/lib/profileProductTab';
+
+function verticalFromProfileDishesTab(activeTab: string): CreateFlowVertical | undefined {
+  if (activeTab === 'dishes-chef') return 'CHEFF';
+  if (activeTab === 'dishes-garden') return 'GARDEN';
+  if (activeTab === 'dishes-designer') return 'DESIGNER';
+  return undefined;
+}
 
 import dynamic from 'next/dynamic';
 import PhotoUploader from './PhotoUploader';
@@ -125,7 +133,7 @@ interface ProfileClientProps {
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
   const { t } = useTranslation();
-  const { openCreateFlow } = useCreateFlow();
+  const createFlow = useCreateFlow();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
@@ -1024,7 +1032,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
                             <button
                               type="button"
-                              onClick={openCreateFlow}
+                              onClick={() => createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein' })}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                             >
                               <Plus className="w-4 h-4" />
@@ -1037,7 +1045,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                           {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
                             <button
                               type="button"
-                              onClick={openCreateFlow}
+                              onClick={() => createFlow.openCreateFlowWithIntent({ mode: 'inspiratie' })}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                             >
                               <Plus className="w-4 h-4" />
@@ -1249,9 +1257,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       {/* Product op Dorpsplein zetten Knop - alleen bij dorpsplein tab en als er opties beschikbaar zijn */}
                       {contentSubTab === 'dorpsplein' && hasAvailableDorpspleinOptions() && (
                         <button
+                          type="button"
                           onClick={() => {
-                            setCategorySelectorPlatform('dorpsplein');
-                            setShowCategorySelector(true);
+                            const v = verticalFromProfileDishesTab(activeTab);
+                            if (v) createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein', vertical: v });
+                            else createFlow.openCreateFlowWithIntent({ mode: 'dorpsplein' });
                           }}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                         >
@@ -1265,7 +1275,11 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       {contentSubTab === 'inspiratie' && hasAvailableInspiratieOptions() && (
                         <button
                           type="button"
-                          onClick={openCreateFlow}
+                          onClick={() => {
+                            const v = verticalFromProfileDishesTab(activeTab);
+                            if (v) createFlow.openCreateFlowWithIntent({ mode: 'inspiratie', vertical: v });
+                            else createFlow.openCreateFlowWithIntent({ mode: 'inspiratie' });
+                          }}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
                         >
                           <Plus className="w-4 h-4" />

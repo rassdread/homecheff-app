@@ -11,6 +11,11 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import { dispatchOpenQuickAdd } from "@/lib/quickAddOpen";
+import {
+  clearCreateFlowIntent,
+  setCreateFlowIntent,
+  type CreateFlowIntent,
+} from "@/lib/createFlowIntent";
 import { getCreateAuthReturnUrls } from "@/lib/createAuthReturnUrls";
 import {
   AFTER_LOGIN_CREATE_ACTION_KEY,
@@ -23,6 +28,8 @@ import CreateGuestAuthModal from "./CreateGuestAuthModal";
 type CreateFlowContextValue = {
   /** Zelfde ingang als +-knop / Verdienen: quick-add of auth-modal. */
   openCreateFlow: () => void;
+  /** Zelfde flow met Dorpsplein/Inspiratie (+ optioneel Chef/Garden/Designer) als preselectie. */
+  openCreateFlowWithIntent: (intent: CreateFlowIntent) => void;
 };
 
 const CreateFlowContext = createContext<CreateFlowContextValue | null>(null);
@@ -60,8 +67,28 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     dispatchOpenQuickAdd();
   }, [session?.user, status]);
 
+  const openCreateFlowWithIntent = useCallback(
+    (intent: CreateFlowIntent) => {
+      setCreateFlowIntent(intent);
+      if (status === "loading") return;
+      const now = Date.now();
+      if (now - lastOpenAt.current < 400) return;
+      lastOpenAt.current = now;
+
+      if (status !== "authenticated" || !session?.user) {
+        setPendingOpenQuickAddAfterLogin();
+        setAuthUrls(getCreateAuthReturnUrls());
+        setGuestOpen(true);
+        return;
+      }
+      dispatchOpenQuickAdd();
+    },
+    [session?.user, status]
+  );
+
   const handleAbandonGuestModal = useCallback(() => {
     clearPendingOpenQuickAddAfterLogin();
+    clearCreateFlowIntent();
     setGuestOpen(false);
   }, []);
 
@@ -99,7 +126,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   }, [status, session?.user]);
 
   return (
-    <CreateFlowContext.Provider value={{ openCreateFlow }}>
+    <CreateFlowContext.Provider value={{ openCreateFlow, openCreateFlowWithIntent }}>
       {children}
       <CreateGuestAuthModal
         open={guestOpen}

@@ -1304,7 +1304,7 @@ export default function RecipeManager({ isActive = true, userId, isPublic = fals
 
                 </div>
 
-                <div className="sticky bottom-0 bg-white p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm z-10">
+                <div className="sticky bottom-0 z-10 flex flex-col items-start justify-between gap-3 border-t border-gray-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] shadow-sm sm:flex-row sm:items-center sm:p-6 sm:pb-6">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"

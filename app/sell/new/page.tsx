@@ -18,6 +18,7 @@ import { compressDataUrl } from "@/lib/imageOptimization";
 import { useTranslation } from "@/hooks/useTranslation";
 import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymentsBanner";
 import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
+import { parseCreateIntentSearchParams } from "@/lib/createFlowIntent";
 
 type Phase =
   | "wizard-1"
@@ -107,6 +108,21 @@ function HomeCheffProductNieuwPageContent() {
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const cameraPhotoInputRef = useRef<HTMLInputElement>(null);
   const cameraVideoInputRef = useRef<HTMLInputElement>(null);
+  const urlCreateIntentAppliedRef = useRef(false);
+
+  /** `?mode=sale|inspiration&vertical=chef|garden|designer` — zelfde preselectie als FAB-intent. */
+  useLayoutEffect(() => {
+    if (!searchParams || urlCreateIntentAppliedRef.current) return;
+    if (sellsNewSkipWizard(searchParams)) return;
+    const parsed = parseCreateIntentSearchParams(searchParams);
+    if (!parsed) return;
+    urlCreateIntentAppliedRef.current = true;
+    setCategory(parsed.category);
+    setPlatformChoice(parsed.platform);
+    setHubSelectionComplete(parsed.hubComplete);
+    setInspiratieLocation(parsed.inspiratieLocation);
+    setPhase("wizard-photo");
+  }, [searchParams]);
 
   /** fromInspiratie: vóór paint category/location/phase zetten (geen form-sell flash). */
   useLayoutEffect(() => {
@@ -408,7 +424,7 @@ function HomeCheffProductNieuwPageContent() {
         onChange={onFileChange}
       />
 
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] md:pb-8">
         <StripeConnectPaymentsBanner />
         {phase === "wizard-1" && (
           <>

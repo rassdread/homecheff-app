@@ -98,9 +98,13 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const router = useRouter();
   const nativeMounted = useIsNativeAppMounted();
   const isDesktopMessages = useMediaQuery('(min-width: 1024px)');
-  /** Android WebView: één scrollport (zoek + rijen); desktop/browser houdt geneste scroll. */
+  /** Capacitor smal scherm: geneste scroll (iOS); Android gebruikt body scroll — zie `nativeAndroidListBodyScroll`. */
   const nativeSingleScrollPort = Boolean(nativeMounted && !isDesktopMessages);
-  /** Android: geen full-row click — scroll wint; openen via chevron + profiel via avatar. */
+  /** Android WebView: geen inner scrollport — pagina/#main-content scrollt (nested scroll faalt). */
+  const nativeAndroidListBodyScroll = Boolean(
+    nativeSingleScrollPort && isNativeAndroid()
+  );
+  /** Android: geen full-row click — openen via chevron + profiel via avatar. */
   const androidListNoFullRowClick = Boolean(nativeSingleScrollPort && isNativeAndroid());
   const { data: session, status: sessionStatus } = useSession();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
@@ -156,7 +160,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     ro?.observe(el);
     if (columnEl) ro?.observe(columnEl);
     return () => ro?.disconnect();
-  }, [conversations.length, nativeMounted]);
+  }, [conversations.length, nativeMounted, nativeAndroidListBodyScroll]);
 
   /** Native Android: scrollport + elementFromPoint (dev of NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL). */
   const touchDebugLastLogRef = useRef(0);
@@ -165,7 +169,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       (process.env.NODE_ENV !== 'production' ||
         process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true') &&
       nativeSingleScrollPort &&
-      isNativeAndroid();
+      isNativeAndroid() &&
+      !nativeAndroidListBodyScroll;
     if (!debugOn) return;
     const el = listScrollRef.current;
     if (!el) return;
@@ -206,12 +211,39 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       el.removeEventListener('scroll', onScroll);
       el.removeEventListener('touchmove', onTouchMove);
     };
-  }, [conversations.length, nativeSingleScrollPort]);
+  }, [conversations.length, nativeSingleScrollPort, nativeAndroidListBodyScroll]);
 
   useEffect(() => {
-    const el = listScrollRef.current;
-    if (!el || conversations.length === 0) return;
+    if (conversations.length === 0) return;
     const key = 'ui:messages-list';
+
+    if (nativeAndroidListBodyScroll) {
+      const tick = () => {
+        if (scrollSaveTimerRef.current != null) return;
+        scrollSaveTimerRef.current = window.setTimeout(() => {
+          scrollSaveTimerRef.current = null;
+          const y = window.scrollY;
+          if (y > 2) {
+            try {
+              saveScrollPosition(key, y);
+            } catch {
+              /* ignore */
+            }
+          }
+        }, 450);
+      };
+      window.addEventListener('scroll', tick, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', tick);
+        if (scrollSaveTimerRef.current != null) {
+          clearTimeout(scrollSaveTimerRef.current);
+          scrollSaveTimerRef.current = null;
+        }
+      };
+    }
+
+    const el = listScrollRef.current;
+    if (!el) return;
     const tick = () => {
       if (scrollSaveTimerRef.current != null) return;
       scrollSaveTimerRef.current = window.setTimeout(() => {
@@ -234,7 +266,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         scrollSaveTimerRef.current = null;
       }
     };
-  }, [conversations.length]);
+  }, [conversations.length, nativeAndroidListBodyScroll]);
 
   const loadConversations = useCallback(async (showLoading: boolean) => {
     if (!userId) {
@@ -530,8 +562,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   /** Ruimte onder laatste rij (safe area); root-hoogte trekt bottom-nav al af via globals. */
   const listScrollPadBottom = 'pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))]';
-  /** Native scrollport: laatste rij boven bottom-nav (match gebruikerswens ~6rem). */
+  /** Native scrollport (iOS): laatste rij boven bottom-nav. */
   const listScrollPadNative = 'pb-[calc(env(safe-area-inset-bottom,0px)+6rem)]';
+  /** Android native: body scroll — extra ruimte onder lijst t.o.v. bottom nav. */
+  const listBodyScrollPadBottom = 'pb-[calc(env(safe-area-inset-bottom,0px)+7rem)]';
 
   const searchChrome = (
     <div
@@ -564,6 +598,34 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         </div>
       </div>
     ));
+
+    if (nativeAndroidListBodyScroll) {
+      return (
+        <div
+          ref={listScrollRef}
+          className="flex flex-col animate-pulse"
+          data-hc-messages-list-window-scroll="true"
+          data-hc-app-scroll="messages-list"
+          aria-busy
+        >
+          <div className="hc-native-conversations-scrollport flex flex-col">
+            {searchChrome}
+            <div
+              className={cn(
+                'hc-conversations-list-scroll flex flex-col space-y-2',
+                listShellPad,
+                listBodyScrollPadBottom
+              )}
+            >
+              {skeletonRows}
+            </div>
+          </div>
+          <p className="shrink-0 px-3 pb-2 pt-1 text-center text-sm text-gray-500">
+            {t('messages.loadingConversations')}
+          </p>
+        </div>
+      );
+    }
 
     if (nativeSingleScrollPort) {
       return (
@@ -879,7 +941,27 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       );
     });
 
-  return nativeSingleScrollPort ? (
+  return nativeAndroidListBodyScroll ? (
+    <div
+      ref={listScrollRef}
+      className="flex flex-col"
+      data-hc-messages-list-window-scroll="true"
+      data-hc-app-scroll="messages-list"
+    >
+      <div className="hc-native-conversations-scrollport flex flex-col">
+        {searchChrome}
+        <div
+          className={cn(
+            'hc-conversations-list-scroll flex flex-col',
+            listShellPad,
+            listBodyScrollPadBottom
+          )}
+        >
+          {renderConversationRows()}
+        </div>
+      </div>
+    </div>
+  ) : nativeSingleScrollPort ? (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <div
         ref={listScrollRef}

@@ -439,6 +439,7 @@ export default function GeoFeed({
 }: GeoFeedProps) {
   const { t, language } = useTranslation();
   const { data: session, status: sessionStatus } = useSession();
+  const createFlow = useCreateFlow();
   const { profile: bootstrapProfile, ensureProfile, status: bootstrapStatus } =
     useUserBootstrap();
   const [items, setItems] = useState<FeedItem[]>([]);
@@ -1558,6 +1559,13 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
+              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "dorpsplein" })}
+              className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              {t("feed.addProductCta")}
+            </button>
+            <button
+              type="button"
               onClick={() => setFeedChip("inspiration")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
@@ -1592,7 +1600,7 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={openCreateFlow}
+              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "inspiratie" })}
               className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               {t("feed.shareInspirationCta")}
@@ -1618,7 +1626,7 @@ export default function GeoFeed({
             </button>
             <button
               type="button"
-              onClick={openCreateFlow}
+              onClick={() => createFlow.openCreateFlowWithIntent({ mode: "inspiratie" })}
               className="inline-flex items-center rounded-lg border border-emerald-600 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
               {t("feed.shareInspirationCta")}
