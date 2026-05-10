@@ -34,7 +34,6 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
     fetch('/downloads/homecheff-beta.apk', { method: 'HEAD', cache: 'no-store' })
       .then((r) => {
         if (cancelled) return;
-        // Alleen waarschuwen bij duidelijke 404; andere codes (405, 403) niet als "weg" zien.
         if (r.status === 404) setApkOk(false);
         else setApkOk(true);
       })
@@ -123,9 +122,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
     };
   }, [sheetOpen]);
 
-  const loggedIn = status === 'authenticated' && Boolean(session?.user);
   const showApkWarning = apkOk === false;
-
   const shareBusyLabel = t(`${HK}.shareBusy`);
 
   /** Geïnstalleerde Android-app: geen download-CTA; subtiele uitnodiging met referral-link. */
@@ -169,6 +166,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
     );
   }
 
+  /** Browser / mobiele web: één gecombineerde kaart (download + deel), geen tweede “deel”-blok. */
   return (
     <>
       <section
@@ -204,7 +202,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
             ) : null}
           </div>
           <div
-            className="flex shrink-0 justify-center text-emerald-700/90 sm:pt-1"
+            className="pointer-events-none flex shrink-0 justify-center text-emerald-700/90 sm:pt-1"
             aria-hidden
           >
             <div className="rounded-2xl border border-emerald-200/80 bg-white/90 p-3 shadow-sm">
@@ -217,40 +215,34 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
           <Link
             href="/app"
             className={cn(
-              'inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[200px] touch-manipulation'
+              'inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[200px] touch-manipulation select-none'
             )}
           >
             {t(`${HK}.ctaDownload`)}
           </Link>
           <button
             type="button"
-            onClick={() => setSheetOpen(true)}
-            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-gray-300 bg-white/90 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[160px] touch-manipulation"
+            onClick={() => void onShareInvite()}
+            disabled={shareBusy}
+            className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 disabled:opacity-60 sm:w-auto sm:min-w-[180px] touch-manipulation select-none"
           >
-            {t(`${HK}.ctaMoreInfo`)}
+            <Share2 className="h-4 w-4 shrink-0" aria-hidden />
+            {shareBusy ? shareBusyLabel : t(`${HK}.ctaShareBeta`)}
           </button>
         </div>
 
-        {loggedIn ? (
-          <div className="relative mt-4 rounded-xl border border-emerald-100/90 bg-white/60 p-3 sm:p-4">
-            <p className="text-sm font-semibold text-gray-900">{t(`${HK}.shareTitle`)}</p>
-            <p className="mt-1 text-xs leading-relaxed text-gray-600">{t(`${HK}.shareBody`)}</p>
-            <button
-              type="button"
-              onClick={() => void onShareInvite()}
-              disabled={shareBusy}
-              className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/90 px-3 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100 disabled:opacity-60 sm:w-auto touch-manipulation"
-            >
-              <Share2 className="h-4 w-4 shrink-0" aria-hidden />
-              {shareBusy ? shareBusyLabel : t(`${HK}.shareCta`)}
-            </button>
-            {shareHint ? (
-              <p className="mt-2 break-all text-xs text-gray-600">{shareHint}</p>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="relative mt-3 flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="self-start text-left text-xs font-medium text-emerald-800 underline decoration-emerald-600/50 underline-offset-2 hover:text-emerald-900 touch-manipulation"
+          >
+            {t(`${HK}.ctaMoreInfo`)}
+          </button>
+          {shareHint ? <p className="break-all text-[11px] leading-snug text-gray-600">{shareHint}</p> : null}
+        </div>
 
-        <p className="relative mt-3 text-[11px] leading-snug text-gray-500">{t(`${HK}.trustOnlyDomain`)}</p>
+        <p className="relative mt-2 text-[11px] leading-snug text-gray-500">{t(`${HK}.trustOnlyDomain`)}</p>
       </section>
 
       {sheetOpen ? (

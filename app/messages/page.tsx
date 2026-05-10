@@ -198,7 +198,7 @@ function MessagesPageContent() {
             className={cn(
               'hc-native-messages-list-inner flex min-h-0 flex-1 flex-col',
               nativeMounted
-                ? 'max-lg:overflow-visible lg:overflow-hidden'
+                ? 'max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-hidden lg:overflow-hidden'
                 : 'overflow-hidden'
             )}
           >

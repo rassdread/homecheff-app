@@ -117,7 +117,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       if (!listEl) return;
       const root = listEl.closest('.hc-messages-root');
       const column = listEl.closest('.hc-native-messages-list-column') as HTMLElement | null;
-      const scrollPort = column ?? listEl;
+      const scrollPort = listEl;
       const main = document.getElementById('main-content');
       const cs = window.getComputedStyle(listEl);
       const cCol = column ? window.getComputedStyle(column) : null;
@@ -162,11 +162,15 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const html = document.documentElement;
     html.classList.add('hc-messages-scroll-debug');
 
-    const column = el.closest('.hc-native-messages-list-column') as HTMLElement | null;
-    const scrollPort = column ?? el;
+    /** Scrollport = lijstcontainer (.hc-conversations-list-scroll), niet de buitenkolom. */
+    const scrollPort = el;
     let lastEp = 0;
-    const onTouchStart = () => {
-      console.debug('[messages-touch]', 'touchstart', { target: el.tagName });
+    const onTouchStart = (e: TouchEvent) => {
+      const tgt = e.target instanceof Element ? e.target : null;
+      console.debug('[messages-touch]', 'touchstart', {
+        targetTag: tgt?.tagName,
+        scrollTop: scrollPort.scrollTop,
+      });
     };
     const onTouchMove = (e: TouchEvent) => {
       const t = e.touches[0];
@@ -175,17 +179,20 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       if (now - lastEp < 180) return;
       lastEp = now;
       const top = document.elementFromPoint(t.clientX, t.clientY);
+      const moveTarget = e.target instanceof Element ? e.target : null;
       console.debug('[messages-touch]', 'touchmove', {
         x: Math.round(t.clientX),
         y: Math.round(t.clientY),
-        topTag: top?.tagName,
+        moveTargetTag: moveTarget?.tagName,
+        elementFromPointTag: top?.tagName,
         topClass: typeof (top as HTMLElement)?.className === 'string' ? (top as HTMLElement).className : '',
+        scrollTop: scrollPort.scrollTop,
       });
     };
     const onScroll = () => {
       console.debug('[messages-touch]', 'scroll', {
         scrollTop: scrollPort.scrollTop,
-        port: column ? 'column' : 'list',
+        port: 'list-scroll',
       });
     };
 
@@ -529,7 +536,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         className={cn(
           'flex min-h-0 flex-1 flex-col animate-pulse',
           listShellPad,
-          nativeMounted ? 'max-lg:overflow-visible lg:overflow-hidden' : 'overflow-hidden'
+          nativeMounted ? 'max-lg:overflow-hidden lg:overflow-hidden' : 'overflow-hidden'
         )}
         aria-busy
       >
@@ -705,7 +712,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               {href ? (
                 <Link
                   href={href}
-                  className="flex min-h-[48px] min-w-[48px] shrink-0 touch-manipulation items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
+                  className="flex min-h-[48px] min-w-[48px] shrink-0 touch-manipulation select-none items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
                   aria-label={`${t('common.viewProfile')}: ${displayTitle(conversation)}`}
                   scroll={false}
                 >
@@ -720,10 +727,17 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                 </div>
               )}
 
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => openConversation(conversation)}
-                className="flex min-h-[48px] min-w-0 flex-1 touch-manipulation flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openConversation(conversation);
+                  }
+                }}
+                className="hc-conversation-row-tap flex min-h-[48px] min-w-0 flex-1 touch-manipulation select-none flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="truncate text-sm font-medium text-gray-900">
@@ -777,7 +791,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                     />
                   )}
                 </div>
-              </button>
+              </div>
             </div>
           );
         })}
