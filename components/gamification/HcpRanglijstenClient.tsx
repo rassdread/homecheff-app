@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, MapPin, Trophy } from 'lucide-react';
+import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { PublicLeaderboardResponse } from '@/lib/gamification/leaderboard-public-response';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
 import { publicProfileHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
@@ -61,7 +61,14 @@ function RankRow({ row }: { row: LeaderboardRow }) {
   if (href) {
     return (
       <li>
-        <Link href={href} className={cn(cardClass, 'hover:border-amber-200 transition-colors active:bg-amber-50/50')}>
+        <Link
+          href={href}
+          prefetch={false}
+          className={cn(
+            cardClass,
+            'hover:border-amber-200 transition-colors active:bg-amber-50/50 touch-manipulation select-none'
+          )}
+        >
           {inner}
         </Link>
       </li>
@@ -87,42 +94,16 @@ export default function HcpRanglijstenClient() {
   const [radiusKm, setRadiusKm] = useState<25 | 50 | 100>(50);
   const [gpsPos, setGpsPos] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [data, setData] = useState<PublicLeaderboardResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [rankMovement, setRankMovement] = useState<string | null>(null);
 
   const loggedIn = status === 'authenticated' && Boolean(session?.user);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          scope,
-          period,
-        });
-        if (scope === 'nearby') {
-          params.set('radiusKm', String(radiusKm));
-          if (gpsPos) {
-            params.set('lat', String(gpsPos.lat));
-            params.set('lng', String(gpsPos.lng));
-          }
-        }
-        const res = await fetch(`/api/gamification/leaderboard?${params}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('lb');
-        const json = (await res.json()) as PublicLeaderboardResponse;
-        if (!cancelled) setData(json);
-      } catch {
-        if (!cancelled) setData(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [scope, period, radiusKm, gpsPos]);
+  const { data, loading } = useHcpLeaderboardScoped({
+    scope,
+    period,
+    radiusKm,
+    gpsPos,
+  });
 
   useEffect(() => {
     setRankMovement(null);
@@ -331,7 +312,8 @@ export default function HcpRanglijstenClient() {
         <div>
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2"
+            prefetch={false}
+            className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2 touch-manipulation select-none"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {tk('backHome')}
@@ -345,7 +327,8 @@ export default function HcpRanglijstenClient() {
         <div className="flex flex-col gap-2 sm:items-end">
           <Link
             href="/mijn-hcp"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 hover:bg-violet-50"
+            prefetch={false}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 hover:bg-violet-50 touch-manipulation select-none"
           >
             {tk('ctaMijnHcp')}
           </Link>

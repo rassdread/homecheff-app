@@ -18,6 +18,7 @@ import {
 } from '@/lib/native/nativePersistedCache';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { saveScrollPosition } from '@/lib/appResumeCache';
+import { cn } from '@/lib/utils';
 import {
   CONVERSATION_LIST_ACTIVITY_EVENT,
   sortConversationsByActivity,
@@ -100,6 +101,42 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const [isLoading, setIsLoading] = useState(true);
   const listScrollRef = useRef<HTMLDivElement>(null);
   const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** WebView-scroll diagnose: dev standaard; productie alleen met NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL=true. */
+  useEffect(() => {
+    const debugOn =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true';
+    if (!debugOn) return;
+    const el = listScrollRef.current;
+    if (!el) return;
+    const log = () => {
+      const listEl = listScrollRef.current;
+      if (!listEl) return;
+      const root = listEl.closest('.hc-messages-root');
+      const main = document.getElementById('main-content');
+      const cs = window.getComputedStyle(listEl);
+      const html = document.documentElement;
+      const body = document.body;
+      console.debug('[messages-scroll-debug]', {
+        rootClientHeight: root?.clientHeight,
+        rootScrollHeight: root?.scrollHeight,
+        mainClientHeight: main?.clientHeight,
+        mainScrollHeight: main?.scrollHeight,
+        listClientHeight: listEl.clientHeight,
+        listScrollHeight: listEl.scrollHeight,
+        overflowY: cs.overflowY,
+        bodyOverflow: window.getComputedStyle(body).overflowY,
+        htmlOverflow: window.getComputedStyle(html).overflowY,
+        viewportHeight: window.innerHeight,
+        nativeCapacitor: html.classList.contains('hc-native-capacitor'),
+      });
+    };
+    log();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(log) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [conversations.length, nativeMounted]);
 
   useEffect(() => {
     const el = listScrollRef.current;
@@ -215,6 +252,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   // Altijd lijst verversen bij read/unread-events — ook op /messages zonder onMessagesRead-prop.
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleRefresh = () => {
       void loadConversations(false);
     };
@@ -234,6 +273,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   /** Open thread: nieuw bericht (zenden/ontvangen) → direct bovenaan sorteren. */
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const onActivity = (ev: Event) => {
       const e = ev as CustomEvent<ConversationListActivityDetail>;
       const d = e.detail;
@@ -288,6 +329,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   }, [loadConversations, nativeMounted, userId]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const refreshFromLifecycle = () => {
       void loadConversations(false);
     };
@@ -315,8 +358,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
+    if (!Number.isFinite(date.getTime())) return '';
+
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
@@ -413,25 +458,36 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const listShellPad = nativeMounted ? 'p-3' : 'p-4';
 
+  /** Ruimte onder laatste rij (safe area); root-hoogte trekt bottom-nav al af via globals. */
+  const listScrollPadBottom = 'pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))]';
+
   if (isLoading && conversations.length === 0) {
     return (
-      <div className={`${listShellPad} space-y-2 animate-pulse`} aria-busy>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="flex min-h-[52px] items-center gap-3 border-b border-gray-100 py-2"
-          >
-            <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex justify-between gap-2">
-                <div className="h-3.5 w-28 rounded bg-gray-200" />
-                <div className="h-3 w-10 rounded bg-gray-100" />
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-hidden ${listShellPad} animate-pulse`}
+        aria-busy
+      >
+        <div
+          ref={listScrollRef}
+          className="hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+        >
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="flex min-h-[52px] items-center gap-3 border-b border-gray-100 py-2"
+            >
+              <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex justify-between gap-2">
+                  <div className="h-3.5 w-28 rounded bg-gray-200" />
+                  <div className="h-3 w-10 rounded bg-gray-100" />
+                </div>
+                <div className="h-3 w-full rounded bg-gray-100" />
               </div>
-              <div className="h-3 w-full rounded bg-gray-100" />
             </div>
-          </div>
-        ))}
-        <p className="pt-2 text-center text-sm text-gray-500">
+          ))}
+        </div>
+        <p className="shrink-0 pt-2 text-center text-sm text-gray-500">
           {t('messages.loadingConversations')}
         </p>
       </div>
@@ -440,7 +496,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto py-8 text-gray-500">
         <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
         <p className="text-lg font-medium">Nog geen gesprekken</p>
         <p className="text-sm">Start een gesprek door een product te bekijken!</p>
@@ -501,6 +557,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const rowUnread = (c: Conversation) =>
     Boolean(
       c.lastMessage &&
+        c.lastMessage.User?.id &&
         c.lastMessage.User.id !== getCurrentUserId() &&
         !c.lastMessage.readAt
     );
@@ -546,9 +603,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
       <div
-        className={`border-b border-gray-200 bg-gray-50 ${nativeMounted ? 'px-3 py-2' : 'p-4'}`}
+        className={`shrink-0 border-b border-gray-200 bg-gray-50 ${nativeMounted ? 'px-3 py-2' : 'p-4'}`}
       >
         <div className="relative">
           <input
@@ -563,7 +620,11 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       <div
         ref={listScrollRef}
         data-hc-app-scroll="messages-list"
-        className="flex-1 overflow-y-auto overscroll-contain"
+        className={cn(
+          'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+          'max-md:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))]',
+          listScrollPadBottom
+        )}
       >
         {conversations.map((conversation) => {
           const href = profileHrefFor(conversation);
@@ -641,7 +702,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
                   <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
                     {previewLine(conversation)}
                   </p>
-                  {lm?.User.id === getCurrentUserId() && (
+                  {lm?.User?.id === getCurrentUserId() && (
                     <CheckCheck
                       className={`h-4 w-4 shrink-0 ${
                         lm.readAt ? 'text-blue-500' : 'text-gray-400'

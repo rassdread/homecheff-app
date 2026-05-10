@@ -515,11 +515,13 @@ export default function SellerProfile({ sellerProfile, isOwner = false }: Seller
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 py-4">
             {isOwner && (
-              <Link href="/verkoper/dashboard">
-                <Button variant="ghost">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Terug
-                </Button>
+              <Link
+                href="/verkoper/dashboard"
+                prefetch={false}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl px-4 py-2 text-base font-medium text-primary-brand transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand touch-manipulation select-none"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+                Terug
               </Link>
             )}
             <div>

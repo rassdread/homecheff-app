@@ -17,19 +17,27 @@ function toMs(v: string | Date | null | undefined): number {
     const n = Date.parse(v);
     return Number.isFinite(n) ? n : 0;
   }
-  const n = v.getTime();
-  return Number.isFinite(n) ? n : 0;
+  if (v instanceof Date) {
+    const n = v.getTime();
+    return Number.isFinite(n) ? n : 0;
+  }
+  if (typeof v === 'object' && typeof (v as Date).getTime === 'function') {
+    const n = (v as Date).getTime();
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
 }
 
 /** Milliseconden sinds epoch; hoger = recenter. */
 export function conversationActivityMs(c: ConversationActivityInput): number {
+  if (c == null || typeof c !== 'object') return 0;
   const msgAt = toMs(c.lastMessage?.createdAt ?? null);
   const convLast = toMs(c.lastMessageAt ?? null);
   const hasMessageActivity = msgAt > 0 || convLast > 0;
   if (hasMessageActivity) {
     return Math.max(msgAt, convLast);
   }
-  return toMs(c.createdAt);
+  return toMs(c.createdAt ?? null);
 }
 
 export function compareConversationsNewestFirst(
@@ -42,7 +50,8 @@ export function compareConversationsNewestFirst(
 export function sortConversationsByActivity<T extends ConversationActivityInput>(
   list: readonly T[]
 ): T[] {
-  return [...list].sort(compareConversationsNewestFirst);
+  const safe = (list ?? []).filter((c): c is T => c != null && typeof c === 'object');
+  return [...safe].sort(compareConversationsNewestFirst);
 }
 
 /** Event voor optimistische lijst-update (eigen verzenden + Pusher in open thread). */

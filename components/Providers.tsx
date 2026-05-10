@@ -11,6 +11,7 @@ import SessionGuard from '@/components/SessionGuard';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
 import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
+import AppUpdateGate from '@/components/app/AppUpdateGate';
 import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
@@ -33,6 +34,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       </Suspense>
       <Suspense fallback={null}>
         <AppResumeCoordinator />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AppUpdateGate />
       </Suspense>
       <NativeLifecycleDiagnostics />
       <NativePushTokenSync />

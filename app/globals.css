@@ -595,9 +595,28 @@ html.hc-native-capacitor .hc-native-messages-page .hc-native-chat-shell {
     max-height: calc(100svh - 4rem - 5.25rem);
   }
 }
+/* Zelfde verticale budget als web: top-chrome + bottom-nav, anders loopt content onder de vaste tabbalk.
+   dvh: betrouwbaarder dan svh in Android WebView bij dynamische browser-chrome. */
 html.hc-native-capacitor .hc-messages-root {
-  height: calc(100svh - 4rem);
-  max-height: calc(100svh - 4rem);
+  height: calc(100dvh - 4rem - 5.75rem);
+  max-height: calc(100dvh - 4rem - 5.75rem);
+}
+
+/* Android WebView: scrollcontainer krijgt expliciet flex-basis 0 + max-h uit viewport (naast min-h-0-keten). */
+html.hc-native-capacitor .hc-conversations-list-scroll {
+  flex: 1 1 0%;
+  flex-basis: 0;
+  min-height: 0;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+@media (max-width: 1023.98px) {
+  html.hc-native-capacitor:not(.hc-messages-chat-open) .hc-conversations-list-scroll {
+    max-height: calc(100dvh - 10rem - env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Mobiel: actief gesprek — geen body-scroll achter de chat */

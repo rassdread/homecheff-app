@@ -45,6 +45,7 @@ export default function BottomNav() {
   }, [refreshMessagesUnread]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const onUnread = (e: Event) => {
       const d = (e as CustomEvent<{ unreadCount?: number }>).detail;
       if (typeof d?.unreadCount === 'number') {

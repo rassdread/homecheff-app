@@ -29,8 +29,8 @@ function navTabClasses(active: boolean, isNativeShell: boolean) {
       ? 'text-primary-brand bg-gradient-to-b from-emerald-500/[0.18] to-teal-600/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-emerald-400/35'
       : 'text-gray-600 hover:text-gray-900 hover:bg-slate-50/95 active:bg-slate-100/85',
     isNativeShell
-      ? 'min-h-[52px] min-w-[48px] px-1 py-2 touch-manipulation active:scale-[0.97]'
-      : 'min-h-[48px] px-1 py-1.5 sm:py-2'
+      ? 'min-h-[52px] min-w-[48px] px-1 py-2 touch-manipulation select-none active:scale-[0.97]'
+      : 'min-h-[48px] px-1 py-1.5 sm:py-2 touch-manipulation select-none'
   );
 }
 
@@ -118,6 +118,7 @@ export default function BottomNavigation() {
 
   // Device detection
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const checkDevice = () => {
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const isSmallScreen = window.innerWidth < 768;
@@ -283,9 +284,14 @@ export default function BottomNavigation() {
 
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const openQuickAddFlow = useCallback(() => {
-    if (sessionStatus !== 'authenticated' || !session?.user) return;
     if (shouldHide) {
       router.push('/sell/new');
+      return;
+    }
+    if (!session?.user) {
+      if (sessionStatus === 'loading') {
+        router.push('/sell/new');
+      }
       return;
     }
     setShowQuickAddMenu(true);
@@ -298,8 +304,7 @@ export default function BottomNavigation() {
   }, [session?.user, sessionStatus, shouldHide, router]);
 
   const handleQuickAddClick = () => {
-    if (sessionStatus === "loading") return;
-    if (!session?.user) {
+    if (sessionStatus === 'unauthenticated') {
       setActivePromoModal('add');
       return;
     }
@@ -308,6 +313,7 @@ export default function BottomNavigation() {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const onOpenQuickAdd = () => {
       openQuickAddFlow();
     };
@@ -1418,7 +1424,7 @@ export default function BottomNavigation() {
               type="button"
               onClick={handleQuickAddClick}
               className={cn(
-                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation active:scale-95',
+                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation select-none active:scale-95',
                 'bg-gradient-to-br from-primary-brand via-emerald-600 to-teal-600',
                 'shadow-[0_8px_26px_-6px_rgba(16,185,129,0.55),0_4px_14px_-4px_rgba(14,116,144,0.35)]',
                 'hover:shadow-[0_10px_32px_-6px_rgba(16,185,129,0.6)] hover:scale-[1.06]',

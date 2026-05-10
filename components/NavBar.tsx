@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -63,8 +63,15 @@ export default function NavBar() {
   /** Geen geneste <Link><Button> — één klikbaar element voor WebView/touch. */
   const mobileNavRowClass = cn(
     'inline-flex w-full min-h-[44px] items-center justify-start gap-2 rounded-2xl px-3 py-3 text-base font-medium',
-    'text-gray-700 transition-colors hover:bg-gray-50',
+    'text-gray-700 transition-colors hover:bg-gray-50 touch-manipulation select-none',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand'
+  );
+
+  /** Desktop top-nav: één interactief element (geen <Link><Button>). */
+  const desktopNavGhostClass = cn(
+    'inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-medium transition-all duration-200',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+    'bg-transparent text-primary-brand hover:bg-primary-50 hover:shadow-sm touch-manipulation select-none'
   );
 
   const user =
@@ -378,25 +385,34 @@ export default function NavBar() {
 
           {/* Desktop Navigation - mag inkrimpen zodat rechts in beeld blijft */}
           <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-visible">
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-2"
-              onClick={() => router.push('/')}
+            <Link
+              href="/"
+              prefetch={false}
+              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              onClick={() => navDebug('navbar:desktop', { href: '/' })}
             >
               <Home className="w-4 h-4" />
-              <span>{t("navbar.home")}</span>
-            </Button>
-            <Link href="/werken-bij">
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <Lightbulb className="w-4 h-4" />
-                <span>{t("navbar.werkenBij")}</span>
-              </Button>
+              <span>{t('navbar.home')}</span>
             </Link>
-            <Link href={user ? "/profile" : "/login"}>
-              <Button variant="ghost" className="flex items-center space-x-2">
-                <User className="w-4 h-4" />
-                <span>{t("bottomNav.profile")}</span>
-              </Button>
+            <Link
+              href="/werken-bij"
+              prefetch={false}
+              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              onClick={() => navDebug('navbar:desktop', { href: '/werken-bij' })}
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>{t('navbar.werkenBij')}</span>
+            </Link>
+            <Link
+              href={user ? '/profile' : '/login'}
+              prefetch={false}
+              className={cn(desktopNavGhostClass, 'flex items-center space-x-2')}
+              onClick={() =>
+                navDebug('navbar:desktop', { href: user ? '/profile' : '/login' })
+              }
+            >
+              <User className="w-4 h-4" />
+              <span>{t('bottomNav.profile')}</span>
             </Link>
 
             <LanguageSwitcher />
@@ -532,13 +548,12 @@ export default function NavBar() {
                       {/* Dynamic Dashboard Links - Based on roles */}
                       {/* Admin Dashboard - Show for ADMIN/SUPERADMIN role OR if user has adminRoles */}
                       {(((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') || ((user as any)?.adminRoles && (user as any)?.adminRoles.length > 0)) && (
-                        <Link 
-                          href="/admin" 
-                          prefetch={true}
+                        <Link
+                          href="/admin"
+                          prefetch={false}
                           className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           onClick={() => {
                             setIsProfileDropdownOpen(false);
-                            router.prefetch('/admin');
                           }}
                         >
                           <Shield className="w-4 h-4" />
@@ -550,13 +565,12 @@ export default function NavBar() {
                       {(((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') || 
                         (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && (user as any)?.sellerRoles?.length > 0)) && (
                         <>
-                          <Link 
-                            href="/verkoper/dashboard" 
-                            prefetch={true}
+                          <Link
+                            href="/verkoper/dashboard"
+                            prefetch={false}
                             className="relative flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
                             onClick={() => {
                               setIsProfileDropdownOpen(false);
-                              router.prefetch('/verkoper/dashboard');
                             }}
                           >
                             <LayoutGrid className="w-4 h-4" />
@@ -572,13 +586,12 @@ export default function NavBar() {
                       
                       {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel (ook verkoper-bezorgers) */}
                       {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
-                        <Link 
-                          href="/delivery/dashboard" 
-                          prefetch={true}
+                        <Link
+                          href="/delivery/dashboard"
+                          prefetch={false}
                           className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
                           onClick={() => {
                             setIsProfileDropdownOpen(false);
-                            router.prefetch('/delivery/dashboard');
                           }}
                         >
                           <Package className="w-4 h-4" />
@@ -588,13 +601,12 @@ export default function NavBar() {
 
                       {/* Affiliate Dashboard - Show if user has affiliate account */}
                       {(user as any)?.hasAffiliate && (
-                        <Link 
-                          href="/affiliate/dashboard" 
-                          prefetch={true}
+                        <Link
+                          href="/affiliate/dashboard"
+                          prefetch={false}
                           className="flex items-center gap-3 px-4 py-3 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
                           onClick={() => {
                             setIsProfileDropdownOpen(false);
-                            router.prefetch('/affiliate/dashboard');
                           }}
                         >
                           <TrendingUp className="w-4 h-4" />
@@ -681,6 +693,19 @@ export default function NavBar() {
               >
                 <Lightbulb className="w-4 h-4 shrink-0" />
                 <span>{t('navbar.werkenBij')}</span>
+              </Link>
+
+              <Link
+                href="/app"
+                prefetch={false}
+                className={mobileNavRowClass}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navDebug('navbar:mobile', { href: '/app' });
+                }}
+              >
+                <Smartphone className="w-4 h-4 shrink-0" />
+                <span>{t('navbar.androidBeta')}</span>
               </Link>
 
               <Link

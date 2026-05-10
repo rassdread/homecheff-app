@@ -2,8 +2,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Button } from "@/components/ui/Button";
 import { Compass, Users, Briefcase, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Language } from "@/hooks/useTranslation";
 import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
@@ -13,6 +13,7 @@ import type { InspirationItem } from "@/components/inspiratie/InspiratieContent"
 import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import { MAIN_DOMAIN } from "@/lib/seo/constants";
 import HcpActivationCard from "@/components/gamification/HcpActivationCard";
+import AndroidBetaHomeCta from "@/components/home/AndroidBetaHomeCta";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -220,11 +221,19 @@ export default function HomePageClient({
             <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
             <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
-              <Link href="/#homecheff-feed">
-                <Button variant="primary" className="flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3">
-                  <Compass className="w-4 h-4" aria-hidden />
-                  {discoverLabel}
-                </Button>
+              <Link
+                href="/#homecheff-feed"
+                prefetch={false}
+                scroll={false}
+                className={cn(
+                  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-medium sm:text-base sm:py-3',
+                  'bg-primary-brand text-white shadow-lg transition-all duration-200',
+                  'hover:bg-primary-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+                  'touch-manipulation select-none'
+                )}
+              >
+                <Compass className="w-4 h-4 shrink-0" aria-hidden />
+                {discoverLabel}
               </Link>
             </div>
             <p className="text-xs text-white/80 mt-4">
@@ -243,6 +252,7 @@ export default function HomePageClient({
             </p>
           )}
           {session?.user ? <HcpActivationCard className="mb-4 sm:mb-5" /> : null}
+          <AndroidBetaHomeCta className="mb-4 sm:mb-5" />
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}

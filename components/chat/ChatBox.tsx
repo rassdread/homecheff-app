@@ -422,6 +422,40 @@ export default function ChatBox({
     updateNearBottom,
   ]);
 
+  /** Lijst op /messages: zelfde CustomEvent als ConversationsList (alleen browser). */
+  const notifyConversationListActivity = useCallback(
+    (cid: string, msg: ChatThreadMessage) => {
+      if (!cid || !msg?.id) return;
+      const createdAt =
+        typeof msg.createdAt === 'string' && msg.createdAt.trim()
+          ? msg.createdAt
+          : new Date().toISOString();
+      const uid = msg.User?.id ?? msg.senderId;
+      if (!uid) return;
+      dispatchConversationListActivity({
+        conversationId: cid,
+        lastMessageAt: createdAt,
+        lastMessage: {
+          id: msg.id,
+          text: msg.text ?? null,
+          messageType: String(msg.messageType ?? 'TEXT'),
+          createdAt,
+          readAt: msg.readAt ?? null,
+          orderNumber: msg.orderNumber ?? null,
+          User: {
+            id: uid,
+            name: msg.User?.name ?? null,
+            username: msg.User?.username ?? null,
+            profileImage: msg.User?.profileImage ?? null,
+            displayFullName: msg.User?.displayFullName ?? null,
+            displayNameOption: msg.User?.displayNameOption ?? null,
+          },
+        },
+      });
+    },
+    []
+  );
+
   // Hydrate uit sessionStorage + eerste fetch (geen dubbele initial door Pusher-toggle)
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
@@ -511,6 +545,10 @@ export default function ChatBox({
       if (fromSelf || isNearBottomRef.current) {
         scrollToBottomSoon();
       }
+      notifyConversationListActivity(conversationId, {
+        ...data,
+        User: data.User ?? { id: data.senderId },
+      });
     });
     
     // Typing indicator

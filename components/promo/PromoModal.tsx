@@ -71,7 +71,8 @@ export default function PromoModal({
             modalType: modalType,
             title,
             timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent
+            userAgent:
+              typeof navigator !== 'undefined' ? navigator.userAgent : '',
           }
         })
       }).catch(() => {

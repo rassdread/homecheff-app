@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Info, MapPin, Sparkles, Trophy } from 'lucide-react';
+import { Info, Sparkles, Trophy } from 'lucide-react';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
+import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   HCP_BADGE_CATALOG,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/gamification/badge-catalog';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
+import { publicProfileHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
@@ -23,118 +25,53 @@ import {
   HcpLockedBadgeButton,
 } from '@/components/gamification/HcpLockedBadgeExplainer';
 
-type ScopedLbResponse = {
-  rows: LeaderboardRow[];
-  me?: { rank: number | null; score: number };
-  meta: {
-    scope: string;
-    period: string;
-    radiusKm?: number;
-    locationSource?: string;
-    hint?: string;
-    weekKey: string;
-    weekStartUtc: string;
-    monthStartUtc: string;
-    yearStartUtc?: string;
-    countryCode?: string | null;
-  };
-};
-
-type LbScope = 'nearby' | 'country' | 'worldwide';
-type LbPeriod = 'week' | 'month' | 'year' | 'all';
+/** Zelfde perioden als `/hcp-ranglijsten` (zelfde API). */
+type LbPreviewPeriod = 'week' | 'month' | 'year' | 'all';
 
 const HP_REWARDS = 'home.hcpActivation.rewards';
+const LB_PAGE = 'home.hcpRankingsPage';
+const LB_PREVIEW = 'home.mijnHcpLb';
 
 export default function MijnHcpClient() {
   const { t } = useTranslation();
   const { data, loading, error } = useGamificationMe();
-  const [scopedLb, setScopedLb] = useState<ScopedLbResponse | null>(null);
-  const [lbLoading, setLbLoading] = useState(true);
-  const [lbScope, setLbScope] = useState<LbScope>('nearby');
-  const [lbPeriod, setLbPeriod] = useState<LbPeriod>('week');
-  const [radiusKm, setRadiusKm] = useState<25 | 50 | 100>(50);
-  const [gpsPos, setGpsPos] = useState<{ lat: number; lng: number } | null>(null);
-  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [previewPeriod, setPreviewPeriod] = useState<LbPreviewPeriod>('week');
   const [rankMovement, setRankMovement] = useState<string | null>(null);
   /** Open badge-detail (zelfde sheet): vergrendeld of behaald. */
   const [badgeSheet, setBadgeSheet] = useState<{ mode: 'locked' | 'earned'; slug: string } | null>(
     null
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLbLoading(true);
-      try {
-        const params = new URLSearchParams({
-          scope: lbScope,
-          period: lbPeriod,
-        });
-        if (lbScope === 'nearby') {
-          params.set('radiusKm', String(radiusKm));
-          if (gpsPos) {
-            params.set('lat', String(gpsPos.lat));
-            params.set('lng', String(gpsPos.lng));
-          }
-        }
-        const res = await fetch(`/api/gamification/leaderboard?${params.toString()}`, {
-          credentials: 'include',
-        });
-        if (!res.ok) throw new Error('leaderboard');
-        const json = (await res.json()) as ScopedLbResponse;
-        if (!cancelled) setScopedLb(json);
-      } catch {
-        if (!cancelled) setScopedLb(null);
-      } finally {
-        if (!cancelled) setLbLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [lbScope, lbPeriod, radiusKm, gpsPos]);
+  const { data: lbData, loading: lbLoading } = useHcpLeaderboardScoped({
+    scope: 'worldwide',
+    period: previewPeriod,
+    limit: 10,
+  });
 
   useEffect(() => {
     setRankMovement(null);
-    if (typeof window === 'undefined' || !scopedLb?.meta || scopedLb.me?.rank == null) return;
-    const curr = scopedLb.me.rank;
+    if (typeof window === 'undefined' || !lbData?.meta) return;
+    const curr = lbData.currentUserRank ?? lbData.me?.rank;
+    if (curr == null) return;
     const periodKey =
-      lbPeriod === 'month'
-        ? scopedLb.meta.monthStartUtc
-        : lbPeriod === 'year'
-          ? scopedLb.meta.yearStartUtc ?? 'year'
-          : lbPeriod === 'week'
-            ? scopedLb.meta.weekKey
-            : 'all';
-    const key = `hc_lb_prev_${lbScope}_${lbPeriod}_${periodKey}_${radiusKm}_${gpsPos ? 'gps' : 'prof'}`;
+      previewPeriod === 'month'
+        ? lbData.meta.monthStartUtc
+        : previewPeriod === 'week'
+          ? lbData.meta.weekKey
+          : 'all';
+    const radiusKm = 50;
+    const key = `hc_lb_page_worldwide_${previewPeriod}_${periodKey}_${radiusKm}_prof`;
     const prevS = localStorage.getItem(key);
     if (prevS != null) {
       const prev = Number(prevS);
       if (Number.isFinite(prev) && prev !== curr) {
-        setRankMovement(curr < prev ? '↑ Gestegen' : '↓ Gedaald');
+        setRankMovement(
+          curr < prev ? t(`${LB_PAGE}.rankUp`) : t(`${LB_PAGE}.rankDown`)
+        );
       }
     }
     localStorage.setItem(key, String(curr));
-  }, [scopedLb, lbPeriod, lbScope, radiusKm, gpsPos]);
-
-  const requestGps = () => {
-    setGpsError(null);
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setGpsError('Locatie wordt niet ondersteund in deze browser.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGpsPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {
-        setGpsError(
-          'Geen toegang tot locatie. Controleer je browserinstellingen, of we gebruiken je profiel-locatie.'
-        );
-      },
-      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 12_000 }
-    );
-  };
+  }, [lbData, previewPeriod, t]);
 
   const earnedSlugs = useMemo(() => new Set((data?.badges ?? []).map((b) => b.slug)), [data?.badges]);
 
@@ -185,7 +122,10 @@ export default function MijnHcpClient() {
     [data?.badges]
   );
 
-  const lbRows = scopedLb?.rows ?? [];
+  const lbRows: LeaderboardRow[] = lbData?.rows ?? [];
+  const lbMeta = lbData?.meta;
+  const myLbRank = lbData?.currentUserRank ?? lbData?.me?.rank ?? null;
+  const myLbScore = lbData?.currentUserScore ?? lbData?.me?.score ?? 0;
 
   const rewardStatusLabel = (s: string) => {
     const map: Record<string, string> = {
@@ -455,202 +395,152 @@ export default function MijnHcpClient() {
         </ul>
       </section>
 
-      {/* Leaderboard — scoped */}
+      {/* Leaderboard — zelfde API als /hcp-ranglijsten (worldwide preview) */}
       <section aria-labelledby="hcp-lb-heading" className="scroll-mt-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-          <h2
-            id="hcp-lb-heading"
-            className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-bold text-gray-900"
-          >
-            <Trophy className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
-            <span className="min-w-0">Ranglijsten</span>
-          </h2>
+          <div className="min-w-0">
+            <h2
+              id="hcp-lb-heading"
+              className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-bold text-gray-900"
+            >
+              <Trophy className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+              <span className="min-w-0">{t(`${LB_PREVIEW}.previewTitle`)}</span>
+            </h2>
+            <p className="mt-1.5 text-sm text-gray-600 leading-snug max-w-2xl">{t(`${LB_PREVIEW}.previewSubtitle`)}</p>
+            <p className="mt-1 text-xs text-gray-500 leading-snug max-w-2xl">{t(`${LB_PREVIEW}.filtersHint`)}</p>
+          </div>
           <Link
             href="/hcp-ranglijsten"
             className="inline-flex min-h-[44px] min-w-0 max-w-full shrink-0 items-center self-start text-left text-sm font-semibold leading-snug text-teal-800 underline-offset-2 [overflow-wrap:anywhere] hover:text-teal-950 hover:underline sm:max-w-[min(100%,15rem)] sm:justify-end sm:self-center sm:text-right"
           >
-            Bekijk alle ranglijsten →
+            {t(`${LB_PREVIEW}.ctaFull`)} →
           </Link>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2 sm:mt-4" role="tablist" aria-label="Gebied">
+        <div
+          className="mt-3 flex flex-wrap gap-2 sm:mt-4"
+          role="tablist"
+          aria-label={t(`${LB_PREVIEW}.ariaPeriod`)}
+        >
           {(
             [
-              ['nearby', 'In de buurt'],
-              ['country', 'Land'],
-              ['worldwide', 'Wereldwijd'],
+              ['week', 'periodWeek'],
+              ['month', 'periodMonth'],
+              ['year', 'periodYear'],
+              ['all', 'periodAll'],
             ] as const
-          ).map(([id, label]) => (
+          ).map(([id, labelKey]) => (
             <button
               key={id}
               type="button"
               role="tab"
-              aria-selected={lbScope === id}
-              onClick={() => setLbScope(id)}
+              aria-selected={previewPeriod === id}
+              onClick={() => setPreviewPeriod(id)}
               className={cn(
-                'rounded-full px-3 py-1.5 text-sm font-medium border transition-colors',
-                lbScope === id
-                  ? 'bg-teal-700 text-white border-teal-700'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-teal-300'
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-2.5 flex flex-wrap gap-2 sm:mt-3" role="tablist" aria-label="Periode">
-          {(
-            [
-              ['week', 'Deze week'],
-              ['month', 'Deze maand'],
-              ['year', 'Dit jaar'],
-              ['all', 'Algemeen'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={lbPeriod === id}
-              onClick={() => setLbPeriod(id)}
-              className={cn(
-                'rounded-full px-3 py-1.5 text-sm font-medium border transition-colors',
-                lbPeriod === id
+                'rounded-full px-3 py-1.5 text-sm font-medium border transition-colors min-h-[44px]',
+                previewPeriod === id
                   ? 'bg-amber-600 text-white border-amber-600'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-amber-300'
               )}
             >
-              {label}
+              {t(`${LB_PAGE}.${labelKey}`)}
             </button>
           ))}
         </div>
 
-        {lbScope === 'nearby' ? (
-          <div className="mt-3 space-y-2">
-            <p className="text-xs text-gray-600">
-              Ranglijst in een straal van {radiusKm} km. Gebaseerd op je profiel-locatie of huidige locatie als je die
-              toestaat.
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-xs font-medium text-gray-700" htmlFor="hcp-radius">
-                Straal
-              </label>
-              <select
-                id="hcp-radius"
-                value={radiusKm}
-                onChange={(e) => setRadiusKm(Number(e.target.value) as 25 | 50 | 100)}
-                className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-              >
-                <option value={25}>25 km</option>
-                <option value={50}>50 km</option>
-                <option value={100}>100 km</option>
-              </select>
-              <button
-                type="button"
-                onClick={requestGps}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
-              >
-                <MapPin className="h-3.5 w-3.5" aria-hidden />
-                Gebruik huidige locatie
-              </button>
-              {gpsPos ? (
-                <button
-                  type="button"
-                  onClick={() => setGpsPos(null)}
-                  className="text-xs font-medium text-gray-600 underline"
-                >
-                  Profiel-locatie gebruiken
-                </button>
-              ) : null}
-            </div>
-            {gpsError ? <p className="text-xs text-amber-800">{gpsError}</p> : null}
-            {scopedLb?.meta?.locationSource === 'profile' && !gpsPos ? (
-              <p className="text-[11px] text-gray-500">Locatiebron: opgeslagen profiel.</p>
-            ) : null}
-            {scopedLb?.meta?.locationSource === 'gps' || gpsPos ? (
-              <p className="text-[11px] text-gray-500">Locatiebron: huidige locatie (alleen deze sessie).</p>
-            ) : null}
-          </div>
-        ) : lbScope === 'country' ? (
-          <p className="mt-3 text-xs text-gray-600">
-            Ranglijst voor je land ({scopedLb?.meta?.countryCode ?? 'NL'}). Wereldwijd blijft stabiel; in de buurt volgt
-            je reis alleen als je GPS deelt.
-          </p>
-        ) : (
-          <p className="mt-3 text-xs text-gray-600">Wereldwijde ranglijst op basis van HomeCheff Points.</p>
-        )}
-
-        {scopedLb?.meta?.hint ? (
+        {lbMeta?.hint ? (
           <p className="mt-3 text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-            {scopedLb.meta.hint}
+            {lbMeta.hint}
           </p>
         ) : null}
 
-        {scopedLb?.me ? (
-          <p className="mt-3 text-xs text-gray-600">
-            Jouw plek in deze weergave:{' '}
-            <span className="font-semibold">#{scopedLb.me.rank ?? '—'}</span>
-            {scopedLb.me.score > 0 ? (
-              <span className="text-gray-500"> · {scopedLb.me.score.toLocaleString('nl-NL')} HCP in deze periode</span>
-            ) : null}
-            {rankMovement ? (
-              <span className="ml-2 font-semibold text-emerald-800">{rankMovement}</span>
-            ) : null}
-          </p>
+        {!lbLoading ? (
+          myLbRank != null ? (
+            <p className="mt-3 text-sm text-gray-700">
+              {t(`${LB_PAGE}.yourRank`, { rank: String(myLbRank) })}
+              {myLbScore > 0 ? (
+                <span className="text-gray-500">
+                  {' '}
+                  · {myLbScore.toLocaleString()} HCP {t(`${LB_PAGE}.inThisView`)}
+                </span>
+              ) : null}
+              {rankMovement ? <span className="ml-2 font-semibold text-emerald-800">{rankMovement}</span> : null}
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-gray-600">{t(`${LB_PAGE}.notRankedYet`)}</p>
+          )
         ) : null}
 
         {lbLoading ? (
-          <p className="mt-4 text-sm text-gray-500">Ranglijst laden…</p>
+          <p className="mt-4 text-sm text-gray-500">{t(`${LB_PREVIEW}.loading`)}</p>
         ) : !lbRows.length ? (
-          <p className="mt-4 text-sm text-gray-600">
-            {lbScope === 'nearby' && scopedLb?.meta?.locationSource === 'fallback'
-              ? 'Voeg je locatie toe om de ranglijst in je buurt te zien.'
-              : 'Nog onvoldoende data voor deze ranglijst.'}
-          </p>
+          <p className="mt-4 text-sm text-gray-600">{t(`${LB_PAGE}.emptyGeneric`)}</p>
         ) : (
           <ol className="mt-4 space-y-2">
-            {lbRows.map((r) => (
-              <li
-                key={`${lbScope}-${lbPeriod}-${r.userId}`}
-                className={cn(
-                  'flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2 sm:flex-nowrap',
-                  r.isCurrentUser
-                    ? 'border-amber-300 bg-amber-50/70 ring-2 ring-amber-400/40'
-                    : 'border-gray-100 bg-white'
-                )}
-              >
-                <span className="w-7 text-center text-sm font-bold text-amber-800 tabular-nums">{r.rank}</span>
-                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
-                  {r.avatar ? (
-                    <SafeImage src={r.avatar} alt="" fill className="object-cover" sizes="36px" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center text-xs text-gray-500">HC</span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900">
-                    {r.displayName}
-                    {r.isCurrentUser ? (
-                      <span className="ml-2 text-[10px] font-bold uppercase text-amber-800">Jij</span>
-                    ) : null}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
-                    <span className="truncate text-xs text-gray-500">@{r.username ?? '—'}</span>
-                    <HcpLevelPill level={r.level} size="xs" tone="amber" className="shrink-0" />
+            {lbRows.map((r) => {
+              const href = publicProfileHref(r.userId, r.username);
+              const inner = (
+                <>
+                  <span className="w-7 text-center text-sm font-bold text-amber-800 tabular-nums shrink-0">
+                    {r.rank}
+                  </span>
+                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                    {r.avatar ? (
+                      <SafeImage src={r.avatar} alt="" fill className="object-cover" sizes="36px" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-xs text-gray-500">HC</span>
+                    )}
                   </div>
-                  <UserBadgeChips
-                    badges={r.badgeSummaries.map((b) => ({ key: b.key, name: b.name, icon: b.icon }))}
-                    max={2}
-                    size="sm"
-                    className="mt-1"
-                  />
-                </div>
-                <span className="shrink-0 text-sm font-semibold text-emerald-800 tabular-nums">
-                  {r.score.toLocaleString('nl-NL')} HCP
-                </span>
-              </li>
-            ))}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-gray-900">
+                      {r.displayName}
+                      {r.isCurrentUser ? (
+                        <span className="ml-2 text-[10px] font-bold uppercase text-amber-800">Jij</span>
+                      ) : null}
+                    </p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
+                      <span className="truncate text-xs text-gray-500">@{r.username ?? '—'}</span>
+                      <HcpLevelPill level={r.level} size="xs" tone="amber" className="shrink-0" />
+                    </div>
+                    <UserBadgeChips
+                      badges={r.badgeSummaries.map((b) => ({ key: b.key, name: b.name, icon: b.icon }))}
+                      max={2}
+                      size="sm"
+                      className="mt-1"
+                    />
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-emerald-800 tabular-nums">
+                    {r.score.toLocaleString()} HCP
+                  </span>
+                </>
+              );
+              const cardClass = cn(
+                'flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2 sm:flex-nowrap',
+                r.isCurrentUser
+                  ? 'border-amber-300 bg-amber-50/70 ring-2 ring-amber-400/40'
+                  : 'border-gray-100 bg-white'
+              );
+              if (href) {
+                return (
+                  <li key={`worldwide-${previewPeriod}-${r.userId}-${r.rank}`}>
+                    <Link
+                      href={href}
+                      className={cn(
+                        cardClass,
+                        'block hover:border-amber-200 transition-colors active:bg-amber-50/50'
+                      )}
+                    >
+                      {inner}
+                    </Link>
+                  </li>
+                );
+              }
+              return (
+                <li key={`worldwide-${previewPeriod}-${r.userId}-${r.rank}`}>
+                  <div className={cardClass}>{inner}</div>
+                </li>
+              );
+            })}
           </ol>
         )}
       </section>

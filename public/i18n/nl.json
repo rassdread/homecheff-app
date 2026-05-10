@@ -475,7 +475,8 @@
     "werkenBij": "Werken bij",
     "affiliateDashboard": "Affiliate Dashboard",
     "verdienenGuestTitle": "Log in om iets te plaatsen",
-    "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd."
+    "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd.",
+    "androidBeta": "Android beta"
   },
   "admin": {
     "newUser": "Nieuwe gebruiker",
@@ -4343,6 +4344,33 @@
     "checkPostcodeAndHouseNumber": "Controleer postcode en huisnummer",
     "errorLookingUpLocationTitle": "Fout bij locatie opzoeken",
     "locationUnknown": "Locatie onbekend",
+    "androidBeta": {
+      "title": "Download de HomeCheff beta-app",
+      "subtitle": "Test nieuwe functies als eerste, verdien HCP en ontdek HomeCheff mobiel.",
+      "note": "Beschikbaar voor Android beta-testers.",
+      "ctaDownload": "Download Android beta",
+      "ctaMoreInfo": "Meer informatie",
+      "apkUnavailable": "Beta-download tijdelijk niet beschikbaar. Je kunt de stappen hieronder lezen; de uitnodigingslink blijft bruikbaar.",
+      "sheetTitle": "Zo installeer je de beta",
+      "sheetStep1": "Download de Android beta via de downloadpagina.",
+      "sheetStep2": "Open het APK-bestand op je toestel.",
+      "sheetStep3": "Sta tijdelijk installatie buiten de Play Store toe (instellingen → beveiliging of apps).",
+      "sheetBetaNote": "Dat is normaal voor beta-apps die nog in een testfase zitten.",
+      "sheetPermissionsNote": "Na installatie kun je meldingen, locatie en andere instellingen later altijd aanpassen binnen HomeCheff.",
+      "sheetTrust": "Installeer alleen pakketten die je van homecheff.eu verwacht. We delen je gegevens niet via willekeurige derde links.",
+      "trustOnlyDomain": "Alleen downloaden via homecheff.eu.",
+      "continueDownload": "Doorgaan naar download",
+      "sheetClose": "Sluiten",
+      "sheetCloseAria": "Sluit uitleg",
+      "shareTitle": "Deel de beta-app",
+      "shareBody": "Nodig testers uit met jouw link. In de toekomst kun je mogelijk extra zichtbaarheid, HCP of andere voordelen krijgen — niets is gegarandeerd.",
+      "shareCta": "Deel jouw uitnodigingslink",
+      "shareBusy": "Bezig…",
+      "shareHintCopied": "Link gekopieerd naar het klembord.",
+      "shareHintManual": "Kon niet automatisch kopiëren — selecteer en kopieer de link hieronder.",
+      "shareNativeTitle": "HomeCheff Android-beta",
+      "shareNativeText": "Probeer de HomeCheff Android-beta — via homecheff.eu."
+    },
     "hcpActivation": {
       "sectionTitle": "HomeCheff Points op je home",
       "loadingAria": "HomeCheff Points worden geladen",
@@ -4435,6 +4463,14 @@
       "rankDown": "↓ Gedaald",
       "gpsUnsupported": "Locatie wordt niet ondersteund in deze browser.",
       "gpsDenied": "Geen toegang tot locatie. We vallen terug op je profiel-locatie als die er is."
+    },
+    "mijnHcpLb": {
+      "previewTitle": "Snelle ranglijst",
+      "previewSubtitle": "Wereldwijd — dezelfde berekening als op Ranglijsten. Hieronder de top 10; jouw plek is je echte plek in de volledige lijst.",
+      "filtersHint": "Voor buurt, land, dit jaar of andere filters: open de volledige ranglijstenpagina.",
+      "ctaFull": "Bekijk alle ranglijsten",
+      "ariaPeriod": "Periode (wereldwijd)",
+      "loading": "Ranglijst laden…"
     }
   },
   "filterBar": {

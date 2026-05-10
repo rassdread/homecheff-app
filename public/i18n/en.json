@@ -1626,7 +1626,8 @@
     "profileImage": "Profile Picture",
     "werkenBij": "Careers",
     "verdienenGuestTitle": "Log in to post something",
-    "verdienenGuestBody": "You can only post something when you are logged in."
+    "verdienenGuestBody": "You can only post something when you are logged in.",
+    "androidBeta": "Android beta"
   },
   "earningsPage": {
     "title": "My Earnings",
@@ -3236,6 +3237,33 @@
     "checkPostcodeAndHouseNumber": "Check postcode and house number",
     "errorLookingUpLocationTitle": "Error looking up location",
     "locationUnknown": "Location unknown",
+    "androidBeta": {
+      "title": "Download the HomeCheff beta app",
+      "subtitle": "Try new features first, earn HCP, and explore HomeCheff on your phone.",
+      "note": "Available for Android beta testers.",
+      "ctaDownload": "Download Android beta",
+      "ctaMoreInfo": "Learn more",
+      "apkUnavailable": "Beta download is temporarily unavailable. You can still read the steps below; your invite link remains valid.",
+      "sheetTitle": "How to install the beta",
+      "sheetStep1": "Download the Android beta from our download page.",
+      "sheetStep2": "Open the APK file on your device.",
+      "sheetStep3": "Allow installing from outside the Play Store for this install (Settings → security or apps).",
+      "sheetBetaNote": "That’s normal for beta apps that are still in a testing phase.",
+      "sheetPermissionsNote": "After install you can always adjust notifications, location, and other settings inside HomeCheff.",
+      "sheetTrust": "Only install packages you expect from homecheff.eu. We don’t distribute the app through random third-party links.",
+      "trustOnlyDomain": "Download only via homecheff.eu.",
+      "continueDownload": "Continue to download",
+      "sheetClose": "Close",
+      "sheetCloseAria": "Close instructions",
+      "shareTitle": "Share the beta app",
+      "shareBody": "Invite testers with your link. In the future you may get extra visibility, HCP, or other perks — nothing is guaranteed.",
+      "shareCta": "Share your invite link",
+      "shareBusy": "Working…",
+      "shareHintCopied": "Link copied to clipboard.",
+      "shareHintManual": "Could not copy automatically — copy the link below manually.",
+      "shareNativeTitle": "HomeCheff Android beta",
+      "shareNativeText": "Try the HomeCheff Android beta — via homecheff.eu."
+    },
     "hcpActivation": {
       "sectionTitle": "HomeCheff Points on your home feed",
       "loadingAria": "Loading HomeCheff Points",
@@ -3328,6 +3356,14 @@
       "rankDown": "↓ Moved down",
       "gpsUnsupported": "Location is not supported in this browser.",
       "gpsDenied": "Location permission denied. We’ll fall back to your profile location when available."
+    },
+    "mijnHcpLb": {
+      "previewTitle": "Quick leaderboard",
+      "previewSubtitle": "Worldwide — same calculation as the full Rankings page. Top 10 below; your rank is your real rank on the full list.",
+      "filtersHint": "For nearby, country, this year, or other filters, open the full rankings page.",
+      "ctaFull": "View all rankings",
+      "ariaPeriod": "Period (worldwide)",
+      "loading": "Loading leaderboard…"
     }
   },
   "deliverySignup": {

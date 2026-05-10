@@ -48,6 +48,15 @@ export async function GET(req: Request) {
 
     const country = searchParams.get('country');
 
+    const limitRaw = searchParams.get('limit');
+    let take = 50;
+    if (limitRaw != null && limitRaw !== '') {
+      const n = Number(limitRaw);
+      if (Number.isFinite(n)) {
+        take = Math.min(50, Math.max(1, Math.floor(n)));
+      }
+    }
+
     const viewerProfile =
       userId != null
         ? await prisma.user.findUnique({
@@ -57,7 +66,7 @@ export async function GET(req: Request) {
         : null;
 
     const payload = await getScopedLeaderboardPayload({
-      take: 50,
+      take,
       currentUserId: userId,
       scope: scopeParam as LeaderboardScope,
       period: periodRaw as LeaderboardPeriodParam,

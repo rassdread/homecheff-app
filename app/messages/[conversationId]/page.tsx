@@ -35,15 +35,15 @@ interface Conversation {
 
 function ThreadSkeleton() {
   return (
-    <div className="hc-messages-root flex flex-col overflow-hidden bg-[#e8eaed]">
-      <div className="flex items-center gap-3 border-b p-4 shadow-sm">
+    <div className="hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]">
+      <div className="flex shrink-0 items-center gap-3 border-b p-4 shadow-sm">
         <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
         <div className="flex-1 space-y-2">
           <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
           <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-3 overflow-hidden bg-gray-50 p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 overscroll-y-contain [-webkit-overflow-scrolling:touch]">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
