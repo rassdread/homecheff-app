@@ -14,6 +14,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { markOptionalDismissedSession } from '@/lib/android-beta-update-derived';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
+import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
 const LS_LAST_WEB_VERSION = 'hc:lastSeenWebVersion';
 
@@ -69,6 +71,8 @@ export default function AppUpdateGate() {
   const [installError, setInstallError] = useState<string | null>(null);
   const [failureKind, setFailureKind] = useState<ApkInstallFailureKind | null>(null);
   const [showPostGuide, setShowPostGuide] = useState(false);
+  const [installFallbackReason, setInstallFallbackReason] = useState<string | null>(null);
+  const nativeMounted = useIsNativeAppMounted();
 
   const runSoftWebRefresh = useCallback(
     (data: AppVersionApiResponse, apkBlocksSoft: boolean) => {
@@ -107,6 +111,7 @@ export default function AppUpdateGate() {
     setInstallError(null);
     setFailureKind(null);
     setShowPostGuide(false);
+    setInstallFallbackReason(null);
   }, []);
 
   const onUpdateNow = useCallback(async () => {
@@ -120,10 +125,29 @@ export default function AppUpdateGate() {
     const useNativeInstall = isNativeAndroid() && /^https:\/\//i.test(resolvedApk);
     const targetVer = (p.latestApkVersion ?? '').trim();
 
+    const logFlow = (extra: Record<string, unknown>) => {
+      if (
+        !shouldLogAppUpdateDebug() &&
+        process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL !== 'true'
+      ) {
+        return;
+      }
+      console.info('[apk-update-flow]', {
+        nativeMounted,
+        isNativeAndroid: isNativeAndroid(),
+        resolvedApk: resolvedApk.slice(0, 80),
+        willUseNativeInstaller: useNativeInstall,
+        ...extra,
+      });
+    };
+
+    logFlow({ stage: 'cta' });
+
     if (useNativeInstall) {
       setInstallError(null);
       setFailureKind(null);
       setShowPostGuide(false);
+      setInstallFallbackReason(null);
       setInstallPhase('downloading');
       const result = await downloadApkAndOpenInstaller(resolvedApk, targetVer, (phase, pct) => {
         setInstallPhase(phase);
@@ -133,19 +157,25 @@ export default function AppUpdateGate() {
       if (!result.ok) {
         setFailureKind(result.kind);
         setInstallError(result.message);
+        setInstallFallbackReason(result.fallbackReason ?? null);
         setInstallPhase('error');
-        if (result.fallbackToBrowser) {
-          await openExternalUrl(resolvedApk);
-        }
+        logFlow({
+          stage: 'native-failed',
+          fallbackReason: result.fallbackReason,
+          kind: result.kind,
+          offerBrowserFallback: result.fallbackToBrowser,
+        });
         return;
       }
+      logFlow({ stage: 'native-ok' });
       setInstallPhase('done');
       setShowPostGuide(true);
       return;
     }
 
+    logFlow({ stage: 'browser-only' });
     await openExternalUrl(browserTarget);
-  }, [payload, resolveApkUrl, syncInstallPersist]);
+  }, [payload, resolveApkUrl, syncInstallPersist, nativeMounted]);
 
   const onLater = useCallback(() => {
     resetInstallUi();
@@ -168,6 +198,14 @@ export default function AppUpdateGate() {
       /* OEM */
     }
   }, []);
+
+  const openBrowserDownloadFallback = useCallback(async () => {
+    if (!payload || typeof window === 'undefined') return;
+    const origin = window.location.origin;
+    const raw = (payload.apkUrl ?? '').trim();
+    const resolved = raw.startsWith('/') ? `${origin}${raw}` : raw;
+    await openExternalUrl(resolved || `${origin}/app`);
+  }, [payload]);
 
   if (!scopeActive) return null;
   if (mode === 'idle' && !webToast) return null;
@@ -343,6 +381,16 @@ export default function AppUpdateGate() {
                   <p className="text-[11px] leading-relaxed text-amber-900/85">
                     {t('appUpdateGate.fallbackPathHint')}
                   </p>
+                  <p className="text-[11px] leading-relaxed text-amber-900/80">
+                    {t('appUpdateGate.browserFallbackHint')}
+                  </p>
+                  {installFallbackReason &&
+                  (shouldLogAppUpdateDebug() ||
+                    process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true') ? (
+                    <p className="rounded bg-amber-100/50 px-2 py-1 font-mono text-[10px] text-amber-950/90 break-all">
+                      {installFallbackReason}
+                    </p>
+                  ) : null}
                   <div className="flex flex-col gap-2">
                     <button
                       type="button"
@@ -360,6 +408,13 @@ export default function AppUpdateGate() {
                       className="w-full rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
                     >
                       {t('appUpdateGate.btnRetryDownload')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void openBrowserDownloadFallback()}
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 touch-manipulation"
+                    >
+                      {t('appUpdateGate.btnDownloadViaBrowser')}
                     </button>
                     <button
                       type="button"

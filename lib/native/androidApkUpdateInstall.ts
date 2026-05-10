@@ -1,15 +1,37 @@
 'use client';
 
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { FileTransfer } from '@capacitor/file-transfer';
 import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
 import {
   writeAndroidBetaInstallStarted,
   writeAndroidBetaInstallerOpened,
 } from '@/lib/native/android-beta-install-state';
+import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 
 const CACHE_APK_PATH = 'updates/homecheff-beta.apk';
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+
+const LS_LAST_FAILURE = 'hc_apk_last_native_failure';
+
+function logApk(stage: string, data: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  const on =
+    shouldLogAppUpdateDebug() || process.env.NEXT_PUBLIC_DEBUG_APK_INSTALL === 'true';
+  if (!on) return;
+  console.info('[apk-native-install]', stage, data);
+}
+
+function storeFailure(payload: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(
+      LS_LAST_FAILURE,
+      JSON.stringify({ t: Date.now(), ...payload }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
 
 export type ApkInstallPhase =
   | 'idle'
@@ -30,9 +52,12 @@ export type ApkInstallResult =
   | { ok: true }
   | {
       ok: false;
+      /** True only when user should try browser as last resort — never auto-open. */
       fallbackToBrowser: boolean;
       message: string;
       kind: ApkInstallFailureKind;
+      /** Chain of what failed (for support / debug UI). */
+      fallbackReason: string;
     };
 
 function dispatchInstallPersistChanged(): void {
@@ -80,23 +105,34 @@ export function classifyApkInstallError(e: unknown): ApkInstallFailureKind {
   return 'generic';
 }
 
+function capErrorDetail(e: unknown): string {
+  if (e && typeof e === 'object' && 'message' in e) {
+    return String((e as { message?: string }).message ?? e);
+  }
+  return e instanceof Error ? e.message : String(e);
+}
+
 /**
- * Download APK naar app-cache en start ACTION_VIEW (package installer).
- * Alleen voor Capacitor Android; elders niet aanroepen.
+ * Download APK naar app-cache (Filesystem.downloadFile → echt pad op Android) en start ACTION_VIEW.
  *
- * @param targetVersion Server-APK-versie (semver) voor anti-loop tracking; mag leeg zijn.
+ * Belangrijk: {@link @capacitor/file-transfer} verwacht een **filesystem path**, geen `content://`-URI
+ * van {@link Filesystem.getUri}. Die mismatch deed de download falen → {@link openExternalUrl} → Chrome/Browser.
  */
 export async function downloadApkAndOpenInstaller(
   apkUrl: string,
   targetVersion: string,
-  onPhase: (phase: ApkInstallPhase, progressPct?: number) => void
+  onPhase: (phase: ApkInstallPhase, progressPct?: number) => void,
 ): Promise<ApkInstallResult> {
   if (!apkUrl || !/^https:\/\//i.test(apkUrl)) {
+    const reason = 'invalid_apk_url_not_https';
+    storeFailure({ stage: 'precheck', reason });
+    logApk('precheck-fail', { reason, apkUrlPrefix: apkUrl?.slice(0, 32) });
     return {
       ok: false,
       fallbackToBrowser: true,
       message: 'Ongeldige downloadlink.',
       kind: 'generic',
+      fallbackReason: reason,
     };
   }
 
@@ -106,7 +142,19 @@ export async function downloadApkAndOpenInstaller(
     dispatchInstallPersistChanged();
   }
 
-  let progressHandle: Awaited<ReturnType<typeof FileTransfer.addListener>> | undefined;
+  logApk('start', {
+    apkUrlHost: (() => {
+      try {
+        return new URL(apkUrl).host;
+      } catch {
+        return 'parse_error';
+      }
+    })(),
+    cachePath: CACHE_APK_PATH,
+    targetVersion: ver || '(none)',
+  });
+
+  let progressListener: { remove: () => Promise<void> } | undefined;
 
   try {
     onPhase('downloading', 0);
@@ -123,53 +171,105 @@ export async function downloadApkAndOpenInstaller(
 
     await deleteCachedApkBestEffort();
 
-    const dest = await Filesystem.getUri({
+    try {
+      progressListener = await Filesystem.addListener(
+        'progress',
+        (info: { bytes?: number; contentLength?: number; url?: string }) => {
+          const bytes = info.bytes ?? 0;
+          const cl = info.contentLength ?? 0;
+          if (cl > 0) {
+            onPhase('downloading', Math.min(100, Math.round((100 * bytes) / cl)));
+          }
+        },
+      );
+    } catch (listenErr) {
+      logApk('progress-listener-skip', { detail: capErrorDetail(listenErr) });
+    }
+
+    logApk('download-start', {
+      method: 'Filesystem.downloadFile',
       directory: Directory.Cache,
       path: CACHE_APK_PATH,
+      timeoutsMs: DOWNLOAD_TIMEOUT_MS,
     });
 
-    progressHandle = await FileTransfer.addListener('progress', (ev) => {
-      if (ev.type !== 'download' || !ev.lengthComputable || ev.contentLength <= 0) return;
-      const pct = Math.min(100, Math.round((100 * ev.bytes) / ev.contentLength));
-      onPhase('downloading', pct);
-    });
-
-    const downloadTask = FileTransfer.downloadFile({
+    await Filesystem.downloadFile({
       url: apkUrl,
-      path: dest.uri,
+      path: CACHE_APK_PATH,
+      directory: Directory.Cache,
       progress: true,
+      connectTimeout: DOWNLOAD_TIMEOUT_MS,
+      readTimeout: DOWNLOAD_TIMEOUT_MS,
+      method: 'GET',
     });
 
-    await new Promise<void>((resolve, reject) => {
-      const to = window.setTimeout(() => {
-        reject(new Error('download_timeout'));
-      }, DOWNLOAD_TIMEOUT_MS);
-      downloadTask
-        .then(() => {
-          window.clearTimeout(to);
-          resolve();
-        })
-        .catch((err) => {
-          window.clearTimeout(to);
-          reject(err);
-        });
-    });
+    logApk('download-success', { path: CACHE_APK_PATH });
 
     onPhase('preparing');
-    const uriResult = await Filesystem.getUri({
-      directory: Directory.Cache,
-      path: CACHE_APK_PATH,
+    let uriResult: { uri: string };
+    try {
+      uriResult = await Filesystem.getUri({
+        directory: Directory.Cache,
+        path: CACHE_APK_PATH,
+      });
+    } catch (uriErr) {
+      const msg = capErrorDetail(uriErr);
+      const kind = classifyApkInstallError(uriErr);
+      const reason = `getUri_failed:${msg}`;
+      storeFailure({ stage: 'getUri', reason, message: msg });
+      logApk('getUri-fail', { message: msg });
+      onPhase('error');
+      await deleteCachedApkBestEffort();
+      return {
+        ok: false,
+        fallbackToBrowser: true,
+        message: msg,
+        kind,
+        fallbackReason: reason,
+      };
+    }
+
+    logApk('getUri-ok', {
+      uriScheme: uriResult.uri?.split(':')[0] ?? '(empty)',
+      uriLen: uriResult.uri?.length ?? 0,
     });
 
     onPhase('opening');
-    await HomecheffApkInstaller.openPackageInstaller({ uri: uriResult.uri });
+    try {
+      await HomecheffApkInstaller.openPackageInstaller({ uri: uriResult.uri });
+    } catch (installerErr) {
+      const msg = capErrorDetail(installerErr);
+      const kind = classifyApkInstallError(installerErr);
+      const reason = `installer_plugin:${msg}`;
+      storeFailure({ stage: 'openPackageInstaller', reason, message: msg });
+      logApk('installer-fail', { message: msg, kind });
+      onPhase('error');
+      await deleteCachedApkBestEffort();
+      return {
+        ok: false,
+        fallbackToBrowser: kind !== 'unknown_sources',
+        message: msg,
+        kind,
+        fallbackReason: reason,
+      };
+    }
+
     writeAndroidBetaInstallerOpened();
     dispatchInstallPersistChanged();
     onPhase('done');
+    logApk('complete', { installerOpened: true });
+    try {
+      sessionStorage.removeItem(LS_LAST_FAILURE);
+    } catch {
+      /* ignore */
+    }
     return { ok: true };
   } catch (e: unknown) {
     const kind = classifyApkInstallError(e);
-    const msg = e instanceof Error ? e.message : 'Onbekende fout';
+    const msg = capErrorDetail(e);
+    const reason = `download_or_prepare:${msg}`;
+    storeFailure({ stage: 'download', reason, message: msg, kind });
+    logApk('error', { kind, message: msg });
     onPhase('error');
     await deleteCachedApkBestEffort();
     return {
@@ -177,19 +277,15 @@ export async function downloadApkAndOpenInstaller(
       fallbackToBrowser: true,
       message: msg,
       kind,
+      fallbackReason: reason,
     };
   } finally {
-    if (progressHandle) {
+    if (progressListener) {
       try {
-        await progressHandle.remove();
+        await progressListener.remove();
       } catch {
         /* ignore */
       }
-    }
-    try {
-      await FileTransfer.removeAllListeners();
-    } catch {
-      /* ignore */
     }
   }
 }

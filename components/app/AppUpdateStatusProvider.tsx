@@ -247,8 +247,11 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
     if (useNativeInstall) {
       const result = await downloadApkAndOpenInstaller(resolvedApk, targetVer, () => {});
       syncInstallPersist();
-      if (!result.ok && result.fallbackToBrowser) {
-        await openExternalUrl(resolvedApk);
+      if (!result.ok) {
+        console.warn('[apk-update-flow] settings-trigger native install failed', {
+          fallbackReason: result.fallbackReason,
+          kind: result.kind,
+        });
       }
       return;
     }
@@ -287,7 +290,6 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
         hasValidCurrent: derived?.hasValidCurrent,
         derivedRawForceUi: derivedRaw?.forceUi,
         derivedForceUi: derived?.forceUi,
-        dismissedOptional,
         showForceModal: Boolean(scopeActive && payload?.enabled && derived?.forceUi),
         showOptionalModal: Boolean(scopeActive && payload?.enabled && derived?.optionalModal),
         showOptionalReminder: Boolean(scopeActive && payload?.enabled && derived?.optionalReminder),

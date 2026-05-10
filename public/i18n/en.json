@@ -51,6 +51,8 @@
     "btnOpenAndroidSettings": "Open Android settings",
     "btnOpenDownloads": "Open Downloads",
     "btnRetryDownload": "Try download again",
+    "btnDownloadViaBrowser": "Download via browser (last resort)",
+    "browserFallbackHint": "Avoid the browser if you can — that download can hang. Try Retry or Open Downloads first. Use the browser only if nothing else works.",
     "errorDismiss": "Close",
     "unknownSourcesTitle": "Android needs permission once",
     "unknownSourcesBody": "To install beta updates, Android sometimes needs to allow HomeCheff to install updates. This is separate from the Play Store.",

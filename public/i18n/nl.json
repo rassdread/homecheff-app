@@ -51,6 +51,8 @@
     "btnOpenAndroidSettings": "Open Android-instellingen",
     "btnOpenDownloads": "Open Downloads",
     "btnRetryDownload": "Download opnieuw proberen",
+    "btnDownloadViaBrowser": "Download via browser (laatste redmiddel)",
+    "browserFallbackHint": "Liever niet meteen de browser: die download kan vastlopen. Probeer eerst Opnieuw of Open Downloads. Gebruik de browser alleen als het echt niet anders kan.",
     "errorDismiss": "Sluiten",
     "unknownSourcesTitle": "Android vraagt éénmalig toestemming",
     "unknownSourcesBody": "Om beta-updates te installeren, moet Android soms toestaan dat HomeCheff updates installeert. Dat staat los van de gewone Play Store.",
