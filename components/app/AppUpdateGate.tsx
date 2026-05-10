@@ -10,7 +10,7 @@ import {
   downloadApkAndOpenInstaller,
   type ApkInstallPhase,
 } from '@/lib/native/androidApkUpdateInstall';
-import { isSemverLessThan } from '@/lib/app-version-semver';
+import { isSemverLessThan, parseSemverCore } from '@/lib/app-version-semver';
 import type { AppVersionApiResponse } from '@/lib/app-version-config';
 
 const LS_LAST_WEB_VERSION = 'hc:lastSeenWebVersion';
@@ -69,16 +69,47 @@ export default function AppUpdateGate() {
           return;
         }
 
-        const cur = appInfo.version;
+        const currentVersion = appInfo.version?.trim() || null;
+        const latestApkVersionStr = (data.latestApkVersion ?? '').trim();
+        const minRequiredApkVersionStr = (data.minRequiredApkVersion ?? '').trim();
+
+        const hasValidCurrent =
+          Boolean(currentVersion) && parseSemverCore(currentVersion) != null;
+        const hasComparableLatest =
+          Boolean(latestApkVersionStr) && parseSemverCore(latestApkVersionStr) != null;
+        const hasComparableMin =
+          Boolean(minRequiredApkVersionStr) &&
+          parseSemverCore(minRequiredApkVersionStr) != null;
+
         const belowMin =
-          cur != null && isSemverLessThan(cur, data.minRequiredApkVersion) === true;
+          hasValidCurrent &&
+          hasComparableMin &&
+          isSemverLessThan(currentVersion, minRequiredApkVersionStr) === true;
         const belowLatest =
-          cur != null && isSemverLessThan(cur, data.latestApkVersion) === true;
+          hasValidCurrent &&
+          hasComparableLatest &&
+          isSemverLessThan(currentVersion, latestApkVersionStr) === true;
 
         const forceUi = belowMin || (Boolean(data.forceUpdate) && belowLatest);
         const dismissed = sessionStorage.getItem(SS_OPTIONAL_DISMISS) === '1';
         const optionalUi =
-          Boolean(belowLatest) && !belowMin && !data.forceUpdate && !dismissed && cur != null;
+          Boolean(belowLatest) &&
+          !belowMin &&
+          !data.forceUpdate &&
+          !dismissed &&
+          hasValidCurrent;
+
+        const updateNeeded = Boolean(belowMin || belowLatest);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.info('[app-update]', {
+            currentVersion,
+            latestApkVersion: latestApkVersionStr,
+            minRequiredApkVersion: minRequiredApkVersionStr,
+            forceUpdate: Boolean(data.forceUpdate),
+            updateNeeded,
+          });
+        }
 
         const apkBlocksSoft = Boolean(belowMin || (data.forceUpdate && belowLatest));
 

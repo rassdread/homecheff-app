@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "latestApkVersion": "1.0.3",
+  "minRequiredApkVersion": "1.0.3",
+  "versionCode": 4,
+  "forceUpdate": false,
+  "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
+  "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
+  "updateMessage": "Werk de app bij voor de nieuwste verbeteringen.",
+  "changelog": []
+}
