@@ -646,6 +646,8 @@ html.hc-native-capacitor .hc-messages-root > header {
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
     pointer-events: auto !important;
+    /* Lege ruimte onder rijen blijft scrollvlak (wit vult viewport) */
+    background-color: #ffffff;
   }
 
   html.hc-native-capacitor:not(.hc-messages-chat-open)
@@ -720,6 +722,17 @@ html.hc-messages-scroll-debug.hc-native-capacitor .hc-native-conversations-scrol
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Android native gesprekkenlijst: geen full-row hit target — verticale pan naar scrollport */
+.conversation-row-native {
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+.conversation-row-native .avatar-button,
+.conversation-row-native .open-chat-button {
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 html.hc-messages-scroll-debug.hc-native-capacitor [data-hc-bottom-nav] {
   box-shadow: inset 0 0 0 3px rgba(37, 99, 235, 0.85);

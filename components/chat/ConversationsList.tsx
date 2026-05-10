@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { MessageCircle, CheckCheck, Package } from 'lucide-react';
+import { MessageCircle, CheckCheck, Package, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -100,6 +100,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const isDesktopMessages = useMediaQuery('(min-width: 1024px)');
   /** Android WebView: één scrollport (zoek + rijen); desktop/browser houdt geneste scroll. */
   const nativeSingleScrollPort = Boolean(nativeMounted && !isDesktopMessages);
+  /** Android: geen full-row click — scroll wint; openen via chevron + profiel via avatar. */
+  const androidListNoFullRowClick = Boolean(nativeSingleScrollPort && isNativeAndroid());
   const { data: session, status: sessionStatus } = useSession();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
 
@@ -156,12 +158,13 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return () => ro?.disconnect();
   }, [conversations.length, nativeMounted]);
 
-  /** Native-only: scrollport scroll + touchmove target (tijdelijk; dev of NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL). */
+  /** Native Android: scrollport + elementFromPoint (dev of NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL). */
+  const touchDebugLastLogRef = useRef(0);
   useEffect(() => {
     const debugOn =
       (process.env.NODE_ENV !== 'production' ||
         process.env.NEXT_PUBLIC_DEBUG_MESSAGES_SCROLL === 'true') &&
-      nativeMounted &&
+      nativeSingleScrollPort &&
       isNativeAndroid();
     if (!debugOn) return;
     const el = listScrollRef.current;
@@ -170,10 +173,31 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       console.info('[hc-conv-native-debug]', 'scrollport scroll', { scrollTop: el.scrollTop });
     };
     const onTouchMove = (e: TouchEvent) => {
-      const t = e.target;
-      const cls = t instanceof Element ? t.className : '';
-      console.info('[hc-conv-native-debug]', 'scrollport touchmove', {
-        targetClass: typeof cls === 'string' ? cls : String(cls),
+      const touch = e.touches[0];
+      if (!touch) return;
+      const now = Date.now();
+      if (now - touchDebugLastLogRef.current < 180) return;
+      touchDebugLastLogRef.current = now;
+      const x = touch.clientX;
+      const y = touch.clientY;
+      const topEl = document.elementFromPoint(x, y);
+      const st = el.scrollTop;
+      const tag = topEl?.nodeName ?? '';
+      const cls =
+        topEl instanceof Element && typeof topEl.className === 'string'
+          ? topEl.className
+          : '';
+      const inScrollport = topEl ? el.contains(topEl) : false;
+      requestAnimationFrame(() => {
+        console.info('[hc-conv-native-debug]', 'touchmove elementFromPoint', {
+          x,
+          y,
+          tag,
+          class: cls.slice(0, 200),
+          inScrollport,
+          scrollTop: st,
+          scrollTopAfterRaf: el.scrollTop,
+        });
       });
     };
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -182,7 +206,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       el.removeEventListener('scroll', onScroll);
       el.removeEventListener('touchmove', onTouchMove);
     };
-  }, [conversations.length, nativeMounted]);
+  }, [conversations.length, nativeSingleScrollPort]);
 
   useEffect(() => {
     const el = listScrollRef.current;
@@ -555,7 +579,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
             {searchChrome}
             <div
               className={cn(
-                'hc-conversations-list-scroll flex flex-col space-y-2',
+                'hc-conversations-list-scroll flex min-h-full flex-col space-y-2',
                 listShellPad,
                 listScrollPadNative
               )}
@@ -701,6 +725,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   };
 
   const logNativeConvRowClick =
+    !androidListNoFullRowClick &&
     nativeMounted &&
     isNativeAndroid() &&
     (process.env.NODE_ENV !== 'production' ||
@@ -711,11 +736,118 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const href = profileHrefFor(conversation);
       const unread = rowUnread(conversation);
       const lm = conversation.lastMessage;
+      const rowPad = nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5';
+
+      const rowMiddle = (
+        <div
+          className={cn(
+            'flex min-h-[48px] min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left',
+            androidListNoFullRowClick && 'pointer-events-none'
+          )}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <span className="truncate text-sm font-medium text-gray-900">
+              {displayTitle(conversation)}
+            </span>
+            <span className="flex shrink-0 items-center gap-1.5">
+              {unread && (
+                <span
+                  className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
+                  aria-label="Ongelezen"
+                />
+              )}
+              <time
+                className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
+                dateTime={listActivityTimestamp(conversation) ?? undefined}
+              >
+                {formatTime(listActivityTimestamp(conversation))}
+              </time>
+            </span>
+          </div>
+
+          {(conversation.product || conversation.order) && (
+            <div className="flex min-w-0 flex-wrap gap-1">
+              {conversation.product && (
+                <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                  <Package className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+                  <span className="truncate">{conversation.product.title}</span>
+                </span>
+              )}
+              {conversation.order && (
+                <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                  Order
+                  {conversation.order.orderNumber
+                    ? ` #${conversation.order.orderNumber}`
+                    : ''}
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
+              {previewLine(conversation)}
+            </p>
+            {lm?.User?.id === getCurrentUserId() && (
+              <CheckCheck
+                className={`h-4 w-4 shrink-0 ${
+                  lm.readAt ? 'text-blue-500' : 'text-gray-400'
+                }`}
+                aria-hidden
+              />
+            )}
+          </div>
+        </div>
+      );
+
+      if (androidListNoFullRowClick) {
+        return (
+          <div
+            key={conversation.id}
+            className={cn(
+              'conversation-row-native flex select-none items-stretch gap-1 border-b border-gray-100 sm:gap-2',
+              rowPad,
+              'sm:px-4'
+            )}
+          >
+            {href ? (
+              <button
+                type="button"
+                className="avatar-button hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 text-left"
+                aria-label={t('messages.viewProfile', { name: displayTitle(conversation) })}
+                onClick={() => {
+                  void router.push(href);
+                }}
+              >
+                <span className="relative inline-flex">{avatarVisual(conversation)}</span>
+              </button>
+            ) : (
+              <div
+                className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
+                aria-hidden
+              >
+                {avatarVisual(conversation)}
+              </div>
+            )}
+            {rowMiddle}
+            <button
+              type="button"
+              className="open-chat-button flex min-h-[48px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border-0 bg-transparent px-1 text-gray-500 hover:bg-gray-100 active:bg-gray-200"
+              aria-label={t('messages.openConversationAria')}
+              onClick={() => {
+                openConversation(conversation);
+              }}
+            >
+              <ChevronRight className="h-6 w-6 shrink-0" aria-hidden />
+            </button>
+          </div>
+        );
+      }
 
       return (
         <div
           key={conversation.id}
-          className={`conversation-row flex cursor-pointer select-none items-stretch gap-2 border-b border-gray-100 transition-colors hover:bg-gray-50 active:bg-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
+          className={`conversation-row flex cursor-pointer select-none items-stretch gap-2 border-b border-gray-100 transition-colors hover:bg-gray-50 active:bg-gray-100 ${rowPad} sm:px-4`}
           onClick={() => {
             if (logNativeConvRowClick) {
               console.info('[hc-conv-native-debug]', 'row click', conversation.id);
@@ -742,61 +874,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               {avatarVisual(conversation)}
             </div>
           )}
-
-          <div className="flex min-h-[48px] min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left">
-            <div className="flex items-start justify-between gap-2">
-              <span className="truncate text-sm font-medium text-gray-900">
-                {displayTitle(conversation)}
-              </span>
-              <span className="flex shrink-0 items-center gap-1.5">
-                {unread && (
-                  <span
-                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
-                    aria-label="Ongelezen"
-                  />
-                )}
-                <time
-                  className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
-                  dateTime={listActivityTimestamp(conversation) ?? undefined}
-                >
-                  {formatTime(listActivityTimestamp(conversation))}
-                </time>
-              </span>
-            </div>
-
-            {(conversation.product || conversation.order) && (
-              <div className="flex min-w-0 flex-wrap gap-1">
-                {conversation.product && (
-                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
-                    <Package className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
-                    <span className="truncate">{conversation.product.title}</span>
-                  </span>
-                )}
-                {conversation.order && (
-                  <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                    Order
-                    {conversation.order.orderNumber
-                      ? ` #${conversation.order.orderNumber}`
-                      : ''}
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="flex min-w-0 items-center gap-2">
-              <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
-                {previewLine(conversation)}
-              </p>
-              {lm?.User?.id === getCurrentUserId() && (
-                <CheckCheck
-                  className={`h-4 w-4 shrink-0 ${
-                    lm.readAt ? 'text-blue-500' : 'text-gray-400'
-                  }`}
-                  aria-hidden
-                />
-              )}
-            </div>
-          </div>
+          {rowMiddle}
         </div>
       );
     });
@@ -811,7 +889,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         {searchChrome}
         <div
           className={cn(
-            'hc-conversations-list-scroll flex flex-col',
+            'hc-conversations-list-scroll flex min-h-full flex-col',
             listShellPad,
             listScrollPadNative
           )}
