@@ -214,8 +214,9 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
         <div className="relative mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href="/app"
+            prefetch={false}
             className={cn(
-              'inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[200px] touch-manipulation select-none'
+              'inline-flex min-h-[48px] w-full touch-pan-y items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[200px] select-none'
             )}
           >
             {t(`${HK}.ctaDownload`)}

@@ -7,6 +7,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 export default function NotificationCenter() {
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
+  const [pushTitle, setPushTitle] = useState('');
+  const [linkPreset, setLinkPreset] = useState('/notifications');
   const [subject, setSubject] = useState('');
   const [targetType, setTargetType] = useState('all');
   const [sendNotification, setSendNotification] = useState(true);
@@ -50,6 +52,7 @@ export default function NotificationCenter() {
         const data = await response.json();
         alert(data.message || t('errors.messageSentSuccess'));
         setMessage('');
+        setPushTitle('');
         setSubject('');
       } else {
         const error = await response.json();
@@ -117,6 +120,43 @@ export default function NotificationCenter() {
               </label>
             </div>
           </div>
+
+          {sendNotification && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.notificationCenter.pushTitle')}
+                </label>
+                <input
+                  type="text"
+                  value={pushTitle}
+                  onChange={(e) => setPushTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
+                  maxLength={120}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.notificationCenter.linkPreset')}
+                </label>
+                <select
+                  value={linkPreset}
+                  onChange={(e) => setLinkPreset(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="/notifications">{t('admin.notificationCenter.routeInbox')}</option>
+                  <option value="/settings/app">{t('admin.notificationCenter.routeAppSettings')}</option>
+                  <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
+                  <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
+                  <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  {t('admin.notificationCenter.linkHelp')}
+                </p>
+              </div>
+            </div>
+          )}
 
           {sendEmail && (
             <div>

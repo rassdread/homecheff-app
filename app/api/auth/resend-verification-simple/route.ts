@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
+import { logEmailSendFailure } from "@/lib/email-log";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 
 export const dynamic = 'force-dynamic';
@@ -44,12 +45,25 @@ export async function POST(req: NextRequest) {
     });
 
     // Send verification email
-    await sendVerificationEmail({ 
-      email, 
-      name: user.name || user.username || 'Gebruiker', 
-      verificationToken,
-      verificationCode
-    });
+    try {
+      await sendVerificationEmail({
+        email,
+        name: user.name || user.username || "Gebruiker",
+        verificationToken,
+        verificationCode,
+      });
+    } catch (emailErr) {
+      logEmailSendFailure("resend_verification_simple", emailErr, {
+        recipientEmail: email,
+      });
+      return NextResponse.json(
+        {
+          error:
+            "Er is een fout opgetreden bij het opnieuw verzenden van de verificatie-e-mail.",
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ 
       success: true,

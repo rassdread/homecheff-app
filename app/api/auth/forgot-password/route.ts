@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { generateVerificationToken } from "@/lib/verification";
 import { getPublicAppUrl } from "@/lib/public-app-url";
+import { logEmailSendFailure } from "@/lib/email-log";
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
         resetUrl,
       });
     } catch (e) {
-      console.error("[forgot-password] Resend failed:", e);
+      logEmailSendFailure("password_reset_route", e, { recipientEmail: user.email });
       await prisma.verificationToken.delete({ where: { token } }).catch(() => {});
       return NextResponse.json(
         {

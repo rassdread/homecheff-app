@@ -14,6 +14,7 @@ import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import { MAIN_DOMAIN } from "@/lib/seo/constants";
 import HcpActivationCard from "@/components/gamification/HcpActivationCard";
 import AndroidBetaHomeCta from "@/components/home/AndroidBetaHomeCta";
+import AndroidBetaOptionalUpdateReminder from "@/components/app/AndroidBetaOptionalUpdateReminder";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -253,6 +254,7 @@ export default function HomePageClient({
           )}
           {session?.user ? <HcpActivationCard className="mb-4 sm:mb-5" /> : null}
           <AndroidBetaHomeCta className="mb-4 sm:mb-5" />
+          <AndroidBetaOptionalUpdateReminder className="mb-4 sm:mb-5" />
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}

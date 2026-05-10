@@ -2,14 +2,27 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import {
+  getPushPermissionForSettings,
+  getLocationPermissionForSettings,
+} from '@/lib/client/app-permission-status';
 
 type Step = 0 | 1 | 2 | 3;
+
+function permShort(s: 'granted' | 'denied' | 'prompt' | 'unsupported'): string {
+  if (s === 'granted') return 'toegestaan';
+  if (s === 'denied') return 'geweigerd';
+  if (s === 'unsupported') return 'n.v.t.';
+  return 'nog niet gevraagd';
+}
 
 export default function AndroidBetaOnboardingGate() {
   const { status } = useSession();
   const [step, setStep] = useState<Step>(0);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pushPermLine, setPushPermLine] = useState<string>('');
+  const [locPermLine, setLocPermLine] = useState<string>('');
 
   const refreshOpen = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -29,6 +42,34 @@ export default function AndroidBetaOnboardingGate() {
   useEffect(() => {
     void refreshOpen();
   }, [refreshOpen]);
+
+  useEffect(() => {
+    if (!open || step !== 1) return;
+    let cancelled = false;
+    void (async () => {
+      const p = await getPushPermissionForSettings();
+      if (!cancelled) {
+        setPushPermLine(`${permShort(p.state)} (${p.source === 'native' ? 'app' : 'browser'})`);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, step]);
+
+  useEffect(() => {
+    if (!open || step !== 2) return;
+    let cancelled = false;
+    void (async () => {
+      const p = await getLocationPermissionForSettings();
+      if (!cancelled) {
+        setLocPermLine(`${permShort(p.state)} (${p.source === 'native' ? 'app' : 'browser'})`);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, step]);
 
   async function finishOnboarding() {
     setBusy(true);
@@ -125,6 +166,11 @@ export default function AndroidBetaOnboardingGate() {
               <p className="text-sm text-gray-700 leading-relaxed">
                 Meldingen helpen je bij berichten, reacties, verkopen, HCP-beloningen en lokale updates.
               </p>
+              {pushPermLine ? (
+                <p className="text-xs text-gray-500">
+                  Huidige status: <strong className="text-gray-800">{pushPermLine}</strong>
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2">
                 <button
                   type="button"
@@ -150,6 +196,11 @@ export default function AndroidBetaOnboardingGate() {
               <p className="text-sm text-gray-700 leading-relaxed">
                 Locatie helpt met makers in je buurt, lokale ranglijsten en regionale acties.
               </p>
+              {locPermLine ? (
+                <p className="text-xs text-gray-500">
+                  Huidige status: <strong className="text-gray-800">{locPermLine}</strong>
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2">
                 <button
                   type="button"

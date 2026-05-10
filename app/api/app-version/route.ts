@@ -23,6 +23,8 @@ export async function GET(): Promise<NextResponse<AppVersionApiResponse>> {
         apkUrl: '',
         updateTitle: 'HomeCheff',
         updateMessage: '',
+        updateTitleForced: 'Update required',
+        updateMessageForced: '',
         changelog: [],
         forceUpdate: false,
         enabled: false,

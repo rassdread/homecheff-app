@@ -313,7 +313,7 @@ export default function HcpRanglijstenClient() {
           <Link
             href="/"
             prefetch={false}
-            className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2 touch-manipulation select-none"
+            className="inline-flex min-h-[44px] touch-pan-y items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2 select-none"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {tk('backHome')}
@@ -328,13 +328,14 @@ export default function HcpRanglijstenClient() {
           <Link
             href="/mijn-hcp"
             prefetch={false}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 hover:bg-violet-50 touch-manipulation select-none"
+            className="inline-flex min-h-[44px] touch-pan-y items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 hover:bg-violet-50 select-none"
           >
             {tk('ctaMijnHcp')}
           </Link>
           <Link
             href="/profile"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+            prefetch={false}
+            className="inline-flex min-h-[44px] touch-pan-y items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 select-none"
           >
             {tk('ctaProfile')}
           </Link>

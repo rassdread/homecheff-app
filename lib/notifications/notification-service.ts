@@ -16,6 +16,8 @@ import { getFirebaseMessaging } from '@/lib/firebase/admin';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { getTransactionalFrom } from '@/lib/email-from';
+import { logEmailSendFailure } from '@/lib/email-log';
+import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
 import {
   isValidFcmTokenShape,
   maskPushTokenForLogs,
@@ -304,7 +306,7 @@ export class NotificationService {
       }
     }
 
-    // 4. Mobile push (FCM) — alleen chat, zelfde gate als Pusher; faalt nooit de hele send().
+    // 4. Mobile push (FCM) — chat + bestelling/bezorg-updates; faalt nooit de hele send().
     if (channels.includes('push') && pushEnabled && pushTokens.length > 0) {
       try {
         await this.sendFcmNotificationsForMessage(
@@ -395,6 +397,14 @@ export class NotificationService {
    */
   private static async sendEmailNotification(email: string, message: NotificationMessage): Promise<void> {
     try {
+      if (!process.env.RESEND_API_KEY?.trim()) {
+        logEmailSendFailure(
+          'notification_email_skipped',
+          new Error('RESEND_API_KEY_NOT_CONFIGURED'),
+          { recipientEmail: email }
+        );
+        return;
+      }
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       
@@ -464,14 +474,17 @@ export class NotificationService {
         </html>
       `;
       
-      await resend.emails.send({
+      const { error } = await resend.emails.send({
         from: getTransactionalFrom(),
         to: email,
         subject: message.title,
         html: htmlEmail
       });
+      if (error) {
+        logEmailSendFailure('notification_email_api', error, { recipientEmail: email });
+      }
     } catch (error) {
-      console.error('Email notification error:', error);
+      logEmailSendFailure('notification_email', error, { recipientEmail: email });
       // Don't throw - email is optional
     }
   }
@@ -727,57 +740,150 @@ export class NotificationService {
     }
   }
 
+  private static isFcmOrderLikeNotificationType(t: string | undefined): boolean {
+    if (!t) return false;
+    if (
+      t === 'NEW_ORDER' ||
+      t === 'ORDER_PLACED' ||
+      t === 'ORDER_PAID' ||
+      t === 'PAYMENT_RECEIVED' ||
+      t === 'SHIPPING_LABEL_READY'
+    ) {
+      return true;
+    }
+    if (t.startsWith('ORDER_')) return true;
+    if (t.startsWith('DELIVERY_')) return true;
+    return false;
+  }
+
+  /** FCM data-payload voor bestelling/bezorg-updates (geen volledige adresvelden in `data`). */
+  private static buildFcmOrderPayload(message: NotificationMessage): {
+    data: Record<string, string>;
+    title: string;
+    body: string;
+    androidChannelId: string;
+  } | null {
+    const d = message.data || {};
+    const link = typeof d.link === 'string' ? d.link : '';
+    let route: string | null = link
+      ? parseInternalPathFromUnknownInput(link)
+      : null;
+    const oidRaw = d.orderId;
+    const oid =
+      typeof oidRaw === 'string' && /^[a-zA-Z0-9_-]{6,}$/.test(oidRaw)
+        ? oidRaw
+        : null;
+    if (!route && oid) {
+      route = parseInternalPathFromUnknownInput(`/orders/${oid}`);
+    }
+    if (!route) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          '[FCM] order/delivery push zonder bruikbare route — overgeslagen',
+          d.type
+        );
+      }
+      return null;
+    }
+    const title = this.truncateFcmVisibleText(
+      (message.title || '').trim() || 'HomeCheff',
+      64
+    );
+    const bodyPlain = this.stripHtmlAndMarkdownForPushPreview(
+      String(message.body || '')
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    const body = this.truncateFcmVisibleText(bodyPlain || 'Bestelupdate', 110);
+    const dtype = typeof d.type === 'string' ? d.type : '';
+    const data: Record<string, string> = {
+      type: 'order',
+      route,
+    };
+    if (oid) data.orderId = oid;
+    if (dtype) data.notificationType = dtype;
+    const didRaw = d.deliveryOrderId;
+    if (
+      typeof didRaw === 'string' &&
+      /^[a-zA-Z0-9_-]{6,}$/.test(didRaw)
+    ) {
+      data.deliveryOrderId = didRaw;
+    }
+    return {
+      data,
+      title,
+      body,
+      androidChannelId: 'order_updates',
+    };
+  }
+
   /**
-   * FCM voor chat (NEW_MESSAGE / MESSAGE_RECEIVED). Android, iOS en web met actieve FCM-tokens.
+   * FCM: chat + bestelling/bezorg-updates. Android, iOS en web met actieve FCM-tokens.
    */
   private static async sendFcmNotificationsForMessage(
     pushTokens: any[],
     message: NotificationMessage,
     receiverId: string
   ): Promise<void> {
-    const dataType = message.data?.type as string | undefined;
-    const isChat =
-      dataType === 'NEW_MESSAGE' || dataType === 'MESSAGE_RECEIVED';
-    if (!isChat) return;
-
-    const conversationId = message.data?.conversationId;
-    if (!conversationId || typeof conversationId !== 'string') {
-      console.warn('[FCM] Chatmelding zonder conversationId — overgeslagen');
-      return;
-    }
-
     const messaging = getFirebaseMessaging();
     if (!messaging) return;
 
-    const notificationTitle = this.truncateFcmVisibleText(
-      (message.title || '').trim() || 'HomeCheff',
-      64
-    );
-    const notificationBody = this.formatChatPushBody(message.body, 110);
+    const dataType = message.data?.type as string | undefined;
+    const isChat =
+      dataType === 'NEW_MESSAGE' || dataType === 'MESSAGE_RECEIVED';
+    const isOrderLike = this.isFcmOrderLikeNotificationType(dataType);
+    if (!isChat && !isOrderLike) return;
 
-    const senderNamePresent =
-      message.data?.chatPushSenderNamePresent === true;
+    let notificationTitle: string;
+    let notificationBody: string;
+    let data: Record<string, string>;
+    let androidChannelId: string;
+    let avatarUrl: string | null = null;
+    let senderNamePresent = false;
+    let summaryKind: 'chat' | 'order';
 
-    const data: Record<string, string> = {
-      type: 'chat',
-      conversationId: String(conversationId),
-      route: `/messages/${conversationId}/`,
-    };
-    const senderId = message.data?.senderId;
-    if (senderId && typeof senderId === 'string') {
-      data.senderId = senderId;
-    }
-
-    const rawAvatar = message.data?.senderAvatarUrl;
-    const avatarUrl =
-      typeof rawAvatar === 'string'
-        ? resolveHttpsPublicImageUrlForFcm(rawAvatar)
-        : null;
-    if (avatarUrl) {
-      data.senderAvatarUrl = avatarUrl;
-      data.senderAvatar = 'true';
+    if (isChat) {
+      const conversationId = message.data?.conversationId;
+      if (!conversationId || typeof conversationId !== 'string') {
+        console.warn('[FCM] Chatmelding zonder conversationId — overgeslagen');
+        return;
+      }
+      notificationTitle = this.truncateFcmVisibleText(
+        (message.title || '').trim() || 'HomeCheff',
+        64
+      );
+      notificationBody = this.formatChatPushBody(message.body, 110);
+      senderNamePresent = message.data?.chatPushSenderNamePresent === true;
+      data = {
+        type: 'chat',
+        conversationId: String(conversationId),
+        route: `/messages/${conversationId}/`,
+      };
+      const senderId = message.data?.senderId;
+      if (senderId && typeof senderId === 'string') {
+        data.senderId = senderId;
+      }
+      const rawAvatar = message.data?.senderAvatarUrl;
+      avatarUrl =
+        typeof rawAvatar === 'string'
+          ? resolveHttpsPublicImageUrlForFcm(rawAvatar)
+          : null;
+      if (avatarUrl) {
+        data.senderAvatarUrl = avatarUrl;
+        data.senderAvatar = 'true';
+      } else {
+        data.senderAvatar = 'false';
+      }
+      androidChannelId = 'chat_messages';
+      summaryKind = 'chat';
     } else {
-      data.senderAvatar = 'false';
+      const built = this.buildFcmOrderPayload(message);
+      if (!built) return;
+      notificationTitle = built.title;
+      notificationBody = built.body;
+      data = built.data;
+      androidChannelId = built.androidChannelId;
+      summaryKind = 'order';
     }
 
     const fcmTargets = pushTokens.filter((row) => {
@@ -816,7 +922,7 @@ export class NotificationService {
         body: string;
         imageUrl?: string;
       } = {
-        channelId: 'chat_messages',
+        channelId: androidChannelId,
         sound: 'default',
         title: notificationTitle,
         body: notificationBody,
@@ -880,10 +986,12 @@ export class NotificationService {
 
         if (invalid) {
           await this.deactivateFcmToken(token);
-          console.info(
-            '[FCM] Token gedeactiveerd (ongeldig/niet geregistreerd)',
-            maskPushTokenForLogs(token)
-          );
+          if (process.env.NODE_ENV === 'development') {
+            console.info(
+              '[FCM] Token gedeactiveerd (ongeldig/niet geregistreerd)',
+              maskPushTokenForLogs(token)
+            );
+          }
         } else {
           console.warn(
             '[FCM] Verzenden mislukt:',
@@ -893,14 +1001,17 @@ export class NotificationService {
       }
     }
 
-    if (fcmTargets.length > 0) {
-      console.info('[FCM] chat push summary', {
+    if (
+      fcmTargets.length > 0 &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.info('[FCM] push summary', {
+        kind: summaryKind,
         receiverId,
         tokenCount: fcmTargets.length,
         successCount,
         failureCount,
-        hasSound: true,
-        androidChannelId: 'chat_messages',
+        androidChannelId,
         chatPushSenderAvatar: Boolean(avatarUrl),
         chatPushSenderNamePresent: senderNamePresent,
         platformAttempted,

@@ -1,34 +1,74 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { isNativeAndroid } from '@/lib/native/capacitor';
-import { getCapacitorAppInfo } from '@/lib/native/getCapacitorAppInfo';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
 import {
   downloadApkAndOpenInstaller,
   type ApkInstallPhase,
+  type ApkInstallFailureKind,
 } from '@/lib/native/androidApkUpdateInstall';
-import { isSemverLessThan, parseSemverCore } from '@/lib/app-version-semver';
 import type { AppVersionApiResponse } from '@/lib/app-version-config';
+import { useTranslation } from '@/hooks/useTranslation';
+import { markOptionalDismissedSession } from '@/lib/android-beta-update-derived';
+import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
+import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
 
 const LS_LAST_WEB_VERSION = 'hc:lastSeenWebVersion';
-const SS_OPTIONAL_DISMISS = 'hc:appUpdateOptionalDismissed';
 
 type GateMode = 'idle' | 'force' | 'optional';
 
+function StepRow(props: {
+  n: number;
+  active: boolean;
+  done: boolean;
+  label: string;
+}) {
+  return (
+    <div className="flex gap-3">
+      <div
+        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+          props.done
+            ? 'bg-emerald-600 text-white'
+            : props.active
+              ? 'bg-emerald-100 text-emerald-900 ring-2 ring-emerald-500/30'
+              : 'bg-gray-100 text-gray-500'
+        }`}
+      >
+        {props.done ? '✓' : props.n}
+      </div>
+      <p
+        className={`text-sm leading-snug ${
+          props.active ? 'font-semibold text-gray-900' : 'text-gray-600'
+        }`}
+      >
+        {props.label}
+      </p>
+    </div>
+  );
+}
+
 export default function AppUpdateGate() {
-  const nativeMounted = useIsNativeAppMounted();
+  const { t } = useTranslation();
   const router = useRouter();
-  const [mode, setMode] = useState<GateMode>('idle');
-  const [payload, setPayload] = useState<AppVersionApiResponse | null>(null);
+  const {
+    scopeActive,
+    payload,
+    derived,
+    showForceModal,
+    showOptionalModal,
+    syncInstallPersist,
+  } = useAppUpdateStatus();
+
+  const mode: GateMode = showForceModal ? 'force' : showOptionalModal ? 'optional' : 'idle';
+
   const [webToast, setWebToast] = useState(false);
   const [installPhase, setInstallPhase] = useState<ApkInstallPhase>('idle');
   const [installPct, setInstallPct] = useState<number | null>(null);
   const [installError, setInstallError] = useState<string | null>(null);
-  const payloadRef = useRef<AppVersionApiResponse | null>(null);
-  payloadRef.current = payload;
+  const [failureKind, setFailureKind] = useState<ApkInstallFailureKind | null>(null);
+  const [showPostGuide, setShowPostGuide] = useState(false);
 
   const runSoftWebRefresh = useCallback(
     (data: AppVersionApiResponse, apkBlocksSoft: boolean) => {
@@ -48,92 +88,10 @@ export default function AppUpdateGate() {
   );
 
   useEffect(() => {
-    if (!nativeMounted || !isNativeAndroid()) return;
-
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        const [res, appInfo] = await Promise.all([
-          fetch('/api/app-version', { credentials: 'same-origin', cache: 'no-store' }),
-          getCapacitorAppInfo(),
-        ]);
-        if (cancelled) return;
-        if (!res.ok) return;
-        const data = (await res.json()) as AppVersionApiResponse;
-        if (cancelled) return;
-        setPayload(data);
-
-        if (!data.enabled) {
-          runSoftWebRefresh(data, false);
-          return;
-        }
-
-        const currentVersion = appInfo.version?.trim() || null;
-        const latestApkVersionStr = (data.latestApkVersion ?? '').trim();
-        const minRequiredApkVersionStr = (data.minRequiredApkVersion ?? '').trim();
-
-        const hasValidCurrent =
-          Boolean(currentVersion) && parseSemverCore(currentVersion) != null;
-        const hasComparableLatest =
-          Boolean(latestApkVersionStr) && parseSemverCore(latestApkVersionStr) != null;
-        const hasComparableMin =
-          Boolean(minRequiredApkVersionStr) &&
-          parseSemverCore(minRequiredApkVersionStr) != null;
-
-        const belowMin =
-          hasValidCurrent &&
-          hasComparableMin &&
-          isSemverLessThan(currentVersion, minRequiredApkVersionStr) === true;
-        const belowLatest =
-          hasValidCurrent &&
-          hasComparableLatest &&
-          isSemverLessThan(currentVersion, latestApkVersionStr) === true;
-
-        const forceUi = belowMin || (Boolean(data.forceUpdate) && belowLatest);
-        const dismissed = sessionStorage.getItem(SS_OPTIONAL_DISMISS) === '1';
-        const optionalUi =
-          Boolean(belowLatest) &&
-          !belowMin &&
-          !data.forceUpdate &&
-          !dismissed &&
-          hasValidCurrent;
-
-        const updateNeeded = Boolean(belowMin || belowLatest);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.info('[app-update]', {
-            currentVersion,
-            latestApkVersion: latestApkVersionStr,
-            minRequiredApkVersion: minRequiredApkVersionStr,
-            forceUpdate: Boolean(data.forceUpdate),
-            updateNeeded,
-          });
-        }
-
-        const apkBlocksSoft = Boolean(belowMin || (data.forceUpdate && belowLatest));
-
-        if (forceUi) {
-          setMode('force');
-        } else if (optionalUi) {
-          setMode('optional');
-        } else {
-          setMode('idle');
-        }
-
-        if (!forceUi && !optionalUi) {
-          runSoftWebRefresh(data, apkBlocksSoft);
-        }
-      } catch {
-        /* geen crash in WebView */
-      }
-    };
-
-    void run();
-    return () => {
-      cancelled = true;
-    };
-  }, [nativeMounted, runSoftWebRefresh]);
+    if (!scopeActive || !payload) return;
+    if (showForceModal || showOptionalModal) return;
+    runSoftWebRefresh(payload, Boolean(derived?.apkBlocksSoft));
+  }, [scopeActive, payload, showForceModal, showOptionalModal, derived?.apkBlocksSoft, runSoftWebRefresh]);
 
   const resolveApkUrl = useCallback((): string => {
     if (typeof window === 'undefined') return '';
@@ -143,22 +101,37 @@ export default function AppUpdateGate() {
     return apk && /^https?:\/\//i.test(apk) ? apk : `${origin}/app`;
   }, [payload?.apkUrl]);
 
+  const resetInstallUi = useCallback(() => {
+    setInstallPhase('idle');
+    setInstallPct(null);
+    setInstallError(null);
+    setFailureKind(null);
+    setShowPostGuide(false);
+  }, []);
+
   const onUpdateNow = useCallback(async () => {
     if (typeof window === 'undefined') return;
+    const p = payload;
+    if (!p) return;
     const origin = window.location.origin;
-    const raw = (payload?.apkUrl ?? '').trim();
+    const raw = (p.apkUrl ?? '').trim();
     const resolvedApk = raw.startsWith('/') ? `${origin}${raw}` : raw;
     const browserTarget = resolveApkUrl();
     const useNativeInstall = isNativeAndroid() && /^https:\/\//i.test(resolvedApk);
+    const targetVer = (p.latestApkVersion ?? '').trim();
 
     if (useNativeInstall) {
       setInstallError(null);
+      setFailureKind(null);
+      setShowPostGuide(false);
       setInstallPhase('downloading');
-      const result = await downloadApkAndOpenInstaller(resolvedApk, (phase, pct) => {
+      const result = await downloadApkAndOpenInstaller(resolvedApk, targetVer, (phase, pct) => {
         setInstallPhase(phase);
         setInstallPct(phase === 'downloading' && pct != null ? pct : null);
       });
+      syncInstallPersist();
       if (!result.ok) {
+        setFailureKind(result.kind);
         setInstallError(result.message);
         setInstallPhase('error');
         if (result.fallbackToBrowser) {
@@ -166,26 +139,62 @@ export default function AppUpdateGate() {
         }
         return;
       }
-      setInstallPhase('idle');
+      setInstallPhase('done');
+      setShowPostGuide(true);
       return;
     }
 
     await openExternalUrl(browserTarget);
-  }, [payload?.apkUrl, resolveApkUrl]);
+  }, [payload, resolveApkUrl, syncInstallPersist]);
 
   const onLater = useCallback(() => {
-    try {
-      sessionStorage.setItem(SS_OPTIONAL_DISMISS, '1');
-    } catch {
-      /* ignore */
-    }
-    setMode('idle');
-    const p = payloadRef.current;
-    if (p) runSoftWebRefresh(p, false);
-  }, [runSoftWebRefresh]);
+    resetInstallUi();
+    markOptionalDismissedSession();
+    if (payload) runSoftWebRefresh(payload, false);
+  }, [payload, runSoftWebRefresh, resetInstallUi]);
 
-  if (!nativeMounted || !isNativeAndroid()) return null;
+  const openUnknownSourcesSettings = useCallback(async () => {
+    try {
+      await HomecheffApkInstaller.openManageUnknownAppSources();
+    } catch {
+      /* plugin / OEM */
+    }
+  }, []);
+
+  const openSystemDownloads = useCallback(async () => {
+    try {
+      await HomecheffApkInstaller.openSystemDownloads();
+    } catch {
+      /* OEM */
+    }
+  }, []);
+
+  if (!scopeActive) return null;
   if (mode === 'idle' && !webToast) return null;
+
+  const busyNative =
+    installPhase === 'downloading' ||
+    installPhase === 'preparing' ||
+    installPhase === 'opening';
+
+  const rank: Record<ApkInstallPhase, number> = {
+    idle: 0,
+    downloading: 1,
+    preparing: 2,
+    opening: 3,
+    done: 4,
+    error: 1,
+  };
+  const pr = rank[installPhase] ?? 0;
+  const step1Active = installPhase === 'downloading';
+  const step2Active = installPhase === 'preparing';
+  const step3Active = installPhase === 'opening';
+  const step1Done = pr >= 2 || showPostGuide;
+  const step2Done = pr >= 3 || showPostGuide;
+  const step3Done = pr >= 4 || showPostGuide;
+  const step4Done = showPostGuide;
+  const step5Done = showPostGuide;
+  const step4Active = showPostGuide;
 
   return (
     <>
@@ -216,50 +225,150 @@ export default function AppUpdateGate() {
                 id="hc-app-update-title"
                 className="text-lg font-semibold leading-snug text-gray-900 sm:text-xl"
               >
-                {payload.updateTitle}
+                {mode === 'force'
+                  ? payload.updateTitleForced?.trim() || t('appUpdateGate.forcedTitle')
+                  : payload.updateTitle?.trim() || t('appUpdateGate.optionalTitle')}
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{payload.updateMessage}</p>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                {mode === 'force'
+                  ? payload.updateMessageForced?.trim() || t('appUpdateGate.forcedMessage')
+                  : payload.updateMessage?.trim() || t('appUpdateGate.optionalMessage')}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-emerald-900/90 bg-emerald-50/80 border border-emerald-100 rounded-lg px-3 py-2">
+                {t('appUpdateGate.reassuranceData')}
+              </p>
 
-              {payload.changelog?.length ? (
-                <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm text-gray-700">
-                  {payload.changelog.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              ) : null}
+              {(() => {
+                const lines = (payload.changelog ?? [])
+                  .map((line) => String(line).trim())
+                  .filter(Boolean)
+                  .slice(0, 5);
+                return lines.length ? (
+                  <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm text-gray-700">
+                    {lines.map((line, i) => (
+                      <li key={`${i}-${line.slice(0, 48)}`}>{line}</li>
+                    ))}
+                  </ul>
+                ) : null;
+              })()}
 
-              {installPhase !== 'idle' && installPhase !== 'done' && installPhase !== 'error' ? (
-                <p className="mt-4 text-center text-sm font-medium text-emerald-800" role="status">
-                  {installPhase === 'downloading'
-                    ? installPct != null
-                      ? `Downloaden… ${installPct}%`
-                      : 'Downloaden…'
-                    : installPhase === 'preparing'
-                      ? 'Installatie voorbereiden…'
-                      : installPhase === 'opening'
-                        ? 'Open Android installatie…'
-                        : null}
-                </p>
-              ) : null}
+              {(busyNative || showPostGuide || installPhase === 'done' || installPhase === 'error') && (
+                <div className="mt-5 space-y-3 rounded-xl border border-gray-100 bg-gray-50/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t('appUpdateGate.stepsHeading')}
+                  </p>
+                  <StepRow
+                    n={1}
+                    active={step1Active}
+                    done={step1Done}
+                    label={t('appUpdateGate.stepDownload')}
+                  />
+                  <StepRow
+                    n={2}
+                    active={step2Active}
+                    done={step2Done}
+                    label={t('appUpdateGate.stepPrepare')}
+                  />
+                  <StepRow
+                    n={3}
+                    active={step3Active}
+                    done={step3Done}
+                    label={t('appUpdateGate.stepAndroidOpen')}
+                  />
+                  <StepRow
+                    n={4}
+                    active={step4Active}
+                    done={step4Done}
+                    label={t('appUpdateGate.stepTapInstall')}
+                  />
+                  <StepRow
+                    n={5}
+                    active={false}
+                    done={step5Done}
+                    label={t('appUpdateGate.stepReopen')}
+                  />
 
-              {installPhase === 'error' && installError ? (
-                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
-                  <p className="font-medium">Installatie kon niet automatisch openen.</p>
-                  <p className="mt-1 text-amber-900/90">
-                    We hebben de download in je browser geopend. Open daarna je Downloads en tik op het
-                    APK-bestand, of probeer opnieuw.
+                  {step1Active && installPct != null ? (
+                    <p className="text-center text-xs font-medium text-emerald-800" role="status">
+                      {installPct}%
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
+              {showPostGuide && installPhase !== 'error' ? (
+                <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 text-sm text-emerald-950">
+                  <p className="font-semibold">{t('appUpdateGate.postGuideTitle')}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-900/95">
+                    {t('appUpdateGate.postGuideBody')}
                   </p>
                   <button
                     type="button"
                     onClick={() => {
-                      setInstallPhase('idle');
-                      setInstallPct(null);
-                      setInstallError(null);
+                      resetInstallUi();
                     }}
-                    className="mt-2 text-left text-xs font-semibold text-emerald-800 underline touch-manipulation"
+                    className="mt-3 w-full rounded-xl bg-emerald-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 touch-manipulation"
                   >
-                    Opnieuw proberen
+                    {t('appUpdateGate.postGuideDismiss')}
                   </button>
+                </div>
+              ) : null}
+
+              {installPhase === 'error' && installError ? (
+                <div className="mt-4 space-y-3 rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-3 text-sm text-amber-950">
+                  {failureKind === 'unknown_sources' ? (
+                    <>
+                      <p className="font-semibold">{t('appUpdateGate.unknownSourcesTitle')}</p>
+                      <p className="text-xs leading-relaxed text-amber-900/95">
+                        {t('appUpdateGate.unknownSourcesBody')}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void openUnknownSourcesSettings()}
+                        className="w-full rounded-xl bg-amber-800 px-3 py-2.5 text-sm font-semibold text-white hover:bg-amber-900 touch-manipulation"
+                      >
+                        {t('appUpdateGate.btnOpenAndroidSettings')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold">{t('appUpdateGate.errorTitle')}</p>
+                      <p className="text-xs leading-relaxed text-amber-900/95">
+                        {failureKind === 'download_timeout'
+                          ? t('appUpdateGate.downloadStalled')
+                          : t('appUpdateGate.errorOpenFromNotifications')}
+                      </p>
+                    </>
+                  )}
+                  <p className="text-[11px] leading-relaxed text-amber-900/85">
+                    {t('appUpdateGate.fallbackPathHint')}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void openSystemDownloads()}
+                      className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100 touch-manipulation"
+                    >
+                      {t('appUpdateGate.btnOpenDownloads')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetInstallUi();
+                        void onUpdateNow();
+                      }}
+                      className="w-full rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+                    >
+                      {t('appUpdateGate.btnRetryDownload')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => resetInstallUi()}
+                      className="text-center text-xs font-semibold text-amber-900 underline touch-manipulation"
+                    >
+                      {t('appUpdateGate.errorDismiss')}
+                    </button>
+                  </div>
                 </div>
               ) : null}
 
@@ -267,14 +376,14 @@ export default function AppUpdateGate() {
                 <button
                   type="button"
                   onClick={() => void onUpdateNow()}
-                  disabled={
-                    installPhase === 'downloading' ||
-                    installPhase === 'preparing' ||
-                    installPhase === 'opening'
-                  }
+                  disabled={busyNative}
                   className="min-h-[48px] w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition active:scale-[0.99] enabled:hover:bg-emerald-700 disabled:opacity-60 sm:w-auto sm:min-w-[10rem] touch-manipulation"
                 >
-                  {mode === 'force' ? 'Update downloaden' : 'Nu updaten'}
+                  {busyNative
+                    ? t('appUpdateGate.ctaBusy')
+                    : mode === 'force'
+                      ? t('appUpdateGate.ctaDownload')
+                      : t('appUpdateGate.ctaUpdate')}
                 </button>
                 {mode === 'optional' ? (
                   <button
@@ -282,14 +391,14 @@ export default function AppUpdateGate() {
                     onClick={onLater}
                     className="min-h-[48px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-sm font-medium text-gray-800 transition active:bg-gray-50 sm:w-auto touch-manipulation"
                   >
-                    Later
+                    {t('appUpdateGate.later')}
                   </button>
                 ) : null}
               </div>
 
               {mode === 'force' ? (
                 <p className="mt-4 text-center text-xs leading-relaxed text-gray-500">
-                  Android vraagt om bevestiging om de APK te installeren — dat hoort zo.
+                  {t('appUpdateGate.installHintAndroid')}
                 </p>
               ) : null}
             </div>
@@ -302,7 +411,7 @@ export default function AppUpdateGate() {
           className="pointer-events-none fixed bottom-24 left-1/2 z-[210] max-w-[min(92vw,20rem)] -translate-x-1/2 rounded-xl border border-emerald-100 bg-emerald-50/95 px-4 py-3 text-center text-sm font-medium text-emerald-900 shadow-lg"
           role="status"
         >
-          Nieuwe versie geladen
+          {t('appUpdateGate.webVersionToast')}
         </div>
       ) : null}
     </>

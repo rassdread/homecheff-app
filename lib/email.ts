@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { getTransactionalFrom } from '@/lib/email-from';
+import { logEmailSendFailure } from '@/lib/email-log';
 
 function requireResend(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -111,13 +112,13 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
     });
 
     if (error) {
-      console.error('Email sending error:', error);
+      logEmailSendFailure('verification_api', error, { recipientEmail: email });
       throw new Error('Failed to send verification email');
     }
 
     return { success: true, data };
   } catch (error) {
-    console.error('Email service error:', error);
+    logEmailSendFailure('verification', error, { recipientEmail: email });
     throw new Error('Email service unavailable');
   }
 }
@@ -155,13 +156,13 @@ export async function sendReviewRequestEmail(data: {
     });
 
     if (error) {
-      console.error('Review request email sending error:', error);
+      logEmailSendFailure('review_request_api', error, { recipientEmail: data.email });
       throw new Error('Failed to send review request email');
     }
 
     return { success: true, data: emailData };
   } catch (error) {
-    console.error('Review request email service error:', error);
+    logEmailSendFailure('review_request', error, { recipientEmail: data.email });
     throw new Error('Email service unavailable');
   }
 }
@@ -225,7 +226,7 @@ export async function sendPasswordResetEmail({
   });
 
   if (error) {
-    console.error("[email] sendPasswordResetEmail Resend error:", error);
+    logEmailSendFailure("password_reset", error, { recipientEmail: email });
     throw new Error("Failed to send password reset email");
   }
   return { success: true as const, data };
@@ -338,13 +339,13 @@ export async function sendWelcomeEmail({ email, name }: { email: string; name: s
     });
 
     if (error) {
-      console.error('Welcome email sending error:', error);
+      logEmailSendFailure('welcome_api', error, { recipientEmail: email });
       throw new Error('Failed to send welcome email');
     }
 
     return { success: true, data };
   } catch (error) {
-    console.error('Welcome email service error:', error);
+    logEmailSendFailure('welcome', error, { recipientEmail: email });
     throw new Error('Email service unavailable');
   }
 }

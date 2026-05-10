@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
+import { logEmailSendFailure } from "@/lib/email-log";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 
 export const dynamic = 'force-dynamic';
@@ -60,7 +61,9 @@ export async function POST(req: NextRequest) {
       });
 
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      logEmailSendFailure("resend_verification", emailError, {
+        recipientEmail: user.email,
+      });
       return NextResponse.json({ 
         error: "Er is een fout opgetreden bij het verzenden van de verificatie-e-mail. Probeer het later opnieuw." 
       }, { status: 500 });

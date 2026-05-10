@@ -23,6 +23,20 @@ export function pathFromPushNotificationData(
   const d = readDataRecord(data);
 
   const t = typeof d.type === "string" ? d.type.toLowerCase() : "";
+  if (t === "order" || t === "order_update") {
+    const routeOnly =
+      typeof d.route === "string"
+        ? parseInternalPathFromUnknownInput(d.route)
+        : null;
+    if (routeOnly) return routeOnly;
+  }
+  if (t === "announcement" || t === "admin_announcement") {
+    const r =
+      typeof d.route === "string"
+        ? parseInternalPathFromUnknownInput(d.route)
+        : null;
+    if (r) return r;
+  }
   if (t === "chat" || t === "new_message" || t === "message_received") {
     const cid =
       typeof d.conversationId === "string" ? d.conversationId : null;

@@ -914,7 +914,9 @@ export default function ChatBox({
           {peerProfileHref ? (
             <Link
               href={peerProfileHref}
-              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              prefetch={false}
+              scroll={false}
+              className="flex min-h-[44px] min-w-0 flex-1 touch-pan-y items-center gap-3 rounded-lg outline-none select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               {otherParticipant.profileImage ? (
                 <Image

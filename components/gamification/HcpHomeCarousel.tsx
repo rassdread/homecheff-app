@@ -47,7 +47,7 @@ function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
         <Link
           href="/hcp-ranglijsten"
           prefetch={false}
-          className="shrink-0 text-[9px] font-semibold text-amber-800 hover:text-amber-950 hover:underline touch-manipulation select-none"
+          className="shrink-0 text-[9px] font-semibold text-amber-800 hover:text-amber-950 hover:underline touch-pan-y select-none"
         >
           {t('home.hcpCarousel.openRankings')}
         </Link>
@@ -83,7 +83,7 @@ function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
           return (
             <li key={row.userId}>
               {href ? (
-                <Link href={href} prefetch={false} className={cn(shell, 'touch-manipulation select-none')}>
+                <Link href={href} prefetch={false} className={cn(shell, 'touch-pan-y select-none')}>
                   {inner}
                 </Link>
               ) : (
@@ -128,7 +128,7 @@ function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
           <Link
             href={href}
             prefetch={false}
-            className="flex min-h-0 items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5 hover:bg-emerald-50 transition-colors touch-manipulation select-none"
+            className="flex min-h-0 items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5 hover:bg-emerald-50 transition-colors touch-pan-y select-none"
           >
             {spotlightInner}
           </Link>
@@ -186,7 +186,7 @@ function CarouselPromoSlide({ slide, embedded }: { slide: HomeCarouselSlide; emb
               'bg-gradient-to-r from-amber-500/90 to-emerald-600/85 text-white shadow-sm',
               'hover:from-amber-500 hover:to-emerald-600 transition-colors',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
-              'touch-manipulation select-none'
+              'touch-pan-y select-none'
             )}
           >
             {slide.ctaLabel}
@@ -195,7 +195,7 @@ function CarouselPromoSlide({ slide, embedded }: { slide: HomeCarouselSlide; emb
         <Link
           href="/hcp-ranglijsten"
           prefetch={false}
-          className="inline-flex min-h-[44px] w-full items-center justify-center py-2 text-center text-[10px] font-semibold text-amber-900/90 underline-offset-2 hover:underline touch-manipulation select-none"
+          className="inline-flex min-h-[44px] w-full items-center justify-center py-2 text-center text-[10px] font-semibold text-amber-900/90 underline-offset-2 hover:underline touch-pan-y select-none"
         >
           {t('home.hcpCarousel.viewMore')}
         </Link>
@@ -328,7 +328,7 @@ export default function HcpHomeCarousel({
               <button
                 type="button"
                 onClick={() => go(-1)}
-                className="pointer-events-auto inline-flex h-9 w-9 shrink-0 touch-manipulation select-none items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-10 sm:w-10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="pointer-events-auto inline-flex h-9 w-9 shrink-0 touch-pan-y select-none items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-10 sm:w-10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 aria-label={t('home.hcpCarousel.prev')}
               >
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
@@ -343,7 +343,7 @@ export default function HcpHomeCarousel({
               <button
                 type="button"
                 onClick={() => go(1)}
-                className="pointer-events-auto inline-flex h-9 w-9 shrink-0 touch-manipulation select-none items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-10 sm:w-10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="pointer-events-auto inline-flex h-9 w-9 shrink-0 touch-pan-y select-none items-center justify-center rounded-full border border-amber-200/90 bg-white/95 text-amber-900 shadow-md backdrop-blur-sm hover:bg-amber-50 sm:h-10 sm:w-10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 aria-label={t('home.hcpCarousel.next')}
               >
                 <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
@@ -377,7 +377,7 @@ export default function HcpHomeCarousel({
                     type="button"
                     role="tab"
                     onClick={() => setIndex(i)}
-                    className="inline-flex min-h-[44px] min-w-[44px] touch-manipulation select-none items-center justify-center rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                    className="inline-flex min-h-[44px] min-w-[44px] touch-pan-y select-none items-center justify-center rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
                     aria-label={t('home.hcpCarousel.dot', { n: i + 1 })}
                     aria-selected={i === safeIndex}
                   >

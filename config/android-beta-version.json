@@ -6,6 +6,8 @@
   "forceUpdate": false,
   "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
   "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
-  "updateMessage": "Werk de app bij voor de nieuwste verbeteringen.",
+  "updateMessage": "Werk de app bij voor de nieuwste verbeteringen en fixes.",
+  "updateTitleForced": "Update vereist",
+  "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": []
 }

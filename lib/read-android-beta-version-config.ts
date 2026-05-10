@@ -11,6 +11,8 @@ export type AndroidBetaVersionFile = {
   apkUrl: string;
   updateTitle: string;
   updateMessage: string;
+  updateTitleForced: string;
+  updateMessageForced: string;
   changelog: string[];
 };
 
@@ -38,6 +40,8 @@ export function readAndroidBetaVersionFile(): AndroidBetaVersionFile | null {
     const apkUrl = String(parsed.apkUrl ?? '').trim();
     const updateTitle = String(parsed.updateTitle ?? '').trim();
     const updateMessage = String(parsed.updateMessage ?? '').trim();
+    const updateTitleForced = String(parsed.updateTitleForced ?? '').trim();
+    const updateMessageForced = String(parsed.updateMessageForced ?? '').trim();
     const changelog = asStringArray(parsed.changelog) ?? [];
     const versionCode = Number(parsed.versionCode);
     if (!Number.isFinite(versionCode) || versionCode < 1) return null;
@@ -50,6 +54,8 @@ export function readAndroidBetaVersionFile(): AndroidBetaVersionFile | null {
       apkUrl,
       updateTitle,
       updateMessage,
+      updateTitleForced,
+      updateMessageForced,
       changelog,
     };
   } catch {

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
+import { logEmailSendFailure } from "@/lib/email-log";
 
 export type VerifiedUserPayload = {
   id: string;
@@ -55,7 +56,9 @@ export async function completeEmailVerificationWithToken(
         name: user.name || user.username || "Gebruiker",
       });
     } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
+      logEmailSendFailure("welcome_after_verify", emailError, {
+        recipientEmail: user.email,
+      });
     }
 
     return {

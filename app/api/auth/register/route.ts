@@ -13,6 +13,7 @@ import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards
 import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
+import { logEmailSendFailure } from "@/lib/email-log";
 
 export async function POST(req: NextRequest) {
   try {
@@ -391,7 +392,9 @@ export async function POST(req: NextRequest) {
         verificationCode
       });
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      logEmailSendFailure("register_verification", emailError, {
+        recipientEmail: email,
+      });
       // Don't fail registration if email sending fails
     }
 

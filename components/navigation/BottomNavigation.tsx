@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Home, Briefcase, Plus, MessageCircle, User, Upload } from 'lucide-react';
+import { Home, Briefcase, Plus, MessageCircle, User, Upload, Download } from 'lucide-react';
 import PromoModal from '@/components/promo/PromoModal';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -14,6 +14,7 @@ import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { navDebug } from '@/lib/nav-debug';
+import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -65,6 +66,7 @@ export default function BottomNavigation() {
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
 
   const isNativeShell = useIsNativeAppMounted();
+  const appUpdateStatus = useAppUpdateStatus();
   const shouldHide = isBottomNavigationHidden(pathname, {
     nativeShell: isNativeShell,
   });
@@ -272,8 +274,8 @@ export default function BottomNavigation() {
   const isFeedDiscoverActive = pathname === '/';
   const isHcpRouteActive = pathname === '/mijn-hcp';
 
-  /** Directe routes op eerste tap; tijdens sessie-load alvast Link (geen lege onClick). */
-  const useDirectTabLinks = Boolean(session?.user) || sessionStatus === 'loading';
+  /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */
+  const useDirectTabLinks = Boolean(session?.user);
 
   // Signup promo modals: niet tonen tijdens sessie-loading (voorkomt "community" achter native push).
   useEffect(() => {
@@ -1353,6 +1355,20 @@ export default function BottomNavigation() {
             : 'py-2.5 px-2 sm:px-4'
         )}
       >
+        {appUpdateStatus.showOptionalReminder ? (
+          <div className="max-w-4xl mx-auto w-full px-1 pb-1.5 pt-0.5">
+            <button
+              type="button"
+              onClick={() => void appUpdateStatus.triggerApkDownload()}
+              className="flex w-full touch-pan-y items-center justify-center gap-2 rounded-lg border border-emerald-200/90 bg-emerald-50/95 py-1.5 text-xs font-semibold text-emerald-950 active:bg-emerald-100/90"
+            >
+              <Download className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span>{t('appUpdateGate.updateAvailableShort')}</span>
+              <span className="text-emerald-800/80">·</span>
+              <span className="line-clamp-2 text-left">{t('appUpdateGate.reminderFinishInstall')}</span>
+            </button>
+          </div>
+        ) : null}
         <div
           className={cn(
             'flex items-center max-w-4xl mx-auto min-w-0',
@@ -1508,7 +1524,7 @@ export default function BottomNavigation() {
                 href="/mijn-hcp"
                 prefetch={false}
                 className={cn(
-                  'flex flex-col items-center justify-center rounded-2xl touch-manipulation transition-all duration-200 ease-out',
+                  'flex flex-col items-center justify-center rounded-2xl touch-pan-y transition-all duration-200 ease-out',
                   'min-h-[52px] min-w-[3.25rem] sm:min-w-[3.5rem] px-2 py-1.5',
                   'bg-gradient-to-b from-emerald-50/98 via-teal-50/92 to-cyan-50/75',
                   'border border-emerald-200/60 shadow-[0_3px_16px_-6px_rgba(13,148,136,0.28),inset_0_1px_0_rgba(255,255,255,0.85)]',

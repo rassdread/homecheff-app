@@ -57,6 +57,14 @@ function matchesAllowed(normalized: string): boolean {
   if (normalized.startsWith("/product/")) return true;
   if (normalized.startsWith("/user/")) return true;
   if (normalized.startsWith("/orders/")) return true;
+  if (normalized === "/verkoper/orders" || normalized.startsWith("/verkoper/orders/"))
+    return true;
+  if (normalized === "/mijn-hcp" || normalized.startsWith("/mijn-hcp/")) return true;
+  if (normalized.startsWith("/bezorger/")) return true;
+  if (normalized === "/notifications" || normalized.startsWith("/notifications/"))
+    return true;
+  if (normalized === "/settings/app") return true;
+  if (normalized === "/app") return true;
   return false;
 }
 

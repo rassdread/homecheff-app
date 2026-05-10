@@ -23,6 +23,14 @@ import {
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
+import {
+  REGISTER_DRAFT_STORAGE_KEY,
+  clearRegisterDraftStorage,
+  fetchOnboardingFlags,
+  onboardingFlagsFromSessionUser,
+  resolvePathAfterSocialAuth,
+  sanitizePostAuthRelativeUrl,
+} from "@/lib/auth/post-auth-redirect";
 
 // User types will be loaded dynamically based on language
 const getUserTypes = (t: (key: string) => string) => [
@@ -109,7 +117,6 @@ const getBuyerTypes = (t: (key: string) => string) => [
   }
 ];
 
-const REGISTER_DRAFT_STORAGE_KEY = "homecheff_register_draft_v1";
 const REGISTER_DRAFT_TTL = 48 * 60 * 60 * 1000;
 
 type RegisterState = {
@@ -351,59 +358,6 @@ function RegisterPageContent() {
   // Load hints for this page
   const pageHints = getHintsForPage('register');
   
-  // CRITICAL: Check if user already completed onboarding and redirect immediately
-  // This prevents the register page from flashing when user is already logged in
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      // Wait for session to load
-      if (status === 'loading') {
-        return;
-      }
-
-      // Only check if user is authenticated
-      if (status !== 'authenticated' || !session?.user) {
-        setIsCheckingOnboarding(false);
-        return;
-      }
-
-      try {
-        // Check database directly via API for reliable onboarding status
-        const response = await fetch('/api/auth/check-onboarding');
-        if (response.ok) {
-          const data = await response.json();
-          const hasTempUsername = data.hasTempUsername || false;
-          const onboardingCompleted = data.onboardingCompleted || false;
-          
-          // If user has completed onboarding, redirect immediately
-          if (!hasTempUsername && onboardingCompleted === true) {
-            console.log('🔍 [REGISTER] User already completed onboarding, redirecting to home');
-            window.location.replace('/');
-            return;
-          }
-        } else {
-          // Fallback to session data
-          const username = (session.user as any)?.username || '';
-          const hasTempUsername = username?.startsWith('temp_') || false;
-          const onboardingCompleted = (session.user as any)?.socialOnboardingCompleted || false;
-          
-          // If user has completed onboarding, redirect immediately
-          if (!hasTempUsername && onboardingCompleted === true) {
-            console.log('🔍 [REGISTER] User already completed onboarding (session check), redirecting to home');
-            window.location.replace('/');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        // Don't block registration if check fails
-      } finally {
-        setIsCheckingOnboarding(false);
-      }
-    };
-
-    checkOnboardingStatus();
-  }, [session, status]);
-  
   // Load social login data if coming from social login
   useEffect(() => {
     const loadSocialData = async (retryCount = 0) => {
@@ -417,18 +371,15 @@ function RegisterPageContent() {
           const session = await getSession();
           
           // Double check onboarding status before loading form data
-          const response = await fetch('/api/auth/check-onboarding');
-          if (response.ok) {
-            const data = await response.json();
-            const hasTempUsername = data.hasTempUsername || false;
-            const onboardingCompleted = data.onboardingCompleted || false;
-            
-            // If onboarding is complete, don't load form data, just redirect
-            if (!hasTempUsername && onboardingCompleted === true) {
-              console.log('🔍 [REGISTER] Onboarding complete, redirecting before loading form');
-              window.location.replace('/');
-              return;
-            }
+          let flags = await fetchOnboardingFlags();
+          if (!flags) {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            flags = await fetchOnboardingFlags();
+          }
+          if (flags && resolvePathAfterSocialAuth(flags) === "/") {
+            console.log('🔍 [REGISTER] Onboarding complete, redirecting before loading form');
+            window.location.replace('/');
+            return;
           }
 
           let socialEmail = '';
@@ -590,12 +541,88 @@ function RegisterPageContent() {
 
   const handleDraftReset = React.useCallback(() => {
     resetRegistrationDraft();
+    clearRegisterDraftStorage();
     if (typeof window !== "undefined") {
       // Safari-compatibele versie: gebruik safe helpers
       safeSessionStorageRemoveItem("pendingRegistration");
       safeSessionStorageRemoveItem("register_cleared");
     }
   }, [resetRegistrationDraft]);
+
+  // Authenticated users: never stay on the email signup wizard; clear draft; send incomplete profiles to social completion.
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (status === "loading") {
+        return;
+      }
+
+      if (status !== "authenticated" || !session?.user) {
+        setIsCheckingOnboarding(false);
+        return;
+      }
+
+      let flags = await fetchOnboardingFlags();
+      if (!flags && typeof updateSession === "function") {
+        try {
+          await updateSession({});
+        } catch {
+          /* ignore */
+        }
+        await new Promise((r) => setTimeout(r, 400));
+        if (cancelled) return;
+        flags = await fetchOnboardingFlags();
+      }
+      if (!flags) {
+        await new Promise((r) => setTimeout(r, 400));
+        if (cancelled) return;
+        flags = await fetchOnboardingFlags();
+      }
+
+      if (cancelled) return;
+
+      const resolved =
+        flags ?? onboardingFlagsFromSessionUser(session.user as any);
+      const target = resolvePathAfterSocialAuth(resolved);
+
+      if (target === "/") {
+        resetRegistrationDraft();
+        clearRegisterDraftStorage();
+        safeSessionStorageRemoveItem("pendingRegistration");
+        safeSessionStorageRemoveItem("register_cleared");
+        window.location.replace("/");
+        return;
+      }
+
+      resetRegistrationDraft();
+      clearRegisterDraftStorage();
+
+      if (!isSocialLogin && typeof window !== "undefined") {
+        const next = new URL("/register", window.location.origin);
+        next.searchParams.set("social", "true");
+        if (inviteToken) {
+          next.searchParams.set("inviteToken", inviteToken);
+        }
+        window.location.replace(next.toString());
+        return;
+      }
+
+      setIsCheckingOnboarding(false);
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    session,
+    status,
+    isSocialLogin,
+    inviteToken,
+    resetRegistrationDraft,
+    updateSession,
+  ]);
 
   const steps = [
     { id: 1, title: t("register.steps.welcome.title"), description: t("register.steps.welcome.description") },
@@ -1637,6 +1664,11 @@ function RegisterPageContent() {
           }
         }
 
+        resetRegistrationDraft();
+        clearRegisterDraftStorage();
+        safeSessionStorageRemoveItem("pendingRegistration");
+        safeSessionStorageRemoveItem("register_cleared");
+
         // Gebruik window.location.replace voor clean redirect (geen back button issues)
         window.location.replace("/?welcome=true&onboarding=completed");
         return;
@@ -1812,8 +1844,15 @@ function RegisterPageContent() {
       // Check if email verification is needed
       if (data?.needsVerification) {
         // Show verification modal instead of auto-login
-        const returnUrl = searchParams?.get('returnUrl');
-        const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/");
+        const rawReturn = searchParams?.get("returnUrl");
+        const fromQuery = sanitizePostAuthRelativeUrl(rawReturn);
+        const fromApi = sanitizePostAuthRelativeUrl(
+          typeof data?.redirectUrl === "string" ? data.redirectUrl : null,
+        );
+        const redirectUrl =
+          fromQuery ||
+          fromApi ||
+          (state.isBusiness ? "/sell" : "/");
         
         setState(prev => ({
           ...prev,
@@ -1833,8 +1872,15 @@ function RegisterPageContent() {
       }));
       
       // Bepaal redirect URL op basis van returnUrl parameter, response of default (home)
-      const returnUrl = searchParams?.get('returnUrl');
-      const redirectUrl = returnUrl || data?.redirectUrl || (state.isBusiness ? "/sell" : "/");
+      const rawReturnPost = searchParams?.get("returnUrl");
+      const fromQueryPost = sanitizePostAuthRelativeUrl(rawReturnPost);
+      const fromApiPost = sanitizePostAuthRelativeUrl(
+        typeof data?.redirectUrl === "string" ? data.redirectUrl : null,
+      );
+      const redirectUrl =
+        fromQueryPost ||
+        fromApiPost ||
+        (state.isBusiness ? "/sell" : "/");
       
       // Probeer automatisch in te loggen - Safari-compatibele versie
       // Gebruik redirect: false eerst om te controleren of login werkt
@@ -3537,7 +3583,9 @@ function RegisterPageContent() {
           // Auto-login after verification
           if (state.registrationPassword && state.verificationEmail) {
             try {
-              const redirectUrl = state.registrationRedirectUrl || "/";
+              const redirectUrl =
+                sanitizePostAuthRelativeUrl(state.registrationRedirectUrl || undefined) ||
+                "/";
               
               // iOS Safari needs more time for cookies
               const isIOSDevice = isIOS();

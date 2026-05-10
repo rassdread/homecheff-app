@@ -617,8 +617,8 @@ html.hc-native-capacitor .hc-messages-root > header {
 }
 
 /*
- * Native Android (max-lg): scroll op .hc-conversations-list-scroll (niet op de kolom).
- * Kolom-kolom scroll + overflow:visible op de lijst liet touches op rijen (button/Link) vastlopen — midden niet scrollbaar.
+ * Native Android (max-lg): één scrollport (.hc-native-conversations-scrollport) met zoekbalk + rijen.
+ * Geneste flex-scroll + rijen als implicit button/Link brak verticale pan op de rijen (WebView).
  */
 @media (max-width: 1023.98px) {
   html.hc-native-capacitor:not(.hc-messages-chat-open) .hc-native-messages-list-column {
@@ -634,12 +634,12 @@ html.hc-native-capacitor .hc-messages-root > header {
 
   html.hc-native-capacitor:not(.hc-messages-chat-open)
     .hc-native-messages-list-column
-    .hc-conversations-list-scroll {
+    .hc-native-conversations-scrollport {
     flex: 1 1 0% !important;
     flex-basis: 0 !important;
     min-height: 0 !important;
-    max-height: none !important;
-    height: auto !important;
+    height: calc(100dvh - 4rem - 5.75rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 4rem - 5.75rem - env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: scroll !important;
     overflow-x: hidden !important;
     overscroll-behavior-y: contain;
@@ -647,9 +647,32 @@ html.hc-native-capacitor .hc-messages-root > header {
     touch-action: pan-y !important;
     pointer-events: auto !important;
   }
+
+  html.hc-native-capacitor:not(.hc-messages-chat-open)
+    .hc-native-messages-list-column
+    .hc-native-conversations-scrollport
+    .hc-conversations-list-scroll {
+    flex: none !important;
+    flex-basis: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    touch-action: pan-y !important;
+  }
 }
 
-/* lg+ / desktop: inner blijft het scrollvlak (overflow-y: scroll i.p.v. auto — WebView). */
+@media (max-width: 1023.98px) and (min-width: 640px) {
+  html.hc-native-capacitor:not(.hc-messages-chat-open)
+    .hc-native-messages-list-column
+    .hc-native-conversations-scrollport {
+    height: calc(100dvh - 4rem - 5.25rem - env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - 4rem - 5.25rem - env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* lg+ / desktop native: inner lijst blijft scrollvlak. */
 html.hc-native-capacitor .hc-conversations-list-scroll {
   flex: 1 1 0%;
   flex-basis: 0;
@@ -659,6 +682,13 @@ html.hc-native-capacitor .hc-conversations-list-scroll {
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
   pointer-events: auto !important;
+}
+
+html.hc-native-capacitor .hc-native-conversations-scrollport .hc-conversations-list-scroll {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 @media (min-width: 1024px) {
@@ -676,9 +706,17 @@ html.hc-messages-scroll-debug.hc-native-capacitor .hc-messages-root {
 html.hc-messages-scroll-debug.hc-native-capacitor .hc-conversations-list-scroll {
   box-shadow: inset 0 0 0 3px rgba(22, 163, 74, 0.85);
 }
+html.hc-messages-scroll-debug.hc-native-capacitor .hc-native-conversations-scrollport {
+  box-shadow: inset 0 0 0 3px rgba(234, 179, 8, 0.9);
+}
 
-/* Gespreksrij: geen <button> — verticale pan blijft op .hc-conversations-list-scroll (Android WebView). */
+/* Gespreksrij: pan-y + geen manipulation (WebView); scrollport vangt verticale pan. */
 .hc-conversation-row-tap {
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.hc-conversation-avatar-tap {
   touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;

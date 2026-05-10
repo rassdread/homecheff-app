@@ -22,6 +22,7 @@ import BusinessBadge from '@/components/ui/BusinessBadge';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import HomeCheffPointsCompactCard from '@/components/gamification/HomeCheffPointsCompactCard';
 import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
+import AndroidBetaOptionalUpdateReminder from '@/components/app/AndroidBetaOptionalUpdateReminder';
 
 // Lazy load heavy components for better performance
 const MyDishesManager = dynamic(() => import('./MyDishesManager'), {
@@ -591,6 +592,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               </div>
 
               <HomeCheffPointsCompactCard />
+
+              <AndroidBetaOptionalUpdateReminder className="mt-4" />
               
               {/* Active Delivery Role - Mijn Bijdrage */}
               {user.DeliveryProfile && (

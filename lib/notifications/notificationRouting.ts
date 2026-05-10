@@ -95,7 +95,7 @@ export function resolveNotificationTargetUrl(
     if (typeof data.route === 'string' && data.route) {
       return normalizeNotificationPath(data.route);
     }
-    return '/profile';
+    return '/notifications';
   }
 
   return undefined;

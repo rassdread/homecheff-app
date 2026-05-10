@@ -2,6 +2,8 @@ import { registerPlugin } from '@capacitor/core';
 
 export interface HomecheffApkInstallerPlugin {
   openPackageInstaller(options: { uri: string }): Promise<void>;
+  openManageUnknownAppSources(): Promise<void>;
+  openSystemDownloads(): Promise<void>;
 }
 
 /** Alleen Android native; Web bundelt stub (no-op). */

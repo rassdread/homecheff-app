@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -22,11 +22,13 @@ import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
+import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation();
+  const appUpdateStatus = useAppUpdateStatus();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -681,6 +683,29 @@ export default function NavBar() {
                 <Home className="w-4 h-4 shrink-0" />
                 <span>{t('navbar.home')}</span>
               </Link>
+
+              {appUpdateStatus.showOptionalReminder ? (
+                <button
+                  type="button"
+                  className={cn(
+                    mobileNavRowClass,
+                    'border border-emerald-200 bg-emerald-50/95 text-emerald-950 font-medium'
+                  )}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    void appUpdateStatus.triggerApkDownload();
+                    navDebug('navbar:mobile', { action: 'android-beta-update-reminder' });
+                  }}
+                >
+                  <Download className="w-4 h-4 shrink-0" aria-hidden />
+                  <span className="flex min-w-0 flex-col text-left">
+                    <span>{t('appUpdateGate.updateAvailableShort')}</span>
+                    <span className="text-xs font-normal text-emerald-900/85 line-clamp-2">
+                      {t('appUpdateGate.reminderFinishInstall')}
+                    </span>
+                  </span>
+                </button>
+              ) : null}
 
               <Link
                 href="/werken-bij"

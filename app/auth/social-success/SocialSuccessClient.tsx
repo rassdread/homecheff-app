@@ -6,6 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { applySessionMode, readRememberPreference } from '@/lib/session-mode';
 import { isIOS, isSafariIOS } from '@/lib/browser-utils';
+import {
+  fetchOnboardingFlags,
+  onboardingFlagsFromSessionUser,
+  resolvePathAfterSocialAuth,
+} from '@/lib/auth/post-auth-redirect';
 
 const MAX_WAIT_MS = 15_000;
 const POLL_MS = 400;
@@ -37,27 +42,18 @@ function oauthErrorMessage(code: string | null): string | null {
 }
 
 async function resolvePostAuthPath(): Promise<'/' | '/register?social=true'> {
-  let hasTempUsername = false;
-  let onboardingCompleted = false;
-
-  try {
-    const response = await fetch('/api/auth/check-onboarding', {
-      cache: 'no-store',
-      credentials: 'include',
-    });
-    if (response.ok) {
-      const data = await response.json();
-      hasTempUsername = data.hasTempUsername || false;
-      onboardingCompleted = data.onboardingCompleted || false;
-    }
-  } catch {
-    /* fallback: assume onboarding needed */
+  let flags = await fetchOnboardingFlags();
+  if (!flags) {
+    await new Promise((r) => setTimeout(r, 400));
+    flags = await fetchOnboardingFlags();
   }
-
-  if (!hasTempUsername && onboardingCompleted === true) {
-    return '/';
-  }
-  return '/register?social=true';
+  const session = await getSession();
+  const resolved =
+    flags ??
+    (session?.user
+      ? onboardingFlagsFromSessionUser(session.user as any)
+      : { hasTempUsername: true, onboardingCompleted: false });
+  return resolvePathAfterSocialAuth(resolved);
 }
 
 function navigateHard(href: string) {

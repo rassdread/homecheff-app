@@ -8,4 +8,12 @@ export class HomecheffApkInstallerWeb extends WebPlugin {
   async openPackageInstaller(): Promise<void> {
     throw new Error('HomecheffApkInstaller is only available on Android native');
   }
+
+  async openManageUnknownAppSources(): Promise<void> {
+    throw new Error('HomecheffApkInstaller is only available on Android native');
+  }
+
+  async openSystemDownloads(): Promise<void> {
+    throw new Error('HomecheffApkInstaller is only available on Android native');
+  }
 }

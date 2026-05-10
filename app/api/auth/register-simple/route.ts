@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
+import { logEmailSendFailure } from "@/lib/email-log";
 import {
   generateVerificationCode,
   generateVerificationToken,
@@ -245,7 +246,9 @@ export async function POST(req: NextRequest) {
       });
 
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      logEmailSendFailure('register_simple_verification', emailError, {
+        recipientEmail: email,
+      });
       // Don't fail registration if email sending fails
     }
 

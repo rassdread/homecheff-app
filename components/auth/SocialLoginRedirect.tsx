@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import {
+  fetchOnboardingFlags,
+  onboardingFlagsFromSessionUser,
+  needsProfileOnboardingFromFlags,
+} from '@/lib/auth/post-auth-redirect';
 
 /**
  * Component that redirects social login users to registration if they need onboarding
@@ -77,43 +82,26 @@ export default function SocialLoginRedirect() {
         setIsChecking(true);
         
         try {
-          // Check database directly via API for reliable onboarding status
-          const response = await fetch('/api/auth/check-onboarding');
-          if (response.ok) {
-            const data = await response.json();
-            const hasTempUsername = data.hasTempUsername || false;
-            const onboardingCompleted = data.onboardingCompleted || false;
-            
-            console.log('🔍 [SocialLoginRedirect] Onboarding check:', {
-              hasTempUsername,
-              onboardingCompleted,
-              pathname
-            });
+          let flags = await fetchOnboardingFlags();
+          if (!flags) {
+            await new Promise((r) => setTimeout(r, 400));
+            flags = await fetchOnboardingFlags();
+          }
+          const resolved =
+            flags ?? onboardingFlagsFromSessionUser(session.user as any);
+          const needsOnboarding = needsProfileOnboardingFromFlags(resolved);
 
-            // Only redirect if:
-            // 1. User has temp username (new social login user), OR
-            // 2. Social onboarding is not completed
-            // This ensures we only redirect social login users who need onboarding
-            const needsOnboarding = hasTempUsername || !onboardingCompleted;
+          console.log('🔍 [SocialLoginRedirect] Onboarding check:', {
+            ...resolved,
+            pathname,
+          });
 
-            // Double check we're not on register page (race condition protection)
-            if (needsOnboarding && pathname !== '/register' && !hasRedirected.current) {
-              hasRedirected.current = true;
-              console.log('🔍 [SocialLoginRedirect] User needs onboarding, redirecting to /register?social=true');
-              window.location.href = '/register?social=true';
-            }
-          } else {
-            // Fallback to session data if API fails
-            const username = (session.user as any)?.username;
-            const hasTempUsername = username?.startsWith('temp_');
-            const socialOnboardingCompleted = (session.user as any)?.socialOnboardingCompleted;
-            const needsOnboarding = hasTempUsername || !socialOnboardingCompleted;
-
-            if (needsOnboarding && pathname !== '/register' && !hasRedirected.current) {
-              hasRedirected.current = true;
-              console.log('🔍 [SocialLoginRedirect] User needs onboarding (fallback), redirecting to /register?social=true');
-              window.location.href = '/register?social=true';
-            }
+          if (needsOnboarding && pathname !== '/register' && !hasRedirected.current) {
+            hasRedirected.current = true;
+            console.log(
+              '🔍 [SocialLoginRedirect] User needs onboarding, redirecting to /register?social=true',
+            );
+            window.location.href = '/register?social=true';
           }
         } catch (error) {
           console.error('❌ [SocialLoginRedirect] Error checking onboarding:', error);

@@ -2,18 +2,31 @@
 /**
  * Bump Android beta metadata in source control (no Vercel hand-edit needed per APK).
  *
- * Usage:
- *   node scripts/bump-android-beta-version.mjs 1.0.3
+ * --- Normale (optionele) release ---
+ *   node scripts/bump-android-beta-version.mjs 1.0.4
+ *
+ * --- Verplichte update (breaking / native) ---
+ *   node scripts/bump-android-beta-version.mjs 1.0.4 --force
+ *
+ * --- Expliciet minimum + force ---
+ *   node scripts/bump-android-beta-version.mjs 1.0.4 --min=1.0.4 --force
+ *
+ * --- Nieuwste verhogen, minimum laten staan ---
+ *   node scripts/bump-android-beta-version.mjs 1.0.5 --keep-min
+ *
+ * Daarna lokaal:
+ *   npm run build
+ *   npx cap sync android
+ *   cd android && ./gradlew assembleDebug && cd ..
+ *   cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/homecheff-beta.apk
  *
  * Flags:
  *   --keep-min          Behoud bestaande minRequiredApkVersion (anders → zelfde als nieuwe latest).
  *   --min=1.0.2         Zet minRequiredApkVersion expliciet.
- *   --force             Zet forceUpdate true in JSON (nood).
+ *   --force             Zet forceUpdate true in JSON.
  *   --no-force          Zet forceUpdate false.
  *   --message="..."     updateMessage in JSON.
  *   --changelog="a,b"   changelog-array (komma-gescheiden).
- *
- * Daarna lokaal: `./gradlew assembleDebug` en APK naar `public/downloads/homecheff-beta.apk` kopieëren.
  */
 
 import fs from 'node:fs';
@@ -48,8 +61,8 @@ function semverCoreOk(v) {
   return /^\d+\.\d+\.\d+/.test(String(v).trim());
 }
 
-function readJson(path) {
-  return JSON.parse(fs.readFileSync(path, 'utf8'));
+function readJson(p) {
+  return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
 function writeJson(p, obj) {
@@ -75,8 +88,17 @@ Options:
   --message=...           Set updateMessage
   --changelog=a,b         Set changelog (comma-separated)
 
-Example:
-  node scripts/bump-android-beta-version.mjs 1.0.3 --changelog="Fix chats, Improve HCP"`);
+Examples (optional vs forced):
+  node scripts/bump-android-beta-version.mjs 1.0.4
+  node scripts/bump-android-beta-version.mjs 1.0.4 --force
+  node scripts/bump-android-beta-version.mjs 1.0.4 --min=1.0.4 --force
+  node scripts/bump-android-beta-version.mjs 1.0.5 --keep-min
+
+After bump (build, sync, APK copy):
+  npm run build
+  npx cap sync android
+  cd android && ./gradlew assembleDebug && cd ..
+  cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/homecheff-beta.apk`);
   process.exit(0);
 }
 
@@ -138,10 +160,20 @@ cfg.versionCode = nextCode;
 writeJson(configPath, cfg);
 bumpGradle(newLatest, nextCode);
 
-console.info('[bump-android-beta]', {
-  latestApkVersion: newLatest,
-  minRequiredApkVersion: nextMin,
-  versionCode: nextCode,
-  forceUpdate: cfg.forceUpdate,
-});
-console.info('Volgende stappen: cd android && ./gradlew assembleDebug && cp app/build/outputs/apk/debug/app-debug.apk ../public/downloads/homecheff-beta.apk');
+const changelogPreview = Array.isArray(cfg.changelog) ? cfg.changelog.slice(0, 5) : [];
+console.info('');
+console.info('=== bump-android-beta-version — klaar ===');
+console.info(`  latestApkVersion:      ${newLatest}`);
+console.info(`  minRequiredApkVersion: ${nextMin}`);
+console.info(`  versionCode (Gradle):  ${nextCode}`);
+console.info(`  forceUpdate:           ${Boolean(cfg.forceUpdate)}`);
+console.info(
+  `  changelog items:       ${changelogPreview.length}${changelogPreview.length ? ` (eerste: ${changelogPreview[0]?.slice(0, 60)}…)` : ''}`
+);
+console.info('');
+console.info('Volgende stappen:');
+console.info('  npm run build');
+console.info('  npx cap sync android');
+console.info('  cd android && ./gradlew assembleDebug && cd ..');
+console.info('  cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/homecheff-beta.apk');
+console.info('');

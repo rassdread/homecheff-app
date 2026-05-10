@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MessageCircle, CheckCheck, Package } from 'lucide-react';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
@@ -20,6 +20,7 @@ import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { saveScrollPosition } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
 import { isNativeAndroid } from '@/lib/native/capacitor';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   CONVERSATION_LIST_ACTIVITY_EVENT,
   sortConversationsByActivity,
@@ -94,9 +95,16 @@ interface ConversationsListProps {
 
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const nativeMounted = useIsNativeAppMounted();
+  const isDesktopMessages = useMediaQuery('(min-width: 1024px)');
+  /** Android WebView: één scrollport (zoek + rijen); desktop/browser houdt geneste scroll. */
+  const nativeSingleScrollPort = Boolean(nativeMounted && !isDesktopMessages);
   const { data: session, status: sessionStatus } = useSession();
   const userId = (session?.user as { id?: string } | undefined)?.id ?? '';
+
+  /** Voorkom open bij tap na verticale pan (>8px) — geen preventDefault op touch. */
+  const rowPanGuardRef = useRef({ startY: 0, moved: false });
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -178,21 +186,27 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const now = Date.now();
       if (now - lastEp < 180) return;
       lastEp = now;
+      const stBefore = scrollPort.scrollTop;
       const top = document.elementFromPoint(t.clientX, t.clientY);
       const moveTarget = e.target instanceof Element ? e.target : null;
-      console.debug('[messages-touch]', 'touchmove', {
-        x: Math.round(t.clientX),
-        y: Math.round(t.clientY),
-        moveTargetTag: moveTarget?.tagName,
-        elementFromPointTag: top?.tagName,
-        topClass: typeof (top as HTMLElement)?.className === 'string' ? (top as HTMLElement).className : '',
-        scrollTop: scrollPort.scrollTop,
+      requestAnimationFrame(() => {
+        console.debug('[messages-touch]', 'touchmove', {
+          x: Math.round(t.clientX),
+          y: Math.round(t.clientY),
+          moveTargetTag: moveTarget?.tagName,
+          elementFromPointTag: top?.tagName,
+          topClass: typeof (top as HTMLElement)?.className === 'string' ? (top as HTMLElement).className : '',
+          scrollTopBefore: stBefore,
+          scrollTopAfter: scrollPort.scrollTop,
+          scrollportClientH: scrollPort.clientHeight,
+          scrollportScrollH: scrollPort.scrollHeight,
+        });
       });
     };
     const onScroll = () => {
       console.debug('[messages-touch]', 'scroll', {
         scrollTop: scrollPort.scrollTop,
-        port: 'list-scroll',
+        port: nativeSingleScrollPort ? 'native-scrollport' : 'list-scroll',
       });
     };
 
@@ -205,7 +219,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       el.removeEventListener('touchmove', onTouchMove);
       scrollPort.removeEventListener('scroll', onScroll);
     };
-  }, [conversations.length, nativeMounted]);
+  }, [conversations.length, nativeMounted, nativeSingleScrollPort]);
 
   useEffect(() => {
     const el = listScrollRef.current;
@@ -529,8 +543,70 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   /** Ruimte onder laatste rij (safe area); root-hoogte trekt bottom-nav al af via globals. */
   const listScrollPadBottom = 'pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))]';
+  /** Native scrollport: laatste rij boven bottom-nav (match gebruikerswens ~6rem). */
+  const listScrollPadNative = 'pb-[calc(env(safe-area-inset-bottom,0px)+6rem)]';
+
+  const searchChrome = (
+    <div
+      className={`shrink-0 border-b border-gray-200 bg-gray-50 ${nativeMounted ? 'px-3 py-2' : 'p-4'}`}
+    >
+      <div className="relative">
+        <input
+          type="text"
+          placeholder={t('messages.searchConversationsPlaceholder')}
+          className="w-full min-h-[44px] rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+        />
+        <MessageCircle className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      </div>
+    </div>
+  );
 
   if (isLoading && conversations.length === 0) {
+    const skeletonRows = [0, 1, 2, 3, 4, 5].map((i) => (
+      <div
+        key={i}
+        className="flex min-h-[52px] items-center gap-3 border-b border-gray-100 py-2"
+      >
+        <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex justify-between gap-2">
+            <div className="h-3.5 w-28 rounded bg-gray-200" />
+            <div className="h-3 w-10 rounded bg-gray-100" />
+          </div>
+          <div className="h-3 w-full rounded bg-gray-100" />
+        </div>
+      </div>
+    ));
+
+    if (nativeSingleScrollPort) {
+      return (
+        <div
+          className="flex h-full min-h-0 flex-1 flex-col overflow-hidden animate-pulse"
+          aria-busy
+        >
+          <div
+            ref={listScrollRef}
+            data-hc-app-scroll="messages-list"
+            className="hc-native-conversations-scrollport flex min-h-0 flex-1 flex-col overflow-y-scroll touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+          >
+            {searchChrome}
+            <div
+              className={cn(
+                'hc-conversations-list-scroll flex flex-col space-y-2',
+                listShellPad,
+                listScrollPadNative
+              )}
+            >
+              {skeletonRows}
+            </div>
+            <p className="shrink-0 px-3 pb-2 pt-1 text-center text-sm text-gray-500">
+              {t('messages.loadingConversations')}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(
@@ -544,21 +620,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
           ref={listScrollRef}
           className="hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-scroll overscroll-y-contain [-webkit-overflow-scrolling:touch]"
         >
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="flex min-h-[52px] items-center gap-3 border-b border-gray-100 py-2"
-            >
-              <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex justify-between gap-2">
-                  <div className="h-3.5 w-28 rounded bg-gray-200" />
-                  <div className="h-3 w-10 rounded bg-gray-100" />
-                </div>
-                <div className="h-3 w-full rounded bg-gray-100" />
-              </div>
-            </div>
-          ))}
+          {skeletonRows}
         </div>
         <p className="shrink-0 pt-2 text-center text-sm text-gray-500">
           {t('messages.loadingConversations')}
@@ -675,21 +737,156 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
   };
 
-  return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+  const renderConversationRows = () =>
+    conversations.map((conversation) => {
+      const href = profileHrefFor(conversation);
+      const unread = rowUnread(conversation);
+      const lm = conversation.lastMessage;
+
+      return (
+        <div
+          key={conversation.id}
+          className={`flex items-stretch gap-2 border-b border-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
+        >
+          {href ? (
+            <div
+              role="link"
+              tabIndex={0}
+              className="hc-conversation-avatar-tap flex min-h-[48px] min-w-[48px] shrink-0 cursor-pointer select-none items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
+              aria-label={`${t('common.viewProfile')}: ${displayTitle(conversation)}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                void router.push(href);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  void router.push(href);
+                }
+              }}
+            >
+              <span className="relative inline-flex">{avatarVisual(conversation)}</span>
+            </div>
+          ) : (
+            <div
+              className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
+              aria-hidden
+            >
+              {avatarVisual(conversation)}
+            </div>
+          )}
+
+          <div
+            role="link"
+            tabIndex={0}
+            onTouchStart={(e) => {
+              rowPanGuardRef.current = {
+                startY: e.touches[0]?.clientY ?? 0,
+                moved: false,
+              };
+            }}
+            onTouchMove={(e) => {
+              const y = e.touches[0]?.clientY;
+              if (y == null) return;
+              if (Math.abs(y - rowPanGuardRef.current.startY) > 8) {
+                rowPanGuardRef.current.moved = true;
+              }
+            }}
+            onClick={() => {
+              if (rowPanGuardRef.current.moved) {
+                rowPanGuardRef.current.moved = false;
+                return;
+              }
+              openConversation(conversation);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openConversation(conversation);
+              }
+            }}
+            className="hc-conversation-row-tap flex min-h-[48px] min-w-0 flex-1 cursor-pointer touch-pan-y select-none flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <span className="truncate text-sm font-medium text-gray-900">
+                {displayTitle(conversation)}
+              </span>
+              <span className="flex shrink-0 items-center gap-1.5">
+                {unread && (
+                  <span
+                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
+                    aria-label="Ongelezen"
+                  />
+                )}
+                <time
+                  className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
+                  dateTime={listActivityTimestamp(conversation) ?? undefined}
+                >
+                  {formatTime(listActivityTimestamp(conversation))}
+                </time>
+              </span>
+            </div>
+
+            {(conversation.product || conversation.order) && (
+              <div className="flex min-w-0 flex-wrap gap-1">
+                {conversation.product && (
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                    <Package className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+                    <span className="truncate">{conversation.product.title}</span>
+                  </span>
+                )}
+                {conversation.order && (
+                  <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                    Order
+                    {conversation.order.orderNumber
+                      ? ` #${conversation.order.orderNumber}`
+                      : ''}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
+                {previewLine(conversation)}
+              </p>
+              {lm?.User?.id === getCurrentUserId() && (
+                <CheckCheck
+                  className={`h-4 w-4 shrink-0 ${
+                    lm.readAt ? 'text-blue-500' : 'text-gray-400'
+                  }`}
+                  aria-hidden
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    });
+
+  return nativeSingleScrollPort ? (
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <div
-        className={`shrink-0 border-b border-gray-200 bg-gray-50 ${nativeMounted ? 'px-3 py-2' : 'p-4'}`}
+        ref={listScrollRef}
+        data-hc-app-scroll="messages-list"
+        className="hc-native-conversations-scrollport flex min-h-0 flex-1 flex-col overflow-y-scroll touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]"
       >
-        <div className="relative">
-          <input
-            type="text"
-            placeholder={t('messages.searchConversationsPlaceholder')}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 min-h-[44px]"
-          />
-          <MessageCircle className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        {searchChrome}
+        <div
+          className={cn(
+            'hc-conversations-list-scroll flex flex-col',
+            listShellPad,
+            listScrollPadNative
+          )}
+        >
+          {renderConversationRows()}
         </div>
       </div>
-
+    </div>
+  ) : (
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      {searchChrome}
       <div
         ref={listScrollRef}
         data-hc-app-scroll="messages-list"
@@ -699,102 +896,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
           listScrollPadBottom
         )}
       >
-        {conversations.map((conversation) => {
-          const href = profileHrefFor(conversation);
-          const unread = rowUnread(conversation);
-          const lm = conversation.lastMessage;
-
-          return (
-            <div
-              key={conversation.id}
-              className={`flex items-stretch gap-2 border-b border-gray-100 ${nativeMounted ? 'px-2 py-1' : 'px-3 py-1.5'} sm:px-4`}
-            >
-              {href ? (
-                <Link
-                  href={href}
-                  className="flex min-h-[48px] min-w-[48px] shrink-0 touch-manipulation select-none items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [-webkit-tap-highlight-color:transparent]"
-                  aria-label={`${t('common.viewProfile')}: ${displayTitle(conversation)}`}
-                  scroll={false}
-                >
-                  <span className="relative inline-flex">{avatarVisual(conversation)}</span>
-                </Link>
-              ) : (
-                <div
-                  className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center"
-                  aria-hidden
-                >
-                  {avatarVisual(conversation)}
-                </div>
-              )}
-
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => openConversation(conversation)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    openConversation(conversation);
-                  }
-                }}
-                className="hc-conversation-row-tap flex min-h-[48px] min-w-0 flex-1 touch-manipulation select-none flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 [-webkit-tap-highlight-color:transparent]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="truncate text-sm font-medium text-gray-900">
-                    {displayTitle(conversation)}
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1.5">
-                    {unread && (
-                      <span
-                        className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
-                        aria-label="Ongelezen"
-                      />
-                    )}
-                    <time
-                      className="whitespace-nowrap text-[11px] tabular-nums text-gray-400"
-                      dateTime={listActivityTimestamp(conversation) ?? undefined}
-                    >
-                      {formatTime(listActivityTimestamp(conversation))}
-                    </time>
-                  </span>
-                </div>
-
-                {(conversation.product || conversation.order) && (
-                  <div className="flex min-w-0 flex-wrap gap-1">
-                    {conversation.product && (
-                      <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
-                        <Package className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
-                        <span className="truncate">{conversation.product.title}</span>
-                      </span>
-                    )}
-                    {conversation.order && (
-                      <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                        Order
-                        {conversation.order.orderNumber
-                          ? ` #${conversation.order.orderNumber}`
-                          : ''}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex min-w-0 items-center gap-2">
-                  <p className="min-w-0 flex-1 truncate text-xs leading-snug text-gray-500">
-                    {previewLine(conversation)}
-                  </p>
-                  {lm?.User?.id === getCurrentUserId() && (
-                    <CheckCheck
-                      className={`h-4 w-4 shrink-0 ${
-                        lm.readAt ? 'text-blue-500' : 'text-gray-400'
-                      }`}
-                      aria-hidden
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {renderConversationRows()}
       </div>
     </div>
   );

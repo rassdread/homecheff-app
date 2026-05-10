@@ -411,7 +411,8 @@ export default function MijnHcpClient() {
           </div>
           <Link
             href="/hcp-ranglijsten"
-            className="inline-flex min-h-[44px] min-w-0 max-w-full shrink-0 items-center self-start text-left text-sm font-semibold leading-snug text-teal-800 underline-offset-2 [overflow-wrap:anywhere] hover:text-teal-950 hover:underline sm:max-w-[min(100%,15rem)] sm:justify-end sm:self-center sm:text-right"
+            prefetch={false}
+            className="inline-flex min-h-[44px] min-w-0 max-w-full shrink-0 touch-pan-y items-center self-start text-left text-sm font-semibold leading-snug text-teal-800 underline-offset-2 [overflow-wrap:anywhere] hover:text-teal-950 hover:underline sm:max-w-[min(100%,15rem)] sm:justify-end sm:self-center sm:text-right select-none"
           >
             {t(`${LB_PREVIEW}.ctaFull`)} →
           </Link>
@@ -525,9 +526,10 @@ export default function MijnHcpClient() {
                   <li key={`worldwide-${previewPeriod}-${r.userId}-${r.rank}`}>
                     <Link
                       href={href}
+                      prefetch={false}
                       className={cn(
                         cardClass,
-                        'block hover:border-amber-200 transition-colors active:bg-amber-50/50'
+                        'block touch-pan-y hover:border-amber-200 transition-colors active:bg-amber-50/50 select-none'
                       )}
                     >
                       {inner}
@@ -576,7 +578,11 @@ export default function MijnHcpClient() {
       ) : null}
 
       <p className="text-center">
-        <Link href="/profile" className="text-sm font-medium text-emerald-700 hover:underline">
+        <Link
+          href="/profile"
+          prefetch={false}
+          className="inline-flex min-h-[44px] touch-pan-y items-center text-sm font-medium text-emerald-700 hover:underline select-none"
+        >
           Terug naar Mijn HC
         </Link>
       </p>

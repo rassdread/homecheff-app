@@ -4,6 +4,15 @@
  * Prioriteit: **Vercel/env-override > `config/android-beta-version.json` > veilige fallback**.
  * Normale APK-releases: bump met `node scripts/bump-android-beta-version.mjs <versie>`;
  * Vercel-env alleen voor noodsituaties (tijdelijk andere URL/min/force/uit).
+ *
+ * Release-workflow (lokaal, na bump):
+ *   npm run build
+ *   npx cap sync android
+ *   cd android && ./gradlew assembleDebug && cd ..
+ *   cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/homecheff-beta.apk
+ *
+ * Verplichte release: `node scripts/bump-android-beta-version.mjs <versie> --force`
+ * (optioneel `--min=x.y.z` of `--keep-min`).
  */
 
 import { readAndroidBetaVersionFile } from '@/lib/read-android-beta-version-config';
@@ -13,8 +22,14 @@ export type AppVersionApiResponse = {
   latestApkVersion: string;
   minRequiredApkVersion: string;
   apkUrl: string;
+  /** Optionele update: titel (fallback in client-i18n). */
   updateTitle: string;
+  /** Optionele update: tekst. */
   updateMessage: string;
+  /** Verplichte update: titel (fallback in client-i18n). */
+  updateTitleForced: string;
+  /** Verplichte update: tekst. */
+  updateMessageForced: string;
   changelog: string[];
   forceUpdate: boolean;
   enabled: boolean;
@@ -23,13 +38,12 @@ export type AppVersionApiResponse = {
 export const DEFAULT_UPDATE_TITLE = 'Nieuwe HomeCheff beta beschikbaar';
 
 export const DEFAULT_UPDATE_MESSAGE =
-  'Werk de app bij voor de nieuwste verbeteringen.';
+  'Werk de app bij voor de nieuwste verbeteringen en fixes.';
 
-export const DEFAULT_CHANGELOG: string[] = [
-  'Verbeterde chats',
-  'Snellere HCP-ranglijsten',
-  'Nieuwe beta-functies',
-];
+export const DEFAULT_UPDATE_TITLE_FORCED = 'Update vereist';
+
+export const DEFAULT_UPDATE_MESSAGE_FORCED =
+  'Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.';
 
 function trimEnv(key: string): string {
   return (process.env[key] ?? '').trim();
@@ -44,11 +58,12 @@ export function resolveLatestWebVersion(): string {
   return '0.1.0';
 }
 
+/** Alleen items uit config; leeg = geen changelog-sectie in de gate. */
 function resolveChangelog(file: ReturnType<typeof readAndroidBetaVersionFile>): string[] {
   if (file != null && Array.isArray(file.changelog)) {
-    return file.changelog.map((s) => String(s));
+    return file.changelog.map((s) => String(s).trim()).filter(Boolean);
   }
-  return DEFAULT_CHANGELOG;
+  return [];
 }
 
 /**
@@ -90,6 +105,15 @@ export function buildAppVersionResponseFromEnv(): AppVersionApiResponse {
     (file?.updateMessage ?? '').trim() ||
     DEFAULT_UPDATE_MESSAGE;
 
+  const updateTitleForced =
+    trimEnv('APP_UPDATE_TITLE_FORCED') ||
+    (file?.updateTitleForced ?? '').trim() ||
+    DEFAULT_UPDATE_TITLE_FORCED;
+  const updateMessageForced =
+    trimEnv('APP_UPDATE_MESSAGE_FORCED') ||
+    (file?.updateMessageForced ?? '').trim() ||
+    DEFAULT_UPDATE_MESSAGE_FORCED;
+
   const changelog = resolveChangelog(file);
 
   return {
@@ -99,6 +123,8 @@ export function buildAppVersionResponseFromEnv(): AppVersionApiResponse {
     apkUrl,
     updateTitle,
     updateMessage,
+    updateTitleForced,
+    updateMessageForced,
     changelog,
     forceUpdate,
     enabled,

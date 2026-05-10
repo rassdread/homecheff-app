@@ -48,7 +48,8 @@ export default function HomeCheffPointsCompactCard() {
   return (
     <Link
       href="/mijn-hcp"
-      className="mt-6 block cursor-pointer rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 to-white px-3 py-3 text-left shadow-sm transition hover:border-amber-400/80 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+      prefetch={false}
+      className="mt-6 block min-h-[44px] cursor-pointer touch-pan-y rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 to-white px-3 py-3 text-left shadow-sm transition hover:border-amber-400/80 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 select-none"
       aria-label="Bekijk je HomeCheff Points"
     >
       <div className="flex items-start gap-2 min-w-0">
