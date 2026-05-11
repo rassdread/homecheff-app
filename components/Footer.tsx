@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp } from 'lucide-react';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 
 export default function Footer() {
@@ -13,6 +13,7 @@ export default function Footer() {
   const compactPath = isCompactMobileFooterPath(pathname);
 
   const links = [
+    { href: '/affiliate', label: t('siteFooter.affiliateProgram'), icon: TrendingUp },
     { href: '/seo-hub', label: t('siteFooter.seoHub'), icon: BookOpen },
     { href: '/privacy', label: t('siteFooter.privacy'), icon: Shield },
     { href: '/terms', label: t('siteFooter.terms'), icon: FileText },

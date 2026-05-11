@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle, CreditCard, Shield, Truck, User, FileText, AlertTriangle, TrendingUp, MapPin } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import AppBackBar from '@/components/navigation/AppBackBar';
+import Link from 'next/link';
 
 // FAQ categories will be loaded dynamically based on language
 const getFAQCategories = (t: (key: string) => string) => [
@@ -359,7 +360,7 @@ export default function FAQPage() {
                     <p className="text-gray-700 mb-4">
                       {t('faq.contactDescription')}
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                       <a
                         href="mailto:support@homecheff.eu"
                         className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
@@ -372,6 +373,13 @@ export default function FAQPage() {
                       >
                         {t('faq.contactForm')}
                       </a>
+                      <Link
+                        href="/affiliate"
+                        prefetch={false}
+                        className="inline-flex items-center px-4 py-2 border border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-colors"
+                      >
+                        {t('siteFooter.affiliateProgram')}
+                      </Link>
                     </div>
                   </div>
                 </div>
