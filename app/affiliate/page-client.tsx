@@ -112,11 +112,11 @@ export default function AffiliatePageClient() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="mx-auto max-w-md px-4 text-center">
           <h1 className="mb-4 text-2xl font-bold text-slate-900">
-            {t('affiliate.subAffiliateNotAllowed') || 'Sub-affiliates cannot become main affiliate'}
+            {t('affiliate.subAffiliateNotAllowed') || 'Made affiliates cannot become main affiliate'}
           </h1>
           <p className="mb-6 text-slate-600">
             {t('affiliate.subAffiliateNotAllowedDesc') ||
-              'As a sub-affiliate you cannot become a main affiliate. You can use your sub-affiliate dashboard.'}
+              'As a made affiliate you cannot become a main affiliate. You can use your affiliate dashboard.'}
           </p>
           <Link
             href="/affiliate/dashboard"

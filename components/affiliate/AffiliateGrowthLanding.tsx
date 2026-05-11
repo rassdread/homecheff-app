@@ -29,7 +29,7 @@ type Props = {
   isSigningUp: boolean;
 };
 
-const FAQ_COUNT = 11;
+const FAQ_COUNT = 13;
 
 export default function AffiliateGrowthLanding({
   session,

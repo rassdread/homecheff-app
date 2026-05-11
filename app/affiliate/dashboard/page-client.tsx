@@ -618,7 +618,7 @@ export default function AffiliateDashboardClient() {
                     {/* Easy sharing hint */}
                     <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                       <p className="text-xs text-emerald-800 text-center leading-relaxed">
-                        <strong>💡 Tip:</strong> Je affiliate link wordt automatisch meegestuurd wanneer je recepten, producten, kweekprojecten of designs deelt via de share-knop op de site!
+                        <strong>💡</strong> {t('affiliate.dashboard.shareAutoHint')}
                       </p>
                     </div>
                     {/* Link container - stacked on mobile, side-by-side on larger screens */}
@@ -798,7 +798,7 @@ export default function AffiliateDashboardClient() {
         {activeTab === 'earnings' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Payouts</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.recentPayouts')}</h3>
               {data.recentPayouts.length > 0 ? (
                 <div className="space-y-4">
                   {data.recentPayouts.map((payout) => (
@@ -855,10 +855,10 @@ export default function AffiliateDashboardClient() {
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {t('affiliate.dashboard.referralsList') || 'Jouw Referrals'}
+                  {t('affiliate.dashboard.referralsList')}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {data.referrals?.length || 0} {data.referrals?.length === 1 ? 'referral' : 'referrals'}
+                  {t('affiliate.dashboard.referralsCount', { count: data.referrals?.length || 0 })}
                 </p>
               </div>
               
@@ -898,7 +898,9 @@ export default function AffiliateDashboardClient() {
                                 : 'bg-green-100 text-green-800'
                             }`}
                           >
-                            {referral.type === 'BUSINESS_SIGNUP' ? 'Bedrijf' : 'Gebruiker'}
+                            {referral.type === 'BUSINESS_SIGNUP'
+                              ? t('affiliate.dashboard.referralBusiness')
+                              : t('affiliate.dashboard.referralUser')}
                           </span>
                           <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
                             {new Date(referral.createdAt).toLocaleDateString('nl-NL', {
@@ -913,8 +915,8 @@ export default function AffiliateDashboardClient() {
                           className="px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                         >
                           <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                          <span className="hidden sm:inline">Bekijk Profiel</span>
-                          <span className="sm:hidden">Profiel</span>
+                          <span className="hidden sm:inline">{t('affiliate.dashboard.viewProfile')}</span>
+                          <span className="sm:hidden">{t('affiliate.dashboard.profile')}</span>
                         </Link>
                       </div>
                     </div>
@@ -924,10 +926,10 @@ export default function AffiliateDashboardClient() {
                 <div className="text-center py-12">
                   <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium mb-2">
-                    {t('affiliate.dashboard.noReferrals') || 'Nog geen referrals'}
+                    {t('affiliate.dashboard.noReferrals')}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Deel je referral link om mensen aan te brengen!
+                    {t('affiliate.dashboard.noReferralsHint')}
                   </p>
                 </div>
               )}
@@ -1069,10 +1071,10 @@ function SubAffiliateCard({ sub, onDelete }: { sub: SubAffiliate; onDelete: (id:
             onClick={handleDelete}
             disabled={deleting}
             className="px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-            title="Verwijder sub-affiliate"
+            title={t('affiliate.dashboard.deleteSubAffiliateTitle')}
           >
             <Trash2 className="w-4 h-4" />
-            {deleting ? '...' : 'Verwijder'}
+            {deleting ? '...' : t('affiliate.dashboard.delete')}
           </button>
         </div>
       </div>

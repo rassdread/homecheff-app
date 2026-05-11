@@ -388,11 +388,11 @@ export default function AffiliateDashboardClient() {
               </div>
             )}
 
-            {/* Downline Count */}
+            {/* Community Partners Count */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Downline</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.yourDownline')}</h3>
               <p className="text-3xl font-bold text-gray-900">{data.stats.downlineCount}</p>
-              <p className="text-sm text-gray-600 mt-2">Affiliates you referred</p>
+              <p className="text-sm text-gray-600 mt-2">{t('affiliate.dashboard.downlineDesc')}</p>
             </div>
 
             {/* Belasting Informatie */}
@@ -723,11 +723,11 @@ function SubAffiliatesTab({ data }: { data: DashboardData }) {
       const result = await res.json();
 
       if (!res.ok) {
-        setError(result.error || 'Failed to create sub-affiliate');
+        setError(result.error || 'Failed to create made affiliate');
         return;
       }
 
-      setSuccess('Sub-affiliate succesvol aangemaakt!');
+      setSuccess(t('affiliate.dashboard.subAffiliateCreated'));
       setEmail('');
       setName('');
       setShowCreateForm(false);
@@ -735,7 +735,7 @@ function SubAffiliatesTab({ data }: { data: DashboardData }) {
       // Reload dashboard data
       window.location.reload();
     } catch (err) {
-      setError(t('affiliate.dashboard.subAffiliateCreateError') || 'Er is een fout opgetreden bij het aanmaken van de sub-affiliate');
+      setError(t('affiliate.dashboard.subAffiliateCreateError') || 'Er is een fout opgetreden bij het aanmaken van de made affiliate');
     } finally {
       setLoading(false);
     }
@@ -746,9 +746,9 @@ function SubAffiliatesTab({ data }: { data: DashboardData }) {
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Sub-Affiliates</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('affiliate.dashboard.subAffiliatesTitle')}</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Beheer je sub-affiliates. Je ontvangt 10% commissie op hun abonnementen en 5-10% op hun transacties.
+              {t('affiliate.dashboard.subAffiliatesDesc')}
             </p>
           </div>
           <button

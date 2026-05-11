@@ -540,7 +540,7 @@ export default function PassiveIncomeCalculator() {
 
         {/* Contract Renewal Information */}
         <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl shadow-xl p-8 mb-8 border-2 border-blue-300">
-          <h2 className="text-3xl font-bold mb-4 text-center">📋 {t('affiliate.contractRenewal')} & Tarieven</h2>
+          <h2 className="text-3xl font-bold mb-4 text-center">📋 {t('affiliate.passiveIncomeCalculator.termsTitle')}</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 border-2 border-white/30">
               <h3 className="text-xl font-bold mb-3">✅ {t('affiliate.guaranteed12Months')}</h3>

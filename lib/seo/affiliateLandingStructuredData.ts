@@ -13,7 +13,15 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'How long does commission run?',
-            a: 'Transaction-based commissions follow active referred usage. Subscription revenue share is structured per referred business for up to twelve months while the subscription remains active, as described in your affiliate terms.',
+            a: 'Transaction-based commissions follow active referred usage. The standard subscription model runs per referred business for up to twelve months while the subscription remains active, as described in your affiliate terms.',
+          },
+          {
+            q: 'What happens after 12 months?',
+            a: 'The first twelve months are guaranteed under the current commission model per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals — without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
+          },
+          {
+            q: 'Can partnership models expand over time?',
+            a: 'Possibly. HomeCheff may evolve partnership structures over time. Any changes are communicated clearly in advance and reflected in your affiliate terms.',
           },
           {
             q: 'When do I get paid?',
@@ -33,7 +41,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What is recurring commission?',
-            a: 'For subscriptions you refer, you can receive a recurring share of the subscription fee for each month the business stays subscribed, for up to twelve months per referred business, until the subscription ends or terms change with notice.',
+            a: 'For subscriptions you refer, you can receive a recurring share of the subscription fee each month the business stays subscribed, for up to twelve months per referred business under the standard model, as defined in your affiliate terms.',
           },
           {
             q: 'How does Stripe Connect work here?',
@@ -59,7 +67,15 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoe lang loopt commissie?',
-            a: 'Transactiecommissie volgt actief gebruik van door jou aangebrachte gebruikers. Abonnements-commissie is per aangebracht bedrijf gestructureerd tot twaalf maanden zolang het abonnement loopt, zoals in je affiliatevoorwaarden staat.',
+            a: 'Transactiecommissie volgt actief gebruik van door jou aangebrachte gebruikers. Het standaardmodel voor abonnementscommissie loopt per aangebracht bedrijf tot twaalf maanden zolang het abonnement actief is, zoals in je affiliatevoorwaarden staat.',
+          },
+          {
+            q: 'Wat gebeurt er na 12 maanden?',
+            a: 'De eerste twaalf maanden zijn gegarandeerd binnen het huidige commissiemodel per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen — zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
+          },
+          {
+            q: 'Kunnen samenwerkingen later uitbreiden?',
+            a: 'Dat kan. HomeCheff kan partnermodellen in de toekomst uitbreiden. Eventuele wijzigingen communiceren we vooraf en leggen we vast in de affiliatevoorwaarden.',
           },
           {
             q: 'Wanneer krijg ik uitbetaald?',
@@ -79,7 +95,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoe werkt terugkerende commissie?',
-            a: 'Voor door jou aangebrachte abonnementen kan je maandelijks een deel van het abonnementsbedrag ontvangen zolang het bedrijf geabonneerd blijft, tot twaalf maanden per bedrijf, tot het abonnement stopt of voorwaarden met kennisgeving wijzigen.',
+            a: 'Voor door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van het abonnementsbedrag zolang het bedrijf actief geabonneerd blijft, tot twaalf maanden per bedrijf, zoals in je affiliatevoorwaarden staat.',
           },
           {
             q: 'Hoe werkt Stripe Connect hier?',

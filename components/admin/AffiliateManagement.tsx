@@ -1057,7 +1057,7 @@ export default function AffiliateManagement() {
                           </div>
                         ) : affiliate.childAffiliates.length > 0 ? (
                           <div className="text-sm">
-                            <p className="text-gray-900 font-medium">Sub-affiliates:</p>
+                            <p className="text-gray-900 font-medium">Made affiliates:</p>
                             <p className="text-emerald-600 font-semibold">{affiliate.childAffiliates.length}</p>
                             {affiliate.childAffiliates.length > 0 && (
                               <div className="mt-1 space-y-0.5">
@@ -1489,12 +1489,12 @@ export default function AffiliateManagement() {
                                   </p>
                                 </div>
 
-                                {/* Parent Commissions (from sub-affiliates) */}
+                                {/* Parent Commissions (from made affiliates) */}
                                 <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                                   <div className="flex items-center gap-2 mb-2">
                                     <TrendingUp className="w-4 h-4 text-orange-600" />
                                     <p className="text-xs font-medium text-orange-700">
-                                      Van Sub-Affiliates
+                                      Van made affiliates
                                     </p>
                                   </div>
                                   <p className="text-xl font-bold text-orange-900">
@@ -1522,7 +1522,7 @@ export default function AffiliateManagement() {
                                   </p>
                                   {subIncomes.length > 0 && (
                                     <p className="text-xs text-emerald-600 mt-1">
-                                      + {subIncomes.length} sub-affiliates
+                                      + {subIncomes.length} made affiliates
                                     </p>
                                   )}
                                 </div>
@@ -1712,7 +1712,7 @@ export default function AffiliateManagement() {
                     )}
                   </p>
                   <p className="text-xs opacity-75 mt-1">
-                    Van sub-affiliates
+                    Van made affiliates
                   </p>
                 </div>
                 <div className="bg-white/30 backdrop-blur-sm rounded-lg p-4 border-2 border-white/50">
@@ -1729,7 +1729,7 @@ export default function AffiliateManagement() {
                     )}
                   </p>
                   <p className="text-xs opacity-75 mt-1">
-                    Van sub-affiliates
+                    Van made affiliates
                   </p>
                 </div>
               </div>

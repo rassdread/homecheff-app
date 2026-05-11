@@ -17,10 +17,14 @@ export async function generateMetadata(): Promise<Metadata> {
     'HomeCheff affiliate',
     'affiliate programme',
     'recurring commission',
+    'recurring income potential',
+    'creator partnerships',
+    'long-term partnerships',
     'creator economy',
     'community commerce',
-    'referral income',
-    'side income creators',
+    'recurring income',
+    'online income building',
+    'affiliate community',
     'local makers affiliate',
     'Stripe Connect payouts',
     'promo codes',
@@ -33,12 +37,16 @@ export async function generateMetadata(): Promise<Metadata> {
     'HomeCheff affiliate',
     'affiliate programma',
     'terugkerende commissie',
+    'terugkerende inkomsten',
+    'recurring inkomsten',
+    'creator partnerships',
+    'langdurige samenwerkingen',
     'creator economy',
     'community commerce',
+    'online inkomsten opbouwen',
+    'affiliate community',
     'referral inkomsten',
-    'online inkomsten creators',
     'lokale creators',
-    'social media verdienen',
     'Stripe Connect uitbetaling',
     'promocodes',
     '12-12 programma',
@@ -50,12 +58,12 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: 'Affiliate programme for creators & communities | HomeCheff',
       description:
-        'Partner with HomeCheff: clear recurring commission on referrals, weekly Stripe payouts, personal links and promo codes. Built for creators, local networks, and agencies — not hype.',
+        'Partner with HomeCheff: the first twelve months per active referred subscription are defined in the standard commission model; weekly Stripe payouts and tools for long-term creator and community partnerships.',
       keywords: keywordsEn,
       openGraph: {
         title: 'HomeCheff affiliate — creators & community growth',
         description:
-          'Earn with a local homemade marketplace: transparent fees, up to 12 months subscription share per business, tools in your dashboard.',
+          'Transparent affiliate terms: standard recurring commission window per active business, with room for partnership evolution over time — plus tools for creators, agencies, and communities.',
         type: 'website',
         locale: 'en_US',
         alternateLocale: ['nl_NL'],
@@ -65,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
       twitter: {
         card: 'summary_large_image',
         title: 'HomeCheff affiliate programme',
-        description: 'Recurring commission, Stripe payouts, links & promo codes for creators and communities.',
+        description: 'Recurring commission, long-term creator partnerships, Stripe payouts, and growth tools for communities.',
       },
       alternates: {
         canonical: `${currentDomain}${path}`,
@@ -78,12 +86,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Affiliateprogramma voor creators & communities | HomeCheff',
     description:
-      'Partner worden bij HomeCheff: heldere terugkerende commissie op referrals, wekelijkse uitbetaling via Stripe, eigen links en promocodes. Voor creators, lokale netwerken en agencies — zonder hype.',
+      'Partner met HomeCheff: de eerste twaalf maanden per actief aangebracht abonnement vallen binnen het standaard commissiemodel; wekelijkse Stripe-uitbetalingen en tools voor langdurige creator- en community-samenwerkingen.',
     keywords: keywordsNl,
     openGraph: {
       title: 'HomeCheff affiliate — growth voor creators & community',
       description:
-        'Verdien met een lokale marktplaats voor thuisgemaakt: transparante fees, tot twaalf maanden abonnementsdeel per bedrijf, tools in je dashboard.',
+        'Heldere affiliate-voorwaarden: standaard terugkerend commissievenster per actief bedrijf, met ruimte voor evolutie van partnerships — plus tools voor creators, agencies en communities.',
       type: 'website',
       locale: 'nl_NL',
       alternateLocale: ['en_US'],
@@ -93,7 +101,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: 'HomeCheff affiliateprogramma',
-      description: 'Terugkerende commissie, Stripe-uitbetalingen, links en promocodes voor creators en communities.',
+      description: 'Terugkerende commissie, langdurige creator partnerships, Stripe-uitbetalingen en schaalbare community tools.',
     },
     alternates: {
       canonical: `${currentDomain}${path}`,
