@@ -17,6 +17,8 @@ import {
   dedupeConsecutiveSlides,
   interleaveCommunityFirst,
 } from '@/lib/gamification/home-carousel-merge';
+import { publicLeaderboardProfileHref } from '@/lib/user/public-profile';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 function slimFromLeaderboard(r: LeaderboardRow) {
   return {
@@ -28,6 +30,7 @@ function slimFromLeaderboard(r: LeaderboardRow) {
     level: r.level,
     score: r.score,
     isCurrentUser: r.isCurrentUser,
+    publicProfileHref: r.publicProfileHref,
   };
 }
 
@@ -95,6 +98,7 @@ async function pickNewTalentFromWeeklyTop(
       username: true,
       image: true,
       profileImage: true,
+      showProfileToEveryone: true,
     },
   });
   if (!u) return null;
@@ -106,6 +110,7 @@ async function pickNewTalentFromWeeklyTop(
   const total = stats?.totalHcp ?? 0;
   const displayName = (u.name || u.username || 'HomeCheff').trim() || 'HomeCheff';
   const avatar = u.profileImage || u.image || null;
+  const profilePublic = u.showProfileToEveryone === true;
 
   return {
     rank: 0,
@@ -117,6 +122,7 @@ async function pickNewTalentFromWeeklyTop(
     score: total,
     badgeSummaries: [],
     isCurrentUser: viewerId === u.id,
+    publicProfileHref: publicLeaderboardProfileHref(u.id, u.username, profilePublic),
   };
 }
 
@@ -138,7 +144,7 @@ export async function buildHomeCarouselPayload(opts: {
   });
 
   const langNorm: CarouselLang = opts.lang === 'en' ? 'en' : 'nl';
-  const viewerCountry = ((viewerProfile?.country ?? 'NL').trim() || 'NL').toUpperCase();
+  const viewerCountry = normalizeCountryCode(viewerProfile?.country ?? null) ?? 'NL';
   const carouselCtx: CarouselViewerContext = {
     lang: langNorm,
     country: viewerCountry,
@@ -155,7 +161,7 @@ export async function buildHomeCarouselPayload(opts: {
     Number.isFinite(viewerProfile.lat) &&
     Number.isFinite(viewerProfile.lng);
 
-  const [adminDb, weekWorld, monthWorld, yearWorld, nearbyWeek, riserRows] = await Promise.all([
+  const [adminDb, weekWorld, monthWorld, yearWorld, countryWeek, nearbyWeek, riserRows] = await Promise.all([
     prisma.hcpCarouselSlide.findMany({
       where: {
         isActive: true,
@@ -189,6 +195,14 @@ export async function buildHomeCarouselPayload(opts: {
       currentUserId: opts.userId,
       scope: 'worldwide',
       period: 'year',
+      viewerProfile,
+      includeBadges: false,
+    }),
+    getScopedLeaderboardPayload({
+      take: 5,
+      currentUserId: opts.userId,
+      scope: 'country',
+      period: 'week',
       viewerProfile,
       includeBadges: false,
     }),
@@ -243,6 +257,16 @@ export async function buildHomeCarouselPayload(opts: {
     monthWorld.rows
   );
 
+  if (countryWeek.rows.length) {
+    pushRanking(
+      'country:week',
+      35,
+      copy.rankCountryWeek.title,
+      copy.rankCountryWeek.subtitle,
+      countryWeek.rows
+    );
+  }
+
   if (nearbyWeek?.rows?.length) {
     pushRanking(
       'nearby:week',
@@ -288,6 +312,7 @@ export async function buildHomeCarouselPayload(opts: {
         avatar: weekLeader.avatar,
         level: weekLeader.level,
         subtitle: copy.spotlightWeek.reason,
+        publicProfileHref: weekLeader.publicProfileHref,
       },
     });
     exclude.add(weekLeader.userId);
@@ -309,6 +334,7 @@ export async function buildHomeCarouselPayload(opts: {
         avatar: riserTop.avatar,
         level: riserTop.level,
         subtitle: copy.spotlightRiser.reason,
+        publicProfileHref: riserTop.publicProfileHref,
       },
     });
     exclude.add(riserTop.userId);
@@ -334,6 +360,7 @@ export async function buildHomeCarouselPayload(opts: {
         avatar: newTalent.avatar,
         level: newTalent.level,
         subtitle: copy.spotlightNew.reason,
+        publicProfileHref: newTalent.publicProfileHref,
       },
     });
     exclude.add(newTalent.userId);

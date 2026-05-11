@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { tryAwardInteractionCommentHcp } from '@/lib/gamification/interaction-hcp';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -203,6 +204,10 @@ export async function POST(
           }
         }
       });
+
+      void tryAwardInteractionCommentHcp(user.id, review.id, 'DISH_REVIEW').catch((e) =>
+        console.warn('[gamification] INTERACTION_COMMENT dish', e),
+      );
 
       return NextResponse.json({ review }, { status: 201, headers: cors });
     } catch (createError: any) {

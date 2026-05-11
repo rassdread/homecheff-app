@@ -7,18 +7,19 @@ import { ArrowLeft, MapPin, Trophy } from 'lucide-react';
 import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
-import { publicProfileHref } from '@/lib/user/public-profile';
+import { leaderboardRowPublicHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import HcpRankingPromoPanel from '@/components/gamification/HcpRankingPromoPanel';
 import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 type LbScope = 'nearby' | 'country' | 'worldwide';
 type LbPeriod = 'week' | 'month' | 'year' | 'all';
 
 function RankRow({ row }: { row: LeaderboardRow }) {
-  const href = publicProfileHref(row.userId, row.username);
+  const href = leaderboardRowPublicHref(row);
   const inner = (
     <>
       <span className="w-8 text-center text-sm font-bold text-amber-900 tabular-nums shrink-0">{row.rank}</span>
@@ -91,18 +92,30 @@ export default function HcpRanglijstenClient() {
 
   const [scope, setScope] = useState<LbScope>('worldwide');
   const [period, setPeriod] = useState<LbPeriod>('week');
-  const [radiusKm, setRadiusKm] = useState<25 | 50 | 100>(50);
+  const [radiusKm, setRadiusKm] = useState<10 | 25 | 50 | 100>(50);
   const [gpsPos, setGpsPos] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [rankMovement, setRankMovement] = useState<string | null>(null);
+  const [guestCountry, setGuestCountry] = useState<string | null>(null);
 
   const loggedIn = status === 'authenticated' && Boolean(session?.user);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || loggedIn) return;
+    const parts = (navigator.language || '').split('-');
+    const fromRegion = normalizeCountryCode(parts[1]?.trim());
+    if (fromRegion) setGuestCountry(fromRegion);
+  }, [loggedIn]);
+
+  /** Ingelogd: land komt uit profiel op de server. Gast: expliciete ISO-keuze. */
+  const countryForApi = scope === 'country' && !loggedIn ? guestCountry ?? undefined : undefined;
 
   const { data, loading } = useHcpLeaderboardScoped({
     scope,
     period,
     radiusKm,
     gpsPos,
+    countryCode: countryForApi,
   });
 
   useEffect(() => {
@@ -212,9 +225,10 @@ export default function HcpRanglijstenClient() {
               <span>{tk('radiusLabel')}</span>
               <select
                 value={radiusKm}
-                onChange={(e) => setRadiusKm(Number(e.target.value) as 25 | 50 | 100)}
+                onChange={(e) => setRadiusKm(Number(e.target.value) as 10 | 25 | 50 | 100)}
                 className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm min-h-[44px]"
               >
+                <option value={10}>10 km</option>
                 <option value={25}>25 km</option>
                 <option value={50}>50 km</option>
                 <option value={100}>100 km</option>
@@ -249,11 +263,44 @@ export default function HcpRanglijstenClient() {
       ) : null}
 
       {scope === 'country' ? (
-        <p className="text-sm text-gray-600">{tk('countryExplainer', { code: meta?.countryCode ?? 'NL' })}</p>
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">
+            {tk('countryExplainer', { code: meta?.countryCode ?? (guestCountry ?? '—') })}
+          </p>
+          {!loggedIn ? (
+            <div className="flex flex-wrap gap-2">
+              {(['NL', 'BE', 'DE', 'FR'] as const).map((cc) => (
+                <button
+                  key={cc}
+                  type="button"
+                  onClick={() => setGuestCountry(cc)}
+                  className={cn(
+                    'rounded-full border px-3 py-2 text-xs font-semibold min-h-[44px] transition-colors',
+                    guestCountry === cc
+                      ? 'border-teal-700 bg-teal-700 text-white'
+                      : 'border-gray-200 bg-white text-gray-800 hover:border-teal-300'
+                  )}
+                >
+                  {cc}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       ) : null}
       {scope === 'worldwide' ? <p className="text-sm text-gray-600">{tk('worldwideExplainer')}</p> : null}
 
-      {meta?.hint ? (
+      {meta?.hintKey ? (
+        <p className="text-sm text-amber-950 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+          {meta.hintKey === 'nearby_no_location'
+            ? tk('hintNearbyNoLocation')
+            : meta.hintKey === 'nearby_empty_radius'
+              ? tk('hintNearbyEmptyRadius')
+              : meta.hintKey === 'country_missing'
+                ? tk('hintCountryMissing')
+                : null}
+        </p>
+      ) : meta?.hint ? (
         <p className="text-sm text-amber-950 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">{meta.hint}</p>
       ) : null}
 
@@ -287,11 +334,45 @@ export default function HcpRanglijstenClient() {
           ))}
         </ul>
       ) : !rows.length ? (
-        <p className="mt-4 text-sm text-gray-600">
-          {scope === 'nearby' && meta?.locationSource === 'fallback'
-            ? tk('emptyNearbyNoLocation')
-            : tk('emptyGeneric')}
-        </p>
+        <div className="mt-4 space-y-3 text-sm text-gray-700">
+          <p>
+            {scope === 'nearby' && meta?.locationSource === 'fallback'
+              ? tk('emptyNearbyNoLocation')
+              : meta?.hintKey === 'country_missing'
+                ? tk('hintCountryMissing')
+                : scope === 'nearby' && meta?.hintKey === 'nearby_empty_radius'
+                  ? tk('hintNearbyEmptyRadius')
+                  : tk('emptyNoHcpInList')}
+          </p>
+          {scope === 'nearby' && meta?.locationSource === 'fallback' ? (
+            <Link
+              href="/profile"
+              prefetch={false}
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+            >
+              {tk('ctaSetLocation')}
+            </Link>
+          ) : null}
+          {meta?.hintKey === 'country_missing' ? (
+            <Link
+              href="/profile"
+              prefetch={false}
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+            >
+              {tk('ctaSetLocation')}
+            </Link>
+          ) : null}
+          {(scope !== 'nearby' || meta?.locationSource !== 'fallback') &&
+          meta?.hintKey !== 'country_missing' ? (
+            <Link
+              href="/mijn-hcp"
+              prefetch={false}
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-teal-800 underline-offset-2 hover:underline"
+            >
+              {tk('ctaEarnHcp')}
+            </Link>
+          ) : null}
+        </div>
       ) : (
         <ol className="mt-4 space-y-2.5">
           {rows.map((r) => (
@@ -311,7 +392,7 @@ export default function HcpRanglijstenClient() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link
-            href="/"
+            href="/dorpsplein"
             prefetch={false}
             className="inline-flex min-h-[44px] touch-pan-y items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2 select-none"
           >

@@ -4,26 +4,31 @@ import { maybeNotifyHcpActivity } from '@/lib/gamification/hcp-notifications';
 import { bumpWeeklyChallengeForAction } from '@/lib/gamification/weekly-challenges';
 
 function titleForAction(action: string, points: number): string {
-  if (action === 'SEVEN_DAY_STREAK') return '🔥 7 dagen streak';
-  if (action === 'DAILY_LOGIN') return `+${points} HomeCheff Points`;
-  return `+${points} HomeCheff Points`;
+  if (action === 'SEVEN_DAY_STREAK') return `+${points} HCP · 7 dagen op rij`;
+  return `+${points} HCP`;
 }
 
 function subtitleForAction(action: string): string | undefined {
   const map: Record<string, string> = {
-    PRODUCT_CREATED: 'Product toegevoegd',
+    PRODUCT_CREATED: 'Nieuw item op het Dorpsplein',
+    FIRST_ITEM_PLACED: 'Eerste item op het Dorpsplein',
+    PRODUCT_HAS_3_PHOTOS: 'Extra foto’s toegevoegd',
+    PRODUCT_HAS_5_PHOTOS: 'Foto-milestone',
     CONTENT_POST_CREATED: 'Inspiratie geplaatst',
-    REVIEW_RECEIVED: 'Review ontvangen',
+    REVIEW_RECEIVED: 'Positieve review ontvangen',
     PROFILE_COMPLETED: 'Profiel compleet',
     FIRST_SALE: 'Eerste verkoop',
-    DAILY_LOGIN: 'Dagelijkse login',
-    SEVEN_DAY_STREAK: 'Streak-bonus',
-    PRODUCT_HAS_3_PHOTOS: 'Extra foto’s',
-    PRODUCT_HAS_5_PHOTOS: 'Foto-milestone',
-    CONTENT_HAS_3_MEDIA: 'Media-milestone',
+    DAILY_LOGIN: 'Dagelijkse activiteit',
+    SEVEN_DAY_STREAK: 'Je streak groeit',
+    CONTENT_HAS_3_MEDIA: 'Meer beeld bij je inspiratie',
     CONTENT_HAS_VIDEO: 'Video toegevoegd',
-    ACCOUNT_CREATED: 'Welkom',
-    BETA_TESTER_JOINED: 'Beta tester bonus',
+    ACCOUNT_CREATED: 'Welkom bij HomeCheff',
+    BETA_TESTER_JOINED: 'Beta-deelnemer',
+    CONVERSATION_STARTED: 'Gesprek gestart',
+    INTERACTION_COMMENT: 'Reactie geplaatst',
+    ITEM_LIKED_OR_SAVED: 'Community-steun',
+    CHAT_QUICK_RESPONSE: 'Snel geantwoord in chat',
+    REVIEW_REPLY_PUBLISHED: 'Antwoord op review',
   };
   return map[action];
 }
@@ -39,7 +44,7 @@ export async function runPostHcpAwardEffects(userId: string, action: string, poi
         {
           kind: 'streak',
           title: titleForAction(action, points),
-          subtitle: 'Ga zo door met je login-streak',
+          subtitle: 'Zachte bonus voor je volharding.',
           points,
         },
       ]);
@@ -62,8 +67,8 @@ export async function runPostHcpAwardEffects(userId: string, action: string, poi
       await appendPendingClientRewards(userId, [
         {
           kind: 'badge',
-          title: `Badge behaald: ${b.name}`,
-          subtitle: 'Bekijk je competenties op Mijn HCP',
+          title: `Badge: ${b.name}`,
+          subtitle: 'Bekijk details op Mijn HCP',
           slug: b.slug,
         },
       ]);
@@ -71,7 +76,7 @@ export async function runPostHcpAwardEffects(userId: string, action: string, poi
       await appendPendingClientRewards(userId, [
         {
           kind: 'badge',
-          title: `${newBadges.length} badges behaald`,
+          title: `${newBadges.length} nieuwe badges`,
           subtitle: newBadges.map((x) => x.name).slice(0, 3).join(' · '),
         },
       ]);

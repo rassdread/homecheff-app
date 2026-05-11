@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from '@/lib/encryption';
 import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
 
 // System encryption key (stored securely in env)
 const SYSTEM_KEY = process.env.ENCRYPTION_SYSTEM_KEY || 'change-this-in-production-to-secure-key';
@@ -350,6 +351,11 @@ export async function POST(
       console.error('[Notifications] ❌ Error sending notifications:', notifError);
       // Don't fail the request if notifications fail
     }
+
+    void tryAwardChatQuickResponseHcp(user.id, conversationId).catch((e) =>
+      console.warn('[gamification] CHAT_QUICK_RESPONSE', e),
+    );
+
     return NextResponse.json({ message: messageToReturn });
 
   } catch (error) {

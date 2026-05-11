@@ -11,6 +11,7 @@ import {
   type LeaderboardScope,
 } from '@/lib/gamification/leaderboard-scoped';
 import { toPublicLeaderboardResponse } from '@/lib/gamification/leaderboard-public-response';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 const SCOPES: LeaderboardScope[] = ['nearby', 'country', 'worldwide'];
 const PERIODS: LeaderboardPeriodParam[] = ['week', 'month', 'year', 'all'];
@@ -38,15 +39,19 @@ export async function GET(req: Request) {
     }
 
     const radiusRaw = Number(searchParams.get('radiusKm') ?? '50');
-    const radiusKm =
-      radiusRaw === 25 || radiusRaw === 50 || radiusRaw === 100 ? radiusRaw : 50;
+    const allowedRadius = new Set([10, 25, 50, 100]);
+    const radiusKm = allowedRadius.has(radiusRaw) ? radiusRaw : 50;
 
     const latRaw = searchParams.get('lat');
     const lngRaw = searchParams.get('lng');
     const lat = latRaw != null && latRaw !== '' ? Number(latRaw) : null;
     const lng = lngRaw != null && lngRaw !== '' ? Number(lngRaw) : null;
 
-    const country = searchParams.get('country');
+    const countryRaw = searchParams.get('country');
+    const country =
+      countryRaw != null && countryRaw.trim() !== ''
+        ? normalizeCountryCode(countryRaw) ?? undefined
+        : undefined;
 
     const limitRaw = searchParams.get('limit');
     let take = 50;
@@ -57,13 +62,21 @@ export async function GET(req: Request) {
       }
     }
 
-    const viewerProfile =
+    const viewerProfileRaw =
       userId != null
         ? await prisma.user.findUnique({
             where: { id: userId },
             select: { lat: true, lng: true, country: true },
           })
         : null;
+
+    const viewerProfile = viewerProfileRaw
+      ? {
+          lat: viewerProfileRaw.lat,
+          lng: viewerProfileRaw.lng,
+          country: normalizeCountryCode(viewerProfileRaw.country ?? null),
+        }
+      : null;
 
     const payload = await getScopedLeaderboardPayload({
       take,
@@ -73,7 +86,7 @@ export async function GET(req: Request) {
       radiusKm: scopeParam === 'nearby' ? radiusKm : undefined,
       lat: lat != null && Number.isFinite(lat) ? lat : null,
       lng: lng != null && Number.isFinite(lng) ? lng : null,
-      country: country ?? undefined,
+      country,
       viewerProfile,
     });
 

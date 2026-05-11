@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,6 +123,10 @@ export async function POST(
     } catch (notifError) {
       console.error('[Notifications] quick route:', notifError);
     }
+
+    void tryAwardChatQuickResponseHcp(user.id, conversationId).catch((e) =>
+      console.warn('[gamification] CHAT_QUICK_RESPONSE', e),
+    );
 
     return NextResponse.json({ message });
 

@@ -119,6 +119,7 @@ export async function bumpWeeklyChallengeForAction(userId: string, action: strin
   };
 
   if (action === 'CONTENT_POST_CREATED') bump('insp_1', 1);
+  if (action === 'FIRST_ITEM_PLACED' || action === 'PRODUCT_CREATED') bump('photos_5', 1);
   if (action === 'PRODUCT_HAS_3_PHOTOS' || action === 'PRODUCT_HAS_5_PHOTOS') bump('photos_5', action === 'PRODUCT_HAS_5_PHOTOS' ? 2 : 1);
   if (action === 'DAILY_LOGIN') bump('login_7', 1);
   if (action === 'CONTENT_HAS_VIDEO') bump('video_1', 1);

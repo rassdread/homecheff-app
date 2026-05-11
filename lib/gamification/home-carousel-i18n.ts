@@ -14,6 +14,12 @@ export function carouselStrings(lang: CarouselLang) {
       title: L ? '🌍 Worldwide this month' : '🌍 Wereldwijd deze maand',
       subtitle: L ? 'Top 5 monthly worldwide' : 'Top 5 wereldwijd deze maand',
     },
+    rankCountryWeek: {
+      title: L ? '🇪🇺 In your country' : '🇪🇺 In jouw land',
+      subtitle: L
+        ? 'Top 5 this week in your profile country (same rules as rankings)'
+        : 'Top 5 deze week in je profiel-land (zelfde regels als ranglijsten)',
+    },
     rankNearby: {
       title: L ? '📍 Near you' : '📍 In jouw buurt',
       subtitle: L

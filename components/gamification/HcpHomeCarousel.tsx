@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { HomeCarouselSlide } from '@/lib/gamification/home-carousel-types';
-import { publicProfileHref } from '@/lib/user/public-profile';
+import { leaderboardRowPublicHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
@@ -54,7 +54,7 @@ function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
       </div>
       <ol className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-y-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
         {rows.slice(0, 5).map((row) => {
-          const href = publicProfileHref(row.userId, row.username);
+          const href = leaderboardRowPublicHref(row);
           const inner = (
             <>
               <span className="w-3.5 shrink-0 text-[10px] font-bold tabular-nums text-amber-900">{row.rank}</span>
@@ -74,7 +74,7 @@ function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
             </>
           );
           const shell = cn(
-            'flex min-h-[26px] items-center gap-1 rounded-md border px-1 py-0.5 transition-colors',
+            'flex min-h-[44px] items-center gap-1 rounded-md border px-1 py-0.5 transition-colors',
             row.isCurrentUser
               ? 'border-amber-400 bg-amber-50/95 ring-1 ring-amber-300/50'
               : 'border-amber-100/80 bg-white/65',
@@ -99,7 +99,13 @@ function CarouselRankingSlide({ slide }: { slide: HomeCarouselSlide }) {
 
 function CarouselSpotlightSlide({ slide }: { slide: HomeCarouselSlide }) {
   const sp = slide.spotlight;
-  const href = sp ? publicProfileHref(sp.userId, sp.username) : null;
+  const href = sp
+    ? leaderboardRowPublicHref({
+        userId: sp.userId,
+        username: sp.username,
+        publicProfileHref: sp.publicProfileHref,
+      })
+    : null;
   const spotlightInner = sp ? (
     <>
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-emerald-100 ring-2 ring-white shadow-sm">

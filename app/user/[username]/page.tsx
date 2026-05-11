@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getCurrentDomain } from "@/lib/seo/metadata";
 import { formatCityLabel } from "@/lib/seo/productSlug";
+import { mondayStartUtc } from "@/lib/gamification/leaderboard-queries";
 import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
 import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
 import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
@@ -407,7 +408,8 @@ export default async function PublicProfilePage({
   const viewerId = (session?.user as { id?: string } | undefined)?.id;
   const isOwnProfile = Boolean(viewerId && viewerId === user.id);
 
-  const [hcpStats, badgeRows] = await Promise.all([
+  const weekStart = mondayStartUtc();
+  const [hcpStats, badgeRows, weekHcpAgg, lastHcpEvent] = await Promise.all([
     prisma.userHcpStats.findUnique({
       where: { userId: user.id },
       select: { totalHcp: true, currentStreak: true },
@@ -418,15 +420,30 @@ export default async function PublicProfilePage({
       orderBy: { awardedAt: "desc" },
       take: 24,
     }),
+    prisma.hcpEvent.aggregate({
+      where: { userId: user.id, createdAt: { gte: weekStart } },
+      _sum: { points: true },
+    }),
+    prisma.hcpEvent.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    }),
   ]);
 
   const totalHcp = hcpStats?.totalHcp ?? 0;
   const level = hcpLevelFromTotal(totalHcp);
+  const weeklyHcpEarned = weekHcpAgg._sum.points ?? 0;
+  const activeThisWeek = lastHcpEvent?.createdAt
+    ? Date.now() - new Date(lastHcpEvent.createdAt).getTime() < 7 * 86400000
+    : false;
   const publicHcp = {
     totalHcp,
     level,
     levelTitle: hcpPublicLevelTitle(level),
     currentStreak: hcpStats?.currentStreak ?? 0,
+    weeklyHcpEarned,
+    activeThisWeek,
     badges: badgeRows.map((ub) => ({
       key: ub.badge.slug,
       name: ub.badge.name,

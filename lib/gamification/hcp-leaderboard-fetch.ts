@@ -4,8 +4,10 @@ import type { LeaderboardPeriodParam, LeaderboardScope } from '@/lib/gamificatio
 export type HcpLeaderboardFetchParams = {
   scope: LeaderboardScope;
   period: LeaderboardPeriodParam;
-  radiusKm?: 25 | 50 | 100;
+  radiusKm?: 10 | 25 | 50 | 100;
   gpsPos?: { lat: number; lng: number } | null;
+  /** Land (ISO2), o.a. voor gast-weergave op `scope=country`. */
+  countryCode?: string | null;
   /** 1–50; server default 50. Kleinere waarde = lichtere payload (preview). */
   limit?: number;
 };
@@ -26,6 +28,9 @@ export function buildHcpLeaderboardQueryString(p: HcpLeaderboardFetchParams): st
       params.set('lat', String(p.gpsPos.lat));
       params.set('lng', String(p.gpsPos.lng));
     }
+  }
+  if (p.scope === 'country' && p.countryCode?.trim()) {
+    params.set('country', p.countryCode.trim().toUpperCase());
   }
   return params.toString();
 }

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { hcpLevelFromTotal } from '@/lib/gamification/hcp-level';
 import {
@@ -8,11 +9,15 @@ import {
   type LeaderboardRow,
 } from '@/lib/gamification/leaderboard-queries';
 import { hcpIsoWeekKeyUtc } from '@/lib/gamification/weekly-challenges';
+import { countryMatchVariants, normalizeCountryCode } from '@/lib/gamification/country-code';
 
 export type LeaderboardScope = 'nearby' | 'country' | 'worldwide';
 export type LeaderboardPeriodParam = 'week' | 'month' | 'year' | 'all';
 
 export type LocationSource = 'gps' | 'profile' | 'fallback';
+
+/** Machine key; vertaal op de client via `home.hcpRankingsPage.hint.*`. */
+export type LeaderboardHintKey = 'nearby_no_location' | 'nearby_empty_radius' | 'country_missing';
 
 export type ScopedLeaderboardMeta = {
   scope: LeaderboardScope;
@@ -22,7 +27,9 @@ export type ScopedLeaderboardMeta = {
   anchorLat?: number | null;
   anchorLng?: number | null;
   countryCode?: string | null;
+  /** @deprecated Gebruik `hintKey` + i18n op de client. */
   hint?: string;
+  hintKey?: LeaderboardHintKey | null;
   weekKey: string;
   weekStartUtc: string;
   monthStartUtc: string;
@@ -222,6 +229,12 @@ async function mergeViewerScoreIfMissing(
   if (s > 0) scores.set(userId, s);
 }
 
+function sqlCountryInList(countryIso: string): Prisma.Sql {
+  const variants = countryMatchVariants(countryIso);
+  const list = variants.length ? variants : [normalizeCountryCode(countryIso) ?? countryIso.toUpperCase().slice(0, 2)];
+  return Prisma.sql`UPPER(BTRIM(COALESCE(u.country, ''))) IN (${Prisma.join(list)})`;
+}
+
 async function scoresCountryPeriod(
   countryCode: string,
   period: LeaderboardPeriodParam,
@@ -229,13 +242,15 @@ async function scoresCountryPeriod(
   monthStart: Date,
   yearStart: Date
 ): Promise<Map<string, number>> {
+  const cc = normalizeCountryCode(countryCode) ?? countryCode.toUpperCase().slice(0, 2);
+  const countryPred = sqlCountryInList(cc);
   if (period === 'week') {
     const rows = await prisma.$queryRaw<Array<{ userId: string; score: bigint }>>`
       SELECT he."userId", SUM(he.points)::bigint AS score
       FROM "HcpEvent" he
       INNER JOIN "User" u ON u.id = he."userId"
       WHERE he."createdAt" >= ${weekStart}
-        AND u.country = ${countryCode}
+        AND ${countryPred}
       GROUP BY he."userId"
       HAVING SUM(he.points) > 0
       ORDER BY score DESC
@@ -249,7 +264,7 @@ async function scoresCountryPeriod(
       FROM "HcpEvent" he
       INNER JOIN "User" u ON u.id = he."userId"
       WHERE he."createdAt" >= ${monthStart}
-        AND u.country = ${countryCode}
+        AND ${countryPred}
       GROUP BY he."userId"
       HAVING SUM(he.points) > 0
       ORDER BY score DESC
@@ -263,7 +278,7 @@ async function scoresCountryPeriod(
       FROM "HcpEvent" he
       INNER JOIN "User" u ON u.id = he."userId"
       WHERE he."createdAt" >= ${yearStart}
-        AND u.country = ${countryCode}
+        AND ${countryPred}
       GROUP BY he."userId"
       HAVING SUM(he.points) > 0
       ORDER BY score DESC
@@ -275,7 +290,7 @@ async function scoresCountryPeriod(
     SELECT s."userId", s."totalHcp"::bigint AS score
     FROM "UserHcpStats" s
     INNER JOIN "User" u ON u.id = s."userId"
-    WHERE u.country = ${countryCode}
+    WHERE ${countryPred}
       AND s."totalHcp" > 0
     ORDER BY s."totalHcp" DESC
     LIMIT 600
@@ -390,7 +405,7 @@ export async function getScopedLeaderboardPayload(opts: {
   let anchorLat: number | null | undefined;
   let anchorLng: number | null | undefined;
   let countryCode: string | null | undefined;
-  let hint: string | undefined;
+  let hintKey: LeaderboardHintKey | null | undefined;
   let radiusKm = opts.radiusKm ?? 50;
 
   if (opts.scope === 'nearby') {
@@ -409,8 +424,7 @@ export async function getScopedLeaderboardPayload(opts: {
       locationSource = 'profile';
     } else {
       locationSource = 'fallback';
-      hint =
-        'Voeg je locatie toe om de ranglijst in je buurt te zien.';
+      hintKey = 'nearby_no_location';
       return {
         rows: [],
         me: opts.currentUserId ? { rank: null, score: 0 } : undefined,
@@ -418,7 +432,7 @@ export async function getScopedLeaderboardPayload(opts: {
           ...baseMeta,
           radiusKm,
           locationSource,
-          hint,
+          hintKey,
         },
       };
     }
@@ -438,10 +452,25 @@ export async function getScopedLeaderboardPayload(opts: {
       }
     }
     if (candidateIds.length === 0) {
-      hint = 'Nog geen makers met locatie in deze straal.';
+      hintKey = 'nearby_empty_radius';
     }
   } else if (opts.scope === 'country') {
-    countryCode = (opts.country ?? opts.viewerProfile?.country ?? 'NL').trim() || 'NL';
+    const explicit = normalizeCountryCode(opts.country ?? null);
+    const fromProfile = normalizeCountryCode(opts.viewerProfile?.country ?? null);
+    const resolved = explicit ?? fromProfile;
+    if (!resolved) {
+      return {
+        rows: [],
+        me: opts.currentUserId ? { rank: null, score: 0 } : undefined,
+        meta: {
+          ...baseMeta,
+          locationSource: 'profile',
+          countryCode: null,
+          hintKey: 'country_missing',
+        },
+      };
+    }
+    countryCode = resolved;
     locationSource = 'profile';
   } else {
     candidateIds = null;
@@ -498,7 +527,7 @@ export async function getScopedLeaderboardPayload(opts: {
       anchorLat: anchorLat ?? null,
       anchorLng: anchorLng ?? null,
       countryCode: opts.scope === 'country' ? countryCode ?? null : null,
-      hint,
+      hintKey: hintKey ?? null,
     },
   };
 }

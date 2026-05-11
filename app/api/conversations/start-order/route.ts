@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { tryAwardConversationStartedHcp } from '@/lib/gamification/interaction-hcp';
 
 export async function POST(req: NextRequest) {
   try {
@@ -160,8 +161,11 @@ export async function POST(req: NextRequest) {
       conversation.isActive = true;
     }
 
+    let createdNewConversation = false;
+
     // Create new conversation if it doesn't exist
     if (!conversation) {
+      createdNewConversation = true;
       const newConversation = await prisma.conversation.create({
         data: {
           id: crypto.randomUUID(),
@@ -238,8 +242,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
     }
 
+    if (createdNewConversation) {
+      void tryAwardConversationStartedHcp(user.id, conversation.id).catch((e) =>
+        console.warn('[gamification] conversation started', e),
+      );
+    }
+
     // Get other participant (the seller)
-    const otherParticipant = conversation.ConversationParticipant  
+    const otherParticipant = conversation.ConversationParticipant
       .find(p => p.userId !== user.id)?.User;
 
     return NextResponse.json({

@@ -66,16 +66,28 @@ type DesignFormData = {
   } | null;
 };
 
-const DESIGN_CATEGORIES = [
+const DESIGN_CATEGORIES_NL = [
   'Handgemaakt', 'Kunst', 'Decoratie', 'Meubels', 'Textiel',
   'Keramiek', 'Houtwerk', 'Metaalwerk', 'Glaswerk', 'Juwelen',
   'Accessoires', 'Kleding', 'Fotografie', 'Illustraties'
 ];
 
-const COMMON_TAGS = [
+const DESIGN_CATEGORIES_EN = [
+  'Handmade', 'Art', 'Decoration', 'Furniture', 'Textile',
+  'Ceramics', 'Woodwork', 'Metalwork', 'Glasswork', 'Jewelry',
+  'Accessories', 'Clothing', 'Photography', 'Illustrations'
+];
+
+const COMMON_TAGS_NL = [
   'Handgemaakt', 'Uniek', 'Vintage', 'Modern', 'Minimalistisch',
   'Kleurrijk', 'Natuurlijk', 'Duurzaam', 'Recycled', 'Luxe',
   'Op maat', 'Limited Edition', 'Geschikt voor cadeau'
+];
+
+const COMMON_TAGS_EN = [
+  'Handmade', 'Unique', 'Vintage', 'Modern', 'Minimalist',
+  'Colorful', 'Natural', 'Sustainable', 'Recycled', 'Luxury',
+  'Custom', 'Limited Edition', 'Gift-ready'
 ];
 
 interface DesignManagerProps {
@@ -97,7 +109,16 @@ export default function DesignManager({
 }: DesignManagerProps) {
   const suppressPrimaryCreate = Boolean(hideCreateActions || hideAddButton);
   const router = useRouter();
-  const { t, tOr } = useTranslation();
+  const { t, language } = useTranslation();
+
+  const designCategoryOptions = useMemo(
+    () => (language === 'nl' ? DESIGN_CATEGORIES_NL : DESIGN_CATEGORIES_EN),
+    [language]
+  );
+  const designTagOptions = useMemo(
+    () => (language === 'nl' ? COMMON_TAGS_NL : COMMON_TAGS_EN),
+    [language]
+  );
   const hcpRewardUi = useHcpRewardUi();
   const [draftClosePrompt, setDraftClosePrompt] = useState<{ mode: "back" | "close" } | null>(null);
   const [designs, setDesigns] = useState<Design[]>([]);
@@ -427,17 +448,17 @@ export default function DesignManager({
       const errors: string[] = [];
       
       if (!formData.title.trim()) {
-        errors.push('Titel is verplicht');
+        errors.push(t('design.validationTitleRequired'));
       }
-      
+
       if (formData.photos.length === 0) {
-        errors.push('Minimaal 1 foto is verplicht');
+        errors.push(t('design.validationPhotoRequired'));
       }
-      
+
       if (errors.length > 0) {
-        setMessage({ 
-          type: 'error', 
-          text: '⚠️ Kan niet opslaan: ' + errors.join(', ')
+        setMessage({
+          type: 'error',
+          text: `${t('design.cannotSaveIntro')} ${errors.join(', ')}`,
         });
         
         const modal = document.querySelector('.fixed.inset-0');
@@ -508,17 +529,26 @@ export default function DesignManager({
         setFormData(emptyForm);
         setShowForm(false);
         setEditingDesign(null);
-        setMessage({ type: 'success', text: isEditing ? '✅ Design bijgewerkt!' : '✅ Design opgeslagen!' });
+        setMessage({
+          type: 'success',
+          text: isEditing ? t('design.updatedToast') : t('design.savedToast'),
+        });
         resetCreateFlowUiState({ keepDraft: false });
         await loadDesigns();
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Design API error:', response.status, errorData);
-        setMessage({ type: 'error', text: errorData.error || `Fout bij opslaan (${response.status})` });
+        setMessage({
+          type: 'error',
+          text:
+            typeof errorData.error === 'string' && errorData.error.trim()
+              ? errorData.error
+              : t('design.saveFailedWithStatus', { status: response.status }),
+        });
       }
     } catch (error) {
       console.error('❌ Error saving design:', error);
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Onbekende fout bij opslaan' });
+      setMessage({ type: 'error', text: t('design.saveUnknownError') });
     }
   };
 
@@ -550,15 +580,21 @@ export default function DesignManager({
       });
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Design verwijderd!' });
+        setMessage({ type: 'success', text: t('design.deleteSuccessToast') });
         loadDesigns();
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setMessage({ type: 'error', text: errorData.error || 'Fout bij verwijderen' });
+        setMessage({
+          type: 'error',
+          text:
+            typeof errorData.error === 'string' && errorData.error.trim()
+              ? errorData.error
+              : t('design.deleteFailedGeneric'),
+        });
       }
     } catch (error) {
       console.error('Error deleting design:', error);
-      setMessage({ type: 'error', text: 'Fout bij verwijderen' });
+      setMessage({ type: 'error', text: t('design.deleteFailedGeneric') });
     }
   };
 
@@ -713,14 +749,13 @@ export default function DesignManager({
                   if (loaded?.data) {
                     setFormData(loaded.data);
                     setShowForm(true);
-                    setMessage({ type: 'success', text: '📝 Draft hersteld!' });
+                    setMessage({ type: 'success', text: t('design.draftRestoredToast') });
                   }
                 }}
                 className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md animate-pulse"
                 title={t('common.unsavedDesign')}
               >
-                <span className="text-lg">💾</span>
-                <span className="hidden sm:inline">Herstel Draft</span>
+                <span className="text-sm">{t('design.restoreDraftButton')}</span>
               </button>
             )}
             {!suppressPrimaryCreate && (
@@ -730,7 +765,7 @@ export default function DesignManager({
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Nieuw Design
+                {t('design.newStudioItemCta')}
               </button>
             )}
           </div>
@@ -753,8 +788,8 @@ export default function DesignManager({
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
         >
-          <option value="">Alle categorieën</option>
-          {DESIGN_CATEGORIES.map(cat => (
+          <option value="">{t('design.allCategoriesOption')}</option>
+          {designCategoryOptions.map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
@@ -793,14 +828,14 @@ export default function DesignManager({
                     onClick={() => requestDesignFormClose("back")}
                     className="px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
                   >
-                    Terug
+                    {t('buttons.back')}
                   </button>
                   <button
                     type="button"
                     onClick={() => requestDesignFormClose("close")}
                     className="px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
                   >
-                    Sluiten
+                    {t('buttons.close')}
                   </button>
                 </div>
               </div>
@@ -844,10 +879,10 @@ export default function DesignManager({
               <div>
                 <div className="mb-2">
                   <span className="text-sm font-medium text-gray-700">
-                    Foto's <span className="text-red-500">*</span>
+                    {t('design.formPhotosLabel')} <span className="text-red-500">*</span>
                   </span>
                   {formData.photos.length === 0 && (
-                    <p className="text-xs text-red-600 mt-1">⚠️ Minimaal 1 foto verplicht</p>
+                    <p className="text-xs text-red-600 mt-1">{t('design.photosRequiredHint')}</p>
                   )}
                 </div>
                 <DesignPhotoUpload
@@ -866,7 +901,7 @@ export default function DesignManager({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titel <span className="text-red-500">*</span>
+                    {t('form.title')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -884,15 +919,15 @@ export default function DesignManager({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categorie
+                    {t('design.categoryLabel')}
                   </label>
                   <select
                     value={formData.subcategory}
                     onChange={(e) => setFormData(prev => ({ ...prev, subcategory: e.target.value }))}
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-base touch-manipulation"
                   >
-                    <option value="">Selecteer categorie</option>
-                    {DESIGN_CATEGORIES.map(cat => (
+                    <option value="">{t('design.selectCategoryPlaceholder')}</option>
+                    {designCategoryOptions.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
@@ -901,7 +936,7 @@ export default function DesignManager({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Beschrijving
+                  {t('design.descriptionLabel')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -915,7 +950,7 @@ export default function DesignManager({
               {/* Dimensions */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📏 Afmetingen
+                  {t('design.dimensionsLabel')}
                 </label>
                 <input
                   type="text"
@@ -929,7 +964,7 @@ export default function DesignManager({
               {/* Materials */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  🎨 Materialen & Technieken
+                  {t('design.materialsLabel')}
                 </label>
                 <div className="space-y-2">
                   {formData.materials.map((material, index) => (
@@ -939,7 +974,7 @@ export default function DesignManager({
                         value={material}
                         onChange={(e) => updateMaterial(index, e.target.value)}
                         className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-base touch-manipulation"
-                        placeholder={t('common.example') + ' Keramiek, handgevormd'}
+                        placeholder={t('design.materialExamplePlaceholder')}
                       />
                       {formData.materials.length > 1 && (
                         <button
@@ -964,10 +999,10 @@ export default function DesignManager({
               {/* Tags */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  🏷️ Tags
+                  {t('design.tagsLabel')}
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {COMMON_TAGS.map(tag => (
+                  {designTagOptions.map((tag) => (
                     <button
                       key={tag}
                       type="button"
@@ -987,7 +1022,7 @@ export default function DesignManager({
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📝 Maker's Notes
+                  {t('design.studioNotesLabel')}
                 </label>
                 <textarea
                   value={formData.notes}
@@ -1049,11 +1084,11 @@ export default function DesignManager({
       {filteredDesigns.length === 0 ? (
         <div className="text-center py-12">
           <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{tOr('design.noDesigns', 'No designs yet', 'Nog geen designs')}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('design.noDesigns')}</h3>
           <p className="text-gray-500">
             {suppressPrimaryCreate
-              ? 'Voeg een studio-item toe via de knoppen “Studio-item op Dorpsplein zetten” of “Studio-inspiratie plaatsen” boven deze lijst.'
-              : tOr('design.noDesignsHint', 'Start by adding your first creation', 'Begin met het toevoegen van je eerste creatie')}
+              ? t('design.emptyStateHintSeller')
+              : t('design.noDesignsHint')}
           </p>
           {!isPublic && !suppressPrimaryCreate && (
             <button
@@ -1062,7 +1097,7 @@ export default function DesignManager({
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
-              Eerste design toevoegen
+              {t('design.addFirstStudioItem')}
             </button>
           )}
         </div>
@@ -1139,7 +1174,9 @@ export default function DesignManager({
                 {!isPublic && (
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <span className="text-xs text-gray-500">
-                      {new Date(design.createdAt).toLocaleDateString('nl-NL')}
+                      {new Date(design.createdAt).toLocaleDateString(
+                        language === 'nl' ? 'nl-NL' : 'en-US'
+                      )}
                     </span>
                     <div className="flex items-center gap-2">
                       <button

@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { tryAwardReviewReceivedHcp } from '@/lib/gamification/review-hcp';
+import { tryAwardInteractionCommentHcp } from '@/lib/gamification/interaction-hcp';
 
 // GET - Haal reviews op voor een product
 export async function GET(
@@ -358,6 +359,9 @@ export async function POST(
 
     void tryAwardReviewReceivedHcp(review.product?.seller?.User?.id, review.id).catch((e) =>
       console.warn('[gamification] REVIEW_RECEIVED', e),
+    );
+    void tryAwardInteractionCommentHcp(user.id, review.id, 'REVIEW').catch((e) =>
+      console.warn('[gamification] INTERACTION_COMMENT', e),
     );
 
     return NextResponse.json({ review }, { status: 201 });

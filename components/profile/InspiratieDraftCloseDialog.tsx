@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/hooks/useTranslation";
+
 export type InspiratieDraftCloseDialogProps = {
   open: boolean;
   onCancel: () => void;
@@ -16,6 +18,7 @@ export function InspiratieDraftCloseDialog({
   onSaveAndClose,
   onDiscard,
 }: InspiratieDraftCloseDialogProps) {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div
@@ -27,10 +30,10 @@ export function InspiratieDraftCloseDialog({
     >
       <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
         <p id="inspiratie-draft-close-title" className="text-lg font-semibold text-gray-900">
-          Concept bewaren?
+          {t("createFlow.draftCloseTitle")}
         </p>
         <p className="text-sm text-gray-600">
-          Je hebt nog wijzigingen. Kies wat je wilt doen.
+          {t("createFlow.draftCloseBody")}
         </p>
         <div className="flex flex-col gap-2">
           <button
@@ -38,21 +41,21 @@ export function InspiratieDraftCloseDialog({
             onClick={onSaveAndClose}
             className="w-full py-3 px-4 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors min-h-[44px]"
           >
-            Bewaren en sluiten
+            {t("createFlow.draftSaveAndClose")}
           </button>
           <button
             type="button"
             onClick={onDiscard}
             className="w-full py-3 px-4 rounded-xl border border-red-200 text-red-800 bg-red-50 font-medium hover:bg-red-100 transition-colors min-h-[44px]"
           >
-            Concept wissen
+            {t("createFlow.draftDiscard")}
           </button>
           <button
             type="button"
             onClick={onCancel}
             className="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-800 bg-white font-medium hover:bg-gray-50 transition-colors min-h-[44px]"
           >
-            Annuleren
+            {t("buttons.cancel")}
           </button>
         </div>
       </div>

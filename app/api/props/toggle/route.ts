@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { tryAwardItemLikedOrSavedHcp } from '@/lib/gamification/interaction-hcp';
 
 export async function POST(req: NextRequest) {
   const cors = getCorsHeaders(req);
@@ -51,6 +52,27 @@ export async function POST(req: NextRequest) {
       });
       propsGiven = false;
     } else {
+      let ownerUserId: string | null = null;
+      if (productId) {
+        const p = await prisma.product.findUnique({
+          where: { id: productId },
+          select: { seller: { select: { userId: true } } },
+        });
+        ownerUserId = p?.seller?.userId ?? null;
+      } else if (dishId) {
+        const d = await prisma.dish.findUnique({
+          where: { id: dishId },
+          select: { userId: true },
+        });
+        ownerUserId = d?.userId ?? null;
+      }
+      if (ownerUserId === user.id) {
+        return NextResponse.json(
+          { error: 'Je kunt je eigen item geen props geven' },
+          { status: 400, headers: cors }
+        );
+      }
+
       // Give props
       await prisma.favorite.create({
         data: {
@@ -60,6 +82,15 @@ export async function POST(req: NextRequest) {
         }
       });
       propsGiven = true;
+      if (productId) {
+        void tryAwardItemLikedOrSavedHcp(user.id, 'PRODUCT', productId, ownerUserId).catch((e) =>
+          console.warn('[gamification] ITEM_LIKED_OR_SAVED', e),
+        );
+      } else if (dishId) {
+        void tryAwardItemLikedOrSavedHcp(user.id, 'DISH', dishId, ownerUserId).catch((e) =>
+          console.warn('[gamification] ITEM_LIKED_OR_SAVED', e),
+        );
+      }
     }
 
     return NextResponse.json({ 

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { tryAwardReviewReplyPublishedHcp } from '@/lib/gamification/interaction-hcp';
 
 // POST - Voeg een response toe aan een review
 export async function POST(
@@ -91,6 +92,10 @@ export async function POST(
         }
       }
     });
+
+    void tryAwardReviewReplyPublishedHcp(user.id, response.id).catch((e) =>
+      console.warn('[gamification] REVIEW_REPLY_PUBLISHED', e),
+    );
 
     return NextResponse.json({ response }, { status: 201 });
   } catch (error) {

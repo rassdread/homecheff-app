@@ -15,6 +15,7 @@ import {
   saveLastConversationId,
 } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Conversation {
   id: string;
@@ -66,6 +67,7 @@ interface Conversation {
 }
 
 function MessagesPageContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const messagesPath = usePathname() ?? '/messages';
   const nativeMounted = useIsNativeAppMounted();
@@ -175,14 +177,12 @@ function MessagesPageContent() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-                  Berichten
+                  {t('messages.title')}
                 </h1>
               </div>
               <p className="mt-1 text-sm text-gray-600 sm:text-base">
-                Je gesprekken met kopers en verkopers.{' '}
-                <span className="text-gray-500">
-                  Andere meldingen vind je via het belletje rechtsboven.
-                </span>
+                {t('messages.pageIntro')}{' '}
+                <span className="text-gray-500">{t('messages.pageNotificationsHint')}</span>
               </p>
             </div>
           </div>
@@ -262,10 +262,10 @@ function MessagesPageContent() {
             <div className="p-8 text-center">
               <MessageCircle className="mx-auto mb-4 h-20 w-20 text-gray-300" />
               <h3 className="mb-2 text-xl font-medium text-gray-900">
-                Selecteer een gesprek
+                {t('messages.selectConversationDesktop')}
               </h3>
               <p className="max-w-md text-gray-500">
-                Klik links op een gesprek om te chatten
+                {t('messages.selectConversationDesktopHint')}
               </p>
             </div>
           </div>

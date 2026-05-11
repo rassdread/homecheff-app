@@ -11,6 +11,8 @@ export type HomeCarouselRow = {
   level: number;
   score: number;
   isCurrentUser: boolean;
+  /** Publieke profiel-URL; `null` = niet klikbaar. */
+  publicProfileHref?: string | null;
 };
 
 export type HomeCarouselSpotlight = {
@@ -20,6 +22,7 @@ export type HomeCarouselSpotlight = {
   avatar: string | null;
   level: number;
   subtitle: string;
+  publicProfileHref?: string | null;
 };
 
 export type HomeCarouselSlide = {

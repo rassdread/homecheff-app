@@ -13,7 +13,7 @@ import {
 } from '@/lib/gamification/badge-catalog';
 import { labelForHcpAction } from '@/lib/gamification/hcp-action-labels';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
-import { publicProfileHref } from '@/lib/user/public-profile';
+import { leaderboardRowPublicHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
 import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
@@ -31,9 +31,10 @@ type LbPreviewPeriod = 'week' | 'month' | 'year' | 'all';
 const HP_REWARDS = 'home.hcpActivation.rewards';
 const LB_PAGE = 'home.hcpRankingsPage';
 const LB_PREVIEW = 'home.mijnHcpLb';
+const MIJN_HCP_HOW = 'home.mijnHcpHow';
 
 export default function MijnHcpClient() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data, loading, error } = useGamificationMe();
   const [previewPeriod, setPreviewPeriod] = useState<LbPreviewPeriod>('week');
   const [rankMovement, setRankMovement] = useState<string | null>(null);
@@ -56,9 +57,11 @@ export default function MijnHcpClient() {
     const periodKey =
       previewPeriod === 'month'
         ? lbData.meta.monthStartUtc
-        : previewPeriod === 'week'
-          ? lbData.meta.weekKey
-          : 'all';
+        : previewPeriod === 'year'
+          ? lbData.meta.yearStartUtc
+          : previewPeriod === 'week'
+            ? lbData.meta.weekKey
+            : 'all';
     const radiusKm = 50;
     const key = `hc_lb_page_worldwide_${previewPeriod}_${periodKey}_${radiusKm}_prof`;
     const prevS = localStorage.getItem(key);
@@ -364,7 +367,7 @@ export default function MijnHcpClient() {
               {r.expiresAt ? (
                 <p className="mt-1.5 text-[11px] text-gray-500">
                   {r.displayStatus === 'expired' ? 'Verlopen per ' : 'Geldig tot '}
-                  {new Date(r.expiresAt).toLocaleString('nl-NL', {
+                  {new Date(r.expiresAt).toLocaleString(language === 'nl' ? 'nl-NL' : 'en-US', {
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',
@@ -449,7 +452,17 @@ export default function MijnHcpClient() {
           ))}
         </div>
 
-        {lbMeta?.hint ? (
+        {lbMeta?.hintKey ? (
+          <p className="mt-3 text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            {lbMeta.hintKey === 'nearby_no_location'
+              ? t(`${LB_PAGE}.hintNearbyNoLocation`)
+              : lbMeta.hintKey === 'nearby_empty_radius'
+                ? t(`${LB_PAGE}.hintNearbyEmptyRadius`)
+                : lbMeta.hintKey === 'country_missing'
+                  ? t(`${LB_PAGE}.hintCountryMissing`)
+                  : null}
+          </p>
+        ) : lbMeta?.hint ? (
           <p className="mt-3 text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
             {lbMeta.hint}
           </p>
@@ -475,11 +488,15 @@ export default function MijnHcpClient() {
         {lbLoading ? (
           <p className="mt-4 text-sm text-gray-500">{t(`${LB_PREVIEW}.loading`)}</p>
         ) : !lbRows.length ? (
-          <p className="mt-4 text-sm text-gray-600">{t(`${LB_PAGE}.emptyGeneric`)}</p>
+          <p className="mt-4 text-sm text-gray-600">
+            {lbMeta?.hintKey === 'country_missing'
+              ? t(`${LB_PAGE}.hintCountryMissing`)
+              : t(`${LB_PAGE}.emptyNoHcpInList`)}
+          </p>
         ) : (
           <ol className="mt-4 space-y-2">
             {lbRows.map((r) => {
-              const href = publicProfileHref(r.userId, r.username);
+              const href = leaderboardRowPublicHref(r);
               const inner = (
                 <>
                   <span className="w-7 text-center text-sm font-bold text-amber-800 tabular-nums shrink-0">
@@ -554,18 +571,18 @@ export default function MijnHcpClient() {
       >
         <h2 id="hcp-how-heading" className="flex items-center gap-2 text-base font-bold text-gray-900">
           <Info className="h-5 w-5 text-blue-600 shrink-0" aria-hidden />
-          Hoe verdien je HCP?
+          {t(`${MIJN_HCP_HOW}.title`)}
         </h2>
         <ul className="mt-3 list-disc pl-5 space-y-1.5 text-sm text-gray-800">
-          <li>Dagelijks inloggen</li>
-          <li>Je profiel compleet maken</li>
-          <li>Producten plaatsen op het dorpsplein</li>
-          <li>Inspiratie plaatsen (recepten, tuin, design)</li>
-          <li>Foto’s en video toevoegen</li>
-          <li>Reviews ontvangen</li>
-          <li>Verkopen halen</li>
-          <li>Community-acties (props, betrokkenheid)</li>
-          <li>Referrals en uitnodigingen</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletLogin`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletProfile`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletProduct`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletInspiration`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletMedia`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletReviews`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletSales`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletCommunity`)}</li>
+          <li>{t(`${MIJN_HCP_HOW}.bulletReferrals`)}</li>
         </ul>
         <p className="mt-4 text-xs text-gray-600 leading-relaxed">{t(`${HP_REWARDS}.teaser`)}</p>
       </section>
@@ -573,7 +590,8 @@ export default function MijnHcpClient() {
       {lastEvent ? (
         <p className="text-center text-xs text-gray-500 flex items-center justify-center gap-1">
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
-          Laatste: {labelForHcpAction(lastEvent.action)} (+{lastEvent.points} HCP)
+          {t(`${MIJN_HCP_HOW}.lastEventPrefix`)}{' '}
+          {labelForHcpAction(lastEvent.action)} (+{lastEvent.points} HCP)
         </p>
       ) : null}
 
@@ -583,7 +601,7 @@ export default function MijnHcpClient() {
           prefetch={false}
           className="inline-flex min-h-[44px] touch-pan-y items-center text-sm font-medium text-emerald-700 hover:underline select-none"
         >
-          Terug naar Mijn HC
+          {t(`${MIJN_HCP_HOW}.backToProfile`)}
         </Link>
       </p>
 

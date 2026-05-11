@@ -247,7 +247,7 @@ function NativeAndroidConversationRow({
 }
 
 export default function ConversationsList({ onSelectConversation, onMessagesRead }: ConversationsListProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const nativeMounted = useIsNativeAppMounted();
   const isDesktopMessages = useMediaQuery('(min-width: 1024px)');
@@ -622,13 +622,15 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'Nu';
-    if (diffInMinutes < 60) return `${diffInMinutes}m`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}u`;
-    
-    return date.toLocaleDateString('nl-NL', {
+    if (diffInMinutes < 1) return t('messages.timeJustNow');
+    if (diffInMinutes < 60) return t('messages.timeMinutesShort', { count: diffInMinutes });
+    if (diffInMinutes < 1440) {
+      return t('messages.timeHoursShort', { count: Math.floor(diffInMinutes / 60) });
+    }
+
+    return date.toLocaleDateString(language === 'nl' ? 'nl-NL' : 'en-US', {
       day: 'numeric',
-      month: 'short'
+      month: 'short',
     });
   };
 
@@ -652,7 +654,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const currentUserId = currentUser?.id || '';
     const isOwn = lastMessage.User.id === currentUserId;
     
-    if (isOwn) return 'Jij: ';
+    if (isOwn) return t('messages.previewYouPrefix');
     
     // Show sender name for received messages in preview
     const senderName = getDisplayName(lastMessage.User);
@@ -846,8 +848,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto py-8 text-gray-500">
         <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
-        <p className="text-lg font-medium">Nog geen gesprekken</p>
-        <p className="text-sm">Start een gesprek door een product te bekijken!</p>
+        <p className="text-lg font-medium">{t('messages.noConversationsYet')}</p>
+        <p className="text-sm">{t('messages.startConversation')}</p>
       </div>
     );
   }
@@ -893,11 +895,11 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const previewLine = (c: Conversation): string => {
     const lm = c.lastMessage;
-    if (!lm) return 'Gesprek gestart';
+    if (!lm) return t('messages.conversationStarted');
     const prefix = getLastMessageSender(lm, session?.user);
     let body = getLastMessagePreview(lm);
     if (lm.messageType === 'TEXT' && lm.text) {
-      body = stripReferralNoise(lm.text, 'Bericht');
+      body = stripReferralNoise(lm.text, t('messages.previewTextFallback'));
     }
     return `${prefix}${body}`;
   };
@@ -972,7 +974,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               {unread && (
                 <span
                   className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600"
-                  aria-label="Ongelezen"
+                  aria-label={t('messages.unreadLabel')}
                 />
               )}
               <time
@@ -994,7 +996,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
               )}
               {conversation.order && (
                 <span className="inline-flex max-w-full items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                  Order
+                  {t('messages.orderLabel')}
                   {conversation.order.orderNumber
                     ? ` #${conversation.order.orderNumber}`
                     : ''}

@@ -2,6 +2,7 @@
 const ACTION_LABELS: Record<string, string> = {
   ACCOUNT_CREATED: 'Account aangemaakt',
   PROFILE_COMPLETED: 'Profiel voltooid',
+  FIRST_ITEM_PLACED: 'Eerste item op Dorpsplein',
   PRODUCT_CREATED: 'Product toegevoegd',
   PRODUCT_HAS_3_PHOTOS: '3 productfoto’s',
   PRODUCT_HAS_5_PHOTOS: '5 productfoto’s',
@@ -12,6 +13,11 @@ const ACTION_LABELS: Record<string, string> = {
   CONTENT_POST_CREATED: 'Inspiratiepost geplaatst',
   CONTENT_HAS_3_MEDIA: '3 media bij content',
   CONTENT_HAS_VIDEO: 'Video bij content',
+  CONVERSATION_STARTED: 'Gesprek gestart',
+  INTERACTION_COMMENT: 'Reactie geplaatst',
+  ITEM_LIKED_OR_SAVED: 'Props / favoriet',
+  CHAT_QUICK_RESPONSE: 'Snel antwoord chat',
+  REVIEW_REPLY_PUBLISHED: 'Antwoord op review',
 };
 
 export function labelForHcpAction(action: string): string {

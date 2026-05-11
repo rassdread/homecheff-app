@@ -110,6 +110,10 @@ export type PublicProfileHcpPayload = {
   level: number;
   levelTitle: string;
   currentStreak: number;
+  /** HCP verdiend sinds maandag (UTC), zelfde week als ranglijsten. */
+  weeklyHcpEarned?: number;
+  /** Recent ledger-activiteit (ruwe proxy voor “actief”). */
+  activeThisWeek?: boolean;
   badges: Array<{ key: string; name: string; icon: string }>;
 };
 
@@ -135,6 +139,8 @@ export default function PublicProfileClient({
       level: 1,
       levelTitle: 'Nieuwkomer',
       currentStreak: 0,
+      weeklyHcpEarned: 0,
+      activeThisWeek: false,
       badges: [],
     } satisfies PublicProfileHcpPayload);
   const [activeTab, setActiveTab] = useState('overview');
@@ -579,6 +585,21 @@ export default function PublicProfileClient({
                     </span>
                   ) : null}
                 </p>
+                {(hcpPublic.activeThisWeek || (hcpPublic.weeklyHcpEarned ?? 0) > 0) && (
+                  <p className="mt-1.5 text-xs text-gray-600">
+                    {hcpPublic.activeThisWeek ? (
+                      <span className="font-medium text-emerald-900">Actief deze week</span>
+                    ) : null}
+                    {hcpPublic.activeThisWeek && (hcpPublic.weeklyHcpEarned ?? 0) > 0 ? (
+                      <span aria-hidden> · </span>
+                    ) : null}
+                    {(hcpPublic.weeklyHcpEarned ?? 0) > 0 ? (
+                      <span>
+                        +{hcpPublic.weeklyHcpEarned!.toLocaleString('nl-NL')} HCP deze week
+                      </span>
+                    ) : null}
+                  </p>
+                )}
                 {hcpPublic.badges.length > 0 ? (
                   <div className="mt-2.5 space-y-2">
                     <div className="flex flex-wrap justify-center lg:justify-start gap-2">

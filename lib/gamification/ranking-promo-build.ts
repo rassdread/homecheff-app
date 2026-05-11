@@ -6,6 +6,7 @@ import {
   type CarouselViewerContext,
 } from '@/lib/gamification/carousel-slide-filters';
 import { carouselStrings, type CarouselLang } from '@/lib/gamification/home-carousel-i18n';
+import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
 export type RankingPromoCard = {
   id: string;
@@ -55,7 +56,7 @@ export async function buildRankingPromoPayload(opts: {
       : null;
 
   const langNorm: CarouselLang = opts.lang === 'en' ? 'en' : 'nl';
-  const country = ((viewerProfile?.country ?? 'NL').trim() || 'NL').toUpperCase();
+  const country = normalizeCountryCode(viewerProfile?.country ?? null) ?? 'NL';
 
   const anchorLat =
     opts.gpsLat != null && Number.isFinite(opts.gpsLat)
@@ -106,6 +107,7 @@ export async function buildRankingPromoPayload(opts: {
 
   const leader = weekWorld.rows[0];
   if (leader) {
+    const leaderHref = leader.publicProfileHref;
     slides.push({
       id: 'auto:featured-week',
       variantKey: 'auto:featured-week',
@@ -121,7 +123,7 @@ export async function buildRankingPromoPayload(opts: {
         subtitle: copy.spotlightWeek.reason,
       },
       ctaLabel: opts.lang === 'en' ? 'View profile' : 'Bekijk profiel',
-      ctaUrl: leader.username ? `/user/${leader.username}` : `/profile/${leader.userId}`,
+      ctaUrl: leaderHref ?? '/hcp-ranglijsten',
       backgroundStyle: 'emerald',
     });
   }

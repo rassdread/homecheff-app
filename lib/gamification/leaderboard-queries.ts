@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { hcpLevelFromTotal } from '@/lib/gamification/hcp-level';
 import { fetchAuthorBadgeSummariesByUserIds, type AuthorBadgeChip } from '@/lib/gamification/author-badge-summaries';
 import { hcpIsoWeekKeyUtc } from '@/lib/gamification/weekly-challenges';
+import { publicLeaderboardProfileHref } from '@/lib/user/public-profile';
 
 export type LeaderboardRow = {
   rank: number;
@@ -13,6 +14,8 @@ export type LeaderboardRow = {
   score: number;
   badgeSummaries: AuthorBadgeChip[];
   isCurrentUser: boolean;
+  /** Server: alleen gezet als `showProfileToEveryone`; anders `null` (geen klik). */
+  publicProfileHref: string | null;
 };
 
 export function mondayStartUtc(now = new Date()): Date {
@@ -34,10 +37,27 @@ export function yearStartUtc(now = new Date()): Date {
 }
 
 async function usersForIds(ids: string[]) {
-  if (ids.length === 0) return new Map<string, { name: string | null; username: string | null; image: string | null; profileImage: string | null }>();
+  if (ids.length === 0)
+    return new Map<
+      string,
+      {
+        name: string | null;
+        username: string | null;
+        image: string | null;
+        profileImage: string | null;
+        showProfileToEveryone: boolean;
+      }
+    >();
   const users = await prisma.user.findMany({
     where: { id: { in: ids } },
-    select: { id: true, name: true, username: true, image: true, profileImage: true },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      image: true,
+      profileImage: true,
+      showProfileToEveryone: true,
+    },
   });
   return new Map(users.map((u) => [u.id, u]));
 }
@@ -86,6 +106,7 @@ export async function buildRowsFromUserIds(
     : new Map<string, AuthorBadgeChip[]>();
   return slice.map((userId, i) => {
     const u = users.get(userId);
+    const profilePublic = u?.showProfileToEveryone === true;
     return {
       rank: i + 1,
       userId,
@@ -96,6 +117,7 @@ export async function buildRowsFromUserIds(
       score: scoreFn(userId),
       badgeSummaries: badges.get(userId) ?? [],
       isCurrentUser: Boolean(viewerId && viewerId === userId),
+      publicProfileHref: publicLeaderboardProfileHref(userId, u?.username ?? null, profilePublic),
     };
   });
 }
