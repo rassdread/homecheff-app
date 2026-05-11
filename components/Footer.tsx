@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy } from 'lucide-react';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 
 export default function Footer() {
@@ -19,6 +19,7 @@ export default function Footer() {
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
     { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/faq', label: t('siteFooter.faq'), icon: HelpCircle },
+    { href: '/hcp-ranglijsten', label: t('siteFooter.hcpRankings'), icon: Trophy },
     { href: '/contact?subject=feedback', label: t('siteFooter.feedback'), icon: MessageSquare },
   ];
 

@@ -19,6 +19,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import { HcpLevelPill } from '@/components/gamification/HcpLevelPill';
 import HcpWelcomeGate from '@/components/gamification/HcpWelcomeGate';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import {
   HcpBadgeDetailSheet,
   HcpEarnedBadgeButton,
@@ -176,6 +177,11 @@ export default function MijnHcpClient() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-4 py-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))]">
+      <AppBackBar
+        fallbackUrl="/hcp-ranglijsten"
+        label={t('navigation.backToRankings')}
+        className="-mx-1 rounded-xl border border-amber-100/90 bg-amber-50/40 px-2"
+      />
       <HcpWelcomeGate />
 
       <header>

@@ -18,6 +18,7 @@ import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import type { FeedMediaLightboxPayload } from '@/components/feed/FeedMediaLightbox';
 import { hrefForProfileGridItem } from '@/lib/profile/profilePublicItemHref';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
+import AppBackBar from '@/components/navigation/AppBackBar';
 
 interface User {
   id: string;
@@ -507,6 +508,12 @@ export default function PublicProfileClient({
     <ErrorBoundary>
     <div className="w-full min-w-0 box-border" style={{ maxWidth: '100%' }}>
       <div className="w-full max-w-6xl mx-auto px-4 py-8" style={{ minWidth: 0 }}>
+      <AppBackBar
+        fallbackUrl="/?chip=sale#homecheff-feed"
+        label={t('navigation.backToDorpsplein')}
+        sticky
+        className="-mx-1 mb-4 rounded-xl border border-emerald-100/80 bg-white/95 px-1 sm:px-2"
+      />
       {/* Profile Header - Strak en Gelikt */}
       <div className="bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 rounded-3xl shadow-lg border-2 border-emerald-100 overflow-hidden mb-8 min-w-0">
         {/* Cover Image Effect */}

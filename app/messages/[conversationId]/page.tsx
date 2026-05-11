@@ -134,6 +134,10 @@ export default function ConversationPage() {
   }, [conversationId, session, sessionStatus, router]);
 
   const handleBackToList = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
     router.push('/messages');
   };
 

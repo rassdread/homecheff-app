@@ -16,6 +16,7 @@ import {
 } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import BackButton from '@/components/navigation/BackButton';
 
 interface Conversation {
   id: string;
@@ -175,7 +176,13 @@ function MessagesPageContent() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <BackButton
+                  fallbackUrl="/?chip=sale#homecheff-feed"
+                  label={t('navigation.backToDorpsplein')}
+                  variant="minimal"
+                  className="-ml-1"
+                />
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                   {t('messages.title')}
                 </h1>

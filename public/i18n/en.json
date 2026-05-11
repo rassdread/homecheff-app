@@ -82,7 +82,12 @@
     "cart": "Shopping Cart",
     "logout": "Logout",
     "settings": "Settings",
-    "help": "Help"
+    "help": "Help",
+    "back": "Back",
+    "backPrevious": "Previous page",
+    "backToDorpsplein": "Back to village feed",
+    "backToMessages": "Back to messages",
+    "backToRankings": "Back to rankings"
   },
   "auth": {
     "login": "Login",
@@ -1804,7 +1809,8 @@
       "delivery": "Delivery",
       "taxes": "Taxes",
       "safety": "Safety",
-      "affiliate": "Affiliate 12-12"
+      "affiliate": "Affiliate 12-12",
+      "localCommunity": "Local feed, inspiration & HCP"
     },
     "general": {
       "0": {
@@ -2136,6 +2142,28 @@
       "5": {
         "question": "How do I get my commissions paid out?",
         "answer": "Commissions are automatically paid out weekly:\n\n💳 PAYOUTS:\n• Automatically weekly via Stripe Connect\n• Directly to your specified bank account\n• No manual action needed\n• Transparent payout terms\n\n📊 COMMISSION OVERVIEW:\n• All commissions are tracked in your dashboard\n• You see real-time how much you've earned\n• Pending (waiting for payout)\n• Available (available for payout)\n• Paid (paid out)\n\n⚠️ IMPORTANT:\n• You are responsible for paying taxes yourself\n• Commissions are paid excluding VAT\n• Consult a tax advisor for your specific situation\n• HomeCheff does not provide tax advice"
+      }
+    },
+    "localCommunity": {
+      "0": {
+        "question": "What is the Village Square (Dorpsplein) on HomeCheff?",
+        "answer": "The Village Square is your local marketplace feed: homemade food, harvest, and creations from makers near you. You can swipe to Inspiration for ideas without immediate sales, and from a maker's profile you can see what is for sale versus what is shared as inspiration.\n\nThat way you see what is alive locally, support nearby makers, and discover products you will not find in the supermarket."
+      },
+      "1": {
+        "question": "What is Inspiration and how is it different from selling?",
+        "answer": "Inspiration is for sharing what you make or grow — recipes, garden updates, designs — without a price. It helps you become visible in the community, gain fans, and later optionally list items on the Village Square.\n\nSelling is for priced items with checkout via HomeCheff. You remain the maker; HomeCheff helps with discovery, chat, and secure payment."
+      },
+      "2": {
+        "question": "What are HomeCheff Points (HCP)?",
+        "answer": "HCP reward active, constructive participation: listing items, ordering, reviews, consistent quality, and community contributions. They give a simple view of engagement and visibility on leaderboards.\n\nHCP are not cash, but they reflect your effort as a maker or enthusiast on the platform."
+      },
+      "3": {
+        "question": "How do HCP leaderboards work?",
+        "answer": "On the rankings page you can see who scores highest near you, in your country, or worldwide for a chosen period (week, month, year, all-time). You can filter by nearby (with location), country, or worldwide.\n\nLogged-in users see their own position where available. From profiles you can open makers and their listings — combining discovery with community."
+      },
+      "4": {
+        "question": "How do I install the HomeCheff app and stay up to date?",
+        "answer": "You will find install information on the site and in your profile or notifications when a new version ships. Turn on notifications for orders, messages, and updates from makers you follow so you do not miss local opportunities.\n\nFor payments, delivery, or safety, see the other FAQ categories on this page."
       }
     },
     "features": {
@@ -4563,6 +4591,7 @@
     "contact": "Contact",
     "overOns": "About us",
     "faq": "FAQ",
+    "hcpRankings": "HCP leaderboards",
     "feedback": "Feedback",
     "companyLine": "Arrias Beheer B.V. · Chamber of Commerce 80532829 · Vlaardingen · Contact via contact form"
   },

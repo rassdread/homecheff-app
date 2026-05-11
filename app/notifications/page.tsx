@@ -6,9 +6,12 @@ import { useSession } from 'next-auth/react';
 import NotificationFeedItems, {
   type NotificationFeedItem,
 } from '@/components/notifications/NotificationFeedItems';
+import AppBackBar from '@/components/navigation/AppBackBar';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: session, status } = useSession();
   const [items, setItems] = useState<NotificationFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +89,11 @@ export default function NotificationsPage() {
 
   return (
     <main className="mx-auto min-h-[60vh] max-w-2xl px-4 py-8">
+      <AppBackBar
+        fallbackUrl="/profile"
+        label={t('navigation.back')}
+        className="-mx-1 mb-6 rounded-xl border border-gray-100 bg-white/90 px-2"
+      />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Meldingen</h1>

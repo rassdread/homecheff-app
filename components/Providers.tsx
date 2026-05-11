@@ -15,6 +15,7 @@ import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 import AppUpdateGate from '@/components/app/AppUpdateGate';
 import { AppUpdateStatusProvider } from '@/components/app/AppUpdateStatusProvider';
 import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
+import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
   // This hook ensures session isolation
@@ -31,6 +32,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       refetchOnWindowFocus={false}
     >
       <AppShellHtmlClasses />
+      <Suspense fallback={null}>
+        <NavigationHistorySync />
+      </Suspense>
       <Suspense fallback={null}>
         <NativeAppUxFoundation />
       </Suspense>

@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, HelpCircle, CreditCard, Shield, Truck, User, FileText, AlertTriangle, TrendingUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, HelpCircle, CreditCard, Shield, Truck, User, FileText, AlertTriangle, TrendingUp, MapPin } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import AppBackBar from '@/components/navigation/AppBackBar';
 
 // FAQ categories will be loaded dynamically based on language
 const getFAQCategories = (t: (key: string) => string) => [
@@ -70,6 +71,12 @@ const getFAQCategories = (t: (key: string) => string) => [
     title: t('faq.categories.affiliate'),
     icon: TrendingUp,
     color: 'emerald'
+  },
+  {
+    id: 'localCommunity',
+    title: t('faq.categories.localCommunity'),
+    icon: MapPin,
+    color: 'teal'
   }
 ];
 
@@ -187,6 +194,13 @@ const getFAQData = (t: (key: string) => string) => {
       getItem('affiliate', 3),
       getItem('affiliate', 4),
       getItem('affiliate', 5)
+    ],
+    localCommunity: [
+      getItem('localCommunity', 0),
+      getItem('localCommunity', 1),
+      getItem('localCommunity', 2),
+      getItem('localCommunity', 3),
+      getItem('localCommunity', 4)
     ]
   };
 };
@@ -216,7 +230,8 @@ export default function FAQPage() {
       orange: 'bg-orange-50 border-orange-200 text-orange-800',
       amber: 'bg-amber-50 border-amber-200 text-amber-800',
       red: 'bg-red-50 border-red-200 text-red-800',
-      indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+      indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800',
+      teal: 'bg-teal-50 border-teal-200 text-teal-900'
     };
     return colorMap[color] || 'bg-gray-50 border-gray-200 text-gray-800';
   };
@@ -229,14 +244,20 @@ export default function FAQPage() {
       emerald: 'text-emerald-600',
       orange: 'text-orange-600',
       red: 'text-red-600',
-      indigo: 'text-indigo-600'
+      indigo: 'text-indigo-600',
+      teal: 'text-teal-600'
     };
     return colorMap[color] || 'text-gray-600';
   };
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <AppBackBar
+          fallbackUrl="/"
+          label={t('navigation.backPrevious')}
+          className="-mx-1 mb-6 rounded-xl border border-gray-100 bg-white/90 px-2 sm:px-3"
+        />
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('faq.title')}</h1>

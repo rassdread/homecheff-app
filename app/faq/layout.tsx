@@ -1,49 +1,61 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Script from 'next/script';
 import {
   getCurrentDomain,
   getCurrentLanguage,
   seoHreflangLanguagesOnEu,
 } from '@/lib/seo/metadata';
-
-// Helper to get FAQ data for structured data
-// Note: We'll generate basic structured data without importing JSON files
-// to avoid build-time issues. The FAQ page itself will have the full content.
-async function getFAQStructuredData(lang: 'nl' | 'en') {
-  // Return empty array - structured data will be added client-side if needed
-  // This avoids build-time JSON import issues
-  return [];
-}
+import { getFaqPageJsonLd } from '@/lib/seo/faqStructuredData';
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getCurrentLanguage();
   const currentDomain = await getCurrentDomain();
 
-  // Extract keywords from FAQ questions
-  const keywords = lang === 'en' ? [
-    'HomeCheff FAQ', 'homecheff questions', 'homecheff answers',
-    'homemade products FAQ', 'local marketplace questions',
-    'selling on HomeCheff', 'buying on HomeCheff', 'HomeCheff payments',
-    'HomeCheff delivery', 'HomeCheff taxes', 'HomeCheff safety',
-    'thuisgemaakte producten vragen', 'lokaal verkopen vragen',
-  ] : [
-    'HomeCheff FAQ', 'homecheff vragen', 'homecheff antwoorden',
-    'thuisgemaakte producten FAQ', 'lokaal marktplaats vragen',
-    'verkopen op HomeCheff', 'kopen op HomeCheff', 'HomeCheff betalingen',
-    'HomeCheff bezorging', 'HomeCheff belastingen', 'HomeCheff veiligheid',
-    'thuisgemaakte producten vragen', 'lokaal verkopen vragen',
-  ];
-  
+  const keywords =
+    lang === 'en'
+      ? [
+          'HomeCheff FAQ',
+          'homecheff questions',
+          'homemade marketplace',
+          'local makers',
+          'side income from home',
+          'HCP leaderboards',
+          'village square',
+          'inspiration feed',
+          'Dorpsplein',
+          'Stripe payouts',
+        ]
+      : [
+          'HomeCheff FAQ',
+          'homecheff vragen',
+          'lokale makers',
+          'zelfgemaakt eten',
+          'thuis verdienen',
+          'HCP ranglijsten',
+          'dorpsplein',
+          'inspiratie',
+          'lokale community marketplace',
+          'uitbetaling Stripe',
+        ];
+
   if (lang === 'en') {
     return {
       title: 'Frequently Asked Questions (FAQ) - HomeCheff',
-      description: 'Find answers to frequently asked questions about HomeCheff. Everything you want to know about homemade products, orders, payments and more.',
+      description:
+        'Answers about HomeCheff: local homemade food, the village feed, inspiration, HCP points, selling from home, payments, delivery, and community trust.',
       keywords,
       openGraph: {
         title: 'Frequently Asked Questions (FAQ) - HomeCheff',
-        description: 'Find answers to frequently asked questions about HomeCheff. Everything about homemade products, local marketplace, selling and buying.',
+        description:
+          'Homemade marketplace, local creators, inspiration, HCP, and safe buying — clear answers in one place.',
         type: 'website',
         url: `${currentDomain}/faq`,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'HomeCheff FAQ',
+        description: 'Local makers, village feed, inspiration, HCP, and payments — quick answers.',
       },
       alternates: {
         canonical: `${currentDomain}/faq`,
@@ -55,16 +67,23 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     };
   }
-  
+
   return {
     title: 'Veelgestelde Vragen (FAQ) - HomeCheff',
-    description: 'Vind antwoorden op veelgestelde vragen over HomeCheff. Alles wat je wilt weten over thuisgemaakte producten, bestellingen, betalingen en meer.',
+    description:
+      'Antwoorden over HomeCheff: lokaal zelfgemaakt eten, Dorpsplein, inspiratie, HCP-punten, verkopen vanuit huis, betalingen, levering en vertrouwen in de community.',
     keywords,
     openGraph: {
       title: 'Veelgestelde Vragen (FAQ) - HomeCheff',
-      description: 'Vind antwoorden op veelgestelde vragen over HomeCheff. Alles over thuisgemaakte producten, lokale marktplaats, verkopen en kopen.',
+      description:
+        'Lokale makers, dorpsplein, inspiratie, HCP en veilig kopen — heldere antwoorden op één plek.',
       type: 'website',
       url: `${currentDomain}/faq`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'HomeCheff FAQ',
+      description: 'Lokale makers, Dorpsplein, inspiratie, HCP en betalingen — korte antwoorden.',
     },
     alternates: {
       canonical: `${currentDomain}/faq`,
@@ -77,39 +96,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function FAQLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function FAQLayout({ children }: { children: ReactNode }) {
   const lang = await getCurrentLanguage();
-  const currentDomain = await getCurrentDomain();
-  
-  // Generate FAQ structured data
-  let mainEntity: any[] = [];
-  try {
-    mainEntity = await getFAQStructuredData(lang);
-  } catch (error) {
-    console.error('Error generating FAQ structured data:', error);
-  }
-  
-  const faqStructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: mainEntity.slice(0, 50), // Limit to 50 for performance
-  };
-  
+  const faqStructuredData = getFaqPageJsonLd(lang);
+
   return (
     <>
-      {mainEntity.length > 0 && (
-        <Script
-          id="faq-structured-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
-        />
-      )}
+      <Script
+        id="faq-structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+      />
       {children}
     </>
   );
 }
-

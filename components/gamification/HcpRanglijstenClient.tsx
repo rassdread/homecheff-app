@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, MapPin, Trophy } from 'lucide-react';
+import { MapPin, Trophy } from 'lucide-react';
+import BackButton from '@/components/navigation/BackButton';
 import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
@@ -391,14 +392,12 @@ export default function HcpRanglijstenClient() {
     <div className="mx-auto max-w-6xl px-4 py-6 pb-24">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dorpsplein"
-            prefetch={false}
-            className="inline-flex min-h-[44px] touch-pan-y items-center gap-1 text-sm font-medium text-teal-800 hover:underline mb-2 select-none"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-            {tk('backHome')}
-          </Link>
+          <BackButton
+            fallbackUrl="/?chip=sale#homecheff-feed"
+            label={tk('backHome')}
+            variant="minimal"
+            className="mb-2 -ml-1 justify-start px-2"
+          />
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Trophy className="h-8 w-8 text-amber-500 shrink-0" aria-hidden />
             {tk('title')}

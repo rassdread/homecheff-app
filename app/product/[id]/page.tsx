@@ -145,7 +145,7 @@ export default function ProductPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-neutral-900 mb-4">Product ID niet gevonden</h1>
-            <BackButton fallbackUrl="/" />
+            <BackButton />
           </div>
         </div>
       </main>
@@ -520,7 +520,7 @@ export default function ProductPage() {
             <Package className="w-12 h-12 text-gray-400" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('product.notFound')}</h1>
-          <BackButton fallbackUrl="/" label={t('product.backToOverview')} />
+          <BackButton label={t('product.backToOverview')} />
         </div>
       </main>
     );
@@ -633,7 +633,7 @@ export default function ProductPage() {
       {/* Header with Print/Download buttons */}
       <div className="no-print bg-white border-b sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <BackButton fallbackUrl="/" variant="minimal" />
+          <BackButton variant="minimal" />
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={() => setShowPrintView(!showPrintView)}

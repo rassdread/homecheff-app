@@ -82,7 +82,12 @@
     "cart": "Winkelwagen",
     "logout": "Uitloggen",
     "settings": "Instellingen",
-    "help": "Help"
+    "help": "Help",
+    "back": "Terug",
+    "backPrevious": "Vorige pagina",
+    "backToDorpsplein": "Terug naar Dorpsplein",
+    "backToMessages": "Terug naar berichten",
+    "backToRankings": "Terug naar ranglijsten"
   },
   "auth": {
     "login": "Inloggen",
@@ -2243,7 +2248,8 @@
       "delivery": "Levering",
       "taxes": "Belastingen",
       "safety": "Veiligheid",
-      "affiliate": "Affiliate 12-12"
+      "affiliate": "Affiliate 12-12",
+      "localCommunity": "Lokaal, inspiratie & HCP"
     },
     "general": {
       "0": {
@@ -2605,6 +2611,28 @@
       "5": {
         "question": "Hoe krijg ik mijn commissies uitbetaald?",
         "answer": "Commissies worden automatisch wekelijks uitbetaald:\n\n💳 UITBETALINGEN:\n• Automatisch wekelijks via Stripe Connect\n• Direct naar je opgegeven bankrekening\n• Geen handmatige actie nodig\n• Transparante uitbetalingstermijnen\n\n📊 COMMISSIE OVERZICHT:\n• Alle commissies worden bijgehouden in je dashboard\n• Je ziet real-time hoeveel je hebt verdiend\n• Pending (wachtend op uitbetaling)\n• Available (beschikbaar voor uitbetaling)\n• Paid (uitbetaald)\n\n⚠️ BELANGRIJK:\n• Je bent zelf verantwoordelijk voor het afdragen van belasting\n• Commissies worden uitbetaald exclusief BTW\n• Raadpleeg een belastingadviseur voor jouw specifieke situatie\n• HomeCheff geeft geen belastingadvies"
+      }
+    },
+    "localCommunity": {
+      "0": {
+        "question": "Wat is het Dorpsplein op HomeCheff?",
+        "answer": "Het Dorpsplein is jouw lokale marktplaats-feed: hier vind je zelfgemaakt eten, oogst en creaties van makers bij jou in de buurt. Je kunt swipen naar Inspiratie voor ideeën zonder directe verkoop, en via het profiel van een maker zie je wat er te koop is versus wat als inspiratie wordt gedeeld.\n\nZo zie je wat er lokaal leeft, steun je makers dichtbij en ontdek je producten die je niet in de supermarkt vindt."
+      },
+      "1": {
+        "question": "Wat is Inspiratie en hoe verschilt dat van verkopen?",
+        "answer": "Inspiratie is bedoeld om te delen wat je maakt of kweekt — recepten, tuinupdates, ontwerpen — zonder dat er een prijs op staat. Ideaal om zichtbaar te worden in de community, fans te krijgen en later eventueel items op het Dorpsplein aan te bieden.\n\nVerkoop gebeurt op items met een prijs en betaling via HomeCheff. Je blijft zelf maker; HomeCheff helpt met ontdekking, chat en veilige betaling."
+      },
+      "2": {
+        "question": "Wat zijn HomeCheff Points (HCP)?",
+        "answer": "HCP belonen actieve en constructieve deelname: aanbod plaatsen, bestellen, reviews, consistente kwaliteit en bijdragen aan de community. Ze geven inzicht in je betrokkenheid en maken je zichtbaarder op ranglijsten.\n\nHCP zijn geen geldwaarde maar wel een motiverende spiegel van je inzet als maker of liefhebber op het platform."
+      },
+      "3": {
+        "question": "Hoe werken de HCP-ranglijsten?",
+        "answer": "Op de ranglijstenpagina zie je wie in jouw omgeving, land of wereldwijd hoog scoort in een gekozen periode (week, maand, jaar, alles-tijd). Je kunt filteren op dichtbij (met locatie), op land of wereldwijd.\n\nIngelogde gebruikers zien hun eigen plek in de lijst waar beschikbaar. Vanaf profielen kun je doorklikken naar makers en hun aanbod — zo combineer je ontdekking met community."
+      },
+      "4": {
+        "question": "Hoe installeer ik de HomeCheff-app en blijf ik op de hoogte?",
+        "answer": "Je vindt installatie-informatie op de site en in je profiel of meldingen wanneer er een nieuwe versie is. Schakel meldingen in voor bestellingen, berichten en updates van makers die je volgt, zodat je niets mist van lokale kansen.\n\nVoor vragen over betalingen, levering of veiligheid, zie ook de andere FAQ-categorieën op deze pagina."
       }
     }
   },
@@ -4749,6 +4777,7 @@
     "contact": "Contact",
     "overOns": "Over ons",
     "faq": "FAQ",
+    "hcpRankings": "HCP-ranglijsten",
     "feedback": "Feedback",
     "companyLine": "Arrias Beheer B.V. · KvK 80532829 · Vlaardingen · Contact via contactformulier"
   },
