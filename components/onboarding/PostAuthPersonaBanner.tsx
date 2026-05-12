@@ -60,8 +60,8 @@ export default function PostAuthPersonaBanner() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 pt-4">
-      <div className="relative flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3 pr-12 text-sm text-emerald-950 shadow-sm sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-1">
+      <div className="relative grid grid-cols-1 gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3 pr-12 text-sm text-emerald-950 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="min-w-0 space-y-1">
           {welcomeLine ? (
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800/90">
               {welcomeLine}

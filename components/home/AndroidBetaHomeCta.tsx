@@ -171,7 +171,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
     <>
       <section
         className={cn(
-          'relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/80 p-4 shadow-[0_12px_40px_-18px_rgba(16,185,129,0.35)] sm:p-5',
+          'relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/80 p-4 shadow-[0_12px_40px_-18px_rgba(16,185,129,0.35)] sm:p-5 md:max-w-5xl md:mx-auto',
           className
         )}
         aria-labelledby="home-android-beta-title"
@@ -180,8 +180,9 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
           className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-400/15 blur-2xl"
           aria-hidden
         />
-        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-          <div className="min-w-0 flex-1 space-y-2">
+        {/* Grid i.p.v. flex-row + flex-1: stabiele tekstbreedte op desktop (Opera/Chrome), minmax(0,1fr) voorkomt rare intrinsic min-width. */}
+        <div className="relative grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6">
+          <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full border border-emerald-300/60 bg-white/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-900">
                 Android · Beta
@@ -202,7 +203,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
             ) : null}
           </div>
           <div
-            className="pointer-events-none flex shrink-0 justify-center text-emerald-700/90 sm:pt-1"
+            className="pointer-events-none flex justify-center text-emerald-700/90 md:justify-end md:pt-1"
             aria-hidden
           >
             <div className="rounded-2xl border border-emerald-200/80 bg-white/90 p-3 shadow-sm">
@@ -211,12 +212,12 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
           </div>
         </div>
 
-        <div className="relative mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <div className="relative mt-4 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
           <Link
             href="/app"
             prefetch={false}
             className={cn(
-              'inline-flex min-h-[48px] w-full touch-pan-y items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[200px] select-none'
+              'inline-flex min-h-[48px] w-full touch-pan-y items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 select-none'
             )}
           >
             {t(`${HK}.ctaDownload`)}
@@ -225,7 +226,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
             type="button"
             onClick={() => void onShareInvite()}
             disabled={shareBusy}
-            className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 disabled:opacity-60 sm:w-auto sm:min-w-[180px] touch-manipulation select-none"
+            className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 disabled:opacity-60 touch-manipulation select-none"
           >
             <Share2 className="h-4 w-4 shrink-0" aria-hidden />
             {shareBusy ? shareBusyLabel : t(`${HK}.ctaShareBeta`)}

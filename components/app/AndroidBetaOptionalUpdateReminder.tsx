@@ -19,7 +19,7 @@ export default function AndroidBetaOptionalUpdateReminder({ className }: { class
         className
       )}
     >
-      <p className="text-sm font-medium text-emerald-950">{t('appUpdateGate.updateAvailableShort')}</p>
+      <p className="min-w-0 flex-1 text-sm font-medium text-emerald-950">{t('appUpdateGate.updateAvailableShort')}</p>
       <button
         type="button"
         onClick={() => void triggerApkDownload()}
