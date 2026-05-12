@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, User, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
+import { MessageCircle, Package, MapPin, Clock, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import ClickableName from '@/components/ui/ClickableName';
 import { getDisplayName } from '@/lib/displayName';
 import MessageEncryption from './MessageEncryption';
@@ -321,23 +322,17 @@ export default function MessageList({ messages, currentUserId, isLoading, onMess
         <div className={`flex max-w-[85%] sm:max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
           {/* Avatar - WhatsApp/Telegram style (only show if not grouped) */}
           {showAvatar ? (
-            <div className="flex-shrink-0 mr-2">
-              {message.User.profileImage ? (
-                <Image
-                  src={message.User.profileImage}
-                  alt={getDisplayName(message.User)}
-                  width={32}
-                  height={32}
-                  className="rounded-full border-2 border-gray-200"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-              )}
+            <div className="mr-2 shrink-0">
+              <UserCircleAvatar
+                src={message.User.profileImage}
+                alt={getDisplayName(message.User)}
+                size="sm"
+                nameForInitial={getDisplayName(message.User)}
+                className="border-2 border-gray-200"
+              />
             </div>
           ) : !isOwn ? (
-            <div className="w-8 mr-2 flex-shrink-0" />
+            <div className="mr-2 w-8 shrink-0" />
           ) : null}
 
           {/* Message content - iMessage/WhatsApp style bubbles */}

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { savePendingIntent } from '@/lib/onboarding/pending-intent';
+import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
 
 interface PromoModalProps {
   isOpen: boolean;
@@ -49,6 +50,35 @@ export default function PromoModal({
   const registerUrl = ctaLink === "/register" 
     ? `/register?returnUrl=${encodeURIComponent(currentUrl)}`
     : ctaLink;
+
+  /** Stash post-login destination before navigating to login/register (was missing → guest crash). */
+  const armReturnIntent = useCallback(() => {
+    const safeCurrent =
+      sanitizePostAuthRelativeUrl(
+        `${pathname || '/'}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`,
+      ) || '/';
+
+    let returnPath = safeCurrent;
+    switch (modalType) {
+      case 'dashboard':
+        returnPath = '/verkoper/dashboard';
+        break;
+      case 'add':
+        returnPath = '/sell/new';
+        break;
+      case 'messages':
+        returnPath = '/messages';
+        break;
+      case 'profile':
+        returnPath = '/profile';
+        break;
+      default:
+        break;
+    }
+
+    const sanitized = sanitizePostAuthRelativeUrl(returnPath) || returnPath;
+    savePendingIntent({ type: 'complete_profile', returnPath: sanitized });
+  }, [modalType, pathname, searchParams]);
 
   useEffect(() => {
     if (isOpen && session?.user) {

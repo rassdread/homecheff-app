@@ -106,9 +106,9 @@ export default function SafeImage({
         <img
           src={src}
           alt={alt}
-          className={`${className || ''} absolute inset-0 w-full h-full object-cover`}
+          className={`${className || ''} absolute inset-0 h-full w-full object-cover object-center`}
           loading={imgLoading}
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
           {...props}
         />
       );

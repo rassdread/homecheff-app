@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
 import { MoreHorizontal, Star, Clock, Truck, Package, MapPin } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import ImageSlider from '@/components/ui/ImageSlider';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -242,12 +243,12 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
         {/* Seller Info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <SafeImage
-              src={item.seller?.avatar || ""}
+            <UserCircleAvatar
+              src={item.seller?.avatar}
               alt={getDisplayName(item.seller)}
-              width={24}
-              height={24}
-              className="rounded-full border border-primary-100"
+              size="xs"
+              nameForInitial={getDisplayName(item.seller)}
+              className="border border-primary-100"
             />
             <div>
               <div className="flex items-center gap-2">

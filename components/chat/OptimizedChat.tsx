@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, Trash2, RefreshCw, Circle, Check, CheckCheck, User as UserIcon } from 'lucide-react';
-import Image from 'next/image';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import Pusher from 'pusher-js';
 import { getDisplayName } from '@/lib/displayName';
 import EmojiPickerButton from './EmojiPicker';
@@ -426,21 +426,12 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
             </button>
           )}
 
-          {otherParticipant.profileImage ? (
-            <Image
-              src={otherParticipant.profileImage}
-              alt={getDisplayName(otherParticipant)}
-              width={40}
-              height={40}
-              className="rounded-full flex-shrink-0 object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">
-                {getDisplayName(otherParticipant).charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+          <UserCircleAvatar
+            src={otherParticipant.profileImage}
+            alt={getDisplayName(otherParticipant)}
+            size="md"
+            nameForInitial={getDisplayName(otherParticipant)}
+          />
 
           <div className="flex-1 min-w-0">
             <button
@@ -553,21 +544,13 @@ export default function OptimizedChat({ conversationId, otherParticipant, onBack
                             className="group relative"
                             title={t('messages.viewProfile', { name: getDisplayName(message.User) })}
                           >
-                            {message.User?.profileImage ? (
-                              <Image
-                                src={message.User.profileImage}
-                                alt={getDisplayName(message.User)}
-                                width={32}
-                                height={32}
-                                className="rounded-full object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 bg-gray-300 group-hover:bg-blue-500 rounded-full flex items-center justify-center transition-colors">
-                                <span className="text-xs font-medium group-hover:text-white">
-                                  {getDisplayName(message.User).charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            )}
+                            <UserCircleAvatar
+                              src={message.User?.profileImage}
+                              alt={getDisplayName(message.User)}
+                              size="sm"
+                              nameForInitial={getDisplayName(message.User)}
+                              imageClassName="transition-all group-hover:ring-2 group-hover:ring-blue-500"
+                            />
                           </button>
                         )}
                       </div>

@@ -11,7 +11,7 @@ import {
   RefreshCw,
   BadgeCheck,
 } from 'lucide-react';
-import Image from 'next/image';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import Link from 'next/link';
 import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
@@ -968,21 +968,12 @@ export default function ChatBox({
               scroll={false}
               className="flex min-h-[44px] min-w-0 flex-1 touch-pan-y items-center gap-3 rounded-lg outline-none select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
-              {otherParticipant.profileImage ? (
-                <Image
-                  src={otherParticipant.profileImage}
-                  alt={getDisplayName(otherParticipant)}
-                  width={40}
-                  height={40}
-                  className="rounded-full shrink-0"
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700">
-                  <span className="font-bold text-white">
-                    {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
-                  </span>
-                </div>
-              )}
+              <UserCircleAvatar
+                src={otherParticipant.profileImage}
+                alt={getDisplayName(otherParticipant)}
+                size="md"
+                nameForInitial={getDisplayName(otherParticipant)}
+              />
 
               <div className="flex-1 min-w-0">
                 <div className="flex min-w-0 items-center gap-1">
@@ -1031,21 +1022,12 @@ export default function ChatBox({
             </Link>
           ) : (
             <>
-              {otherParticipant.profileImage ? (
-                <Image
-                  src={otherParticipant.profileImage}
-                  alt={getDisplayName(otherParticipant)}
-                  width={40}
-                  height={40}
-                  className="rounded-full shrink-0"
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-700">
-                  <span className="font-bold text-white">
-                    {getDisplayName(otherParticipant)[0]?.toUpperCase() ?? '?'}
-                  </span>
-                </div>
-              )}
+              <UserCircleAvatar
+                src={otherParticipant.profileImage}
+                alt={getDisplayName(otherParticipant)}
+                size="md"
+                nameForInitial={getDisplayName(otherParticipant)}
+              />
 
               <div className="flex-1 min-w-0">
                 <div className="flex min-w-0 items-center gap-1">

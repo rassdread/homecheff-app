@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ClickableName from '@/components/ui/ClickableName';
-import SafeImage from '@/components/ui/SafeImage';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
 
 type Follow = { 
@@ -49,12 +49,12 @@ export default function FollowsList() {
       {items.map(f => (
         <li key={f.id} className="p-3 flex items-center gap-3">
           {/* Avatar */}
-          <SafeImage
-            src={f.Seller?.profileImage || f.Seller?.image || ""}
+          <UserCircleAvatar
+            src={f.Seller?.profileImage || f.Seller?.image}
             alt={getDisplayName(f.Seller)}
-            width={32}
-            height={32}
-            className="w-8 h-8 rounded-full object-cover border flex-shrink-0"
+            size="sm"
+            nameForInitial={getDisplayName(f.Seller)}
+            className="border border-gray-200"
           />
           
           {/* Name with link */}

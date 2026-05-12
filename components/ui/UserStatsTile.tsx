@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Users, Heart, Star, Eye, ThumbsUp } from "lucide-react";
 import Link from "next/link";
-import SafeImage from "./SafeImage";
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from "@/lib/displayName";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import {
@@ -235,23 +235,13 @@ export default function UserStatsTile({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 hover:opacity-90 transition-opacity group">
-          <div className="relative h-10 w-10 shrink-0">
-            {userAvatar ? (
-              <SafeImage
-                src={userAvatar}
-                alt={userDisplayName}
-                width={40}
-                height={40}
-                className="rounded-full border-2 border-primary-100 object-cover transition-colors group-hover:border-primary-300"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary-200 bg-gradient-to-br from-primary-100 to-primary-200">
-                <span className="text-sm font-semibold text-primary-600">
-                  {userDisplayName.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
-          </div>
+          <UserCircleAvatar
+            src={userAvatar}
+            alt={userDisplayName}
+            size="md"
+            nameForInitial={userDisplayName}
+            className="border-2 border-primary-100 transition-colors group-hover:border-primary-300"
+          />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary-600">
               {getDisplayName({

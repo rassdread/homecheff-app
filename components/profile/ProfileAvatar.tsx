@@ -22,7 +22,7 @@ export default function ProfileAvatar({ imageUrl, size = 160, className = "" }: 
         alt="Profielfoto"
         fill
         sizes={`${size}px`}
-        className="object-cover"
+        className="object-cover object-center"
       />
     </div>
   );

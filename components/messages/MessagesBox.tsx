@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, Send, MoreHorizontal, Phone, Mail, User, Badge } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import EmojiPickerButton from '@/components/chat/EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -485,19 +486,12 @@ export default function MessagesBox({ className = '' }: MessagesBoxProps) {
                     }}
                     className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 text-left"
                   >
-                      <div className="flex-shrink-0">
-                        {conversation.otherUser.image ? (
-                          <img
-                            src={conversation.otherUser.image}
-                            alt={conversation.otherUser.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                            <User className="w-6 h-6 text-gray-600" />
-                          </div>
-                        )}
-                      </div>
+                      <UserCircleAvatar
+                        src={conversation.otherUser.image}
+                        alt={conversation.otherUser.name}
+                        size="lg"
+                        nameForInitial={conversation.otherUser.name}
+                      />
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">

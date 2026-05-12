@@ -6,6 +6,7 @@ import StarRating from './StarRating';
 import ReviewResponseForm from './ReviewResponseForm';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 
 interface ReviewItemProps {
   review: {
@@ -89,22 +90,13 @@ export default function ReviewItem({
       {/* Review Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            {review.buyer.profileImage ? (
-              <Image
-                src={review.buyer.profileImage}
-                alt={getDisplayName(review.buyer)}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            ) : (
-              <span className="text-gray-600 font-medium">
-                {getDisplayName(review.buyer).charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+          <UserCircleAvatar
+            src={review.buyer.profileImage}
+            alt={getDisplayName(review.buyer)}
+            size="md"
+            nameForInitial={getDisplayName(review.buyer)}
+            className="border border-gray-200 bg-gray-50"
+          />
           
           <div>
             <div className="flex items-center gap-2">
@@ -209,11 +201,13 @@ export default function ReviewItem({
             {review.responses.map((response) => (
               <div key={response.id} className="bg-gray-50 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-xs text-blue-600 font-medium">
-                      {getDisplayName(response.seller).charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  <UserCircleAvatar
+                    src={response.seller.profileImage}
+                    alt={getDisplayName(response.seller)}
+                    size="xs"
+                    nameForInitial={getDisplayName(response.seller)}
+                    className="bg-blue-50 ring-blue-200/40"
+                  />
                   <span className="text-sm font-medium text-gray-900">
                     {getDisplayName(response.seller)}
                   </span>

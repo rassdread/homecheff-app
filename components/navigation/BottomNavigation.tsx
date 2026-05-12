@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Home, Briefcase, Plus, MessageCircle, User, Upload, Download } from 'lucide-react';
-import PromoModal from '@/components/promo/PromoModal';
+import { Plus, Download } from 'lucide-react';
+import { openSoftAuthGate } from '@/lib/onboarding/open-soft-auth-gate';
+import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
@@ -283,9 +284,6 @@ export default function BottomNavigation() {
   }, [showQuickAddMenu, quickAddStep, capturedPhoto, selectedPlatform]);
 
 
-  // Promo modals state
-  const [activePromoModal, setActivePromoModal] = useState<'dashboard' | 'add' | 'messages' | 'profile' | 'dorpsplein-product' | 'inspiratie-item' | null>(null);
-
   /** Eén navigatiemechanisme: client Link naar feed-hash (geen prefetch+push dubbel). */
   const discoverLabel = t('bottomNav.discoverTab');
   const discoverIcon = '🧭';
@@ -301,13 +299,6 @@ export default function BottomNavigation() {
 
   /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */
   const useDirectTabLinks = Boolean(session?.user);
-
-  // Signup promo modals: niet tonen tijdens sessie-loading (voorkomt "community" achter native push).
-  useEffect(() => {
-    if (session?.user && activePromoModal !== null) {
-      setActivePromoModal(null);
-    }
-  }, [session?.user, activePromoModal]);
 
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const verticalAllowedByIntent = useCallback((v: CreateFlowVertical) => {
@@ -356,15 +347,32 @@ export default function BottomNavigation() {
     }
 
     const sellNewSuffix = buildSellNewSearchFromIntent(intent);
+    const sellNewPath = `/sell/new${sellNewSuffix}`;
+    const safeSellNew = sanitizePostAuthRelativeUrl(sellNewPath) || sellNewPath;
+
+    const openGuestCreateGate = () => {
+      if (sessionStatus === 'loading') return;
+      openSoftAuthGate({
+        copyKey: 'create',
+        intent: {
+          type: 'create_item',
+          mode: intent?.mode === 'inspiratie' ? 'inspiratie' : 'dorpsplein',
+          vertical: intent?.vertical,
+          returnPath: safeSellNew,
+        },
+      });
+    };
 
     if (shouldHide) {
-      router.push(`/sell/new${sellNewSuffix}`);
+      if (!session?.user) {
+        openGuestCreateGate();
+        return;
+      }
+      router.push(sellNewPath);
       return;
     }
     if (!session?.user) {
-      if (sessionStatus === 'loading') {
-        router.push(`/sell/new${sellNewSuffix}`);
-      }
+      openGuestCreateGate();
       return;
     }
     setShowQuickAddMenu(true);
@@ -393,8 +401,13 @@ export default function BottomNavigation() {
   }, [session?.user, sessionStatus, shouldHide, router]);
 
   const handleQuickAddClick = () => {
-    if (sessionStatus === 'unauthenticated') {
-      setActivePromoModal('add');
+    if (sessionStatus === 'loading') return;
+    if (!session?.user) {
+      const p = sanitizePostAuthRelativeUrl('/sell/new') || '/sell/new';
+      openSoftAuthGate({
+        copyKey: 'create',
+        intent: { type: 'create_item', mode: 'dorpsplein', returnPath: p },
+      });
       return;
     }
     void loadUserRolesIfNeeded();
@@ -439,24 +452,45 @@ export default function BottomNavigation() {
   }, [session?.user, router, pathname]);
 
   const handleDashboardClick = () => {
+    if (sessionStatus === 'loading') return;
     if (!session?.user) {
-      setActivePromoModal('dashboard');
+      openSoftAuthGate({
+        copyKey: 'generic',
+        intent: {
+          type: 'complete_profile',
+          returnPath: sanitizePostAuthRelativeUrl('/verkoper/dashboard') || '/verkoper/dashboard',
+        },
+      });
       return;
     }
     router.push('/verkoper/dashboard');
   };
 
   const handleMessagesClick = () => {
+    if (sessionStatus === 'loading') return;
     if (!session?.user) {
-      setActivePromoModal('messages');
+      openSoftAuthGate({
+        copyKey: 'message',
+        intent: {
+          type: 'complete_profile',
+          returnPath: sanitizePostAuthRelativeUrl('/messages') || '/messages',
+        },
+      });
       return;
     }
     router.push('/messages');
   };
 
   const handleProfileClick = () => {
+    if (sessionStatus === 'loading') return;
     if (!session?.user) {
-      setActivePromoModal('profile');
+      openSoftAuthGate({
+        copyKey: 'generic',
+        intent: {
+          type: 'complete_profile',
+          returnPath: sanitizePostAuthRelativeUrl('/profile') || '/profile',
+        },
+      });
       return;
     }
     router.push('/profile');
@@ -1777,116 +1811,6 @@ export default function BottomNavigation() {
         aria-hidden
       />
 
-      {/* Promo Modals */}
-      <PromoModal
-        isOpen={activePromoModal === 'dashboard'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.earnMoney')}
-        subtitle={t('bottomNav.earnMoneySubtitle')}
-        description={t('bottomNav.earnMoneyDesc')}
-        icon="💰"
-        gradient="bg-gradient-to-r from-green-500 to-emerald-600"
-        features={[
-          t('bottomNav.features.placeProducts'),
-          t('bottomNav.features.autoPayment'),
-          t('bottomNav.features.directPayout'),
-          t('bottomNav.features.noMonthlyCosts'),
-          t('bottomNav.features.reachLocal')
-        ]}
-        modalType="dashboard"
-      />
-
-      <PromoModal
-        isOpen={activePromoModal === 'add'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.addFirstProduct')}
-        subtitle={t('bottomNav.addFirstProductSubtitle')}
-        description={t('bottomNav.addFirstProductDesc')}
-        icon="🚀"
-        gradient="bg-gradient-to-r from-orange-500 to-red-600"
-        features={[
-          t('bottomNav.features.galleryUpload'),
-          t('bottomNav.features.autoCategory'),
-          t('bottomNav.features.smartPricing'),
-          t('bottomNav.features.directVisibility'),
-          t('bottomNav.features.noUpfrontCosts')
-        ]}
-        modalType="add"
-      />
-
-      <PromoModal
-        isOpen={activePromoModal === 'messages'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.connectCommunity')}
-        subtitle={t('bottomNav.connectCommunitySubtitle')}
-        description={t('bottomNav.connectCommunityDesc')}
-        icon="💬"
-        gradient="bg-gradient-to-r from-blue-500 to-purple-600"
-        features={[
-          t('bottomNav.features.directMessages'),
-          t('bottomNav.features.shareInspirations'),
-          t('bottomNav.features.getTips'),
-          t('bottomNav.features.buildNetwork'),
-          t('bottomNav.features.collaborate')
-        ]}
-        modalType="messages"
-      />
-
-      <PromoModal
-        isOpen={activePromoModal === 'profile'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.manageWorkspaces')}
-        subtitle={t('bottomNav.manageWorkspacesSubtitle')}
-        description={t('bottomNav.manageWorkspacesDesc')}
-        icon="🏡"
-        gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-        features={[
-          t('bottomNav.features.professionalProfile'),
-          t('bottomNav.features.manageProducts'),
-          t('bottomNav.features.reviewsRatings'),
-          t('bottomNav.features.statistics'),
-          t('bottomNav.features.personalWorkspace')
-        ]}
-        modalType="profile"
-      />
-
-      <PromoModal
-        isOpen={activePromoModal === 'dorpsplein-product'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.buyLocal')}
-        subtitle={t('bottomNav.buyLocalSubtitle')}
-        description={t('bottomNav.buyLocalDesc')}
-        icon="🏪"
-        gradient="bg-gradient-to-r from-orange-500 to-red-600"
-        features={[
-          t('bottomNav.features.contactSellers'),
-          t('bottomNav.features.securePayments'),
-          t('bottomNav.features.pickupDelivery'),
-          t('bottomNav.features.realReviews'),
-          t('bottomNav.features.supportLocal')
-        ]}
-        ctaText={t('bottomNav.signUpBuyLocal')}
-        modalType="dorpsplein-product"
-      />
-
-      <PromoModal
-        isOpen={activePromoModal === 'inspiratie-item'}
-        onClose={() => setActivePromoModal(null)}
-        title={t('bottomNav.shareInspiration')}
-        subtitle={t('bottomNav.shareInspirationSubtitle')}
-        description={t('bottomNav.shareInspirationDesc')}
-        icon="✨"
-        gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-        features={[
-          t('bottomNav.features.shareIdeas'),
-          t('bottomNav.features.exchangeIdeas'),
-          t('bottomNav.features.createTogether'),
-          t('bottomNav.features.inspire'),
-          t('bottomNav.features.buildReputation')
-        ]}
-        ctaText={t('bottomNav.shareInspirationSubtitle')}
-        modalType="inspiratie-item"
-      />
     </>
   );
 }

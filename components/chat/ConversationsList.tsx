@@ -11,7 +11,7 @@ import {
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle, CheckCheck, Package } from 'lucide-react';
-import Image from 'next/image';
+import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
@@ -866,39 +866,37 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const p = primaryParticipant(c);
     if (c.product?.Image?.[0]) {
       return (
-        <Image
+        <UserCircleAvatar
           src={c.product.Image[0].fileUrl}
-          alt=""
-          width={48}
-          height={48}
-          className="h-12 w-12 rounded-full object-cover"
+          alt={c.product?.title || t('common.dish')}
+          size="lg"
         />
       );
     }
     if (p?.profileImage) {
       return (
-        <Image
+        <UserCircleAvatar
           src={p.profileImage}
-          alt=""
-          width={48}
-          height={48}
-          className="h-12 w-12 rounded-full object-cover"
+          alt={getDisplayName(p)}
+          size="lg"
+          nameForInitial={getDisplayName(p)}
         />
       );
     }
     if (c.order) {
       return (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100">
           <Package className="h-6 w-6 text-blue-600" aria-hidden />
         </div>
       );
     }
     return (
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
-        <span className="text-sm font-bold text-white">
-          {(p?.name || p?.username || c.title || 'G').charAt(0).toUpperCase()}
-        </span>
-      </div>
+      <UserCircleAvatar
+        src={null}
+        alt={displayTitle(c)}
+        size="lg"
+        nameForInitial={displayTitle(c)}
+      />
     );
   };
 
