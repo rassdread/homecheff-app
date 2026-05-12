@@ -29,9 +29,19 @@ import {
 const OPEN_DELAY_MS = 4200;
 const POST_UPDATE_EXTRA_DELAY_MS = 900;
 
+function nativePlatform(): "android" | "ios" {
+  try {
+    return Capacitor.getPlatform() === "ios" ? "ios" : "android";
+  } catch {
+    return "android";
+  }
+}
+
 /**
  * Rustige uitleg na app-update of semver-stap als OS-meldingen nog niet aan staan.
  * Geen agressieve herhaling: cooldown na “Later”, max. één keer per sessie per versie.
+ *
+ * Noodrem: zet NEXT_PUBLIC_HC_DISABLE_PUSH_UPDATE_PROMPT=true om dit scherm uit te zetten (debug).
  */
 export default function NativePushUpdatePrompt() {
   const { data: session, status } = useSession();
@@ -42,50 +52,68 @@ export default function NativePushUpdatePrompt() {
   const [busy, setBusy] = useState(false);
   const postUpdateRef = useRef(false);
   const shownThisSessionRef = useRef<string | null>(null);
+  const cancelledRef = useRef(false);
+
+  const promptDisabled =
+    typeof process !== "undefined" &&
+    process.env.NEXT_PUBLIC_HC_DISABLE_PUSH_UPDATE_PROMPT === "true";
 
   const tryOpen = useCallback(async () => {
-    if (!nativeMounted || !isNativeApp()) return;
-    if (status !== "authenticated" || !userId) return;
-    if (open || busy) return;
-
-    const perm = await getNativePushPermissionState();
-    if (perm === "granted") return;
-
-    const now = Date.now();
-    if (getPushPromptDismissedUntil() > now) return;
-
-    const { version } = await getCapacitorAppInfo();
-    if (!version?.trim()) return;
-
-    const ver = version.trim();
-    const sessionKey = `hc_push_update_prompt_sess_${ver}`;
+    if (cancelledRef.current) return;
     try {
-      if (sessionStorage.getItem(sessionKey) === "1") return;
+      if (!nativeMounted || !isNativeApp()) return;
+      if (status !== "authenticated" || !userId) return;
+      if (open || busy) return;
+
+      const perm = await getNativePushPermissionState();
+      if (perm === "granted") return;
+
+      const now = Date.now();
+      if (getPushPromptDismissedUntil() > now) return;
+
+      const { version } = await getCapacitorAppInfo();
+      if (!version?.trim()) return;
+
+      const ver = version.trim();
+      const sessionKey = `hc_push_update_prompt_sess_${ver}`;
+      try {
+        if (sessionStorage.getItem(sessionKey) === "1") return;
+      } catch {
+        /* ignore */
+      }
+
+      const postUpdate = postUpdateRef.current;
+      postUpdateRef.current = false;
+
+      const versionBumped = consumeNativeBinaryVersionStep(ver);
+
+      if (!postUpdate && !versionBumped) return;
+
+      if (shownThisSessionRef.current === ver) return;
+      shownThisSessionRef.current = ver;
+
+      try {
+        sessionStorage.setItem(sessionKey, "1");
+      } catch {
+        /* ignore */
+      }
+
+      if (cancelledRef.current) return;
+      setOpen(true);
     } catch {
-      /* ignore */
+      /* no throw — WebView blijft bruikbaar bij plugin/storage edge cases */
     }
-
-    const postUpdate = postUpdateRef.current;
-    postUpdateRef.current = false;
-
-    const versionBumped = consumeNativeBinaryVersionStep(ver);
-
-    if (!postUpdate && !versionBumped) return;
-
-    if (shownThisSessionRef.current === ver) return;
-    shownThisSessionRef.current = ver;
-
-    try {
-      sessionStorage.setItem(sessionKey, "1");
-    } catch {
-      /* ignore */
-    }
-
-    setOpen(true);
   }, [nativeMounted, status, userId, open, busy]);
 
   const tryOpenRef = useRef(tryOpen);
   tryOpenRef.current = tryOpen;
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -101,6 +129,7 @@ export default function NativePushUpdatePrompt() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!nativeMounted || !isNativeApp()) return;
     if (status !== "authenticated" || !userId) return;
 
@@ -112,24 +141,32 @@ export default function NativePushUpdatePrompt() {
   }, [nativeMounted, status, userId, tryOpen]);
 
   const handleLater = () => {
-    setPushPromptDismissedStandardCooldown();
+    try {
+      setPushPromptDismissedStandardCooldown();
+    } catch {
+      /* ignore */
+    }
     setOpen(false);
   };
 
   const handleOpenSettings = async () => {
-    setPushPromptDismissedStandardCooldown();
-    setOpen(false);
-    if (Capacitor.getPlatform() === "android") {
-      void openAndroidAppDetailSettings();
-      return;
+    try {
+      setPushPromptDismissedStandardCooldown();
+    } catch {
+      /* ignore */
     }
-    if (Capacitor.getPlatform() === "ios") {
-      try {
+    setOpen(false);
+    try {
+      if (nativePlatform() === "android") {
+        void openAndroidAppDetailSettings();
+        return;
+      }
+      if (nativePlatform() === "ios") {
         const { App } = await import("@capacitor/app");
         await App.openUrl({ url: "app-settings:" });
-      } catch {
-        /* ignore */
       }
+    } catch {
+      /* ignore */
     }
   };
 
@@ -139,7 +176,7 @@ export default function NativePushUpdatePrompt() {
     setNativePushSyncHold(true);
     try {
       const token = await requestAndRegisterNativePush();
-      const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
+      const platform = nativePlatform() === "ios" ? "ios" : "android";
       const deviceId = getOrCreatePushDeviceId();
       const { version } = await getCapacitorAppInfo();
       const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
@@ -166,9 +203,17 @@ export default function NativePushUpdatePrompt() {
         e instanceof NativePushError
           ? e.message
           : t("nativePush.registerError");
-      alert(msg);
+      try {
+        alert(msg);
+      } catch {
+        /* ignore */
+      }
     } finally {
-      setNativePushSyncHold(false);
+      try {
+        setNativePushSyncHold(false);
+      } catch {
+        /* ignore */
+      }
       try {
         markPushIntroFinished(userId);
       } catch {
@@ -178,6 +223,8 @@ export default function NativePushUpdatePrompt() {
       setOpen(false);
     }
   };
+
+  if (promptDisabled) return null;
 
   if (!open) return null;
 
@@ -229,7 +276,7 @@ export default function NativePushUpdatePrompt() {
           >
             {busy ? t("common.sending") : t("nativePush.enableCta")}
           </button>
-          {Capacitor.isNativePlatform() ? (
+          {isNativeApp() ? (
             <button
               type="button"
               disabled={busy}

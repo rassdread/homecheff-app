@@ -89,9 +89,7 @@ export default function BottomNavigation() {
 
   const isNativeShell = useIsNativeAppMounted();
   const appUpdateStatus = useAppUpdateStatus();
-  const shouldHide = isBottomNavigationHidden(pathname, {
-    nativeShell: isNativeShell,
-  });
+  const shouldHide = isBottomNavigationHidden(pathname);
 
   // Quick Add State
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);

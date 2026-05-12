@@ -351,7 +351,8 @@
     "backPrevious": "Previous page",
     "backToDorpsplein": "Back to village feed",
     "backToMessages": "Back to messages",
-    "backToRankings": "Back to rankings"
+    "backToRankings": "Back to rankings",
+    "backToProfile": "Back to profile"
   },
   "auth": {
     "login": "Login",

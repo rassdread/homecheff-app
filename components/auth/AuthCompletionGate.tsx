@@ -60,57 +60,61 @@ export default function AuthCompletionGate() {
   };
 
   useEffect(() => {
-    if (status === 'loading' || status === 'unauthenticated') return;
-    if (!session?.user) return;
+    try {
+      if (status === 'loading' || status === 'unauthenticated') return;
+      if (!session?.user) return;
 
-    const user = session.user as {
-      username?: string | null;
-      socialOnboardingCompleted?: boolean | null;
-    };
-    const flags = onboardingFlagsFromSessionUser(user);
-    const social = searchParams?.get('social');
+      const user = session.user as {
+        username?: string | null;
+        socialOnboardingCompleted?: boolean | null;
+      };
+      const flags = onboardingFlagsFromSessionUser(user);
+      const social = searchParams?.get('social');
 
-    if (needsProfileOnboardingFromFlags(flags)) {
-      if (pathSkipsOnboardingGate(pathname)) return;
-      if (registerAllowsEmailFlow(pathname, social)) return;
-      replaceOnce('/onboarding/complete-profile');
-      return;
-    }
+      if (needsProfileOnboardingFromFlags(flags)) {
+        if (pathSkipsOnboardingGate(pathname)) return;
+        if (registerAllowsEmailFlow(pathname, social)) return;
+        replaceOnce('/onboarding/complete-profile');
+        return;
+      }
 
-    if (pathSkipsIntentResume(pathname)) return;
+      if (pathSkipsIntentResume(pathname)) return;
 
-    const intent = getPendingIntent();
-    if (!intent) {
-      lastIntentKey.current = null;
-      return;
-    }
-    if (isPendingIntentExpired(intent)) {
+      const intent = getPendingIntent();
+      if (!intent) {
+        lastIntentKey.current = null;
+        return;
+      }
+      if (isPendingIntentExpired(intent)) {
+        clearPendingIntent();
+        lastIntentKey.current = null;
+        return;
+      }
+
+      const url = resolvePostAuthIntentRedirect(user, intent);
+      if (!url) return;
+
+      const qs = searchParams?.toString() || '';
+      const here = `${pathname || ''}${qs ? `?${qs}` : ''}`;
+      if (url === here) return;
+
+      const dedupeKey = `${intent.type}:${intent.createdAt}`;
+      if (lastIntentKey.current === dedupeKey) return;
+      lastIntentKey.current = dedupeKey;
+
+      if (url.startsWith('/auth/resume-intent')) {
+        replaceOnce(url);
+        return;
+      }
+      if (url.startsWith('/auth/resume-interaction')) {
+        replaceOnce(url);
+        return;
+      }
       clearPendingIntent();
-      lastIntentKey.current = null;
-      return;
-    }
-
-    const url = resolvePostAuthIntentRedirect(user, intent);
-    if (!url) return;
-
-    const qs = searchParams?.toString() || '';
-    const here = `${pathname || ''}${qs ? `?${qs}` : ''}`;
-    if (url === here) return;
-
-    const dedupeKey = `${intent.type}:${intent.createdAt}`;
-    if (lastIntentKey.current === dedupeKey) return;
-    lastIntentKey.current = dedupeKey;
-
-    if (url.startsWith('/auth/resume-intent')) {
       replaceOnce(url);
-      return;
+    } catch {
+      /* gate must not break navigation */
     }
-    if (url.startsWith('/auth/resume-interaction')) {
-      replaceOnce(url);
-      return;
-    }
-    clearPendingIntent();
-    replaceOnce(url);
   }, [pathname, router, searchParams, session?.user, status]);
 
   return null;

@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { 
-  ArrowLeft,
+import {
   DollarSign,
   TrendingUp,
   Calendar,
@@ -14,8 +12,8 @@ import {
   Clock,
   Activity
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import SellerFinancialManagement from '@/components/seller/SellerFinancialManagement';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface RevenueData {
@@ -77,25 +75,17 @@ export default function SellerRevenuePageClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('seller.revenuePageTitle')}</h1>
-              <p className="text-gray-600">{t('seller.revenuePageDescription')}</p>
-            </div>
-            <Link href="/verkoper/dashboard">
-              <Button variant="ghost">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t('common.back')}
-              </Button>
-            </Link>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
+        <AppBackBar
+          fallbackUrl="/verkoper/dashboard"
+          label={t('seller.back')}
+          title={t('seller.revenuePageTitle')}
+          className="rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
+        />
+        <p className="pb-4 pt-1 text-sm text-gray-600">{t('seller.revenuePageDescription')}</p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {/* Duidelijke CTA: uitbetaling naar bankrekening via Stripe */}
         <a
           href="#uitbetaling-aanvragen"

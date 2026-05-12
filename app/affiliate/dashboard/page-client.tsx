@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { 
@@ -412,6 +413,14 @@ export default function AffiliateDashboardClient() {
 
   return (
     <div className="min-h-screen bg-gray-50 max-w-full">
+      <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6 lg:px-8">
+        <AppBackBar
+          fallbackUrl="/profile"
+          label={t('navigation.backToProfile')}
+          title={t('affiliate.dashboard.title')}
+          className="mb-2 rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
+        />
+      </div>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

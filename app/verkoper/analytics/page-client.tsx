@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { 
-  ArrowLeft,
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -13,9 +11,9 @@ import {
   Star,
   Calendar,
   BarChart3,
-  Activity
+  Activity,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AnalyticsData {
@@ -74,37 +72,30 @@ export default function SellerAnalyticsPageClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('seller.analyticsTitle')}</h1>
-              <p className="text-gray-600">{t('seller.analyticsSubtitle')}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand"
-              >
-                <option value="7d">{t('common.last7Days')}</option>
-                <option value="30d">{t('common.last30Days')}</option>
-                <option value="90d">{t('common.last90Days')}</option>
-                <option value="1y">{t('common.lastYear')}</option>
-              </select>
-              <Link href="/verkoper/dashboard">
-                <Button variant="ghost">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t('seller.back')}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 pt-3 sm:px-6 lg:px-8">
+        <AppBackBar
+          fallbackUrl="/verkoper/dashboard"
+          label={t('seller.back')}
+          title={t('seller.analyticsTitle')}
+          endSlot={
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="min-h-[44px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-brand"
+              aria-label={t('seller.analyticsTitle')}
+            >
+              <option value="7d">{t('common.last7Days')}</option>
+              <option value="30d">{t('common.last30Days')}</option>
+              <option value="90d">{t('common.last90Days')}</option>
+              <option value="1y">{t('common.lastYear')}</option>
+            </select>
+          }
+          className="rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
+        />
+        <p className="pb-4 pt-1 text-sm text-gray-600">{t('seller.analyticsSubtitle')}</p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {data && (
           <>
             {/* Key Metrics */}

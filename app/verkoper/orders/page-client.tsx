@@ -13,7 +13,6 @@ import {
   User,
   MessageCircle,
   Truck,
-  ArrowLeft,
   Filter,
   Printer,
   Download,
@@ -22,6 +21,7 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import {
   orderMatchesSellerTab,
   orderStatusToSellerLabel,
@@ -313,25 +313,19 @@ export default function SellerOrdersPageClient() {
 
   return (
     <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">{t('seller.salesOrders')}</h1>
-              <p className="text-neutral-600 mt-2 text-sm sm:text-base">
-                {t('seller.salesOrdersDescription')}
-              </p>
-            </div>
-            <Link href="/verkoper/dashboard">
-              <Button variant="ghost" className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Terug naar dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+        <AppBackBar
+          fallbackUrl="/verkoper/dashboard"
+          label={t('seller.backToDashboard')}
+          title={t('seller.salesOrders')}
+          className="mb-2 rounded-xl border border-neutral-200 bg-white shadow-sm"
+        />
+        <p className="mb-6 text-sm text-neutral-600 sm:text-base">
+          {t('seller.salesOrdersDescription')}
+        </p>
+      </div>
 
+      <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
         {/* Filters */}
         <div className="mb-6 bg-white rounded-2xl p-4 shadow-sm border border-neutral-200">
           <div className="flex flex-col md:flex-row gap-4">

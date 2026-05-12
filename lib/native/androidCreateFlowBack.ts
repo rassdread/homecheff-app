@@ -39,9 +39,17 @@ export function ensureAndroidCreateFlowBackBridge(): void {
           }
         }
         try {
-          window.history.back();
+          if (typeof window !== 'undefined' && window.history.length > 1) {
+            window.history.back();
+          } else if (typeof window !== 'undefined') {
+            window.location.assign('/');
+          }
         } catch {
-          /* ignore */
+          try {
+            if (typeof window !== 'undefined') window.location.assign('/');
+          } catch {
+            /* ignore */
+          }
         }
       });
       bridgeStarted = true;

@@ -14,9 +14,8 @@ import {
   Home,
   Globe,
   Map,
-  ArrowLeft
 } from 'lucide-react';
-import Link from 'next/link';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import { getCurrentLocation } from '@/lib/geolocation';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -160,6 +159,12 @@ export default function VerkoperInstellingenPageClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
+        <AppBackBar
+          fallbackUrl="/verkoper/dashboard"
+          label={t('seller.backToDashboard')}
+          title={t('seller.sellerSettings')}
+          className="mb-4 rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
+        />
         {/* Help & Uitleg - BOVENAAN */}
         <div className="mb-6">
           <HelpSettings />
@@ -167,27 +172,11 @@ export default function VerkoperInstellingenPageClient() {
 
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary-brand text-white p-3 rounded-full">
-                <Settings className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {t('seller.sellerSettings')}
-                </h1>
-                <p className="text-gray-600">
-                  {t('seller.manageSellerProfile')}
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-primary-brand text-white p-3 rounded-full">
+              <Settings className="w-6 h-6" />
             </div>
-            <Link
-              href="/verkoper/dashboard"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>{t('common.backToDashboard') || 'Terug naar Dashboard'}</span>
-            </Link>
+            <p className="text-gray-600">{t('seller.manageSellerProfile')}</p>
           </div>
         </div>
 

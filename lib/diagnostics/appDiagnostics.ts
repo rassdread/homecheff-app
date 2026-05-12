@@ -46,30 +46,36 @@ export function reportAppDiagnostic(
   code: AppDiagCode,
   detail?: Record<string, string | number | boolean | undefined>
 ): void {
-  if (!allow(code)) return;
-  const enabled =
-    process.env.NODE_ENV !== 'production' ||
-    process.env.NEXT_PUBLIC_APP_DIAG === '1';
-  if (!enabled) return;
-  const safe = detail
-    ? Object.fromEntries(
-        Object.entries(detail).filter(
-          ([, v]) =>
-            v === undefined ||
-            typeof v === 'string' ||
-            typeof v === 'number' ||
-            typeof v === 'boolean'
+  try {
+    if (!allow(code)) return;
+    const enabled =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.NEXT_PUBLIC_APP_DIAG === '1';
+    if (!enabled) return;
+    const safe = detail
+      ? Object.fromEntries(
+          Object.entries(detail).filter(
+            ([, v]) =>
+              v === undefined ||
+              typeof v === 'string' ||
+              typeof v === 'number' ||
+              typeof v === 'boolean'
+          )
         )
-      )
-    : undefined;
-  const scrubbed =
-    safe &&
-    Object.fromEntries(
-      Object.entries(safe).map(([k, v]) =>
-        typeof v === 'string' && (k.includes('id') || k.includes('Id'))
-          ? [k, `len:${v.length}`]
-          : [k, v]
-      )
-    );
-  console.warn(`[hc-app] ${code}`, scrubbed ?? '');
+      : undefined;
+    const scrubbed =
+      safe &&
+      Object.fromEntries(
+        Object.entries(safe).map(([k, v]) =>
+          typeof v === 'string' && (k.includes('id') || k.includes('Id'))
+            ? [k, `len:${v.length}`]
+            : [k, v]
+        )
+      );
+    if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+      console.warn(`[hc-app] ${code}`, scrubbed ?? '');
+    }
+  } catch {
+    /* diagnostics must never break the app */
+  }
 }

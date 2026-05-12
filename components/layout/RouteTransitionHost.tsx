@@ -14,21 +14,26 @@ export default function RouteTransitionHost() {
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (prevPath.current === pathname) return;
     prevPath.current = pathname;
     startRef.current = typeof performance !== 'undefined' ? performance.now() : null;
     setActive(true);
     const t = window.setTimeout(() => {
-      setActive(false);
-      const started = startRef.current;
-      if (started != null && typeof performance !== 'undefined') {
-        const ms = Math.round(performance.now() - started);
-        trackOnboardingEvent('ROUTE_TRANSITION_MS', {
-          ms,
-          to: pathname.slice(0, 160),
-        });
+      try {
+        setActive(false);
+        const started = startRef.current;
+        if (started != null && typeof performance !== 'undefined') {
+          const ms = Math.round(performance.now() - started);
+          trackOnboardingEvent('ROUTE_TRANSITION_MS', {
+            ms,
+            to: pathname.slice(0, 160),
+          });
+        }
+        startRef.current = null;
+      } catch {
+        /* avoid uncaught errors from analytics / state during navigation */
       }
-      startRef.current = null;
     }, 140);
     return () => window.clearTimeout(t);
   }, [pathname]);

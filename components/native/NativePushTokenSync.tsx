@@ -38,37 +38,47 @@ export default function NativePushTokenSync() {
       force: boolean;
       diagReason: "mount" | "resume" | "post_update";
     }) => {
-      await waitUntilNativePushSyncHoldReleased();
-      if (cancelled) return;
+      try {
+        await waitUntilNativePushSyncHoldReleased();
+        if (cancelled) return;
 
-      const perm = await getNativePushPermissionState();
-      if (lastPermDiagRef.current !== perm) {
-        lastPermDiagRef.current = perm;
-        reportAppDiagnostic("push_permission_status", { state: perm });
-      }
-
-      const appInfo = await getCapacitorAppInfo();
-      const appVersion = appInfo.version;
-
-      const token = await getNativeFcmTokenWhenAlreadyGranted();
-      if (cancelled || !token) return;
-
-      const { Capacitor } = await import("@capacitor/core");
-      const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
-      const deviceId = getOrCreatePushDeviceId();
-
-      const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
-        force: opts.force,
-        appVersion,
-        diagReason: opts.diagReason,
-      });
-      if (cancelled) return;
-      if (reg === "ok") {
-        try {
-          markPushIntroFinished(userId);
-        } catch {
-          /* ignore */
+        const perm = await getNativePushPermissionState();
+        if (lastPermDiagRef.current !== perm) {
+          lastPermDiagRef.current = perm;
+          reportAppDiagnostic("push_permission_status", { state: perm });
         }
+
+        const appInfo = await getCapacitorAppInfo();
+        const appVersion = appInfo.version;
+
+        const token = await getNativeFcmTokenWhenAlreadyGranted();
+        if (cancelled || !token) return;
+
+        let platform: "android" | "ios" = "android";
+        try {
+          const { Capacitor } = await import("@capacitor/core");
+          platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
+        } catch {
+          platform = "android";
+        }
+
+        const deviceId = getOrCreatePushDeviceId();
+
+        const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
+          force: opts.force,
+          appVersion,
+          diagReason: opts.diagReason,
+        });
+        if (cancelled) return;
+        if (reg === "ok") {
+          try {
+            markPushIntroFinished(userId);
+          } catch {
+            /* ignore */
+          }
+        }
+      } catch {
+        /* push sync must never surface as an app-level error */
       }
     };
 

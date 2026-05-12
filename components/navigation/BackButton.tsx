@@ -8,6 +8,16 @@ import {
   getTrackedPreviousPath,
 } from '@/lib/navigation/backHistory';
 
+function isAuthGatePath(path: string): boolean {
+  const base = path.split('?')[0]?.split('#')[0] ?? path;
+  return (
+    base.startsWith('/login') ||
+    base.startsWith('/register') ||
+    base.startsWith('/auth') ||
+    base.startsWith('/signin')
+  );
+}
+
 interface BackButtonProps {
   fallbackUrl?: string;
   label?: string;
@@ -39,7 +49,10 @@ export default function BackButton({
 
     const tracked = getTrackedPreviousPath();
     const refPath = getSameOriginReferrerPath();
-    router.push(tracked || refPath || fallbackUrl);
+    const pick =
+      (tracked && !isAuthGatePath(tracked) ? tracked : null) ||
+      (refPath && !isAuthGatePath(refPath) ? refPath : null);
+    router.push(pick || fallbackUrl);
   };
 
   const variantStyles = {

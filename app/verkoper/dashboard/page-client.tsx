@@ -34,6 +34,7 @@ import {
   Plus
 } from 'lucide-react';
 import Link from 'next/link';
+import AppBackBar from '@/components/navigation/AppBackBar';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
@@ -125,7 +126,13 @@ export default function SellerDashboardClient() {
 
     const refresh = () => {
       if (document.visibilityState !== 'visible') return;
-      if (Capacitor.isNativePlatform()) {
+      let isCapNative = false;
+      try {
+        isCapNative = Capacitor.isNativePlatform?.() === true;
+      } catch {
+        isCapNative = false;
+      }
+      if (isCapNative) {
         const now = Date.now();
         if (now - lastNativeResumeRefreshRef.current < NATIVE_RESUME_GAP_MS) {
           return;
@@ -370,6 +377,13 @@ export default function SellerDashboardClient() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+          <AppBackBar
+            fallbackUrl="/profile"
+            label={t('navigation.backToProfile')}
+            title={t('seller.dashboard')}
+          />
+        </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
@@ -390,6 +404,13 @@ export default function SellerDashboardClient() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+        <AppBackBar
+          fallbackUrl="/profile"
+          label={t('navigation.backToProfile')}
+          title={t('seller.dashboard')}
+        />
+      </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header: titel + beschrijving altijd boven de periode/instellingen, geen overlap */}
         <div className="mb-6 sm:mb-8">

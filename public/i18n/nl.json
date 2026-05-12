@@ -351,7 +351,8 @@
     "backPrevious": "Vorige pagina",
     "backToDorpsplein": "Terug naar Dorpsplein",
     "backToMessages": "Terug naar berichten",
-    "backToRankings": "Terug naar ranglijsten"
+    "backToRankings": "Terug naar ranglijsten",
+    "backToProfile": "Naar profiel"
   },
   "auth": {
     "login": "Inloggen",
