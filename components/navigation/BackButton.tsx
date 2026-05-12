@@ -23,6 +23,12 @@ interface BackButtonProps {
   label?: string;
   className?: string;
   variant?: 'default' | 'minimal' | 'floating';
+  /**
+   * `auto` (default): prefer browser history when stack allows, else tracked path / referrer / fallback.
+   * `explicit`: always `router.push(fallbackUrl)` — use when the label promises a fixed destination
+   * (e.g. “Terug naar berichten” → `/messages`), never `router.back()` which can land on another chat.
+   */
+  backNavMode?: 'auto' | 'explicit';
 }
 
 const DORPSPLEIN_FALLBACK = '/?chip=sale#homecheff-feed';
@@ -32,12 +38,18 @@ export default function BackButton({
   label = 'Terug',
   className = '',
   variant = 'default',
+  backNavMode = 'auto',
 }: BackButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
 
   const handleBack = () => {
     if (typeof window === 'undefined') {
+      router.push(fallbackUrl);
+      return;
+    }
+
+    if (backNavMode === 'explicit') {
       router.push(fallbackUrl);
       return;
     }

@@ -11,6 +11,8 @@ type Props = {
   className?: string;
   title?: string;
   backVariant?: 'default' | 'minimal' | 'floating';
+  /** App bars: label matches `fallbackUrl` — avoid `router.back()` to wrong screen. Override with `auto` for history-first. */
+  backNavMode?: 'auto' | 'explicit';
   /** Extra row content (e.g. actions) to the right of the title */
   endSlot?: ReactNode;
 };
@@ -22,6 +24,7 @@ export default function AppBackBar({
   className,
   title,
   backVariant = 'minimal',
+  backNavMode = 'explicit',
   endSlot,
 }: Props) {
   return (
@@ -37,6 +40,7 @@ export default function AppBackBar({
         fallbackUrl={fallbackUrl}
         label={label}
         variant={backVariant}
+        backNavMode={backNavMode}
         className="shrink-0"
       />
       {title ? (

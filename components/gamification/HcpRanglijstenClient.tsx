@@ -398,6 +398,7 @@ export default function HcpRanglijstenClient() {
             label={tk('backHome')}
             variant="minimal"
             className="mb-2 -ml-1 justify-start px-2"
+            backNavMode="explicit"
           />
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Trophy className="h-8 w-8 text-amber-500 shrink-0" aria-hidden />

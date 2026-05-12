@@ -135,12 +135,9 @@ export default function ConversationPage() {
     };
   }, [conversationId, session, sessionStatus, router]);
 
+  /** Altijd naar lijst — nooit `router.back()` (kan ander `/messages/[id]` in history zijn). */
   const handleBackToList = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    router.push('/messages');
+    router.replace('/messages');
   };
 
   if (isLoading) {

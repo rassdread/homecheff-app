@@ -148,6 +148,7 @@ function MessagesPageContent() {
                   label={t('navigation.backToDorpsplein')}
                   variant="minimal"
                   className="-ml-1"
+                  backNavMode="explicit"
                 />
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                   {t('messages.title')}

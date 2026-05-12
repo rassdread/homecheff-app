@@ -31,6 +31,7 @@ import {
 } from '@/lib/chat/sessionChatCache';
 import { readNativePersistedCache } from '@/lib/native/nativePersistedCache';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { saveLastConversationId } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
@@ -113,6 +114,15 @@ export default function ChatBox({
       sendFlightRef.current = null;
     };
   }, []);
+
+  /** Android hardware back: match UI “terug naar berichten” — never pop to another thread. */
+  useEffect(() => {
+    if (!onBack || !nativeMounted) return;
+    return pushAndroidBackHandler(() => {
+      onBack();
+      return true;
+    });
+  }, [onBack, nativeMounted]);
 
   useEffect(() => {
     if (!conversationId) return;

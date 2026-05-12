@@ -302,6 +302,10 @@ export default function BottomNavigation() {
   /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */
   const useDirectTabLinks = Boolean(session?.user);
 
+  /** Berichten + profiel: tijdens session `loading` wél `<Link>` zodat eerste tap direct navigeert (geen “dode” knop). */
+  const messagesTabUseLink = sessionStatus !== 'unauthenticated';
+  const profileTabUseLink = sessionStatus !== 'unauthenticated';
+
   /** Zelfde flow als +-knop; op verborgen-bottom-nav routes naar /sell/new (wizard blijft beschikbaar). */
   const verticalAllowedByIntent = useCallback((v: CreateFlowVertical) => {
     const allowed = intentAllowedVerticalsRef.current;
@@ -1701,7 +1705,7 @@ export default function BottomNavigation() {
 
           {/* Berichten */}
           <div className="relative group flex-1 min-w-0 flex justify-center">
-            {useDirectTabLinks ? (
+            {messagesTabUseLink ? (
               <Link
                 href="/messages"
                 prefetch={false}
@@ -1773,7 +1777,7 @@ export default function BottomNavigation() {
 
           {/* Profiel */}
           <div className="relative group flex-1 min-w-0 flex justify-center">
-            {useDirectTabLinks ? (
+            {profileTabUseLink ? (
               <Link
                 href="/profile"
                 prefetch={false}
