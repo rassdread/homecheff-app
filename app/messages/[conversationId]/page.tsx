@@ -154,9 +154,8 @@ export default function ConversationPage() {
       <div
         className={cn(
           'hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]',
-          /* Native: ruimte boven vaste bottom-nav — anders verdwijnt composer onder tabbalk (WebView). */
-          nativeMounted &&
-            'hc-native-thread-route pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+          /* Bottom-inset: globals (.hc-messages-root hoogte) + ChatBox-composer; geen extra pb hier (was dubbel met AppPageChrome). */
+          nativeMounted && 'hc-native-thread-route'
         )}
       >
         <ChatShell className="flex-1">

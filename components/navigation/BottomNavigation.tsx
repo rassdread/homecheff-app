@@ -91,6 +91,8 @@ export default function BottomNavigation() {
   const isNativeShell = useIsNativeAppMounted();
   const appUpdateStatus = useAppUpdateStatus();
   const shouldHide = isBottomNavigationHidden(pathname);
+  /** Geen flow-spacer onder berichten: layout reserveert zelf (voorkomt dubbele “witte band”). */
+  const suppressFlowSpacer = Boolean(pathname?.startsWith('/messages')) && !shouldHide;
 
   // Quick Add State
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
@@ -350,8 +352,7 @@ export default function BottomNavigation() {
     const sellNewPath = `/sell/new${sellNewSuffix}`;
     const safeSellNew = sanitizePostAuthRelativeUrl(sellNewPath) || sellNewPath;
 
-    const openGuestCreateGate = () => {
-      if (sessionStatus === 'loading') return;
+    const openSoftAuthForCreate = () => {
       openSoftAuthGate({
         copyKey: 'create',
         intent: {
@@ -363,46 +364,57 @@ export default function BottomNavigation() {
       });
     };
 
+    const bootstrapQuickAddUiFromIntent = () => {
+      setShowQuickAddMenu(true);
+      if (intent) {
+        const platform: Platform = intent.mode === 'dorpsplein' ? 'dorpsplein' : 'inspiratie';
+        setSelectedPlatform(platform);
+        sessionStorage.setItem('quickAddPlatform', platform);
+        setQuickAddStep('photoSource');
+        sessionStorage.setItem('quickAddStep', 'photoSource');
+        setCapturedPhoto(null);
+        try {
+          sessionStorage.removeItem('quickAddPhoto');
+          sessionStorage.removeItem('quickAddShouldGoToCategory');
+          sessionStorage.removeItem('quickAddShouldGoToLocation');
+        } catch {
+          /* ignore */
+        }
+      } else {
+        setQuickAddStep('platform');
+        sessionStorage.setItem('quickAddStep', 'platform');
+        setSelectedPlatform(null);
+        setCapturedPhoto(null);
+        sessionStorage.removeItem('quickAddShouldGoToCategory');
+        sessionStorage.removeItem('quickAddShouldGoToLocation');
+      }
+    };
+
     if (shouldHide) {
       if (!session?.user) {
-        openGuestCreateGate();
+        if (sessionStatus === 'loading') {
+          router.push(sellNewPath);
+          return;
+        }
+        openSoftAuthForCreate();
         return;
       }
       router.push(sellNewPath);
       return;
     }
     if (!session?.user) {
-      openGuestCreateGate();
+      if (sessionStatus === 'loading') {
+        bootstrapQuickAddUiFromIntent();
+        return;
+      }
+      openSoftAuthForCreate();
       return;
     }
-    setShowQuickAddMenu(true);
-    if (intent) {
-      const platform: Platform = intent.mode === 'dorpsplein' ? 'dorpsplein' : 'inspiratie';
-      setSelectedPlatform(platform);
-      sessionStorage.setItem('quickAddPlatform', platform);
-      setQuickAddStep('photoSource');
-      sessionStorage.setItem('quickAddStep', 'photoSource');
-      setCapturedPhoto(null);
-      try {
-        sessionStorage.removeItem('quickAddPhoto');
-        sessionStorage.removeItem('quickAddShouldGoToCategory');
-        sessionStorage.removeItem('quickAddShouldGoToLocation');
-      } catch {
-        /* ignore */
-      }
-    } else {
-      setQuickAddStep('platform');
-      sessionStorage.setItem('quickAddStep', 'platform');
-      setSelectedPlatform(null);
-      setCapturedPhoto(null);
-      sessionStorage.removeItem('quickAddShouldGoToCategory');
-      sessionStorage.removeItem('quickAddShouldGoToLocation');
-    }
+    bootstrapQuickAddUiFromIntent();
   }, [session?.user, sessionStatus, shouldHide, router]);
 
   const handleQuickAddClick = () => {
-    if (sessionStatus === 'loading') return;
-    if (!session?.user) {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
       const p = sanitizePostAuthRelativeUrl('/sell/new') || '/sell/new';
       openSoftAuthGate({
         copyKey: 'create',
@@ -452,8 +464,7 @@ export default function BottomNavigation() {
   }, [session?.user, router, pathname]);
 
   const handleDashboardClick = () => {
-    if (sessionStatus === 'loading') return;
-    if (!session?.user) {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
       openSoftAuthGate({
         copyKey: 'generic',
         intent: {
@@ -467,8 +478,7 @@ export default function BottomNavigation() {
   };
 
   const handleMessagesClick = () => {
-    if (sessionStatus === 'loading') return;
-    if (!session?.user) {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
       openSoftAuthGate({
         copyKey: 'message',
         intent: {
@@ -482,8 +492,7 @@ export default function BottomNavigation() {
   };
 
   const handleProfileClick = () => {
-    if (sessionStatus === 'loading') return;
-    if (!session?.user) {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
       openSoftAuthGate({
         copyKey: 'generic',
         intent: {
@@ -1805,9 +1814,12 @@ export default function BottomNavigation() {
         </div>
       </div>
 
-      {/* Bottom padding (flow spacer; primary reserve zit in AppPageChrome pb) */}
+      {/* Flow-spacer: meestal onder AppPageChrome-pb; op /messages uit (eigen inset). */}
       <div
-        className={cn('pointer-events-none shrink-0', isNativeShell ? 'h-[6.5rem]' : 'h-20')}
+        className={cn(
+          'pointer-events-none shrink-0',
+          suppressFlowSpacer ? 'h-0' : isNativeShell ? 'h-[6.5rem]' : 'h-20'
+        )}
         aria-hidden
       />
 

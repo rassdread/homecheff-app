@@ -12,6 +12,9 @@ import { cn } from '@/lib/utils';
 export default function AppPageChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const navHidden = isBottomNavigationHidden(pathname);
+  /** Berichten: eigen hoogte/padding (split-view, fixed chat) — dubbele marge met tabbalk voorkomen. */
+  const messagesOwnInset = Boolean(pathname?.startsWith('/messages'));
+  const applyNavBottomPad = !navHidden && !messagesOwnInset;
 
   return (
     <div
@@ -19,7 +22,7 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
       data-bottom-nav-visible={!navHidden ? 'true' : 'false'}
       className={cn(
         'min-w-0 w-full max-w-full',
-        !navHidden &&
+        applyNavBottomPad &&
           'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))]'
       )}
     >

@@ -942,7 +942,7 @@ export default function ChatBox({
     >
       {/* Header */}
       <div
-        className="flex shrink-0 items-center gap-2 border-b border-gray-200/90 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-md supports-[padding:max(0px,1px)]:pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:gap-3 sm:px-4 sm:py-3"
+        className="flex shrink-0 items-center gap-2 border-b border-gray-200/90 bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md supports-[padding:max(0px,1px)]:pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:gap-3 sm:px-4 sm:py-2.5"
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           {showBackButton && onBack && (
@@ -1103,7 +1103,7 @@ export default function ChatBox({
       <div
         ref={messagesScrollRef}
         onScroll={handleMessagesScroll}
-        className="hc-native-chat-scroll flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-[#eef1f4] px-3 py-3 touch-pan-y sm:px-4 sm:py-4"
+        className="hc-native-chat-scroll flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-[#eef1f4] px-3 py-2 touch-pan-y sm:px-4 sm:py-3"
       >
         {loadingOlder ? (
           <div className="flex shrink-0 justify-center py-2" aria-live="polite">
@@ -1152,8 +1152,10 @@ export default function ChatBox({
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 py-3 backdrop-blur-md supports-[padding:max(0px,1px)]:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:py-3.5 ${
-          nativeMounted ? 'hc-native-chat-composer-native' : ''
+        className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-4 sm:py-2.5 ${
+          nativeMounted
+            ? 'hc-native-chat-composer-native'
+            : 'supports-[padding:max(0px,1px)]:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] py-3 sm:py-3.5'
         }`}
       >
         <div className="flex gap-2 items-end">

@@ -580,8 +580,8 @@ html.hc-native-capacitor .hc-native-chat-root-native {
 }
 
 html.hc-native-capacitor .hc-native-chat-composer-native {
-  /* safe-area; tabbalk zit op wrapper (messages fixed / thread-route pb), geen dubbele 5.75rem hier */
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  /* Één bron: home-indicator; geen dubbele pb met Tailwind (ChatBox). */
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
   position: relative;
   z-index: 1;

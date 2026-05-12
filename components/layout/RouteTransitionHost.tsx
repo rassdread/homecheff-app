@@ -34,7 +34,7 @@ export default function RouteTransitionHost() {
       } catch {
         /* avoid uncaught errors from analytics / state during navigation */
       }
-    }, 140);
+    }, 95);
     return () => window.clearTimeout(t);
   }, [pathname]);
 
