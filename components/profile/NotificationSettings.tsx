@@ -144,6 +144,21 @@ export default function NotificationSettings({ onUpdateSettings }: NotificationS
       {/* Help & Uitleg - BOVENAAN */}
       <HelpSettings />
 
+      <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-5">
+        <h3 className="text-base font-semibold text-gray-900">
+          {t('settingsNotifications.osPermissionTitle')}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+          {t('settingsNotifications.osPermissionBody')}
+        </p>
+        <p className="mt-3 text-sm font-medium text-gray-900">
+          {t('settingsNotifications.preferencesTitle')}
+        </p>
+        <p className="mt-1 text-sm text-gray-600">
+          {t('settingsNotifications.preferencesBody')}
+        </p>
+      </div>
+
       {nativeMounted ? (
         <NativePushManageSection onRegistered={() => void loadSettings()} />
       ) : null}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 import {
@@ -12,21 +13,24 @@ import {
 } from '@/lib/client/app-permission-status';
 import { isNativeApp } from '@/lib/native/capacitor';
 import { requestAndGetNativeCurrentPosition } from '@/lib/native/location';
+import NativePushManageSection from '@/components/native/NativePushManageSection';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
-function permLabel(s: PermUiState): string {
-  if (s === 'granted') return 'toegestaan';
-  if (s === 'denied') return 'geweigerd';
-  if (s === 'unsupported') return 'niet beschikbaar';
-  return 'nog niet gevraagd';
-}
-
-function sourceHint(source: 'native' | 'browser'): string {
-  return source === 'native' ? 'HomeCheff-app (systeem)' : 'browser';
-}
+type PushPrefsSlice = {
+  pushNewMessages: boolean;
+  pushNewOrders: boolean;
+  pushOrderUpdates: boolean;
+  pushDeliveryUpdates: boolean;
+  pushHcpRewards: boolean;
+  pushPromotionalUpdates: boolean;
+  betaFeaturesEnabled: boolean;
+};
 
 export default function AppSettingsPage() {
   const { t } = useTranslation();
+  const { status } = useSession();
   const appUpdate = useAppUpdateStatus();
+  const nativeMounted = useIsNativeAppMounted();
   const [pushPerm, setPushPerm] = useState<{
     source: 'native' | 'browser';
     state: PermUiState;
@@ -37,13 +41,22 @@ export default function AppSettingsPage() {
   }>({ source: 'browser', state: 'prompt' });
   const [pushBusy, setPushBusy] = useState(false);
   const [locBusy, setLocBusy] = useState(false);
-  const [prefs, setPrefs] = useState<{
-    pushHcpRewards: boolean;
-    pushPromotionalUpdates: boolean;
-    betaFeaturesEnabled: boolean;
-  } | null>(null);
+  const [prefs, setPrefs] = useState<PushPrefsSlice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  function permLabel(s: PermUiState): string {
+    if (s === 'granted') return t('nativePush.statusAllowed');
+    if (s === 'denied') return t('nativePush.statusDenied');
+    if (s === 'unsupported') return t('nativePush.statusUnsupported');
+    return t('nativePush.statusPrompt');
+  }
+
+  function sourceHint(source: 'native' | 'browser'): string {
+    return source === 'native'
+      ? t('appSettingsPage.sourceNative')
+      : t('appSettingsPage.sourceBrowser');
+  }
 
   async function refreshPermissions() {
     const [p, l] = await Promise.all([
@@ -61,25 +74,34 @@ export default function AppSettingsPage() {
   }, []);
 
   useEffect(() => {
+    if (status !== 'authenticated') {
+      setPrefs(null);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/notifications/preferences', { credentials: 'include' });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-          if (!cancelled) setError(data?.error || 'Kon voorkeuren niet laden');
+          if (!cancelled) setError(data?.error || t('appSettingsPage.errorLoadPrefs'));
           return;
         }
         const p = data.preferences;
         if (!cancelled && p) {
           setPrefs({
+            pushNewMessages: Boolean(p.pushNewMessages ?? true),
+            pushNewOrders: Boolean(p.pushNewOrders ?? true),
+            pushOrderUpdates: Boolean(p.pushOrderUpdates ?? true),
+            pushDeliveryUpdates: Boolean(p.pushDeliveryUpdates ?? true),
             pushHcpRewards: Boolean(p.pushHcpRewards ?? true),
             pushPromotionalUpdates: Boolean(p.pushPromotionalUpdates ?? false),
             betaFeaturesEnabled: Boolean(p.betaFeaturesEnabled ?? true),
           });
         }
       } catch {
-        if (!cancelled) setError('Netwerkfout');
+        if (!cancelled) setError(t('appSettingsPage.errorNetwork'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -87,9 +109,9 @@ export default function AppSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [status, t]);
 
-  async function updatePrefs(patch: Partial<{ pushHcpRewards: boolean; pushPromotionalUpdates: boolean; betaFeaturesEnabled: boolean }>) {
+  async function updatePrefs(patch: Partial<PushPrefsSlice>) {
     if (!prefs) return;
     const next = { ...prefs, ...patch };
     setPrefs(next);
@@ -101,7 +123,7 @@ export default function AppSettingsPage() {
         body: JSON.stringify(patch),
       });
     } catch {
-      setError('Opslaan mislukt');
+      setError(t('appSettingsPage.errorSavePrefs'));
     }
   }
 
@@ -135,7 +157,7 @@ export default function AppSettingsPage() {
         });
       }
     } catch {
-      setError('Locatie kon niet worden opgevraagd. Controleer de rechten of probeer later opnieuw.');
+      setError(t('appSettingsPage.locationError'));
     } finally {
       setLocBusy(false);
       void refreshPermissions();
@@ -147,12 +169,10 @@ export default function AppSettingsPage() {
       <div className="max-w-lg mx-auto space-y-6">
         <div>
           <Link href="/" className="text-sm text-emerald-700 hover:underline">
-            ← Terug
+            {t('appSettingsPage.back')}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">App-instellingen</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Browser- en systeemrechten voor de beta/webapp. Je kunt dit later altijd aanpassen.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 mt-2">{t('appSettingsPage.title')}</h1>
+          <p className="text-sm text-gray-600 mt-1">{t('appSettingsPage.intro')}</p>
         </div>
 
         {error ? (
@@ -163,7 +183,7 @@ export default function AppSettingsPage() {
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
             <h2 className="font-semibold text-gray-900">{t('appUpdateGate.settingsBetaTitle')}</h2>
             {appUpdate.loading && !appUpdate.payload ? (
-              <p className="text-sm text-gray-500">Laden…</p>
+              <p className="text-sm text-gray-500">{t('appSettingsPage.loading')}</p>
             ) : appUpdate.payload ? (
               <>
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -211,32 +231,42 @@ export default function AppSettingsPage() {
         ) : null}
 
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <h2 className="font-semibold text-gray-900">Meldingen</h2>
-          <p className="text-sm text-gray-700">
-            <span className="font-medium text-gray-900">Meldingen:</span>{' '}
-            <strong>{permLabel(pushPerm.state)}</strong>
-            <span className="text-gray-500"> · {sourceHint(pushPerm.source)}</span>
+          <h2 className="font-semibold text-gray-900">{t('appSettingsPage.notificationsHeading')}</h2>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {t('settingsNotifications.osPermissionTitle')}
           </p>
-          <p className="text-xs text-gray-500">
-            Op Android 13+ vraagt de app apart om meldingen (POST_NOTIFICATIONS). We vragen dit niet automatisch
-            bij openen; je ziet eerst uitleg in de beta of na inloggen.
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {t('settingsNotifications.osPermissionBody')}
           </p>
-          {pushPerm.state === 'denied' ? (
-            <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              Zet dit aan via je apparaatinstellingen (Android: Instellingen → Apps → HomeCheff → Meldingen; iOS:
-              Instellingen → HomeCheff → Meldingen).
-            </p>
-          ) : null}
-          {pushPerm.state === 'prompt' || pushPerm.state === 'unsupported' ? (
-            <button
-              type="button"
-              disabled={pushBusy || pushPerm.state === 'unsupported'}
-              onClick={() => void handleRequestPush()}
-              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {pushBusy ? 'Bezig…' : 'Toestemming voor meldingen vragen'}
-            </button>
-          ) : null}
+          <p className="text-xs text-gray-500 leading-relaxed">{t('appSettingsPage.pushIntroShort')}</p>
+
+          {nativeMounted ? (
+            <NativePushManageSection onRegistered={() => void refreshPermissions()} />
+          ) : (
+            <>
+              <p className="text-sm text-gray-700">
+                <span className="font-medium text-gray-900">{t('settingsNotifications.osPermissionTitle')}:</span>{' '}
+                <strong>{permLabel(pushPerm.state)}</strong>
+                <span className="text-gray-500"> · {sourceHint(pushPerm.source)}</span>
+              </p>
+              {pushPerm.state === 'denied' ? (
+                <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  {t('appSettingsPage.pushDeniedHint')}
+                </p>
+              ) : null}
+              {pushPerm.state === 'prompt' || pushPerm.state === 'unsupported' ? (
+                <button
+                  type="button"
+                  disabled={pushBusy || pushPerm.state === 'unsupported'}
+                  onClick={() => void handleRequestPush()}
+                  className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {pushBusy ? t('common.sending') : t('appSettingsPage.pushAsk')}
+                </button>
+              ) : null}
+            </>
+          )}
+
           <button
             type="button"
             className="text-sm font-medium text-emerald-700 hover:underline"
@@ -244,25 +274,88 @@ export default function AppSettingsPage() {
               void refreshPermissions();
             }}
           >
-            Status vernieuwen
+            {t('appSettingsPage.refreshStatus')}
           </button>
         </section>
 
+        {status === 'authenticated' ? (
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">{t('appSettingsPage.accountPrefsHeading')}</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">{t('settingsNotifications.preferencesBody')}</p>
+            {loading || !prefs ? (
+              <p className="text-sm text-gray-500">{t('appSettingsPage.loading')}</p>
+            ) : (
+              <div className="space-y-4">
+                <ToggleRow
+                  label={t('settingsNotifications.pushChat')}
+                  description={t('settingsNotifications.pushChatHint')}
+                  checked={prefs.pushNewMessages}
+                  onChange={(v) => void updatePrefs({ pushNewMessages: v })}
+                />
+                <ToggleRow
+                  label={t('settingsNotifications.pushOrders')}
+                  description={t('settingsNotifications.pushOrdersHint')}
+                  checked={prefs.pushNewOrders}
+                  onChange={(v) => void updatePrefs({ pushNewOrders: v })}
+                />
+                <ToggleRow
+                  label={t('settingsNotifications.pushOrderUpdates')}
+                  description={t('settingsNotifications.pushOrderUpdatesHint')}
+                  checked={prefs.pushOrderUpdates}
+                  onChange={(v) => void updatePrefs({ pushOrderUpdates: v })}
+                />
+                <ToggleRow
+                  label={t('settingsNotifications.pushDelivery')}
+                  description={t('settingsNotifications.pushDeliveryHint')}
+                  checked={prefs.pushDeliveryUpdates}
+                  onChange={(v) => void updatePrefs({ pushDeliveryUpdates: v })}
+                />
+                <ToggleRow
+                  label={t('settingsNotifications.pushHcp')}
+                  description={t('settingsNotifications.pushHcpHint')}
+                  checked={prefs.pushHcpRewards}
+                  onChange={(v) => void updatePrefs({ pushHcpRewards: v })}
+                />
+                <ToggleRow
+                  label={t('settingsNotifications.pushMarketing')}
+                  description={t('settingsNotifications.pushMarketingHint')}
+                  checked={prefs.pushPromotionalUpdates}
+                  onChange={(v) => void updatePrefs({ pushPromotionalUpdates: v })}
+                />
+                <ToggleRow
+                  label={t('appSettingsPage.betaFeatures')}
+                  description={t('appSettingsPage.betaFeaturesHint')}
+                  checked={prefs.betaFeaturesEnabled}
+                  onChange={(v) => void updatePrefs({ betaFeaturesEnabled: v })}
+                />
+              </div>
+            )}
+            <Link
+              href="/profile"
+              className="inline-block text-sm font-medium text-emerald-700 hover:underline"
+            >
+              {t('settingsNotifications.linkFullPrefs')}
+            </Link>
+          </section>
+        ) : (
+          <p className="text-sm text-gray-600 bg-white border border-gray-200 rounded-xl p-4">
+            {t('appSettingsPage.loginForPrefs')}
+          </p>
+        )}
+
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <h2 className="font-semibold text-gray-900">Locatie</h2>
+          <h2 className="font-semibold text-gray-900">{t('appSettingsPage.locationHeading')}</h2>
           <p className="text-sm text-gray-700">
-            <span className="font-medium text-gray-900">Locatie:</span>{' '}
+            <span className="font-medium text-gray-900">{t('appSettingsPage.locationHeading')}:</span>{' '}
             <strong>{permLabel(locPerm.state)}</strong>
             <span className="text-gray-500"> · {sourceHint(locPerm.source)}</span>
           </p>
           <p className="text-xs text-gray-500">
-            Je exacte GPS-coördinaten worden niet openbaar getoond; ze worden alleen gebruikt als jij zelf
-            locatie deelt (bijv. makers in de buurt) via een knop in de app.
+            {t('appSettingsPage.locationIntro')}
           </p>
           {locPerm.state === 'denied' ? (
             <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              Zet locatie toe via je apparaatinstellingen om makers in de buurt te tonen (Android: Instellingen →
-              Apps → HomeCheff → Machtigingen → Locatie).
+              {t('appSettingsPage.locationDeniedHint')}
             </p>
           ) : null}
           {(locPerm.state === 'prompt' || locPerm.state === 'granted') && (
@@ -272,36 +365,8 @@ export default function AppSettingsPage() {
               onClick={() => void handleRequestLocation()}
               className="w-full rounded-xl border border-emerald-600 px-4 py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
             >
-              {locBusy ? 'Bezig…' : 'Locatieprompt testen (één keer opvragen)'}
+              {locBusy ? t('appSettingsPage.loading') : t('appSettingsPage.locationTest')}
             </button>
-          )}
-        </section>
-
-        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <h2 className="font-semibold text-gray-900">Voorkeuren (account)</h2>
-          {loading || !prefs ? (
-            <p className="text-sm text-gray-500">Laden…</p>
-          ) : (
-            <div className="space-y-4">
-              <ToggleRow
-                label="HCP-meldingen"
-                description="Punten, badges en belangrijke HCP-updates."
-                checked={prefs.pushHcpRewards}
-                onChange={(v) => void updatePrefs({ pushHcpRewards: v })}
-              />
-              <ToggleRow
-                label="Promoties &amp; updates"
-                description="Productnieuws en acties (marketing-achtig)."
-                checked={prefs.pushPromotionalUpdates}
-                onChange={(v) => void updatePrefs({ pushPromotionalUpdates: v })}
-              />
-              <ToggleRow
-                label="Beta-functies"
-                description="Experimentele functies in de app."
-                checked={prefs.betaFeaturesEnabled}
-                onChange={(v) => void updatePrefs({ betaFeaturesEnabled: v })}
-              />
-            </div>
           )}
         </section>
       </div>

@@ -14,6 +14,7 @@ import {
 } from "@/lib/native/push";
 import { getOrCreatePushDeviceId } from "@/lib/native/pushClientPrefs";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
+import { getCapacitorAppInfo } from "@/lib/native/getCapacitorAppInfo";
 
 type Props = {
   /** Na succesvolle registratie (bijv. parent prefs herladen). */
@@ -52,8 +53,11 @@ export default function NativePushManageSection({ onRegistered }: Props) {
       const platform =
         Capacitor.getPlatform() === "ios" ? "ios" : "android";
       const deviceId = getOrCreatePushDeviceId();
+      const appInfo = await getCapacitorAppInfo();
       const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
         force: true,
+        appVersion: appInfo.version,
+        diagReason: "manual",
       });
       if (reg !== "ok") {
         alert(t("nativePush.registerError"));

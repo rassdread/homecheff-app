@@ -6,6 +6,7 @@ import NativeAppUxFoundation from '@/components/native/NativeAppUxFoundation';
 import NativeLifecycleDiagnostics from '@/components/native/NativeLifecycleDiagnostics';
 import NativePushTokenSync from '@/components/native/NativePushTokenSync';
 import NativePushPermissionOnboarding from '@/components/native/NativePushPermissionOnboarding';
+import NativePushUpdatePrompt from '@/components/native/NativePushUpdatePrompt';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import AuthCompletionGate from '@/components/auth/AuthCompletionGate';
@@ -54,6 +55,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <NativePushTokenSync />
         <Suspense fallback={null}>
           <NativePushPermissionOnboarding />
+        </Suspense>
+        <Suspense fallback={null}>
+          <NativePushUpdatePrompt />
         </Suspense>
         <SessionGuard />
         <Suspense fallback={null}>

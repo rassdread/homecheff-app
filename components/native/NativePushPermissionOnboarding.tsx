@@ -21,6 +21,7 @@ import {
 } from "@/lib/native/push";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 import { getOrCreatePushDeviceId } from "@/lib/native/pushClientPrefs";
+import { getCapacitorAppInfo } from "@/lib/native/getCapacitorAppInfo";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 
 const GATE_KEY = "hc_npush_gate";
@@ -137,8 +138,11 @@ export default function NativePushPermissionOnboarding() {
         Capacitor.getPlatform() === "ios" ? "ios" : "android";
       const deviceId = getOrCreatePushDeviceId();
       nativePushDevLog("server register started", { platform });
+      const appInfo = await getCapacitorAppInfo();
       const reg = await registerFcmTokenWithServer(token, platform, deviceId, {
         force: true,
+        appVersion: appInfo.version,
+        diagReason: "post_permission",
       });
       nativePushDevLog("server register result", reg);
       if (reg !== "ok") {

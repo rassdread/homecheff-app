@@ -7,12 +7,21 @@ import {
 } from "@/lib/native/pushClientPrefs";
 import { setCachedPushRegistrationId } from "@/lib/native/pushRegistrationCache";
 import { maskPushTokenForLogs } from "@/lib/pushTokenValidation";
+import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 
 export type PushTokenServerResult =
   | "ok"
   | "unauthorized"
   | "bad_request"
   | "error";
+
+export type RegisterFcmTokenOptions = {
+  force?: boolean;
+  /** Capacitor App.getInfo().version — throttle bypass na app-update. */
+  appVersion?: string | null;
+  /** Alleen voor diagnosen (geen gevoelige data). */
+  diagReason?: "mount" | "resume" | "manual" | "post_permission" | "post_update";
+};
 
 /**
  * POST FCM-token naar backend. Alleen zinvol in Capacitor native shell.
@@ -22,12 +31,28 @@ export async function registerFcmTokenWithServer(
   token: string,
   platform: "android" | "ios" | "web" = "android",
   deviceId?: string | null,
-  options?: { force?: boolean }
+  options?: RegisterFcmTokenOptions
 ): Promise<PushTokenServerResult> {
   if (!isNativeApp()) return "error";
-  if (!options?.force && shouldThrottlePushServerSync(token)) {
+
+  const throttleOpts = {
+    appVersion: options?.appVersion,
+    force: Boolean(options?.force),
+  };
+
+  if (shouldThrottlePushServerSync(token, throttleOpts)) {
+    reportAppDiagnostic("push_token_sync_skipped", {
+      reason: options?.force ? "throttle_forced_interval" : "throttle_unchanged",
+      diagReason: options?.diagReason ?? "mount",
+    });
     return "ok";
   }
+
+  reportAppDiagnostic("push_token_sync_started", {
+    diagReason: options?.diagReason ?? "mount",
+    forced: Boolean(options?.force),
+  });
+
   try {
     const body: Record<string, unknown> = {
       token,
@@ -43,19 +68,44 @@ export async function registerFcmTokenWithServer(
       credentials: "same-origin",
       body: JSON.stringify(body),
     });
-    if (res.status === 401) return "unauthorized";
-    if (res.status === 400) return "bad_request";
-    if (!res.ok) return "error";
+    if (res.status === 401) {
+      reportAppDiagnostic("push_token_sync_failed", {
+        httpStatus: 401,
+        diagReason: options?.diagReason ?? "mount",
+      });
+      return "unauthorized";
+    }
+    if (res.status === 400) {
+      reportAppDiagnostic("push_token_sync_failed", {
+        httpStatus: 400,
+        diagReason: options?.diagReason ?? "mount",
+      });
+      return "bad_request";
+    }
+    if (!res.ok) {
+      reportAppDiagnostic("push_register_api_failed", {
+        httpStatus: res.status,
+        diagReason: options?.diagReason ?? "mount",
+      });
+      return "error";
+    }
     setCachedPushRegistrationId(token);
-    recordPushServerSyncTime();
+    recordPushServerSyncTime(options?.appVersion);
     if (process.env.NODE_ENV === "development") {
       console.info(
         "[HomeCheff push] server register OK",
         maskPushTokenForLogs(token)
       );
     }
+    reportAppDiagnostic("push_token_sync_success", {
+      diagReason: options?.diagReason ?? "mount",
+    });
     return "ok";
   } catch {
+    reportAppDiagnostic("push_token_sync_failed", {
+      diagReason: options?.diagReason ?? "mount",
+      network: true,
+    });
     return "error";
   }
 }

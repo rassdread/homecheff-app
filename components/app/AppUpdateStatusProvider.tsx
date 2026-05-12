@@ -227,6 +227,11 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
         writeAndroidBetaLastInstalledSeen(currentVersion.trim());
       }
       syncInstallPersist();
+      try {
+        window.dispatchEvent(new CustomEvent('hc-apk-install-success-for-push'));
+      } catch {
+        /* ignore */
+      }
       const tmr = window.setTimeout(() => setShowApkSuccessToast(false), 5200);
       return () => window.clearTimeout(tmr);
     }

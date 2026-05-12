@@ -34,7 +34,13 @@ export type AppDiagCode =
   | 'pending_intent_resume_completed'
   | 'pending_intent_resume_skipped_duplicate'
   | 'auth_gate_redirect_skipped'
-  | 'soft_gate_resume_duplicate';
+  | 'soft_gate_resume_duplicate'
+  | 'push_permission_status'
+  | 'push_token_sync_started'
+  | 'push_token_sync_success'
+  | 'push_token_sync_skipped'
+  | 'push_token_sync_failed'
+  | 'push_register_api_failed';
 
 export function reportAppDiagnostic(
   code: AppDiagCode,
