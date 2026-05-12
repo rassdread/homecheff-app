@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { ListingCategory, ProductCategory } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
 import { isStripeTestId } from "@/lib/stripe";
@@ -50,10 +51,34 @@ function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: n
 
 const STATS_PREVIEW_SELLER_CAP = 9;
 
+/** Maps feed UI slugs (cheff, garden, …) to Prisma `ProductCategory` (GROWN, not GARDEN). */
+function resolveProductCategory(verticalRaw: string): ProductCategory | null {
+  const v = verticalRaw.trim().toLowerCase();
+  if (!v || v === "all") return null;
+  if (v === "cheff" || v === "chef" || v === "keuken") return ProductCategory.CHEFF;
+  if (v === "grown" || v === "garden" || v === "tuin") return ProductCategory.GROWN;
+  if (v === "designer" || v === "design" || v === "studio") return ProductCategory.DESIGNER;
+  const u = verticalRaw.trim().toUpperCase();
+  if (u === "CHEFF" || u === "GROWN" || u === "DESIGNER") return u as ProductCategory;
+  return null;
+}
+
+/** Legacy listings use `ListingCategory`, not product enums. */
+function resolveListingCategory(verticalRaw: string): ListingCategory | null {
+  const v = verticalRaw.trim().toLowerCase();
+  if (!v || v === "all") return null;
+  if (v === "cheff" || v === "chef" || v === "keuken") return ListingCategory.HOMECHEFF;
+  if (v === "grown" || v === "garden" || v === "tuin") return ListingCategory.HOMEGROWN;
+  if (v === "designer" || v === "design" || v === "studio") return ListingCategory.OTHER;
+  return null;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
   const vertical = (searchParams.get("vertical") || "all").toLowerCase();
+  const productCategory = resolveProductCategory(vertical);
+  const listingCategory = resolveListingCategory(vertical);
   const subfilters = (searchParams.get("subfilters") || "").split(",").map(s => s.trim()).filter(Boolean);
   let radius = toNumber(searchParams.get("radius"), 10);
   const place = searchParams.get("place")?.trim() || "";
@@ -156,8 +181,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Category filter - when "all" is selected, show all categories
-  if (vertical && vertical !== "all") {
-    where.category = vertical.toUpperCase();
+  if (productCategory) {
+    where.category = productCategory;
   }
   // When vertical is "all", no category filter is applied (shows all categories)
 
@@ -199,8 +224,8 @@ export async function GET(req: NextRequest) {
             { description: { contains: q, mode: "insensitive" } }
           ]
         } : {}),
-        ...(vertical && vertical !== "all" ? {
-          category: vertical.toUpperCase() as any
+        ...(productCategory ? {
+          category: productCategory as any
         } : {}),
         // Note: We don't filter by location here anymore - we'll filter in JavaScript
         // to support both pickup location and seller location fallback
@@ -305,8 +330,8 @@ export async function GET(req: NextRequest) {
             { description: { contains: q, mode: "insensitive" } }
           ]
         } : {}),
-        ...(vertical && vertical !== "all" ? {
-          vertical: vertical.toUpperCase() as any
+        ...(listingCategory ? {
+          category: listingCategory
         } : {}),
         ...(lat && lng ? {
           lat: { gte: Number(lat) - (radius / 111.32), lte: Number(lat) + (radius / 111.32) },
@@ -336,7 +361,8 @@ export async function GET(req: NextRequest) {
         ...(lat && lng ? {
           lat: { gte: Number(lat) - (radius / 111.32), lte: Number(lat) + (radius / 111.32) },
           lng: { gte: Number(lng) - (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
-        } : {})
+        } : {}),
+        ...(productCategory ? { category: productCategory } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
       take: 50,

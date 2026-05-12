@@ -40,6 +40,16 @@ export default function StartChatButton({
   >(null);
   const { data: session, status } = useSession();
 
+  const openModalAfterSessionRef = useRef(false);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (openModalAfterSessionRef.current) {
+      openModalAfterSessionRef.current = false;
+      setShowModal(true);
+    }
+  }, [status]);
+
   const goToLoginForChat = () => {
     const returnPath =
       typeof window !== 'undefined'
@@ -80,18 +90,27 @@ export default function StartChatButton({
     }
 
     const { conversation } = await response.json();
-    onConversationStarted?.(conversation.id);
-    onMessageSent?.(conversation.id);
+    const convId =
+      conversation &&
+      typeof conversation === 'object' &&
+      typeof (conversation as { id?: unknown }).id === 'string'
+        ? String((conversation as { id: string }).id).trim()
+        : '';
+    if (!convId) {
+      throw new Error('Invalid conversation response');
+    }
+    onConversationStarted?.(convId);
+    onMessageSent?.(convId);
 
     if (showSuccessMessage) {
-      setSuccessConversationId(conversation.id);
+      setSuccessConversationId(convId);
       setShowModal(false);
       setInitialMessage('');
     } else {
-      router.push(`/messages?conversation=${conversation.id}`);
+      router.push(`/messages?conversation=${encodeURIComponent(convId)}`);
       window.dispatchEvent(
         new CustomEvent('conversationUpdated', {
-          detail: { conversationId: conversation.id },
+          detail: { conversationId: convId },
         })
       );
       setShowModal(false);

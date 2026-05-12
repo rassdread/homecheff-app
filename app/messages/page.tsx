@@ -6,6 +6,7 @@ import { MessageCircle } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
 import ChatBox from '@/components/chat/ChatBox';
 import ChatShell from '@/components/chat/ChatShell';
+import { MessagesErrorBoundary } from '@/components/chat/MessagesErrorBoundary';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { isNativeAndroid } from '@/lib/native/capacitor';
@@ -17,55 +18,13 @@ import {
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import BackButton from '@/components/navigation/BackButton';
+import {
+  normalizeConversationListItem,
+  type NormalizedConversationListItem,
+} from '@/lib/chat/normalizeConversation';
+import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
 
-interface Conversation {
-  id: string;
-  title?: string;
-  product?: {
-    id: string;
-    title: string;
-    priceCents: number;
-    Image: Array<{
-      fileUrl: string;
-      sortOrder: number;
-    }>;
-  };
-  participants: Array<{
-    id: string;
-    name: string | null;
-    username: string | null;
-    profileImage: string | null;
-    displayFullName?: boolean | null;
-    displayNameOption?: string | null;
-  }>;
-  otherParticipant?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    profileImage: string | null;
-    displayFullName?: boolean | null;
-    displayNameOption?: string | null;
-    sellerVerified?: boolean;
-  };
-  lastMessage?: {
-    id: string;
-    text: string | null;
-    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'PRODUCT_SHARE' | 'SYSTEM';
-    createdAt: string;
-    readAt?: string | null;
-    User: {
-      id: string;
-      name: string | null;
-      username: string | null;
-      profileImage: string | null;
-      displayFullName?: boolean | null;
-      displayNameOption?: string | null;
-    };
-  } | null;
-  lastMessageAt: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
+type Conversation = NormalizedConversationListItem;
 
 function MessagesPageContent() {
   const { t } = useTranslation();
@@ -130,11 +89,18 @@ function MessagesPageContent() {
         /* ignore */
       }
 
-      fetch(`/api/conversations/${conversationId}`)
+      fetch(`/api/conversations/${encodeURIComponent(conversationId)}`)
         .then((response) => response.json())
         .then((data) => {
           if (data.conversation) {
-            setSelectedConversation(data.conversation);
+            const n = normalizeConversationListItem(data.conversation);
+            if (!n) {
+              reportMessagingDiagnostic('split_view_conv_fetch_shape', {
+                reason: 'normalize',
+              });
+              return;
+            }
+            setSelectedConversation(n);
             window.dispatchEvent(
               new CustomEvent('conversationUpdated', {
                 detail: { conversationId },
@@ -248,16 +214,19 @@ function MessagesPageContent() {
               <ChatBox
                 key={selectedConversation.id}
                 conversationId={selectedConversation.id}
-                otherParticipant={
-                  selectedConversation.otherParticipant ||
-                  (selectedConversation.participants &&
-                    selectedConversation.participants[0]) || {
-                    id: '',
-                    name: 'Gebruiker',
+                otherParticipant={(() => {
+                  const op =
+                    selectedConversation.otherParticipant ??
+                    selectedConversation.participants?.[0];
+                  if (op?.id?.trim()) return op;
+                  return {
+                    id: 'unknown',
+                    name: null,
                     username: null,
                     profileImage: null,
-                  }
-                }
+                  };
+                })()}
+                relationshipContext={selectedConversation.relationshipContext ?? null}
                 onBack={handleBackToList}
               />
             </ChatShell>
@@ -304,7 +273,9 @@ export default function MessagesPage() {
         </div>
       }
     >
-      <MessagesPageContent />
+      <MessagesErrorBoundary>
+        <MessagesPageContent />
+      </MessagesErrorBoundary>
     </Suspense>
   );
 }

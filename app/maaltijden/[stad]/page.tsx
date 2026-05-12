@@ -6,6 +6,7 @@ import { getCurrentDomain, seoHreflangLanguagesOnEu } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
 import { getEcosystemHubForCitySlug } from "@/lib/community/getEcosystemHubForCitySlug";
 import CityHubSection from "@/components/community/CityHubSection";
+import EcosystemBackLink from "@/components/community/EcosystemBackLink";
 
 export const revalidate = 300;
 
@@ -84,6 +85,9 @@ export default async function MaaltijdenStadPage({
         />
       ) : null}
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <EcosystemBackLink />
+        </div>
         <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
           Maaltijden in {city.label}
         </h1>

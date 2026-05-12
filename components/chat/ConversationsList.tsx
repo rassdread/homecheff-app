@@ -33,67 +33,16 @@ import {
   sortConversationsByActivity,
   type ConversationListActivityDetail,
 } from '@/lib/chat/conversationListSort';
+import {
+  normalizeConversationList,
+  normalizeLastMessage,
+  type NormalizedConversationListItem,
+} from '@/lib/chat/normalizeConversation';
 
 const NATIVE_CONV_LIST_KIND = 'conv_list';
 const NATIVE_CONV_LIST_TTL_MS = 10 * 60 * 1000;
 
-interface Conversation {
-  id: string;
-  title?: string;
-  product?: {
-    id: string;
-    title: string;
-    priceCents: number;
-    Image: Array<{
-      fileUrl: string;
-      sortOrder: number;
-    }>;
-  };
-  order?: {
-    id: string;
-    orderNumber: string | null;
-    status: string;
-    totalAmount: number;
-    createdAt: string;
-  };
-  lastMessage?: {
-    id: string;
-    text: string | null;
-    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'PRODUCT_SHARE' | 'SYSTEM';
-    orderNumber?: string | null;
-    createdAt: string;
-    readAt?: string | null;
-    User: {
-      id: string;
-      name: string | null;
-      username: string | null;
-      profileImage: string | null;
-      displayFullName?: boolean | null;
-      displayNameOption?: string | null;
-    };
-  } | null;
-  participants: Array<{
-    id: string;
-    name: string | null;
-    username: string | null;
-    profileImage: string | null;
-    displayFullName?: boolean | null;
-    displayNameOption?: string | null;
-  }>;
-  otherParticipant?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    profileImage: string | null;
-    displayFullName?: boolean | null;
-    displayNameOption?: string | null;
-  };
-  lastMessageAt: string | null;
-  isActive: boolean;
-  createdAt: string;
-  /** Optioneel; voor toekomstige sortering / defensieve client-logica. */
-  updatedAt?: string | null;
-}
+type Conversation = NormalizedConversationListItem;
 
 interface ConversationsListProps {
   onSelectConversation: (conversation: Conversation) => void;
@@ -458,7 +407,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         }
 
         const fallbackData = await fallbackResponse.json();
-        const list = sortConversationsByActivity(fallbackData.conversations || []);
+        const list = sortConversationsByActivity(
+          normalizeConversationList(fallbackData.conversations ?? [])
+        );
         setConversations(list);
         writeConversationsListCache(userId, list);
         if (nativeMounted) {
@@ -469,7 +420,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
       const { conversations: fetchedConversations } = await response.json();
 
-      const sorted = sortConversationsByActivity(fetchedConversations ?? []);
+      const sorted = sortConversationsByActivity(
+        normalizeConversationList(fetchedConversations ?? [])
+      );
       setConversations(sorted);
       writeConversationsListCache(userId, sorted);
       if (nativeMounted) {
@@ -502,7 +455,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       );
       if (persisted?.length) cached = persisted;
     }
-    setConversations(sortConversationsByActivity(cached));
+    setConversations(
+      sortConversationsByActivity(normalizeConversationList(cached))
+    );
     setIsLoading(cached.length === 0);
     void loadConversations(cached.length === 0);
   }, [sessionStatus, userId, loadConversations, nativeMounted]);
@@ -537,45 +492,34 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const d = e.detail;
       if (!d?.conversationId || !d.lastMessage) return;
 
+      const lmNorm = normalizeLastMessage(d.lastMessage);
+      if (!lmNorm) {
+        void loadConversations(false);
+        return;
+      }
+
       setConversations((prev) => {
         const idx = prev.findIndex((c) => c.id === d.conversationId);
         if (idx === -1) {
           void loadConversations(false);
           return prev;
         }
-        const lm = d.lastMessage;
         const merged = prev.map((c) =>
           c.id !== d.conversationId
             ? c
             : {
                 ...c,
-                lastMessageAt: d.lastMessageAt,
-                lastMessage: {
-                  id: lm.id,
-                  text: lm.text,
-                  messageType: lm.messageType as NonNullable<
-                    Conversation['lastMessage']
-                  >['messageType'],
-                  orderNumber: lm.orderNumber,
-                  createdAt: lm.createdAt,
-                  readAt: lm.readAt ?? null,
-                  User: {
-                    id: lm.User.id,
-                    name: lm.User.name ?? null,
-                    username: lm.User.username ?? null,
-                    profileImage: lm.User.profileImage ?? null,
-                    displayFullName: lm.User.displayFullName ?? null,
-                    displayNameOption: lm.User.displayNameOption ?? null,
-                  },
-                },
+                lastMessageAt: d.lastMessageAt ?? lmNorm.createdAt,
+                lastMessage: lmNorm,
               }
         );
         const sorted = sortConversationsByActivity(merged);
-        writeConversationsListCache(userId, sorted);
+        const safe = normalizeConversationList(sorted);
+        writeConversationsListCache(userId, safe);
         if (nativeMounted) {
-          writeNativePersistedCache(NATIVE_CONV_LIST_KIND, userId, sorted);
+          writeNativePersistedCache(NATIVE_CONV_LIST_KIND, userId, safe);
         }
-        return sorted;
+        return safe;
       });
     };
 

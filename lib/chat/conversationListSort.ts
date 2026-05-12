@@ -68,6 +68,8 @@ export type ConversationListActivityDetail = {
     createdAt: string;
     readAt?: string | null;
     orderNumber?: string | null;
+    /** Voor legacy/partial payloads zonder User-blok. */
+    senderId?: string | null;
     User: {
       id: string;
       name?: string | null;

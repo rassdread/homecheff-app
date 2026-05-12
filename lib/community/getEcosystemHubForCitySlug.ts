@@ -40,25 +40,36 @@ export async function getEcosystemHubForCitySlug(citySlug: string): Promise<Ecos
     lng: { gte: bbox.lngMin, lte: bbox.lngMax },
   };
 
-  const [productRows, dishRows, recipeWeek, risingGroup, sparseProbe] = await Promise.all([
-    prisma.product.findMany({
-      where: {
-        isActive: true,
-        createdAt: { gte: weekAgo },
-        seller: sellerInBbox,
-      },
-      select: { seller: { select: { userId: true } } },
-      take: 400,
+  const productWhereNew = {
+    isActive: true,
+    createdAt: { gte: weekAgo },
+    seller: sellerInBbox,
+  };
+  const dishWhereGeoWeek = {
+    status: 'PUBLISHED' as const,
+    createdAt: { gte: weekAgo },
+    lat: { gte: bbox.latMin, lte: bbox.latMax },
+    lng: { gte: bbox.lngMin, lte: bbox.lngMax },
+  };
+
+  const [
+    newProductsWeek,
+    newDishesWeek,
+    productSellerKeys,
+    dishUserKeys,
+    recipeWeek,
+    risingGroup,
+    sparseProbe,
+  ] = await Promise.all([
+    prisma.product.count({ where: productWhereNew }),
+    prisma.dish.count({ where: dishWhereGeoWeek }),
+    prisma.product.groupBy({
+      by: ['sellerId'],
+      where: productWhereNew,
     }),
-    prisma.dish.findMany({
-      where: {
-        status: 'PUBLISHED',
-        createdAt: { gte: weekAgo },
-        lat: { gte: bbox.latMin, lte: bbox.latMax },
-        lng: { gte: bbox.lngMin, lte: bbox.lngMax },
-      },
-      select: { userId: true },
-      take: 400,
+    prisma.dish.groupBy({
+      by: ['userId'],
+      where: dishWhereGeoWeek,
     }),
     prisma.recipe.count({
       where: {
@@ -72,11 +83,7 @@ export async function getEcosystemHubForCitySlug(citySlug: string): Promise<Ecos
     prisma.product
       .groupBy({
         by: ['sellerId'],
-        where: {
-          isActive: true,
-          createdAt: { gte: weekAgo },
-          seller: sellerInBbox,
-        },
+        where: productWhereNew,
         _count: { sellerId: true },
         orderBy: { _count: { sellerId: 'desc' } },
         take: 1,
@@ -90,17 +97,26 @@ export async function getEcosystemHubForCitySlug(citySlug: string): Promise<Ecos
     }),
   ]);
 
+  const sellerIds = productSellerKeys.map((k) => k.sellerId).filter(Boolean);
+  const sellerProfiles =
+    sellerIds.length > 0
+      ? await prisma.sellerProfile.findMany({
+          where: { id: { in: sellerIds } },
+          select: { userId: true },
+        })
+      : [];
+
   const creatorIds = new Set<string>();
-  for (const p of productRows) {
-    const id = p.seller?.userId;
-    if (id) creatorIds.add(id);
+  for (const sp of sellerProfiles) {
+    if (sp.userId) creatorIds.add(sp.userId);
   }
-  for (const d of dishRows) {
+  for (const d of dishUserKeys) {
     if (d.userId) creatorIds.add(d.userId);
   }
 
-  const newListingsWeek = productRows.length + dishRows.length;
+  const newListingsWeek = newProductsWeek + newDishesWeek;
   const activeCreatorsWeek = creatorIds.size;
+  const newInspirationWeek = recipeWeek + newDishesWeek;
 
   let risingLocalUsername: string | null = null;
   let risingLocalListingCount = 0;
@@ -149,7 +165,7 @@ export async function getEcosystemHubForCitySlug(citySlug: string): Promise<Ecos
     generatedAt: new Date().toISOString(),
     activeCreatorsWeek,
     newListingsWeek,
-    newInspirationWeek: recipeWeek,
+    newInspirationWeek,
     risingLocalUsername,
     risingLocalListingCount,
     localHcpLeaderUsername,

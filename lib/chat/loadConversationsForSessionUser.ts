@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sortConversationsByActivity } from "@/lib/chat/conversationListSort";
+import { reportMessagingDiagnostic } from "@/lib/chat/messagingDiagnostics";
 
 export type LoadedConversation = {
   id: string;
@@ -150,15 +151,62 @@ export async function loadConversationsForSessionUser(
       const conversation = participant.Conversation;
       const otherParticipants = conversation.ConversationParticipant.filter(
         (p) => p.userId !== user.id
-      ).map((p) => ({
-        id: p.User.id,
-        name: p.User.name,
-        username: p.User.username,
-        profileImage: p.User.profileImage,
-        displayFullName: p.User.displayFullName,
-        displayNameOption: p.User.displayNameOption,
-      }));
+      ).map((p) => {
+        if (p.User) {
+          const u = p.User;
+          return {
+            id: u.id,
+            name: u.name,
+            username: u.username,
+            profileImage: u.profileImage,
+            displayFullName: u.displayFullName,
+            displayNameOption: u.displayNameOption,
+          };
+        }
+        reportMessagingDiagnostic("conv_participant_stub", {
+          reason: "no_user_row",
+        });
+        return {
+          id: p.userId,
+          name: null,
+          username: null,
+          profileImage: null,
+          displayFullName: null,
+          displayNameOption: null,
+        };
+      });
       const otherParticipant = otherParticipants[0] || null;
+
+      const rawMsg = conversation.Message[0] ?? null;
+      const lastMessage = rawMsg
+        ? {
+            id: rawMsg.id,
+            text: rawMsg.text,
+            messageType: rawMsg.messageType,
+            createdAt: rawMsg.createdAt,
+            readAt: rawMsg.readAt,
+            senderId: rawMsg.senderId,
+            orderNumber: rawMsg.orderNumber,
+            User: rawMsg.User
+              ? {
+                  id: rawMsg.User.id,
+                  name: rawMsg.User.name,
+                  username: rawMsg.User.username,
+                  profileImage: rawMsg.User.profileImage,
+                  displayFullName: rawMsg.User.displayFullName,
+                  displayNameOption: rawMsg.User.displayNameOption,
+                }
+              : {
+                  id: rawMsg.senderId,
+                  name: null,
+                  username: null,
+                  profileImage: null,
+                  displayFullName: null,
+                  displayNameOption: null,
+                },
+          }
+        : null;
+
       return {
         id: conversation.id,
         title:
@@ -169,10 +217,10 @@ export async function loadConversationsForSessionUser(
               ? otherParticipant.name ||
                 otherParticipant.username ||
                 "Gesprek"
-              : "Nieuwe conversatie"),
+              : "Gesprek"),
         product: conversation.Product,
         order: conversation.Order,
-        lastMessage: conversation.Message[0] || null,
+        lastMessage,
         participants: otherParticipants,
         otherParticipant,
         lastMessageAt: conversation.lastMessageAt,

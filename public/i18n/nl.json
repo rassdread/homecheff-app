@@ -207,14 +207,14 @@
     "heading": "Live uit de community",
     "fallbackLine": "Kleine acties dichtbij tellen op — ontdek makers, aanbod en inspiratie.",
     "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
-    "newCreators7d": "{count} nieuwe makers deze week",
-    "newInspiration7d": "{count} nieuwe inspiratieposts deze week",
+    "newCreators7d": "{count} nieuwe accounts deze week",
+    "newInspiration7d": "{count} nieuwe openbare inspiratieposts deze week",
     "topHcpSpotlight": "{name} staat bovenaan op HomeCheff-punten ({points} pt)",
-    "savesWeek": "{count} nieuwe saves op aanbiedingen deze week",
+    "savesWeek": "{count} nieuwe favorieten (aanbod & inspiratie) deze week",
     "followsWeek": "{count} nieuwe volgers deze week",
     "discussionWeek": "{count} nieuwe reviews en reacties deze week",
-    "mostSavedThisWeek": "Trending save: “{title}” ({count} saves)",
-    "risingCreatorWeek": "{name} plaatste {count} nieuwe items deze week",
+    "mostSavedThisWeek": "Meest opgeslagen: “{title}” ({count} favorieten)",
+    "risingCreatorWeek": "{name} zette {count} nieuwe productaanbiedingen live deze week",
     "activeListersWeek": "{count} makers zetten iets in de etalage deze week"
   },
   "creatorMomentum": {
@@ -253,7 +253,7 @@
     "title": "Redenen om terug te komen",
     "followedCreatorsPosted": "Makers die je volgt, deelden het afgelopen etmaal iets nieuws.",
     "yourAudienceGrowing": "Je publiek groeide deze week — er kwamen nieuwe volgers bij.",
-    "communitySavesActive": "De community slaat deze week aanbiedingen op ({count} saves) — inspiratie beweegt."
+    "communitySavesActive": "De community slaat deze week veel op ({count} favorieten) — het dorpsplein leeft."
   },
   "ecosystemHub": {
     "sectionAria": "Lokale makeractiviteit bij {city}",
@@ -288,6 +288,8 @@
     }
   },
   "ecosystemVertical": {
+    "backHome": "Terug naar het dorpsplein",
+    "emptyCalm": "Er is hier nog weinig zichtbare activiteit — op het dorpsplein en bij inspiratie zie je rustig wat er wél leeft. Word zichtbaar in jouw regio door iets te delen of een aanbod te plaatsen.",
     "titles": {
       "keuken": "Keuken-ecosysteem",
       "tuin": "Tuin-ecosysteem",
@@ -4562,6 +4564,10 @@
       "minPhotoRequired": "Minimaal 1 foto verplicht",
       "saveGarden": "Kweek opslaan",
       "addFirstGarden": "Eerste kweek toevoegen",
+      "noProjectsYet": "Nog geen kweekprojecten",
+      "startDocumenting": "Documenteer je planten, oogsten en tuinmomenten — zo zien anderen wat je kweekt.",
+      "documentProjects": "Je kweekprojecten verschijnen hier. Voeg foto's en updates toe om je voortgang te delen.",
+      "suppressPrimaryCreateHint": "Start een kweek via de knop “Tuin-inspiratie plaatsen” of “Tuinproduct op Dorpsplein zetten” boven deze lijst.",
       "designer": "Kies uit onze favoriete design en creatieve emoji's",
       "chef": "Kies uit onze favoriete keuken, koken en eten emoji's"
     },

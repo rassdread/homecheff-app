@@ -1,4 +1,5 @@
 import type { ChatThreadMessage } from "@/components/chat/chatThreadTypes";
+import { normalizeChatThreadMessageList } from "@/lib/chat/normalizeConversation";
 
 function textKey(senderId: string, text: string | null | undefined): string {
   return `${senderId}\t${(text ?? "").trim()}`;
@@ -11,21 +12,25 @@ function textKey(senderId: string, text: string | null | undefined): string {
  */
 export function mergeServerChatMessages(
   prev: ChatThreadMessage[],
-  serverSlice: ChatThreadMessage[]
+  serverSlice: unknown
 ): ChatThreadMessage[] {
+  const safePrev = normalizeChatThreadMessageList(prev as unknown);
+  const serverSafe = normalizeChatThreadMessageList(serverSlice);
   const map = new Map<string, ChatThreadMessage>();
-  for (const m of prev) {
+  for (const m of safePrev) {
     map.set(m.id, m);
   }
-  for (const m of serverSlice) {
+  for (const m of serverSafe) {
     map.set(m.id, m);
   }
 
-  const nonTemp = [...map.values()].filter((m) => !m.id.startsWith("temp-"));
+  const nonTemp = [...map.values()].filter(
+    (m) => m?.id && !String(m.id).startsWith("temp-")
+  );
   const coveredKeys = new Set(nonTemp.map((m) => textKey(m.senderId, m.text)));
 
   const merged = [...map.values()].filter((m) => {
-    if (!m.id.startsWith("temp-")) return true;
+    if (!String(m.id ?? "").startsWith("temp-")) return true;
     return !coveredKeys.has(textKey(m.senderId, m.text));
   });
 

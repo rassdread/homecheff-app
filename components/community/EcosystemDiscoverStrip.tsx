@@ -32,7 +32,7 @@ export default function EcosystemDiscoverStrip({ variant = 'home' }: { variant?:
         {sampleCity ? (
           <Link
             href={`/maaltijden/${sampleCity.slug}`}
-            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900"
+            className="inline-flex min-h-[44px] items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900"
             prefetch={false}
             onClick={() =>
               trackOnboardingEvent('ECOSYSTEM_NAV_CLICK', {
@@ -60,7 +60,7 @@ export default function EcosystemDiscoverStrip({ variant = 'home' }: { variant?:
                 from: variant,
               })
             }
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200/90 bg-slate-50/90 px-3 py-1.5 text-xs font-medium text-slate-800 hover:border-emerald-200 hover:bg-emerald-50/80"
+            className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border border-slate-200/90 bg-slate-50/90 px-3 py-2 text-xs font-medium text-slate-800 hover:border-emerald-200 hover:bg-emerald-50/80"
           >
             <Icon className="h-3.5 w-3.5 text-emerald-700" aria-hidden />
             {t(`ecosystemStrip.links.${key}`)}

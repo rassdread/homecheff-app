@@ -70,6 +70,7 @@ import {
   saveFeedSurfaceState,
 } from "@/lib/feed/feedSurfaceState";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
+import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 
 /** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
 const SHOW_NATIVE_GPS_DEBUG_UI =
@@ -280,7 +281,7 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
 }
 
 function isVisible(item: FeedItem) {
-  return item.isActive !== false;
+  return item.isActive !== false && Boolean(item.id?.trim());
 }
 
 function matchesSearch(
@@ -490,15 +491,30 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
   };
 }
 
+function initialDorpspleinCategoryFromServer(raw?: string): string {
+  if (!raw?.trim()) return "all";
+  const v = raw.toLowerCase().trim();
+  if (v === "cheff" || v === "chef" || v === "keuken") return "cheff";
+  if (v === "grown" || v === "garden" || v === "tuin") return "garden";
+  if (v === "designer" || v === "design" || v === "studio") return "designer";
+  return "all";
+}
+
 type GeoFeedProps = {
   initialInspiratieItems?: InspirationItem[];
   /** Optioneel: startfilter vanuit URL (bv. `/?feed=inspiration`) of server searchParams. */
   initialFeedChip?: FeedChip;
+  /** Dorpsplein-categorie vanuit URL (`/?vertical=cheff` of ecosystem-CTA). */
+  initialFeedCategory?: string;
+  /** Vrije plaats-tekst vanuit URL (`/?place=Utrecht`). */
+  initialFeedPlace?: string;
 };
 
 export default function GeoFeed({
   initialInspiratieItems = [],
   initialFeedChip,
+  initialFeedCategory,
+  initialFeedPlace,
 }: GeoFeedProps) {
   const { t, language } = useTranslation();
   const { data: session, status: sessionStatus } = useSession();
@@ -519,7 +535,9 @@ export default function GeoFeed({
   const [feedHydrated, setFeedHydrated] = useState(false);
   const [radius, setRadius] = useState(25);
   const [q, setQ] = useState("");
-  const [place, setPlace] = useState("");
+  const [place, setPlace] = useState(
+    () => initialFeedPlace?.trim().slice(0, 200) || ""
+  );
   const [baseUrl, setBaseUrl] = useState("");
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -547,7 +565,9 @@ export default function GeoFeed({
   const [showFilters, setShowFilters] = useState(false);
   /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(() =>
+    initialDorpspleinCategoryFromServer(initialFeedCategory)
+  );
   const profileLocationLoadedRef = useRef(false);
   const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
@@ -603,7 +623,12 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
-    if (initialFeedChip != null) {
+    const urlLockedFeed =
+      initialFeedChip != null ||
+      (initialFeedCategory != null &&
+        initialDorpspleinCategoryFromServer(initialFeedCategory) !== "all") ||
+      Boolean(initialFeedPlace?.trim());
+    if (urlLockedFeed) {
       queueMicrotask(() => {
         nativeFeedPrefsBootRef.current = false;
       });
@@ -692,7 +717,13 @@ export default function GeoFeed({
     queueMicrotask(() => {
       nativeFeedPrefsBootRef.current = false;
     });
-  }, [nativeMounted, sessionStatus, session?.user, initialFeedChip]);
+  }, [nativeMounted, sessionStatus, session?.user, initialFeedChip, initialFeedCategory, initialFeedPlace]);
+
+  useEffect(() => {
+    if (initialFeedPlace?.trim()) {
+      setLocationSource("manual");
+    }
+  }, [initialFeedPlace]);
 
   useEffect(() => {
     if (!nativeMounted || nativeFeedPrefsBootRef.current) return;
@@ -970,7 +1001,15 @@ export default function GeoFeed({
         if (cancelled) return;
 
         if (feedRes.ok) {
-          const data = await feedRes.json();
+          let data: { items?: unknown; statsPreview?: Record<string, unknown> };
+          try {
+            data = await feedRes.json();
+          } catch {
+            reportAppDiagnostic('feed_fetch_json_invalid', { surface: 'feed' });
+            if (cancelled) return;
+            setItems([]);
+            return;
+          }
           if (cancelled) return;
           const rawItems = (data.items || []) as Record<string, unknown>[];
           const previewRaw = data.statsPreview as
@@ -995,14 +1034,40 @@ export default function GeoFeed({
               })),
             });
           }
-          setItems(rawItems.map((r) => normalizeFeedItem(r)));
+          const normalized = rawItems.map((r) => normalizeFeedItem(r));
+          let dropped = 0;
+          const valid = normalized.filter((row) => {
+            if (row.id?.trim()) return true;
+            dropped += 1;
+            return false;
+          });
+          if (dropped > 0) {
+            reportAppDiagnostic('feed_items_filtered', { dropped });
+          }
+          setItems(valid);
         }
 
         if (inspRes?.ok) {
-          const inspData = await inspRes.json();
+          let inspData: { items?: unknown };
+          try {
+            inspData = await inspRes.json();
+          } catch {
+            reportAppDiagnostic('feed_inspiration_json_invalid', {});
+            if (cancelled) return;
+            return;
+          }
           if (cancelled) return;
           if (Array.isArray(inspData.items) && inspData.items.length > 0) {
-            setInspiratiePool(inspData.items);
+            const pool = inspData.items as InspirationItem[];
+            const withIds = pool.filter(
+              (it) => it && typeof it.id === 'string' && it.id.trim() !== ''
+            );
+            if (withIds.length < pool.length) {
+              reportAppDiagnostic('feed_items_filtered', {
+                dropped: pool.length - withIds.length,
+              });
+            }
+            setInspiratiePool(withIds);
           }
         }
       } catch (error) {

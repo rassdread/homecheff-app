@@ -1,6 +1,8 @@
 /**
  * Lightweight onboarding / soft-gate analytics → AnalyticsEvent (best-effort, non-blocking).
  */
+import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
+
 export type OnboardingAnalyticsEvent =
   | 'ONBOARDING_STARTED'
   | 'ONBOARDING_COMPLETED'
@@ -48,7 +50,17 @@ export function trackOnboardingEvent(
           ts: new Date().toISOString(),
         },
       }),
-    });
+    })
+      .then((res) => {
+        if (!res.ok) {
+          reportAppDiagnostic('onboarding_analytics_http', {
+            status: res.status,
+          });
+        }
+      })
+      .catch(() => {
+        reportAppDiagnostic('onboarding_analytics_network', {});
+      });
   } catch {
     /* ignore */
   }

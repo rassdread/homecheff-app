@@ -41,14 +41,23 @@ export async function GET(req: Request) {
 
     let followedCreatorsPosted = false;
     if (followedSellerUserIds.length > 0) {
-      const recentProducts = await prisma.product.count({
-        where: {
-          isActive: true,
-          createdAt: { gte: dayAgo },
-          seller: { userId: { in: followedSellerUserIds } },
-        },
-      });
-      followedCreatorsPosted = recentProducts > 0;
+      const [recentProducts, recentDishes] = await Promise.all([
+        prisma.product.count({
+          where: {
+            isActive: true,
+            createdAt: { gte: dayAgo },
+            seller: { userId: { in: followedSellerUserIds } },
+          },
+        }),
+        prisma.dish.count({
+          where: {
+            status: 'PUBLISHED',
+            createdAt: { gte: dayAgo },
+            userId: { in: followedSellerUserIds },
+          },
+        }),
+      ]);
+      followedCreatorsPosted = recentProducts + recentDishes > 0;
     }
 
     let yourAudienceGrowing = false;
@@ -60,7 +69,14 @@ export async function GET(req: Request) {
     }
 
     const savesWeek = await prisma.favorite.count({
-      where: { productId: { not: null }, createdAt: { gte: weekAgo } },
+      where: {
+        createdAt: { gte: weekAgo },
+        OR: [
+          { productId: { not: null } },
+          { dishId: { not: null } },
+          { listingId: { not: null } },
+        ],
+      },
     });
     const communitySavesActive = savesWeek >= 8;
 

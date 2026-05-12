@@ -21,6 +21,12 @@ import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
 import { dispatchConversationListActivity } from '@/lib/chat/conversationListSort';
 import { mergeServerChatMessages } from '@/lib/chat/mergeServerChatMessages';
 import {
+  normalizeChatThreadMessage,
+  normalizeChatThreadMessageList,
+  normalizeRelationshipContext,
+} from '@/lib/chat/normalizeConversation';
+import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
+import {
   readMessagesCache,
   writeMessagesCache,
 } from '@/lib/chat/sessionChatCache';
@@ -98,6 +104,8 @@ export default function ChatBox({
   const statusPollRunIdRef = useRef(0);
   const nativeMounted = useIsNativeAppMounted();
   const { data: session } = useSession();
+
+  const peerId = (otherParticipant?.id ?? '').trim();
 
   useEffect(() => {
     return () => {
@@ -269,7 +277,7 @@ export default function ChatBox({
           }
           if (stale()) return;
 
-          const newMessages = data.messages || [];
+          const newMessages = normalizeChatThreadMessageList(data.messages);
           if (isInitialLoad) {
             setMessages(newMessages);
             persistThreadMsgs(newMessages);
@@ -327,7 +335,7 @@ export default function ChatBox({
             }
             if (stale()) return;
 
-            const list = fallbackData.messages || [];
+            const list = normalizeChatThreadMessageList(fallbackData.messages);
             if (isInitialLoad) {
               setMessages(list);
               persistThreadMsgs(list);
@@ -397,7 +405,7 @@ export default function ChatBox({
         return;
       }
       if (epochSnap !== conversationEpochRef.current) return;
-      const older = data.messages || [];
+      const older = normalizeChatThreadMessageList(data.messages);
       if (older.length === 0) {
         hasMoreOlderRef.current = false;
         return;
@@ -451,6 +459,7 @@ export default function ChatBox({
           createdAt,
           readAt: msg.readAt ?? null,
           orderNumber: msg.orderNumber ?? null,
+          senderId: msg.senderId,
           User: {
             id: uid,
             name: msg.User?.name ?? null,
@@ -495,7 +504,7 @@ export default function ChatBox({
       if (persisted?.length) cached = persisted;
     }
     if (cached.length > 0) {
-      setMessages(cached);
+      setMessages(normalizeChatThreadMessageList(cached));
       setIsLoading(false);
     } else {
       setMessages([]);
@@ -534,14 +543,19 @@ export default function ChatBox({
       setPusherConnected(false);
     });
     
-    channel.bind('new-message', (data: ChatThreadMessage) => {
+    channel.bind('new-message', (data: unknown) => {
       if (boundGen !== pusherUiGenRef.current) return;
+      const normalized = normalizeChatThreadMessage(data);
+      if (!normalized) {
+        reportMessagingDiagnostic('pusher_msg_rejected', { reason: 'normalize' });
+        return;
+      }
       const epochSnap = conversationEpochRef.current;
-      const fromSelf = data.senderId === currentUserId;
+      const fromSelf = normalized.senderId === currentUserId;
       setMessages((prev) => {
         if (boundGen !== pusherUiGenRef.current) return prev;
         if (epochSnap !== conversationEpochRef.current) return prev;
-        const next = mergePusherChatMessage(prev, data);
+        const next = mergePusherChatMessage(prev, normalized);
         queueMicrotask(() => {
           if (boundGen !== pusherUiGenRef.current) return;
           if (epochSnap !== conversationEpochRef.current) return;
@@ -554,10 +568,7 @@ export default function ChatBox({
       if (fromSelf || isNearBottomRef.current) {
         scrollToBottomSoon();
       }
-      notifyConversationListActivity(conversationId, {
-        ...data,
-        User: data.User ?? { id: data.senderId },
-      });
+      notifyConversationListActivity(conversationId, normalized);
     });
     
     // Typing indicator
@@ -585,7 +596,7 @@ export default function ChatBox({
     // Online status
     channel.bind('user-online', (data: { userId: string; online: boolean; lastSeenAt?: string }) => {
       if (boundGen !== pusherUiGenRef.current) return;
-      if (data.userId !== otherParticipant.id) return;
+      if (!peerId || data.userId !== peerId) return;
       const epochSnap = conversationEpochRef.current;
       const online = data.online;
       const seen = data.lastSeenAt;
@@ -611,7 +622,7 @@ export default function ChatBox({
   }, [
     conversationId,
     currentUserId,
-    otherParticipant.id,
+    peerId,
     persistThreadMsgs,
     scrollToBottomSoon,
     nativeMounted,
@@ -619,9 +630,8 @@ export default function ChatBox({
   ]);
 
   useEffect(() => {
-    if (!conversationId || !currentUserId) return;
+    if (!conversationId || !currentUserId || !peerId) return;
     const ac = new AbortController();
-    const peerId = otherParticipant.id;
     const epochAtStart = conversationEpochRef.current;
     const runId = ++statusPollRunIdRef.current;
 
@@ -653,7 +663,7 @@ export default function ChatBox({
     })();
 
     return () => ac.abort();
-  }, [conversationId, currentUserId, otherParticipant.id]);
+  }, [conversationId, currentUserId, peerId]);
 
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
@@ -787,8 +797,8 @@ export default function ChatBox({
           return;
         }
 
-        const realMessage = data.message;
-        if (!realMessage) {
+        const normalizedReal = normalizeChatThreadMessage(data.message);
+        if (!normalizedReal) {
           setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
           setNewMessage(text);
           alert(t('chat.couldNotSend'));
@@ -797,12 +807,12 @@ export default function ChatBox({
 
         setMessages((prev) => {
           const next = prev.map((msg) =>
-            msg.id === tempId ? realMessage : msg
+            msg.id === tempId ? normalizedReal : msg
           );
           persistThreadMsgs(next);
           return next;
         });
-        notifyConversationListActivity(conversationId, realMessage);
+        notifyConversationListActivity(conversationId, normalizedReal);
         scrollToBottomSoon();
       } else {
         if (sendAc.signal.aborted) return;
@@ -894,17 +904,21 @@ export default function ChatBox({
     showBackOnDesktop || nativeMounted ? '' : 'lg:hidden';
 
   const relationshipHintLine = (() => {
-    if (!relationshipContext) return '';
+    const rel = normalizeRelationshipContext(relationshipContext);
+    if (!rel) return '';
     const bits: string[] = [];
-    const { youFollowThem, theyFollowYou, messageCount, productTitle, productCategory } =
-      relationshipContext;
+    const youFollowThem = rel.youFollowThem;
+    const theyFollowYou = rel.theyFollowYou;
+    const messageCount = rel.messageCount;
+    const productTitle = rel.productTitle;
+    const productCategory = rel.productCategory;
     if (youFollowThem && theyFollowYou) {
       bits.push(t('chat.relationship.mutualFollow'));
     } else {
       if (youFollowThem) bits.push(t('chat.relationship.youFollowCreator'));
       if (theyFollowYou) bits.push(t('chat.relationship.followsYouBack'));
     }
-    if (messageCount >= 2) {
+    if (Number.isFinite(messageCount) && messageCount >= 2) {
       bits.push(t('chat.relationship.continuedConversation'));
     }
     if (productCategory?.trim()) {

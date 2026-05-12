@@ -18,7 +18,7 @@ export default function CityHubSection({ initial }: { initial: EcosystemHubPaylo
       city: initial.citySlug,
       activeCreatorsWeek: initial.activeCreatorsWeek,
     });
-  }, [initial.citySlug, initial.activeCreatorsWeek]);
+  }, [initial.citySlug]);
 
   const feedHref = `/?place=${encodeURIComponent(initial.cityLabel)}#homecheff-feed`;
   const discoverHref = '/inspiratie';

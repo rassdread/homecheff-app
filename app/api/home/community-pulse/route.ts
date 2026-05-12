@@ -21,7 +21,8 @@ export async function GET() {
       commentsWeek,
       reviewsWeek,
       listingCreatorsWeek,
-      topSavedGroup,
+      topSavedProductGroup,
+      topSavedDishGroup,
     ] = await Promise.all([
       prisma.product.count({
         where: { isActive: true, createdAt: { gte: dayAgo } },
@@ -30,7 +31,10 @@ export async function GET() {
         where: { createdAt: { gte: weekAgo } },
       }),
       prisma.recipe.count({
-        where: { createdAt: { gte: weekAgo } },
+        where: {
+          createdAt: { gte: weekAgo },
+          workspaceContent: { isPublic: true },
+        },
       }),
       prisma.userHcpStats.findFirst({
         orderBy: { totalHcp: 'desc' },
@@ -41,7 +45,14 @@ export async function GET() {
       }),
       prisma.follow.count({ where: { createdAt: { gte: weekAgo } } }),
       prisma.favorite.count({
-        where: { createdAt: { gte: weekAgo }, productId: { not: null } },
+        where: {
+          createdAt: { gte: weekAgo },
+          OR: [
+            { productId: { not: null } },
+            { dishId: { not: null } },
+            { listingId: { not: null } },
+          ],
+        },
       }),
       prisma.workspaceContentComment.count({
         where: { createdAt: { gte: weekAgo } },
@@ -68,6 +79,18 @@ export async function GET() {
           take: 1,
         })
         .catch(() => [] as { productId: string | null; _count: { productId: number } }[]),
+      prisma.favorite
+        .groupBy({
+          by: ['dishId'],
+          where: {
+            dishId: { not: null },
+            createdAt: { gte: weekAgo },
+          },
+          _count: { dishId: true },
+          orderBy: { _count: { dishId: 'desc' } },
+          take: 1,
+        })
+        .catch(() => [] as { dishId: string | null; _count: { dishId: number } }[]),
     ]);
 
     const topHcpUsername =
@@ -77,14 +100,25 @@ export async function GET() {
 
     let mostSavedProductTitle: string | null = null;
     let mostSavedProductCount = 0;
-    const topPid = topSavedGroup[0]?.productId;
-    if (topPid) {
-      mostSavedProductCount = topSavedGroup[0]._count.productId;
+    const topPid = topSavedProductGroup[0]?.productId;
+    const pCount = topPid ? topSavedProductGroup[0]._count.productId : 0;
+    const topDid = topSavedDishGroup[0]?.dishId;
+    const dCount = topDid ? topSavedDishGroup[0]._count.dishId : 0;
+
+    if (pCount >= dCount && topPid) {
+      mostSavedProductCount = pCount;
       const prod = await prisma.product.findUnique({
         where: { id: topPid },
         select: { title: true },
       });
       mostSavedProductTitle = prod?.title?.trim()?.slice(0, 72) || null;
+    } else if (topDid && dCount > 0) {
+      mostSavedProductCount = dCount;
+      const dish = await prisma.dish.findUnique({
+        where: { id: topDid },
+        select: { title: true },
+      });
+      mostSavedProductTitle = dish?.title?.trim()?.slice(0, 72) || null;
     }
 
     const risingGroup = await prisma.product

@@ -63,7 +63,7 @@ export async function getCategoryEcosystem(slug: string): Promise<CategoryEcosys
   }
 
   if (key === 'inspiratie') {
-    const [dishWeek, recipeWeek, savesWeek] = await Promise.all([
+    const [dishWeek, recipeWeek, savesWeek, dishCreatorsWeek, workspaceProfileIds] = await Promise.all([
       prisma.dish.count({
         where: { status: 'PUBLISHED', createdAt: { gte: weekAgo } },
       }),
@@ -76,23 +76,47 @@ export async function getCategoryEcosystem(slug: string): Promise<CategoryEcosys
       prisma.favorite.count({
         where: {
           createdAt: { gte: weekAgo },
-          OR: [{ dishId: { not: null } }, { listingId: { not: null } }],
+          OR: [{ dishId: { not: null } }, { listingId: { not: null } }, { productId: { not: null } }],
         },
       }),
+      prisma.dish.groupBy({
+        by: ['userId'],
+        where: { status: 'PUBLISHED', createdAt: { gte: weekAgo } },
+      }),
+      prisma.workspaceContent
+        .groupBy({
+          by: ['sellerProfileId'],
+          where: { isPublic: true, createdAt: { gte: weekAgo } },
+        })
+        .then((r) => r.map((row) => row.sellerProfileId))
+        .catch(() => [] as string[]),
     ]);
+
+    const profileIds = [...new Set(workspaceProfileIds)].filter(Boolean);
+    const workspaceUserIds =
+      profileIds.length > 0
+        ? await prisma.sellerProfile.findMany({
+            where: { id: { in: profileIds } },
+            select: { userId: true },
+          })
+        : [];
+
+    const inspirationCreatorIds = new Set<string>();
+    for (const d of dishCreatorsWeek) {
+      if (d.userId) inspirationCreatorIds.add(d.userId);
+    }
+    for (const sp of workspaceUserIds) {
+      if (sp.userId) inspirationCreatorIds.add(sp.userId);
+    }
+    const activeCreatorsWeekCount = inspirationCreatorIds.size;
+
     const inspirationPostsWeek = dishWeek + recipeWeek;
     return {
       slug: 'inspiratie',
       generatedAt: new Date().toISOString(),
       activeListings: await prisma.dish.count({ where: { status: 'PUBLISHED' } }),
       newListingsWeek: inspirationPostsWeek,
-      activeCreatorsWeek: await prisma.workspaceContent
-        .groupBy({
-          by: ['sellerProfileId'],
-          where: { isPublic: true, createdAt: { gte: weekAgo } },
-        })
-        .then((r) => r.length)
-        .catch(() => 0),
+      activeCreatorsWeek: activeCreatorsWeekCount,
       inspirationPostsWeek,
       savesWeekApprox: savesWeek,
       risingUsername: null,

@@ -27,6 +27,7 @@ const MAX_CHIPS = 6;
 export default function CommunityPulseBar() {
   const { t, language } = useTranslation();
   const [data, setData] = useState<CommunityPulsePayload | null>(null);
+  const [loading, setLoading] = useState(true);
   const trackedRef = useRef(false);
 
   useEffect(() => {
@@ -39,6 +40,8 @@ export default function CommunityPulseBar() {
         if (!cancelled) setData(j);
       } catch {
         /* ignore */
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
@@ -57,6 +60,23 @@ export default function CommunityPulseBar() {
       discussionWeek: (data.commentsWeek ?? 0) + (data.reviewsWeek ?? 0),
     });
   }, [data]);
+
+  if (loading) {
+    return (
+      <div
+        className="mb-4 rounded-2xl border border-slate-200/90 bg-white/90 px-3 py-3 shadow-sm backdrop-blur-sm"
+        aria-busy="true"
+        aria-label={language === 'en' ? 'Loading community snapshot' : 'Community-moment laden'}
+      >
+        <div className="h-3 w-40 animate-pulse rounded bg-slate-200/90" />
+        <div className="mt-2 flex gap-2">
+          <div className="h-7 w-28 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-7 w-24 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-7 w-32 animate-pulse rounded-full bg-slate-100" />
+        </div>
+      </div>
+    );
+  }
 
   if (!data) return null;
 

@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import EcosystemBackLink from '@/components/community/EcosystemBackLink';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { CategoryEcosystemPayload } from '@/lib/community/getCategoryEcosystem';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 import { useEffect, useRef } from 'react';
 
 const FEED_VERTICAL: Record<string, string> = {
-  keuken: 'CHEFF',
-  tuin: 'GROWN',
-  studio: 'DESIGNER',
+  keuken: 'cheff',
+  tuin: 'garden',
+  studio: 'designer',
 };
 
 export default function CategoryEcosystemClient({ data }: { data: CategoryEcosystemPayload }) {
@@ -26,7 +27,7 @@ export default function CategoryEcosystemClient({ data }: { data: CategoryEcosys
   }, [data.slug]);
 
   const v = FEED_VERTICAL[data.slug];
-  const feedHref = v ? `/?chip=sale&vertical=${v}#homecheff-feed` : '/#homecheff-feed';
+  const feedHref = v ? `/?chip=sale&vertical=${v}#homecheff-feed` : '/?chip=inspiration#homecheff-feed';
   const inspiratieHref = '/inspiratie';
   const affiliateHref = '/affiliate';
 
@@ -35,9 +36,18 @@ export default function CategoryEcosystemClient({ data }: { data: CategoryEcosys
 
   const isCommunity = data.slug === 'community';
   const isInspiratie = data.slug === 'inspiratie';
+  const hasNumericPulse =
+    data.activeListings > 0 ||
+    data.newListingsWeek > 0 ||
+    data.activeCreatorsWeek > 0 ||
+    data.inspirationPostsWeek > 0 ||
+    data.savesWeekApprox > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <EcosystemBackLink />
+      </div>
       <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
         {t(titleKey)}
       </h1>
@@ -107,6 +117,12 @@ export default function CategoryEcosystemClient({ data }: { data: CategoryEcosys
           {data.risingListingCount > 0
             ? ` · ${t('ecosystemVertical.spotlight.newListings', { count: data.risingListingCount })}`
             : null}
+        </p>
+      ) : null}
+
+      {!hasNumericPulse ? (
+        <p className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 text-sm leading-relaxed text-slate-600 shadow-sm">
+          {t('ecosystemVertical.emptyCalm')}
         </p>
       ) : null}
 

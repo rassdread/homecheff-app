@@ -20,13 +20,23 @@ function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefine
   return undefined;
 }
 
+function normalizeHomeFeedVertical(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const v = raw.toLowerCase().trim();
+  if (v === 'cheff' || v === 'chef' || v === 'keuken') return 'cheff';
+  if (v === 'grown' || v === 'garden' || v === 'tuin') return 'garden';
+  if (v === 'designer' || v === 'design' || v === 'studio') return 'designer';
+  if (v === 'all') return 'all';
+  return undefined;
+}
+
 /**
  * Server component: eerste batch inspiratie + optionele feed-chip (/?chip=sale|inspiration|all#homecheff-feed).
  */
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: { chip?: string };
+  searchParams?: { chip?: string; vertical?: string; place?: string };
 }) {
   let items: Awaited<ReturnType<typeof getInspiratieItems>>['items'] = [];
   try {
@@ -38,11 +48,15 @@ export default async function HomePage({
 
   const raw = searchParams?.chip;
   const initialFeedChip = normalizeHomeFeedChip(raw);
+  const initialFeedCategory = normalizeHomeFeedVertical(searchParams?.vertical);
+  const initialFeedPlace = searchParams?.place?.trim().slice(0, 200) || undefined;
 
   return (
     <HomePageClient
       initialInspiratieItems={items}
       initialFeedChip={initialFeedChip}
+      initialFeedCategory={initialFeedCategory}
+      initialFeedPlace={initialFeedPlace}
     />
   );
 }

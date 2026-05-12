@@ -207,14 +207,14 @@
     "heading": "Live from the community",
     "fallbackLine": "Small actions nearby add up — explore makers, listings, and inspiration.",
     "newProducts24h": "{count} new listings in the last 24 hours",
-    "newCreators7d": "{count} new creators joined this week",
-    "newInspiration7d": "{count} new inspiration posts this week",
+    "newCreators7d": "{count} new accounts this week",
+    "newInspiration7d": "{count} new public inspiration posts this week",
     "topHcpSpotlight": "{name} is high on the HomeCheff points board ({points} pts)",
-    "savesWeek": "{count} new saves on listings this week",
+    "savesWeek": "{count} new favorites (listings & inspiration) this week",
     "followsWeek": "{count} new follows this week",
     "discussionWeek": "{count} new reviews and comments this week",
-    "mostSavedThisWeek": "Trending save: “{title}” ({count} saves)",
-    "risingCreatorWeek": "{name} listed {count} new items this week",
+    "mostSavedThisWeek": "Most saved: “{title}” ({count} favorites)",
+    "risingCreatorWeek": "{name} published {count} new product listings this week",
     "activeListersWeek": "{count} creators listed something this week"
   },
   "creatorMomentum": {
@@ -253,7 +253,7 @@
     "title": "Reasons to return",
     "followedCreatorsPosted": "Creators you follow shared something new in the last day.",
     "yourAudienceGrowing": "Your audience grew this week — new followers joined you.",
-    "communitySavesActive": "The community is saving listings this week ({count} saves) — inspiration is moving."
+    "communitySavesActive": "The community is saving a lot this week ({count} favorites) — the village square is moving."
   },
   "ecosystemHub": {
     "sectionAria": "Local creator activity near {city}",
@@ -288,6 +288,8 @@
     }
   },
   "ecosystemVertical": {
+    "backHome": "Back to the village square",
+    "emptyCalm": "There is still little visible activity here — on the feed and in discover you can quietly see what is alive. Become visible in your area by sharing something or posting a listing.",
     "titles": {
       "keuken": "Kitchen ecosystem",
       "tuin": "Garden ecosystem",
@@ -560,6 +562,10 @@
       "minPhotoRequired": "At least 1 photo required",
       "saveGarden": "Save garden project",
       "addFirstGarden": "Add first garden project",
+      "noProjectsYet": "No grow projects yet",
+      "startDocumenting": "Document your plants, harvests, and garden moments so others can see what you grow.",
+      "documentProjects": "Your grow projects show up here. Add photos and updates to share your progress.",
+      "suppressPrimaryCreateHint": "Start a grow using “Post garden inspiration” or “List a garden product on Dorpsplein” above this list.",
       "designer": "Choose from our favorite design and creative emojis",
       "chef": "Choose from our favorite kitchen, cooking and food emojis"
     },

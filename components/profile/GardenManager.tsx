@@ -625,7 +625,7 @@ export default function GardenManager({
       if (errors.length > 0) {
         setMessage({ 
           type: 'error', 
-          text: t('garden.cannotSave', { errors: errors.join(', ') })
+          text: t('chat.garden.cannotSave', { errors: errors.join(', ') })
         });
         
         // Scroll to top of modal to show error
@@ -731,7 +731,7 @@ export default function GardenManager({
         setGrowthPhotos([]); // Reset growth photos
         setShowForm(false);
         setEditingProject(null);
-        setMessage({ type: 'success', text: isEditing ? t('garden.updated') : t('garden.saved') });
+        setMessage({ type: 'success', text: isEditing ? t('chat.garden.updated') : t('chat.garden.saved') });
         resetCreateFlowUiState({ keepDraft: false });
 
         // Reload projects
@@ -741,11 +741,11 @@ export default function GardenManager({
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Garden API error:', response.status, errorData);
-        setMessage({ type: 'error', text: errorData.error || t('garden.saveError', { status: response.status }) });
+        setMessage({ type: 'error', text: errorData.error || t('chat.garden.saveError', { status: response.status }) });
       }
     } catch (error) {
       console.error('❌ Error saving garden project:', error);
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : t('garden.unknownError') });
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : t('chat.garden.unknownError') });
     }
   };
 
@@ -799,15 +799,15 @@ export default function GardenManager({
       });
 
       if (response.ok) {
-        setMessage({ type: 'success', text: t('garden.deleted') });
+        setMessage({ type: 'success', text: t('chat.garden.deleted') });
         loadProjects();
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setMessage({ type: 'error', text: errorData.error || t('garden.deleteError') });
+        setMessage({ type: 'error', text: errorData.error || t('chat.garden.deleteError') });
       }
     } catch (error) {
       console.error('Error deleting garden project:', error);
-      setMessage({ type: 'error', text: t('garden.deleteError') });
+      setMessage({ type: 'error', text: t('chat.garden.deleteError') });
     }
   };
 
@@ -852,7 +852,7 @@ export default function GardenManager({
             <Sprout className="w-5 h-5 text-emerald-600" />
             Mijn Tuin
           </h3>
-          <p className="text-sm text-gray-500">{t('garden.documentProjects')}</p>
+          <p className="text-sm text-gray-500">{t('chat.garden.documentProjects')}</p>
         </div>
         {!isPublic && !suppressPrimaryCreate && (
           <button
@@ -882,7 +882,7 @@ export default function GardenManager({
           onChange={(e) => setSelectedType(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         >
-          <option value="">{t('garden.allTypes')}</option>
+          <option value="">{t('chat.garden.allTypes')}</option>
           {PLANT_TYPES.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
@@ -914,7 +914,7 @@ export default function GardenManager({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                       <Sprout className="w-6 h-6 text-emerald-600" />
-                      {editingProject ? t('garden.editGarden') : t('garden.newGarden')}
+                      {editingProject ? t('chat.garden.editGarden') : t('chat.garden.newGarden')}
                     </h2>
                     <div className="flex flex-wrap gap-2 justify-end">
                       <button
@@ -1294,20 +1294,20 @@ export default function GardenManager({
                     onClick={() => requestGardenFormClose("close")}
                     className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px]"
                   >
-                    {t('garden.cancel')}
+                    {t('chat.garden.cancel')}
                   </button>
                   <button
                     onClick={handleSaveProject}
                     disabled={!formData.title.trim() || formData.photos.filter(photo => !photo.phaseNumber).length === 0}
                     className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={
-                      !formData.title.trim() ? t('garden.plantNameRequired') :
-                      formData.photos.filter(photo => !photo.phaseNumber).length === 0 ? t('garden.minPhotoRequired') :
-                      t('garden.saveGarden')
+                      !formData.title.trim() ? t('chat.garden.plantNameRequired') :
+                      formData.photos.filter(photo => !photo.phaseNumber).length === 0 ? t('chat.garden.minPhotoRequired') :
+                      t('chat.garden.saveGarden')
                     }
                   >
                     <Sprout className="w-4 h-4" />
-                    {editingProject ? t('garden.update') : t('garden.save')}
+                    {editingProject ? t('chat.garden.update') : t('chat.garden.save')}
                   </button>
                 </div>
             </div>
@@ -1343,11 +1343,11 @@ export default function GardenManager({
       {filteredProjects.length === 0 ? (
         <div className="text-center py-12">
           <Sprout className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('garden.noProjectsYet')}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('chat.garden.noProjectsYet')}</h3>
           <p className="text-gray-500">
             {suppressPrimaryCreate
-              ? 'Start een kweek via de knop “Tuin-inspiratie plaatsen” of “Tuinproduct op Dorpsplein zetten” boven deze lijst.'
-              : t('garden.startDocumenting')}
+              ? t('chat.garden.suppressPrimaryCreateHint')
+              : t('chat.garden.startDocumenting')}
           </p>
           {!isPublic && !suppressPrimaryCreate && (
             <button
@@ -1356,7 +1356,7 @@ export default function GardenManager({
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
-              {t('garden.addFirstGarden')}
+              {t('chat.garden.addFirstGarden')}
             </button>
           )}
         </div>

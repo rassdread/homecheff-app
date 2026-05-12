@@ -106,20 +106,51 @@ export async function GET(
       }),
     ]);
 
-    // Get other participant (not the current user) with consistent data structure
-    const otherParticipantData = conversation.ConversationParticipant
-      .find(p => p.userId !== user.id)?.User;
-    
-       const otherParticipant = otherParticipantData ? {
-         id: otherParticipantData.id,
-         name: otherParticipantData.name,
-         username: otherParticipantData.username,
-         profileImage: otherParticipantData.profileImage,
-         displayFullName: otherParticipantData.displayFullName,
-         displayNameOption: otherParticipantData.displayNameOption,
-         sellerVerified:
-           otherParticipantData.DeliveryProfile?.isVerified === true,
-       } : null;
+    // Other row: keep stable id from participant even if User join is missing (deleted / inconsistent data).
+    const otherRow = conversation.ConversationParticipant.find(
+      (p) => p.userId !== user.id
+    );
+    const otherParticipantData = otherRow?.User ?? null;
+
+    const otherParticipant = otherRow
+      ? {
+          id: otherParticipantData?.id ?? otherRow.userId,
+          name: otherParticipantData?.name ?? null,
+          username: otherParticipantData?.username ?? null,
+          profileImage: otherParticipantData?.profileImage ?? null,
+          displayFullName: otherParticipantData?.displayFullName ?? null,
+          displayNameOption: otherParticipantData?.displayNameOption ?? null,
+          sellerVerified:
+            otherParticipantData?.DeliveryProfile?.isVerified === true,
+        }
+      : null;
+
+    const participantsForClient =
+      conversation.ConversationParticipant.filter((p) => p.userId !== user.id)
+        .map((p) =>
+          p.User
+            ? {
+                id: p.User.id,
+                name: p.User.name,
+                username: p.User.username,
+                profileImage: p.User.profileImage,
+                displayFullName: p.User.displayFullName,
+                displayNameOption: p.User.displayNameOption,
+              }
+            : {
+                id: p.userId,
+                name: null,
+                username: null,
+                profileImage: null,
+                displayFullName: null,
+                displayNameOption: null,
+              }
+        );
+
+    const safeMessageCount =
+      typeof messageCount === "number" && Number.isFinite(messageCount)
+        ? messageCount
+        : 0;
 
     // Transform to match the expected format
     const conversationData = {
@@ -131,17 +162,18 @@ export async function GET(
             title: conversation.Product.title,
             priceCents: conversation.Product.priceCents,
             category: conversation.Product.category,
-            Image: conversation.Product.Image,
+            Image: conversation.Product.Image ?? [],
           }
         : null,
       otherParticipant,
+      participants: participantsForClient,
       lastMessageAt: conversation.lastMessageAt,
       isActive: conversation.isActive,
       createdAt: conversation.createdAt,
       relationshipContext: {
         youFollowThem: Boolean(youFollowThemRow),
         theyFollowYou: Boolean(theyFollowYouRow),
-        messageCount,
+        messageCount: safeMessageCount,
         productTitle: conversation.Product?.title?.trim() || null,
         productCategory: conversation.Product?.category ?? null,
       },

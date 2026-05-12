@@ -62,11 +62,15 @@ function pickFirstName(
 type Props = {
   initialInspiratieItems?: InspirationItem[];
   initialFeedChip?: HomeFeedChip;
+  initialFeedCategory?: string;
+  initialFeedPlace?: string;
 };
 
 export default function HomePageClient({
   initialInspiratieItems = [],
   initialFeedChip,
+  initialFeedCategory,
+  initialFeedPlace,
 }: Props) {
   const { t, tOr, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
@@ -270,6 +274,8 @@ export default function HomePageClient({
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}
+            initialFeedCategory={initialFeedCategory}
+            initialFeedPlace={initialFeedPlace}
           />
         </div>
         <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 pt-2 border-t border-gray-200/80">
