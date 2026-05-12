@@ -46,7 +46,7 @@ export default function ReturnBelongingStrip() {
 
   return (
     <div className="mb-4 rounded-2xl border border-slate-200/90 bg-slate-50/85 px-4 py-3 text-sm text-slate-700 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <p className="text-sm font-semibold text-slate-700">
         {t('returnBelonging.title')}
       </p>
       <ul className="mt-2 space-y-1.5">

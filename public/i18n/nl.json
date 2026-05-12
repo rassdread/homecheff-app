@@ -250,10 +250,10 @@
     "calmDefault": "Blijf rustig delen — zinvolle signalen verschijnen als mensen je vinden."
   },
   "returnBelonging": {
-    "title": "Redenen om terug te komen",
+    "title": "Community update",
     "followedCreatorsPosted": "Makers die je volgt, deelden het afgelopen etmaal iets nieuws.",
     "yourAudienceGrowing": "Je publiek groeide deze week — er kwamen nieuwe volgers bij.",
-    "communitySavesActive": "De community slaat deze week veel op ({count} favorieten) — het dorpsplein leeft."
+    "communitySavesActive": "Er worden deze week veel favorieten toegevoegd op het Dorpsplein ({count})."
   },
   "ecosystemHub": {
     "sectionAria": "Lokale makeractiviteit bij {city}",

@@ -1793,7 +1793,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-[70] overflow-hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)} aria-hidden />
           <div className="absolute right-0 top-0 h-full w-full sm:max-w-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col h-full">
@@ -1844,7 +1844,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               </div>
 
               {/* Settings Content */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
                 {renderSettingsContent()}
               </div>
             </div>

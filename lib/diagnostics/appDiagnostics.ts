@@ -29,7 +29,12 @@ export type AppDiagCode =
   | 'feed_inspiration_json_invalid'
   | 'messages_ui_crash'
   | 'onboarding_analytics_http'
-  | 'onboarding_analytics_network';
+  | 'onboarding_analytics_network'
+  | 'pending_intent_resume_started'
+  | 'pending_intent_resume_completed'
+  | 'pending_intent_resume_skipped_duplicate'
+  | 'auth_gate_redirect_skipped'
+  | 'soft_gate_resume_duplicate';
 
 export function reportAppDiagnostic(
   code: AppDiagCode,

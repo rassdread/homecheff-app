@@ -13,6 +13,7 @@ import {
   isPendingIntentExpired,
   resolvePostAuthIntentRedirect,
 } from '@/lib/onboarding/pending-intent';
+import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
 
 function pathSkipsOnboardingGate(pathname: string | null): boolean {
   if (!pathname) return true;
@@ -45,6 +46,18 @@ export default function AuthCompletionGate() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const lastIntentKey = useRef<string | null>(null);
+  const lastReplaceRef = useRef<{ to: string; at: number } | null>(null);
+
+  const replaceOnce = (to: string) => {
+    const now = Date.now();
+    const prev = lastReplaceRef.current;
+    if (prev && prev.to === to && now - prev.at < 900) {
+      reportAppDiagnostic('auth_gate_redirect_skipped', { reason: 'dedupe' });
+      return;
+    }
+    lastReplaceRef.current = { to, at: now };
+    router.replace(to);
+  };
 
   useEffect(() => {
     if (status === 'loading' || status === 'unauthenticated') return;
@@ -60,7 +73,7 @@ export default function AuthCompletionGate() {
     if (needsProfileOnboardingFromFlags(flags)) {
       if (pathSkipsOnboardingGate(pathname)) return;
       if (registerAllowsEmailFlow(pathname, social)) return;
-      router.replace('/onboarding/complete-profile');
+      replaceOnce('/onboarding/complete-profile');
       return;
     }
 
@@ -89,15 +102,15 @@ export default function AuthCompletionGate() {
     lastIntentKey.current = dedupeKey;
 
     if (url.startsWith('/auth/resume-intent')) {
-      router.replace(url);
+      replaceOnce(url);
       return;
     }
     if (url.startsWith('/auth/resume-interaction')) {
-      router.replace(url);
+      replaceOnce(url);
       return;
     }
     clearPendingIntent();
-    router.replace(url);
+    replaceOnce(url);
   }, [pathname, router, searchParams, session?.user, status]);
 
   return null;

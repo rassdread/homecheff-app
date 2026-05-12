@@ -38,6 +38,7 @@ import {
   normalizeLastMessage,
   type NormalizedConversationListItem,
 } from '@/lib/chat/normalizeConversation';
+import { HC_BOTTOM_NAV_SCROLL_PADDING } from '@/lib/layout/bottomNavInset';
 
 const NATIVE_CONV_LIST_KIND = 'conv_list';
 const NATIVE_CONV_LIST_TTL_MS = 10 * 60 * 1000;
@@ -661,15 +662,14 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
 
   const listShellPad = nativeMounted ? 'p-3' : 'p-4';
 
-  /** Mobiel web: AppPageChrome reserveert al bottom-nav + safe-area — alleen kleine binnenmarge. */
+  /** Mobiel web + native iOS scrollport: extra ruimte onder laatste rij (tabbalk zit buiten dit vlak of al in parent-budget). */
   const listScrollPadBottom =
-    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
-  /** Native iOS scrollport: nav zit buiten scrollhoogte (globals); geen dubbele “nav-hoogte”-padding. */
+    'pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]';
+  /** Native iOS scrollport: zelfde kleine inset als web inner list. */
   const listScrollPadNative =
-    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
-  /** Android native body-scroll: zelfde als web — outer chrome heeft al bottom-nav ruimte. */
-  const listBodyScrollPadBottom =
-    'pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)]';
+    'pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]';
+  /** Android native: document/#main-content scroll — reserveer tabbalk + safe-area onder de lijst. */
+  const listBodyScrollPadBottom = HC_BOTTOM_NAV_SCROLL_PADDING;
 
   const searchChrome = (
     <div
@@ -765,7 +765,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         className={cn(
           'flex min-h-0 flex-col animate-pulse',
           'h-full flex-1 lg:h-full',
-          'max-lg:flex-none max-lg:h-auto',
+          'max-lg:min-h-0 max-lg:flex-1',
           listShellPad,
           nativeMounted ? 'max-lg:overflow-hidden lg:overflow-hidden' : 'overflow-hidden'
         )}
@@ -774,9 +774,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         <div
           ref={listScrollRef}
           className={cn(
-            'hc-conversations-list-scroll min-h-0 touch-pan-y space-y-2 overscroll-y-contain [-webkit-overflow-scrolling:touch]',
-            'lg:flex-1 lg:overflow-y-scroll',
-            'max-lg:flex-none max-lg:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))] max-lg:overflow-y-auto'
+            'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y space-y-2 overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+            'overflow-y-auto',
+            'lg:overflow-y-scroll',
+            listScrollPadBottom
           )}
         >
           {skeletonRows}
@@ -788,9 +789,14 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
   }
 
-  if (conversations.length === 0) {
+    if (conversations.length === 0) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto py-8 text-gray-500">
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto py-8 text-gray-500',
+          nativeAndroidListBodyScroll && HC_BOTTOM_NAV_SCROLL_PADDING
+        )}
+      >
         <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
         <p className="text-lg font-medium">{t('messages.noConversationsYet')}</p>
         <p className="text-sm">{t('messages.startConversation')}</p>
@@ -1058,7 +1064,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       className={cn(
         'flex min-h-0 flex-col',
         'h-full flex-1 lg:h-full',
-        'max-lg:flex-none max-lg:h-auto'
+        'max-lg:min-h-0 max-lg:flex-1'
       )}
     >
       {searchChrome}
@@ -1066,9 +1072,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         ref={listScrollRef}
         data-hc-app-scroll="messages-list"
         className={cn(
-          'hc-conversations-list-scroll min-h-0 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]',
-          'lg:flex-1 lg:overflow-y-scroll',
-          'max-lg:flex-none max-lg:max-h-[calc(100dvh-9.75rem-env(safe-area-inset-bottom,0px))] max-lg:overflow-y-auto',
+          'hc-conversations-list-scroll min-h-0 flex-1 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+          'overflow-y-auto',
+          'lg:overflow-y-scroll',
           listScrollPadBottom
         )}
       >

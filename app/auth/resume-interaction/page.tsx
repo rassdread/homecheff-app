@@ -10,8 +10,12 @@ import {
   isPendingIntentExpired,
 } from '@/lib/onboarding/pending-intent';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
 
 import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
+
+/** Voorkomt dubbele async (o.a. React Strict Mode) op dezelfde intent. */
+let resumeInflightKey: string | null = null;
 
 function safeReturn(path: string | undefined | null, fallback: string): string {
   const s = sanitizePostAuthRelativeUrl(path || '');
@@ -45,7 +49,19 @@ export default function ResumeInteractionPage() {
       return;
     }
 
+    const intentKey = `${intent.type}:${intent.createdAt}`;
+    if (resumeInflightKey === intentKey) {
+      reportAppDiagnostic('pending_intent_resume_skipped_duplicate', {
+        reason: 'inflight',
+      });
+      return;
+    }
+    resumeInflightKey = intentKey;
+
     ran.current = true;
+    reportAppDiagnostic('pending_intent_resume_started', {
+      kind: intent.type,
+    });
 
     void (async () => {
       const returnTo = safeReturn(intent.returnPath, '/');
@@ -104,9 +120,14 @@ export default function ResumeInteractionPage() {
 
         clearPendingIntent();
         router.replace(returnTo);
+        reportAppDiagnostic('pending_intent_resume_completed', {
+          kind: intent.type,
+        });
       } catch {
         clearPendingIntent();
         setError('Kon je actie niet automatisch afronden. Ga terug en probeer nog eens.');
+      } finally {
+        if (resumeInflightKey === intentKey) resumeInflightKey = null;
       }
     })();
   }, [router, session?.user, status]);

@@ -250,10 +250,10 @@
     "calmDefault": "Keep sharing calmly — meaningful signals appear as people discover you."
   },
   "returnBelonging": {
-    "title": "Reasons to return",
+    "title": "Community update",
     "followedCreatorsPosted": "Creators you follow shared something new in the last day.",
     "yourAudienceGrowing": "Your audience grew this week — new followers joined you.",
-    "communitySavesActive": "The community is saving a lot this week ({count} favorites) — the village square is moving."
+    "communitySavesActive": "Lots of favorites are being added on Dorpsplein this week ({count})."
   },
   "ecosystemHub": {
     "sectionAria": "Local creator activity near {city}",
