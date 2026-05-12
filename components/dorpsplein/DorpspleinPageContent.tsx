@@ -37,6 +37,7 @@ import { getHintsForPage } from "@/lib/onboarding/hints";
 import ClientOnly from "@/components/util/ClientOnly";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAffiliateLink } from "@/hooks/useAffiliateLink";
+import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 
 type HomeItem = {
   id: string;
@@ -108,26 +109,6 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
   // Debug session status
   useEffect(() => {
 
-  }, [session, status]);
-
-  // Check if user needs to complete onboarding (new social login user)
-  // ALWAYS redirect if user has temp username (new social login user who hasn't completed registration)
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const username = (session.user as any)?.username;
-      const hasTempUsername = username?.startsWith('temp_');
-      const socialOnboardingCompleted = (session.user as any)?.socialOnboardingCompleted;
-      
-      // ALWAYS redirect if user has temp username (new social login user)
-      // This ensures users with temp usernames always complete onboarding
-      if (hasTempUsername || !socialOnboardingCompleted) {
-        // Only redirect if not already on register page
-        if (window.location.pathname !== '/register') {
-          const baseUrl = typeof window !== 'undefined' ? `${window.location.origin.replace(/\/$/, '')}` : '';
-          window.location.href = `${baseUrl}/register?social=true`;
-        }
-      }
-    }
   }, [session, status]);
 
   const [username, setUsername] = useState<string>("");
@@ -1059,7 +1040,11 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
   const handleProductClick = (product: any) => {
     // Check if user is logged in
     if (!session?.user) {
-      // Redirect to login with callback URL
+      savePendingIntent({
+        type: "save_item",
+        targetId: product.id,
+        returnPath: `/product/${product.id}`,
+      });
       window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(`/product/${product.id}`)}`;
       return;
     }
@@ -1709,6 +1694,11 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
+                              savePendingIntent({
+                                type: "save_item",
+                                targetId: item.id,
+                                returnPath: `/product/${item.id}`,
+                              });
                               window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(`/product/${item.id}`)}`;
                             }}
                             className="w-full px-4 py-2.5 bg-primary-brand text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-sm"

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, getSession, useSession } from "next-auth/react";
 import { isSafari, isIOS, getSafariCookieDelay, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
 import { Button } from "@/components/ui/Button";
-import { clearAllUserData } from "@/lib/session-cleanup";
+import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
 import Link from "next/link";
 import CountrySelector from "@/components/ui/CountrySelector";
@@ -31,6 +31,7 @@ import {
   resolvePathAfterSocialAuth,
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
+import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
 
 // User types will be loaded dynamically based on language
 const getUserTypes = (t: (key: string) => string) => [
@@ -376,11 +377,16 @@ function RegisterPageContent() {
             await new Promise((resolve) => setTimeout(resolve, 400));
             flags = await fetchOnboardingFlags();
           }
-          if (flags && resolvePathAfterSocialAuth(flags) === "/") {
+          const resolved =
+            flags ?? onboardingFlagsFromSessionUser(session.user as any);
+          const nextPath = resolvePathAfterSocialAuth(resolved);
+          if (nextPath === "/") {
             console.log('🔍 [REGISTER] Onboarding complete, redirecting before loading form');
-            window.location.replace('/');
+            window.location.replace("/");
             return;
           }
+          window.location.replace(nextPath);
+          return;
 
           let socialEmail = '';
           let socialName = '';
@@ -492,7 +498,7 @@ function RegisterPageContent() {
       const hasCleared = safeSessionStorageGetItem('register_cleared');
       
       if (!hasCleared) {
-        clearAllUserData();
+        clearStorageForCredentialLoginStart();
         safeSessionStorageSetItem('register_cleared', 'true');
         
         // Also clear browser autofill data by resetting form fields
@@ -1550,7 +1556,7 @@ function RegisterPageContent() {
       return;
     }
     try {
-      // OAuth eindigt op /auth/social-success (sessie + doorverwijzing naar / of /register?social=true).
+      // OAuth eindigt op /auth/social-success (sessie + doorverwijzing naar / of /onboarding/complete-profile).
       await signIn(provider, {
         callbackUrl: '/auth/social-success',
         redirect: true,
@@ -1595,50 +1601,19 @@ function RegisterPageContent() {
     
     try {
       if (isSocialLogin) {
-        const isSeller = state.userTypes.length > 0;
-        const isBuyer = !!state.selectedBuyerType;
-
-        if (
-          !state.phoneNumber ||
-          !state.address ||
-          !state.city ||
-          !state.postalCode ||
-          !state.country ||
-          !state.street ||
-          !state.houseNumber ||
-          state.lat === null ||
-          state.lng === null
-        ) {
-          setState(prev => ({
-            ...prev,
-            error: t('register.validation.fillContactDetails')
-          }));
-          return;
-        }
+        const displayName =
+          [state.firstName, state.lastName].filter(Boolean).join(" ").trim() || undefined;
 
         const response = await fetch("/api/auth/complete-social-onboarding", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            completionMode: "minimal",
             username: state.username,
-            role: isSeller ? "SELLER" : "BUYER",
-            isBuyer,
-            isSeller,
-            userTypes: state.userTypes,
-            selectedBuyerType: state.selectedBuyerType,
-            phoneNumber: state.phoneNumber,
-            address: state.address,
-            street: state.street,
-            houseNumber: state.houseNumber,
-            city: state.city,
-            postalCode: state.postalCode,
-            country: state.country,
-            lat: state.lat,
-            lng: state.lng,
+            displayName: displayName || undefined,
             acceptedTerms: state.acceptTerms,
             acceptedPrivacy: state.acceptPrivacyPolicy,
-            password: state.password || undefined, // Optional password for social login users
           })
         });
 
@@ -1669,8 +1644,11 @@ function RegisterPageContent() {
         safeSessionStorageRemoveItem("pendingRegistration");
         safeSessionStorageRemoveItem("register_cleared");
 
-        // Gebruik window.location.replace voor clean redirect (geen back button issues)
-        window.location.replace("/?welcome=true&onboarding=completed");
+        const s = await getSession();
+        const u = s?.user as { username?: string | null; socialOnboardingCompleted?: boolean | null } | undefined;
+        const next =
+          (u && consumeAndResolvePostAuthUrl(u)) || "/?welcome=true&onboarding=completed";
+        window.location.replace(next);
         return;
       }
 

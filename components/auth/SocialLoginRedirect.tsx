@@ -22,9 +22,9 @@ import {
  * 
  * Flow:
  * 1. User logs in with social (e.g. Google)
- * 2. /auth/social-success redirect naar /register?social=true indien nodig
+ * 2. /auth/social-success redirect naar /onboarding/complete-profile indien nodig
  * 3. register page handles onboarding
- * 4. If user navigates away, this component redirects back to /register?social=true
+ * 4. If user navigates away, this component redirects back to /onboarding/complete-profile
  * 5. Only after onboarding is complete, user gets full access
  */
 export default function SocialLoginRedirect() {
@@ -99,9 +99,9 @@ export default function SocialLoginRedirect() {
           if (needsOnboarding && pathname !== '/register' && !hasRedirected.current) {
             hasRedirected.current = true;
             console.log(
-              '🔍 [SocialLoginRedirect] User needs onboarding, redirecting to /register?social=true',
+              '🔍 [SocialLoginRedirect] User needs onboarding, redirecting to /onboarding/complete-profile',
             );
-            window.location.href = '/register?social=true';
+            window.location.href = '/onboarding/complete-profile';
           }
         } catch (error) {
           console.error('❌ [SocialLoginRedirect] Error checking onboarding:', error);

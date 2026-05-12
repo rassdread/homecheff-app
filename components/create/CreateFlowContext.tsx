@@ -13,11 +13,13 @@ import { useSession } from "next-auth/react";
 import { dispatchOpenQuickAdd } from "@/lib/quickAddOpen";
 import {
   clearCreateFlowIntent,
+  peekCreateFlowIntent,
   setCreateFlowIntent,
   type CreateFlowIntent,
 } from "@/lib/createFlowIntent";
 import { clickDebug } from "@/lib/click-debug";
 import { getCreateAuthReturnUrls } from "@/lib/createAuthReturnUrls";
+import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 import {
   AFTER_LOGIN_CREATE_ACTION_KEY,
   clearPendingOpenQuickAddAfterLogin,
@@ -41,6 +43,18 @@ export function useCreateFlow(): CreateFlowContextValue {
     throw new Error("useCreateFlow must be used within CreateFlowProvider");
   }
   return ctx;
+}
+
+function persistCreatePendingIntent() {
+  if (typeof window === "undefined") return;
+  const ci = peekCreateFlowIntent();
+  const mode = ci?.mode ?? "dorpsplein";
+  savePendingIntent({
+    type: mode === "inspiratie" ? "create_inspiration" : "create_item",
+    mode,
+    vertical: ci?.vertical,
+    returnPath: `${window.location.pathname}${window.location.search}`,
+  });
 }
 
 export function CreateFlowProvider({ children }: { children: ReactNode }) {
@@ -76,6 +90,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       if (now - lastOpenAt.current < 400) return;
       lastOpenAt.current = now;
       setPendingOpenQuickAddAfterLogin();
+      persistCreatePendingIntent();
       setAuthUrls(getCreateAuthReturnUrls());
       setGuestOpen(true);
       return;
@@ -102,6 +117,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
         if (now - lastOpenAt.current < 400) return;
         lastOpenAt.current = now;
         setPendingOpenQuickAddAfterLogin();
+        persistCreatePendingIntent();
         setAuthUrls(getCreateAuthReturnUrls());
         setGuestOpen(true);
         return;

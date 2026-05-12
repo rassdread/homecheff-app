@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Session } from 'next-auth';
 import { ArrowRight, BarChart3, CheckCircle2, ChevronDown, Link2, QrCode, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 import AppBackBar from '@/components/navigation/AppBackBar';
 
 type UserCard = {
@@ -14,6 +15,13 @@ type UserCard = {
   hasSellerProfile?: boolean;
   hasDeliveryProfile?: boolean;
 };
+
+function armAffiliateJoinIntent() {
+  savePendingIntent({
+    type: 'join_affiliate',
+    returnPath: '/affiliate',
+  });
+}
 
 type Props = {
   session: Session | null;
@@ -135,6 +143,7 @@ export default function AffiliateGrowthLanding({
                 ) : (
                   <Link
                     href="/register?returnUrl=/affiliate"
+                    onClick={armAffiliateJoinIntent}
                     className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 sm:max-w-xs"
                   >
                     {t('affiliate.growth.ctaStartFree')}
@@ -450,12 +459,14 @@ export default function AffiliateGrowthLanding({
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-center">
               <Link
                 href="/register?returnUrl=/affiliate"
+                onClick={armAffiliateJoinIntent}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
               >
                 {t('affiliate.accountRequired.createAccount')}
               </Link>
               <Link
                 href="/login?callbackUrl=/affiliate"
+                onClick={armAffiliateJoinIntent}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
               >
                 {t('affiliate.accountRequired.login')}
@@ -480,6 +491,7 @@ export default function AffiliateGrowthLanding({
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
           <Link
             href="/register?returnUrl=/affiliate"
+            onClick={armAffiliateJoinIntent}
             className="flex w-full min-h-[46px] items-center justify-center rounded-xl bg-emerald-700 text-sm font-semibold text-white"
           >
             {t('affiliate.growth.ctaStartFree')}

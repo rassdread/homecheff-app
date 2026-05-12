@@ -1,23 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearAllUserData } from '@/lib/session-cleanup';
+import { clearSensitiveUserDataOnLogout } from '@/lib/session-cleanup';
 
 /**
- * Component that guards against session data leakage.
- * When unauthenticated we only clear local/session storage (clearAllUserData).
- * We do NOT call clearNextAuthData() here: that wipes cookies and reloads, and would
- * trigger on transient refetch failures in Chrome (refetchOnWindowFocus), causing reload loops.
- * clearNextAuthData + hard redirect is only a fallback if signOut throws.
+ * Clears sensitive storage only on a confirmed transition to logged-out
+ * (avoids wiping create-flow drafts / pending intent on a brief "unauthenticated" flicker).
  */
 export default function SessionGuard() {
   const { status } = useSession();
+  const prev = useRef<typeof status | null>(null);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      clearAllUserData();
+    if (prev.current === 'authenticated' && status === 'unauthenticated') {
+      clearSensitiveUserDataOnLogout();
     }
+    prev.current = status;
   }, [status]);
 
   return null;

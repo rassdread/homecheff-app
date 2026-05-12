@@ -8,6 +8,7 @@ import NativePushTokenSync from '@/components/native/NativePushTokenSync';
 import NativePushPermissionOnboarding from '@/components/native/NativePushPermissionOnboarding';
 import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
+import AuthCompletionGate from '@/components/auth/AuthCompletionGate';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
 import AndroidCreateFlowBackBridge from '@/components/native/AndroidCreateFlowBackBridge';
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
@@ -52,6 +53,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <NativePushPermissionOnboarding />
         </Suspense>
         <SessionGuard />
+        <Suspense fallback={null}>
+          <AuthCompletionGate />
+        </Suspense>
         <SessionIsolationWrapper>
           <UserBootstrapProvider>
             <HcpRewardProvider>

@@ -3,6 +3,10 @@
  */
 
 import { clearAllCartData } from '@/lib/cart';
+import { AFTER_LOGIN_CREATE_ACTION_KEY } from '@/lib/afterLoginCreateIntent';
+import { REGISTER_DRAFT_STORAGE_KEY } from '@/lib/auth/post-auth-redirect';
+import { HC_CREATE_FLOW_INTENT_KEY } from '@/lib/createFlowIntent';
+import { PENDING_INTENT_STORAGE_KEY } from '@/lib/onboarding/pending-intent';
 import { clearAllNativePersistedCaches } from '@/lib/native/nativePersistedCache';
 import { NATIVE_SHELL_STORAGE_KEY } from '@/lib/native/nativeShellKeys';
 
@@ -89,6 +93,213 @@ export function clearAllUserData(): void {
             db.name.includes('user') ||
             db.name.includes('cart')
           )) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        });
+      });
+    } catch (error) {
+      console.warn('Could not clear IndexedDB:', error);
+    }
+  }
+}
+
+function preserveDraftOrPrefsLocalKey(key: string): boolean {
+  if (key === 'homecheff-language' || key.startsWith('i18n-')) return true;
+  if (key === REGISTER_DRAFT_STORAGE_KEY) return true;
+  if (
+    key === 'pendingProductPhoto' ||
+    key === 'recipeToProductData' ||
+    key === 'gardenToProductData' ||
+    key === 'designToProductData' ||
+    key === 'designFormDraft' ||
+    key === 'pendingInspiratiePhoto' ||
+    key === 'inspiratieToProductData'
+  ) {
+    return true;
+  }
+  if (
+    key.startsWith('hc_app_resume') ||
+    key.startsWith('hc_cap_') ||
+    key.startsWith('hc_nat_v1_')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function clearSessionStorageExcept(keep: ReadonlySet<string>): void {
+  if (typeof window === 'undefined') return;
+  const toRemove: string[] = [];
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (key && !keep.has(key)) toRemove.push(key);
+  }
+  toRemove.forEach((k) => {
+    try {
+      sessionStorage.removeItem(k);
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+/**
+ * Voor e-mail/wachtwoord-login: ruim caches op zonder pending intent, register-draft of create-intent te wissen.
+ */
+export function clearStorageForCredentialLoginStart(): void {
+  if (typeof window === 'undefined') return;
+
+  clearAllCartData();
+  clearAllNativePersistedCaches();
+  try {
+    localStorage.removeItem(NATIVE_SHELL_STORAGE_KEY);
+    localStorage.removeItem('hc_app_prefs_v1');
+  } catch {
+    /* ignore */
+  }
+
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (preserveDraftOrPrefsLocalKey(key)) continue;
+    if (
+      key.startsWith('hc_app_resume') ||
+      key.startsWith('hc_cap_') ||
+      key.startsWith('hc_nat_v1_') ||
+      key.startsWith('hc_npush_') ||
+      key.startsWith('hc_app_prefs') ||
+      key.startsWith('homecheff_') ||
+      key.startsWith('user_') ||
+      key.startsWith('delivery_') ||
+      key.startsWith('seller_') ||
+      key.startsWith('current_user') ||
+      key.includes('profile') ||
+      key.includes('settings') ||
+      key.includes('cart') ||
+      key.includes('favorites') ||
+      key.includes('search') ||
+      key.includes('filters') ||
+      key.includes('preferences') ||
+      key.includes('notifications') ||
+      key.includes('auth') ||
+      key.includes('session') ||
+      key.includes('token')
+    ) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* ignore */
+    }
+  });
+
+  clearSessionStorageExcept(
+    new Set([
+      PENDING_INTENT_STORAGE_KEY,
+      REGISTER_DRAFT_STORAGE_KEY,
+      HC_CREATE_FLOW_INTENT_KEY,
+      AFTER_LOGIN_CREATE_ACTION_KEY,
+      'pendingRegistration',
+      'register_cleared',
+      'login_cleared',
+      'hc_npush_gate',
+    ]),
+  );
+}
+
+/**
+ * Na bevestigde logout (authenticated → unauthenticated): gevoelige data weg, concepten/listings-draft bewaren.
+ */
+export function clearSensitiveUserDataOnLogout(): void {
+  if (typeof window === 'undefined') return;
+
+  clearAllCartData();
+  clearAllNativePersistedCaches();
+  try {
+    localStorage.removeItem(NATIVE_SHELL_STORAGE_KEY);
+    localStorage.removeItem('hc_app_prefs_v1');
+  } catch {
+    /* ignore */
+  }
+
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (preserveDraftOrPrefsLocalKey(key)) continue;
+    if (
+      key.startsWith('hc_app_resume') ||
+      key.startsWith('hc_cap_') ||
+      key.startsWith('hc_nat_v1_') ||
+      key.startsWith('hc_npush_') ||
+      key.startsWith('hc_app_prefs') ||
+      key.startsWith('homecheff_') ||
+      key.startsWith('user_') ||
+      key.startsWith('delivery_') ||
+      key.startsWith('seller_') ||
+      key.startsWith('current_user') ||
+      key.includes('profile') ||
+      key.includes('settings') ||
+      key.includes('cart') ||
+      key.includes('favorites') ||
+      key.includes('search') ||
+      key.includes('filters') ||
+      key.includes('preferences') ||
+      key.includes('notifications') ||
+      key.includes('auth') ||
+      key.includes('session') ||
+      key.includes('token')
+    ) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* ignore */
+    }
+  });
+
+  clearSessionStorageExcept(
+    new Set([
+      REGISTER_DRAFT_STORAGE_KEY,
+      HC_CREATE_FLOW_INTENT_KEY,
+      AFTER_LOGIN_CREATE_ACTION_KEY,
+      'register_cleared',
+      'hc_npush_gate',
+    ]),
+  );
+
+  if ('caches' in window) {
+    caches.keys().then((cacheNames) => {
+      cacheNames.forEach((cacheName) => {
+        if (
+          cacheName.includes('homecheff') ||
+          cacheName.includes('user') ||
+          cacheName.includes('api') ||
+          cacheName.includes('next')
+        ) {
+          caches.delete(cacheName);
+        }
+      });
+    });
+  }
+
+  if ('indexedDB' in window) {
+    try {
+      indexedDB.databases().then((databases) => {
+        databases.forEach((db) => {
+          if (
+            db.name &&
+            (db.name.includes('homecheff') ||
+              db.name.includes('user') ||
+              db.name.includes('cart'))
+          ) {
             indexedDB.deleteDatabase(db.name);
           }
         });
@@ -249,8 +460,7 @@ export function setupSessionIsolation(): void {
   
   // Only clear if we have a previous user and it's different from current
   if (lastUserId && currentUserId && lastUserId !== currentUserId) {
-
-    clearAllUserData();
+    clearSensitiveUserDataOnLogout();
   }
   
   // Store current user ID for next session (only if we have one)
@@ -289,9 +499,9 @@ export async function performLogout(target: string = '/'): Promise<void> {
     /* ignore */
   }
 
-  // Lokale data direct weg.
+  // Lokale data: gevoelige keys weg, create-/listing-concepten waar mogelijk bewaren.
   try {
-    clearAllUserData();
+    clearSensitiveUserDataOnLogout();
   } catch {
     /* never block logout on cleanup errors */
   }

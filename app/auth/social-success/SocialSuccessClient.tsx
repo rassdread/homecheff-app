@@ -11,6 +11,7 @@ import {
   onboardingFlagsFromSessionUser,
   resolvePathAfterSocialAuth,
 } from '@/lib/auth/post-auth-redirect';
+import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
 
 const MAX_WAIT_MS = 15_000;
 const POLL_MS = 400;
@@ -41,7 +42,7 @@ function oauthErrorMessage(code: string | null): string | null {
   return 'Inloggen is mislukt. Probeer het opnieuw.';
 }
 
-async function resolvePostAuthPath(): Promise<'/' | '/register?social=true'> {
+async function resolvePostAuthPath(): Promise<'/' | '/onboarding/complete-profile'> {
   let flags = await fetchOnboardingFlags();
   if (!flags) {
     await new Promise((r) => setTimeout(r, 400));
@@ -110,7 +111,19 @@ function SocialSuccessInner() {
       /* ignore */
     }
 
-    const target = await resolvePostAuthPath();
+    const base = await resolvePostAuthPath();
+    let target = base;
+    if (base === '/') {
+      const s = await getSession();
+      const u = s?.user as {
+        username?: string | null;
+        socialOnboardingCompleted?: boolean | null;
+      };
+      if (u) {
+        const intentUrl = consumeAndResolvePostAuthUrl(u);
+        if (intentUrl) target = intentUrl;
+      }
+    }
     const isIOSDevice = isIOS();
     const isSafariOnIOS = isSafariIOS();
     const delay = isSafariOnIOS ? 400 : isIOSDevice ? 300 : 150;

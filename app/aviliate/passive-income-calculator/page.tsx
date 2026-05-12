@@ -1,48 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { TrendingUp, DollarSign, Calendar, Users, ArrowRight, CheckCircle, Sparkles } from 'lucide-react';
+import { TrendingUp, DollarSign, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+
+const p = 'affiliate.passiveIncomeCalculator';
 
 export default function PassiveIncomeCalculator() {
   const { t } = useTranslation();
   const [months, setMonths] = useState(12);
   const [subscriptionsPerMonth, setSubscriptionsPerMonth] = useState(2);
-  const [avgSubscriptionPrice, setAvgSubscriptionPrice] = useState(99); // €99/maand gemiddeld
-  const [sellersPerMonth, setSellersPerMonth] = useState(10); // Particuliere verkopers die je aanbrengt
-  const [transactionsPerSellerPerMonth, setTransactionsPerSellerPerMonth] = useState(5); // Transacties per verkoper per maand
-  const [businessTransactionsPerMonth, setBusinessTransactionsPerMonth] = useState(20); // Transacties per bedrijf per maand
-  const [avgTransactionValue, setAvgTransactionValue] = useState(100); // €100 gemiddelde transactie
-  const [sellerTransactionFeePct, setSellerTransactionFeePct] = useState(12); // 12% platform fee (particulier)
-  const [businessTransactionFeePct, setBusinessTransactionFeePct] = useState(4); // 4% platform fee (Pro bedrijf)
+  const [avgSubscriptionPrice, setAvgSubscriptionPrice] = useState(99);
+  const [sellersPerMonth, setSellersPerMonth] = useState(10);
+  const [transactionsPerSellerPerMonth, setTransactionsPerSellerPerMonth] = useState(5);
+  const [businessTransactionsPerMonth, setBusinessTransactionsPerMonth] = useState(20);
+  const [avgTransactionValue, setAvgTransactionValue] = useState(100);
 
-  // Echte subscription prijzen van HomeCheff
-  const subscriptionPrices = {
-    basic: 39,   // €39/maand (Basic)
-    pro: 99,     // €99/maand (Pro)
-    premium: 199 // €199/maand (Premium)
-  };
+  const sellerTransactionFeePct = 12;
+  const businessTransactionFeePct = 4;
 
-  // Affiliate krijgt 50% van subscription fee
-  const affiliateCommissionPct = 0.50;
-  
-  // Affiliate krijgt 25% van transaction fee
+  const affiliateCommissionPct = 0.5;
   const transactionCommissionPct = 0.25;
 
-  // Berekenen
   const totalSubscriptions = subscriptionsPerMonth * months;
-  
-  // Transaction fee berekening
-  // Voor particuliere verkopers: 12% fee
-  const sellerTransactionFee = (avgTransactionValue * sellerTransactionFeePct) / 100; // Bijv. €100 * 12% = €12
-  const commissionPerSellerTransaction = sellerTransactionFee * transactionCommissionPct; // 25% van €12 = €3
-  
-  // Voor bedrijven: 4% fee (Pro plan)
-  const businessTransactionFee = (avgTransactionValue * businessTransactionFeePct) / 100; // Bijv. €100 * 4% = €4
-  const commissionPerBusinessTransaction = businessTransactionFee * transactionCommissionPct; // 25% van €4 = €1
-  
-  // Cumulative revenue (passief inkomen groeit elke maand)
+
+  const sellerTransactionFee = (avgTransactionValue * sellerTransactionFeePct) / 100;
+  const commissionPerSellerTransaction = sellerTransactionFee * transactionCommissionPct;
+
+  const businessTransactionFee = (avgTransactionValue * businessTransactionFeePct) / 100;
+  const commissionPerBusinessTransaction = businessTransactionFee * transactionCommissionPct;
+
   let cumulativeRevenue = 0;
   let totalMonthlyRevenue = 0;
   const monthlyBreakdown: Array<{
@@ -59,39 +47,32 @@ export default function PassiveIncomeCalculator() {
     activeRevenue: number;
     cumulative: number;
   }> = [];
-  
+
   for (let month = 1; month <= months; month++) {
-    // Nieuwe subscriptions deze maand
     const newSubscriptions = subscriptionsPerMonth;
     const newSubscriptionRevenue = newSubscriptions * avgSubscriptionPrice * affiliateCommissionPct;
-    
-    // Bestaande subscriptions (van vorige maanden, maximaal 12 maanden actief per subscription)
+
     const activeSubscriptions = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
     const activeSubscriptionRevenue = activeSubscriptions * avgSubscriptionPrice * affiliateCommissionPct;
-    
-    // Transaction fees van bedrijven (actieve bedrijven, maximaal 12 maanden actief)
+
     const activeBusinesses = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
-    const monthlyBusinessTransactionRevenue = activeBusinesses * businessTransactionsPerMonth * commissionPerBusinessTransaction;
-    
-    // Transaction fees van particuliere verkopers (actieve verkopers, maximaal 12 maanden actief)
+    const monthlyBusinessTransactionRevenue =
+      activeBusinesses * businessTransactionsPerMonth * commissionPerBusinessTransaction;
+
     const activeSellers = Math.min(month * sellersPerMonth, 12 * sellersPerMonth);
-    const monthlySellerTransactionRevenue = activeSellers * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
-    
-    // Totale transactie revenue
+    const monthlySellerTransactionRevenue =
+      activeSellers * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
+
     const totalTransactionRevenue = monthlyBusinessTransactionRevenue + monthlySellerTransactionRevenue;
-    
-    // Nieuwe revenue deze maand
+
     const newMonthlyRevenue = newSubscriptionRevenue;
-    
-    // Totale maandelijkse revenue (subscriptions + transacties)
+
     const totalMonthlyRevenueThisMonth = activeSubscriptionRevenue + totalTransactionRevenue;
-    
-    // Cumulative = totaal verdiend tot nu toe
+
     cumulativeRevenue += newMonthlyRevenue;
-    
-    // Total monthly = wat je deze maand verdient
+
     totalMonthlyRevenue = totalMonthlyRevenueThisMonth;
-    
+
     monthlyBreakdown.push({
       month,
       newSubscriptions,
@@ -104,484 +85,296 @@ export default function PassiveIncomeCalculator() {
       sellerTransactionRevenue: monthlySellerTransactionRevenue,
       transactionRevenue: totalTransactionRevenue,
       activeRevenue: totalMonthlyRevenueThisMonth,
-      cumulative: cumulativeRevenue
+      cumulative: cumulativeRevenue,
     });
   }
-  
-  // Totale revenue = som van alle maandelijkse inkomsten
+
   const totalRevenue = monthlyBreakdown.reduce((sum, item) => sum + item.activeRevenue, 0);
-  
-  // Maand 12+ scenario (passief inkomen blijft doorlopen)
+
   const month12PlusSubscriptionRevenue = 12 * subscriptionsPerMonth * avgSubscriptionPrice * affiliateCommissionPct;
-  const month12PlusBusinessTransactionRevenue = 12 * subscriptionsPerMonth * businessTransactionsPerMonth * commissionPerBusinessTransaction;
-  const month12PlusSellerTransactionRevenue = 12 * sellersPerMonth * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
-  const month12PlusTotalTransactionRevenue = month12PlusBusinessTransactionRevenue + month12PlusSellerTransactionRevenue;
+  const month12PlusBusinessTransactionRevenue =
+    12 * subscriptionsPerMonth * businessTransactionsPerMonth * commissionPerBusinessTransaction;
+  const month12PlusSellerTransactionRevenue =
+    12 * sellersPerMonth * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
+  const month12PlusTotalTransactionRevenue =
+    month12PlusBusinessTransactionRevenue + month12PlusSellerTransactionRevenue;
   const month12PlusTotalRevenue = month12PlusSubscriptionRevenue + month12PlusTotalTransactionRevenue;
-  const year2Revenue = month12PlusTotalRevenue * 12; // 12 maanden passief inkomen
-  const year3Revenue = month12PlusTotalRevenue * 12; // Nog steeds passief (als je doorgaat met nieuwe referrals)
+  const year2Revenue = month12PlusTotalRevenue * 12;
+
+  const end = monthlyBreakdown[monthlyBreakdown.length - 1];
+
+  const timeline = [
+    { title: `${p}.timelineY1Title`, body: `${p}.timelineY1Body` },
+    { title: `${p}.timelineY2Title`, body: `${p}.timelineY2Body` },
+    { title: `${p}.timelineY35Title`, body: `${p}.timelineY35Body` },
+    { title: `${p}.timelineY710Title`, body: `${p}.timelineY710Body` },
+  ] as const;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-block px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-semibold mb-6">
-            💰 Passief Inkomen Calculator
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-            Bouw Je Passieve Inkomen Op
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Ontdek hoe je met slechts 2 abonnementen per maand een blijvend passief inkomen opbouwt
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/50 py-8 sm:py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header className="text-center mb-8 sm:mb-10">
+          <p className="text-xs font-semibold tracking-widest uppercase text-emerald-800/90 mb-2">{t(`${p}.title`)}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-3">{t(`${p}.subtitle`)}</h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">{t(`${p}.description`)}</p>
+        </header>
 
-        {/* Key Insight */}
-        <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-2xl shadow-xl p-8 mb-12">
-          <div className="flex items-start gap-4">
-            <Sparkles className="w-8 h-8 flex-shrink-0 mt-1" />
-            <div>
-              <h2 className="text-2xl font-bold mb-3">Het Geheim: 12 Maanden Revenue Share</h2>
-              <p className="text-lg mb-4">
-                Zelfs als je op dag 364 iemand aanbrengt, krijg je nog steeds 12 maanden lang commissie. 
-                Ook als je geen affiliate meer bent, blijven je inkomsten doorlopen zolang de revenue share window actief is!
-              </p>
-              <div className="bg-white/20 rounded-lg p-4">
-                <p className="font-semibold">✨ Passief inkomen = Inkomsten die blijven doorlopen, zelfs als je stopt met werken</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <section className="grid gap-4 md:grid-cols-3 mb-8" aria-label={t(`${p}.storyAriaLabel`)}>
+          <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-emerald-800 mb-2">
+              {t(`${p}.narrativeStandardTitle`)}
+            </h2>
+            <p className="text-sm text-slate-700 leading-relaxed">{t(`${p}.narrativeStandardBody`)}</p>
+          </article>
+          <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-emerald-800 mb-2">
+              {t(`${p}.narrativePartnershipTitle`)}
+            </h2>
+            <p className="text-sm text-slate-700 leading-relaxed">{t(`${p}.narrativePartnershipBody`)}</p>
+          </article>
+          <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm md:col-span-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-emerald-800 mb-2">
+              {t(`${p}.narrativeFutureVisionTitle`)}
+            </h2>
+            <p className="text-sm text-slate-700 leading-relaxed">{t(`${p}.narrativeFutureVisionBody`)}</p>
+          </article>
+        </section>
 
-        {/* Calculator */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Bereken Je Potentieel</h2>
-          
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm mb-8">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">{t(`${p}.calculatePotential`)}</h2>
+
+          <div className="grid sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Abonnementen per maand
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                {t(`${p}.subscriptionsPerMonth`)}
               </label>
               <input
                 type="number"
-                min="1"
-                max="20"
+                min={1}
+                max={20}
                 value={subscriptionsPerMonth}
                 onChange={(e) => setSubscriptionsPerMonth(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gemiddelde prijs per abonnement (€/maand)
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                {t(`${p}.avgPricePerSubscription`)}
               </label>
               <input
                 type="number"
-                min="39"
-                max="199"
+                min={39}
+                max={199}
                 value={avgSubscriptionPrice}
                 onChange={(e) => setAvgSubscriptionPrice(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Particuliere verkopers per maand
-              </label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">{t(`${p}.sellersPerMonth`)}</label>
               <input
                 type="number"
-                min="0"
-                max="50"
+                min={0}
+                max={50}
                 value={sellersPerMonth}
                 onChange={(e) => setSellersPerMonth(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
-              <p className="text-xs text-gray-500 mt-1">Particuliere verkopers die je aanbrengt</p>
+              <p className="text-xs text-slate-500 mt-1">{t(`${p}.sellersPerMonthDesc`)}</p>
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transacties per verkoper per maand
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                {t(`${p}.transactionsPerSeller`)}
               </label>
               <input
                 type="number"
-                min="0"
-                max="20"
+                min={0}
+                max={20}
                 value={transactionsPerSellerPerMonth}
                 onChange={(e) => setTransactionsPerSellerPerMonth(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
-              <p className="text-xs text-gray-500 mt-1">Gemiddeld aantal transacties per verkoper</p>
+              <p className="text-xs text-slate-500 mt-1">{t(`${p}.transactionsPerSellerDesc`)}</p>
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transacties per bedrijf per maand
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                {t(`${p}.transactionsPerBusiness`)}
               </label>
               <input
                 type="number"
-                min="0"
-                max="50"
+                min={0}
+                max={50}
                 value={businessTransactionsPerMonth}
                 onChange={(e) => setBusinessTransactionsPerMonth(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
-              <p className="text-xs text-gray-500 mt-1">Gemiddeld aantal transacties per bedrijf (naast abonnement!)</p>
+              <p className="text-xs text-slate-500 mt-1">{t(`${p}.transactionsPerBusinessDesc`)}</p>
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gemiddelde transactie waarde (€)
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                {t(`${p}.avgTransactionValue`)}
               </label>
               <input
                 type="number"
-                min="10"
-                max="500"
+                min={10}
+                max={500}
                 value={avgTransactionValue}
                 onChange={(e) => setAvgTransactionValue(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Periode (maanden)
-              </label>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">{t(`${p}.periodMonths`)}</label>
               <input
                 type="number"
-                min="1"
-                max="36"
+                min={1}
+                max={36}
                 value={months}
                 onChange={(e) => setMonths(Number(e.target.value))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full max-w-xs px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
             </div>
           </div>
-          
-          {/* Transaction Fee Info */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>Transactie commissie:</strong> Je verdient 25% van de HomeCheff platform fee per transactie.
+
+          <details className="rounded-xl border border-slate-100 bg-slate-50/90 px-4 py-3 group mb-6">
+            <summary className="cursor-pointer text-sm font-medium text-slate-800 list-none flex items-center justify-between [&::-webkit-details-marker]:hidden">
+              <span>{t(`${p}.commissionDetailsToggle`)}</span>
+              <span className="text-slate-400 text-xs group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed border-t border-slate-200/80 pt-3">
+              {t(`${p}.commissionDetailsBody`)}
             </p>
-            <div className="bg-yellow-50 rounded p-3 mb-3 border border-yellow-200">
-              <p className="text-xs font-semibold text-gray-800 mb-1">✨ Belangrijk: Ook van Kopers!</p>
-              <p className="text-xs text-gray-700">
-                Als je een <strong>koper</strong> aanbrengt (die niets verkoopt), krijg je ook 25% commissie op elke transactie die deze koper doet! 
-                Als zowel koper als verkoper zijn aangebracht, krijg je 50% (25% + 25%).
+          </details>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="w-5 h-5 text-emerald-700" />
+                <h3 className="text-sm font-semibold text-slate-900">{t(`${p}.totalSubscriptions`)}</h3>
+              </div>
+              <p className="text-2xl font-bold text-emerald-800">{totalSubscriptions}</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {t(`${p}.overMonths`).replace('{months}', String(months))}
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-3 text-xs">
-              <div className="bg-white rounded p-2">
-                <strong>Kopers:</strong> 12% fee → €100 transactie = €12 fee → <strong>€3 commissie</strong>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-4">
+              <div className="flex items-center gap-2 mb-1">
+                <DollarSign className="w-5 h-5 text-slate-700" />
+                <h3 className="text-sm font-semibold text-slate-900">{t(`${p}.monthlyIncome`)}</h3>
               </div>
-              <div className="bg-white rounded p-2">
-                <strong>Particuliere verkopers:</strong> 12% fee → €100 transactie = €12 fee → <strong>€3 commissie</strong>
-              </div>
-              <div className="bg-white rounded p-2">
-                <strong>Bedrijven (Pro):</strong> 4% fee → €100 transactie = €4 fee → <strong>€1 commissie</strong> (naast abonnement!)
-              </div>
-            </div>
-          </div>
-
-          {/* Results */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
-              <div className="flex items-center gap-3 mb-2">
-                <Users className="w-6 h-6 text-emerald-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Totaal Abonnementen</h3>
-              </div>
-              <p className="text-3xl font-bold text-emerald-600">{totalSubscriptions}</p>
-              <p className="text-sm text-gray-600 mt-1">Over {months} maanden</p>
-            </div>
-
-            <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
-              <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-6 h-6 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Maandelijks Inkomen</h3>
-              </div>
-              <p className="text-3xl font-bold text-blue-600">€{totalMonthlyRevenue.toFixed(2)}</p>
-              <p className="text-sm text-gray-600 mt-1">
-                Na {months} maanden (passief!)
-                {monthlyBreakdown.length > 0 && (
-                  <span className="block mt-1 text-xs">
-                    (€{monthlyBreakdown[monthlyBreakdown.length - 1].subscriptionRevenue.toFixed(2)} subscriptions + 
-                    €{monthlyBreakdown[monthlyBreakdown.length - 1].businessTransactionRevenue.toFixed(2)} van bedrijven + 
-                    €{monthlyBreakdown[monthlyBreakdown.length - 1].sellerTransactionRevenue.toFixed(2)} van verkopers)
-                  </span>
-                )}
+              <p className="text-2xl font-bold text-slate-900">€{totalMonthlyRevenue.toFixed(2)}</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {t(`${p}.afterMonths`).replace('{months}', String(months))}
               </p>
+              {end && (
+                <p className="text-[11px] text-slate-500 mt-2 leading-snug">
+                  €{end.subscriptionRevenue.toFixed(2)} {t(`${p}.subscriptions`).toLowerCase()} · €
+                  {end.businessTransactionRevenue.toFixed(2)} {t(`${p}.fromBusinesses`).toLowerCase()} · €
+                  {end.sellerTransactionRevenue.toFixed(2)} {t(`${p}.fromSellers`).toLowerCase()}
+                </p>
+              )}
             </div>
-
-            <div className="bg-purple-50 rounded-xl p-6 border-2 border-purple-200">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Totaal Verdiend</h3>
+            <div className="rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-5 h-5 text-violet-700" />
+                <h3 className="text-sm font-semibold text-slate-900">{t(`${p}.totalEarned`)}</h3>
               </div>
-              <p className="text-3xl font-bold text-purple-600">€{totalRevenue.toFixed(2)}</p>
-              <p className="text-sm text-gray-600 mt-1">Cumulatief</p>
+              <p className="text-2xl font-bold text-violet-900">€{totalRevenue.toFixed(2)}</p>
+              <p className="text-xs text-slate-600 mt-0.5">{t(`${p}.cumulative`)}</p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Monthly Breakdown */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Maandelijkse Groei</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <section className="rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50/80 to-white p-5 sm:p-6 mb-8">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">{t(`${p}.snapshotTitle`)}</h2>
+          <ul className="text-sm text-slate-700 space-y-2">
+            <li>
+              {t(`${p}.snapshotCumulative`)
+                .replace('{months}', String(months))
+                .replace('{total}', totalRevenue.toFixed(2))}
+            </li>
+            <li>
+              {t(`${p}.snapshotEndMonth`)
+                .replace('{months}', String(months))
+                .replace('{monthly}', totalMonthlyRevenue.toFixed(2))}
+            </li>
+            <li>
+              {t(`${p}.snapshotRunRate`)
+                .replace('{year}', year2Revenue.toFixed(2))
+                .replace('{monthly}', month12PlusTotalRevenue.toFixed(2))}
+            </li>
+          </ul>
+          <p className="mt-3 text-xs text-slate-500 leading-relaxed">{t(`${p}.snapshotModelNote`)}</p>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">{t(`${p}.narrativeFutureTitle`)}</h2>
+          <p className="text-sm text-slate-600 mb-6">{t(`${p}.narrativeFutureIntro`)}</p>
+          <ol className="space-y-5 border-l-2 border-emerald-200 pl-5 ml-0.5">
+            {timeline.map((row) => (
+              <li key={row.title} className="relative">
+                <h3 className="text-sm font-semibold text-slate-900 mb-1">{t(row.title)}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{t(row.body)}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-6 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
+            {t(`${p}.narrativeFutureDisclaimer`)}
+          </p>
+        </section>
+
+        <details className="rounded-2xl border border-slate-200 bg-white shadow-sm mb-8 overflow-hidden group">
+          <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-slate-800 flex items-center justify-between list-none [&::-webkit-details-marker]:hidden hover:bg-slate-50/80">
+            <span>{t(`${p}.monthlyDetailsToggle`)}</span>
+            <span className="text-slate-400 text-xs transition-transform group-open:rotate-180">▼</span>
+          </summary>
+          <div className="px-4 pb-4 overflow-x-auto border-t border-slate-100">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Maand</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Nieuwe</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Actief</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Subscriptions</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Bedrijven</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Verkopers</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Totaal</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Cumulatief</th>
+                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="py-2 pr-2 font-medium">{t(`${p}.month`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.new`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.active`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.subscriptions`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.businesses`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.sellers`)}</th>
+                  <th className="py-2 px-2 text-right font-medium">{t(`${p}.total`)}</th>
+                  <th className="py-2 pl-2 text-right font-medium">{t(`${p}.cumulative`)}</th>
                 </tr>
               </thead>
               <tbody>
                 {monthlyBreakdown.map((item) => (
-                  <tr key={item.month} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">Maand {item.month}</td>
-                    <td className="py-3 px-4 text-right text-gray-600">{item.newSubscriptions}</td>
-                    <td className="py-3 px-4 text-right text-gray-600">{item.activeSubscriptions}</td>
-                    <td className="py-3 px-4 text-right text-gray-600">€{item.subscriptionRevenue.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-blue-600">€{item.businessTransactionRevenue.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-purple-600">€{item.sellerTransactionRevenue.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right font-semibold text-emerald-600">€{item.activeRevenue.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right font-bold text-purple-600">€{item.cumulative.toFixed(2)}</td>
+                  <tr key={item.month} className="border-b border-slate-50 hover:bg-slate-50/50">
+                    <td className="py-2 pr-2 font-medium text-slate-900">
+                      {t(`${p}.monthLabel`).replace('{month}', String(item.month))}
+                    </td>
+                    <td className="py-2 px-2 text-right text-slate-600">{item.newSubscriptions}</td>
+                    <td className="py-2 px-2 text-right text-slate-600">{item.activeSubscriptions}</td>
+                    <td className="py-2 px-2 text-right text-slate-600">€{item.subscriptionRevenue.toFixed(2)}</td>
+                    <td className="py-2 px-2 text-right text-slate-600">€{item.businessTransactionRevenue.toFixed(2)}</td>
+                    <td className="py-2 px-2 text-right text-slate-600">€{item.sellerTransactionRevenue.toFixed(2)}</td>
+                    <td className="py-2 px-2 text-right font-medium text-emerald-800">€{item.activeRevenue.toFixed(2)}</td>
+                    <td className="py-2 pl-2 text-right font-semibold text-violet-900">€{item.cumulative.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </details>
 
-        {/* The Magic: Year 2+ */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl shadow-xl p-8 mb-12">
-          <h2 className="text-3xl font-bold mb-6">🎯 Het Echte Passieve Inkomen</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white/20 rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-3">Jaar 1</h3>
-              <p className="text-4xl font-bold mb-2">€{totalRevenue.toFixed(2)}</p>
-              <p className="text-sm opacity-90">Totaal verdiend in eerste jaar</p>
-              <p className="text-xs opacity-75 mt-2">
-                Subscriptions: €{monthlyBreakdown.reduce((sum, item) => sum + item.subscriptionRevenue, 0).toFixed(2)}<br/>
-                Van bedrijven: €{monthlyBreakdown.reduce((sum, item) => sum + item.businessTransactionRevenue, 0).toFixed(2)}<br/>
-                Van verkopers: €{monthlyBreakdown.reduce((sum, item) => sum + item.sellerTransactionRevenue, 0).toFixed(2)}
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-3">Jaar 2 (Passief!)</h3>
-              <p className="text-4xl font-bold mb-2">€{year2Revenue.toFixed(2)}</p>
-              <p className="text-sm opacity-90">Zonder nieuwe referrals!</p>
-              <p className="text-xs opacity-75 mt-2">
-                Subscriptions: €{(month12PlusSubscriptionRevenue * 12).toFixed(2)}<br/>
-                Van bedrijven: €{(month12PlusBusinessTransactionRevenue * 12).toFixed(2)}<br/>
-                Van verkopers: €{(month12PlusSellerTransactionRevenue * 12).toFixed(2)}
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-3">Jaar 3 (Nog steeds passief!)</h3>
-              <p className="text-4xl font-bold mb-2">€{year3Revenue.toFixed(2)}</p>
-              <p className="text-sm opacity-90">Inkomsten blijven doorlopen</p>
-              <p className="text-xs opacity-75 mt-2">
-                €{month12PlusTotalRevenue.toFixed(2)}/maand blijvend<br/>
-                (€{month12PlusSubscriptionRevenue.toFixed(2)} + €{month12PlusTotalTransactionRevenue.toFixed(2)})
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 bg-white/20 rounded-lg p-4">
-            <p className="text-lg">
-              💡 <strong>Belangrijk:</strong> Na 12 maanden stoppen de inkomsten per referral, 
-              maar omdat je elke maand nieuwe referrals toevoegt, bouw je een blijvend passief inkomen op!
-            </p>
-          </div>
-        </div>
-
-        {/* Real Example: 2 per month */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 Praktijkvoorbeeld: 2 Abonnementen per Maand</h2>
-          
-          <div className="space-y-6">
-            <div className="border-l-4 border-emerald-500 pl-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Scenario: €99/maand gemiddeld abonnement</h3>
-              <div className="space-y-2 text-gray-700">
-                <p>• <strong>Maand 1:</strong> 2 nieuwe → €99/maand passief inkomen</p>
-                <p>• <strong>Maand 2:</strong> 2 nieuwe → €198/maand passief inkomen (4 actief)</p>
-                <p>• <strong>Maand 3:</strong> 2 nieuwe → €297/maand passief inkomen (6 actief)</p>
-                <p>• <strong>Maand 12:</strong> 2 nieuwe → €1,400/maand passief inkomen (24 actief)</p>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">💰 Totaal Verdiend in Jaar 1:</h3>
-              <p className="text-4xl font-bold text-emerald-600 mb-2">€{totalRevenue.toFixed(2)}</p>
-              <div className="text-gray-600 space-y-1 text-sm">
-                <p>Subscriptions: €{monthlyBreakdown.reduce((sum, item) => sum + item.subscriptionRevenue, 0).toFixed(2)}</p>
-                <p>Van bedrijven: €{monthlyBreakdown.reduce((sum, item) => sum + item.businessTransactionRevenue, 0).toFixed(2)} (naast abonnement!)</p>
-                <p>Van verkopers: €{monthlyBreakdown.reduce((sum, item) => sum + item.sellerTransactionRevenue, 0).toFixed(2)}</p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">🚀 Passief Inkomen in Jaar 2:</h3>
-              <p className="text-4xl font-bold text-blue-600 mb-2">€{month12PlusTotalRevenue.toFixed(2)}/maand</p>
-              <div className="text-gray-600 space-y-1 text-sm">
-                <p>Subscriptions: €{month12PlusSubscriptionRevenue.toFixed(2)}/maand</p>
-                <p>Van bedrijven: €{month12PlusBusinessTransactionRevenue.toFixed(2)}/maand</p>
-                <p>Van verkopers: €{month12PlusSellerTransactionRevenue.toFixed(2)}/maand</p>
-                <p className="font-semibold mt-2">Zonder nieuwe referrals! (€{year2Revenue.toFixed(2)} per jaar)</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* The Guarantee */}
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl shadow-xl p-8 mb-12">
-          <h2 className="text-3xl font-bold mb-4">🛡️ De Garantie: Passief Inkomen Blijft Doorlopen</h2>
-          <div className="bg-white/20 rounded-lg p-6 space-y-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Zelfs op dag 364...</h3>
-                <p className="text-lg">
-                  Als je op dag 364 van je affiliate programma iemand aanbrengt, krijg je nog steeds 12 maanden lang commissie. 
-                  <strong> Ook als je daarna geen affiliate meer bent, blijven je inkomsten doorlopen!</strong>
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Revenue Share Window = 12 Maanden</h3>
-                <p className="text-lg">
-                  Elke referral heeft zijn eigen 12-maanden revenue share window. 
-                  Zolang die window actief is, krijg je commissie — ongeacht je affiliate status!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Offer You Can't Refuse */}
-        <div className="bg-gradient-to-br from-red-600 via-pink-600 to-purple-600 text-white rounded-2xl shadow-2xl p-10 mb-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
-          <div className="relative z-10">
-            <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold mb-4">Een Aanbod Dat Je Niet Kunt Weigeren</h2>
-              <p className="text-2xl opacity-90">💰 100% Gratis • Geen Verborgen Kosten • Direct Starten</p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-white/20 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">Wat Je Krijgt:</h3>
-                <ul className="space-y-3 text-lg">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                    <span>50% van elke subscription fee (12 maanden lang)</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                    <span>25% per gebruiker (50% als je beide aanbrengt)</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                    <span>Eigen promo codes met volledige controle</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                    <span>Automatische wekelijkse uitbetalingen</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                    <span>Passief inkomen dat blijft doorlopen</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div className="bg-white/20 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-4">Wat Het Kost:</h3>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-6xl font-bold mb-2">€0</p>
-                    <p className="text-xl opacity-90">Geen aanmeldkosten</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-6xl font-bold mb-2">€0</p>
-                    <p className="text-xl opacity-90">Geen maandelijkse kosten</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-6xl font-bold mb-2">€0</p>
-                    <p className="text-xl opacity-90">Geen verborgen kosten</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/30 rounded-xl p-6 backdrop-blur-sm text-center">
-              <p className="text-2xl font-bold mb-4">📊 Met Slechts 2 Abonnementen per Maand:</p>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <p className="text-4xl font-bold">€1,400</p>
-                  <p className="text-lg opacity-90">per maand (jaar 2+)</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold">€14,256</p>
-                  <p className="text-lg opacity-90">per jaar (passief!)</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold">€0</p>
-                  <p className="text-lg opacity-90">investeringen nodig</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contract Renewal Information */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl shadow-xl p-8 mb-8 border-2 border-blue-300">
-          <h2 className="text-3xl font-bold mb-4 text-center">📋 {t('affiliate.passiveIncomeCalculator.termsTitle')}</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 border-2 border-white/30">
-              <h3 className="text-xl font-bold mb-3">✅ {t('affiliate.guaranteed12Months')}</h3>
-              <p className="text-sm opacity-95 leading-relaxed">
-                {t('affiliate.guaranteed12MonthsDesc')}
-              </p>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 border-2 border-white/30">
-              <h3 className="text-xl font-bold mb-3">🔄 {t('affiliate.contractRenewal')}</h3>
-              <p className="text-sm opacity-95 leading-relaxed">
-                {t('affiliate.contractRenewalDesc')}
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 bg-white/10 rounded-lg p-4 border border-white/20">
-            <p className="text-sm text-center opacity-95">
-              <strong>{t('affiliate.contractTerms')}:</strong> {t('affiliate.contractTermsDesc')}
-            </p>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center bg-white rounded-2xl shadow-xl p-8 border-2 border-emerald-200">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Klaar om te Starten?</h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Word affiliate en begin vandaag nog met het opbouwen van je passieve inkomen
-          </p>
+        <footer className="text-center rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{t(`${p}.ctaSlimTitle`)}</h2>
+          <p className="text-sm sm:text-base text-slate-600 mb-1">{t(`${p}.ctaSlimSubtitle`)}</p>
+          <p className="text-xs text-slate-500 max-w-lg mx-auto mb-6 leading-relaxed">{t(`${p}.legalFootnote`)}</p>
           <Link
             href="/affiliate"
-            className="inline-block bg-gradient-to-r from-emerald-600 to-green-600 text-white px-10 py-4 rounded-lg text-lg font-semibold hover:from-emerald-700 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="inline-block rounded-xl bg-emerald-700 text-white px-8 py-3.5 text-sm font-semibold hover:bg-emerald-800 transition-colors shadow-md shadow-emerald-900/10"
           >
-            Word Nu Affiliate — Gratis
+            {t(`${p}.becomeAffiliate`)}
           </Link>
-        </div>
+          <p className="text-sm text-slate-500 mt-4 max-w-md mx-auto">{t(`${p}.readyToStartDesc`)}</p>
+        </footer>
       </div>
     </div>
   );
 }
-

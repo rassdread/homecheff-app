@@ -4,7 +4,12 @@ import { signIn, getSession, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
-import { clearAllUserData } from "@/lib/session-cleanup";
+import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
+import {
+  needsProfileOnboardingFromFlags,
+  onboardingFlagsFromSessionUser,
+} from "@/lib/auth/post-auth-redirect";
+import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
 import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackLogin } from "@/components/GoogleAnalytics";
@@ -153,12 +158,21 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillEmail]);
 
-  // Al ingelogd: naar expliciete callback of standaard home (niet inspiratie)
+  // Al ingelogd: pending intent wint van generieke callback; anders callback of home
   useEffect(() => {
-    if (sessionStatus === 'authenticated' && session?.user) {
-      const target = callbackUrl && callbackUrl !== '/' ? callbackUrl : '/';
-      router.push(target);
+    if (sessionStatus !== 'authenticated' || !session?.user) return;
+    const u = session.user as {
+      username?: string | null;
+      socialOnboardingCompleted?: boolean | null;
+    };
+    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u))) {
+      router.replace('/onboarding/complete-profile');
+      return;
     }
+    const intentUrl = consumeAndResolvePostAuthUrl(u);
+    const target =
+      intentUrl || (callbackUrl && callbackUrl !== '/' ? callbackUrl : '/');
+    router.replace(target);
   }, [sessionStatus, session, router, callbackUrl]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -198,7 +212,7 @@ function LoginForm() {
       // Safari-compatibele versie: gebruik safe sessionStorage helpers
       const hasCleared = safeSessionStorageGetItem('login_cleared');
       if (!hasCleared) {
-        clearAllUserData();
+        clearStorageForCredentialLoginStart();
         safeSessionStorageSetItem('login_cleared', 'true');
       }
       
@@ -333,10 +347,27 @@ function LoginForm() {
       const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
       await new Promise(resolve => setTimeout(resolve, redirectDelay));
       
-      // callbackUrl expliciet → daarheen; anders home
-      const finalRedirectUrl = callbackUrl && callbackUrl !== '/'
-        ? callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'welcome=true'
-        : '/?welcome=true';
+      const intentUrl = currentSession?.user
+        ? consumeAndResolvePostAuthUrl(
+            currentSession.user as {
+              username?: string | null;
+              socialOnboardingCompleted?: boolean | null;
+            },
+          )
+        : null;
+      let finalRedirectUrl: string;
+      if (intentUrl) {
+        finalRedirectUrl = intentUrl.includes('welcome=')
+          ? intentUrl
+          : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
+      } else {
+        finalRedirectUrl =
+          callbackUrl && callbackUrl !== '/'
+            ? callbackUrl +
+              (callbackUrl.includes('?') ? '&' : '?') +
+              'welcome=true'
+            : '/?welcome=true';
+      }
       
       // Capacitor / Android WebView: client-side navigatie houdt sessie in dezelfde WebView i.p.v. riskante volledige document-navigatie.
       // iOS Safari (ook als WebView): blijf bij location.replace (cookie-timing).
@@ -416,7 +447,7 @@ function LoginForm() {
     
     try {
       // "Onthoud mij" voorkeur klaarzetten zodat hij de OAuth-redirect overleeft.
-      // /auth/social-success past sessie-modus toe en stuurt door naar / of /register?social=true.
+      // /auth/social-success past sessie-modus toe en stuurt door naar / of /onboarding/complete-profile.
       setRememberPreference(state.rememberMe);
 
       await signIn(provider, {

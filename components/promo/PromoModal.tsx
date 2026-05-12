@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 interface PromoModalProps {
   isOpen: boolean;
@@ -128,6 +129,7 @@ export default function PromoModal({
           <div className="space-y-3">
             <Link
               href={registerUrl}
+              onClick={armReturnIntent}
               className={`${gradient} text-white px-6 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all w-full`}
             >
               {defaultCtaText}
@@ -136,6 +138,7 @@ export default function PromoModal({
             
             <Link
               href={loginUrl}
+              onClick={armReturnIntent}
               className="border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-all w-full"
             >
               {t('login.title')}

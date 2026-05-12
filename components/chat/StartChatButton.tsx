@@ -7,6 +7,7 @@ import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 interface StartChatButtonProps {
   productId?: string;
@@ -40,6 +41,19 @@ export default function StartChatButton({
   const { data: session, status } = useSession();
 
   const loginHref = `/login?callbackUrl=${encodeURIComponent(pathname || '/')}`;
+
+  const goToLoginForChat = () => {
+    savePendingIntent({
+      type: 'start_chat',
+      targetId: sellerId,
+      draftKey: productId,
+      returnPath:
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}`
+          : pathname || '/',
+    });
+    router.push(loginHref);
+  };
 
   const submitConversation = async (rawMessage: string | null) => {
     const endpoint = productId
@@ -86,7 +100,7 @@ export default function StartChatButton({
 
   const handleStartChat = async () => {
     if (!session?.user) {
-      router.push(loginHref);
+      goToLoginForChat();
       return;
     }
     setIsLoading(true);
@@ -103,7 +117,7 @@ export default function StartChatButton({
 
   const handleQuickMessage = async (message: string) => {
     if (!session?.user) {
-      router.push(loginHref);
+      goToLoginForChat();
       return;
     }
     setIsLoading(true);
@@ -139,7 +153,7 @@ export default function StartChatButton({
     return (
       <button
         type="button"
-        onClick={() => router.push(loginHref)}
+        onClick={() => goToLoginForChat()}
         className={`
           flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
           shadow-md hover:shadow-lg

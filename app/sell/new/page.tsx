@@ -19,6 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymentsBanner";
 import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
 import { parseCreateIntentSearchParams } from "@/lib/createFlowIntent";
+import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 
 type Phase =
   | "wizard-1"
@@ -167,8 +168,16 @@ function HomeCheffProductNieuwPageContent() {
   useEffect(() => {
     if (status !== "unauthenticated") return;
     const q = typeof window !== "undefined" ? window.location.search : "";
+    const parsed = searchParams ? parseCreateIntentSearchParams(searchParams) : null;
+    const isInsp = parsed?.platform === "inspiratie";
+    savePendingIntent({
+      type: isInsp ? "create_inspiration" : "create_item",
+      mode: isInsp ? "inspiratie" : "dorpsplein",
+      vertical: parsed?.category,
+      returnPath: `/sell/new${q}`,
+    });
     router.replace(`/login?callbackUrl=${encodeURIComponent(`/sell/new${q}`)}`);
-  }, [status, router]);
+  }, [status, router, searchParams]);
 
   useEffect(() => {
     if (!session?.user) {

@@ -14,6 +14,7 @@ const AUTH_PATH_DENYLIST = [
   '/auth/register',
   '/auth/social-success',
   '/auth/error',
+  '/auth/resume-intent',
   '/social-login-success',
 ] as const;
 
@@ -67,11 +68,13 @@ export function onboardingFlagsFromSessionUser(user: {
 }
 
 /** After Google / Apple web or native session is established. */
-export function resolvePathAfterSocialAuth(flags: OnboardingFlags): '/' | '/register?social=true' {
+export function resolvePathAfterSocialAuth(
+  flags: OnboardingFlags,
+): '/' | '/onboarding/complete-profile' {
   if (!flags.hasTempUsername && flags.onboardingCompleted) {
     return '/';
   }
-  return '/register?social=true';
+  return '/onboarding/complete-profile';
 }
 
 /** Aliases for readability at call sites. */

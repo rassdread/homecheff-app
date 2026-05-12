@@ -9,7 +9,7 @@ import MijnHcpClient from '@/components/gamification/MijnHcpClient';
 export default async function MijnHcpPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
-    redirect('/login');
+    redirect('/login?callbackUrl=%2Fmijn-hcp');
   }
 
   return (
