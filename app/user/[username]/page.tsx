@@ -409,7 +409,7 @@ export default async function PublicProfilePage({
   const isOwnProfile = Boolean(viewerId && viewerId === user.id);
 
   const weekStart = mondayStartUtc();
-  const [hcpStats, badgeRows, weekHcpAgg, lastHcpEvent] = await Promise.all([
+  const [hcpStats, badgeRows, weekHcpAgg, lastHcpEvent, listingsThisWeek] = await Promise.all([
     prisma.userHcpStats.findUnique({
       where: { userId: user.id },
       select: { totalHcp: true, currentStreak: true },
@@ -429,6 +429,11 @@ export default async function PublicProfilePage({
       orderBy: { createdAt: "desc" },
       select: { createdAt: true },
     }),
+    user.SellerProfile?.id
+      ? prisma.product.count({
+          where: { sellerId: user.SellerProfile.id, createdAt: { gte: weekStart } },
+        })
+      : Promise.resolve(0),
   ]);
 
   const totalHcp = hcpStats?.totalHcp ?? 0;
@@ -451,9 +456,18 @@ export default async function PublicProfilePage({
     })),
   };
 
+  const locality = formatCityLabel(user.place);
+  const ecosystemChipKeys: string[] = [];
+  if (locality) ecosystemChipKeys.push('ecosystemProfile.chips.localRooted');
+  if (publicHcp.activeThisWeek || listingsThisWeek > 0) {
+    ecosystemChipKeys.push('ecosystemProfile.chips.presentThisWeek');
+  }
+  if ((user.sellerRoles?.length ?? 0) > 0 && ecosystemChipKeys.length < 4) {
+    ecosystemChipKeys.push('ecosystemProfile.chips.makerHere');
+  }
+
   const currentDomain = await getCurrentDomain();
   const profileDisplay = user.name || user.username || "Profiel";
-  const locality = formatCityLabel(user.place);
   const profileUrl = `${currentDomain}/user/${encodeURIComponent(username)}`;
   const personLd = {
     "@context": "https://schema.org",
@@ -483,6 +497,7 @@ export default async function PublicProfilePage({
           openNewProducts={false}
           isOwnProfile={isOwnProfile}
           publicHcp={publicHcp}
+          ecosystemChipKeys={ecosystemChipKeys}
         />
       </div>
     </>

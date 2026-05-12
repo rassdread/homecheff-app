@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Lightbulb, Store } from 'lucide-react';
 import InspiratieContent from '@/components/inspiratie/InspiratieContent';
@@ -9,6 +9,12 @@ import NotificationProvider from '@/components/notifications/NotificationProvide
 import ClientOnly from '@/components/util/ClientOnly';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import { useTranslation } from '@/hooks/useTranslation';
+import EcosystemDiscoverStrip from '@/components/community/EcosystemDiscoverStrip';
+import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+} from '@/lib/feed/feedSurfaceState';
+import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
 export type DiscoverListing = 'inspiratie' | 'dorpsplein';
 
@@ -26,6 +32,7 @@ export default function DiscoverHubClient() {
   const [listing, setListingState] = useState<DiscoverListing>(() =>
     listingFromSearchParams(searchParams)
   );
+  const discoverPersistAppliedRef = useRef(false);
 
   useEffect(() => {
     setListingState(listingFromSearchParams(searchParams));
@@ -45,6 +52,27 @@ export default function DiscoverHubClient() {
     },
     [router, searchParams, pathname]
   );
+
+  useEffect(() => {
+    if (discoverPersistAppliedRef.current) return;
+    const bron = searchParams?.get('bron');
+    if (bron === 'dorpsplein') {
+      discoverPersistAppliedRef.current = true;
+      return;
+    }
+    const p = loadFeedSurfaceState<{ listing?: DiscoverListing }>('discover_hub');
+    if (p?.listing === 'dorpsplein' || p?.listing === 'inspiratie') {
+      discoverPersistAppliedRef.current = true;
+      setListing(p.listing);
+      trackOnboardingEvent('FEED_STATE_RESTORED', { surface: 'discover_hub' });
+    } else {
+      discoverPersistAppliedRef.current = true;
+    }
+  }, [searchParams, setListing]);
+
+  useEffect(() => {
+    saveFeedSurfaceState('discover_hub', { listing });
+  }, [listing]);
 
   const hubTitle =
     t('discover.hubTitle') ||
@@ -73,6 +101,9 @@ export default function DiscoverHubClient() {
           <p className="text-base md:text-xl text-emerald-100/95 max-w-3xl mx-auto">
             {hubSubtitle}
           </p>
+          <div className="mx-auto mt-6 max-w-3xl px-2">
+            <EcosystemDiscoverStrip variant="discover" />
+          </div>
           <div className="mt-6 flex justify-center">
             <ClientOnly>
               <TourTrigger pageId="inspiratie" variant="button" />

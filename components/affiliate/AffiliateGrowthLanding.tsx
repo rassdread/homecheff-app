@@ -20,6 +20,7 @@ function armAffiliateJoinIntent() {
   savePendingIntent({
     type: 'join_affiliate',
     returnPath: '/affiliate',
+    persona: 'affiliate',
   });
 }
 

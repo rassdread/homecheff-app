@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 
 interface FavoriteButtonProps {
   productId: string;
@@ -23,6 +25,7 @@ export default function FavoriteButton({
   initialFavorited // NEW
 }: FavoriteButtonProps) {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const { data: session } = useSession();
   const [favorited, setFavorited] = useState(initialFavorited ?? false);
   const [loading, setLoading] = useState(false);
@@ -65,7 +68,16 @@ export default function FavoriteButton({
     }
 
     if (!session?.user) {
-      alert(t('errors.loginRequiredForFavorites'));
+      const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
+      openSoftAuthGateWithScroll({
+        copyKey: 'saveItem',
+        intent: {
+          type: 'save_item',
+          targetId: productId,
+          returnPath,
+          autoResume: true,
+        },
+      });
       return;
     }
 

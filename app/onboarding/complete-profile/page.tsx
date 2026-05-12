@@ -10,6 +10,7 @@ import {
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
 } from '@/lib/auth/post-auth-redirect';
+import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession();
@@ -46,6 +47,7 @@ export default function CompleteProfilePage() {
         router.replace('/');
         return;
       }
+      trackOnboardingEvent('ONBOARDING_STARTED', { surface: 'complete_profile' });
     })();
 
     const un = String(u.username || '');
@@ -86,6 +88,7 @@ export default function CompleteProfilePage() {
         setError(data?.message || t('register.validation.socialOnboardingError'));
         return;
       }
+      trackOnboardingEvent('ONBOARDING_COMPLETED', { surface: 'complete_profile_minimal' });
       await update({});
       await new Promise((r) => setTimeout(r, 400));
       window.location.replace('/?profile_gate=done');

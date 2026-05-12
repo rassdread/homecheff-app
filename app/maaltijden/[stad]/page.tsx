@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { getCurrentDomain, seoHreflangLanguagesOnEu } from "@/lib/seo/metadata";
 import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
+import { getEcosystemHubForCitySlug } from "@/lib/community/getEcosystemHubForCitySlug";
+import CityHubSection from "@/components/community/CityHubSection";
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return LOCAL_SEO_CITIES.map(({ slug }) => ({ stad: slug }));
@@ -39,7 +42,7 @@ export async function generateMetadata({
   };
 }
 
-export default function MaaltijdenStadPage({
+export default async function MaaltijdenStadPage({
   params,
 }: {
   params: { stad: string };
@@ -47,8 +50,39 @@ export default function MaaltijdenStadPage({
   const city = LOCAL_SEO_CITIES.find((c) => c.slug === params.stad);
   if (!city) notFound();
 
+  const hub = await getEcosystemHubForCitySlug(city.slug);
+  const currentDomain = await getCurrentDomain();
+  const pageUrl = `${currentDomain}/maaltijden/${city.slug}`;
+  const collectionLd =
+    hub &&
+    ({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: `Maaltijden in ${city.label} | HomeCheff`,
+      description: `Lokaal ecosysteem rond ${city.label} op HomeCheff — makers, momentum en dorpsplein.`,
+      url: pageUrl,
+      isPartOf: { '@type': 'WebSite', name: 'HomeCheff', url: currentDomain },
+      mainEntity: {
+        '@type': 'Place',
+        name: city.label,
+        containedInPlace: { '@type': 'Country', name: 'Netherlands' },
+      },
+      about: {
+        '@type': 'Thing',
+        name: 'Local creator activity',
+        description: `Approx. ${hub.activeCreatorsWeek} active creators (7d) and ${hub.newListingsWeek} new listings (7d) within ${hub.radiusKm} km (aggregated).`,
+      },
+    } as const);
+
   return (
     <main className="min-h-screen bg-neutral-50">
+      {collectionLd ? (
+        <Script
+          id={`maaltijden-ld-${city.slug}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+        />
+      ) : null}
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
           Maaltijden in {city.label}
@@ -59,7 +93,7 @@ export default function MaaltijdenStadPage({
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/?chip=sale#homecheff-feed"
+            href={`/?place=${encodeURIComponent(city.label)}&chip=sale#homecheff-feed`}
             className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             Naar het dorpsplein
@@ -70,7 +104,14 @@ export default function MaaltijdenStadPage({
           >
             Inspiratie
           </Link>
+          <Link
+            href="/gemeenschap/keuken"
+            className="inline-flex items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50/80 px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100/80"
+          >
+            Keuken-ecosysteem
+          </Link>
         </div>
+        {hub ? <CityHubSection initial={hub} /> : null}
       </div>
     </main>
   );

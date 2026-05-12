@@ -92,6 +92,10 @@ export default function AuthCompletionGate() {
       router.replace(url);
       return;
     }
+    if (url.startsWith('/auth/resume-interaction')) {
+      router.replace(url);
+      return;
+    }
     clearPendingIntent();
     router.replace(url);
   }, [pathname, router, searchParams, session?.user, status]);

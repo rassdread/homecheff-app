@@ -124,6 +124,8 @@ interface PublicProfileClientProps {
   isOwnProfile?: boolean;
   /** Publieke HCP-weergave (geen eventgeschiedenis). */
   publicHcp?: PublicProfileHcpPayload | null;
+  /** Rustige ecosystem-/communitylabels (alleen server-afgeleide sleutels). */
+  ecosystemChipKeys?: string[];
 }
 
 export default function PublicProfileClient({
@@ -131,6 +133,7 @@ export default function PublicProfileClient({
   openNewProducts,
   isOwnProfile = false,
   publicHcp = null,
+  ecosystemChipKeys = [],
 }: PublicProfileClientProps) {
   const { t } = useTranslation();
   const [showAllPublicBadges, setShowAllPublicBadges] = useState(false);
@@ -573,6 +576,19 @@ export default function PublicProfileClient({
                   <span className="sm:hidden">{user.createdAt ? new Date(user.createdAt).toLocaleDateString('nl-NL', { month: 'short', year: 'numeric' }) : '—'}</span>
                 </div>
               </div>
+
+              {ecosystemChipKeys.length > 0 ? (
+                <div className="mb-4 flex flex-wrap justify-center gap-2 lg:justify-start">
+                  {ecosystemChipKeys.map((key) => (
+                    <span
+                      key={key}
+                      className="rounded-full border border-emerald-100/90 bg-white/90 px-3 py-1 text-xs font-medium text-emerald-900 shadow-sm"
+                    >
+                      {t(key)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
 
               {/* HomeCheff Points — publiek (level, badges, streak; geen HCP-eventlog) */}
               <div

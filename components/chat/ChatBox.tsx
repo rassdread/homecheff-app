@@ -47,6 +47,14 @@ export interface ChatBoxProps {
   showConversationTools?: boolean;
   /** bv. `/messages/[id]`: terug altijd tonen, ook op desktop */
   showBackOnDesktop?: boolean;
+  /** Lichte context vanuit gesprek-API (geen presence-tracking). */
+  relationshipContext?: {
+    youFollowThem: boolean;
+    theyFollowYou: boolean;
+    messageCount: number;
+    productTitle?: string | null;
+    productCategory?: string | null;
+  } | null;
 }
 
 export default function ChatBox({
@@ -55,6 +63,7 @@ export default function ChatBox({
   onBack,
   showConversationTools = false,
   showBackOnDesktop = false,
+  relationshipContext = null,
 }: ChatBoxProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
@@ -884,6 +893,33 @@ export default function ChatBox({
   const backButtonCompactClass =
     showBackOnDesktop || nativeMounted ? '' : 'lg:hidden';
 
+  const relationshipHintLine = (() => {
+    if (!relationshipContext) return '';
+    const bits: string[] = [];
+    const { youFollowThem, theyFollowYou, messageCount, productTitle, productCategory } =
+      relationshipContext;
+    if (youFollowThem && theyFollowYou) {
+      bits.push(t('chat.relationship.mutualFollow'));
+    } else {
+      if (youFollowThem) bits.push(t('chat.relationship.youFollowCreator'));
+      if (theyFollowYou) bits.push(t('chat.relationship.followsYouBack'));
+    }
+    if (messageCount >= 2) {
+      bits.push(t('chat.relationship.continuedConversation'));
+    }
+    if (productCategory?.trim()) {
+      const human = String(productCategory)
+        .trim()
+        .replace(/_/g, ' ')
+        .toLowerCase();
+      bits.push(t('chat.relationship.productCategory', { category: human }));
+    } else if (productTitle?.trim()) {
+      const short = productTitle.trim().slice(0, 48);
+      bits.push(t('chat.relationship.aboutListing', { title: short }));
+    }
+    return bits.filter(Boolean).join(' · ');
+  })();
+
   return (
     <div
       className={`flex flex-col h-full min-h-0 bg-[#f4f6f8] hc-native-chat-root ${
@@ -972,6 +1008,11 @@ export default function ChatBox({
                     </>
                   )}
                 </div>
+                {relationshipHintLine ? (
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500">
+                    {relationshipHintLine}
+                  </p>
+                ) : null}
               </div>
             </Link>
           ) : (
@@ -1030,6 +1071,11 @@ export default function ChatBox({
                     </>
                   )}
                 </div>
+                {relationshipHintLine ? (
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500">
+                    {relationshipHintLine}
+                  </p>
+                ) : null}
               </div>
             </>
           )}

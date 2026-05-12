@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { ThumbsUp, Heart, Star, Zap } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 
 interface PropsButtonProps {
   productId?: string;
@@ -25,6 +27,7 @@ export default function PropsButton({
   onCountChange
 }: PropsButtonProps) {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const { data: session } = useSession();
   const [propsGiven, setPropsGiven] = useState(false);
   const [propsCount, setPropsCount] = useState(0);
@@ -73,7 +76,17 @@ export default function PropsButton({
 
   const handleToggleProps = async () => {
     if (!session?.user) {
-      alert(t('errors.loginRequiredForProps'));
+      const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
+      openSoftAuthGateWithScroll({
+        copyKey: 'giveProp',
+        intent: {
+          type: 'give_prop',
+          targetId: productId || undefined,
+          draftKey: dishId || undefined,
+          returnPath,
+          autoResume: true,
+        },
+      });
       return;
     }
 
@@ -138,10 +151,6 @@ export default function PropsButton({
       setLoading(false);
     }
   };
-
-  if (!session?.user) {
-    return null; // Don't show props button if not logged in
-  }
 
   if (checkingStatus) {
     return (

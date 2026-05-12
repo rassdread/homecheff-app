@@ -15,6 +15,7 @@ const AUTH_PATH_DENYLIST = [
   '/auth/social-success',
   '/auth/error',
   '/auth/resume-intent',
+  '/auth/resume-interaction',
   '/social-login-success',
 ] as const;
 

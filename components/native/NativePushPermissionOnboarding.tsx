@@ -21,6 +21,7 @@ import {
 } from "@/lib/native/push";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 import { getOrCreatePushDeviceId } from "@/lib/native/pushClientPrefs";
+import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 
 const GATE_KEY = "hc_npush_gate";
 
@@ -106,6 +107,9 @@ export default function NativePushPermissionOnboarding() {
           /* ignore */
         }
         nativePushDevLog("opening explainer modal");
+        trackOnboardingEvent("PERMISSION_EDUCATION_SHOWN", {
+          kind: "native_push",
+        });
         setOpen(true);
       }, 900);
     })();
@@ -118,6 +122,7 @@ export default function NativePushPermissionOnboarding() {
 
   const handleLater = () => {
     nativePushDevLog("intro dismissed (later)");
+    trackOnboardingEvent("PERMISSION_PROMPT_SKIPPED", { kind: "native_push" });
     if (userId) markPushIntroFinished(userId);
     setOpen(false);
   };
@@ -201,6 +206,9 @@ export default function NativePushPermissionOnboarding() {
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-gray-600">
               {t("nativePush.introBody")}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-gray-500">
+              {t("nativePush.valueExplainer")}
             </p>
           </div>
           <button

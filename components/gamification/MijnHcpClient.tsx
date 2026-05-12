@@ -7,6 +7,10 @@ import { useGamificationMe } from '@/hooks/useGamificationMe';
 import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+} from '@/lib/feed/feedSurfaceState';
+import {
   HCP_BADGE_CATALOG,
   badgeCatalogEntryBySlug,
   type BadgeCatalogEntry,
@@ -37,7 +41,18 @@ const MIJN_HCP_HOW = 'home.mijnHcpHow';
 export default function MijnHcpClient() {
   const { t, language } = useTranslation();
   const { data, loading, error } = useGamificationMe();
-  const [previewPeriod, setPreviewPeriod] = useState<LbPreviewPeriod>('week');
+  const [previewPeriod, setPreviewPeriod] = useState<LbPreviewPeriod>(() => {
+    const p = loadFeedSurfaceState<{ previewPeriod?: LbPreviewPeriod }>('hcp_mijn');
+    if (
+      p?.previewPeriod === 'week' ||
+      p?.previewPeriod === 'month' ||
+      p?.previewPeriod === 'year' ||
+      p?.previewPeriod === 'all'
+    ) {
+      return p.previewPeriod;
+    }
+    return 'week';
+  });
   const [rankMovement, setRankMovement] = useState<string | null>(null);
   /** Open badge-detail (zelfde sheet): vergrendeld of behaald. */
   const [badgeSheet, setBadgeSheet] = useState<{ mode: 'locked' | 'earned'; slug: string } | null>(
@@ -49,6 +64,13 @@ export default function MijnHcpClient() {
     period: previewPeriod,
     limit: 10,
   });
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      saveFeedSurfaceState('hcp_mijn', { previewPeriod });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [previewPeriod]);
 
   useEffect(() => {
     setRankMovement(null);

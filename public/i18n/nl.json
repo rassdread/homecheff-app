@@ -86,6 +86,254 @@
     "intentAffiliate": "Start jouw plek op HomeCheff",
     "intentResume": "Ga verder waar je was gebleven"
   },
+  "softGate": {
+    "saveItem": {
+      "title": "Bewaar dit in jouw collectie",
+      "body": "Alles wat je raakt op één plek. Log in of meld je aan — we brengen je direct hier terug.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Claim jouw plek"
+    },
+    "giveProp": {
+      "title": "Stuur waardering naar deze maker",
+      "body": "Props zijn een klein bedankje van de community. Ga verder met je account — één tik en je bent terug.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Word lid van HomeCheff"
+    },
+    "follow": {
+      "title": "Volg deze maker",
+      "body": "Blijf dicht bij nieuwe drops en updates. Na inloggen gaan we verder met volgen.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Word zichtbaar"
+    },
+    "message": {
+      "title": "Stuur een bericht naar deze maker",
+      "body": "Stel je voor of stel een vraag — na inloggen openen we het gesprek meteen.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Start jouw plek"
+    },
+    "notifications": {
+      "title": "Jouw HomeCheff-meldingen",
+      "body": "Bestellingen, berichten en momenten van makers die je volgt — log in om ze rustig op één plek te zien.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Word onderdeel van de community"
+    },
+    "ranking": {
+      "title": "Zie jouw plek op de ranglijst",
+      "body": "Verdien HCP, bouw je netwerk en word gezien. Log in om mee te doen in deze periode.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Claim jouw plek"
+    },
+    "location": {
+      "title": "Lokaal ontdekken werkt beter ingelogd",
+      "body": "Bewaar je omgeving, word vindbaar bij makers bij jou in de buurt — ga verder met je account.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Meedoen"
+    },
+    "create": {
+      "title": "Deel iets met het dorp",
+      "body": "Aanbod en inspiratie beginnen hier. Log in of meld je aan — je concept blijft bewaard.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Open jouw keuken, tuin of atelier"
+    },
+    "inspiration": {
+      "title": "Stap deze inspiratie binnen",
+      "body": "Recepten, kweken en designs van echte makers. Na een snelle login ga je verder waar je was.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Laat jouw creatieve ruimte groeien"
+    },
+    "affiliate": {
+      "title": "Bouw jouw HomeCheff-community",
+      "body": "Deel wat je leuk vindt en groei samen — log in om verder te gaan met partner worden.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Samen verdienen"
+    },
+    "generic": {
+      "title": "Ga verder op HomeCheff",
+      "body": "Ga verder waar je was — één account voor makers, foodliefhebbers en creators.",
+      "ctaLogin": "Inloggen",
+      "ctaRegister": "Meedoen"
+    }
+  },
+  "sellerActivation": {
+    "title": "Klaar om te verkopen: voeg je locatie toe",
+    "body": "Je mag eerst verkennen. Stad en land (en postcode in NL) helpen kopers en feeds in de buurt — pas aan wanneer het jou uitkomt.",
+    "ctaProfile": "Profiel bijwerken",
+    "later": "Nu niet"
+  },
+  "personaBanner": {
+    "chef": {
+      "teaser": "Start jouw keuken — je eerste aanbod is zo geplaatst.",
+      "cta": "Naar verkopen",
+      "welcome": "Dit platform is gemaakt voor makers zoals jij."
+    },
+    "designer": {
+      "teaser": "Open jouw atelier — laat zien wat je maakt.",
+      "cta": "Naar verkopen",
+      "welcome": "Laat je proces zien — hier waarderen ze vakmanschap."
+    },
+    "grower": {
+      "teaser": "Start jouw tuin — deel wat je kweekt.",
+      "cta": "Naar verkopen",
+      "welcome": "Deze plek is gemaakt voor makers met groen vingers."
+    },
+    "affiliate": {
+      "teaser": "Bouw jouw community — deel HomeCheff met mensen die van lokaal houden.",
+      "cta": "Naar affiliate-hub",
+      "welcome": "Welkom — bouw een community rond makers die jij steunt."
+    },
+    "explorer": {
+      "teaser": "Ontdek makers en inspiratie bij jou in de buurt — begin op de feed.",
+      "cta": "Ontdek de feed",
+      "welcome": "Jouw hoek van het ecosysteem begint bij wat er nu speelt in de buurt."
+    },
+    "business": {
+      "teaser": "Laat je vak zien — begin met een duidelijk profiel en je eerste aanbod.",
+      "cta": "Start met verkopen",
+      "welcome": "HomeCheff werkt voor solo-makers en kleine teams — begin met de basis."
+    },
+    "inspiration": {
+      "teaser": "Deel inspiratie — recepten, proces en ideeën uit keuken, tuin of atelier.",
+      "cta": "Deel inspiratie",
+      "welcome": "Makers zoals jij houden de inspiratiestroom levend."
+    },
+    "suggested": {
+      "discover": "Ontdek wat er live op de feed staat",
+      "profile": "Maak je openbare profiel af",
+      "hcp": "Bekijk je HomeCheff-punten en streak",
+      "feed": "Blader langs verse inspiratie bij jou in de buurt"
+    }
+  },
+  "communityPulse": {
+    "heading": "Live uit de community",
+    "fallbackLine": "Kleine acties dichtbij tellen op — ontdek makers, aanbod en inspiratie.",
+    "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
+    "newCreators7d": "{count} nieuwe makers deze week",
+    "newInspiration7d": "{count} nieuwe inspiratieposts deze week",
+    "topHcpSpotlight": "{name} staat bovenaan op HomeCheff-punten ({points} pt)",
+    "savesWeek": "{count} nieuwe saves op aanbiedingen deze week",
+    "followsWeek": "{count} nieuwe volgers deze week",
+    "discussionWeek": "{count} nieuwe reviews en reacties deze week",
+    "mostSavedThisWeek": "Trending save: “{title}” ({count} saves)",
+    "risingCreatorWeek": "{name} plaatste {count} nieuwe items deze week",
+    "activeListersWeek": "{count} makers zetten iets in de etalage deze week"
+  },
+  "creatorMomentum": {
+    "title": "Jouw zichtbaarheid als maker",
+    "profileViews": "Je profiel werd {count} keer bekeken (totaal).",
+    "savesWeek": "{count} saves op jouw aanbiedingen in de laatste 7 dagen.",
+    "newFollowersWeek": "{count} nieuwe volgers in de laatste 7 dagen.",
+    "unreadNotifications": "{count} ongelezen meldingen — bekijk ze wanneer het past.",
+    "ctaProfile": "Open profiel",
+    "ctaNotifications": "Open meldingen"
+  },
+  "creatorAudience": {
+    "sectionAria": "Publiek- en communitysignalen voor je makerprofiel",
+    "title": "Jouw publiek",
+    "subtitle": "Rustige signalen uit echte activiteit — totalen en kleine groepen, nooit losse namen.",
+    "localPresence": "Verankerd bij {place}",
+    "metrics": {
+      "followers": "Volgers",
+      "newFollowersWeek": "+{count} nieuw deze week",
+      "savesWeek": "Saves (7 dagen)",
+      "distinctSaversWeek": "{count} verschillende mensen sloegen iets op",
+      "recurring": "Terugkerende saves",
+      "recurringHint": "Mensen die de afgelopen 28 dagen vaker iets opslaan",
+      "profileViews": "Profielweergaven",
+      "listingsActive": "{count} actieve aanbiedingen"
+    },
+    "hints": {
+      "growing": "Je publiek groeit — deze week kwamen er nieuwe volgers bij.",
+      "discovery": "Je creaties worden ontdekt — saves liepen deze week op.",
+      "returning": "Sommige mensen komen terug om jouw werk op te slaan.",
+      "breadth": "Verschillende mensen sloegen deze week iets van jou op."
+    },
+    "calmDefault": "Blijf rustig delen — zinvolle signalen verschijnen als mensen je vinden."
+  },
+  "returnBelonging": {
+    "title": "Redenen om terug te komen",
+    "followedCreatorsPosted": "Makers die je volgt, deelden het afgelopen etmaal iets nieuws.",
+    "yourAudienceGrowing": "Je publiek groeide deze week — er kwamen nieuwe volgers bij.",
+    "communitySavesActive": "De community slaat deze week aanbiedingen op ({count} saves) — inspiratie beweegt."
+  },
+  "ecosystemHub": {
+    "sectionAria": "Lokale makeractiviteit bij {city}",
+    "title": "Makers rond {city}",
+    "subtitle": "Een rustig beeld van echte aanbiedingen en inspiratie binnen ongeveer {radius} km — geen groepen, geen druk.",
+    "stats": {
+      "activeCreatorsWeek": "Actieve makers (7 dagen)",
+      "newListingsWeek": "Nieuwe aanbiedingen (7 dagen)",
+      "inspirationWeek": "Nieuwe inspiratie (7 dagen)",
+      "radius": "Straal"
+    },
+    "spotlight": {
+      "risingLocal": "Lokaal in beweging",
+      "newListings": "{count} nieuwe aanbiedingen deze week",
+      "hcpLeader": "HCP-momentum in de buurt",
+      "hcpPoints": "{count} HomeCheff-punten"
+    },
+    "sparseGeo": "Regionale hubs worden sterker als makers een ophaal- of atelierlocatie delen — op de feed zie je nog steeds iedereen bij jou in de buurt.",
+    "ctaFeed": "Open de feed voor {city}",
+    "ctaDiscover": "Bekijk inspiratie"
+  },
+  "ecosystemStrip": {
+    "sectionAria": "Ontdek ecosystemen en lokale hubs",
+    "heading": "Ontdek ecosystemen",
+    "sampleCity": "Lokale hub · {city}",
+    "links": {
+      "keuken": "Keukens",
+      "tuin": "Tuin",
+      "studio": "Studio",
+      "inspiratie": "Inspiratie",
+      "community": "Communitybuilders"
+    }
+  },
+  "ecosystemVertical": {
+    "titles": {
+      "keuken": "Keuken-ecosysteem",
+      "tuin": "Tuin-ecosysteem",
+      "studio": "Studio-ecosysteem",
+      "inspiratie": "Inspiratie-ecosysteem",
+      "community": "Community & affiliates"
+    },
+    "intros": {
+      "keuken": "Thuiskeukens en lokaal eten — activiteit van echte makers, rustig zichtbaar.",
+      "tuin": "Tuinmakers en oogst — geworteld in aanbiedingen en openbare werkruimte-verhalen.",
+      "studio": "Design en ambacht — een levend hoekje voor makers die delen en verkopen.",
+      "inspiratie": "Recepten, kweekverslagen en atelierproces — een zachte puls uit de community.",
+      "community": "Mensen die HomeCheff verder helpen — transparant, vrijwillig, kalm."
+    },
+    "stats": {
+      "activeListings": "Actieve aanbiedingen",
+      "momentumWeek": "Nieuw momentum (7 dagen)",
+      "workspacePostsWeek": "Workspaceposts (7 dagen)",
+      "savesWeek": "Saves deze week",
+      "activeCreatorsWeek": "Actieve makers (7 dagen)",
+      "activeBuilders": "Actieve builders",
+      "newBuildersWeek": "Nieuwe builders (7 dagen)",
+      "newListingsNationwide": "Nieuwe aanbiedingen landelijk (7 dagen)",
+      "publicInspiration": "Openbare inspiratie-items",
+      "inspirationPostsWeek": "Nieuwe inspiratie (7 dagen)",
+      "inspirationCreatorsWeek": "Makers met nieuwe openbare posts (7 dagen)"
+    },
+    "spotlight": {
+      "creator": "Spotlight",
+      "newListings": "{count} nieuwe aanbiedingen deze week"
+    },
+    "ctaFeed": "Open passende feed",
+    "ctaInspiration": "Open ontdekken",
+    "ctaAffiliate": "Affiliateprogramma"
+  },
+  "ecosystemProfile": {
+    "chips": {
+      "localRooted": "Lokaal verankerd",
+      "presentThisWeek": "Deze week actief op HomeCheff",
+      "makerHere": "Maker op HomeCheff"
+    }
+  },
+  "followEcosystem": {
+    "emptyFollowsCta": "Ontdek makers op de feed",
+    "emptyFollowsHint": "Volgen bundelt updates van makers die je boeien. Ecosystemen tonen rustig echte activiteit per stad en ambacht."
+  },
   "navigation": {
     "home": "Home",
     "login": "Inloggen",
@@ -3474,6 +3722,7 @@
   "nativePush": {
     "introTitle": "Meldingen op dit apparaat",
     "introBody": "Wil je meldingen ontvangen voor nieuwe berichten en bestellingen? Je ziet zo het systeemvenster om dit toe te staan.",
+    "valueExplainer": "Blijf op de hoogte van reacties, HCP en nieuwe inspiratie — zonder constant in de app te hoeven.",
     "turnOn": "Meldingen aanzetten",
     "later": "Later",
     "registerError": "Push registreren lukt niet. Controleer internet en probeer opnieuw via Instellingen.",
@@ -4316,7 +4565,15 @@
       "designer": "Kies uit onze favoriete design en creatieve emoji's",
       "chef": "Kies uit onze favoriete keuken, koken en eten emoji's"
     },
-    "emojiTip": "Tip: Klik op een emoji om toe te voegen, of kies een andere set voor meer opties"
+    "emojiTip": "Tip: Klik op een emoji om toe te voegen, of kies een andere set voor meer opties",
+    "relationship": {
+      "mutualFollow": "Jullie volgen elkaar op HomeCheff",
+      "youFollowCreator": "Je volgt deze maker",
+      "followsYouBack": "Deze maker volgt jou ook",
+      "continuedConversation": "Jullie hebben hier al eerder berichten uitgewisseld",
+      "aboutListing": "Over “{title}”",
+      "productCategory": "Aanbod · {category}"
+    }
   },
   "recipes": {
     "loading": "Recept laden...",
@@ -4417,6 +4674,13 @@
   "home": {
     "loading": "Laden...",
     "welcomeFirstName": "Welkom, {name}!",
+    "profileProgress": {
+      "title": "Claim je plek",
+      "start": "Vul een paar basics in zodat buren je herkennen.",
+      "almost": "Bijna — maak je zichtbaar in de buurt om op te vallen.",
+      "complete": "Je profiel ziet er klaar uit.",
+      "cta": "Verder op profiel"
+    },
     "moreSectionHeading": "Meer",
     "seoHubLink": "Alle gidsen en onderwerpen (SEO-hub)",
     "heroCollapsedLabel": "Welkom & ontdekken",
@@ -4607,6 +4871,7 @@
       "notRankedYet": "Je staat nog niet in deze weergave — verdien HCP in deze periode om mee te tellen.",
       "inThisView": "in deze weergave",
       "loginHint": "Log in om je eigen plek in de ranglijst te zien.",
+      "ctaJoinLeaderboard": "Claim jouw plek — log in of meld je aan",
       "emptyNearbyNoLocation": "We hebben nog geen locatie om je buurt-ranglijst te tonen. Vul je profiel-locatie aan of gebruik je huidige locatie.",
       "emptyGeneric": "Nog onvoldoende data voor deze ranglijst.",
       "emptyNoHcpInList": "Nog geen HCP in deze ranglijst.",
@@ -4952,6 +5217,9 @@
     "saleViewOffer": "Te koop",
     "inspirationViewCta": "Bekijk",
     "unknownPlace": "Onbekende locatie",
+    "density": {
+      "savedByCommunity": "Recent door {count} mensen opgeslagen"
+    },
     "resultSingular": "resultaat",
     "resultPlural": "resultaten",
     "filteredByQuery": " · Gefilterd op: \"{query}\"",

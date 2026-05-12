@@ -7,6 +7,8 @@ export type RankableSaleItem = {
   createdAt: string;
   viewCount?: number;
   propsCount?: number;
+  /** Real saves (favorites) on product — used as a light engagement signal only. */
+  favoriteCount?: number;
   distanceKm?: number;
 };
 
@@ -39,9 +41,11 @@ export function computeSaleScore(
 ): number {
   const props = item.propsCount ?? 0;
   const views = item.viewCount ?? 0;
+  const fav = item.favoriteCount ?? 0;
   let score =
     props * 3 +
     views * 0.5 +
+    Math.min(22, fav * 1.75) +
     computeRecencyBoost(item.createdAt, nowMs) +
     computeDistanceBoost(item.distanceKm);
   if (saleItemHasMedia(item)) score += 10;

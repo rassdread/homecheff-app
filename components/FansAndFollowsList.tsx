@@ -324,6 +324,14 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
           <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
             {activeTab === 'follows' ? t('common.followsEmptyHint') : t('common.fansEmptyHint')}
           </p>
+          {activeTab === 'follows' ? (
+            <p className="mt-4 text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              {t('followEcosystem.emptyFollowsHint')}{' '}
+              <Link href="/#homecheff-feed" className="font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                {t('followEcosystem.emptyFollowsCta')}
+              </Link>
+            </p>
+          ) : null}
         </div>
       ) : (
         <div className="bg-white rounded-b-xl border border-t-0 border-gray-200">

@@ -14,7 +14,12 @@ import SafeImage from '@/components/ui/SafeImage';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { calculateDistance } from '@/lib/geocoding';
-import PromoModal from '@/components/promo/PromoModal';
+import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+} from '@/lib/feed/feedSurfaceState';
+import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import InspirationCard from '@/components/inspiratie/InspirationCard';
 
 export type InspirationItem = {
@@ -91,6 +96,7 @@ export default function InspiratieContent({
   const [showFilters, setShowFilters] = useState(layout === 'hub');
   const [filtersLabelMounted, setFiltersLabelMounted] = useState(false); // avoid hydration mismatch: server "" vs client "Filters"
   const [hasMounted, setHasMounted] = useState(false); // avoid hydration: translations/data kunnen server vs client verschillen
+  const inspPersistRestoredRef = useRef(false);
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   
@@ -109,8 +115,6 @@ export default function InspiratieContent({
   const [minRating, setMinRating] = useState<number>(0);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(layout === 'hub');
   
-  // Promo modal state
-  const [showPromoModal, setShowPromoModal] = useState(false);
   // Welkomstbanner: tonen bij ?welcome=true of ?registered=true (ook als API's falen, bv. Safari CORS)
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
   
@@ -193,6 +197,69 @@ export default function InspiratieContent({
     setHasMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!hasMounted || inspPersistRestoredRef.current) return;
+    inspPersistRestoredRef.current = true;
+    const sid = layout === 'hub' ? 'inspiratie_hub' : 'inspiratie_page';
+    type P = {
+      selectedCategory?: string;
+      selectedRegion?: string;
+      sortBy?: typeof sortBy;
+      viewMode?: 'grid' | 'list';
+      searchQuery?: string;
+      radius?: number;
+    };
+    const p = loadFeedSurfaceState<P>(sid);
+    if (!p || typeof p !== 'object') return;
+    if (typeof p.selectedCategory === 'string' && p.selectedCategory.length < 40) {
+      setSelectedCategory(p.selectedCategory);
+    }
+    if (typeof p.selectedRegion === 'string' && p.selectedRegion.length < 40) {
+      setSelectedRegion(p.selectedRegion);
+    }
+    const sb = p.sortBy;
+    if (
+      sb === 'newest' ||
+      sb === 'popular' ||
+      sb === 'distance' ||
+      sb === 'views' ||
+      sb === 'rating' ||
+      sb === 'props'
+    ) {
+      setSortBy(sb);
+    }
+    if (p.viewMode === 'grid' || p.viewMode === 'list') setViewMode(p.viewMode);
+    if (typeof p.searchQuery === 'string') setSearchQuery(p.searchQuery.slice(0, 200));
+    const r = p.radius;
+    if (typeof r === 'number' && r >= 1 && r <= 500) setRadius(r);
+    trackOnboardingEvent('FEED_STATE_RESTORED', { surface: sid });
+  }, [hasMounted, layout]);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+    const sid = layout === 'hub' ? 'inspiratie_hub' : 'inspiratie_page';
+    const t = window.setTimeout(() => {
+      saveFeedSurfaceState(sid, {
+        selectedCategory,
+        selectedRegion,
+        sortBy,
+        viewMode,
+        searchQuery,
+        radius,
+      });
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [
+    hasMounted,
+    layout,
+    selectedCategory,
+    selectedRegion,
+    sortBy,
+    viewMode,
+    searchQuery,
+    radius,
+  ]);
+
   // Welkomstbanner: direct bij mount uit echte URL (Safari iPhone vult searchParams soms later)
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
@@ -261,9 +328,7 @@ export default function InspiratieContent({
           }
         }
         
-        // Close promo modal if it was open (user just logged in)
         if (welcome || registered) {
-          setShowPromoModal(false);
           // Verwijder URL-params pas na 4s zodat de welkomstbanner goed zichtbaar blijft (ook bij CORS-fouten op Safari)
           setTimeout(() => {
             const newUrl = new URL(window.location.href);
@@ -639,8 +704,25 @@ export default function InspiratieContent({
     }
     
     if (!session?.user) {
-      // Show promo modal instead of direct redirect
-      setShowPromoModal(true);
+      const dest = getItemDetailUrl(item);
+      const vertical =
+        item.category === 'GROWN'
+          ? 'GARDEN'
+          : item.category === 'DESIGNER'
+            ? 'DESIGNER'
+            : 'CHEFF';
+      const persona =
+        item.category === 'GROWN' ? 'grower' : item.category === 'DESIGNER' ? 'designer' : 'chef';
+      openSoftAuthGateWithScroll({
+        copyKey: 'inspiration',
+        intent: {
+          type: 'complete_profile',
+          returnPath: dest,
+          mode: 'inspiratie',
+          vertical,
+          persona,
+        },
+      });
       return;
     }
     router.push(getItemDetailUrl(item));
@@ -1257,26 +1339,6 @@ export default function InspiratieContent({
       </>
       )}
 
-      {/* Promo Modal for non-logged users */}
-      {/* Don't show promo modal if session is loading or being refreshed after login */}
-      <PromoModal
-        isOpen={showPromoModal && sessionStatus !== 'loading' && !isRefreshingSession}
-        onClose={() => setShowPromoModal(false)}
-        title={t('inspiratie.promoModal.title') || "Deel Je Inspiratie!"}
-        subtitle={t('inspiratie.promoModal.subtitle') || "Word onderdeel van de creatieve community"}
-        description={t('inspiratie.promoModal.description') || "Meld je aan om inspiraties te delen, ideeën uit te wisselen en samen te creëren met andere makers. HomeCheff is jouw platform om te inspireren en geïnspireerd te worden."}
-        icon="✨"
-        gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-        features={[
-          t('inspiratie.promoModal.feature1') || "Deel je eigen inspiraties en ideeën",
-          t('inspiratie.promoModal.feature2') || "Reageer op posts van andere makers",
-          t('inspiratie.promoModal.feature3') || "Krijg feedback van de community",
-          t('inspiratie.promoModal.feature4') || "Ontdek nieuwe technieken en trends",
-          t('inspiratie.promoModal.feature5') || "Bouw je creatieve netwerk uit"
-        ]}
-        ctaText={t('inspiratie.promoModal.ctaText') || "Meld je aan en deel inspiratie"}
-        modalType="inspiratie-item"
-      />
     </>
   );
 }

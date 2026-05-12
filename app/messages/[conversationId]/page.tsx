@@ -16,6 +16,7 @@ interface Conversation {
     id: string;
     title: string;
     priceCents: number;
+    category?: string;
     Image: Array<{
       fileUrl: string;
       sortOrder: number;
@@ -33,6 +34,13 @@ interface Conversation {
   lastMessageAt: string | null;
   isActive: boolean;
   createdAt: string;
+  relationshipContext?: {
+    youFollowThem: boolean;
+    theyFollowYou: boolean;
+    messageCount: number;
+    productTitle: string | null;
+    productCategory: string | null;
+  };
 }
 
 function ThreadSkeleton() {
@@ -175,6 +183,7 @@ export default function ConversationPage() {
             displayNameOption: conversation.otherParticipant?.displayNameOption ?? undefined,
             sellerVerified: conversation.otherParticipant?.sellerVerified,
           }}
+          relationshipContext={conversation.relationshipContext ?? null}
           onBack={handleBackToList}
           showBackOnDesktop
         />

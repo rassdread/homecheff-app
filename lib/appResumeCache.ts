@@ -292,6 +292,8 @@ export function getScrollStorageKey(
   if (pathname === "/" || pathname === "/en") return "feed:home";
   if (pathname === "/profile" || pathname === "/en/profile")
     return "feed:profile";
+  if (pathname === "/mijn-hcp" || pathname === "/en/mijn-hcp")
+    return "feed:mijn-hcp";
   if (isMessagesPath) return "ui:messages-list";
   return null;
 }

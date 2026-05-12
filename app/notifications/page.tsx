@@ -8,6 +8,7 @@ import NotificationFeedItems, {
 } from '@/components/notifications/NotificationFeedItems';
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { useTranslation } from '@/hooks/useTranslation';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -44,6 +45,10 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
+      savePendingIntent({
+        type: 'enable_notifications',
+        returnPath: '/notifications',
+      });
       router.replace('/login?callbackUrl=/notifications');
       return;
     }

@@ -12,6 +12,11 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { sellerRolesToAllowedVerticals } from '@/lib/createFlowIntent';
 import type { CreateFlowVertical } from '@/lib/createFlowIntent';
 import { getProfileTabAfterProductFlow } from '@/lib/profileProductTab';
+import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+} from '@/lib/feed/feedSurfaceState';
+import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
 function verticalFromProfileDishesTab(activeTab: string): CreateFlowVertical | undefined {
   if (activeTab === 'dishes-chef') return 'CHEFF';
@@ -47,6 +52,11 @@ const WorkspacePhotoUpload = dynamic(() => import('../workspace/WorkspacePhotoUp
 const FansAndFollowsList = dynamic(() => import('../FansAndFollowsList'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-xl" />,
   ssr: false
+});
+
+const CreatorAudiencePanel = dynamic(() => import('./CreatorAudiencePanel'), {
+  loading: () => null,
+  ssr: false,
 });
 
 const ItemsWithReviews = dynamic(() => import('./ItemsWithReviews'), {
@@ -134,11 +144,18 @@ interface ProfileClientProps {
 
 export default function ProfileClient({ user, openNewProducts, searchParams }: ProfileClientProps) {
   const { t } = useTranslation();
+  const { data: session, status: sessionStatus } = useSession();
   const createFlow = useCreateFlow();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState<'dorpsplein' | 'inspiratie'>('dorpsplein');
+  const profilePersistRestoredRef = useRef(false);
   
+  const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? '';
+  const isOwnProfile = sessionStatus === 'authenticated' && sessionUserId === user.id;
+  const showCreatorAudience =
+    isOwnProfile && (user.role === 'SELLER' || (user.sellerRoles?.length ?? 0) > 0);
+
   // Reset contentSubTab wanneer activeTab verandert; inspiratie-deep-links (quick-add → foto → formulier)
   // moeten op de Inspiratie-subtab landen — anders rendert geen Recipe/Garden/Design manager en opent het formulier niet.
   useEffect(() => {
@@ -163,10 +180,34 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       if (addInspParam || openFormParam || addInspQs || openFormQs) {
         setContentSubTab('inspiratie');
       } else {
-        setContentSubTab('dorpsplein');
+        const stored = loadFeedSurfaceState<{ contentSubTab?: 'dorpsplein' | 'inspiratie' }>(
+          'profile_main'
+        );
+        if (stored?.contentSubTab === 'inspiratie' || stored?.contentSubTab === 'dorpsplein') {
+          setContentSubTab(stored.contentSubTab);
+        } else {
+          setContentSubTab('dorpsplein');
+        }
       }
     }
   }, [activeTab, searchParams?.addInspiratie, searchParams?.openForm]);
+
+  useEffect(() => {
+    if (profilePersistRestoredRef.current) return;
+    profilePersistRestoredRef.current = true;
+    const p = loadFeedSurfaceState<{ activeTab?: string }>('profile_main');
+    if (!p?.activeTab || typeof p.activeTab !== 'string' || p.activeTab.length > 64) return;
+    setActiveTab(p.activeTab);
+    trackOnboardingEvent('FEED_STATE_RESTORED', { surface: 'profile_main' });
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      saveFeedSurfaceState('profile_main', { activeTab, contentSubTab });
+    }, 450);
+    return () => window.clearTimeout(t);
+  }, [activeTab, contentSubTab]);
+
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
   const [isProfileEditing, setIsProfileEditing] = useState(false);
@@ -1022,6 +1063,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                         </div>
                       </div>
                     </div>
+
+                    {showCreatorAudience ? <CreatorAudiencePanel /> : null}
 
                     {/* Stripe Connect Setup - alleen voor verkopers */}
                     {(user.role === 'SELLER' || (user.sellerRoles && user.sellerRoles.length > 0)) && (

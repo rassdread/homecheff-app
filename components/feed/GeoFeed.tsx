@@ -65,6 +65,11 @@ import {
 } from "@/lib/native/push";
 import { getOrCreatePushDeviceId } from "@/lib/native/pushClientPrefs";
 import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
+import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+} from "@/lib/feed/feedSurfaceState";
+import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 
 /** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
 const SHOW_NATIVE_GPS_DEBUG_UI =
@@ -98,6 +103,7 @@ type FeedItem = {
   distanceKm?: number;
   viewCount?: number;
   propsCount?: number;
+  favoriteCount?: number;
   ownerId?: string | null;
   category?: string | null;
   sellerUserId?: string | null;
@@ -267,6 +273,8 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       raw.viewCount != null ? Number(raw.viewCount) : undefined,
     propsCount:
       raw.propsCount != null ? Number(raw.propsCount) : undefined,
+    favoriteCount:
+      raw.favoriteCount != null ? Number(raw.favoriteCount) : undefined,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
   };
 }
@@ -469,6 +477,7 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
     distanceKm: it.distanceKm,
     viewCount: it.viewCount,
     propsCount: it.propsCount,
+    favoriteCount: it.favoriteCount,
     ownerId: it.ownerId,
     category: it.category,
     sellerUserId: it.sellerUserId,
@@ -593,13 +602,88 @@ export default function GeoFeed({
     });
 
   useEffect(() => {
-    if (!nativeMounted || sessionStatus === "loading") return;
-    if (initialFeedChip) {
+    if (sessionStatus === "loading") return;
+    if (initialFeedChip != null) {
       queueMicrotask(() => {
         nativeFeedPrefsBootRef.current = false;
       });
       return;
     }
+
+    type HomePersist = {
+      feedChip?: FeedChip;
+      radius?: number;
+      category?: string;
+      sortBy?: "newest" | "price" | "views" | "distance";
+      sortOrder?: "asc" | "desc";
+      searchQuery?: string;
+      q?: string;
+      place?: string;
+      priceMin?: string;
+      priceMax?: string;
+      showFilters?: boolean;
+    };
+
+    const persisted = loadFeedSurfaceState<HomePersist>("home");
+    if (persisted && typeof persisted === "object") {
+      const fc = persisted.feedChip;
+      if (fc === "all" || fc === "sale" || fc === "inspiration") {
+        setFeedChip(fc);
+      }
+      const r = persisted.radius;
+      if (typeof r === "number" && r >= 1 && r <= 500) setRadius(r);
+      if (
+        typeof persisted.category === "string" &&
+        persisted.category.length < 80
+      ) {
+        setCategory(persisted.category);
+      }
+      const sb = persisted.sortBy;
+      if (sb === "newest" || sb === "price" || sb === "views" || sb === "distance") {
+        setSortBy(sb);
+      }
+      const so = persisted.sortOrder;
+      if (so === "asc" || so === "desc") setSortOrder(so);
+      if (typeof persisted.searchQuery === "string") {
+        setSearchQuery(persisted.searchQuery.slice(0, 200));
+      }
+      if (typeof persisted.q === "string") setQ(persisted.q.slice(0, 200));
+      if (typeof persisted.place === "string") {
+        setPlace(persisted.place.slice(0, 200));
+      }
+      if (
+        typeof persisted.priceMin === "string" ||
+        typeof persisted.priceMax === "string"
+      ) {
+        setPriceRange((pr) => ({
+          ...pr,
+          min:
+            typeof persisted.priceMin === "string"
+              ? persisted.priceMin.slice(0, 32)
+              : pr.min,
+          max:
+            typeof persisted.priceMax === "string"
+              ? persisted.priceMax.slice(0, 32)
+              : pr.max,
+        }));
+      }
+      if (typeof persisted.showFilters === "boolean") {
+        setShowFilters(persisted.showFilters);
+      }
+      trackOnboardingEvent("FEED_STATE_RESTORED", { surface: "home" });
+      queueMicrotask(() => {
+        nativeFeedPrefsBootRef.current = false;
+      });
+      return;
+    }
+
+    if (!nativeMounted) {
+      queueMicrotask(() => {
+        nativeFeedPrefsBootRef.current = false;
+      });
+      return;
+    }
+
     const uid = (session?.user as { id?: string } | undefined)?.id ?? null;
     const p = readNativeFeedPrefs(uid);
     if (p?.feedChip) setFeedChip(p.feedChip);
@@ -628,10 +712,44 @@ export default function GeoFeed({
     setInspiratiePool(initialInspiratieItems);
   }, [initialInspiratieItems]);
 
-  // Altijd server/URL-chip volgen: bij terug naar `/` zonder chip moet weer "all" (was: oude chip bleef hangen).
+  // Alleen URL-/server-chip toepassen wanneer die expliciet is meegegeven (anders: client restore / persist).
   useEffect(() => {
-    setFeedChip(initialFeedChip ?? "all");
+    if (initialFeedChip != null) setFeedChip(initialFeedChip);
   }, [initialFeedChip]);
+
+  useEffect(() => {
+    if (!feedHydrated) return;
+    if (typeof window === "undefined") return;
+    const t = window.setTimeout(() => {
+      saveFeedSurfaceState("home", {
+        feedChip,
+        radius,
+        category,
+        sortBy,
+        sortOrder,
+        searchQuery,
+        q: q.trim(),
+        place: place.trim().slice(0, 200),
+        priceMin: priceRange.min,
+        priceMax: priceRange.max,
+        showFilters,
+      });
+    }, 380);
+    return () => window.clearTimeout(t);
+  }, [
+    feedHydrated,
+    feedChip,
+    radius,
+    category,
+    sortBy,
+    sortOrder,
+    searchQuery,
+    q,
+    place,
+    priceRange.min,
+    priceRange.max,
+    showFilters,
+  ]);
 
   const loadProfileLocation = useCallback(async () => {
     if (!session?.user || profileLocationLoadedRef.current) return;

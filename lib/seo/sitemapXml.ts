@@ -4,6 +4,8 @@ import {
 } from "@/lib/seo/homecheffSeoPages";
 import { ETEN_VERKOPEN_CITY_SLUGS } from "@/lib/seo/etenVerkopenCities";
 import { MAIN_DOMAIN } from "@/lib/seo/metadata";
+import { LOCAL_SEO_CITIES } from "@/lib/seo/localCities";
+import { CATEGORY_ECOSYSTEM_SLUGS } from "@/lib/community/categoryEcosystemSlugs";
 
 /** Vaste paden (NL marketing + hubs), zonder domein — volgorde = huidige sitemap. */
 const EXTRA_STATIC_PATHS: readonly string[] = [
@@ -48,6 +50,14 @@ export function collectSitemapLocUrls(): string[] {
 
   for (const stad of ETEN_VERKOPEN_CITY_SLUGS) {
     push(`/eten-verkopen-${stad}`);
+  }
+
+  for (const c of LOCAL_SEO_CITIES) {
+    push(`/maaltijden/${c.slug}`);
+  }
+
+  for (const seg of CATEGORY_ECOSYSTEM_SLUGS) {
+    push(`/gemeenschap/${seg}`);
   }
 
   for (const page of HOMECHEFF_SEO_PAGE_DEFS) {

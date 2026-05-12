@@ -19,7 +19,7 @@ import {
 } from "@/lib/createFlowIntent";
 import { clickDebug } from "@/lib/click-debug";
 import { getCreateAuthReturnUrls } from "@/lib/createAuthReturnUrls";
-import { savePendingIntent } from "@/lib/onboarding/pending-intent";
+import { savePendingIntent, personaFromVertical } from "@/lib/onboarding/pending-intent";
 import {
   AFTER_LOGIN_CREATE_ACTION_KEY,
   clearPendingOpenQuickAddAfterLogin,
@@ -53,6 +53,10 @@ function persistCreatePendingIntent() {
     type: mode === "inspiratie" ? "create_inspiration" : "create_item",
     mode,
     vertical: ci?.vertical,
+    persona:
+      mode === "inspiratie"
+        ? "inspiration"
+        : personaFromVertical(ci?.vertical),
     returnPath: `${window.location.pathname}${window.location.search}`,
   });
 }

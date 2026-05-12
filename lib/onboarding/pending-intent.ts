@@ -24,6 +24,10 @@ export type PendingIntentType =
   | 'save_item'
   | 'like_item'
   | 'comment'
+  | 'follow_profile'
+  | 'give_prop'
+  | 'join_ranking'
+  | 'enable_location'
   | 'join_affiliate'
   | 'open_hcp'
   | 'enable_notifications'
@@ -39,6 +43,10 @@ export type PendingIntent = {
   mediaRef?: string;
   createdAt: string;
   expiresAt: string;
+  /** When true, `/auth/resume-interaction` runs a one-shot API to complete the action. */
+  autoResume?: boolean;
+  /** Hint for post-auth persona copy (chef, designer, …). */
+  persona?: string;
 };
 
 export type PendingIntentInput = Omit<PendingIntent, 'createdAt' | 'expiresAt'> &
@@ -73,6 +81,16 @@ function sellNewPathFromIntent(intent: PendingIntent): string {
   return `/sell/new${q}`;
 }
 
+function needsInteractionResume(intent: PendingIntent): boolean {
+  if (!intent.autoResume) return false;
+  return (
+    intent.type === 'save_item' ||
+    intent.type === 'like_item' ||
+    intent.type === 'follow_profile' ||
+    intent.type === 'give_prop'
+  );
+}
+
 /**
  * After authentication, maps a stored intent to a relative in-app URL.
  * Returns null if profile onboarding is still required or intent is expired.
@@ -88,6 +106,10 @@ export function resolvePostAuthIntentRedirect(
 
   const fallbackPath = (): string | null => safeReturnPath(intent.returnPath);
 
+  if (needsInteractionResume(intent)) {
+    return '/auth/resume-interaction';
+  }
+
   switch (intent.type) {
     case 'create_item':
     case 'create_inspiration':
@@ -100,9 +122,15 @@ export function resolvePostAuthIntentRedirect(
       return '/mijn-hcp';
     case 'enable_notifications':
       return '/notifications';
+    case 'join_ranking':
+      return fallbackPath() || '/hcp-ranglijsten';
+    case 'enable_location':
+      return fallbackPath() || '/profile';
     case 'save_item':
     case 'like_item':
-    case 'comment': {
+    case 'comment':
+    case 'follow_profile':
+    case 'give_prop': {
       const p = fallbackPath();
       if (p) return p;
       if (intent.targetId) return `/product/${encodeURIComponent(intent.targetId)}`;
@@ -113,6 +141,8 @@ export function resolvePostAuthIntentRedirect(
   }
   return null;
 }
+
+export const PERSONA_HINT_KEY = 'hc_persona_hint';
 
 export function savePendingIntent(input: PendingIntentInput): void {
   if (typeof window === 'undefined') return;
@@ -127,6 +157,13 @@ export function savePendingIntent(input: PendingIntentInput): void {
   };
   try {
     window.sessionStorage.setItem(PENDING_INTENT_STORAGE_KEY, JSON.stringify(full));
+    if (full.persona) {
+      try {
+        window.sessionStorage.setItem(PERSONA_HINT_KEY, full.persona);
+      } catch {
+        /* ignore */
+      }
+    }
   } catch {
     /* quota / private mode */
   }
@@ -170,8 +207,17 @@ export function consumeAndResolvePostAuthUrl(user: {
   }
   const url = resolvePostAuthIntentRedirect(user, intent);
   if (!url) return null;
-  if (!url.startsWith('/auth/resume-intent')) {
+  if (!url.startsWith('/auth/resume-intent') && !url.startsWith('/auth/resume-interaction')) {
     clearPendingIntent();
   }
   return url;
+}
+
+export function personaFromVertical(
+  vertical?: 'CHEFF' | 'GARDEN' | 'DESIGNER',
+): string | undefined {
+  if (vertical === 'CHEFF') return 'chef';
+  if (vertical === 'GARDEN') return 'grower';
+  if (vertical === 'DESIGNER') return 'designer';
+  return undefined;
 }

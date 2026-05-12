@@ -7,7 +7,7 @@ import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
-import { savePendingIntent } from '@/lib/onboarding/pending-intent';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 
 interface StartChatButtonProps {
   productId?: string;
@@ -40,19 +40,20 @@ export default function StartChatButton({
   >(null);
   const { data: session, status } = useSession();
 
-  const loginHref = `/login?callbackUrl=${encodeURIComponent(pathname || '/')}`;
-
   const goToLoginForChat = () => {
-    savePendingIntent({
-      type: 'start_chat',
-      targetId: sellerId,
-      draftKey: productId,
-      returnPath:
-        typeof window !== 'undefined'
-          ? `${window.location.pathname}${window.location.search}`
-          : pathname || '/',
+    const returnPath =
+      typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}`
+        : pathname || '/';
+    openSoftAuthGateWithScroll({
+      copyKey: 'message',
+      intent: {
+        type: 'start_chat',
+        targetId: sellerId,
+        draftKey: productId,
+        returnPath,
+      },
     });
-    router.push(loginHref);
   };
 
   const submitConversation = async (rawMessage: string | null) => {

@@ -7,6 +7,7 @@ import { MapPin, Trophy } from 'lucide-react';
 import BackButton from '@/components/navigation/BackButton';
 import { useHcpLeaderboardScoped } from '@/hooks/useHcpLeaderboardScoped';
 import { useTranslation } from '@/hooks/useTranslation';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import type { LeaderboardRow } from '@/lib/gamification/leaderboard-queries';
 import { leaderboardRowPublicHref } from '@/lib/user/public-profile';
 import { cn } from '@/lib/utils';
@@ -403,6 +404,23 @@ export default function HcpRanglijstenClient() {
             {tk('title')}
           </h1>
           <p className="mt-2 text-sm text-gray-600 max-w-2xl leading-relaxed">{tk('intro')}</p>
+          {!loggedIn ? (
+            <button
+              type="button"
+              onClick={() =>
+                openSoftAuthGateWithScroll({
+                  copyKey: 'ranking',
+                  intent: {
+                    type: 'join_ranking',
+                    returnPath: '/hcp-ranglijsten',
+                  },
+                })
+              }
+              className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-amber-700 hover:to-orange-700"
+            >
+              {tk('ctaJoinLeaderboard')}
+            </button>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <Link

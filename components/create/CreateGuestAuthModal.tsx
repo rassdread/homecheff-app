@@ -16,7 +16,8 @@ type Props = {
 
 export default function CreateGuestAuthModal({
   open,
-  onClose,
+  onAbandon,
+  onAuthNavigate,
   loginHref,
   registerHref,
 }: Props) {

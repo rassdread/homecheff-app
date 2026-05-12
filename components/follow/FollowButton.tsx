@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { UserPlus, UserCheck } from 'lucide-react';
+import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 
 interface FollowButtonProps {
   sellerId: string;
@@ -20,6 +22,7 @@ export default function FollowButton({
   isOwnProfile = false
 }: FollowButtonProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
@@ -50,8 +53,16 @@ export default function FollowButton({
 
   const handleToggleFollow = async () => {
     if (!session?.user) {
-
-      window.location.href = '/login';
+      const returnPath = `${pathname || '/'}${typeof window !== 'undefined' ? window.location.search : ''}`;
+      openSoftAuthGateWithScroll({
+        copyKey: 'follow',
+        intent: {
+          type: 'follow_profile',
+          targetId: sellerId,
+          returnPath,
+          autoResume: true,
+        },
+      });
       return;
     }
 
@@ -87,10 +98,6 @@ export default function FollowButton({
       setLoading(false);
     }
   };
-
-  if (!session?.user) {
-    return null; // Don't show follow button if not logged in
-  }
 
   if (checkingStatus) {
     return (

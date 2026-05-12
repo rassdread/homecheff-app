@@ -65,6 +65,7 @@ export async function GET(
             id: true,
             title: true,
             priceCents: true,
+            category: true,
             Image: {
               select: {
                 fileUrl: true,
@@ -80,6 +81,30 @@ export async function GET(
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404, headers: cors });
     }
+
+    const otherUserId = conversation.ConversationParticipant.find((p) => p.userId !== user.id)?.userId ?? null;
+
+    const [youFollowThemRow, theyFollowYouRow, messageCount] = await Promise.all([
+      otherUserId
+        ? prisma.follow.findUnique({
+            where: {
+              followerId_sellerId: { followerId: user.id, sellerId: otherUserId },
+            },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+      otherUserId
+        ? prisma.follow.findUnique({
+            where: {
+              followerId_sellerId: { followerId: otherUserId, sellerId: user.id },
+            },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+      prisma.message.count({
+        where: { conversationId, deletedAt: null },
+      }),
+    ]);
 
     // Get other participant (not the current user) with consistent data structure
     const otherParticipantData = conversation.ConversationParticipant
@@ -100,16 +125,26 @@ export async function GET(
     const conversationData = {
       id: conversation.id,
       title: conversation.title,
-      product: conversation.Product ? {
-        id: conversation.Product.id,
-        title: conversation.Product.title,
-        priceCents: conversation.Product.priceCents,
-        Image: conversation.Product.Image
-      } : null,
+      product: conversation.Product
+        ? {
+            id: conversation.Product.id,
+            title: conversation.Product.title,
+            priceCents: conversation.Product.priceCents,
+            category: conversation.Product.category,
+            Image: conversation.Product.Image,
+          }
+        : null,
       otherParticipant,
       lastMessageAt: conversation.lastMessageAt,
       isActive: conversation.isActive,
-      createdAt: conversation.createdAt
+      createdAt: conversation.createdAt,
+      relationshipContext: {
+        youFollowThem: Boolean(youFollowThemRow),
+        theyFollowYou: Boolean(theyFollowYouRow),
+        messageCount,
+        productTitle: conversation.Product?.title?.trim() || null,
+        productCategory: conversation.Product?.category ?? null,
+      },
     };
 
     return NextResponse.json({ conversation: conversationData }, { headers: cors });

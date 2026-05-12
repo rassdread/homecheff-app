@@ -38,6 +38,12 @@ import ClientOnly from "@/components/util/ClientOnly";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAffiliateLink } from "@/hooks/useAffiliateLink";
 import { savePendingIntent } from "@/lib/onboarding/pending-intent";
+import {
+  loadFeedSurfaceState,
+  saveFeedSurfaceState,
+  type FeedSurfaceId,
+} from "@/lib/feed/feedSurfaceState";
+import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 
 type HomeItem = {
   id: string;
@@ -198,6 +204,48 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
   // Hooks for new features
   const { savedSearches, saveSearch, loading: searchesLoading } = useSavedSearches();
   const { addNotification, requestPermission } = useNotifications();
+
+  const dorpsSurface: FeedSurfaceId =
+    layout === 'hub' ? 'dorpsplein_hub' : 'dorpsplein_page';
+  const dorpsPersistRestoredRef = useRef(false);
+
+  useEffect(() => {
+    if (dorpsPersistRestoredRef.current) return;
+    dorpsPersistRestoredRef.current = true;
+    type P = {
+      q?: string;
+      sortBy?: string;
+      viewMode?: 'grid' | 'list' | 'map';
+      category?: string;
+      searchType?: 'products' | 'users';
+      radius?: number;
+    };
+    const p = loadFeedSurfaceState<P>(dorpsSurface);
+    if (!p || typeof p !== 'object') return;
+    if (typeof p.q === 'string') setQ(p.q.slice(0, 200));
+    if (typeof p.sortBy === 'string' && p.sortBy.length < 40) setSortBy(p.sortBy);
+    if (p.viewMode === 'grid' || p.viewMode === 'list' || p.viewMode === 'map') {
+      setViewMode(p.viewMode);
+    }
+    if (typeof p.category === 'string' && p.category.length < 80) setCategory(p.category);
+    if (p.searchType === 'products' || p.searchType === 'users') setSearchType(p.searchType);
+    if (typeof p.radius === 'number' && p.radius >= 0 && p.radius <= 500) setRadius(p.radius);
+    trackOnboardingEvent('FEED_STATE_RESTORED', { surface: dorpsSurface });
+  }, [dorpsSurface, layout]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      saveFeedSurfaceState(dorpsSurface, {
+        q,
+        sortBy,
+        viewMode,
+        category,
+        searchType,
+        radius,
+      });
+    }, 500);
+    return () => clearTimeout(t);
+  }, [dorpsSurface, q, sortBy, viewMode, category, searchType, radius]);
 
   // Geocoding function for postcode lookup
   const geocodePostcode = async (postcode: string) => {

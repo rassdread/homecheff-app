@@ -12,6 +12,7 @@ import {
   resolvePathAfterSocialAuth,
 } from '@/lib/auth/post-auth-redirect';
 import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
+import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
 const MAX_WAIT_MS = 15_000;
 const POLL_MS = 400;
@@ -124,6 +125,7 @@ function SocialSuccessInner() {
         if (intentUrl) target = intentUrl;
       }
     }
+    trackOnboardingEvent('SOCIAL_AUTH_SUCCESS', { target });
     const isIOSDevice = isIOS();
     const isSafariOnIOS = isSafariIOS();
     const delay = isSafariOnIOS ? 400 : isIOSDevice ? 300 : 150;

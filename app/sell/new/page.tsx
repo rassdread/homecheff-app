@@ -17,9 +17,11 @@ import InspiratieFormHandler from "@/components/products/InspiratieFormHandler";
 import { compressDataUrl } from "@/lib/imageOptimization";
 import { useTranslation } from "@/hooks/useTranslation";
 import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymentsBanner";
+import SellerActivationGate from "@/components/seller/SellerActivationGate";
 import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
 import { parseCreateIntentSearchParams } from "@/lib/createFlowIntent";
 import { savePendingIntent } from "@/lib/onboarding/pending-intent";
+import { saveDraft, clearDraft, restoreDraft } from "@/lib/onboarding/draft-ecosphere";
 
 type Phase =
   | "wizard-1"
@@ -293,7 +295,7 @@ function HomeCheffProductNieuwPageContent() {
       ? sessionStorage.getItem("productPhoto") ||
         sessionStorage.getItem("quickAddPhoto") ||
         sessionStorage.getItem("inspiratiePhoto") ||
-        localStorage.getItem("pendingProductPhoto") ||
+        restoreDraft("pendingProductPhoto", "local") ||
         undefined
       : undefined;
 
@@ -345,7 +347,7 @@ function HomeCheffProductNieuwPageContent() {
     try {
       sessionStorage.setItem("productPhoto", final);
       sessionStorage.setItem("quickAddPhoto", final);
-      localStorage.setItem("pendingProductPhoto", final);
+      saveDraft("pendingProductPhoto", final, "local");
       sessionStorage.setItem("productIsVideo", isVideo ? "true" : "false");
     } catch (e) {
       if (e instanceof Error && e.message.includes("quota")) {
@@ -395,7 +397,7 @@ function HomeCheffProductNieuwPageContent() {
   const skipPhotoStep = () => {
     sessionStorage.removeItem("productPhoto");
     sessionStorage.removeItem("quickAddPhoto");
-    localStorage.removeItem("pendingProductPhoto");
+    clearDraft("pendingProductPhoto", "local");
     sessionStorage.removeItem("productIsVideo");
     setPhase(resolvePhaseAfterPhoto());
   };
@@ -435,6 +437,7 @@ function HomeCheffProductNieuwPageContent() {
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] md:pb-8">
         <StripeConnectPaymentsBanner />
+        <SellerActivationGate />
         {phase === "wizard-1" && (
           <>
             <div className="mb-8">

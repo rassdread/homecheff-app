@@ -15,6 +15,12 @@ import { MAIN_DOMAIN } from "@/lib/seo/constants";
 import HcpActivationCard from "@/components/gamification/HcpActivationCard";
 import AndroidBetaHomeCta from "@/components/home/AndroidBetaHomeCta";
 import AndroidBetaOptionalUpdateReminder from "@/components/app/AndroidBetaOptionalUpdateReminder";
+import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner";
+import CommunityPulseBar from "@/components/home/CommunityPulseBar";
+import CreatorMomentumCard from "@/components/home/CreatorMomentumCard";
+import HomeProfileProgressCard from "@/components/home/HomeProfileProgressCard";
+import ReturnBelongingStrip from "@/components/home/ReturnBelongingStrip";
+import EcosystemDiscoverStrip from "@/components/community/EcosystemDiscoverStrip";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -203,6 +209,7 @@ export default function HomePageClient({
     <>
       <StructuredData data={structuredData} />
       <StructuredData data={websiteStructuredData} />
+      <PostAuthPersonaBanner />
       {!splashDismissed && (
         <section className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-6 sm:py-8 px-4 sm:px-6 shadow-lg">
           <button type="button" onClick={dismissSplash} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label={tOr('home.splashDismissAria', 'Close welcome banner', 'Welkomstblok sluiten')}>
@@ -253,6 +260,11 @@ export default function HomePageClient({
             </p>
           )}
           {session?.user ? <HcpActivationCard className="mb-4 sm:mb-5" /> : null}
+          <CommunityPulseBar />
+          <EcosystemDiscoverStrip variant="home" />
+          {session?.user ? <CreatorMomentumCard /> : null}
+          {session?.user ? <ReturnBelongingStrip /> : null}
+          {session?.user ? <HomeProfileProgressCard /> : null}
           <AndroidBetaHomeCta className="mb-4 sm:mb-5" />
           <AndroidBetaOptionalUpdateReminder className="mb-4 sm:mb-5" />
           <GeoFeed

@@ -86,6 +86,254 @@
     "intentAffiliate": "Start your place on HomeCheff",
     "intentResume": "Pick up where you left off"
   },
+  "softGate": {
+    "saveItem": {
+      "title": "Save this to your collection",
+      "body": "Keep what inspires you in one place. Log in or join — we bring you right back here.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Claim your place"
+    },
+    "giveProp": {
+      "title": "Send appreciation to this maker",
+      "body": "Props are a small thank-you from the community. Continue with your account — one tap and you're back.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Join HomeCheff"
+    },
+    "follow": {
+      "title": "Follow this maker",
+      "body": "Stay close to new drops and updates. We'll resume your follow right after you sign in.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Become visible"
+    },
+    "message": {
+      "title": "Message this maker",
+      "body": "Introduce yourself or ask a question — we'll open the chat as soon as you're signed in.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Start your place"
+    },
+    "notifications": {
+      "title": "Your HomeCheff notifications",
+      "body": "Orders, messages and moments from makers you follow — sign in to see them in one calm inbox.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Join the community"
+    },
+    "ranking": {
+      "title": "See your place on the leaderboard",
+      "body": "Earn HCP, grow your network and get recognised. Sign in to join the board for this period.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Claim your spot"
+    },
+    "location": {
+      "title": "Local discovery works better signed in",
+      "body": "Save your area, earn local visibility and find makers near you — continue with your account.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Join"
+    },
+    "create": {
+      "title": "Share something with the village",
+      "body": "Listings and inspiration start here. Log in or join — your draft stays safe.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Open your kitchen, garden or studio"
+    },
+    "inspiration": {
+      "title": "Step into this inspiration",
+      "body": "Recipes, grows and designs from real makers. Continue where you left off after a quick sign-in.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Grow your creative space"
+    },
+    "affiliate": {
+      "title": "Build your HomeCheff community",
+      "body": "Share what you love and grow together — sign in to continue your affiliate journey.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Start earning together"
+    },
+    "generic": {
+      "title": "Continue on HomeCheff",
+      "body": "Pick up where you left off — one account for makers, food lovers and creators.",
+      "ctaLogin": "Log in",
+      "ctaRegister": "Join"
+    }
+  },
+  "sellerActivation": {
+    "title": "When you're ready to sell: add your location",
+    "body": "You can explore first. A city and country (and postal code in NL) help buyers and nearby feeds — update whenever it suits you.",
+    "ctaProfile": "Update profile",
+    "later": "Not now"
+  },
+  "personaBanner": {
+    "chef": {
+      "teaser": "Start your kitchen — your first listing is a tap away.",
+      "cta": "Open sell flow",
+      "welcome": "This platform is built for makers like you."
+    },
+    "designer": {
+      "teaser": "Open your atelier — show what you make.",
+      "cta": "Open sell flow",
+      "welcome": "Show your process — people here value craft."
+    },
+    "grower": {
+      "teaser": "Start your garden — share what you grow.",
+      "cta": "Open sell flow",
+      "welcome": "This space is built for growers like you."
+    },
+    "affiliate": {
+      "teaser": "Build your community — share HomeCheff with people who care about local makers.",
+      "cta": "Open affiliate hub",
+      "welcome": "Welcome — grow a community around makers you believe in."
+    },
+    "explorer": {
+      "teaser": "Discover makers and inspiration near you — your map starts on the feed.",
+      "cta": "Explore the feed",
+      "welcome": "Your corner of the ecosystem starts with what is happening nearby."
+    },
+    "business": {
+      "teaser": "Show your craft professionally — start with a clear profile and first listing.",
+      "cta": "Start selling",
+      "welcome": "HomeCheff works for solo makers and small teams — begin with the basics."
+    },
+    "inspiration": {
+      "teaser": "Share inspiration — recipes, process, and ideas from your kitchen, garden, or studio.",
+      "cta": "Share inspiration",
+      "welcome": "Creators like you keep the inspiration river flowing."
+    },
+    "suggested": {
+      "discover": "Discover what is live on the feed",
+      "profile": "Polish your public profile",
+      "hcp": "See your HomeCheff points and streak",
+      "feed": "Browse fresh inspiration nearby"
+    }
+  },
+  "communityPulse": {
+    "heading": "Live from the community",
+    "fallbackLine": "Small actions nearby add up — explore makers, listings, and inspiration.",
+    "newProducts24h": "{count} new listings in the last 24 hours",
+    "newCreators7d": "{count} new creators joined this week",
+    "newInspiration7d": "{count} new inspiration posts this week",
+    "topHcpSpotlight": "{name} is high on the HomeCheff points board ({points} pts)",
+    "savesWeek": "{count} new saves on listings this week",
+    "followsWeek": "{count} new follows this week",
+    "discussionWeek": "{count} new reviews and comments this week",
+    "mostSavedThisWeek": "Trending save: “{title}” ({count} saves)",
+    "risingCreatorWeek": "{name} listed {count} new items this week",
+    "activeListersWeek": "{count} creators listed something this week"
+  },
+  "creatorMomentum": {
+    "title": "Your creator visibility",
+    "profileViews": "Your profile was viewed {count} times (all time).",
+    "savesWeek": "{count} saves on your listings in the last 7 days.",
+    "newFollowersWeek": "{count} new followers in the last 7 days.",
+    "unreadNotifications": "{count} unread notifications — catch up when it suits you.",
+    "ctaProfile": "Open profile",
+    "ctaNotifications": "Open notifications"
+  },
+  "creatorAudience": {
+    "sectionAria": "Audience and community signals for your creator profile",
+    "title": "Your audience",
+    "subtitle": "Quiet signals from real activity — totals and small groups, never individual names.",
+    "localPresence": "Rooted near {place}",
+    "metrics": {
+      "followers": "Followers",
+      "newFollowersWeek": "+{count} new this week",
+      "savesWeek": "Saves (7 days)",
+      "distinctSaversWeek": "{count} different people saved something",
+      "recurring": "Returning saves",
+      "recurringHint": "People who saved more than once in the last 28 days",
+      "profileViews": "Profile views",
+      "listingsActive": "{count} active listings"
+    },
+    "hints": {
+      "growing": "Your audience is growing — new followers found you this week.",
+      "discovery": "Your creations are being discovered — saves picked up this week.",
+      "returning": "Some people keep returning to save your work.",
+      "breadth": "Several different people saved your listings this week."
+    },
+    "calmDefault": "Keep sharing calmly — meaningful signals appear as people discover you."
+  },
+  "returnBelonging": {
+    "title": "Reasons to return",
+    "followedCreatorsPosted": "Creators you follow shared something new in the last day.",
+    "yourAudienceGrowing": "Your audience grew this week — new followers joined you.",
+    "communitySavesActive": "The community is saving listings this week ({count} saves) — inspiration is moving."
+  },
+  "ecosystemHub": {
+    "sectionAria": "Local creator activity near {city}",
+    "title": "Creators near {city}",
+    "subtitle": "A calm snapshot of real listings and inspiration within about {radius} km — no groups, no pressure.",
+    "stats": {
+      "activeCreatorsWeek": "Active creators (7 days)",
+      "newListingsWeek": "New listings (7 days)",
+      "inspirationWeek": "New inspiration (7 days)",
+      "radius": "Radius"
+    },
+    "spotlight": {
+      "risingLocal": "Rising locally",
+      "newListings": "{count} new listings this week",
+      "hcpLeader": "HCP momentum nearby",
+      "hcpPoints": "{count} HomeCheff points"
+    },
+    "sparseGeo": "Regional hubs grow when makers share a pickup or studio location — your feed still shows everyone nearby.",
+    "ctaFeed": "Open the feed for {city}",
+    "ctaDiscover": "Browse inspiration"
+  },
+  "ecosystemStrip": {
+    "sectionAria": "Explore ecosystems and local hubs",
+    "heading": "Explore ecosystems",
+    "sampleCity": "Local hub · {city}",
+    "links": {
+      "keuken": "Kitchens",
+      "tuin": "Garden",
+      "studio": "Studio",
+      "inspiratie": "Inspiration",
+      "community": "Community builders"
+    }
+  },
+  "ecosystemVertical": {
+    "titles": {
+      "keuken": "Kitchen ecosystem",
+      "tuin": "Garden ecosystem",
+      "studio": "Studio ecosystem",
+      "inspiratie": "Inspiration ecosystem",
+      "community": "Community & affiliates"
+    },
+    "intros": {
+      "keuken": "Home kitchens and local food listings — activity from real makers, surfaced quietly.",
+      "tuin": "Garden makers and harvest — rooted in listings and public workspace stories.",
+      "studio": "Design and craft — a living corner for makers who ship and share process.",
+      "inspiratie": "Recipes, growth logs, and studio process — a gentle pulse from the community.",
+      "community": "People helping HomeCheff reach more neighbourhoods — transparent, optional, calm."
+    },
+    "stats": {
+      "activeListings": "Active listings",
+      "momentumWeek": "New momentum (7 days)",
+      "workspacePostsWeek": "Workspace posts (7 days)",
+      "savesWeek": "Saves this week",
+      "activeCreatorsWeek": "Active creators (7 days)",
+      "activeBuilders": "Active builders",
+      "newBuildersWeek": "New builders (7 days)",
+      "newListingsNationwide": "New listings nationwide (7 days)",
+      "publicInspiration": "Public inspiration items",
+      "inspirationPostsWeek": "New inspiration (7 days)",
+      "inspirationCreatorsWeek": "Creators with new public posts (7 days)"
+    },
+    "spotlight": {
+      "creator": "Momentum spotlight",
+      "newListings": "{count} new listings this week"
+    },
+    "ctaFeed": "Open matching feed",
+    "ctaInspiration": "Open discover",
+    "ctaAffiliate": "Affiliate programme"
+  },
+  "ecosystemProfile": {
+    "chips": {
+      "localRooted": "Locally rooted",
+      "presentThisWeek": "Present on HomeCheff this week",
+      "makerHere": "Maker on HomeCheff"
+    }
+  },
+  "followEcosystem": {
+    "emptyFollowsCta": "Discover makers on the feed",
+    "emptyFollowsHint": "Following keeps updates from people you care about in one place. Ecosystem pages show calm, real activity by city and craft."
+  },
   "navigation": {
     "home": "Home",
     "login": "Login",
@@ -315,7 +563,15 @@
       "designer": "Choose from our favorite design and creative emojis",
       "chef": "Choose from our favorite kitchen, cooking and food emojis"
     },
-    "emojiTip": "Tip: Click on an emoji to add it, or choose another set for more options"
+    "emojiTip": "Tip: Click on an emoji to add it, or choose another set for more options",
+    "relationship": {
+      "mutualFollow": "You follow each other on HomeCheff",
+      "youFollowCreator": "You follow this creator",
+      "followsYouBack": "They follow you too",
+      "continuedConversation": "You have messaged here before",
+      "aboutListing": "About “{title}”",
+      "productCategory": "Listing · {category}"
+    }
   },
   "recipes": {
     "loading": "Loading recipe...",
@@ -3311,6 +3567,13 @@
   "home": {
     "loading": "Loading...",
     "welcomeFirstName": "Welcome, {name}!",
+    "profileProgress": {
+      "title": "Claim your space",
+      "start": "Add a few basics so neighbors recognize you.",
+      "almost": "Almost there — finish visibility to stand out nearby.",
+      "complete": "Your profile looks ready.",
+      "cta": "Continue on profile"
+    },
     "moreSectionHeading": "More",
     "seoHubLink": "All guides and topics (SEO hub)",
     "heroCollapsedLabel": "Welcome & discover",
@@ -3501,6 +3764,7 @@
       "notRankedYet": "You’re not on this board yet — earn HCP in this period to appear.",
       "inThisView": "in this view",
       "loginHint": "Sign in to see your position on the leaderboard.",
+      "ctaJoinLeaderboard": "Claim your spot — log in or join",
       "emptyNearbyNoLocation": "We don’t have a location yet to show your nearby leaderboard. Add your profile location or use your current location.",
       "emptyGeneric": "Not enough data for this leaderboard yet.",
       "emptyNoHcpInList": "No HCP on this leaderboard yet.",
@@ -4405,6 +4669,9 @@
     "saleViewOffer": "Shop",
     "inspirationViewCta": "View",
     "unknownPlace": "Unknown location",
+    "density": {
+      "savedByCommunity": "Saved by {count} people recently"
+    },
     "resultSingular": "result",
     "resultPlural": "results",
     "filteredByQuery": " · Filtered by: \"{query}\"",
@@ -4791,6 +5058,7 @@
   "nativePush": {
     "introTitle": "Notifications on this device",
     "introBody": "Would you like notifications for new messages and orders? Next you’ll see the system prompt to allow them.",
+    "valueExplainer": "Stay in the loop for replies, HomeCheff points, and new inspiration — without living in the app.",
     "turnOn": "Turn on notifications",
     "later": "Not now",
     "registerError": "Could not register push. Check your connection and try again from Settings.",

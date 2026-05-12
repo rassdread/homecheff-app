@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { calculateDistance } from "@/lib/geocoding";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
+import { haversineKm } from "@/lib/community/geoDistance";
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -26,6 +27,24 @@ function extractFeedItemSellerUserId(item: Record<string, unknown>): string | nu
   if (user?.id) return String(user.id);
   const seller = item.seller as { id?: string } | undefined;
   if (seller?.id) return String(seller.id);
+  return null;
+}
+
+function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: number } | null {
+  const flatLat = item.lat;
+  const flatLng = item.lng;
+  if (typeof flatLat === "number" && typeof flatLng === "number" && Number.isFinite(flatLat) && Number.isFinite(flatLng)) {
+    return { lat: flatLat, lng: flatLng };
+  }
+  const seller = item.seller as { lat?: number | null; lng?: number | null } | undefined;
+  if (
+    seller?.lat != null &&
+    seller?.lng != null &&
+    Number.isFinite(seller.lat) &&
+    Number.isFinite(seller.lng)
+  ) {
+    return { lat: seller.lat, lng: seller.lng };
+  }
   return null;
 }
 
@@ -114,6 +133,14 @@ export async function GET(req: NextRequest) {
       lng = String(u.lng);
     }
   }
+
+  const viewerGeo =
+    lat &&
+    lng &&
+    Number.isFinite(Number(lat)) &&
+    Number.isFinite(Number(lng))
+      ? { lat: Number(lat), lng: Number(lng) }
+      : null;
 
   // Build where clause for products
   const where: any = {
@@ -456,20 +483,65 @@ export async function GET(req: NextRequest) {
   // Combine all items
   const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
 
-  // Sorteer eerst op datum en beperk naar responsgrootte; daarna pas enrichment voor die set.
-  const sortedItems = allItems
-    .sort((a, b) => {
-      const tb = new Date(b.createdAt).getTime();
-      const ta = new Date(a.createdAt).getTime();
-      if (tb !== ta) return tb - ta;
-      return String(b.id).localeCompare(String(a.id));
-    })
-    .slice(0, 30);
+  /** Binnen ~7 dagen licht voorrang voor makers die je volgt (tie-break, geen harde filter). */
+  const FOLLOW_RECENCY_MS = 7 * 24 * 60 * 60 * 1000;
+  let followedSellerUserIds = new Set<string>();
+  if (userId) {
+    try {
+      const followRows = await prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { sellerId: true },
+        take: 400,
+      });
+      followedSellerUserIds = new Set(followRows.map((r) => r.sellerId));
+    } catch {
+      followedSellerUserIds = new Set();
+    }
+  }
+
+  const sortedPool = [...allItems].sort((a, b) => {
+    const ta = new Date((a as { createdAt: string }).createdAt).getTime();
+    const tb = new Date((b as { createdAt: string }).createdAt).getTime();
+    const sa = followedSellerUserIds.has(extractFeedItemSellerUserId(a as Record<string, unknown>) || '')
+      ? 1
+      : 0;
+    const sb = followedSellerUserIds.has(extractFeedItemSellerUserId(b as Record<string, unknown>) || '')
+      ? 1
+      : 0;
+    if (sa !== sb && Math.abs(tb - ta) < FOLLOW_RECENCY_MS) {
+      return sb - sa;
+    }
+    if (
+      sa === sb &&
+      viewerGeo &&
+      userId &&
+      Math.abs(tb - ta) < FOLLOW_RECENCY_MS
+    ) {
+      const ca = extractItemLatLng(a as Record<string, unknown>);
+      const cb = extractItemLatLng(b as Record<string, unknown>);
+      if (ca && cb) {
+        const da = haversineKm(viewerGeo.lat, viewerGeo.lng, ca.lat, ca.lng);
+        const db = haversineKm(viewerGeo.lat, viewerGeo.lng, cb.lat, cb.lng);
+        if (Math.abs(da - db) > 2) {
+          return da - db;
+        }
+      } else if (ca && !cb) {
+        return -1;
+      } else if (!ca && cb) {
+        return 1;
+      }
+    }
+    if (tb !== ta) return tb - ta;
+    return String((b as { id: string }).id).localeCompare(String((a as { id: string }).id));
+  });
+
+  // Sorteer eerst op datum (+ lichte relatie-boost), beperk naar responsgrootte; daarna pas enrichment.
+  const sortedItems = sortedPool.slice(0, 30);
 
   // Get view counts, review counts, and average ratings only for returned items
   const allItemIds = sortedItems.map(item => item.id);
   if (allItemIds.length > 0) {
-    const [viewCounts, reviewCounts, avgRatings] = await Promise.all([
+    const [viewCounts, reviewCounts, avgRatings, favoriteCounts] = await Promise.all([
       // View counts from analytics
       prisma.analyticsEvent.groupBy({
         by: ['entityId'],
@@ -501,7 +573,14 @@ export async function GET(req: NextRequest) {
         _avg: {
           rating: true
         }
-      }).catch(() => [])
+      }).catch(() => []),
+      prisma.favorite
+        .groupBy({
+          by: ['productId'],
+          where: { productId: { in: allItemIds } },
+          _count: { productId: true },
+        })
+        .catch(() => [] as { productId: string | null; _count: { productId: number } }[]),
     ]);
 
     // Create maps
@@ -522,11 +601,19 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    const favoriteCountMap = new Map<string, number>();
+    (favoriteCounts as Array<{ productId: string | null; _count: { productId: number } }>).forEach(
+      (row) => {
+        if (row.productId) favoriteCountMap.set(row.productId, row._count.productId);
+      }
+    );
+
     // Add stats to returned items
     sortedItems.forEach(item => {
       (item as any).viewCount = viewCountMap.get(item.id) || 0;
       (item as any).reviewCount = reviewCountMap.get(item.id) || 0;
       (item as any).averageRating = avgRatingMap.get(item.id) || 0;
+      (item as any).favoriteCount = favoriteCountMap.get(item.id) || 0;
     });
   }
   

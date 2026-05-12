@@ -34,6 +34,7 @@ export type GeoFeedCardItem = {
   distanceKm?: number;
   viewCount?: number;
   propsCount?: number;
+  favoriteCount?: number;
   ownerId?: string | null;
   category?: string | null;
   sellerUserId?: string | null;
@@ -137,6 +138,11 @@ export function FeedSaleCard({
                   ? t("common.pickupOrDelivery")
                   : ""}
           </p>
+          {(it.favoriteCount ?? 0) >= 2 ? (
+            <p className="text-[11px] font-medium text-emerald-800/90 mt-0.5">
+              {t("feed.density.savedByCommunity", { count: it.favoriteCount ?? 0 })}
+            </p>
+          ) : null}
         </div>
         {it.sellerUserId ? (
           <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
