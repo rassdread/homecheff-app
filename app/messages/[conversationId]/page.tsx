@@ -20,11 +20,17 @@ type Conversation = NormalizedConversationListItem;
 function ThreadSkeleton() {
   return (
     <div className="hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]">
-      <div className="flex shrink-0 items-center gap-3 border-b p-4 shadow-sm">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
-          <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
+      <div className="flex shrink-0 flex-col gap-1 border-b border-gray-100/80 bg-white px-3 py-2 shadow-sm">
+        <div className="flex w-full gap-2 pb-1">
+          <div className="h-4 w-4 shrink-0 animate-pulse rounded bg-gray-200" />
+          <div className="h-4 flex-1 animate-pulse rounded bg-gray-200" />
+        </div>
+        <div className="flex items-center gap-3 pt-0.5">
+          <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-gray-200" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-4 w-48 max-w-full animate-pulse rounded bg-gray-200" />
+            <div className="h-3 w-40 max-w-full animate-pulse rounded bg-gray-100" />
+          </div>
         </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 overscroll-y-contain [-webkit-overflow-scrolling:touch]">

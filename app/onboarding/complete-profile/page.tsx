@@ -137,6 +137,7 @@ export default function CompleteProfilePage() {
               required
               minLength={3}
             />
+            <p className="mt-1 text-xs text-slate-500">{t('register.usernamePublicHandleHint')}</p>
           </div>
           <label className="flex items-start gap-2 text-sm text-slate-700">
             <input

@@ -853,7 +853,9 @@
     "affiliateDashboard": "Affiliate Dashboard",
     "verdienenGuestTitle": "Log in om iets te plaatsen",
     "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd.",
-    "androidBeta": "Android beta"
+    "androidBeta": "Android beta",
+    "legalAndContact": "Juridisch & contact",
+    "legalNavAria": "Juridische informatie en contact"
   },
   "admin": {
     "newUser": "Nieuwe gebruiker",
@@ -3035,6 +3037,7 @@
     "lastNamePlaceholder": "Je achternaam",
     "username": "Gebruikersnaam",
     "usernamePlaceholder": "Unieke gebruikersnaam (3-20 karakters)",
+    "usernamePublicHandleHint": "Dit is je zichtbare @naam op HomeCheff — niet je wachtwoord.",
     "usernameRules": "Gebruikersnaam regels:",
     "usernameRule1": "3-20 karakters lang",
     "usernameRule2": "Alleen letters, cijfers en underscores",
@@ -3045,6 +3048,8 @@
     "emailSocialNote": "Dit e-mailadres is overgenomen van je social login en is al geverifieerd.",
     "password": "Wachtwoord",
     "passwordPlaceholder": "Minimaal 8 karakters",
+    "confirmPassword": "Bevestig wachtwoord",
+    "confirmPasswordPlaceholder": "Herhaal je wachtwoord",
     "passwordStrong": "✅ Wachtwoord is sterk genoeg",
     "passwordWeak": "❌ Wachtwoord moet minimaal 8 karakters bevatten",
     "passwordNotNeeded": "🔐 Wachtwoord niet nodig",
@@ -3119,6 +3124,8 @@
       "usernameInvalid": "Gebruikersnaam is ongeldig of al in gebruik.",
       "emailRequired": "E-mailadres is verplicht.",
       "passwordMinLength": "Wachtwoord moet minimaal 8 karakters lang zijn.",
+      "passwordMismatch": "Wachtwoorden komen niet overeen.",
+      "usernameEqualsPassword": "Je publieke @naam mag niet gelijk zijn aan je wachtwoord. Pas je gebruikersnaam of wachtwoord aan.",
       "countryRequired": "Land is verplicht.",
       "postalCodeRequired": "Postcode is verplicht.",
       "houseNumberRequired": "Huisnummer is verplicht.",
@@ -3795,10 +3802,7 @@
     "appearance": "Weergave",
     "appearanceDescription": "Thema en interface-instellingen",
     "help": "Help & Support",
-    "helpDescription": "Veelgestelde vragen en contact",
-    "legalLinksTitle": "Juridisch & contact",
-    "legalLinksAria": "Juridische informatie en contact",
-    "legalLinksHint": "In de app is de onderste websit-footer verborgen; hier vind je dezelfde links."
+    "helpDescription": "Veelgestelde vragen en contact"
   },
   "profilePage": {
     "tabs": {
@@ -4591,6 +4595,10 @@
     "reloadMessages": "Herlaad berichten",
     "typing": "typt...",
     "isTyping": "aan het typen...",
+    "presenceOnline": "Online",
+    "presenceLive": "Live",
+    "presenceOffline": "Offline",
+    "lastSeenFull": "Laatst gezien {time}",
     "couldNotSend": "Kon bericht niet verzenden",
     "fileTypeNotSupported": "Bestandstype niet ondersteund.",
     "loginToChat": "Inloggen om te chatten",

@@ -14,6 +14,7 @@ import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
 import { logEmailSendFailure } from "@/lib/email-log";
+import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,7 +53,8 @@ export async function POST(req: NextRequest) {
       // Belastingverantwoordelijkheid
       acceptTaxResponsibility,
       // Sub-affiliate invite token
-      subAffiliateInviteToken
+      subAffiliateInviteToken,
+      confirmPassword,
     } = body as any;
     
     // Validatie van verplichte velden met specifieke foutmeldingen
@@ -81,6 +83,23 @@ export async function POST(req: NextRequest) {
     // Wachtwoord validatie
     if (password.length < 6) {
       return NextResponse.json({ error: "Wachtwoord moet minimaal 6 tekens lang zijn" }, { status: 400 });
+    }
+
+    if (
+      typeof confirmPassword === "string" &&
+      confirmPassword.length > 0 &&
+      confirmPassword !== password
+    ) {
+      return NextResponse.json({ error: "Wachtwoorden komen niet overeen." }, { status: 400 });
+    }
+
+    const usernamePasswordConflict = registrationUsernamePasswordConflictMessage(
+      username,
+      password,
+      confirmPassword
+    );
+    if (usernamePasswordConflict) {
+      return NextResponse.json({ error: usernamePasswordConflict }, { status: 400 });
     }
 
     // Gebruikersnaam validatie (indien opgegeven)

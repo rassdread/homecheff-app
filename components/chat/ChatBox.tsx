@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Send,
   Loader2,
-  Circle,
   Trash2,
   RefreshCw,
   BadgeCheck,
@@ -33,6 +32,7 @@ import {
 import { readNativePersistedCache } from '@/lib/native/nativePersistedCache';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { saveLastConversationId } from '@/lib/appResumeCache';
+import { cn } from '@/lib/utils';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
 import type { ChatThreadMessage } from './chatThreadTypes';
 
@@ -934,169 +934,176 @@ export default function ChatBox({
     return bits.filter(Boolean).join(' · ');
   })();
 
+  const displayName = getDisplayName(otherParticipant);
+  const showPresence = isOnline !== undefined;
+  const presenceTitleSuffix =
+    otherUserTyping || !showPresence
+      ? null
+      : isOnline
+        ? t('chat.presenceOnline')
+        : pusherConnected
+          ? t('chat.presenceLive')
+          : null;
+  const lastSeenSingleLine =
+    !otherUserTyping && showPresence && !isOnline && lastSeenAt
+      ? t('chat.lastSeenFull', { time: formatLastSeen(lastSeenAt) })
+      : null;
+  const offlineOnlyLine =
+    !otherUserTyping && showPresence && !isOnline && !lastSeenAt && !pusherConnected
+      ? t('chat.presenceOffline')
+      : null;
+
+  const peerDetailsColumn = (
+    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-0 items-baseline gap-1.5">
+        <h2 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-gray-900">
+          {displayName}
+        </h2>
+        {otherParticipant.sellerVerified ? (
+          <BadgeCheck
+            className="h-4 w-4 shrink-0 translate-y-px text-emerald-600"
+            aria-label={t('profilePage.sidebar.verified')}
+          />
+        ) : null}
+        {presenceTitleSuffix ? (
+          <span
+            className={`shrink-0 whitespace-nowrap text-xs font-medium ${
+              isOnline ? 'text-emerald-600' : 'text-slate-500'
+            }`}
+          >
+            · {presenceTitleSuffix}
+          </span>
+        ) : null}
+      </div>
+      {otherUserTyping ? (
+        <div className="flex min-w-0 items-center gap-1.5 text-xs text-blue-600">
+          <span className="flex shrink-0 gap-1" aria-hidden>
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-bounce"
+              style={{ animationDelay: '0ms' }}
+            />
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-bounce"
+              style={{ animationDelay: '150ms' }}
+            />
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-bounce"
+              style={{ animationDelay: '300ms' }}
+            />
+          </span>
+          <span className="min-w-0 truncate">{t('chat.isTyping')}</span>
+        </div>
+      ) : lastSeenSingleLine ? (
+        <p className="min-w-0 truncate text-xs text-gray-500">{lastSeenSingleLine}</p>
+      ) : offlineOnlyLine ? (
+        <p className="min-w-0 truncate text-xs text-gray-500">{offlineOnlyLine}</p>
+      ) : null}
+      {relationshipHintLine ? (
+        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-slate-500">
+          {relationshipHintLine}
+        </p>
+      ) : null}
+    </div>
+  );
+
   return (
     <div
       className={`flex flex-col h-full min-h-0 bg-[#f4f6f8] hc-native-chat-root ${
         nativeMounted ? 'hc-native-chat-root-native' : ''
       }`}
     >
-      {/* Header */}
+      {/* Header: max-lg = terug-rij + peer; lg+ split = icoon-terug + peer; lg+ thread = terug + peer */}
       <div
-        className="flex shrink-0 items-center gap-2 border-b border-gray-200/90 bg-white/95 px-3 py-2 shadow-sm backdrop-blur-md supports-[padding:max(0px,1px)]:pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:gap-3 sm:px-4 sm:py-2.5"
+        className={cn(
+          'hc-chat-header flex shrink-0 flex-col border-b border-gray-200/90 bg-white/95 shadow-sm backdrop-blur-md',
+          'supports-[padding:max(0px,1px)]:pt-[max(0.25rem,env(safe-area-inset-top,0px))]',
+          'px-3 py-1 sm:px-4 lg:flex-row lg:items-center lg:gap-2 lg:py-2'
+        )}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-          {showBackButton && onBack && (
+        {showBackButton && onBack ? (
+          <div className="flex w-full min-w-0 border-b border-gray-100/80 pb-1 lg:hidden">
             <button
               type="button"
               onClick={onBack}
-              className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1 rounded-full p-2 hover:bg-gray-100/90 ${backButtonCompactClass}`}
+              className="-mx-1 inline-flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-left text-sm font-semibold text-gray-900 hover:bg-gray-50 active:bg-gray-100/80 touch-manipulation"
               aria-label={t('messages.backToConversations')}
             >
-              <ArrowLeft className="h-5 w-5" aria-hidden />
-              {nativeMounted ? (
-                <span className="max-w-[7rem] truncate text-sm font-semibold text-gray-900">
+              <ArrowLeft className="h-5 w-5 shrink-0 text-gray-800" aria-hidden />
+              <span className="min-w-0 flex-1 truncate">{t('messages.backToConversations')}</span>
+            </button>
+          </div>
+        ) : null}
+
+        <div
+          className={cn(
+            'flex min-w-0 flex-1 items-start gap-2 sm:gap-3 lg:items-center',
+            showBackButton && onBack ? 'pt-1 lg:min-h-0 lg:pt-0' : 'pt-0.5 lg:pt-0'
+          )}
+        >
+          {showBackButton && onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className={`mt-0.5 hidden min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full px-2 hover:bg-gray-100/90 lg:inline-flex ${backButtonCompactClass}`}
+              aria-label={t('messages.backToConversations')}
+            >
+              <ArrowLeft className="h-5 w-5 shrink-0" aria-hidden />
+              {showBackOnDesktop ? (
+                <span className="max-w-[11rem] truncate text-sm font-semibold text-gray-900 xl:max-w-[16rem]">
                   {t('messages.backToConversations')}
                 </span>
               ) : null}
             </button>
-          )}
+          ) : null}
 
           {peerProfileHref ? (
             <Link
               href={peerProfileHref}
               prefetch={false}
               scroll={false}
-              className="flex min-h-[44px] min-w-0 flex-1 touch-pan-y items-center gap-3 rounded-lg outline-none select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="flex min-h-0 min-w-0 flex-1 touch-pan-y items-start gap-3 rounded-lg py-0.5 outline-none select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 lg:min-h-[44px] lg:items-center"
             >
               <UserCircleAvatar
                 src={otherParticipant.profileImage}
-                alt={getDisplayName(otherParticipant)}
-                size="md"
-                nameForInitial={getDisplayName(otherParticipant)}
+                alt={displayName}
+                size="lg"
+                nameForInitial={displayName}
               />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex min-w-0 items-center gap-1">
-                  <h2 className="truncate text-base font-semibold tracking-tight text-gray-900">
-                    {getDisplayName(otherParticipant)}
-                  </h2>
-                  {otherParticipant.sellerVerified ? (
-                    <BadgeCheck
-                      className="h-4 w-4 shrink-0 text-emerald-600"
-                      aria-label={t('profilePage.sidebar.verified')}
-                    />
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {otherUserTyping ? (
-                    <>
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
-                    </>
-                  ) : (
-                    <>
-                      {isOnline !== undefined && (
-                        <>
-                          <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                          <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                            {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
-                          </span>
-                          {pusherConnected && (
-                            <span className="text-xs text-gray-400">• Live</span>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-                {relationshipHintLine ? (
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500">
-                    {relationshipHintLine}
-                  </p>
-                ) : null}
-              </div>
+              {peerDetailsColumn}
             </Link>
           ) : (
-            <>
+            <div className="flex min-h-0 min-w-0 flex-1 items-start gap-3 py-0.5 lg:min-h-[44px] lg:items-center">
               <UserCircleAvatar
                 src={otherParticipant.profileImage}
-                alt={getDisplayName(otherParticipant)}
-                size="md"
-                nameForInitial={getDisplayName(otherParticipant)}
+                alt={displayName}
+                size="lg"
+                nameForInitial={displayName}
               />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex min-w-0 items-center gap-1">
-                  <h2 className="truncate text-base font-semibold tracking-tight text-gray-900">
-                    {getDisplayName(otherParticipant)}
-                  </h2>
-                  {otherParticipant.sellerVerified ? (
-                    <BadgeCheck
-                      className="h-4 w-4 shrink-0 text-emerald-600"
-                      aria-label={t('profilePage.sidebar.verified')}
-                    />
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {otherUserTyping ? (
-                    <>
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-xs text-blue-500">{t('chat.isTyping')}</span>
-                    </>
-                  ) : (
-                    <>
-                      {isOnline !== undefined && (
-                        <>
-                          <Circle className={`w-2 h-2 shrink-0 ${isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-                          <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                            {isOnline ? 'Online' : lastSeenAt ? `Laatst gezien ${formatLastSeen(lastSeenAt)}` : 'Offline'}
-                          </span>
-                          {pusherConnected && (
-                            <span className="text-xs text-gray-400">• Live</span>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-                {relationshipHintLine ? (
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-500">
-                    {relationshipHintLine}
-                  </p>
-                ) : null}
-              </div>
-            </>
+              {peerDetailsColumn}
+            </div>
           )}
-        </div>
 
-        {showConversationTools ? (
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => handleManualReload()}
-              className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              title={t('messages.reloadMessages')}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleDeleteConversation()}
-              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              title={t('common.clearConversation')}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        ) : null}
+          {showConversationTools ? (
+            <div className="ml-auto flex shrink-0 items-center gap-1 self-start lg:self-center">
+              <button
+                type="button"
+                onClick={() => handleManualReload()}
+                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                title={t('messages.reloadMessages')}
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteConversation()}
+                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                title={t('common.clearConversation')}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Messages — enige scrollzone */}
@@ -1152,10 +1159,10 @@ export default function ChatBox({
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-4 sm:py-2.5 ${
+        className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 backdrop-blur-md sm:px-4 ${
           nativeMounted
-            ? 'hc-native-chat-composer-native'
-            : 'supports-[padding:max(0px,1px)]:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] py-3 sm:py-3.5'
+            ? 'hc-native-chat-composer-native pt-1.5 sm:pt-2'
+            : 'py-2.5 supports-[padding:max(0px,1px)]:pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] sm:py-3'
         }`}
       >
         <div className="flex gap-2 items-end">
@@ -1174,8 +1181,8 @@ export default function ChatBox({
             onChange={(e) => handleTyping(e.target.value)}
             placeholder={t('messages.typeMessage')}
             disabled={isSending}
-            className={`min-h-[48px] flex-1 min-w-0 rounded-full border border-gray-200 bg-gray-50/90 px-4 py-3 text-[15px] leading-snug text-gray-900 shadow-inner focus:border-emerald-500/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:bg-gray-100 sm:text-base ${
-              nativeMounted ? 'py-3.5' : ''
+            className={`min-h-[44px] flex-1 min-w-0 rounded-full border border-gray-200 bg-gray-50/90 px-4 py-2.5 text-[15px] leading-snug text-gray-900 shadow-inner focus:border-emerald-500/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:bg-gray-100 sm:text-base ${
+              nativeMounted ? '' : 'min-h-[48px] py-3'
             }`}
             autoComplete="off"
           />

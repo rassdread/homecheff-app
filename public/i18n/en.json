@@ -539,6 +539,10 @@
     "reloadMessages": "Reload messages",
     "typing": "Typeing...",
     "isTyping": "Is typeing...",
+    "presenceOnline": "Online",
+    "presenceLive": "Live",
+    "presenceOffline": "Offline",
+    "lastSeenFull": "Last seen {time}",
     "couldNotSend": "Could not send message",
     "fileTypeNotSupported": "File type not supported.",
     "loginToChat": "Log in to chat",
@@ -2025,7 +2029,9 @@
     "werkenBij": "Careers",
     "verdienenGuestTitle": "Log in to post something",
     "verdienenGuestBody": "You can only post something when you are logged in.",
-    "androidBeta": "Android beta"
+    "androidBeta": "Android beta",
+    "legalAndContact": "Legal & contact",
+    "legalNavAria": "Legal information and contact"
   },
   "earningsPage": {
     "title": "My Earnings",
@@ -3152,6 +3158,7 @@
     "lastNamePlaceholder": "Your last name",
     "username": "Username",
     "usernamePlaceholder": "Unique username (3-20 characters)",
+    "usernamePublicHandleHint": "This is your public @handle on HomeCheff — not your password.",
     "usernameRules": "Username rules:",
     "usernameRule1": "3-20 characters long",
     "usernameRule2": "Only letters, numbers and underscores",
@@ -3162,6 +3169,8 @@
     "emailSocialNote": "This email address was taken from your social login and is already verified.",
     "password": "Password",
     "passwordPlaceholder": "Minimum 8 characters",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Repeat your password",
     "passwordStrong": "✅ Password is strong enough",
     "passwordWeak": "❌ Password must contain at least 8 characters",
     "passwordOptional": "optional",
@@ -3253,6 +3262,8 @@
       "addressNotValidated": "Please validate your address using the address lookup before continuing.",
       "acceptTaxResponsibility": "You must accept the tax responsibility to continue.",
       "passwordMinLength": "Password must be at least 8 characters long.",
+      "passwordMismatch": "Passwords do not match.",
+      "usernameEqualsPassword": "Your public @handle cannot be the same as your password. Change your username or password.",
       "emailRequired": "Email address is required.",
       "usernameInvalid": "Username is invalid or already in use.",
       "selectBuyerType": "Please select at least one buyer type to continue.",
@@ -5135,10 +5146,7 @@
     "appearance": "Appearance",
     "appearanceDescription": "Theme and interface settings",
     "help": "Help & Support",
-    "helpDescription": "Frequently asked questions and contact",
-    "legalLinksTitle": "Legal & contact",
-    "legalLinksAria": "Legal information and contact",
-    "legalLinksHint": "In the app the website footer is hidden; you can open the same pages here."
+    "helpDescription": "Frequently asked questions and contact"
   },
   "profilePage": {
     "tabs": {

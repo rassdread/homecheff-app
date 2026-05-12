@@ -126,6 +126,7 @@ type RegisterState = {
   username: string;
   email: string;
   password: string;
+  confirmPassword: string;
   gender: string;
   birthMonth: string;
   birthYear: string;
@@ -191,6 +192,7 @@ const REGISTER_INITIAL_STATE: RegisterState = {
   username: "",
   email: "",
   password: "",
+  confirmPassword: "",
   gender: "",
   birthMonth: "",
   birthYear: "",
@@ -526,6 +528,8 @@ function RegisterPageContent() {
     usePersistentState<RegisterState>(REGISTER_DRAFT_STORAGE_KEY, REGISTER_INITIAL_STATE, {
       storage: "session",
       ttl: REGISTER_DRAFT_TTL,
+      version: 2,
+      omitKeysBeforePersist: ["password", "confirmPassword", "registrationPassword"],
     });
 
   const hasDraft = React.useMemo(() => {
@@ -1668,6 +1672,22 @@ function RegisterPageContent() {
         return;
       }
 
+      if (state.password && state.username.trim() === state.password.trim()) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.usernameEqualsPassword'),
+        }));
+        return;
+      }
+
+      if (!isSocialLogin && state.password !== state.confirmPassword) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.passwordMismatch'),
+        }));
+        return;
+      }
+
       const normalizedPostalCode = state.postalCode ? state.postalCode.replace(/\s/g, '').toUpperCase() : "";
       const formattedAddress =
         state.country === 'NL'
@@ -1681,6 +1701,7 @@ function RegisterPageContent() {
         username: state.username,
         email: state.email,
         password: state.password,
+        confirmPassword: state.confirmPassword,
         gender: state.gender,
         birthMonth: state.birthMonth,
         birthYear: state.birthYear,
@@ -2377,36 +2398,107 @@ function RegisterPageContent() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('register.firstName')} *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-firstName">
+                        {t('register.firstName')} *
+                      </label>
                       <input
+                        id="hc-register-firstName"
+                        name="given-name"
                         type="text"
                         value={state.firstName}
                         onChange={e => setState(prev => ({ ...prev, firstName: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         placeholder={t('register.firstNamePlaceholder')}
+                        autoComplete="given-name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('register.lastName')} *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-lastName">
+                        {t('register.lastName')} *
+                      </label>
                       <input
+                        id="hc-register-lastName"
+                        name="family-name"
                         type="text"
                         value={state.lastName}
                         onChange={e => setState(prev => ({ ...prev, lastName: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         placeholder={t('register.lastNamePlaceholder')}
+                        autoComplete="family-name"
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-sm font-medium text-gray-700">{t('register.username')} *</label>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-email">
+                        {t('register.email')} *
+                      </label>
+                      {pageHints?.hints.email && (
+                        <InfoIcon hint={pageHints.hints.email} pageId="register" size="sm" />
+                      )}
+                    </div>
+                    <input
+                      id="hc-register-email"
+                      name="email"
+                      type="email"
+                      value={state.email}
+                      onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
+                      readOnly={isSocialLogin}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                        state.emailValidation.isValid === true
+                          ? 'border-green-300 bg-green-50'
+                          : state.emailValidation.isValid === false
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-300'
+                      }`}
+                      placeholder={t('register.emailPlaceholder')}
+                      autoComplete="email"
+                      inputMode="email"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck="false"
+                    />
+                    {isSocialLogin && (
+                      <p className="mt-2 text-sm text-emerald-700">
+                        {t('register.emailSocialNote')}
+                      </p>
+                    )}
+                    {state.emailValidation.message && (
+                      <p className={`mt-2 text-sm ${
+                        state.emailValidation.isValid === true
+                          ? 'text-green-600'
+                          : state.emailValidation.isValid === false
+                          ? 'text-red-600'
+                          : 'text-gray-500'
+                      }`}>
+                        {state.emailValidation.isChecking && (
+                          <span className="inline-flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </span>
+                        )}
+                        {state.emailValidation.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-username">
+                        {t('register.username')} *
+                      </label>
                       {pageHints?.hints.username && (
                         <InfoIcon hint={pageHints.hints.username} pageId="register" size="sm" />
                       )}
                     </div>
+                    <p className="mb-2 text-xs text-gray-600">{t('register.usernamePublicHandleHint')}</p>
                     <div className="relative">
                       <input
+                        id="hc-register-username"
+                        name="username"
                         type="text"
                         value={state.username}
                         onChange={e => setState(prev => ({ ...prev, username: e.target.value }))}
@@ -2418,6 +2510,10 @@ function RegisterPageContent() {
                             : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
                         }`}
                         placeholder={t('register.usernamePlaceholder')}
+                        autoComplete="username"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
                       />
                       {state.usernameValidation.isChecking && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -2435,8 +2531,7 @@ function RegisterPageContent() {
                         </div>
                       )}
                     </div>
-                    
-                    {/* Validatie feedback */}
+
                     {state.usernameValidation.message && (
                       <div className={`mt-2 text-sm ${
                         state.usernameValidation.isValid === true
@@ -2448,8 +2543,7 @@ function RegisterPageContent() {
                         {state.usernameValidation.message}
                       </div>
                     )}
-                    
-                    {/* Gebruikersnaam regels */}
+
                     <div className="mt-2 text-xs text-gray-500">
                       <p>{t('register.usernameRules')}</p>
                       <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
@@ -2460,69 +2554,21 @@ function RegisterPageContent() {
                       </ul>
                     </div>
                   </div>
-                  
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-sm font-medium text-gray-700">{t('register.email')} *</label>
-                      {pageHints?.hints.email && (
-                        <InfoIcon hint={pageHints.hints.email} pageId="register" size="sm" />
-                      )}
-                    </div>
-                    <input
-                      type="email"
-                      value={state.email}
-                      onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
-                      readOnly={isSocialLogin}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                        state.emailValidation.isValid === true 
-                          ? 'border-green-300 bg-green-50' 
-                          : state.emailValidation.isValid === false 
-                          ? 'border-red-300 bg-red-50' 
-                          : 'border-gray-300'
-                      }`}
-                      placeholder={t('register.emailPlaceholder')}
-                      autoComplete="off"
-                      autoCapitalize="off"
-                      autoCorrect="off"
-                      spellCheck="false"
-                    />
-                    {isSocialLogin && (
-                      <p className="mt-2 text-sm text-emerald-700">
-                        {t('register.emailSocialNote')}
-                      </p>
-                    )}
-                    {state.emailValidation.message && (
-                      <p className={`mt-2 text-sm ${
-                        state.emailValidation.isValid === true 
-                          ? 'text-green-600' 
-                          : state.emailValidation.isValid === false 
-                          ? 'text-red-600' 
-                          : 'text-gray-500'
-                      }`}>
-                        {state.emailValidation.isChecking && (
-                          <span className="inline-flex items-center">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          </span>
-                        )}
-                        {state.emailValidation.message}
-                      </p>
-                    )}
-                  </div>
-                  
                   {/* Wachtwoord veld - alleen voor niet-social login */}
                   {!isSocialLogin && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <label className="block text-sm font-medium text-gray-700">{t('register.password')} *</label>
+                        <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-password">
+                          {t('register.password')} *
+                        </label>
                         {pageHints?.hints.password && (
                           <InfoIcon hint={pageHints.hints.password} pageId="register" size="sm" />
                         )}
                       </div>
                       <div className="relative">
                         <input
+                          id="hc-register-password"
+                          name="new-password"
                           type={state.showPassword ? "text" : "password"}
                           value={state.password}
                           onChange={e => setState(prev => ({ ...prev, password: e.target.value }))}
@@ -2547,16 +2593,33 @@ function RegisterPageContent() {
                       </div>
                       {state.password && (
                         <p className={`text-sm mt-2 ${
-                          state.password.length >= 8 
-                            ? 'text-green-600' 
+                          state.password.length >= 8
+                            ? 'text-green-600'
                             : 'text-red-600'
                         }`}>
-                          {state.password.length >= 8 
+                          {state.password.length >= 8
                             ? t('register.passwordStrong')
                             : t('register.passwordWeak')
                           }
                         </p>
                       )}
+                      <div className="mt-4">
+                        <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-confirm-password">
+                          {t('register.confirmPassword')} *
+                        </label>
+                        <input
+                          id="hc-register-confirm-password"
+                          type="password"
+                          value={state.confirmPassword}
+                          onChange={e => setState(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                          placeholder={t('register.confirmPasswordPlaceholder')}
+                          autoComplete="new-password"
+                          autoCapitalize="off"
+                          autoCorrect="off"
+                          spellCheck="false"
+                        />
+                      </div>
                     </div>
                   )}
                   
@@ -3506,14 +3569,15 @@ function RegisterPageContent() {
                       return state.userTypes.length === 0 && state.selectedBuyerType === "";
                     }
                     if (state.currentStep === 3) {
-                      const step3Disabled = !state.firstName || 
-                        !state.lastName || 
-                        !state.username || 
-                        !state.email || 
-                        (!isSocialLogin && !state.password) || 
+                      const step3Disabled = !state.firstName ||
+                        !state.lastName ||
+                        !state.username ||
+                        !state.email ||
+                        (!isSocialLogin && !state.password) ||
+                        (!isSocialLogin && !state.confirmPassword) ||
                         state.usernameValidation.isChecking || // Disable while checking
                         state.usernameValidation.isValid === false; // Disable if invalid
-                      
+
                       // Debug logging for step 3
                       if (step3Disabled) {
                         console.log('🔍 [REGISTER] Step 3 disabled - reasons:', {
@@ -3521,7 +3585,8 @@ function RegisterPageContent() {
                           noLastName: !state.lastName,
                           noUsername: !state.username,
                           noEmail: !state.email,
-                          noPassword: (!isSocialLogin && !state.password),
+                          noPassword: !isSocialLogin && !state.password,
+                          noConfirmPassword: !isSocialLogin && !state.confirmPassword,
                           isChecking: state.usernameValidation.isChecking,
                           isValid: state.usernameValidation.isValid,
                           isSocialLogin

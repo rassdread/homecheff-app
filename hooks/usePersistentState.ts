@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type StorageType = 'local' | 'session';
 
-interface PersistentStateOptions {
+interface PersistentStateOptions<T> {
   /**
    * Storage type to use. Defaults to sessionStorage.
    */
@@ -17,6 +17,10 @@ interface PersistentStateOptions {
    * Version number for invalidating old payloads.
    */
   version?: number;
+  /**
+   * Top-level keys omitted from persisted JSON (e.g. passwords). In-memory state keeps full values.
+   */
+  omitKeysBeforePersist?: (keyof T)[];
   /**
    * Toggle persistence. When disabled the hook behaves like useState.
    */
@@ -63,10 +67,10 @@ function getStorageFromWindow(storage: StorageType): Storage | null {
   }
 }
 
-export function usePersistentState<T>(
+export function usePersistentState<T extends object>(
   key: string,
   defaultValue: T,
-  options: PersistentStateOptions = {}
+  options: PersistentStateOptions<T> = {}
 ): [T, (value: SetStateAction<T>) => void, PersistentStateMeta] {
   const {
     storage = 'session',
@@ -74,6 +78,7 @@ export function usePersistentState<T>(
     version = 1,
     enabled = true,
     keyPrefix,
+    omitKeysBeforePersist,
   } = options;
 
   const storageKey = useMemo(
@@ -122,7 +127,11 @@ export function usePersistentState<T>(
         storageInstance.removeItem(storageKey);
         setValue(defaultValue);
       } else {
-        setValue(parsed.value);
+        const incoming =
+          typeof parsed.value === 'object' && parsed.value !== null
+            ? (parsed.value as object)
+            : {};
+        setValue({ ...(defaultValue as object), ...incoming } as T);
       }
     } catch (error) {
       console.warn('⚠️ Failed to hydrate persistent state:', error);
@@ -140,8 +149,16 @@ export function usePersistentState<T>(
     }
 
     try {
+      let valueToPersist: T = value;
+      if (omitKeysBeforePersist && omitKeysBeforePersist.length > 0) {
+        const clone = { ...(value as object) } as Record<string, unknown>;
+        for (const k of omitKeysBeforePersist) {
+          delete clone[String(k)];
+        }
+        valueToPersist = clone as T;
+      }
       const payload: PersistedPayload<T> = {
-        value,
+        value: valueToPersist,
         version,
         timestamp: Date.now(),
       };
@@ -149,7 +166,7 @@ export function usePersistentState<T>(
     } catch (error) {
       console.warn('⚠️ Failed to persist state:', error);
     }
-  }, [enabled, isHydrated, storageKey, value, version]);
+  }, [enabled, isHydrated, storageKey, value, version, omitKeysBeforePersist]);
 
   const setPersistentValue = useCallback(
     (next: SetStateAction<T>) => {

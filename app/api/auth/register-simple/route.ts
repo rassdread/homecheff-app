@@ -11,6 +11,7 @@ import {
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
+import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,8 @@ export async function POST(req: NextRequest) {
       acceptTerms,
       acceptMarketing,
       acceptTaxResponsibility,
-      subAffiliateInviteToken // Token voor sub-affiliate invite
+      subAffiliateInviteToken, // Token voor sub-affiliate invite
+      confirmPassword,
     } = body as any;
     
     // Basic validation
@@ -62,6 +64,23 @@ export async function POST(req: NextRequest) {
     // Password validation
     if (password.length < 6) {
       return NextResponse.json({ error: "Wachtwoord moet minimaal 6 tekens lang zijn." }, { status: 400 });
+    }
+
+    if (
+      typeof confirmPassword === "string" &&
+      confirmPassword.length > 0 &&
+      confirmPassword !== password
+    ) {
+      return NextResponse.json({ error: "Wachtwoorden komen niet overeen." }, { status: 400 });
+    }
+
+    const usernamePasswordConflict = registrationUsernamePasswordConflictMessage(
+      username,
+      password,
+      confirmPassword
+    );
+    if (usernamePasswordConflict) {
+      return NextResponse.json({ error: usernamePasswordConflict }, { status: 400 });
     }
 
     // Check if email already exists

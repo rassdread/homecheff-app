@@ -23,6 +23,7 @@ import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
+import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -631,6 +632,11 @@ export default function NavBar() {
                         </div>
                       )}
                       
+                      <NavbarLegalContactLinks
+                        variant="dropdown"
+                        onNavigate={() => setIsProfileDropdownOpen(false)}
+                      />
+
                       <div className="border-t border-gray-100 my-2"></div>
                       
                       <button
@@ -638,7 +644,7 @@ export default function NavBar() {
                           setIsProfileDropdownOpen(false);
                           await handleLogout();
                         }}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                        className="flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>{t('navbar.logout')}</span>
@@ -985,13 +991,21 @@ export default function NavBar() {
                       setIsMobileMenuOpen(false);
                       await handleLogout();
                     }}
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="w-full min-h-[44px] justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     {t('navbar.logout')}
                   </Button>
                 </>
               )}
+
+              <NavbarLegalContactLinks
+                variant="mobile"
+                mobileNavRowClass={mobileNavRowClass}
+                onNavigate={() => {
+                  setIsMobileMenuOpen(false);
+                }}
+              />
             </nav>
           </div>
         )}

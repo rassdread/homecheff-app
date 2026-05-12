@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { HelpCircle, Shield, FileText, Mail, Info } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { disableAllHints, enableAllHints, loadOnboardingPreferences } from '@/lib/onboarding/storage';
-import { useTranslation } from '@/hooks/useTranslation';
 
 const ToggleButton = ({ enabled, onClick, disabled }: { enabled: boolean; onClick: () => void; disabled?: boolean }) => (
   <button
@@ -23,7 +21,6 @@ const ToggleButton = ({ enabled, onClick, disabled }: { enabled: boolean; onClic
 );
 
 export default function HelpSettings() {
-  const { t } = useTranslation();
   const [helpEnabled, setHelpEnabled] = useState(true);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
@@ -87,46 +84,6 @@ export default function HelpSettings() {
             <p className="text-sm text-green-800">{saveMessage}</p>
           </div>
         )}
-      </div>
-
-      <div className="mt-6 border-t border-gray-100 pt-5">
-        <p className="mb-3 text-sm font-medium text-gray-900">
-          {t('settingsMenu.legalLinksTitle')}
-        </p>
-        <nav
-          className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-4"
-          aria-label={t('settingsMenu.legalLinksAria')}
-        >
-          <Link
-            href="/privacy"
-            className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
-          >
-            <Shield className="h-4 w-4 shrink-0" aria-hidden />
-            {t('siteFooter.privacy')}
-          </Link>
-          <Link
-            href="/terms"
-            className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
-          >
-            <FileText className="h-4 w-4 shrink-0" aria-hidden />
-            {t('siteFooter.terms')}
-          </Link>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
-          >
-            <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            {t('siteFooter.contact')}
-          </Link>
-          <Link
-            href="/faq"
-            className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 hover:underline"
-          >
-            <Info className="h-4 w-4 shrink-0" aria-hidden />
-            {t('siteFooter.faq')}
-          </Link>
-        </nav>
-        <p className="mt-3 text-xs text-gray-500">{t('settingsMenu.legalLinksHint')}</p>
       </div>
     </div>
   );

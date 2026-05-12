@@ -7,6 +7,7 @@ import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 import { UserRole } from '@prisma/client';
+import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +44,11 @@ export async function POST(request: NextRequest) {
           { message: 'Je moet akkoord gaan met de voorwaarden en privacy' },
           { status: 400 },
         );
+      }
+
+      const minimalConflict = registrationUsernamePasswordConflictMessage(username, body?.password, body?.confirmPassword);
+      if (minimalConflict) {
+        return NextResponse.json({ message: minimalConflict }, { status: 400 });
       }
 
       if (username !== existingUser.username) {
@@ -132,6 +138,15 @@ export async function POST(request: NextRequest) {
 
     if (!acceptedTerms || !acceptedPrivacy) {
       return NextResponse.json({ message: 'Je moet akkoord gaan met de voorwaarden' }, { status: 400 });
+    }
+
+    const fullPathConflict = registrationUsernamePasswordConflictMessage(
+      username,
+      password,
+      body?.confirmPassword
+    );
+    if (fullPathConflict) {
+      return NextResponse.json({ message: fullPathConflict }, { status: 400 });
     }
 
     if (username !== existingUser.username) {

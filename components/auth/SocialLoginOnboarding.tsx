@@ -432,6 +432,7 @@ export default function SocialLoginOnboarding() {
                 onKeyPress={(e) => e.key === 'Enter' && handleUsernameSubmit()}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 placeholder="bijv. john_doe"
+                autoComplete="username"
                 autoFocus
               />
               {usernameError && (
