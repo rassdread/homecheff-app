@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+// Single source of truth: repo root `config/android-version.json` (see scripts/release-android.mjs).
+def hcAndroidVersionFile = rootProject.file("../config/android-version.json")
+if (!hcAndroidVersionFile.exists()) {
+    throw new GradleException("HomeCheff: missing config/android-version.json — add it or run node scripts/release-android.mjs")
+}
+def hcAndroidVersion = new groovy.json.JsonSlurper().parse(hcAndroidVersionFile)
+def hcVersionCodeRaw = hcAndroidVersion.versionCode
+def hcVersionCode = hcVersionCodeRaw instanceof Number ? hcVersionCodeRaw.intValue() : Integer.parseInt(String.valueOf(hcVersionCodeRaw))
+def hcVersionName = String.valueOf(hcAndroidVersion.versionName ?: "").trim()
+if (!hcVersionName) {
+    throw new GradleException("HomeCheff: android-version.json must set versionName")
+}
+if (hcVersionCode < 1) {
+    throw new GradleException("HomeCheff: android-version.json versionCode must be >= 1")
+}
+
 // --- Release signing (optional): android/keystore.properties + storeFile path (see android/.gitignore) ---
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -35,8 +51,8 @@ android {
         applicationId "eu.homecheff.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "1.0.12"
+        versionCode hcVersionCode
+        versionName hcVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

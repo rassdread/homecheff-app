@@ -42,7 +42,8 @@
     "cap:sync": "npm run sync-android-splash && npx cap sync",
     "cap:add:android": "npx cap add android",
     "cap:open:android": "npx cap open android",
-    "cap:build:android": "npm run build && npm run cap:sync && npx cap open android"
+    "cap:build:android": "npm run build && npm run cap:sync && npx cap open android",
+    "release:android": "node scripts/release-android.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

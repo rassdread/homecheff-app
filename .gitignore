@@ -63,3 +63,6 @@ STRIPE_KEYS.txt
 
 # Gradle build cache (lokaal); Android Gradle-scripts staan wél in git (Capacitor).
 .gradle/
+
+# Local Play upload copies (scripts/release-android.mjs --play)
+/release-artifacts/

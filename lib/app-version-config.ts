@@ -1,18 +1,16 @@
 /**
  * Centrale defaults voor GET /api/app-version.
  *
- * Prioriteit: **Vercel/env-override > `config/android-beta-version.json` > veilige fallback**.
- * Normale APK-releases: bump met `node scripts/bump-android-beta-version.mjs <versie>`;
- * Vercel-env alleen voor noodsituaties (tijdelijk andere URL/min/force/uit).
+ * Prioriteit: **Vercel/env-override > `config/android-version.json` > veilige fallback**.
+ * Canonical versioning + Gradle: `config/android-version.json` (één bron; zie `scripts/release-android.mjs`).
+ * Oudere checkout kan nog `config/android-beta-version.json` hebben — wordt nog gelezen als fallback.
  *
- * Release-workflow (lokaal, na bump):
- *   npm run build
- *   npx cap sync android
- *   cd android && ./gradlew assembleDebug && cd ..
- *   cp android/app/build/outputs/apk/debug/app-debug.apk public/downloads/homecheff-beta.apk
+ * Release-workflow (aanbevolen):
+ *   node scripts/release-android.mjs <versionName> --apk
+ *   node scripts/release-android.mjs <versionName> --aab --play
  *
- * Verplichte release: `node scripts/bump-android-beta-version.mjs <versie> --force`
- * (optioneel `--min=x.y.z` of `--keep-min`).
+ * Alleen metadata bump (zonder lint/build/Gradle):
+ *   node scripts/bump-android-beta-version.mjs <versionName> [--force] [--min=x.y.z] [--keep-min]
  */
 
 import { readAndroidBetaVersionFile } from '@/lib/read-android-beta-version-config';
