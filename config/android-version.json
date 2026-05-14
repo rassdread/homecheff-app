@@ -1,6 +1,6 @@
 {
   "versionName": "1.0.12",
-  "versionCode": 15,
+  "versionCode": 17,
   "forceUpdate": true,
   "minRequiredVersion": "1.0.12",
   "enabled": true,
@@ -10,9 +10,7 @@
   "updateTitleForced": "Update vereist",
   "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": [
-    "Improve chat layout",
-    "Fix guest navigation",
-    "Improve registration safety",
-    "Improve native app feel"
+    "Improve onboarding",
+    "account security and navigation"
   ]
 }

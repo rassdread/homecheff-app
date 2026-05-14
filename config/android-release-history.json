@@ -1,3 +1,24 @@
 {
-  "releases": []
+  "releases": [
+    {
+      "versionName": "1.0.12",
+      "versionCode": 16,
+      "at": "2026-05-14T12:55:10.297Z",
+      "changelog": "Improve onboarding, account security and navigation",
+      "artifacts": [
+        "apk",
+        "aab"
+      ]
+    },
+    {
+      "versionName": "1.0.12",
+      "versionCode": 17,
+      "at": "2026-05-14T12:58:52.660Z",
+      "changelog": "Improve onboarding, account security and navigation",
+      "artifacts": [
+        "apk",
+        "aab"
+      ]
+    }
+  ]
 }
