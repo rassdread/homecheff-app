@@ -12,6 +12,7 @@ import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
+import { buildRegistrationFullName } from "@/lib/person-name";
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
 
     const { 
       firstName, 
+      middleName,
       lastName, 
       email, 
       password, 
@@ -50,8 +52,11 @@ export async function POST(req: NextRequest) {
       confirmPassword,
     } = body as any;
     
+    const firstNameTrim = typeof firstName === "string" ? firstName.trim() : "";
+    const lastNameTrim = typeof lastName === "string" ? lastName.trim() : "";
+
     // Basic validation
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstNameTrim || !lastNameTrim) {
       return NextResponse.json({ error: "Alle verplichte velden moeten worden ingevuld." }, { status: 400 });
     }
 
@@ -90,7 +95,10 @@ export async function POST(req: NextRequest) {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const name = `${firstName} ${lastName}`.trim();
+    const fn = firstNameTrim;
+    const mn = typeof middleName === "string" ? middleName.trim() : "";
+    const ln = lastNameTrim;
+    const name = buildRegistrationFullName({ firstName: fn, middleName: mn, lastName: ln }) || fn;
 
     // Determine user role
     const hasSellerRole = userTypes && userTypes.length > 0;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import { runResendVerificationCore } from '@/lib/auth-resend-verification-core';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +10,12 @@ const RESENT_MSG =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const result = await runResendVerificationCore(body?.email);
+    const session = await auth();
+    const fromBody = typeof body?.email === 'string' ? body.email.trim() : '';
+    const fromSession =
+      typeof session?.user?.email === 'string' ? session.user.email.trim() : '';
+    const resolvedEmail = fromBody || fromSession;
+    const result = await runResendVerificationCore(resolvedEmail || undefined);
 
     switch (result.status) {
       case 'sent':

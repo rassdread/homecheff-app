@@ -14,8 +14,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useTranslation } from "@/hooks/useTranslation";
 import DynamicAddressFields, { AddressData } from "@/components/ui/DynamicAddressFields";
 import { trackRegistration } from "@/components/GoogleAnalytics";
-import EmailVerificationModal from "@/components/auth/EmailVerificationModal";
-import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
+import EmailVerificationModal from "@/components/auth/EmailVerificationModal";import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
 import {
   isAndroidWebViewBridgePresent,
   isNativeAndroid,
@@ -32,6 +31,7 @@ import {
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
+import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verification-prompt-storage";
 
 // User types will be loaded dynamically based on language
 const getUserTypes = (t: (key: string) => string) => [
@@ -122,6 +122,7 @@ const REGISTER_DRAFT_TTL = 48 * 60 * 60 * 1000;
 
 type RegisterState = {
   firstName: string;
+  middleName: string;
   lastName: string;
   username: string;
   email: string;
@@ -178,15 +179,11 @@ type RegisterState = {
     message: string;
     isChecking: boolean;
   };
-  // Email verificatie
-  showVerificationModal: boolean;
-  verificationEmail?: string;
-  registrationPassword?: string;
-  registrationRedirectUrl?: string;
 };
 
 const REGISTER_INITIAL_STATE: RegisterState = {
   firstName: "",
+  middleName: "",
   lastName: "",
   username: "",
   email: "",
@@ -243,11 +240,6 @@ const REGISTER_INITIAL_STATE: RegisterState = {
     message: "",
     isChecking: false,
   },
-  // Email verificatie
-  showVerificationModal: false,
-  verificationEmail: undefined,
-  registrationPassword: undefined,
-  registrationRedirectUrl: undefined,
 };
 
 function RegisterPageContent() {
@@ -441,12 +433,25 @@ function RegisterPageContent() {
             // Otherwise fallback to parsing the full name
             let firstName = socialFirstName;
             let lastName = socialLastName;
+            let middleName = '';
             
             // If firstName/lastName not available from provider, parse from full name
             if (!firstName && !lastName && socialName) {
-              const nameParts = socialName.split(' ');
-              firstName = nameParts[0] || '';
-              lastName = nameParts.slice(1).join(' ') || '';
+              const nameParts = socialName.trim().split(/\s+/).filter(Boolean);
+              if (nameParts.length === 0) {
+                firstName = '';
+                lastName = '';
+              } else if (nameParts.length === 1) {
+                firstName = nameParts[0] || '';
+                lastName = '';
+              } else if (nameParts.length === 2) {
+                firstName = nameParts[0] || '';
+                lastName = nameParts[1] || '';
+              } else {
+                firstName = nameParts[0] || '';
+                lastName = nameParts[nameParts.length - 1] || '';
+                middleName = nameParts.slice(1, -1).join(' ');
+              }
             }
             
             // Generate username from email or name
@@ -457,6 +462,7 @@ function RegisterPageContent() {
             // Pre-fill the form with social data
             console.log('🔍 [REGISTER] Pre-filling form with social data:', {
               firstName,
+              middleName,
               lastName,
               email: socialEmail,
               username: suggestedUsername,
@@ -466,6 +472,7 @@ function RegisterPageContent() {
             setState(prev => ({
               ...prev,
               firstName,
+              middleName,
               lastName,
               email: socialEmail,
               username: suggestedUsername,
@@ -541,13 +548,10 @@ function RegisterPageContent() {
     usePersistentState<RegisterState>(REGISTER_DRAFT_STORAGE_KEY, REGISTER_INITIAL_STATE, {
       storage: "session",
       ttl: REGISTER_DRAFT_TTL,
-      version: 3,
+      version: 4,
       omitKeysBeforePersist: [
         "password",
         "confirmPassword",
-        "registrationPassword",
-        "showVerificationModal",
-        "verificationEmail",
       ],
     });
 
@@ -558,6 +562,7 @@ function RegisterPageContent() {
 
     return Boolean(
       state.firstName ||
+      state.middleName ||
       state.lastName ||
       state.email ||
       state.username ||
@@ -1607,8 +1612,20 @@ function RegisterPageContent() {
     
     try {
       if (isSocialLogin) {
-        const displayName =
-          [state.firstName, state.lastName].filter(Boolean).join(" ").trim() || undefined;
+        if (!state.firstName?.trim()) {
+          setState((prev) => ({
+            ...prev,
+            error: t('register.validation.firstNameRequired'),
+          }));
+          return;
+        }
+        if (!state.lastName?.trim()) {
+          setState((prev) => ({
+            ...prev,
+            error: t('register.validation.lastNameRequired'),
+          }));
+          return;
+        }
 
         const response = await fetch("/api/auth/complete-social-onboarding", {
           method: "POST",
@@ -1616,8 +1633,10 @@ function RegisterPageContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             completionMode: "minimal",
-            username: state.username,
-            displayName: displayName || undefined,
+            username: state.username.trim(),
+            firstName: state.firstName.trim(),
+            middleName: (state.middleName || "").trim(),
+            lastName: (state.lastName || "").trim(),
             acceptedTerms: state.acceptTerms,
             acceptedPrivacy: state.acceptPrivacyPolicy,
           })
@@ -1666,6 +1685,14 @@ function RegisterPageContent() {
         return;
       }
 
+      if (!state.lastName?.trim()) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.lastNameRequired'),
+        }));
+        return;
+      }
+
       if (!state.email?.trim()) {
         setState((prev) => ({
           ...prev,
@@ -1708,6 +1735,7 @@ function RegisterPageContent() {
 
       const requestBody = {
         firstName: state.firstName.trim(),
+        middleName: (state.middleName || '').trim(),
         lastName: (state.lastName || '').trim(),
         username: state.username.trim(),
         email: state.email.trim(),
@@ -1851,29 +1879,26 @@ function RegisterPageContent() {
         safeSessionStorageRemoveItem('pendingRegistration');
       }
       
-      // Check if email verification is needed
-      if (data?.needsVerification) {
-        const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
+      const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
 
-        setState(prev => ({
-          ...prev,
-          showVerificationModal: true,
-          verificationEmail: state.email,
-          registrationPassword: state.password, // Store password for auto-login after verification
-          registrationRedirectUrl: redirectUrl
-        }));
-        return;
+      if (data?.needsVerification && typeof window !== 'undefined') {
+        safeSessionStorageSetItem(
+          HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY,
+          JSON.stringify({
+            v: 1,
+            email: state.email.trim(),
+            initialSendOk: data?.verificationEmailSent === true,
+            providerUnavailable:
+              data?.verificationEmailSkippedReason === 'EMAIL_UNAVAILABLE',
+          }),
+        );
       }
-      
-      // No verification needed - proceed with auto-login
+
       setState(() => ({
         ...REGISTER_INITIAL_STATE,
         success: true,
       }));
-      
-      // Bepaal redirect URL: pending intent (na sessie) > callback/returnUrl > home
-      const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
-      
+
       // Probeer automatisch in te loggen - Safari-compatibele versie
       // Gebruik redirect: false eerst om te controleren of login werkt
       try {
@@ -2212,20 +2237,55 @@ function RegisterPageContent() {
 
                 {/* E-mail registratie (licht) */}
                 <div className="max-w-lg mx-auto space-y-5 text-left">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-light-name">
-                      {t('register.lightDisplayNameLabel')}
-                    </label>
-                    <input
-                      id="hc-register-light-name"
-                      name="given-name"
-                      type="text"
-                      value={state.firstName}
-                      onChange={(e) => setState((prev) => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder={t('register.lightDisplayNamePlaceholder')}
-                      autoComplete="name"
-                    />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-light-first">
+                        {t('register.firstName')} *
+                      </label>
+                      <input
+                        id="hc-register-light-first"
+                        name="given-name"
+                        type="text"
+                        value={state.firstName}
+                        onChange={(e) => setState((prev) => ({ ...prev, firstName: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                        placeholder={t('register.firstNamePlaceholder')}
+                        autoComplete="given-name"
+                        autoCapitalize="words"
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-light-middle">
+                        {t('register.middleName')}
+                      </label>
+                      <input
+                        id="hc-register-light-middle"
+                        name="additional-name"
+                        type="text"
+                        value={state.middleName}
+                        onChange={(e) => setState((prev) => ({ ...prev, middleName: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                        placeholder={t('register.middleNamePlaceholder')}
+                        autoComplete="additional-name"
+                        autoCapitalize="words"
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-light-last">
+                        {t('register.lastName')} *
+                      </label>
+                      <input
+                        id="hc-register-light-last"
+                        name="family-name"
+                        type="text"
+                        value={state.lastName}
+                        onChange={(e) => setState((prev) => ({ ...prev, lastName: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                        placeholder={t('register.lastNamePlaceholder')}
+                        autoComplete="family-name"
+                        autoCapitalize="words"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -2283,6 +2343,7 @@ function RegisterPageContent() {
                       )}
                     </div>
                     <p className="mb-2 text-xs text-gray-600">{t('register.usernamePublicHandleHint')}</p>
+                    <p className="mb-2 text-xs text-gray-500">{t('register.legalNameProfileHint')}</p>
                     <div className="relative">
                       <input
                         id="hc-register-light-username"
@@ -2447,6 +2508,13 @@ function RegisterPageContent() {
                     type="button"
                     onClick={handleRegister}
                     disabled={
+                      !state.firstName?.trim() ||
+                      !state.lastName?.trim() ||
+                      !state.email?.trim() ||
+                      !state.username?.trim() ||
+                      !state.password ||
+                      state.password.length < 6 ||
+                      state.password !== state.confirmPassword ||
                       !state.acceptPrivacyPolicy ||
                       !state.acceptTerms ||
                       state.usernameValidation.isChecking ||
@@ -2619,9 +2687,9 @@ function RegisterPageContent() {
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-firstName">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-firstName">
                         {t('register.firstName')} *
                       </label>
                       <input
@@ -2633,10 +2701,27 @@ function RegisterPageContent() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         placeholder={t('register.firstNamePlaceholder')}
                         autoComplete="given-name"
+                        autoCapitalize="words"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-lastName">
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-middleName">
+                        {t('register.middleName')}
+                      </label>
+                      <input
+                        id="hc-register-middleName"
+                        name="additional-name"
+                        type="text"
+                        value={state.middleName}
+                        onChange={e => setState(prev => ({ ...prev, middleName: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder={t('register.middleNamePlaceholder')}
+                        autoComplete="additional-name"
+                        autoCapitalize="words"
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-lastName">
                         {t('register.lastName')} *
                       </label>
                       <input
@@ -2648,6 +2733,7 @@ function RegisterPageContent() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                         placeholder={t('register.lastNamePlaceholder')}
                         autoComplete="family-name"
+                        autoCapitalize="words"
                       />
                     </div>
                   </div>
@@ -2718,6 +2804,7 @@ function RegisterPageContent() {
                       )}
                     </div>
                     <p className="mb-2 text-xs text-gray-600">{t('register.usernamePublicHandleHint')}</p>
+                    <p className="mb-2 text-xs text-gray-500">{t('register.legalNameProfileHint')}</p>
                     <div className="relative">
                       <input
                         id="hc-register-username"
@@ -3842,87 +3929,6 @@ function RegisterPageContent() {
           </>
         )}
       </div>
-
-      {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={state.showVerificationModal}
-        email={state.verificationEmail || state.email}
-        onVerified={async () => {
-          // Auto-login after verification
-          if (state.registrationPassword && state.verificationEmail) {
-            try {
-              const fallback =
-                sanitizePostAuthRelativeUrl(state.registrationRedirectUrl || undefined) ||
-                '/';
-
-              // iOS Safari needs more time for cookies
-              const isIOSDevice = isIOS();
-              const isSafariOnIOS = isSafari() && isIOS();
-
-              // Use redirect: false first to check if login works
-              const loginResult = await signIn('credentials', {
-                emailOrUsername: state.verificationEmail,
-                password: state.registrationPassword,
-                redirect: false,
-              });
-
-              if (loginResult?.error) {
-                console.error('Auto sign-in after verification failed:', loginResult.error);
-                router.push('/login?verified=true');
-                return;
-              }
-
-              // Wait for cookies to be set (especially important for iOS Safari)
-              const initialDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : getSafariCookieDelay();
-              await new Promise((resolve) => setTimeout(resolve, initialDelay));
-
-              // Update session
-              if (typeof updateSession === 'function') {
-                try {
-                  await updateSession({});
-                  const updateDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-                  await new Promise((resolve) => setTimeout(resolve, updateDelay));
-                } catch (sessionError) {
-                  console.warn('Session update warning:', sessionError);
-                }
-              }
-
-              // Retry session check for iOS Safari
-              let currentSession = await getSession();
-              const maxRetries = isSafariOnIOS ? 3 : isIOSDevice ? 2 : 1;
-              const retryDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-
-              for (let attempt = 0; attempt < maxRetries && !currentSession?.user?.email; attempt++) {
-                console.log(`🔍 [REGISTER-VERIFY] Retry attempt ${attempt + 1}/${maxRetries}...`);
-                await new Promise((resolve) => setTimeout(resolve, retryDelay));
-                currentSession = await getSession();
-                if (currentSession?.user?.email) break;
-              }
-
-              // Final redirect with delay for iOS Safari
-              const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
-              await new Promise((resolve) => setTimeout(resolve, redirectDelay));
-
-              const u = currentSession?.user as
-                | { username?: string | null; socialOnboardingCompleted?: boolean | null }
-                | undefined;
-              const pathAfterSession = (u && consumeAndResolvePostAuthUrl(u)) || fallback;
-              const sep = pathAfterSession.includes('?') ? '&' : '?';
-              window.location.href = `${pathAfterSession}${sep}welcome=true&verified=true`;
-            } catch (error: any) {
-              if (error?.message?.includes('NEXT_REDIRECT')) {
-                throw error;
-              }
-              console.error("Auto sign-in after verification failed:", error);
-              // Redirect to login page
-              router.push('/login?verified=true');
-            }
-          } else {
-            // Just redirect to login
-            router.push('/login?verified=true');
-          }
-        }}
-      />
     </main>
   );
 }

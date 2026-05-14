@@ -3,15 +3,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import {
   ACCOUNT_REQUIREMENTS_OPEN_EVENT,
   type OpenAccountRequirementsGateDetail,
 } from '@/lib/onboarding/open-account-requirements-gate';
+import {
+  HC_EMAIL_VERIFICATION_REQUIRED_EVENT,
+} from '@/lib/onboarding/email-verification-prompt-events';
 
 export default function AccountRequirementsGateHost() {
   const { t } = useTranslation();
+  const { data: session } = useSession();
   const nativeMounted = useIsNativeAppMounted();
   const [open, setOpen] = useState(false);
   const [missing, setMissing] = useState<OpenAccountRequirementsGateDetail['missing']>([]);
@@ -81,13 +86,42 @@ export default function AccountRequirementsGateHost() {
               className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-3"
             >
               <span className="text-sm font-semibold text-slate-900">{item.label}</span>
-              <Link
-                href={item.actionHref}
-                onClick={() => setOpen(false)}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
-              >
-                {t('accountRequirementsGate.cta')}
-              </Link>
+              {item.key === 'emailVerified' && session?.user?.email ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    window.dispatchEvent(
+                      new CustomEvent(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, {
+                        detail: {
+                          email: String(session.user.email),
+                          reason: 'generic',
+                        },
+                      }),
+                    );
+                  }}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
+                >
+                  {t('emailVerification.verifyNow')}
+                </button>
+              ) : (
+                <Link
+                  href={item.actionHref}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
+                >
+                  {t('accountRequirementsGate.cta')}
+                </Link>
+              )}
+              {item.key === 'emailVerified' ? (
+                <Link
+                  href="/verify-email"
+                  onClick={() => setOpen(false)}
+                  className="block text-center text-xs text-slate-500 underline hover:text-slate-700"
+                >
+                  {t('emailVerification.openVerifyPage')}
+                </Link>
+              ) : null}
             </li>
           ))}
         </ul>

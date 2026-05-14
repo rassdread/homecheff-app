@@ -1,12 +1,16 @@
 import { Resend } from 'resend';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { getTransactionalFrom } from '@/lib/email-from';
-import { logEmailSendFailure } from '@/lib/email-log';
+import { logEmailSendFailure, summarizeEmailError } from '@/lib/email-log';
+import { logEmailVerificationDiag } from '@/lib/email-verification-diagnostics';
 
 function requireResend(): Resend {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.error('[email] RESEND_API_KEY ontbreekt');
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[email_verification_diag] verification_email_send_skipped reason=RESEND_API_KEY_MISSING');
+    }
     throw new Error('RESEND_API_KEY_NOT_CONFIGURED');
   }
   return new Resend(key);
@@ -20,14 +24,37 @@ export interface EmailVerificationData {
 }
 
 export async function sendVerificationEmail({ email, name, verificationToken, verificationCode }: EmailVerificationData) {
+  logEmailVerificationDiag('email_verification_send_started', {
+    hasCode: Boolean(verificationCode),
+  });
   try {
     const base = getPublicAppUrl();
     const verificationUrl = `${base}/verify-email?token=${encodeURIComponent(verificationToken)}`;
 
+    const plainLines = [
+      'HomeCheff — bevestig je e-mailadres',
+      '',
+      `Hallo ${name},`,
+      '',
+      ...(verificationCode
+        ? [
+            `Je verificatiecode (24 uur geldig): ${verificationCode}`,
+            '',
+            'Je kunt ook op de bevestigingslink in de HTML-versie van deze e-mail tikken.',
+          ]
+        : ['Open de bevestigingslink uit de HTML-mail om je adres te bevestigen.']),
+      '',
+      `Bevestigingslink: ${verificationUrl}`,
+      '',
+      'Support: support@homecheff.eu',
+    ];
+    const textBody = plainLines.join('\n');
+
     const { data, error } = await requireResend().emails.send({
       from: getTransactionalFrom(),
       to: [email],
-      subject: 'Bevestig je e-mailadres - HomeCheff',
+      subject: 'Bevestig je e-mailadres — HomeCheff',
+      text: textBody,
       html: `
         <!DOCTYPE html>
         <html>
@@ -113,12 +140,24 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
 
     if (error) {
       logEmailSendFailure('verification_api', error, { recipientEmail: email });
+      logEmailVerificationDiag('email_verification_send_failed', {
+        stage: 'resend_api_error',
+        reason: summarizeEmailError(error, 120),
+      });
       throw new Error('Failed to send verification email');
     }
 
+    logEmailVerificationDiag('email_verification_send_success', {});
     return { success: true, data };
   } catch (error) {
     logEmailSendFailure('verification', error, { recipientEmail: email });
+    logEmailVerificationDiag('email_verification_send_failed', {
+      stage: 'catch',
+      reason: summarizeEmailError(error, 120),
+    });
+    if (error instanceof Error && error.message.includes('RESEND_API_KEY_NOT_CONFIGURED')) {
+      throw error;
+    }
     throw new Error('Email service unavailable');
   }
 }

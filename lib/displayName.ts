@@ -2,6 +2,8 @@
  * Utility functions for displaying user names based on user preferences
  */
 
+import { normalizePersonNameDisplay } from '@/lib/person-name';
+
 export interface User {
   id?: string | null;
   name?: string | null;
@@ -29,12 +31,14 @@ export function getDisplayName(user: User | null | undefined): string {
   }
   
   if (user.displayNameOption === 'first' && user.name) {
-    return user.name.split(' ')[0];
+    const n = normalizePersonNameDisplay(user.name);
+    return n ? n.split(' ')[0] : '';
   }
-  
+
   if (user.displayNameOption === 'last' && user.name) {
-    const nameParts = user.name.split(' ');
-    return nameParts[nameParts.length - 1];
+    const n = normalizePersonNameDisplay(user.name);
+    const nameParts = n.split(' ');
+    return nameParts[nameParts.length - 1] ?? '';
   }
   
   if (user.displayNameOption === 'none') {
@@ -42,7 +46,8 @@ export function getDisplayName(user: User | null | undefined): string {
   }
   
   // Default to full name or username, never "Onbekend"
-  return user.name || user.username || 'Gebruiker';
+  const full = normalizePersonNameDisplay(user.name);
+  return full || user.username || 'Gebruiker';
 }
 
 /**

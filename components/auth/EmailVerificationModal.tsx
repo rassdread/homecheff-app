@@ -1,23 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Mail, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { X, Mail, RefreshCw, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+
+export type EmailVerificationModalMode = 'soft' | 'required';
+export type EmailVerificationRequiredReason = 'message' | 'create' | 'checkout' | 'generic';
 
 interface EmailVerificationModalProps {
   isOpen: boolean;
   email: string;
+  mode?: EmailVerificationModalMode;
+  requiredReason?: EmailVerificationRequiredReason;
+  initialSendOk?: boolean;
+  providerUnavailable?: boolean;
   onVerified: () => void;
   onClose?: () => void;
+  onLater?: () => void;
 }
 
 export default function EmailVerificationModal({
   isOpen,
   email,
+  mode = 'soft',
+  requiredReason = 'generic',
+  initialSendOk = true,
+  providerUnavailable = false,
   onVerified,
   onClose,
+  onLater,
 }: EmailVerificationModalProps) {
   const { t } = useTranslation();
+  const isRequired = mode === 'required';
+  const [step, setStep] = useState<'intro' | 'code'>(() => (isRequired ? 'code' : 'intro'));
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -26,13 +41,103 @@ export default function EmailVerificationModal({
   const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setCode('');
-      setError(null);
-      setSuccess(false);
-      setResendSuccess(false);
+    if (!isOpen) return;
+    setStep(isRequired ? 'code' : 'intro');
+    setCode('');
+    setError(null);
+    setSuccess(false);
+    setResendSuccess(false);
+  }, [isOpen, isRequired]);
+
+  const requiredTitle = t('emailVerification.requiredTitle');
+  const requiredBody = (() => {
+    switch (requiredReason) {
+      case 'message':
+        return t('emailVerification.requiredReasonMessage');
+      case 'create':
+        return t('emailVerification.requiredReasonCreate');
+      case 'checkout':
+        return t('emailVerification.requiredReasonCheckout');
+      default:
+        return t('emailVerification.requiredReasonGeneric');
     }
-  }, [isOpen]);
+  })();
+
+  const applyResendResponse = useCallback(
+    async (response: Response) => {
+      const data = (await response.json().catch(() => ({}))) as {
+        success?: boolean;
+        generic?: boolean;
+        code?: string;
+        retryAfterSec?: number;
+      };
+
+      if (response.status === 429 && data?.code === 'RATE_LIMITED') {
+        const sec = typeof data.retryAfterSec === 'number' ? data.retryAfterSec : 60;
+        setError(t('emailVerification.resendRateLimited', { seconds: String(sec) }));
+        return false;
+      }
+
+      if (response.status === 409 && data?.code === 'ALREADY_VERIFIED') {
+        setError(t('emailVerification.resendAlreadyVerified'));
+        return false;
+      }
+
+      if (response.status === 503 || data?.code === 'EMAIL_UNAVAILABLE') {
+        setError(t('emailVerification.emailSendFailed'));
+        return false;
+      }
+
+      if (response.status === 400 || data?.code === 'INVALID_EMAIL') {
+        setError(t('emailVerification.resendInvalidEmail'));
+        return false;
+      }
+
+      if (response.ok && data.success) {
+        setResendSuccess(true);
+        setError(null);
+        return true;
+      }
+
+      setError(t('emailVerification.resendGenericError'));
+      return false;
+    },
+    [t],
+  );
+
+  const postResend = useCallback(async () => {
+    return fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+  }, [email]);
+
+  const handleVerifyNow = async () => {
+    setError(null);
+    setResendSuccess(false);
+
+    if (initialSendOk && !providerUnavailable) {
+      setStep('code');
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const response = await postResend();
+      const ok = await applyResendResponse(response);
+      if (ok) setStep('code');
+    } catch {
+      setError(t('emailVerification.resendNetworkError'));
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handleLater = () => {
+    onLater?.();
+    onClose?.();
+  };
 
   const handleVerify = async () => {
     if (!code || code.length !== 6) {
@@ -46,9 +151,7 @@ export default function EmailVerificationModal({
     try {
       const response = await fetch('/api/auth/verify-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: code }),
       });
 
@@ -58,7 +161,7 @@ export default function EmailVerificationModal({
         setSuccess(true);
         setTimeout(() => {
           window.location.reload();
-        }, 1500);
+        }, 1200);
         onVerified();
       } else {
         setError(data.error || t('emailVerification.verifyInvalid'));
@@ -76,48 +179,8 @@ export default function EmailVerificationModal({
     setResendSuccess(false);
 
     try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as {
-        success?: boolean;
-        generic?: boolean;
-        code?: string;
-        retryAfterSec?: number;
-      };
-
-      if (response.status === 429 && data?.code === 'RATE_LIMITED') {
-        const sec = typeof data.retryAfterSec === 'number' ? data.retryAfterSec : 60;
-        setError(t('emailVerification.resendRateLimited', { seconds: String(sec) }));
-        return;
-      }
-
-      if (response.status === 409 && data?.code === 'ALREADY_VERIFIED') {
-        setError(t('emailVerification.resendAlreadyVerified'));
-        return;
-      }
-
-      if (response.status === 503 || data?.code === 'EMAIL_UNAVAILABLE') {
-        setError(t('emailVerification.resendServiceUnavailable'));
-        return;
-      }
-
-      if (response.status === 400 || data?.code === 'INVALID_EMAIL') {
-        setError(t('emailVerification.resendInvalidEmail'));
-        return;
-      }
-
-      if (response.ok && data.success) {
-        setResendSuccess(true);
-        return;
-      }
-
-      setError(t('emailVerification.resendGenericError'));
+      const response = await postResend();
+      await applyResendResponse(response);
     } catch {
       setError(t('emailVerification.resendNetworkError'));
     } finally {
@@ -133,28 +196,61 @@ export default function EmailVerificationModal({
 
   if (!isOpen) return null;
 
+  const showIntro = !isRequired && step === 'intro';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative animate-in fade-in zoom-in duration-200">
-        {onClose && (
+      {!isRequired && showIntro ? (
+        <button
+          type="button"
+          className="absolute inset-0 cursor-default"
+          aria-hidden
+          onClick={handleLater}
+        />
+      ) : null}
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative animate-in fade-in zoom-in duration-200 z-[1]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!isRequired && (showIntro || step === 'code') && (onClose || onLater) ? (
           <button
-            onClick={onClose}
+            onClick={showIntro ? handleLater : () => setStep('intro')}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label={t('common.close')}
+            aria-label={showIntro ? t('emailVerification.later') : t('common.close')}
             type="button"
           >
-            <X className="w-5 h-5" />
+            {step === 'code' && !isRequired ? <ArrowLeft className="w-5 h-5" /> : <X className="w-5 h-5" />}
           </button>
-        )}
+        ) : null}
 
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
             <Mail className="w-8 h-8 text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('emailVerification.title')}</h2>
-          <p className="text-gray-600 text-sm">{t('emailVerification.description')}</p>
-          <p className="text-emerald-600 font-medium mt-2">{email}</p>
+          {showIntro ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('emailVerification.softIntroTitle')}</h2>
+              <p className="text-gray-600 text-sm leading-relaxed">{t('emailVerification.softIntroBody')}</p>
+            </>
+          ) : isRequired ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{requiredTitle}</h2>
+              <p className="text-gray-600 text-sm leading-relaxed">{requiredBody}</p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('emailVerification.title')}</h2>
+              <p className="text-gray-600 text-sm">{t('emailVerification.description')}</p>
+            </>
+          )}
+          <p className="text-emerald-600 font-medium mt-2 break-all">{email}</p>
         </div>
+
+        {providerUnavailable && showIntro ? (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left">
+            <p className="text-amber-900 text-sm">{t('emailVerification.emailSendFailed')}</p>
+          </div>
+        ) : null}
 
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
@@ -170,13 +266,33 @@ export default function EmailVerificationModal({
           </div>
         )}
 
-        {resendSuccess && (
+        {resendSuccess && step === 'code' && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-blue-800 text-sm">{t('emailVerification.resendSuccess')}</p>
           </div>
         )}
 
-        {!success && (
+        {showIntro && !success ? (
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={handleVerifyNow}
+              disabled={isResending}
+              className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isResending ? t('emailVerification.resending') : t('emailVerification.verifyNow')}
+            </button>
+            <button
+              type="button"
+              onClick={handleLater}
+              className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            >
+              {t('emailVerification.later')}
+            </button>
+          </div>
+        ) : null}
+
+        {!success && !showIntro && (
           <>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -235,7 +351,9 @@ export default function EmailVerificationModal({
           </>
         )}
 
-        <p className="text-xs text-gray-500 text-center mt-6">{t('emailVerification.info')}</p>
+        {!showIntro && !success ? (
+          <p className="text-xs text-gray-500 text-center mt-6">{t('emailVerification.info')}</p>
+        ) : null}
       </div>
     </div>
   );

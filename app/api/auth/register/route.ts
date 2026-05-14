@@ -13,8 +13,10 @@ import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards
 import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
-import { logEmailSendFailure } from "@/lib/email-log";
+import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
+import { logEmailVerificationDiag } from "@/lib/email-verification-diagnostics";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
+import { buildRegistrationFullName } from "@/lib/person-name";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
 
     const { 
       firstName, 
+      middleName,
       lastName, 
       email, 
       password, 
@@ -67,10 +70,15 @@ export async function POST(req: NextRequest) {
     }
     
     const firstNameTrim = typeof firstName === "string" ? firstName.trim() : "";
+    const middleNameTrim = typeof middleName === "string" ? middleName.trim() : "";
     const lastNameTrim = typeof lastName === "string" ? lastName.trim() : "";
 
     if (!firstNameTrim) {
       return NextResponse.json({ error: "Voornaam is verplicht" }, { status: 400 });
+    }
+
+    if (!lastNameTrim) {
+      return NextResponse.json({ error: "Achternaam is verplicht" }, { status: 400 });
     }
 
     // E-mail validatie
@@ -186,7 +194,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const name = [firstNameTrim, lastNameTrim].filter(Boolean).join(" ").trim() || firstNameTrim;
+    const name =
+      buildRegistrationFullName({
+        firstName: firstNameTrim,
+        middleName: middleNameTrim,
+        lastName: lastNameTrim,
+      }) || firstNameTrim;
 
     // Controleer of e-mail al bestaat
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -407,6 +420,9 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    let verificationEmailSent = false;
+    let verificationEmailSkippedReason: 'EMAIL_UNAVAILABLE' | null = null;
+
     // Send verification email
     try {
       await sendVerificationEmail({
@@ -415,11 +431,20 @@ export async function POST(req: NextRequest) {
         verificationToken,
         verificationCode
       });
+      verificationEmailSent = true;
+      logEmailVerificationDiag('email_verification_send_success', { context: 'register' });
     } catch (emailError) {
       logEmailSendFailure("register_verification", emailError, {
         recipientEmail: email,
       });
-      // Don't fail registration if email sending fails
+      logEmailVerificationDiag('email_verification_send_failed', {
+        context: 'register',
+        reason: summarizeEmailError(emailError, 120),
+      });
+      const msg = emailError instanceof Error ? emailError.message : String(emailError);
+      if (msg.includes('RESEND_API_KEY_NOT_CONFIGURED') || msg.includes('Email service unavailable')) {
+        verificationEmailSkippedReason = 'EMAIL_UNAVAILABLE';
+      }
     }
 
     // Als bedrijf met abonnement: start Stripe Checkout direct
@@ -443,7 +468,9 @@ export async function POST(req: NextRequest) {
       redirectUrl,
       checkoutUrl, // Als bedrijf met abonnement: Stripe Checkout URL
       requiresPayment,
-      needsVerification: true, // Indicate that email verification is required
+      needsVerification: true,
+      verificationEmailSent,
+      verificationEmailSkippedReason,
       user: {
         id: user.id,
         email,

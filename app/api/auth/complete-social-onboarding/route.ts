@@ -8,6 +8,7 @@ import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 import { UserRole } from '@prisma/client';
 import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
+import { buildRegistrationFullName, normalizePersonNameDisplay } from '@/lib/person-name';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
     if (completionMode === 'minimal') {
       const username = body?.username as string | undefined;
       const displayName = (body?.displayName as string | undefined)?.trim();
+      const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : '';
+      const middleName = typeof body?.middleName === 'string' ? body.middleName.trim() : '';
+      const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : '';
       const acceptedTerms = Boolean(body?.acceptedTerms);
       const acceptedPrivacy = Boolean(body?.acceptedPrivacy);
 
@@ -60,7 +64,21 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const resolvedName = displayName || existingUser.name || username;
+      const fromParts = buildRegistrationFullName({
+        firstName,
+        middleName,
+        lastName,
+      });
+      const resolvedName = normalizePersonNameDisplay(
+        fromParts || displayName || existingUser.name || username || '',
+      );
+
+      if (!resolvedName) {
+        return NextResponse.json(
+          { message: 'Vul je voor- en achternaam in, of een weergavenaam.' },
+          { status: 400 },
+        );
+      }
 
       const roleForMinimal =
         existingUser.role === UserRole.USER ? UserRole.BUYER : existingUser.role;

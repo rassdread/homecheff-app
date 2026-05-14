@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { sendVerificationEmail } from '@/lib/email';
-import { logEmailSendFailure } from '@/lib/email-log';
+import { logEmailSendFailure, summarizeEmailError } from '@/lib/email-log';
+import { logEmailVerificationDiag } from '@/lib/email-verification-diagnostics';
 import {
   generateVerificationToken,
   generateVerificationCode,
@@ -89,10 +90,14 @@ export async function runResendVerificationCore(
       verificationCode,
     });
     markResendVerificationSent(user.email);
+    logEmailVerificationDiag('email_verification_resend_success', {});
     return { status: 'sent' };
   } catch (err) {
     logEmailSendFailure('resend_verification', err, {
       recipientEmail: user.email,
+    });
+    logEmailVerificationDiag('email_verification_resend_failed', {
+      reason: summarizeEmailError(err, 120),
     });
     if (isMissingResendKey(err)) {
       console.error('[resend_verification] email provider not configured');
