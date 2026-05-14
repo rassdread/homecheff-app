@@ -219,6 +219,7 @@ export default function MessagesBox({ className = '' }: MessagesBoxProps) {
             detail: { unreadCount: newUnreadCount } 
           }));
           window.dispatchEvent(new CustomEvent('messagesRead'));
+          window.dispatchEvent(new CustomEvent('notificationsUpdated'));
         }
       }
     } catch (error) {

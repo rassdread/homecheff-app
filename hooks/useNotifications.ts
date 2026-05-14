@@ -82,11 +82,16 @@ export function useNotifications() {
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'POST',
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationIds: [notificationId] }),
       });
 
       if (response.ok) {
+        const data = (await response.json().catch(() => ({}))) as {
+          unreadCount?: number;
+        };
         setNotifications((prev) =>
           prev.map((notif) =>
             notif.id === notificationId
@@ -94,7 +99,16 @@ export function useNotifications() {
               : notif,
           ),
         );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        if (typeof data.unreadCount === 'number') {
+          setUnreadCount(data.unreadCount);
+        } else {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+        try {
+          window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+        } catch {
+          /* ignore */
+        }
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -132,9 +146,23 @@ export function useNotifications() {
     };
     document.addEventListener('visibilitychange', onVisible);
 
+    const onNotificationsChanged = () => {
+      void loadNotifications();
+    };
+    try {
+      window.addEventListener('notificationsUpdated', onNotificationsChanged);
+    } catch {
+      /* ignore */
+    }
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
+      try {
+        window.removeEventListener('notificationsUpdated', onNotificationsChanged);
+      } catch {
+        /* ignore */
+      }
     };
   }, [session?.user?.email, status, loadNotifications]);
 

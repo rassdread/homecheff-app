@@ -167,22 +167,45 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
       // Handle message read status
       socket.on('mark-message-read', async (data: { messageId: string; userId: string }) => {
         try {
-          const { PrismaClient } = await import('@prisma/client');
-          const prisma = new PrismaClient();
+          const { prisma } = await import('@/lib/prisma');
+          const { markChatNotificationsReadForConversation } = await import(
+            '@/lib/notifications/markChatNotificationsRead'
+          );
 
-          await prisma.message.update({
+          const msg = await prisma.message.findUnique({
             where: { id: data.messageId },
-            data: { readAt: new Date() }
+            select: { id: true, conversationId: true, senderId: true, readAt: true },
           });
+          if (!msg) return;
 
-          await prisma.$disconnect();
+          const participant = await prisma.conversationParticipant.findFirst({
+            where: { conversationId: msg.conversationId, userId: data.userId },
+            select: { id: true },
+          });
+          if (!participant || msg.senderId === data.userId) return;
+
+          if (!msg.readAt) {
+            await prisma.message.update({
+              where: { id: data.messageId },
+              data: { readAt: new Date() },
+            });
+          }
+
+          const conversationUnread = await prisma.message.count({
+            where: {
+              conversationId: msg.conversationId,
+              readAt: null,
+              NOT: { senderId: data.userId },
+            },
+          });
+          if (conversationUnread === 0) {
+            await markChatNotificationsReadForConversation(
+              data.userId,
+              msg.conversationId,
+            );
+          }
         } catch (error) {
           console.error('Error marking message as read:', error);
-          try {
-            await prisma.$disconnect();
-          } catch (disconnectError) {
-            console.error('Error disconnecting prisma:', disconnectError);
-          }
         }
       });
 

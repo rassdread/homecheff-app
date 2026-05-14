@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { markChatNotificationsReadForConversation } from '@/lib/notifications/markChatNotificationsRead';
 
 // In-memory cache for messages (in production, use Redis)
 const messageCache = new Map<string, { data: any; timestamp: number }>();
@@ -87,14 +88,28 @@ export async function GET(
       skip: (parseInt(page) - 1) * parseInt(limit)
     });
     // Mark messages as read in background (don't wait for it)
-    prisma.message.updateMany({
-      where: {
-        conversationId,
-        senderId: { not: user.id },
-        readAt: null
-      },
-      data: { readAt: new Date() }
-    }).catch(err => console.error('Background read update failed:', err));
+    prisma.message
+      .updateMany({
+        where: {
+          conversationId,
+          senderId: { not: user.id },
+          readAt: null,
+        },
+        data: { readAt: new Date() },
+      })
+      .then(async () => {
+        const n = await markChatNotificationsReadForConversation(
+          user.id,
+          conversationId,
+        );
+        if (n > 0) {
+          const { logNotificationDiag } = await import(
+            '@/lib/notifications/fetch-diagnostics'
+          );
+          logNotificationDiag('notifications_message_synced_read', { count: n });
+        }
+      })
+      .catch((err) => console.error('Background read update failed:', err));
 
     const finalMessages = messages.reverse(); // Reverse for chronological order
     const responseData = {

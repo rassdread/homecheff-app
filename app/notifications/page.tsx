@@ -60,12 +60,15 @@ export default function NotificationsPage() {
 
   const markRead = async (ids: string[]) => {
     if (ids.length === 0) return;
-    await fetch('/api/notifications', {
+    const res = await fetch('/api/notifications', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notificationIds: ids }),
     });
     window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+    if (res.ok) {
+      await load();
+    }
   };
 
   const markAllRead = async () => {

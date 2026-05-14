@@ -8,7 +8,10 @@ export function logNotificationDiag(
   event:
     | 'notifications_fetch_failed'
     | 'notifications_payload_fallback'
-    | 'notifications_poll_skipped',
+    | 'notifications_poll_skipped'
+    | 'notifications_unread_count_mismatch'
+    | 'notifications_invalid_unread_skipped'
+    | 'notifications_message_synced_read',
   extra: Record<string, string | number | boolean | undefined>,
   rateLimitMs = 60_000,
 ): void {

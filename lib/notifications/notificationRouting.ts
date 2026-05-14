@@ -23,15 +23,17 @@ export function resolveNotificationTargetUrl(
   const p = (payload || {}) as Record<string, unknown>;
   const data = (p.data as Record<string, unknown> | undefined) || {};
 
-  const direct =
+  const directRaw =
     (typeof p.link === 'string' && p.link) ||
     (typeof p.actionUrl === 'string' && p.actionUrl) ||
     (typeof data.link === 'string' && data.link) ||
     (typeof data.route === 'string' && data.route) ||
     (typeof data.actionUrl === 'string' && data.actionUrl);
+  const direct =
+    typeof directRaw === 'string' ? directRaw.trim() : '';
 
-  if (direct?.trim()) {
-    return normalizeNotificationPath(direct.trim());
+  if (direct) {
+    return normalizeNotificationPath(direct);
   }
 
   const typeUpper = prismaType.toUpperCase();

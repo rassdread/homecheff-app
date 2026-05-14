@@ -40,6 +40,33 @@ export default function CreatorMomentumCard() {
   }, [status]);
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const bump = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => {
+        void (async () => {
+          try {
+            const res = await fetch('/api/creator/visibility-summary', { cache: 'no-store' });
+            if (!res.ok) return;
+            const j = (await res.json()) as Visibility;
+            setV(j);
+          } catch {
+            /* ignore */
+          }
+        })();
+      }, 400);
+    };
+    window.addEventListener('notificationsUpdated', bump);
+    window.addEventListener('messagesRead', bump);
+    return () => {
+      if (t) clearTimeout(t);
+      window.removeEventListener('notificationsUpdated', bump);
+      window.removeEventListener('messagesRead', bump);
+    };
+  }, [status]);
+
+  useEffect(() => {
     if (!v || trackedRef.current) return;
     trackedRef.current = true;
     trackOnboardingEvent('CREATOR_VISIBILITY_DIGEST_SHOWN', {

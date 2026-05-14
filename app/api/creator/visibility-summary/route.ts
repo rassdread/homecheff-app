@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { countEffectiveUnreadNotifications } from '@/lib/notifications/effectiveUnreadCount';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,8 @@ export async function GET(req: Request) {
 
     const sellerId = user.SellerProfile?.id ?? null;
 
+    const isSeller = Boolean(sellerId);
+
     const [productSavesWeek, newFollowersWeek, unreadNotifications] = await Promise.all([
       sellerId
         ? prisma.favorite.count({
@@ -46,9 +49,7 @@ export async function GET(req: Request) {
       prisma.follow.count({
         where: { sellerId: user.id, createdAt: { gte: weekAgo } },
       }),
-      prisma.notification.count({
-        where: { userId: user.id, readAt: null },
-      }),
+      countEffectiveUnreadNotifications(user.id, isSeller),
     ]);
 
     const body = {

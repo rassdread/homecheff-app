@@ -5,123 +5,13 @@ import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import {
-  extractNotificationMetadata,
-  notificationVisibleToSellerAndBuyer,
-  resolveNotificationTargetUrl,
-} from '@/lib/notifications/notificationRouting';
+  mapNotificationRow,
+  countVisibleUnreadFromRows,
+} from '@/lib/notifications/mapNotificationForApi';
+import { countEffectiveUnreadNotifications } from '@/lib/notifications/effectiveUnreadCount';
 import { logNotificationDiag } from '@/lib/notifications/fetch-diagnostics';
 
 export const dynamic = 'force-dynamic';
-
-function asPayloadRecord(payload: unknown): Record<string, unknown> {
-  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-    return payload as Record<string, unknown>;
-  }
-  return {};
-}
-
-function prismaTypeString(t: unknown): string {
-  return typeof t === 'string' ? t : String(t ?? 'UNKNOWN');
-}
-
-function mapNotificationRow(
-  notification: {
-    id: string;
-    type: unknown;
-    payload: unknown;
-    readAt: Date | null;
-    createdAt: Date;
-    orderId: string | null;
-  },
-  isSeller: boolean,
-) {
-  try {
-    const payload = asPayloadRecord(notification.payload);
-    const data = asPayloadRecord(payload.data);
-    const dataType = String(data.type || '');
-    const prismaType = prismaTypeString(notification.type);
-    const resolvedLink =
-      resolveNotificationTargetUrl(prismaType, payload) ||
-      (typeof payload.link === 'string' ? payload.link : undefined) ||
-      (typeof payload.actionUrl === 'string' ? payload.actionUrl : undefined);
-    const meta = extractNotificationMetadata(
-      prismaType,
-      payload,
-      notification.orderId,
-    );
-
-    const typeLower = prismaType.toLowerCase();
-    const fromVal = payload.from;
-    const fromName = typeof fromVal === 'string' ? fromVal : undefined;
-
-    const mapped = {
-      id: notification.id,
-      type: typeLower,
-      prismaType,
-      dataType,
-      title: getNotificationTitle(prismaType, payload),
-      message:
-        (typeof payload.body === 'string' && payload.body) ||
-        (typeof payload.message === 'string' && payload.message) ||
-        'Nieuwe notificatie',
-      link: resolvedLink,
-      ...meta,
-      isRead: !!notification.readAt,
-      createdAt: notification.createdAt.toISOString(),
-      from: fromName
-        ? {
-            id:
-              typeof payload.fromId === 'string' && payload.fromId
-                ? payload.fromId
-                : 'admin',
-            name: fromName,
-            username:
-              typeof payload.fromUsername === 'string'
-                ? payload.fromUsername
-                : undefined,
-            image:
-              typeof payload.fromImage === 'string'
-                ? payload.fromImage
-                : undefined,
-          }
-        : undefined,
-      metadata: {
-        productId:
-          typeof payload.productId === 'string' ? payload.productId : undefined,
-        orderId:
-          (typeof payload.orderId === 'string' && payload.orderId) ||
-          notification.orderId ||
-          undefined,
-        conversationId:
-          (typeof payload.conversationId === 'string' &&
-            payload.conversationId) ||
-          (typeof data.conversationId === 'string' && data.conversationId) ||
-          undefined,
-        senderId:
-          (typeof payload.senderId === 'string' && payload.senderId) ||
-          (typeof data.senderId === 'string' && data.senderId) ||
-          undefined,
-      },
-      payload,
-    };
-
-    if (
-      !notificationVisibleToSellerAndBuyer(
-        mapped.prismaType,
-        mapped.payload,
-        isSeller,
-      )
-    ) {
-      return null;
-    }
-    return mapped;
-  } catch (e) {
-    logNotificationDiag('notifications_payload_fallback', {
-      reason: e instanceof Error ? e.message.slice(0, 80) : 'map_error',
-    });
-    return null;
-  }
-}
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
@@ -201,11 +91,25 @@ export async function GET(req: NextRequest) {
       .map((n) => mapNotificationRow(n, isSeller))
       .filter((row) => row != null);
 
-    let unreadRows: Array<{ type: unknown; payload: unknown }> = [];
+    let unreadRows: Array<{
+      id: string;
+      type: unknown;
+      payload: unknown;
+      readAt: Date | null;
+      createdAt: Date;
+      orderId: string | null;
+    }> = [];
     try {
       unreadRows = await prisma.notification.findMany({
         where: { userId: user.id, readAt: null },
-        select: { type: true, payload: true },
+        select: {
+          id: true,
+          type: true,
+          payload: true,
+          readAt: true,
+          createdAt: true,
+          orderId: true,
+        },
       });
     } catch (e) {
       const code =
@@ -219,17 +123,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const unreadCount = unreadRows.filter((row) => {
-      try {
-        return notificationVisibleToSellerAndBuyer(
-          prismaTypeString(row.type),
-          asPayloadRecord(row.payload),
-          isSeller,
-        );
-      } catch {
-        return false;
-      }
-    }).length;
+    const unreadCount = countVisibleUnreadFromRows(unreadRows, isSeller);
 
     return NextResponse.json(
       { notifications: transformedNotifications, unreadCount },
@@ -293,41 +187,24 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true }, { headers: cors });
+    const sellerProfile = await prisma.sellerProfile
+      .findUnique({
+        where: { userId: user.id },
+        select: { id: true },
+      })
+      .catch(() => null);
+    const isSeller = !!sellerProfile;
+
+    const unreadCount = await countEffectiveUnreadNotifications(user.id, isSeller);
+
+    return NextResponse.json({ success: true, unreadCount }, { headers: cors });
   } catch (error) {
     logNotificationDiag('notifications_fetch_failed', {
       reason: error instanceof Error ? error.message.slice(0, 80) : 'patch',
     });
-    return NextResponse.json({ success: false }, { status: 200, headers: cors });
-  }
-}
-
-function getNotificationTitle(type: string, payload: Record<string, unknown>): string {
-  if (typeof payload.title === 'string' && payload.title.trim()) {
-    return payload.title;
-  }
-  switch (type) {
-    case 'ADMIN_NOTICE':
-      return 'HomeCheff melding';
-    case 'FAN_REQUEST':
-      return 'Nieuwe Fan';
-    case 'PROP_RECEIVED':
-      return 'Prop Ontvangen';
-    case 'FOLLOW_RECEIVED':
-      return 'Nieuwe Follower';
-    case 'FAVORITE_RECEIVED':
-      return 'Product Favoriet';
-    case 'REVIEW_RECEIVED':
-      return 'Nieuwe Review';
-    case 'ORDER_RECEIVED':
-      return 'Nieuwe Bestelling';
-    case 'ORDER_UPDATE':
-      return 'Bestelling Update';
-    case 'MESSAGE_RECEIVED':
-      return 'Nieuw Bericht';
-    case 'NEW_CONVERSATION':
-      return 'Nieuw Gesprek';
-    default:
-      return 'Notificatie';
+    return NextResponse.json(
+      { success: false, unreadCount: 0 },
+      { status: 200, headers: cors },
+    );
   }
 }

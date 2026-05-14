@@ -9,6 +9,8 @@ import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from 
 import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
+import { markChatNotificationsReadForConversation } from '@/lib/notifications/markChatNotificationsRead';
+import { logNotificationDiag } from '@/lib/notifications/fetch-diagnostics';
 
 // System encryption key (stored securely in env)
 const SYSTEM_KEY = process.env.ENCRYPTION_SYSTEM_KEY || 'change-this-in-production-to-secure-key';
@@ -155,7 +157,7 @@ export async function GET(
     });
     
     // Then mark as read
-    const markedAsRead = await prisma.message.updateMany({
+    await prisma.message.updateMany({
       where: {
         conversationId,
         senderId: { not: user.id },
@@ -163,6 +165,15 @@ export async function GET(
       },
       data: { readAt: now }
     });
+    const synced = await markChatNotificationsReadForConversation(
+      user.id,
+      conversationId,
+    );
+    if (synced > 0) {
+      logNotificationDiag('notifications_message_synced_read', {
+        count: synced,
+      });
+    }
     const finalMessages = decryptedMessages.reverse();
     return NextResponse.json({ messages: finalMessages });
 
