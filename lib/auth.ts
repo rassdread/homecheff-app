@@ -10,6 +10,8 @@ import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 import { getNextAuthSharedCookieDomain } from "./auth-cookie-domain";
 import { syncGoogleProfileToDatabase } from "./auth/google-account-sync";
+import { tryNormalizeEmail } from "./auth/normalize-email";
+import { findUserByCanonicalEmail } from "./auth/find-user-by-email";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -106,11 +108,34 @@ export const authOptions: NextAuthOptions = {
           }
           
           // Check if input is email or username
-          const isEmail = credentials.emailOrUsername.includes('@');
+          const rawLogin = credentials.emailOrUsername.trim();
+          const isEmail = rawLogin.includes("@");
+          const normalizedLoginEmail = isEmail ? tryNormalizeEmail(rawLogin) : null;
 
-          const user = isEmail 
-            ? await prisma.user.findUnique({ where: { email: credentials.emailOrUsername } })
-            : await prisma.user.findUnique({ where: { username: credentials.emailOrUsername } });
+          const user = isEmail
+            ? normalizedLoginEmail
+              ? await findUserByCanonicalEmail(prisma, normalizedLoginEmail, {
+                  select: {
+                    id: true,
+                    email: true,
+                    passwordHash: true,
+                    role: true,
+                    name: true,
+                    image: true,
+                  },
+                })
+              : null
+            : await prisma.user.findFirst({
+                where: { username: { equals: rawLogin, mode: "insensitive" } },
+                select: {
+                  id: true,
+                  email: true,
+                  passwordHash: true,
+                  role: true,
+                  name: true,
+                  image: true,
+                },
+              });
             
           if (!user) {
 
@@ -125,11 +150,11 @@ export const authOptions: NextAuthOptions = {
           const ok = await bcrypt.compare(credentials.password, user.passwordHash);
 
           if (!ok) {
-            console.log('❌ Password mismatch for user:', user.email);
+            console.log('❌ Password mismatch for user:', user.email?.slice(0, 3) + '…');
             return null;
           }
 
-          console.log('✅ Login successful for user:', user.email, 'Role:', user.role);
+          console.log('✅ Login successful for user:', user.email?.slice(0, 3) + '…', 'Role:', user.role);
 
           // Return the actual role from database, don't transform it
           return { 
@@ -157,12 +182,20 @@ export const authOptions: NextAuthOptions = {
             return false;
           }
 
+          const prof = profile as { email_verified?: boolean };
+          const emailVerified = prof?.email_verified !== false;
+
           const sync = await syncGoogleProfileToDatabase({
-            email: user.email,
+            email: user.email!,
             name: user.name,
             image: user.image,
             firstName: (user as any).firstName,
             lastName: (user as any).lastName,
+            googleSub: account?.providerAccountId ?? null,
+            emailVerified,
+            accessToken: account?.access_token ?? null,
+            refreshToken: account?.refresh_token ?? null,
+            expiresAt: account?.expires_at ?? null,
           });
 
           if (sync.isNewSocialUser) {
@@ -173,6 +206,11 @@ export const authOptions: NextAuthOptions = {
 
           return true;
         } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          if (msg === "google_email_not_verified") {
+            console.error("❌ Google sign-in rejected: email not verified");
+            return false;
+          }
           console.error("❌ Error in signIn callback:", error);
           return false;
         }
@@ -193,6 +231,12 @@ export const authOptions: NextAuthOptions = {
 
       if (user) {
         const u = user as AppUser;
+        const canonicalEmail =
+          tryNormalizeEmail(u.email) ??
+          (u.email ? String(u.email).trim().toLowerCase() : "");
+        if (canonicalEmail) {
+          minimalToken.email = canonicalEmail.substring(0, 100);
+        }
         // MINIMAL TOKEN: Only store absolute essentials
         // For Edge browser: Use shortest possible values
         minimalToken.role = u.role; // 'BUYER', 'SELLER', etc. - short
@@ -225,6 +269,12 @@ export const authOptions: NextAuthOptions = {
       } else {
         // Preserve existing token data (but only minimal fields)
         // Keep all fields as small as possible for Edge browser compatibility
+        if (token.email) {
+          const c =
+            tryNormalizeEmail(token.email) ??
+            String(token.email).trim().toLowerCase();
+          minimalToken.email = c ? c.substring(0, 100) : String(token.email).substring(0, 100);
+        }
         minimalToken.role = (token as { role?: Role }).role;
         // Truncate ID to 36 chars max (UUID length) for Edge browser
         minimalToken.id = (token as { id?: string }).id ? String((token as { id?: string }).id).substring(0, 36) : undefined;
@@ -251,15 +301,13 @@ export const authOptions: NextAuthOptions = {
       const shouldCheckDB = user || trigger === 'update' || !minimalToken.onboardingChecked || isSocialLogin;
       
       if (shouldCheckDB && minimalToken.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: minimalToken.email as string },
+        const dbUser = await findUserByCanonicalEmail(prisma, minimalToken.email as string, {
           select: {
             id: true,
             role: true,
             socialOnboardingCompleted: true,
             username: true,
-            // Don't select name, image, profileImage - we'll get these in session callback
-          }
+          },
         });
         
         if (dbUser) {
@@ -316,9 +364,9 @@ export const authOptions: NextAuthOptions = {
         let dbUser = null;
         if (token.email) {
           try {
-            dbUser = await prisma.user.findUnique({
-              where: { email: token.email as string },
+            dbUser = await findUserByCanonicalEmail(prisma, token.email as string, {
               select: {
+                email: true,
                 name: true,
                 image: true,
                 profileImage: true,
@@ -357,7 +405,10 @@ export const authOptions: NextAuthOptions = {
         
         // All other data from database (name, username, images, etc.)
         if (dbUser) {
-          // Use role from database if available, otherwise from token
+          // Use canonical email from DB so session matches stored identity
+          if (dbUser.email) {
+            session.user.email = dbUser.email;
+          }
           (session.user as { role?: Role }).role = (dbUser.role as Role) || (token as { role?: Role }).role;
           (session.user as { name?: string }).name = dbUser.name || session.user.name;
           (session.user as { image?: string | null }).image = dbUser.profileImage || dbUser.image || session.user.image;

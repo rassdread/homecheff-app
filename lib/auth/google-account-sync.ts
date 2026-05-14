@@ -3,8 +3,10 @@
  * Must stay in sync with prior Google signIn behaviour in lib/auth.ts.
  */
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created';
+import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
+import { linkGoogleOAuthAccount } from '@/lib/auth/link-google-oauth-account';
 
 export type SyncGoogleProfileInput = {
   email: string;
@@ -12,6 +14,13 @@ export type SyncGoogleProfileInput = {
   image?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+  /** Google `sub` — used to persist Account row */
+  googleSub?: string | null;
+  /** When false, do not create a new user (existing users may still be updated). */
+  emailVerified?: boolean;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  expiresAt?: number | null;
 };
 
 export type SyncGoogleProfileResult = {
@@ -25,13 +34,13 @@ export type SyncGoogleProfileResult = {
 export async function syncGoogleProfileToDatabase(
   input: SyncGoogleProfileInput,
 ): Promise<SyncGoogleProfileResult> {
-  const email = input.email.trim().toLowerCase();
+  const email = tryNormalizeEmail(input.email);
   if (!email) {
     throw new Error('missing_email');
   }
 
-  let existingUser = await prisma.user.findUnique({
-    where: { email },
+  let existingUser = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' } },
   });
 
   let isNewSocialUser = false;
@@ -39,6 +48,7 @@ export async function syncGoogleProfileToDatabase(
   if (existingUser) {
     const updateData: Record<string, unknown> = {
       name: input.name || existingUser.name,
+      email,
     };
 
     if (!existingUser.emailVerified) {
@@ -64,6 +74,10 @@ export async function syncGoogleProfileToDatabase(
 
     existingUser = await prisma.user.findUniqueOrThrow({ where: { id: existingUser.id } });
   } else {
+    if (input.emailVerified === false) {
+      throw new Error('google_email_not_verified');
+    }
+
     isNewSocialUser = true;
     let tempUsername = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -79,32 +93,60 @@ export async function syncGoogleProfileToDatabase(
       throw new Error('temp_username_failed');
     }
 
-    existingUser = await prisma.user.create({
-      data: {
-        email,
-        name: input.name || '',
-        username: tempUsername,
-        image: input.image || null,
-        profileImage: input.image || null,
-        passwordHash: '',
-        role: UserRole.BUYER,
-        interests: [],
-        bio: '',
-        socialOnboardingCompleted: false,
-        termsAccepted: false,
-        privacyPolicyAccepted: false,
-        emailVerified: new Date(),
-        displayFullName: true,
-        displayNameOption: 'full',
-        showFansList: true,
-        marketingAccepted: false,
-        messageGuidelinesAccepted: false,
-        encryptionEnabled: false,
-        sellerRoles: [],
-        buyerRoles: [],
-      },
+    try {
+      existingUser = await prisma.user.create({
+        data: {
+          email,
+          name: input.name || '',
+          username: tempUsername,
+          image: input.image || null,
+          profileImage: input.image || null,
+          passwordHash: '',
+          role: UserRole.BUYER,
+          interests: [],
+          bio: '',
+          socialOnboardingCompleted: false,
+          termsAccepted: false,
+          privacyPolicyAccepted: false,
+          emailVerified: new Date(),
+          displayFullName: true,
+          displayNameOption: 'full',
+          showFansList: true,
+          marketingAccepted: false,
+          messageGuidelinesAccepted: false,
+          encryptionEnabled: false,
+          sellerRoles: [],
+          buyerRoles: [],
+        },
+      });
+    } catch (e: unknown) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        const again = await prisma.user.findFirst({
+          where: { email: { equals: email, mode: 'insensitive' } },
+        });
+        if (again) {
+          existingUser = again;
+          isNewSocialUser = false;
+        } else {
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    }
+    if (isNewSocialUser) {
+      void tryAwardAccountCreated(existingUser.id).catch(() => {});
+    }
+  }
+
+  if (input.googleSub?.trim()) {
+    await linkGoogleOAuthAccount(prisma, {
+      userId: existingUser.id,
+      googleSub: input.googleSub.trim(),
+      accessToken: input.accessToken,
+      refreshToken: input.refreshToken,
+      expiresAt: input.expiresAt,
     });
-    void tryAwardAccountCreated(existingUser.id).catch(() => {});
   }
 
   return {

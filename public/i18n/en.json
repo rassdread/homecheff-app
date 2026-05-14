@@ -3296,7 +3296,17 @@
       "addressLookupFailed": "Address lookup failed"
     },
     "errors": {
-      "socialLoginError": "An error occurred while logging in with {provider}."
+      "socialLoginError": "An error occurred while logging in with {provider}.",
+      "accountAlreadyExists": "An account with this email address already exists.",
+      "loginInstead": "Go to login",
+      "forgotPasswordSuggestion": "Forgot password",
+      "loginWithGoogle": "Log in with Google",
+      "setPasswordLater": "You can then set a password in your account settings.",
+      "accountExistsGoogleOnly": "An account with this email already exists via Google. Log in with Google. You can set a password in account settings for next time.",
+      "accountExistsPassword": "An account with this email already exists. Log in or use forgot password.",
+      "accountExistsBoth": "An account with this email already exists. You can log in with Google or with your password.",
+      "usernameTaken": "This username is already taken.",
+      "emailAlreadyInUse": "This email address is already in use."
     },
     "taxResponsibility": "Tax responsibility",
     "taxResponsibilityText": "As a seller, you are responsible for reporting your income to the tax authorities. HomeCheff does not provide tax advice. Consult an accountant for specific questions.",
@@ -4833,6 +4843,7 @@
     "email": "Email",
     "deleteAccount": "Delete Account",
     "changePassword": "Change password",
+    "setPassword": "Set password",
     "currentPassword": "Current password",
     "newPassword": "New password",
     "confirmNewPassword": "Confirm new password",

@@ -5,6 +5,8 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
+import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 // import { UserRole } from '@prisma/client';
 
 // GET - Fetch all users
@@ -104,14 +106,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ 
-        error: 'Ongeldig email adres' 
-      }, { status: 400 });
-    }
-
     // Validate role
     const validRoles = ['USER', 'ADMIN', 'SELLER', 'BUYER', 'DELIVERY'];
     if (!validRoles.includes(role)) {
@@ -120,9 +114,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    const normalizedEmail = tryNormalizeEmail(email);
+    if (!normalizedEmail) {
+      return NextResponse.json({ 
+        error: 'Ongeldig email adres' 
+      }, { status: 400 });
+    }
+
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
+    const existingUser = await findUserByCanonicalEmail(prisma, normalizedEmail, {
+      select: { id: true },
     });
 
     if (existingUser) {
@@ -131,9 +132,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    const usernameTrim = typeof username === 'string' ? username.trim() : '';
+    if (!usernameTrim) {
+      return NextResponse.json({ error: 'Gebruikersnaam vereist' }, { status: 400 });
+    }
+
     // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({
-      where: { username }
+    const existingUsername = await prisma.user.findFirst({
+      where: { username: { equals: usernameTrim, mode: 'insensitive' } },
+      select: { id: true },
     });
 
     if (existingUsername) {
@@ -147,9 +154,9 @@ export async function POST(request: NextRequest) {
 
     // Create user with proper profile data based on role
     const userData: any = {
-      email,
+      email: normalizedEmail,
       name,
-      username,
+      username: usernameTrim,
       passwordHash: hashedPassword,
       role: role as any,
       emailVerified: new Date(), // Auto-verify admin created users
@@ -232,7 +239,7 @@ export async function POST(request: NextRequest) {
       userData.SellerProfile = {
         create: {
           id: require('crypto').randomUUID(),
-          displayName: username,
+          displayName: usernameTrim,
           companyName: name,
           bio: `Seller account created by admin on ${new Date().toISOString().split('T')[0]}. Note: Business registration numbers are placeholder values and should be updated by the user.`,
           // Add required fields for SellerProfile

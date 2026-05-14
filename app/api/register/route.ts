@@ -7,6 +7,10 @@ import { normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
+import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+import { getDuplicateSignupKindForUser } from "@/lib/auth/signup-duplicate";
+import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
 // Define UserRole enum manually
 enum UserRole {
   ADMIN = "ADMIN",
@@ -25,16 +29,28 @@ export async function POST(req: NextRequest) {
   if (!email || !password)
       return NextResponse.json({ error: "Email en wachtwoord vereist" }, { status: 400 });
 
-  // Check if user has at least one role or buyer type
-  if ((!userTypes || userTypes.length === 0) && !selectedBuyerType && !isDelivery) {
-    return NextResponse.json({ error: "Selecteer tenminste één rol of koper type" }, { status: 400 });
+  const normalizedEmail = tryNormalizeEmail(email);
+  if (!normalizedEmail) {
+    return NextResponse.json({ error: "Ongeldig e-mailadres" }, { status: 400 });
   }
 
-    const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) return NextResponse.json({ error: "E-mail bestaat al" }, { status: 409 });
+  // Check if user has at least one role or buyer type
+  if ((!userTypes || userTypes.length === 0) && !selectedBuyerType && !isDelivery) {
+      return NextResponse.json({ error: "Selecteer tenminste één rol of koper type" }, { status: 400 });
+  }
 
-    if (!username) return NextResponse.json({ error: "Gebruikersnaam vereist" }, { status: 400 });
-    const usernameExists = await prisma.user.findUnique({ where: { username } });
+    const exists = await findUserByCanonicalEmail(prisma, normalizedEmail, { select: { id: true } });
+    if (exists) {
+      const kind = await getDuplicateSignupKindForUser(exists.id);
+      return jsonRegisterDuplicate(kind);
+    }
+
+    const usernameTrim = typeof username === "string" ? username.trim() : "";
+    if (!usernameTrim) return NextResponse.json({ error: "Gebruikersnaam vereist" }, { status: 400 });
+    const usernameExists = await prisma.user.findFirst({
+      where: { username: { equals: usernameTrim, mode: "insensitive" } },
+      select: { id: true },
+    });
     if (usernameExists) return NextResponse.json({ error: "Gebruikersnaam bestaat al" }, { status: 409 });
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -91,10 +107,10 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
       user = await prisma.user.create({
-        data: {email,
+        data: {email: normalizedEmail,
           passwordHash,
           role: roleValue,
-          username,
+          username: usernameTrim,
           name: `${firstName} ${lastName}`.trim(),
           interests: interests || [],
           place: location,
@@ -107,7 +123,7 @@ export async function POST(req: NextRequest) {
               companyName: company,
               subscriptionId: sub.id,
               subscriptionValidUntil: new Date(Date.now() + sub.durationDays * 24 * 60 * 60 * 1000),
-              displayName: username,
+              displayName: usernameTrim,
             },
           },
         },
@@ -117,10 +133,10 @@ export async function POST(req: NextRequest) {
       // Create delivery user with DeliveryProfile
       user = await prisma.user.create({
         data: {
-          email,
+          email: normalizedEmail,
           passwordHash,
           name: `${firstName} ${lastName}`.trim(),
-          username,
+          username: usernameTrim,
           gender,
           interests: interests || [],
           place: location,
@@ -141,10 +157,10 @@ export async function POST(req: NextRequest) {
   // roleValue is already determined above
       user = await prisma.user.create({
         data: {
-          email,
+          email: normalizedEmail,
           passwordHash,
           name: `${firstName} ${lastName}`.trim(),
-          username,
+          username: usernameTrim,
           gender,
           interests: interests || [],
           place: location,

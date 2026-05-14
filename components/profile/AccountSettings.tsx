@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle, Trash2 } from 'lucide-react';
+import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle, Trash2, BadgeCheck } from 'lucide-react';
 import DeleteAccount from './DeleteAccount';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -161,7 +161,9 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
       {activeTab === 'password' && (
         <form onSubmit={handlePasswordUpdate} className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('accountSettings.changePassword')}</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {hasPassword ? t('accountSettings.changePassword') : t('accountSettings.setPassword')}
+            </h3>
             {!hasPassword && (
               <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
                 {t('accountSettings.linkPasswordGoogleHint')}

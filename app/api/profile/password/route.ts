@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+
 export const dynamic = "force-dynamic";
 
 const MIN_LEN = 8;
@@ -32,8 +34,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    const user = await findUserByCanonicalEmail(prisma, session.user.email, {
       select: { id: true, passwordHash: true },
     });
 

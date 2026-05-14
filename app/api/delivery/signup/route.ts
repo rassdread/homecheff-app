@@ -6,6 +6,10 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created';
+import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
+import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
+import { getDuplicateSignupKindForUser } from '@/lib/auth/signup-duplicate';
+import { jsonRegisterDuplicate } from '@/lib/auth/register-duplicate-response';
 // import { string } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -129,19 +133,27 @@ export async function POST(req: NextRequest) {
       }
 
       // Check if email already exists
-      const existingEmail = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
-      });
-
-      if (existingEmail) {
-        return NextResponse.json({ 
-          error: 'Er bestaat al een account met dit e-mailadres' 
+      const normalizedEmail = tryNormalizeEmail(email);
+      if (!normalizedEmail) {
+        return NextResponse.json({
+          error: 'Voer een geldig e-mailadres in'
         }, { status: 400 });
       }
 
+      const existingEmailUser = await findUserByCanonicalEmail(prisma, normalizedEmail, {
+        select: { id: true },
+      });
+
+      if (existingEmailUser) {
+        const kind = await getDuplicateSignupKindForUser(existingEmailUser.id);
+        return jsonRegisterDuplicate(kind);
+      }
+
       // Check if username already exists
-      const existingUsername = await prisma.user.findUnique({
-        where: { username: username.toLowerCase() }
+      const usernameNorm = typeof username === 'string' ? username.trim() : '';
+      const existingUsername = await prisma.user.findFirst({
+        where: { username: { equals: usernameNorm, mode: 'insensitive' } },
+        select: { id: true },
       });
 
       if (existingUsername) {
@@ -157,8 +169,8 @@ export async function POST(req: NextRequest) {
       user = await prisma.user.create({
         data: {
           name,
-          email: email.toLowerCase(),
-          username: username.toLowerCase(),
+          email: normalizedEmail,
+          username: usernameNorm.toLowerCase(),
           passwordHash: hashedPassword,
           role: 'DELIVERY',
           emailVerified: new Date(), // Auto-verify for delivery users

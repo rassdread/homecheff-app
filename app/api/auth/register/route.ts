@@ -17,8 +17,15 @@ import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
 import { logEmailVerificationDiag } from "@/lib/email-verification-diagnostics";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { buildRegistrationFullName } from "@/lib/person-name";
+import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
+import { getDuplicateSignupKindForUser } from "@/lib/auth/signup-duplicate";
+import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
+import { Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
+  /** Set after successful normalize; used in catch for P2002 race handling */
+  let raceNormalizedEmail: string | null = null;
   try {
     const body = await req.json().catch(() => null);
     if (!body) return NextResponse.json({ error: "Geen gegevens ontvangen. Probeer het opnieuw." }, { status: 400 });
@@ -81,11 +88,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Achternaam is verplicht" }, { status: 400 });
     }
 
-    // E-mail validatie
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    const normalizedEmail = tryNormalizeEmail(email);
+    if (!normalizedEmail) {
       return NextResponse.json({ error: "Voer een geldig e-mailadres in (bijvoorbeeld: naam@voorbeeld.nl)" }, { status: 400 });
     }
+    raceNormalizedEmail = normalizedEmail;
 
     // Wachtwoord validatie
     if (password.length < 6) {
@@ -201,13 +208,18 @@ export async function POST(req: NextRequest) {
         lastName: lastNameTrim,
       }) || firstNameTrim;
 
-    // Controleer of e-mail al bestaat
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await findUserByCanonicalEmail(prisma, normalizedEmail, {
+      select: { id: true },
+    });
     if (existing) {
-      return NextResponse.json({ error: "Dit e-mailadres is al geregistreerd. Gebruik een ander e-mailadres of probeer in te loggen." }, { status: 400 });
+      const kind = await getDuplicateSignupKindForUser(existing.id);
+      return jsonRegisterDuplicate(kind);
     }
 
-    const existingUsername = await prisma.user.findUnique({ where: { username: usernameTrim } });
+    const existingUsername = await prisma.user.findFirst({
+      where: { username: { equals: usernameTrim, mode: "insensitive" } },
+      select: { id: true },
+    });
     if (existingUsername) {
       return NextResponse.json({ error: "Deze gebruikersnaam is al in gebruik. Kies een andere gebruikersnaam." }, { status: 400 });
     }
@@ -255,7 +267,7 @@ export async function POST(req: NextRequest) {
       user = await prisma.user.create({
         data: {
           name,
-          email,
+          email: normalizedEmail,
           passwordHash: hashed,
           role: userRole,
           username: usernameTrim,
@@ -319,7 +331,7 @@ export async function POST(req: NextRequest) {
       user = await prisma.user.create({
         data: {
           name,
-          email,
+          email: normalizedEmail,
           passwordHash: hashed,
           role: userRole,
           username: usernameTrim,
@@ -363,7 +375,12 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        if (invite && invite.status === 'PENDING' && invite.expiresAt > new Date() && invite.email.toLowerCase() === email.toLowerCase()) {
+        if (
+          invite &&
+          invite.status === 'PENDING' &&
+          invite.expiresAt > new Date() &&
+          tryNormalizeEmail(invite.email) === normalizedEmail
+        ) {
           // Create sub-affiliate account
           const subAffiliate = await prisma.affiliate.create({
             data: {
@@ -426,7 +443,7 @@ export async function POST(req: NextRequest) {
     // Send verification email
     try {
       await sendVerificationEmail({
-        email,
+        email: normalizedEmail,
         name: name || username || 'Gebruiker',
         verificationToken,
         verificationCode
@@ -435,7 +452,7 @@ export async function POST(req: NextRequest) {
       logEmailVerificationDiag('email_verification_send_success', { context: 'register' });
     } catch (emailError) {
       logEmailSendFailure("register_verification", emailError, {
-        recipientEmail: email,
+        recipientEmail: normalizedEmail,
       });
       logEmailVerificationDiag('email_verification_send_failed', {
         context: 'register',
@@ -473,7 +490,7 @@ export async function POST(req: NextRequest) {
       verificationEmailSkippedReason,
       user: {
         id: user.id,
-        email,
+        email: normalizedEmail,
         name,
         username: usernameTrim,
         role: userRole
@@ -481,7 +498,27 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     console.error("Register error:", e);
-    
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const target = e.meta?.target as string | string[] | undefined;
+      const t = Array.isArray(target) ? target.join(" ") : String(target ?? "");
+      if (/email/i.test(t) && raceNormalizedEmail) {
+        const ex = await findUserByCanonicalEmail(prisma, raceNormalizedEmail, {
+          select: { id: true },
+        });
+        if (ex) {
+          const kind = await getDuplicateSignupKindForUser(ex.id);
+          return jsonRegisterDuplicate(kind);
+        }
+      }
+      if (/username/i.test(t)) {
+        return NextResponse.json(
+          { error: "Deze gebruikersnaam is al in gebruik. Kies een andere gebruikersnaam." },
+          { status: 400 },
+        );
+      }
+    }
+
     // Handle specific Prisma errors
     if (e instanceof Error) {
       // Unique constraint violations

@@ -3162,7 +3162,17 @@
       "businessRegistrationInvalidFormatError": "Bedrijfsregistratienummer heeft een ongeldig formaat"
     },
     "errors": {
-      "socialLoginError": "Er is een fout opgetreden bij het inloggen met {provider}."
+      "socialLoginError": "Er is een fout opgetreden bij het inloggen met {provider}.",
+      "accountAlreadyExists": "Er bestaat al een account met dit e-mailadres.",
+      "loginInstead": "Naar inloggen",
+      "forgotPasswordSuggestion": "Wachtwoord vergeten",
+      "loginWithGoogle": "Log in met Google",
+      "setPasswordLater": "Daarna kun je in je accountinstellingen een wachtwoord instellen.",
+      "accountExistsGoogleOnly": "Er bestaat al een account met dit e-mailadres via Google. Log in met Google. Daarna kun je in je accountinstellingen een wachtwoord instellen voor de volgende keer.",
+      "accountExistsPassword": "Er bestaat al een account met dit e-mailadres. Log in of gebruik wachtwoord vergeten.",
+      "accountExistsBoth": "Er bestaat al een account met dit e-mailadres. Je kunt inloggen met Google of met je wachtwoord.",
+      "usernameTaken": "Deze gebruikersnaam is al in gebruik.",
+      "emailAlreadyInUse": "Dit e-mailadres is al in gebruik."
     },
     "taxResponsibility": "Belastingverantwoordelijkheid",
     "taxResponsibilityText": "Als verkoper ben je zelf verantwoordelijk voor het aangeven van je inkomsten bij de belastingdienst. HomeCheff biedt geen belastingadvies. Consulteer een accountant voor specifieke vragen.",
@@ -3684,6 +3694,7 @@
     "email": "Email",
     "deleteAccount": "Account Verwijderen",
     "changePassword": "Wachtwoord wijzigen",
+    "setPassword": "Wachtwoord instellen",
     "currentPassword": "Huidig wachtwoord",
     "newPassword": "Nieuw wachtwoord",
     "confirmNewPassword": "Bevestig nieuw wachtwoord",

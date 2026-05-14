@@ -111,6 +111,8 @@ export async function createSessionFromNativeGoogleIdToken(
       return { ok: false, status: 401, code: 'invalid_token' };
     }
 
+    const googleSub = typeof p.sub === 'string' && p.sub.trim() ? p.sub.trim() : '';
+
     const name =
       (typeof p.name === 'string' && p.name) || emailRaw.split('@')[0] || '';
     const image =
@@ -128,6 +130,8 @@ export async function createSessionFromNativeGoogleIdToken(
         image,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
+        googleSub: googleSub || null,
+        emailVerified: true,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

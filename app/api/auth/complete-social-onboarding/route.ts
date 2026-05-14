@@ -7,6 +7,7 @@ import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 import { UserRole } from '@prisma/client';
+import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
 import { buildRegistrationFullName, normalizePersonNameDisplay } from '@/lib/person-name';
 
@@ -21,8 +22,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const completionMode = body?.completionMode as string | undefined;
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    const existingUser = await findUserByCanonicalEmail(prisma, session.user.email, {
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        emailVerified: true,
+        passwordHash: true,
+        bio: true,
+        socialOnboardingCompleted: true,
+        messageGuidelinesAcceptedAt: true,
+      },
     });
 
     if (!existingUser) {
@@ -56,8 +67,9 @@ export async function POST(request: NextRequest) {
       }
 
       if (username !== existingUser.username) {
-        const usernameExists = await prisma.user.findUnique({
-          where: { username },
+        const usernameExists = await prisma.user.findFirst({
+          where: { username: { equals: username, mode: 'insensitive' }, NOT: { id: existingUser.id } },
+          select: { id: true },
         });
         if (usernameExists) {
           return NextResponse.json({ message: 'Gebruikersnaam is al in gebruik' }, { status: 400 });
@@ -168,8 +180,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (username !== existingUser.username) {
-      const usernameExists = await prisma.user.findUnique({
-        where: { username },
+      const usernameExists = await prisma.user.findFirst({
+        where: { username: { equals: username, mode: 'insensitive' }, NOT: { id: existingUser.id } },
+        select: { id: true },
       });
 
       if (usernameExists) {

@@ -158,6 +158,8 @@ type RegisterState = {
   subscription: string;
   // Uitbetaalgegevens - nu via Stripe
   error: string | null;
+  /** Server duplicate hint for provider-aware copy + links */
+  duplicateAccountKind: 'google_only' | 'password_only' | 'both' | null;
   success: boolean;
   currentStep: number;
   showPassword: boolean;
@@ -219,6 +221,7 @@ const REGISTER_INITIAL_STATE: RegisterState = {
   subscription: "",
   // Uitbetaalgegevens - nu via Stripe
   error: null,
+  duplicateAccountKind: null,
   success: false,
   currentStep: 1,
   showPassword: false,
@@ -1780,6 +1783,8 @@ function RegisterPageContent() {
         hasUserTypes: requestBody.userTypes?.length > 0
       });
       
+      setState((prev) => ({ ...prev, error: null, duplicateAccountKind: null }));
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         credentials: "include",
@@ -1792,7 +1797,22 @@ function RegisterPageContent() {
       if (!response.ok) {
         // Vertaal error codes naar gebruiksvriendelijke berichten
         let errorMessage = data.error || t('register.validation.registrationError');
-        
+        const duplicateKind = data.duplicateKind as
+          | 'google_only'
+          | 'password_only'
+          | 'both'
+          | undefined;
+
+        if (data.error === 'ALREADY_REGISTERED' && duplicateKind) {
+          if (duplicateKind === 'google_only') {
+            errorMessage = t('register.errors.accountExistsGoogleOnly');
+          } else if (duplicateKind === 'both') {
+            errorMessage = t('register.errors.accountExistsBoth');
+          } else {
+            errorMessage = t('register.errors.accountExistsPassword');
+          }
+        }
+
         // Map API error codes naar vertalingen
         const errorCodeMap: Record<string, string> = {
           'COMPANY_NAME_REQUIRED': t('register.validation.companyNameRequiredError'),
@@ -1809,6 +1829,7 @@ function RegisterPageContent() {
         setState(prev => ({ 
           ...prev, 
           error: errorMessage, 
+          duplicateAccountKind: duplicateKind ?? null,
           success: false 
         }));
         return;
@@ -2129,8 +2150,23 @@ function RegisterPageContent() {
         {state.error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-              <p className="text-sm text-red-800">{state.error}</p>
+              <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
+              <div className="text-sm text-red-800 space-y-2">
+                <p>{state.error}</p>
+                {state.duplicateAccountKind ? (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-red-900 font-medium">
+                    <Link href="/login" className="underline hover:text-red-950">
+                      {t('register.errors.loginInstead')}
+                    </Link>
+                    {(state.duplicateAccountKind === 'password_only' ||
+                      state.duplicateAccountKind === 'both') && (
+                      <Link href="/forgot-password" className="underline hover:text-red-950">
+                        {t('register.errors.forgotPasswordSuggestion')}
+                      </Link>
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         )}

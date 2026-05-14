@@ -28,7 +28,7 @@
     "deploy": "npm run build && git add -A && git commit -m \"Deploy: $(date +'%Y-%m-%d %H:%M')\" && git push origin main && npx vercel --prod",
     "deploy:quick": "npx vercel --prod",
     "deploy:preview": "npx vercel",
-    "test:verkoop": "node scripts/test-verkoop-flow.js",
+    "test:account-normalization": "npx tsx scripts/test-account-email-normalization.ts",
     "test:chat-config": "node scripts/test-chat-config.js",
     "test:pusher": "node scripts/test-pusher-connection.js",
     "debug:conversations": "node scripts/debug-conversation-participants.js",
