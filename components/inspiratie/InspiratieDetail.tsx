@@ -28,6 +28,7 @@ import DishReviewSection from './DishReviewSection';
 import ShareButton from '@/components/ui/ShareButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
+import { getDisplayName } from '@/lib/displayName';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 
 type InspirationCategory = 'CHEFF' | 'GROWN' | 'DESIGNER';
@@ -588,22 +589,20 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                     {item.user.profileImage ? (
                       <Image
                         src={item.user.profileImage}
-                        alt={item.user.name || item.user.username || t('inspiratie.detail.maker')}
+                        alt={getDisplayName(item.user)}
                         fill
                         className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-200 text-lg font-semibold text-gray-600">
-                        {(item.user.name || item.user.username || '?')
-                          .charAt(0)
-                          .toUpperCase()}
+                        {getDisplayName(item.user).charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t('inspiratie.detail.postedBy')}</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {item.user.name || item.user.username || t('inspiratie.detail.unknownMaker')}
+                      {getDisplayName(item.user)}
                     </p>
                     {item.user.username && (
                       <Link

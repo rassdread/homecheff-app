@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { tryAwardConversationStartedHcp } from '@/lib/gamification/interaction-hcp';
+import { getDisplayName } from '@/lib/displayName';
 
 export async function POST(req: NextRequest) {
   try {
@@ -162,7 +163,7 @@ export async function POST(req: NextRequest) {
     // Create new conversation if it doesn't exist
     if (!conversation) {
       createdNewConversation = true;
-      const sellerName = sellerProfile.User.name || sellerProfile.User.username || 'Verkoper';
+      const sellerName = getDisplayName(sellerProfile.User);
       
       const newConversation = await prisma.conversation.create({
         data: {

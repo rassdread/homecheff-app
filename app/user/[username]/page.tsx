@@ -11,6 +11,7 @@ import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
 import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
 import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
 import PublicProfileClient from "./PublicProfileClient";
+import { getDisplayName } from "@/lib/displayName";
 
 export const revalidate = 0;
 
@@ -60,6 +61,8 @@ export async function generateMetadata({
       bio: true,
       place: true,
       showProfileToEveryone: true,
+      displayFullName: true,
+      displayNameOption: true,
     },
   });
 
@@ -67,7 +70,7 @@ export async function generateMetadata({
     return { title: "Profiel" };
   }
 
-  const displayName = user.name || user.username || "Profiel";
+  const displayName = getDisplayName(user);
   const title = `${displayName} | HomeCheff`;
   const description = user.bio
     ? user.bio.substring(0, 155) + (user.bio.length > 155 ? "..." : "")
@@ -467,7 +470,7 @@ export default async function PublicProfilePage({
   }
 
   const currentDomain = await getCurrentDomain();
-  const profileDisplay = user.name || user.username || "Profiel";
+  const profileDisplay = getDisplayName(user);
   const profileUrl = `${currentDomain}/user/${encodeURIComponent(username)}`;
   const personLd = {
     "@context": "https://schema.org",

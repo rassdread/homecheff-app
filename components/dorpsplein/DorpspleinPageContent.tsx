@@ -1391,7 +1391,9 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                     seller: item.seller && item.seller.id ? {
                       id: item.seller.id,
                       name: item.seller.name || null,
-                      username: item.seller.username || null
+                      username: item.seller.username || null,
+                      displayFullName: item.seller.displayFullName ?? true,
+                      displayNameOption: item.seller.displayNameOption ?? 'full',
                     } : null
                   }))}
                   height="600px"

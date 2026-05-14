@@ -19,6 +19,7 @@ import type { FeedMediaLightboxPayload } from '@/components/feed/FeedMediaLightb
 import { hrefForProfileGridItem } from '@/lib/profile/profilePublicItemHref';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 import AppBackBar from '@/components/navigation/AppBackBar';
+import { getDisplayName } from '@/lib/displayName';
 
 interface User {
   id: string;
@@ -432,25 +433,7 @@ export default function PublicProfileClient({
     }
   }, [activeTab]);
 
-  const getDisplayName = () => {
-    try {
-      if (!user?.username && !user?.name) return 'Gebruiker';
-      if (!user.displayFullName) return user.username || user.name || 'Gebruiker';
-      switch (user.displayNameOption) {
-        case 'first':
-          return (user.name && user.name.split(' ')[0]) || user.username || 'Gebruiker';
-        case 'last':
-          return (user.name && user.name.split(' ').pop()) || user.username || 'Gebruiker';
-        case 'username':
-          return `@${user.username || 'gebruiker'}`;
-        case 'full':
-        default:
-          return user.name || user.username || 'Gebruiker';
-      }
-    } catch {
-      return user?.username || user?.name || 'Gebruiker';
-    }
-  };
+  const publicDisplayName = getDisplayName(user);
 
   const getRoleLabel = (role: string) => {
     const roleInfo = {
@@ -560,7 +543,7 @@ export default function PublicProfileClient({
               )}
               
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                {getDisplayName()}
+                {publicDisplayName}
               </h1>
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
                 <span className="font-medium">@{user.username || 'gebruiker'}</span>
@@ -751,12 +734,12 @@ export default function PublicProfileClient({
               <div className="grid grid-cols-2 gap-3">
                 <FollowButton 
                   sellerId={user.id}
-                  sellerName={getDisplayName()}
+                  sellerName={publicDisplayName}
                   className="w-full px-4 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                 />
                 <StartChatButton
                   sellerId={user.id}
-                  sellerName={getDisplayName()}
+                  sellerName={publicDisplayName}
                   showSuccessMessage={true}
                   className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
                 />
@@ -1108,7 +1091,7 @@ export default function PublicProfileClient({
                             {review.reviewer.profileImage ? (
                               <SafeImage
                                 src={review.reviewer.profileImage}
-                                alt={review.reviewer.name || 'Reviewer'}
+                                alt={getDisplayName(review.reviewer)}
                                 width={40}
                                 height={40}
                                 className="rounded-full"
@@ -1119,7 +1102,7 @@ export default function PublicProfileClient({
                               </div>
                             )}
                             <div>
-                              <div className="font-medium">{review.reviewer.name || review.reviewer.username || 'Anoniem'}</div>
+                              <div className="font-medium">{getDisplayName(review.reviewer)}</div>
                               <div className="text-sm text-gray-500">
                                 {new Date(review.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
                               </div>

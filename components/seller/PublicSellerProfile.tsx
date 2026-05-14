@@ -958,7 +958,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
 
                                 {/* Buyer Info */}
                                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                                  <span>Door {review.buyer?.name || review.buyer?.username || 'Anoniem'}</span>
+                                  <span>Door {getDisplayName(review.buyer)}</span>
                                   <span>•</span>
                                   <span>{new Date(review.createdAt).toLocaleDateString('nl-NL', {
                                     day: 'numeric',

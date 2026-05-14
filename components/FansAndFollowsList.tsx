@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { UserPlus, Users, Heart } from "lucide-react";
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
-import { getDisplayName } from '@/lib/displayName';
+import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Follow = { 
@@ -353,25 +353,8 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                 profileImage = "/avatar-placeholder.png";
               }
 
-              // Get display name - always prioritize username if name is not available
-              let displayName = '';
-              
-              // First try to get display name using the utility function
               const computedName = getDisplayName(user);
-              
-              // If we have a valid name from the utility, use it
-              if (computedName && computedName !== 'Gebruiker' && computedName !== 'Anoniem') {
-                displayName = computedName;
-              } else if (user.name && user.name.trim() !== '') {
-                // Use name if available
-                displayName = user.name;
-              } else if (user.username && user.username.trim() !== '') {
-                // Fallback to username
-                displayName = user.username;
-              } else {
-                // Final fallback
-                displayName = 'Gebruiker';
-              }
+              const displayName = computedName;
 
               // Build href - always use username if available, fallback to ID
               const href = user.username 
@@ -402,7 +385,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500 text-2xl font-semibold">
-                            {displayName && displayName !== 'Gebruiker' ? displayName.charAt(0).toUpperCase() : '?'}
+                            {displayName !== PUBLIC_DISPLAY_FALLBACK ? displayName.charAt(0).toUpperCase() : '?'}
                           </div>
                         )}
                       </div>
@@ -421,7 +404,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                     {/* Name */}
                     <div className="flex-1 min-w-0 w-full">
                       <h3 className="font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors text-base mb-1 truncate">
-                        {displayName || 'Gebruiker'}
+                        {displayName}
                       </h3>
                       {user.username && displayName !== user.username && (
                         <p className="text-xs text-gray-500 mb-2 truncate">

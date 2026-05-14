@@ -5,6 +5,7 @@ import { MapPin, Package } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getDisplayName } from '@/lib/displayName';
 
 interface ProductLocation {
   id: string;
@@ -20,6 +21,8 @@ interface ProductLocation {
     id: string;
     name: string | null;
     username: string | null;
+    displayFullName?: boolean | null;
+    displayNameOption?: string | null;
   } | null;
 }
 
@@ -166,7 +169,7 @@ export default function ProductMap({ products, height = '600px' }: ProductMapPro
             ${product.distanceKm.toFixed(1)} km
           </p>` : ''}
           ${product.seller ? `<p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px;">
-            Verkoper: ${product.seller.name || product.seller.username || 'Onbekend'}
+            Verkoper: ${getDisplayName(product.seller)}
           </p>` : ''}
           <a href="/product/${product.id}" target="_blank" style="display: inline-block; margin-top: 8px; padding: 6px 12px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: 500;">
             Bekijk Product →

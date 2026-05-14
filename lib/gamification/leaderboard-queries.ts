@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { getDisplayName } from '@/lib/displayName';
 import { hcpLevelFromTotal } from '@/lib/gamification/hcp-level';
 import { fetchAuthorBadgeSummariesByUserIds, type AuthorBadgeChip } from '@/lib/gamification/author-badge-summaries';
 import { hcpIsoWeekKeyUtc } from '@/lib/gamification/weekly-challenges';
@@ -46,6 +47,8 @@ async function usersForIds(ids: string[]) {
         image: string | null;
         profileImage: string | null;
         showProfileToEveryone: boolean;
+        displayFullName: boolean | null;
+        displayNameOption: string | null;
       }
     >();
   const users = await prisma.user.findMany({
@@ -57,14 +60,11 @@ async function usersForIds(ids: string[]) {
       image: true,
       profileImage: true,
       showProfileToEveryone: true,
+      displayFullName: true,
+      displayNameOption: true,
     },
   });
   return new Map(users.map((u) => [u.id, u]));
-}
-
-function displayNameFor(u: { name: string | null; username: string | null } | undefined): string {
-  if (!u) return 'HomeCheff';
-  return (u.name || u.username || 'HomeCheff').trim() || 'HomeCheff';
 }
 
 function avatarFor(u: { image: string | null; profileImage: string | null } | undefined): string | null {
@@ -110,7 +110,7 @@ export async function buildRowsFromUserIds(
     return {
       rank: i + 1,
       userId,
-      displayName: displayNameFor(u),
+      displayName: getDisplayName(u),
       username: u?.username ?? null,
       avatar: avatarFor(u),
       level: levelFn(userId),

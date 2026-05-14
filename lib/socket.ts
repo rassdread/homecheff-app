@@ -1,6 +1,7 @@
 import { Server as NetServer } from 'http';
 import { NextApiResponse } from 'next';
 import { Server as SocketIOServer } from 'socket.io';
+import { getDisplayName } from '@/lib/displayName';
 // import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 export type NextApiResponseServerIO = NextApiResponse & {
@@ -128,7 +129,7 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
           // Send notification to all participants in the conversation
           io.to(data.conversationId).emit('message-notification', {
             conversationId: data.conversationId,
-            senderName: message.User.name || message.User.username,
+            senderName: getDisplayName(message.User),
             messageText: data.text,
             messageType: data.messageType
           });

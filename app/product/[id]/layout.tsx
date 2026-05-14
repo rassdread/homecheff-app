@@ -13,6 +13,7 @@ import {
   isBareProductUuidParam,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
+import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 
 const BREADCRUMB_HOME_NL = 'Home';
 const BREADCRUMB_HOME_EN = 'Home';
@@ -40,6 +41,8 @@ export async function generateMetadata(
                 name: true,
                 username: true,
                 place: true,
+                displayFullName: true,
+                displayNameOption: true,
               },
             },
           },
@@ -71,8 +74,9 @@ export async function generateMetadata(
     const canonicalPath = `/product/${slugSegment}`;
     const canonicalUrl = `${currentDomain}${canonicalPath}`;
 
-    const sellerName =
-      product.seller?.User?.name || product.seller?.User?.username || '';
+    const sellerName = product.seller?.User
+      ? getDisplayName(product.seller.User)
+      : '';
     const city = formatCityLabel(product.seller?.User?.place);
     const price = (product.priceCents / 100).toFixed(2);
     const averageRating =
@@ -187,6 +191,8 @@ export default async function ProductLayout({
               name: true,
               username: true,
               place: true,
+              displayFullName: true,
+              displayNameOption: true,
             },
           },
         },
@@ -230,8 +236,9 @@ export default async function ProductLayout({
       );
       const productUrl = `${currentDomain}/product/${slugSegment}`;
 
-      const sellerName =
-        product.seller?.User?.name || product.seller?.User?.username || '';
+      const sellerName = product.seller?.User
+        ? getDisplayName(product.seller.User)
+        : '';
       const city = formatCityLabel(product.seller?.User?.place);
       const username = product.seller?.User?.username;
       const price = (product.priceCents / 100).toFixed(2);
@@ -251,7 +258,7 @@ export default async function ProductLayout({
 
       const sellerPerson: Record<string, unknown> = {
         '@type': 'Person',
-        name: sellerName || 'Maker',
+        name: sellerName || PUBLIC_DISPLAY_FALLBACK,
         ...(username
           ? { url: `${currentDomain}/user/${username}` }
           : {}),

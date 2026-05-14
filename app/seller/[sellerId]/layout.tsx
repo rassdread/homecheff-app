@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { prisma } from '@/lib/prisma';
+import { getDisplayName, PUBLIC_DISPLAY_FALLBACK } from '@/lib/displayName';
 import {
   getCurrentDomain,
   getCurrentLanguage,
@@ -27,6 +28,8 @@ export async function generateMetadata(
             city: true,
             country: true,
             profileImage: true,
+            displayFullName: true,
+            displayNameOption: true,
           }
         },
         products: {
@@ -44,7 +47,9 @@ export async function generateMetadata(
       };
     }
 
-    const sellerName = seller.User?.name || seller.User?.username || seller.displayName || 'Seller';
+    const sellerName = seller.User
+      ? getDisplayName(seller.User)
+      : (seller.displayName?.trim() || PUBLIC_DISPLAY_FALLBACK);
     const location = [seller.User?.city, seller.User?.country].filter(Boolean).join(', ') || '';
     const productCount = seller.products.length;
     const categories = [...new Set(seller.products.map(p => p.category))];
@@ -138,13 +143,17 @@ export default async function SellerLayout({
             username: true,
             city: true,
             country: true,
+            displayFullName: true,
+            displayNameOption: true,
           }
         }
       }
     });
 
     if (seller && seller.User) {
-      const sellerName = seller.User.name || seller.User.username || seller.displayName || '';
+      const sellerName = seller.User
+        ? getDisplayName(seller.User)
+        : (seller.displayName?.trim() || PUBLIC_DISPLAY_FALLBACK);
       const location = [seller.User.city, seller.User.country].filter(Boolean).join(', ');
 
       // Person/Organization structured data (Schema.org)

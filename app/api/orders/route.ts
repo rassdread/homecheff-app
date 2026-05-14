@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getDisplayName } from '@/lib/displayName';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,8 @@ export async function GET(req: NextRequest) {
                         name: true,
                         username: true,
                         profileImage: true,
+                        displayFullName: true,
+                        displayNameOption: true,
                       },
                     },
                   },
@@ -89,6 +92,8 @@ export async function GET(req: NextRequest) {
                   select: {
                     name: true,
                     username: true,
+                    displayFullName: true,
+                    displayNameOption: true,
                   },
                 },
               },
@@ -130,13 +135,15 @@ export async function GET(req: NextRequest) {
             name: item.Product.seller.User.name,
             username: item.Product.seller.User.username,
             profileImage: item.Product.seller.User.profileImage,
+            displayFullName: item.Product.seller.User.displayFullName,
+            displayNameOption: item.Product.seller.User.displayNameOption,
           },
         },
       })),
       hasUnreadMessages: order.conversations[0]?.Message[0]?.readAt ? false : true,
       lastMessage: order.conversations[0]?.Message[0] ? {
         text: order.conversations[0].Message[0].text,
-        sender: order.conversations[0].Message[0].User.name || order.conversations[0].Message[0].User.username,
+        sender: getDisplayName(order.conversations[0].Message[0].User),
         createdAt: order.conversations[0].Message[0].createdAt,
       } : null,
     }));

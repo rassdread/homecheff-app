@@ -19,6 +19,7 @@ import {
 } from '@/lib/gamification/home-carousel-merge';
 import { publicLeaderboardProfileHref } from '@/lib/user/public-profile';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
+import { getDisplayName } from '@/lib/displayName';
 
 function slimFromLeaderboard(r: LeaderboardRow) {
   return {
@@ -99,6 +100,8 @@ async function pickNewTalentFromWeeklyTop(
       image: true,
       profileImage: true,
       showProfileToEveryone: true,
+      displayFullName: true,
+      displayNameOption: true,
     },
   });
   if (!u) return null;
@@ -108,7 +111,7 @@ async function pickNewTalentFromWeeklyTop(
     select: { totalHcp: true },
   });
   const total = stats?.totalHcp ?? 0;
-  const displayName = (u.name || u.username || 'HomeCheff').trim() || 'HomeCheff';
+  const displayName = getDisplayName(u);
   const avatar = u.profileImage || u.image || null;
   const profilePublic = u.showProfileToEveryone === true;
 

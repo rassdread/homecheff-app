@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortConversationsByActivity } from '@/lib/chat/conversationListSort';
+import { getDisplayName } from '@/lib/displayName';
 
 // In-memory cache for conversations
 const conversationCache = new Map<string, { data: any; timestamp: number }>();
@@ -136,7 +137,7 @@ export async function GET(req: NextRequest) {
         id: conversation.id,
         title: conversation.title || 
                (conversation.Product ? conversation.Product.title : 
-               otherParticipant ? (otherParticipant.name || otherParticipant.username || 'Gesprek') : 'Nieuwe conversatie'),
+               otherParticipant ? getDisplayName(otherParticipant) : 'Nieuwe conversatie'),
         product: conversation.Product,
         lastMessage: conversation.Message[0] || null,
         participants: otherParticipants,

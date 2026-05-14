@@ -1,8 +1,12 @@
 /**
- * Utility functions for displaying user names based on user preferences
+ * Publieke weergavenaam op basis van gebruikersvoorkeur (profielinstellingen).
+ * Één centrale helper voor UI + server payloads — geen losse first+last combinaties.
  */
 
 import { normalizePersonNameDisplay } from '@/lib/person-name';
+
+/** Laatste fallback als er geen voorkeur-/gebruikersnaam-/naamdata is. */
+export const PUBLIC_DISPLAY_FALLBACK = 'HomeCheff gebruiker';
 
 export interface User {
   id?: string | null;
@@ -13,69 +17,63 @@ export interface User {
   sellerProfileId?: string | null;
 }
 
-/**
- * Get display name based on user preferences
- */
-export function getDisplayName(user: User | null | undefined): string {
-  // Always fall back to username, never show "Onbekend" if username exists
-  if (!user) return 'Gebruiker';
-  
-  // If displayFullName is false, don't show name at all
-  if (user.displayFullName === false) {
-    return 'Anoniem';
-  }
-  
-  // Check displayNameOption preference
-  if (user.displayNameOption === 'username' && user.username) {
-    return user.username;
-  }
-  
-  if (user.displayNameOption === 'first' && user.name) {
-    const n = normalizePersonNameDisplay(user.name);
-    return n ? n.split(' ')[0] : '';
-  }
-
-  if (user.displayNameOption === 'last' && user.name) {
-    const n = normalizePersonNameDisplay(user.name);
-    const nameParts = n.split(' ');
-    return nameParts[nameParts.length - 1] ?? '';
-  }
-  
-  if (user.displayNameOption === 'none') {
-    return 'Anoniem';
-  }
-  
-  // Default to full name or username, never "Onbekend"
-  const full = normalizePersonNameDisplay(user.name);
-  return full || user.username || 'Gebruiker';
+function trimStr(s: string | null | undefined): string {
+  return (s ?? '').trim();
 }
 
 /**
- * Get display name with fallback for public display
+ * Zichtbare naam voor chat, kaarten, ranglijsten, enz.
+ * Volgorde: voorkeur → username → genormaliseerde volledige naam → {@link PUBLIC_DISPLAY_FALLBACK}
  */
-export function getPublicDisplayName(user: User | null | undefined): string {
-  if (!user) return 'Gebruiker';
-  
-  // For public display, respect privacy settings but show something
+export function getDisplayName(user: User | null | undefined): string {
+  if (!user) return PUBLIC_DISPLAY_FALLBACK;
+
+  const username = trimStr(user.username) || null;
+  const fullName = normalizePersonNameDisplay(user.name);
+
+  // Legacy: geen echte naam tonen — alleen @-naam of fallback
   if (user.displayFullName === false) {
-    return 'Anoniem';
+    return username || PUBLIC_DISPLAY_FALLBACK;
   }
-  
-  if (user.displayNameOption === 'none') {
-    return 'Anoniem';
+
+  const opt = (user.displayNameOption || 'full').toLowerCase();
+
+  if (opt === 'none') {
+    return PUBLIC_DISPLAY_FALLBACK;
   }
-  
+
+  if (opt === 'username' && username) {
+    return username;
+  }
+
+  if (opt === 'first' && fullName) {
+    const first = fullName.split(/\s+/).filter(Boolean)[0];
+    if (first) return first;
+  }
+
+  if (opt === 'last' && fullName) {
+    const parts = fullName.split(/\s+/).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1]!;
+  }
+
+  if (fullName) return fullName;
+  if (username) return username;
+  return PUBLIC_DISPLAY_FALLBACK;
+}
+
+/** Alias: zelfde logica als {@link getDisplayName} (publieke context). */
+export function getPublicDisplayName(user: User | null | undefined): string {
   return getDisplayName(user);
 }
 
 /**
- * Check if user name should be clickable (not anonymous)
+ * Mag de naam als link naar het profiel? (Verborgen / geen naam-optie → niet klikbaar als persoon.)
  */
 export function isNameClickable(user: User | null | undefined): boolean {
   if (!user) return false;
-  
+
   if (user.displayFullName === false) return false;
-  if (user.displayNameOption === 'none') return false;
-  
+  if ((user.displayNameOption || '').toLowerCase() === 'none') return false;
+
   return true;
 }

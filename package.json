@@ -29,6 +29,7 @@
     "deploy:quick": "npx vercel --prod",
     "deploy:preview": "npx vercel",
     "test:account-normalization": "npx tsx scripts/test-account-email-normalization.ts",
+    "test:display-name": "npx tsx scripts/test-display-name-preference.ts",
     "test:chat-config": "node scripts/test-chat-config.js",
     "test:pusher": "node scripts/test-pusher-connection.js",
     "debug:conversations": "node scripts/debug-conversation-participants.js",

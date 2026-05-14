@@ -11,6 +11,7 @@ import Link from 'next/link';
 import SafeImage from '@/components/ui/SafeImage';
 import FollowButton from '@/components/follow/FollowButton';
 import StartChatButton from '@/components/chat/StartChatButton';
+import { getDisplayName } from '@/lib/displayName';
 
 interface User {
   id: string;
@@ -148,21 +149,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
     fetchUserStats();
   }, [user.id]);
 
-  const getDisplayName = () => {
-    if (!user.displayFullName) return user.username || 'Bezorger';
-    
-    switch (user.displayNameOption) {
-      case 'first':
-        return user.name?.split(' ')[0] || user.username || 'Bezorger';
-      case 'last':
-        return user.name?.split(' ').pop() || user.username || 'Bezorger';
-      case 'username':
-        return `@${user.username || 'bezorger'}`;
-      case 'full':
-      default:
-        return user.name || user.username || 'Bezorger';
-    }
-  };
+  const publicDisplayName = getDisplayName(user);
 
   const transportationLabels: Record<string, { label: string; icon: any; gradient: string }> = {
     'BIKE': { 
@@ -287,7 +274,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
             <div className="flex-1 text-center lg:text-left mt-4">
               <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                  {getDisplayName()}
+                  {publicDisplayName}
                 </h1>
                 {user.DeliveryProfile.isActive && (
                   <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs font-bold shadow-lg animate-pulse">
@@ -391,12 +378,12 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
               <div className="grid grid-cols-2 gap-3">
                 <FollowButton 
                   sellerId={user.id}
-                  sellerName={getDisplayName()}
+                  sellerName={publicDisplayName}
                   className="w-full px-4 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                 />
                 <StartChatButton
                   sellerId={user.id}
-                  sellerName={getDisplayName()}
+                  sellerName={publicDisplayName}
                   showSuccessMessage={true}
                   className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
                 />
@@ -798,7 +785,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                             {review.reviewer.profileImage ? (
                               <SafeImage
                                 src={review.reviewer.profileImage}
-                                alt={review.reviewer.name || 'Reviewer'}
+                                alt={getDisplayName(review.reviewer)}
                                 width={48}
                                 height={48}
                                 className="w-full h-full object-cover"
@@ -816,7 +803,7 @@ export default function PublicDeliveryProfileClient({ user }: { user: User }) {
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <p className="font-semibold text-gray-900">
-                                {review.reviewer.name || review.reviewer.username || 'Gebruiker'}
+                                {getDisplayName(review.reviewer)}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 <div className="flex">

@@ -330,7 +330,7 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
               {!isOwner && (
                 <StartChatButton
                   sellerId={recipe.user.id}
-                  sellerName={recipe.user.name || getDisplayName(recipe.user)}
+                  sellerName={getDisplayName(recipe.user)}
                   productId={recipe.id}
                   showSuccessMessage={true}
                   className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md hover:shadow-lg"
@@ -428,7 +428,7 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
                   {recipe.user.profileImage ? (
                     <Image
                       src={recipe.user.profileImage}
-                      alt={recipe.user.name || getDisplayName(recipe.user)}
+                      alt={getDisplayName(recipe.user)}
                       width={40}
                       height={40}
                       className="rounded-full border-2 border-amber-500"
@@ -439,7 +439,7 @@ export default function RecipeView({ recipe, isOwner, ownerPermissions, currentU
                     </div>
                   )}
                   <span className="font-bold text-gray-800">
-                    {recipe.user.name || getDisplayName(recipe.user)}
+                    {getDisplayName(recipe.user)}
                   </span>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import InfoIcon from '@/components/onboarding/InfoIcon';
 import { getHintsForPage } from '@/lib/onboarding/hints';
+import { getDisplayName } from '@/lib/displayName';
 
 interface OrderItem {
   id: string;
@@ -22,6 +23,8 @@ interface OrderItem {
       name: string;
       username: string;
       profileImage?: string;
+      displayFullName?: boolean | null;
+      displayNameOption?: string | null;
     };
   };
 }
@@ -302,7 +305,7 @@ export default function OrdersPage() {
                           Aantal: {item.quantity} × €{(item.priceCents / 100).toFixed(2)}
                         </p>
                         <p className="text-sm text-neutral-600">
-                          van {item.product.seller.name || item.product.seller.username}
+                          van {getDisplayName(item.product.seller)}
                         </p>
                       </div>
                       <div className="text-right">

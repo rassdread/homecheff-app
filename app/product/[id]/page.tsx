@@ -21,7 +21,7 @@ import ClickableName from "@/components/ui/ClickableName";
 import BackButton from "@/components/navigation/BackButton";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
-import { getDisplayName as getDisplayNameUtil } from "@/lib/displayName";
+import { getDisplayName as getDisplayNameUtil, PUBLIC_DISPLAY_FALLBACK } from "@/lib/displayName";
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   buildProductSlugPath,
@@ -116,9 +116,9 @@ const getCategoryTheme = (category?: string) => {
   }
 };
 
-const getDisplayName = (product: Product | null) => {
-  if (!product?.seller?.User) return 'Anoniem';
-  
+const getSellerDisplayName = (product: Product | null) => {
+  if (!product?.seller?.User) return PUBLIC_DISPLAY_FALLBACK;
+
   return getDisplayNameUtil(product.seller.User);
 };
 
@@ -1280,7 +1280,7 @@ export default function ProductPage() {
                       title: product.title,
                       priceCents: product.priceCents,
                       image: (carouselMedia.length > 0 && carouselMedia[0].type === 'image' ? carouselMedia[0].fileUrl : product.image) || undefined,
-                      sellerName: getDisplayName(product),
+                      sellerName: getSellerDisplayName(product),
                       sellerId: product.seller?.User?.id || '',
                       deliveryMode: (product.delivery as string) || 'PICKUP', // Can be single value, 'BOTH', or comma-separated
                       // Use same logic as checkout: stock as primary, maxStock as fallback
@@ -1299,7 +1299,7 @@ export default function ProductPage() {
                     <StartChatButton
                       productId={product.id}
                       sellerId={product.seller?.User?.id || ''}
-                      sellerName={getDisplayName(product)}
+                      sellerName={getSellerDisplayName(product)}
                       showSuccessMessage={true}
                       className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
                     />
@@ -1373,7 +1373,7 @@ export default function ProductPage() {
                   {product.seller?.User?.avatar ? (
                       <Image
                       src={product.seller.User.avatar}
-                        alt={getDisplayName(product)}
+                        alt={getSellerDisplayName(product)}
                         width={80}
                         height={80}
                         loading="lazy"
@@ -1382,7 +1382,7 @@ export default function ProductPage() {
                   ) : (
                       <div className={`w-20 h-20 bg-gradient-to-br ${theme.gradient} rounded-full flex items-center justify-center border-4 border-emerald-100 shadow-lg`}>
                         <span className="text-white font-bold text-2xl">
-                        {getDisplayName(product).charAt(0).toUpperCase()}
+                        {getSellerDisplayName(product).charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}

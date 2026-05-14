@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getDisplayName } from '@/lib/displayName';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,14 @@ export async function GET() {
         orderBy: { totalHcp: 'desc' },
         select: {
           totalHcp: true,
-          user: { select: { username: true, name: true } },
+          user: {
+            select: {
+              username: true,
+              name: true,
+              displayFullName: true,
+              displayNameOption: true,
+            },
+          },
         },
       }),
       prisma.follow.count({ where: { createdAt: { gte: weekAgo } } }),
@@ -93,10 +101,9 @@ export async function GET() {
         .catch(() => [] as { dishId: string | null; _count: { dishId: number } }[]),
     ]);
 
-    const topHcpUsername =
-      topHcp?.user?.username?.trim() ||
-      topHcp?.user?.name?.trim()?.split(/\s+/)[0] ||
-      null;
+    const topHcpUsername = topHcp?.user
+      ? getDisplayName(topHcp.user)
+      : null;
 
     let mostSavedProductTitle: string | null = null;
     let mostSavedProductCount = 0;
@@ -138,12 +145,9 @@ export async function GET() {
       risingSellerListings = risingGroup[0]._count.sellerId;
       const sp = await prisma.sellerProfile.findUnique({
         where: { id: topSellerId },
-        select: { User: { select: { username: true, name: true } } },
+        select: { User: { select: { username: true, name: true, displayFullName: true, displayNameOption: true } } },
       });
-      risingSellerUsername =
-        sp?.User?.username?.trim() ||
-        sp?.User?.name?.trim()?.split(/\s+/)[0] ||
-        null;
+      risingSellerUsername = sp?.User ? getDisplayName(sp.User) : null;
     }
 
     const body = {

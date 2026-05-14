@@ -599,28 +599,14 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </div>
                 )}
                 
-                {/* Gekozen naam weergave */}
-                {(() => {
-                  const fullName = user ? getDisplayName(user) : '';
-                  const nameParts = fullName.split(' ');
-                  const firstName = nameParts[0] || '';
-                  const lastName = nameParts.slice(1).join(' ') || '';
-                  
-                  switch (user?.displayNameOption) {
-                    case 'first':
-                      return <h1 className="text-xl font-bold text-gray-900">{firstName}</h1>;
-                    case 'last':
-                      return <h1 className="text-xl font-bold text-gray-900">{lastName}</h1>;
-                    case 'username':
-                      return <h1 className="text-xl font-bold text-gray-900">@{user ? getDisplayName(user) : ''}</h1>;
-                    case 'full':
-                    default:
-                      return <h1 className="text-xl font-bold text-gray-900">{fullName}</h1>;
-                  }
-                })()}
-                
-                {/* Altijd gebruikersnaam tonen als kleinere tekst */}
-                <p className="text-sm text-gray-500 mt-6">@{user ? getDisplayName(user) : ''}</p>
+                {/* Publieke weergavenaam (zelfde logica als overal) */}
+                <h1 className="text-xl font-bold text-gray-900">
+                  {user ? getDisplayName(user) : ''}
+                </h1>
+
+                <p className="text-sm text-gray-500 mt-6">
+                  @{user?.username ?? ''}
+                </p>
                 
                 {user?.place && (
                   <div className="flex items-center justify-center mt-6 text-sm text-gray-500">

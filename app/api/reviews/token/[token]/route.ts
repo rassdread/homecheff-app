@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isTokenExpired } from '@/lib/review-tokens';
+import { getDisplayName } from '@/lib/displayName';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,9 @@ export async function GET(
                   select: {
                     id: true,
                     name: true,
-                    username: true
+                    username: true,
+                    displayFullName: true,
+                    displayNameOption: true,
                   }
                 }
               }
@@ -58,7 +61,10 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            username: true,
+            displayFullName: true,
+            displayNameOption: true,
           }
         }
       }
@@ -95,9 +101,11 @@ export async function GET(
         productId: review.productId,
         productTitle: review.product.title,
         productImage: review.product.Image[0]?.fileUrl || null,
-        sellerName: review.product.seller?.User?.name || review.product.seller?.User?.username || 'Verkoper',
+        sellerName: review.product.seller?.User
+          ? getDisplayName(review.product.seller.User)
+          : 'Verkoper',
         orderNumber: review.order?.orderNumber || null,
-        buyerName: review.buyer.name || 'Klant'
+        buyerName: getDisplayName(review.buyer) || 'Klant'
       }
     });
 

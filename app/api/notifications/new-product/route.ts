@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
+import { getDisplayName } from '@/lib/displayName';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +26,9 @@ export async function POST(req: NextRequest) {
               select: {
                 id: true,
                 name: true,
-                username: true
+                username: true,
+                displayFullName: true,
+                displayNameOption: true,
               }
             }
           }
@@ -52,6 +55,9 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    const sellerUser = product.seller?.User;
+    const sellerLabel = sellerUser ? getDisplayName(sellerUser) : 'Een verkoper';
+
     // Create notifications for all followers
     const notifications = await Promise.all(
       followers.map(follower =>
@@ -62,11 +68,11 @@ export async function POST(req: NextRequest) {
             type: 'NEW_LISTING_NEARBY',
             payload: {
               title: 'Nieuwe product van je favoriete verkoper!',
-              message: `${product.seller?.User?.name || product.seller?.User?.username || 'Een verkoper'} heeft een nieuw product geplaatst: ${product.title}`,
+              message: `${sellerLabel} heeft een nieuw product geplaatst: ${product.title}`,
               from: 'system',
               productId: productId,
               sellerId: sellerId,
-              sellerName: product.seller?.User?.name || product.seller?.User?.username || 'Verkoper',
+              sellerName: sellerLabel,
               productTitle: product.title,
               productPrice: product.priceCents
             }

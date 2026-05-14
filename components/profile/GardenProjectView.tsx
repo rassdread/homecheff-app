@@ -412,7 +412,7 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
               {!isOwner && (
                 <StartChatButton
                   sellerId={project.user.id}
-                  sellerName={project.user.name || getDisplayName(project.user)}
+                  sellerName={getDisplayName(project.user)}
                   productId={project.id}
                   showSuccessMessage={true}
                   className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-lg hover:from-green-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
@@ -499,7 +499,7 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
                     {project.user.profileImage ? (
                       <Image
                         src={project.user.profileImage}
-                        alt={project.user.name || getDisplayName(project.user)}
+                        alt={getDisplayName(project.user)}
                         width={32}
                         height={32}
                         className="rounded-full border-2 border-emerald-500"
@@ -510,7 +510,7 @@ export default function GardenProjectView({ project, isOwner, ownerPermissions, 
                       </div>
                     )}
                     <span className="font-bold text-gray-800">
-                      {project.user.name || getDisplayName(project.user)}
+                      {getDisplayName(project.user)}
                     </span>
                   </div>
                 </div>
