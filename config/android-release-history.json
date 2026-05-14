@@ -29,6 +29,16 @@
         "apk",
         "aab"
       ]
+    },
+    {
+      "versionName": "1.0.14",
+      "versionCode": 19,
+      "at": "2026-05-14T14:38:21.852Z",
+      "changelog": "Apply public display preferences and improve profile consistency",
+      "artifacts": [
+        "apk",
+        "aab"
+      ]
     }
   ]
 }
