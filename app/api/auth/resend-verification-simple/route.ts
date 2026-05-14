@@ -1,80 +1,72 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/email";
-import { logEmailSendFailure } from "@/lib/email-log";
-import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
+import { NextRequest, NextResponse } from 'next/server';
+import { runResendVerificationCore } from '@/lib/auth-resend-verification-core';
 
 export const dynamic = 'force-dynamic';
 
+const RESENT_MSG =
+  'Een nieuwe verificatie-e-mail is verzonden. Controleer je inbox (en spam folder).';
+
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const result = await runResendVerificationCore(body?.email);
 
-    if (!email) {
-      return NextResponse.json({ error: "E-mailadres ontbreekt." }, { status: 400 });
+    switch (result.status) {
+      case 'sent':
+        return NextResponse.json(
+          {
+            success: true,
+            message: RESENT_MSG,
+          },
+          { status: 200 },
+        );
+      case 'generic_ok':
+        return NextResponse.json(
+          {
+            success: true,
+            generic: true,
+            message: RESENT_MSG,
+          },
+          { status: 200 },
+        );
+      case 'already_verified':
+        return NextResponse.json(
+          {
+            success: false,
+            code: 'ALREADY_VERIFIED',
+          },
+          { status: 409 },
+        );
+      case 'rate_limited':
+        return NextResponse.json(
+          {
+            success: false,
+            code: 'RATE_LIMITED',
+            retryAfterSec: result.retryAfterSec,
+          },
+          { status: 429 },
+        );
+      case 'invalid_email':
+        return NextResponse.json(
+          { success: false, code: 'INVALID_EMAIL' },
+          { status: 400 },
+        );
+      case 'email_service_unavailable':
+        return NextResponse.json(
+          { success: false, code: 'EMAIL_UNAVAILABLE' },
+          { status: 503 },
+        );
+      default:
+        return NextResponse.json(
+          { success: false, code: 'UNKNOWN' },
+          { status: 500 },
+        );
     }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "Geen gebruiker gevonden met dit e-mailadres." }, { status: 404 });
-    }
-
-    // Check if email is already verified
-    if (user.emailVerified) {
-      return NextResponse.json({ 
-        error: "Dit e-mailadres is al geverifieerd" 
-      }, { status: 400 });
-    }
-
-    // Generate new verification token and code
-    const verificationToken = generateVerificationToken();
-    const verificationCode = generateVerificationCode();
-    const verificationExpires = getVerificationExpires();
-
-    // Update user with new verification token and code
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerificationToken: verificationToken,
-        emailVerificationCode: verificationCode,
-        emailVerificationExpires: verificationExpires
-      }
-    });
-
-    // Send verification email
-    try {
-      await sendVerificationEmail({
-        email,
-        name: user.name || user.username || "Gebruiker",
-        verificationToken,
-        verificationCode,
-      });
-    } catch (emailErr) {
-      logEmailSendFailure("resend_verification_simple", emailErr, {
-        recipientEmail: email,
-      });
-      return NextResponse.json(
-        {
-          error:
-            "Er is een fout opgetreden bij het opnieuw verzenden van de verificatie-e-mail.",
-        },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      message: "Een nieuwe verificatie-e-mail is verzonden. Controleer je inbox (en spam folder)." 
-    }, { status: 200 });
-  } catch (error) {
-    console.error("Resend verification email error:", error);
-    return NextResponse.json({ 
-      error: "Er is een fout opgetreden bij het opnieuw verzenden van de verificatie-e-mail." 
-    }, { status: 500 });
+  } catch (e) {
+    console.error('[resend-verification-simple] unexpected', e instanceof Error ? e.message : 'error');
+    return NextResponse.json(
+      { success: false, code: 'SERVER_ERROR' },
+      { status: 500 },
+    );
   }
 }
-
-

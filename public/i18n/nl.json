@@ -5997,15 +5997,24 @@
   },
   "emailVerification": {
     "title": "Verifieer je e-mailadres",
-    "description": "We hebben een verificatiecode naar je e-mailadres gestuurd",
+    "description": "We hebben een 6-cijferige code naar je e-mailadres gestuurd.",
     "codeLabel": "Verificatiecode",
-    "codeHint": "Voer de 6-cijferige code in die je per e-mail hebt ontvangen",
+    "codeHint": "Voer de 6-cijferige code in uit je e-mail (deze staat niet in de app, om veiligheid).",
     "verify": "Verifiëren",
     "verifying": "Verifiëren...",
     "resend": "Code opnieuw verzenden",
     "resending": "Verzenden...",
-    "resendSuccess": "Verificatie-e-mail is opnieuw verzonden. Controleer je inbox (en spam folder).",
-    "success": "E-mailadres succesvol geverifieerd! Je wordt doorgestuurd...",
-    "info": "Geen code ontvangen? Controleer je spam folder of klik op \"Code opnieuw verzenden\"."
+    "resendSuccess": "Nieuwe code verzonden. Controleer je inbox (en spam).",
+    "success": "E-mail geverifieerd! Je wordt doorgestuurd…",
+    "info": "Geen code ontvangen? Controleer spam of tik op \"Code opnieuw verzenden\".",
+    "verifyCodeError": "Voer een geldige 6-cijferige code in.",
+    "verifyInvalid": "Deze code is ongeldig of verlopen. Probeer opnieuw of vraag een nieuwe code aan.",
+    "verifyNetworkError": "Er ging iets mis. Probeer het opnieuw.",
+    "resendRateLimited": "Wacht {seconds} seconden voordat je een nieuwe code aanvraagt.",
+    "resendAlreadyVerified": "Dit e-mailadres is al geverifieerd. Je kunt inloggen.",
+    "resendServiceUnavailable": "We konden nu geen e-mail versturen. Probeer het over een paar minuten opnieuw.",
+    "resendInvalidEmail": "Voer een geldig e-mailadres in.",
+    "resendGenericError": "Opnieuw versturen lukt nu niet. Probeer het later opnieuw.",
+    "resendNetworkError": "Netwerkfout. Controleer je verbinding en probeer opnieuw."
   }
 }

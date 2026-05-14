@@ -92,23 +92,69 @@ function VerifyEmailContent() {
         body: JSON.stringify({ email: state.email }),
       });
 
-      const data = await response.json();
+      const data = (await response.json().catch(() => ({}))) as {
+        success?: boolean;
+        message?: string;
+        code?: string;
+        retryAfterSec?: number;
+      };
 
       if (response.ok && data.success) {
         setState(prev => ({
           ...prev,
           status: 'pending',
-          message: data.message,
+          message: data.message || 'Nieuwe code verzonden.',
           canResend: false,
           isResending: false
         }));
-      } else {
+        return;
+      }
+
+      if (response.status === 429 && data.code === 'RATE_LIMITED') {
+        const sec =
+          typeof data.retryAfterSec === 'number' ? data.retryAfterSec : 60;
         setState(prev => ({
           ...prev,
-          message: data.error || 'Fout bij het opnieuw verzenden van de verificatie-e-mail',
+          message: `Wacht even voordat je een nieuwe code aanvraagt (${sec}s).`,
           isResending: false
         }));
+        return;
       }
+
+      if (response.status === 409 && data.code === 'ALREADY_VERIFIED') {
+        setState(prev => ({
+          ...prev,
+          message: 'Je e-mailadres is al geverifieerd. Je kunt inloggen.',
+          isResending: false
+        }));
+        return;
+      }
+
+      if (response.status === 503 || data.code === 'EMAIL_UNAVAILABLE') {
+        setState(prev => ({
+          ...prev,
+          message:
+            'E-mail kan nu niet worden verstuurd. Probeer het over een paar minuten opnieuw.',
+          isResending: false
+        }));
+        return;
+      }
+
+      if (response.status === 400 || data.code === 'INVALID_EMAIL') {
+        setState(prev => ({
+          ...prev,
+          message: 'Voer een geldig e-mailadres in.',
+          isResending: false
+        }));
+        return;
+      }
+
+      setState(prev => ({
+        ...prev,
+        message:
+          'Het opnieuw verzenden lukte niet. Probeer het zo opnieuw of neem contact op als het blijft gebeuren.',
+        isResending: false
+      }));
     } catch (error) {
       console.error('Resend error:', error);
       setState(prev => ({

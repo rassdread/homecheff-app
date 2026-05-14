@@ -5997,15 +5997,24 @@
   },
   "emailVerification": {
     "title": "Verify your email address",
-    "description": "We have sent a verification code to your email address",
+    "description": "We sent a 6-digit code to your email address.",
     "codeLabel": "Verification code",
-    "codeHint": "Enter the 6-digit code you received by email",
+    "codeHint": "Enter the 6-digit code from your email (not shown in the app for security).",
     "verify": "Verify",
     "verifying": "Verifying...",
     "resend": "Resend code",
     "resending": "Sending...",
-    "resendSuccess": "Verification email has been resent. Check your inbox (and spam folder).",
-    "success": "Email address successfully verified! You are being redirected...",
-    "info": "Didn't receive a code? Check your spam folder or click \"Resend code\"."
+    "resendSuccess": "New code sent. Check your inbox (and spam).",
+    "success": "Email verified! Redirecting…",
+    "info": "Did not receive a code? Check spam or tap “Resend code”.",
+    "verifyCodeError": "Enter a valid 6-digit code.",
+    "verifyInvalid": "That code is invalid or expired. Try again or request a new code.",
+    "verifyNetworkError": "Something went wrong. Please try again.",
+    "resendRateLimited": "Please wait {seconds} seconds before requesting a new code.",
+    "resendAlreadyVerified": "This email is already verified. You can sign in.",
+    "resendServiceUnavailable": "We could not send email right now. Try again in a few minutes.",
+    "resendInvalidEmail": "Enter a valid email address.",
+    "resendGenericError": "Could not resend right now. Try again later.",
+    "resendNetworkError": "Network error. Check your connection and try again."
   }
 }

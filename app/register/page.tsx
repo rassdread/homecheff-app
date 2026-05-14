@@ -180,7 +180,6 @@ type RegisterState = {
   };
   // Email verificatie
   showVerificationModal: boolean;
-  verificationCode?: string;
   verificationEmail?: string;
   registrationPassword?: string;
   registrationRedirectUrl?: string;
@@ -246,7 +245,6 @@ const REGISTER_INITIAL_STATE: RegisterState = {
   },
   // Email verificatie
   showVerificationModal: false,
-  verificationCode: undefined,
   verificationEmail: undefined,
   registrationPassword: undefined,
   registrationRedirectUrl: undefined,
@@ -544,7 +542,13 @@ function RegisterPageContent() {
       storage: "session",
       ttl: REGISTER_DRAFT_TTL,
       version: 3,
-      omitKeysBeforePersist: ["password", "confirmPassword", "registrationPassword"],
+      omitKeysBeforePersist: [
+        "password",
+        "confirmPassword",
+        "registrationPassword",
+        "showVerificationModal",
+        "verificationEmail",
+      ],
     });
 
   const hasDraft = React.useMemo(() => {
@@ -1854,7 +1858,6 @@ function RegisterPageContent() {
         setState(prev => ({
           ...prev,
           showVerificationModal: true,
-          verificationCode: data?.verificationCode,
           verificationEmail: state.email,
           registrationPassword: state.password, // Store password for auto-login after verification
           registrationRedirectUrl: redirectUrl
@@ -3844,7 +3847,6 @@ function RegisterPageContent() {
       <EmailVerificationModal
         isOpen={state.showVerificationModal}
         email={state.verificationEmail || state.email}
-        verificationCode={state.verificationCode}
         onVerified={async () => {
           // Auto-login after verification
           if (state.registrationPassword && state.verificationEmail) {

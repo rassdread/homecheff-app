@@ -444,7 +444,6 @@ export async function POST(req: NextRequest) {
       checkoutUrl, // Als bedrijf met abonnement: Stripe Checkout URL
       requiresPayment,
       needsVerification: true, // Indicate that email verification is required
-      verificationCode: verificationCode, // Return code for immediate display in popup
       user: {
         id: user.id,
         email,

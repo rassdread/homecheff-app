@@ -8,6 +8,7 @@ import { calculateStripeFeeForBuyer, DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DEL
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 
@@ -41,15 +42,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database to ensure we have the correct ID
+    // Get buyer with fields for account requirements (email verification, username, terms)
     const buyer = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true }
+      select: {
+        id: true,
+        emailVerified: true,
+        username: true,
+        termsAccepted: true,
+        passwordHash: true,
+        stripeConnectAccountId: true,
+        stripeConnectOnboardingCompleted: true,
+        Account: { select: { provider: true } },
+      },
     });
 
     if (!buyer) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    const checkoutBlock = assertAccountRequirementsOr403(buyer, 'postItem');
+    if (checkoutBlock) return checkoutBlock;
 
     const buyerId = buyer.id;
 
