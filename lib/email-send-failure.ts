@@ -8,6 +8,7 @@ export type EmailFailureCategory =
   | 'config_invalid_from'
   | 'provider_rejected_sender'
   | 'provider_rate_limited'
+  | 'provider_timeout'
   | 'provider_unknown';
 
 export class EmailSendFailure extends Error {
@@ -39,6 +40,16 @@ export function classifyResendClientError(err: unknown): EmailFailureCategory {
     pickString(e?.message) ||
     (err instanceof Error ? err.message : String(err))
   ).toLowerCase();
+
+  if (
+    status === 504 ||
+    status === 408 ||
+    /timeout|timed out|etimedout|econnreset|econnaborted|socket hang up|fetch failed/.test(
+      msg,
+    )
+  ) {
+    return 'provider_timeout';
+  }
 
   if (status === 429 || /rate limit|too many requests/.test(msg)) {
     return 'provider_rate_limited';

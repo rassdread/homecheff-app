@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { runResendVerificationCore } from '@/lib/auth-resend-verification-core';
+import { emailFailureReasonToDiagCategory } from '@/lib/email-public-diag';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
             success: false,
             code: 'EMAIL_UNAVAILABLE',
             reason: result.reason,
+            emailDiagCategory: emailFailureReasonToDiagCategory(result.reason),
           },
           { status: 503 },
         );
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
             success: false,
             code: 'EMAIL_NOT_CONFIGURED',
             reason: result.reason,
+            emailDiagCategory: emailFailureReasonToDiagCategory(result.reason),
           },
           { status: 500 },
         );

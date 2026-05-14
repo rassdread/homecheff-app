@@ -162,6 +162,14 @@
     "close": "Sluiten",
     "cta": "Ga verder"
   },
+  "accountRequirementsHints": {
+    "sendMessage_email": "Om berichten te sturen moet je e-mailadres geverifieerd zijn. Ontvang je geen verificatie-e-mail? Dan kan er tijdelijk iets mis zijn bij onze maildienst — je kunt gewoon verder browsen en het later opnieuw proberen.",
+    "sendMessage_profile": "Vul eerst de ontbrekende gegevens hieronder aan om berichten te kunnen sturen.",
+    "postItem_email": "Om iets te plaatsen moet je e-mailadres geverifieerd zijn. Geen mail ontvangen? Probeer het later opnieuw of neem contact op.",
+    "postItem_profile": "Vul eerst de ontbrekende gegevens aan om iets te kunnen plaatsen.",
+    "sell_email": "Om te verkopen moet je e-mailadres geverifieerd zijn. Geen mail ontvangen? Probeer het later opnieuw of neem contact op.",
+    "sell_profile": "Vul eerst de ontbrekende gegevens aan om te kunnen verkopen."
+  },
   "sellerActivation": {
     "title": "Klaar om te verkopen: voeg je locatie toe",
     "body": "Je mag eerst verkennen. Stad en land (en postcode in NL) helpen kopers en feeds in de buurt — pas aan wanneer het jou uitkomt.",
@@ -6022,8 +6030,8 @@
     "requiredReasonCreate": "Verifieer je e-mailadres om iets te plaatsen.",
     "requiredReasonCheckout": "Verifieer je e-mailadres om je bestelling af te ronden.",
     "openVerifyPage": "Of open de verificatiepagina",
-    "emailSendFailed": "De verificatie-e-mail kon niet worden verzonden. Probeer het later opnieuw.",
-    "requiredProviderUnavailableBody": "De verificatie-e-mail kon niet worden verzonden. Probeer het later opnieuw.",
+    "emailSendFailed": "Er is momenteel een probleem met het verzenden van verificatie-e-mails.",
+    "requiredProviderUnavailableBody": "Verificatie is tijdelijk niet beschikbaar (e-maildienst). Je kunt verder browsen; probeer later opnieuw, wijzig je e-mail in je profiel of neem contact op.",
     "backToSafety": "Terug",
     "emailNotConfiguredHint": "E-mail verzenden is nu niet mogelijk (configuratie). Probeer het later opnieuw of neem contact op als dit aanhoudt.",
     "codeLabel": "Verificatiecode",
@@ -6043,6 +6051,11 @@
     "resendServiceUnavailable": "We konden nu geen e-mail versturen. Probeer het over een paar minuten opnieuw.",
     "resendInvalidEmail": "Voer een geldig e-mailadres in.",
     "resendGenericError": "Opnieuw versturen lukt nu niet. Probeer het later opnieuw.",
-    "resendNetworkError": "Netwerkfout. Controleer je verbinding en probeer opnieuw."
+    "resendNetworkError": "Netwerkfout. Controleer je verbinding en probeer opnieuw.",
+    "resendDebounced": "Even geduld: we kunnen nu geen mail sturen. Probeer over {seconds} seconden opnieuw.",
+    "continueBrowsing": "Verder browsen",
+    "changeEmailCta": "E-mail wijzigen (profiel)",
+    "contactSupportCta": "Contact / support",
+    "providerDownLinksIntro": "Je blijft gewoon welkom op HomeCheff. Tip: controleer spam, of probeer later opnieuw."
   }
 }

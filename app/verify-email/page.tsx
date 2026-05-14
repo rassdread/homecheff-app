@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +10,7 @@ type VerificationState = {
   email?: string;
   canResend: boolean;
   isResending: boolean;
+  mailDown?: boolean;
 };
 
 function VerifyEmailContent() {
@@ -23,8 +24,12 @@ function VerifyEmailContent() {
     message: '',
     email: email || '',
     canResend: false,
-    isResending: false
+    isResending: false,
+    mailDown: false,
   });
+
+  const lastResendAtRef = useRef(0);
+  const MAIL_DOWN_COOLDOWN_MS = 45_000;
 
   // Auto-verify if token is provided in URL
   useEffect(() => {
@@ -81,6 +86,21 @@ function VerifyEmailContent() {
       return;
     }
 
+    if (state.mailDown) {
+      const now = Date.now();
+      const prev = lastResendAtRef.current;
+      if (prev > 0 && now - prev < MAIL_DOWN_COOLDOWN_MS) {
+        const sec = Math.ceil((MAIL_DOWN_COOLDOWN_MS - (now - prev)) / 1000);
+        setState(prev => ({
+          ...prev,
+          message: `Even geduld: e-mail is tijdelijk niet beschikbaar. Probeer over ${sec} seconden opnieuw.`,
+          isResending: false,
+        }));
+        return;
+      }
+    }
+    lastResendAtRef.current = Date.now();
+
     setState(prev => ({ ...prev, isResending: true, message: 'Verificatie-e-mail wordt opnieuw verzonden...' }));
     
     try {
@@ -105,7 +125,8 @@ function VerifyEmailContent() {
           status: 'pending',
           message: data.message || 'Nieuwe code verzonden.',
           canResend: false,
-          isResending: false
+          isResending: false,
+          mailDown: false,
         }));
         return;
       }
@@ -134,8 +155,9 @@ function VerifyEmailContent() {
         setState(prev => ({
           ...prev,
           message:
-            'E-mail kan nu niet worden verstuurd. Probeer het over een paar minuten opnieuw.',
-          isResending: false
+            'Er is momenteel een probleem met het verzenden van verificatie-e-mails. Je kunt verder browsen; probeer later opnieuw of wijzig je e-mail in je profiel.',
+          isResending: false,
+          mailDown: true,
         }));
         return;
       }
@@ -144,8 +166,9 @@ function VerifyEmailContent() {
         setState(prev => ({
           ...prev,
           message:
-            'E-mail kan nu niet worden verstuurd (configuratie). Probeer het later opnieuw of neem contact op.',
-          isResending: false
+            'E-mail verzenden is nu niet mogelijk (configuratie). Probeer het later opnieuw of neem contact op.',
+          isResending: false,
+          mailDown: true,
         }));
         return;
       }
@@ -329,7 +352,15 @@ function VerifyEmailContent() {
             <ul className="text-xs text-gray-600 space-y-1">
               <li>• Controleer je spam/junk folder</li>
               <li>• Verificatielinks zijn 24 uur geldig</li>
-              <li>• Neem contact op via <a href="mailto:support@homecheff.eu" className="text-emerald-600 hover:text-emerald-700">support@homecheff.eu</a></li>
+              <li>
+                • <Link href="/profile" className="text-emerald-600 hover:text-emerald-700">Profiel</Link>
+                {' — e-mailadres wijzigen'}
+              </li>
+              <li>
+                • <Link href="/contact" className="text-emerald-600 hover:text-emerald-700">Contact</Link>
+                {' of '}
+                <a href="mailto:support@homecheff.eu" className="text-emerald-600 hover:text-emerald-700">support@homecheff.eu</a>
+              </li>
             </ul>
           </div>
         </div>

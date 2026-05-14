@@ -12,6 +12,13 @@ export function tryShowAccountRequirementsFromApiBody(
   if (o.error !== 'ACCOUNT_REQUIREMENTS_MISSING' || !Array.isArray(o.missing)) {
     return false;
   }
-  openAccountRequirementsGate({ missing: o.missing as MissingRequirement[] });
+  openAccountRequirementsGate({
+    missing: o.missing as MissingRequirement[],
+    action:
+      o.action === 'sendMessage' || o.action === 'postItem' || o.action === 'sell'
+        ? o.action
+        : undefined,
+    hintKey: typeof o.hintKey === 'string' ? o.hintKey : undefined,
+  });
   return true;
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { X, Mail, RefreshCw, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -35,6 +36,8 @@ export default function EmailVerificationModal({
 }: EmailVerificationModalProps) {
   const { t } = useTranslation();
   const isRequired = mode === 'required';
+  const lastResendAtRef = useRef(0);
+  const PROVIDER_RESEND_COOLDOWN_MS = 45_000;
   const [step, setStep] = useState<'intro' | 'code'>(() => (isRequired ? 'code' : 'intro'));
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -43,6 +46,45 @@ export default function EmailVerificationModal({
   const [success, setSuccess] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [providerDown, setProviderDown] = useState(false);
+
+  const canSendResendNow = useCallback(() => {
+    if (!providerDown) return true;
+    const now = Date.now();
+    const prev = lastResendAtRef.current;
+    if (prev > 0 && now - prev < PROVIDER_RESEND_COOLDOWN_MS) {
+      const sec = Math.ceil((PROVIDER_RESEND_COOLDOWN_MS - (now - prev)) / 1000);
+      setError(t('emailVerification.resendDebounced', { seconds: String(sec) }));
+      return false;
+    }
+    lastResendAtRef.current = now;
+    return true;
+  }, [providerDown, t]);
+
+  const ProviderDownLinks = () => (
+    <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-left text-sm text-slate-700">
+      <p>{t('emailVerification.providerDownLinksIntro')}</p>
+      <div className="flex flex-col gap-2">
+        <Link
+          href="/profile"
+          className="font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+        >
+          {t('emailVerification.changeEmailCta')}
+        </Link>
+        <Link
+          href="/contact"
+          className="font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+        >
+          {t('emailVerification.contactSupportCta')}
+        </Link>
+        <Link
+          href="/verify-email"
+          className="text-slate-600 underline underline-offset-2 hover:text-slate-800"
+        >
+          {t('emailVerification.openVerifyPage')}
+        </Link>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,6 +97,12 @@ export default function EmailVerificationModal({
       Boolean(providerUnavailable) || (isRequired && initialSendOk === false),
     );
   }, [isOpen, isRequired, providerUnavailable, initialSendOk]);
+
+  useEffect(() => {
+    if (!providerDown) {
+      lastResendAtRef.current = 0;
+    }
+  }, [providerDown]);
 
   const requiredTitle = t('emailVerification.requiredTitle');
   const requiredBody = (() => {
@@ -92,12 +140,14 @@ export default function EmailVerificationModal({
 
       if (response.status === 503 || data?.code === 'EMAIL_UNAVAILABLE') {
         setProviderDown(true);
+        lastResendAtRef.current = Date.now();
         setError(t('emailVerification.emailSendFailed'));
         return false;
       }
 
       if (response.status === 500 && data?.code === 'EMAIL_NOT_CONFIGURED') {
         setProviderDown(true);
+        lastResendAtRef.current = Date.now();
         setError(t('emailVerification.emailNotConfiguredHint'));
         return false;
       }
@@ -136,6 +186,8 @@ export default function EmailVerificationModal({
       setStep('code');
       return;
     }
+
+    if (!canSendResendNow()) return;
 
     setIsResending(true);
     try {
@@ -189,9 +241,12 @@ export default function EmailVerificationModal({
   };
 
   const handleResend = async () => {
-    setIsResending(true);
     setError(null);
     setResendSuccess(false);
+
+    if (!canSendResendNow()) return;
+
+    setIsResending(true);
 
     try {
       const response = await postResend();
@@ -262,8 +317,11 @@ export default function EmailVerificationModal({
         </div>
 
         {providerUnavailable && showIntro ? (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left">
-            <p className="text-amber-900 text-sm">{t('emailVerification.emailSendFailed')}</p>
+          <div className="mb-4 space-y-3">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left">
+              <p className="text-amber-900 text-sm">{t('emailVerification.emailSendFailed')}</p>
+            </div>
+            <ProviderDownLinks />
           </div>
         ) : null}
 
@@ -304,6 +362,7 @@ export default function EmailVerificationModal({
             >
               {t('emailVerification.later')}
             </button>
+            {providerDown ? <ProviderDownLinks /> : null}
           </div>
         ) : null}
 
@@ -316,12 +375,13 @@ export default function EmailVerificationModal({
                     {t('emailVerification.requiredProviderUnavailableBody')}
                   </p>
                 </div>
+                <ProviderDownLinks />
                 <button
                   type="button"
                   onClick={() => onNavigateBack()}
                   className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
                 >
-                  {t('emailVerification.backToSafety')}
+                  {t('emailVerification.continueBrowsing')}
                 </button>
               </div>
             ) : null}
@@ -379,6 +439,7 @@ export default function EmailVerificationModal({
                 )}
               </button>
             </div>
+            {providerDown && !(isRequired && onNavigateBack) ? <ProviderDownLinks /> : null}
           </>
         )}
 

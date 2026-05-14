@@ -11,7 +11,9 @@ export function logEmailVerificationDiag(
     | 'config_missing_api_key'
     | 'config_invalid_from'
     | 'provider_rejected_sender'
-    | 'provider_unknown',
+    | 'provider_unknown'
+    | 'provider_timeout'
+    | 'provider_rate_limited',
   extra?: Record<string, string | number | boolean | undefined>,
 ): void {
   try {

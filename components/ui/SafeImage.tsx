@@ -1,8 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { ImgHTMLAttributes, useEffect, useState } from 'react';
+import { ImgHTMLAttributes, useCallback, useEffect, useState } from 'react';
 import { isSafari, isIOS } from '@/lib/browser-utils';
+import {
+  isLikelyRenderableImageSrc,
+  logImageLoadDiag,
+  safeImageHostHint,
+} from '@/lib/image-load-diagnostics';
 
 interface SafeImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> {
   src: string;
@@ -18,45 +23,39 @@ interface SafeImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'
   blurDataURL?: string;
 }
 
-/**
- * Detect if we're on an old Safari version that doesn't support Next.js Image well
- * iPhone 7 runs iOS 10-15, which has Safari versions that may have issues with Next.js Image
- * 
- * IMPORTANT: This only targets very old Safari versions to ensure modern browsers
- * always use Next.js Image for optimal performance
- */
 function shouldUseFallbackImage(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     const userAgent = navigator.userAgent;
-    
-    // Only target very old iOS versions (iOS 10-12, which iPhone 7 can run)
-    // iOS 13+ (Safari 13+) should work fine with Next.js Image
     const isOldIOS = isIOS() && /OS (1[0-2])_/.test(userAgent);
-    
-    // Only target very old Safari desktop versions (Safari 9 and below)
-    // Safari 10+ should work fine with Next.js Image
     const isOldSafari = isSafari() && !isIOS() && /Version\/[1-9]\./.test(userAgent);
-    
-    // Use fallback ONLY for very old Safari/iOS
-    // Modern browsers (Chrome, Firefox, Edge, Safari 13+, iOS 13+) will use Next.js Image
     return isOldIOS || isOldSafari;
-  } catch (e) {
-    // If detection fails, default to Next.js Image (safer for modern browsers)
+  } catch {
     return false;
   }
 }
 
+function Placeholder({
+  alt,
+  className,
+  fill,
+  width,
+  height,
+}: Pick<SafeImageProps, 'alt' | 'className' | 'fill' | 'width' | 'height'>) {
+  return (
+    <div
+      className={`bg-neutral-200 text-neutral-500 flex items-center justify-center text-xs ${className || ''} ${fill ? 'absolute inset-0 h-full w-full' : ''}`}
+      style={fill ? { objectFit: 'cover' } : { width, height }}
+      role="img"
+      aria-label={alt}
+    />
+  );
+}
+
 /**
- * SafeImage - A wrapper component that handles:
- * 1. Base64 data URLs (fallback for development)
- * 2. Cross-origin blob URLs (Vercel Blob in development causes CORS issues)
- * 3. Regular URLs (production Vercel Blob URLs work fine)
- * 4. Old Safari/iOS versions (iPhone 7 Safari) - use native <img> for better compatibility
- * 
- * Next.js Image component doesn't support data URLs or cross-origin blob URLs,
- * so we fall back to <img> for these cases
+ * SafeImage — data/blob URLs, old Safari, invalid src, and Next optimizer failures
+ * without repeated 422 / console spam.
  */
 export default function SafeImage({
   src,
@@ -66,41 +65,71 @@ export default function SafeImage({
   height,
   sizes,
   priority,
-  quality = 70, // Lower quality for faster loading (optimized for performance)
-  loading = 'lazy', // Default to lazy for mobile performance
+  quality = 70,
+  loading = 'lazy',
   placeholder,
   blurDataURL,
   className,
   ...props
 }: SafeImageProps) {
-  // Check if the src is a base64 data URL or a cross-origin blob URL
   const isDataUrl = src?.startsWith('data:');
-  
-  // Check for blob URLs - always use fallback since they cause CORS issues in dev
   const isBlobUrl = src?.startsWith('blob:');
-  
-  // For SSR, default to Next.js Image (will be corrected on client if needed)
-  // This prevents hydration mismatches
+  const srcOk = isLikelyRenderableImageSrc(src);
+
   const [useFallback, setUseFallback] = useState(false);
-  
+  const [optimizerFailed, setOptimizerFailed] = useState(false);
+  const [brokenNative, setBrokenNative] = useState(false);
+
   useEffect(() => {
-    // Only check on client side after hydration
-    // This ensures modern browsers always get Next.js Image initially
+    setOptimizerFailed(false);
+    setBrokenNative(false);
+  }, [src]);
+
+  useEffect(() => {
     const shouldFallback = shouldUseFallbackImage();
     if (shouldFallback !== useFallback) {
       setUseFallback(shouldFallback);
     }
   }, [useFallback]);
-  
-  // Use regular <img> tag for problematic URLs or old Safari
-  // Modern browsers will use Next.js Image (better performance, optimization)
-  const shouldUseNativeImg = useFallback || isDataUrl || isBlobUrl;
+
+  useEffect(() => {
+    if (!srcOk && src?.trim()) {
+      logImageLoadDiag('image_invalid_source', {
+        kind: fill ? 'fill' : 'fixed',
+        host: safeImageHostHint(src),
+      });
+    }
+  }, [src, srcOk, fill]);
+
+  const handleNextImageError = useCallback(() => {
+    logImageLoadDiag('image_optimizer_rejected', {
+      kind: fill ? 'fill' : 'fixed',
+      host: safeImageHostHint(src),
+    });
+    setOptimizerFailed(true);
+  }, [src, fill]);
+
+  const handleNativeError = useCallback(() => {
+    logImageLoadDiag('image_missing_blob', {
+      kind: fill ? 'fill' : 'fixed',
+      host: safeImageHostHint(src),
+    });
+    setBrokenNative(true);
+  }, [src, fill]);
+
+  if (!src?.trim() || !srcOk) {
+    return <Placeholder alt={alt} className={className} fill={fill} width={width} height={height} />;
+  }
+
+  if (brokenNative) {
+    return <Placeholder alt={alt} className={className} fill={fill} width={width} height={height} />;
+  }
+
+  const shouldUseNativeImg = useFallback || isDataUrl || isBlobUrl || optimizerFailed;
 
   if (shouldUseNativeImg) {
-    // For old Safari/iOS, use native <img> tag with proper attributes
-    // Don't use loading="lazy" on old Safari as it may not be supported
     const imgLoading = useFallback ? undefined : loading;
-    
+
     if (fill) {
       return (
         <img
@@ -109,6 +138,7 @@ export default function SafeImage({
           className={`${className || ''} absolute inset-0 h-full w-full object-cover object-center`}
           loading={imgLoading}
           style={{ objectFit: 'cover', objectPosition: 'center' }}
+          onError={handleNativeError}
           {...props}
         />
       );
@@ -122,14 +152,13 @@ export default function SafeImage({
         height={height}
         className={className}
         loading={imgLoading}
+        onError={handleNativeError}
         {...props}
       />
     );
   }
 
-  // Use Next.js Image component for regular URLs on modern browsers
-  // Don't pass both priority and loading - if priority is true, loading should not be set
-  const imageProps: any = {
+  const imageProps: Record<string, unknown> = {
     src,
     alt,
     fill,
@@ -141,14 +170,13 @@ export default function SafeImage({
     placeholder,
     blurDataURL,
     className,
-    ...props
+    onError: handleNextImageError,
+    ...props,
   };
 
-  // Only add loading prop if priority is not true
   if (!priority) {
     imageProps.loading = loading;
   }
 
-  return <Image {...imageProps} />;
+  return <Image {...(imageProps as Parameters<typeof Image>[0])} />;
 }
-

@@ -162,6 +162,14 @@
     "close": "Close",
     "cta": "Continue"
   },
+  "accountRequirementsHints": {
+    "sendMessage_email": "To send messages, your email must be verified. If you are not receiving verification email, our mail provider may be temporarily unavailable — you can keep browsing and try again later.",
+    "sendMessage_profile": "Complete the missing steps below before you can send messages.",
+    "postItem_email": "To post a listing, your email must be verified. If email is not arriving, try again later or contact support.",
+    "postItem_profile": "Complete the missing account details before you can post.",
+    "sell_email": "To sell, your email must be verified. If email is not arriving, try again later or contact support.",
+    "sell_profile": "Complete the missing account details before you can sell."
+  },
   "sellerActivation": {
     "title": "When you're ready to sell: add your location",
     "body": "You can explore first. A city and country (and postal code in NL) help buyers and nearby feeds — update whenever it suits you.",
@@ -6022,8 +6030,8 @@
     "requiredReasonCreate": "Verify your email address to post something.",
     "requiredReasonCheckout": "Verify your email address to complete your order.",
     "openVerifyPage": "Or open the verification page",
-    "emailSendFailed": "The verification email could not be sent. Please try again later.",
-    "requiredProviderUnavailableBody": "The verification email could not be sent. Please try again later.",
+    "emailSendFailed": "There is currently a problem sending verification emails.",
+    "requiredProviderUnavailableBody": "Verification email is temporarily unavailable (mail service). You can keep browsing; try again later, change your email in your profile, or contact support.",
     "backToSafety": "Go back",
     "emailNotConfiguredHint": "Email cannot be sent right now (configuration). Please try again later or contact support if this persists.",
     "codeLabel": "Verification code",
@@ -6043,6 +6051,11 @@
     "resendServiceUnavailable": "We could not send email right now. Try again in a few minutes.",
     "resendInvalidEmail": "Enter a valid email address.",
     "resendGenericError": "Could not resend right now. Try again later.",
-    "resendNetworkError": "Network error. Check your connection and try again."
+    "resendNetworkError": "Network error. Check your connection and try again.",
+    "resendDebounced": "Please wait — we cannot send mail right now. Try again in {seconds} seconds.",
+    "continueBrowsing": "Continue browsing",
+    "changeEmailCta": "Change email (profile)",
+    "contactSupportCta": "Contact / support",
+    "providerDownLinksIntro": "You can still use HomeCheff. Tip: check spam, or try again later."
   }
 }

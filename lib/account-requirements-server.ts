@@ -11,10 +11,26 @@ export function accountRequirementsMissingResponse(
   action: AccountRequirementsAction
 ): NextResponse {
   const snap = getAccountRequirements(user ?? null);
+  const missing = missingRequirementsForAction(action, snap.missing);
+  const needsEmail = missing.some((m) => m.key === 'emailVerified');
+  const hintKey = (() => {
+    if (action === 'sendMessage') {
+      return needsEmail ? 'sendMessage_email' : 'sendMessage_profile';
+    }
+    if (action === 'postItem') {
+      return needsEmail ? 'postItem_email' : 'postItem_profile';
+    }
+    if (action === 'sell') {
+      return needsEmail ? 'sell_email' : 'sell_profile';
+    }
+    return undefined;
+  })();
   return NextResponse.json(
     {
       error: 'ACCOUNT_REQUIREMENTS_MISSING',
-      missing: missingRequirementsForAction(action, snap.missing),
+      action,
+      missing,
+      hintKey,
     },
     { status: 403 }
   );

@@ -20,11 +20,13 @@ export default function AccountRequirementsGateHost() {
   const nativeMounted = useIsNativeAppMounted();
   const [open, setOpen] = useState(false);
   const [missing, setMissing] = useState<OpenAccountRequirementsGateDetail['missing']>([]);
+  const [hintKey, setHintKey] = useState<string | null>(null);
 
   const onOpen = useCallback((e: Event) => {
     const ce = e as CustomEvent<OpenAccountRequirementsGateDetail>;
     const next = ce.detail?.missing;
     setMissing(Array.isArray(next) ? next : []);
+    setHintKey(typeof ce.detail?.hintKey === 'string' ? ce.detail.hintKey : null);
     setOpen(true);
   }, []);
 
@@ -74,6 +76,11 @@ export default function AccountRequirementsGateHost() {
         <p className="px-5 pt-4 text-sm leading-relaxed text-slate-600">
           {t('accountRequirementsGate.body')}
         </p>
+        {hintKey ? (
+          <p className="px-5 pt-3 text-sm leading-relaxed text-slate-700 border-b border-slate-100 pb-3">
+            {t(`accountRequirementsHints.${hintKey}` as never)}
+          </p>
+        ) : null}
         {showUsernameHint ? (
           <p className="px-5 pt-2 text-sm font-medium text-amber-800 bg-amber-50 border-y border-amber-100">
             {t('accountRequirementsGate.subtitleUsername')}

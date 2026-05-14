@@ -15,6 +15,8 @@ import { generateVerificationToken, generateVerificationCode, getVerificationExp
 import { sendVerificationEmail } from "@/lib/email";
 import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
 import { logEmailVerificationDiag } from "@/lib/email-verification-diagnostics";
+import { logEmailDeliveryDiag } from "@/lib/email-delivery-diagnostics";
+import { emailFailureReasonToDiagCategory } from "@/lib/email-public-diag";
 import { EmailSendFailure } from "@/lib/email-send-failure";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { buildRegistrationFullName } from "@/lib/person-name";
@@ -461,6 +463,14 @@ export async function POST(req: NextRequest) {
       logEmailVerificationDiag('email_verification_send_failed', {
         context: 'register',
         reason: summarizeEmailError(emailError, 120),
+      });
+      const diagCat =
+        emailError instanceof EmailSendFailure
+          ? emailFailureReasonToDiagCategory(emailError.category)
+          : 'email_provider_unknown';
+      logEmailDeliveryDiag('email_send_skipped', {
+        route: 'POST /api/auth/register',
+        emailDiagCategory: diagCat,
       });
       if (emailError instanceof EmailSendFailure) {
         verificationEmailSkippedReason =

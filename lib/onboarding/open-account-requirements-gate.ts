@@ -1,9 +1,14 @@
-import type { MissingRequirement } from '@/lib/account-requirements';
+import type {
+  AccountRequirementsAction,
+  MissingRequirement,
+} from '@/lib/account-requirements';
 
 export const ACCOUNT_REQUIREMENTS_OPEN_EVENT = 'hc-account-requirements-open';
 
 export type OpenAccountRequirementsGateDetail = {
   missing: MissingRequirement[];
+  action?: AccountRequirementsAction;
+  hintKey?: string;
 };
 
 export function openAccountRequirementsGate(detail: OpenAccountRequirementsGateDetail): void {

@@ -7,6 +7,8 @@ import {
 } from '@/lib/email-from';
 import { logEmailSendFailure, summarizeEmailError } from '@/lib/email-log';
 import { logEmailVerificationDiag } from '@/lib/email-verification-diagnostics';
+import { logEmailDeliveryDiag } from '@/lib/email-delivery-diagnostics';
+import { maskSenderPreview } from '@/lib/email-delivery-status';
 import {
   classifyResendClientError,
   EmailSendFailure,
@@ -17,6 +19,7 @@ function requireResend(): Resend {
   if (!key) {
     console.error('[email] RESEND_API_KEY ontbreekt');
     logEmailVerificationDiag('config_missing_api_key', {});
+    logEmailDeliveryDiag('email_config_missing', { route: 'requireResend' });
     throw new Error('RESEND_API_KEY_NOT_CONFIGURED');
   }
   return new Resend(key);
@@ -30,9 +33,21 @@ export interface EmailVerificationData {
 }
 
 export async function sendVerificationEmail({ email, name, verificationToken, verificationCode }: EmailVerificationData) {
+  const route = 'sendVerificationEmail';
+  const senderPreview = maskSenderPreview(getRawFromEnv());
   logEmailVerificationDiag('email_verification_send_started', {
     hasCode: Boolean(verificationCode),
   });
+  logEmailDeliveryDiag(
+    'email_send_attempt',
+    {
+      route,
+      senderPreview,
+      resendApiKeyPresent: Boolean(process.env.RESEND_API_KEY?.trim()),
+      fromEmailValid: validateFromHeader(getRawFromEnv()),
+    },
+    10_000,
+  );
   try {
     const rawFrom = getRawFromEnv();
     if (!validateFromHeader(rawFrom)) {
@@ -41,6 +56,7 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
           process.env.FROM_EMAIL?.trim() || process.env.RESEND_FROM?.trim(),
         ),
       });
+      logEmailDeliveryDiag('email_invalid_sender', { route, senderPreview });
       throw new EmailSendFailure(
         'EMAIL_FROM_INVALID',
         'config_invalid_from',
@@ -167,19 +183,36 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
         reason: summarizeEmailError(error, 120),
       });
       if (cat === 'provider_rate_limited') {
+        logEmailDeliveryDiag('email_provider_rate_limit', { route });
         throw new EmailSendFailure(
           'RESEND_RATE_LIMITED',
           'provider_rate_limited',
           'EMAIL_UNAVAILABLE',
         );
       }
+      if (cat === 'provider_timeout') {
+        logEmailDeliveryDiag('email_provider_timeout', { route });
+        throw new EmailSendFailure(
+          'RESEND_TIMEOUT',
+          'provider_timeout',
+          'EMAIL_UNAVAILABLE',
+        );
+      }
       if (cat === 'provider_rejected_sender') {
+        logEmailDeliveryDiag('email_provider_rejected', {
+          route,
+          senderPreview: maskSenderPreview(getRawFromEnv()),
+        });
         throw new EmailSendFailure(
           'RESEND_SEND_REJECTED',
           'provider_rejected_sender',
           'EMAIL_UNAVAILABLE',
         );
       }
+      logEmailDeliveryDiag('email_provider_unknown', {
+        route,
+        reason: summarizeEmailError(error, 80),
+      });
       throw new EmailSendFailure(
         'RESEND_SEND_FAILED',
         'provider_unknown',
@@ -187,6 +220,15 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
       );
     }
 
+    const resendId =
+      data && typeof data === 'object' && 'id' in data && typeof (data as { id: unknown }).id === 'string'
+        ? String((data as { id: string }).id)
+        : undefined;
+    logEmailDeliveryDiag('email_send_success', {
+      route,
+      senderPreview,
+      resendIdSuffix: resendId ? resendId.slice(-12) : undefined,
+    });
     logEmailVerificationDiag('email_verification_send_success', {});
     return { success: true, data };
   } catch (error) {
@@ -194,6 +236,15 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
       logEmailSendFailure('verification', error, { recipientEmail: email });
     }
     if (error instanceof EmailSendFailure) {
+      if (
+        error.category === 'config_missing_api_key' ||
+        error.category === 'config_invalid_from'
+      ) {
+        logEmailDeliveryDiag('email_config_missing', {
+          route,
+          category: error.category,
+        });
+      }
       throw error;
     }
     logEmailVerificationDiag('email_verification_send_failed', {
@@ -201,6 +252,7 @@ export async function sendVerificationEmail({ email, name, verificationToken, ve
       reason: summarizeEmailError(error, 120),
     });
     if (error instanceof Error && error.message.includes('RESEND_API_KEY_NOT_CONFIGURED')) {
+      logEmailDeliveryDiag('email_config_missing', { route, stage: 'requireResend' });
       throw new EmailSendFailure(
         error.message,
         'config_missing_api_key',

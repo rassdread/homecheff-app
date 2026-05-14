@@ -20,6 +20,30 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'homecheff.eu',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.homecheff.eu',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'homecheff.nl',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.homecheff.nl',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // Use JPEG as fallback for old Safari (iPhone 7) that doesn't support WebP/AVIF
     formats: ['image/avif', 'image/webp'],
