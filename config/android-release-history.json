@@ -19,6 +19,16 @@
         "apk",
         "aab"
       ]
+    },
+    {
+      "versionName": "1.0.13",
+      "versionCode": 18,
+      "at": "2026-05-14T14:03:47.326Z",
+      "changelog": "Fix email verification and notification stability",
+      "artifacts": [
+        "apk",
+        "aab"
+      ]
     }
   ]
 }
