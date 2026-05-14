@@ -1910,7 +1910,8 @@ function RegisterPageContent() {
             email: state.email.trim(),
             initialSendOk: data?.verificationEmailSent === true,
             providerUnavailable:
-              data?.verificationEmailSkippedReason === 'EMAIL_UNAVAILABLE',
+              data?.verificationEmailSkippedReason === 'EMAIL_UNAVAILABLE' ||
+              data?.verificationEmailSkippedReason === 'EMAIL_NOT_CONFIGURED',
           }),
         );
       }

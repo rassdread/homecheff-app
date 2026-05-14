@@ -140,6 +140,16 @@ function VerifyEmailContent() {
         return;
       }
 
+      if (response.status === 500 && data.code === 'EMAIL_NOT_CONFIGURED') {
+        setState(prev => ({
+          ...prev,
+          message:
+            'E-mail kan nu niet worden verstuurd (configuratie). Probeer het later opnieuw of neem contact op.',
+          isResending: false
+        }));
+        return;
+      }
+
       if (response.status === 400 || data.code === 'INVALID_EMAIL') {
         setState(prev => ({
           ...prev,

@@ -59,8 +59,21 @@ export async function POST(req: NextRequest) {
         );
       case 'email_service_unavailable':
         return NextResponse.json(
-          { success: false, code: 'EMAIL_UNAVAILABLE' },
+          {
+            success: false,
+            code: 'EMAIL_UNAVAILABLE',
+            reason: result.reason,
+          },
           { status: 503 },
+        );
+      case 'email_not_configured':
+        return NextResponse.json(
+          {
+            success: false,
+            code: 'EMAIL_NOT_CONFIGURED',
+            reason: result.reason,
+          },
+          { status: 500 },
         );
       default:
         return NextResponse.json(

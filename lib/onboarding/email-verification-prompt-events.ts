@@ -5,4 +5,8 @@ export type EmailVerificationRequiredReason = 'message' | 'create' | 'checkout' 
 export type EmailVerificationRequiredDetail = {
   email: string;
   reason: EmailVerificationRequiredReason;
+  /** false wanneer registratie geen mail kon sturen */
+  initialSendOk?: boolean;
+  /** true wanneer provider/config faalde bij signup */
+  providerUnavailable?: boolean;
 };

@@ -30,10 +30,13 @@ export default function NotificationsPage() {
   }, []);
 
   const load = useCallback(async () => {
-    if (!session?.user?.email) return;
+    if (status !== 'authenticated' || !session?.user?.email) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/notifications?limit=100');
+      const res = await fetch('/api/notifications?limit=100', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
       if (res.ok) {
         const data = await res.json();
         setItems(mapApiToFeed(data.notifications || []));
@@ -41,7 +44,7 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.email, mapApiToFeed]);
+  }, [status, session?.user?.email, mapApiToFeed]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -52,7 +55,7 @@ export default function NotificationsPage() {
       router.replace('/login?callbackUrl=/notifications');
       return;
     }
-    if (session?.user?.email) void load();
+    if (status === 'authenticated' && session?.user?.email) void load();
   }, [status, session?.user?.email, router, load]);
 
   const markRead = async (ids: string[]) => {

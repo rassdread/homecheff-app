@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { sendVerificationEmail } from '@/lib/email';
 import { logEmailSendFailure, summarizeEmailError } from '@/lib/email-log';
 import { logEmailVerificationDiag } from '@/lib/email-verification-diagnostics';
+import { EmailSendFailure } from '@/lib/email-send-failure';
 import {
   generateVerificationToken,
   generateVerificationCode,
@@ -17,12 +18,16 @@ export type ResendVerificationCoreResult =
   | { status: 'generic_ok' }
   | { status: 'already_verified' }
   | { status: 'rate_limited'; retryAfterSec: number }
-  | { status: 'email_service_unavailable' }
+  | { status: 'email_service_unavailable'; reason: string }
+  | { status: 'email_not_configured'; reason: string }
   | { status: 'invalid_email' };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isMissingResendKey(err: unknown): boolean {
+  if (err instanceof EmailSendFailure) {
+    return err.category === 'config_missing_api_key';
+  }
   const msg = err instanceof Error ? err.message : String(err);
   return msg.includes('RESEND_API_KEY_NOT_CONFIGURED');
 }
@@ -93,15 +98,30 @@ export async function runResendVerificationCore(
     logEmailVerificationDiag('email_verification_resend_success', {});
     return { status: 'sent' };
   } catch (err) {
-    logEmailSendFailure('resend_verification', err, {
-      recipientEmail: user.email,
-    });
+    if (!(err instanceof EmailSendFailure)) {
+      logEmailSendFailure('resend_verification', err, {
+        recipientEmail: user.email,
+      });
+    }
+    if (err instanceof EmailSendFailure) {
+      logEmailVerificationDiag('email_verification_resend_failed', {
+        category: err.category,
+        reason: summarizeEmailError(err, 120),
+      });
+      if (err.apiCode === 'EMAIL_NOT_CONFIGURED') {
+        if (err.category === 'config_missing_api_key') {
+          console.error('[resend_verification] email provider not configured');
+        }
+        return { status: 'email_not_configured', reason: err.category };
+      }
+      return { status: 'email_service_unavailable', reason: err.category };
+    }
     logEmailVerificationDiag('email_verification_resend_failed', {
       reason: summarizeEmailError(err, 120),
     });
     if (isMissingResendKey(err)) {
       console.error('[resend_verification] email provider not configured');
     }
-    return { status: 'email_service_unavailable' };
+    return { status: 'email_service_unavailable', reason: 'provider_unknown' };
   }
 }

@@ -96,6 +96,8 @@ export default function EmailVerificationPromptHost() {
       if (u?.emailVerified) return;
       setEmail(d.email);
       setRequiredReason(d.reason || 'generic');
+      setInitialSendOk(d.initialSendOk !== false);
+      setProviderUnavailable(Boolean(d.providerUnavailable));
       setOpenKind('required');
     };
     window.addEventListener(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, handler as EventListener);
@@ -133,6 +135,8 @@ export default function EmailVerificationPromptHost() {
       email={email}
       mode="required"
       requiredReason={requiredReason}
+      initialSendOk={initialSendOk}
+      providerUnavailable={providerUnavailable}
       onVerified={async () => {
         try {
           await update();
@@ -141,6 +145,14 @@ export default function EmailVerificationPromptHost() {
         }
         setOpenKind(null);
         router.refresh();
+      }}
+      onNavigateBack={() => {
+        setOpenKind(null);
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+          router.back();
+        } else {
+          router.replace('/');
+        }
       }}
     />
   );

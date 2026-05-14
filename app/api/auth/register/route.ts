@@ -15,6 +15,7 @@ import { generateVerificationToken, generateVerificationCode, getVerificationExp
 import { sendVerificationEmail } from "@/lib/email";
 import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
 import { logEmailVerificationDiag } from "@/lib/email-verification-diagnostics";
+import { EmailSendFailure } from "@/lib/email-send-failure";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { buildRegistrationFullName } from "@/lib/person-name";
 import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
@@ -438,7 +439,10 @@ export async function POST(req: NextRequest) {
     });
 
     let verificationEmailSent = false;
-    let verificationEmailSkippedReason: 'EMAIL_UNAVAILABLE' | null = null;
+    let verificationEmailSkippedReason:
+      | 'EMAIL_UNAVAILABLE'
+      | 'EMAIL_NOT_CONFIGURED'
+      | null = null;
 
     // Send verification email
     try {
@@ -458,9 +462,18 @@ export async function POST(req: NextRequest) {
         context: 'register',
         reason: summarizeEmailError(emailError, 120),
       });
-      const msg = emailError instanceof Error ? emailError.message : String(emailError);
-      if (msg.includes('RESEND_API_KEY_NOT_CONFIGURED') || msg.includes('Email service unavailable')) {
-        verificationEmailSkippedReason = 'EMAIL_UNAVAILABLE';
+      if (emailError instanceof EmailSendFailure) {
+        verificationEmailSkippedReason =
+          emailError.apiCode === 'EMAIL_NOT_CONFIGURED'
+            ? 'EMAIL_NOT_CONFIGURED'
+            : 'EMAIL_UNAVAILABLE';
+      } else {
+        const msg = emailError instanceof Error ? emailError.message : String(emailError);
+        if (msg.includes('RESEND_API_KEY_NOT_CONFIGURED')) {
+          verificationEmailSkippedReason = 'EMAIL_NOT_CONFIGURED';
+        } else if (msg.includes('Email service unavailable')) {
+          verificationEmailSkippedReason = 'EMAIL_UNAVAILABLE';
+        }
       }
     }
 

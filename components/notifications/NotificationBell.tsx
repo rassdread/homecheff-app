@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -13,6 +13,8 @@ const BADGE_FETCH: RequestInit = {
   credentials: 'same-origin',
 };
 
+let lastPollSkipLog = 0;
+
 /**
  * Meldingsbel: badge = GET /api/notifications unreadCount.
  * Klik opent altijd /notifications (geen dropdown onder sticky header / overflow-clipping).
@@ -20,40 +22,82 @@ const BADGE_FETCH: RequestInit = {
 export default function NotificationBell() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [unreadCount, setUnreadCount] = useState(0);
+  const consecutiveFailuresRef = useRef(0);
+  const nextAllowedAtRef = useRef(0);
 
-  const refreshUnread = useCallback(async (source: string = 'unknown') => {
-    if (!session?.user?.email) {
-      setUnreadCount(0);
-      return;
-    }
-    try {
-      const res = await fetch('/api/notifications?limit=1', BADGE_FETCH);
-      if (!res.ok) {
-        console.warn('[NotificationBell] unread fetch failed', {
-          source,
-          status: res.status,
-        });
+  const refreshUnread = useCallback(
+    async (source: string = 'unknown') => {
+      if (status !== 'authenticated' || !session?.user?.email) {
+        setUnreadCount(0);
+        consecutiveFailuresRef.current = 0;
+        nextAllowedAtRef.current = 0;
         return;
       }
-      const data = await res.json();
-      const uc = typeof data.unreadCount === 'number' ? data.unreadCount : 0;
-      setUnreadCount(uc);
-      devBadgeLog({
-        notificationsUnreadCount: uc,
-        source: `bell:${source}:/api/notifications?limit=1`,
-      });
-    } catch (error) {
-      console.warn('[NotificationBell] unread fetch error', {
-        source,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }, [session?.user?.email]);
+
+      const now = Date.now();
+      if (now < nextAllowedAtRef.current) {
+        if (now - lastPollSkipLog > 60_000) {
+          lastPollSkipLog = now;
+          console.warn('[NotificationBell] poll skipped (backoff)', { source });
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/notifications?limit=1', BADGE_FETCH);
+        if (!res.ok) {
+          if (res.status === 401) {
+            setUnreadCount(0);
+            consecutiveFailuresRef.current = 0;
+            nextAllowedAtRef.current = 0;
+            return;
+          }
+          consecutiveFailuresRef.current += 1;
+          if (consecutiveFailuresRef.current >= 2) {
+            const ms = Math.min(
+              600_000,
+              10_000 * 2 ** (consecutiveFailuresRef.current - 2),
+            );
+            nextAllowedAtRef.current = Date.now() + ms;
+          }
+          console.warn('[NotificationBell] unread fetch failed', {
+            source,
+            status: res.status,
+          });
+          return;
+        }
+        consecutiveFailuresRef.current = 0;
+        nextAllowedAtRef.current = 0;
+        const data = await res.json();
+        const uc = typeof data.unreadCount === 'number' ? data.unreadCount : 0;
+        setUnreadCount(uc);
+        devBadgeLog({
+          notificationsUnreadCount: uc,
+          source: `bell:${source}:/api/notifications?limit=1`,
+        });
+      } catch (error) {
+        consecutiveFailuresRef.current += 1;
+        if (consecutiveFailuresRef.current >= 2) {
+          const ms = Math.min(
+            600_000,
+            10_000 * 2 ** (consecutiveFailuresRef.current - 2),
+          );
+          nextAllowedAtRef.current = Date.now() + ms;
+        }
+        console.warn('[NotificationBell] unread fetch error', {
+          source,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    },
+    [session?.user?.email, status],
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (status === 'loading') return;
 
     void refreshUnread('mount');
 
@@ -94,9 +138,9 @@ export default function NotificationBell() {
         /* ignore */
       }
     };
-  }, [refreshUnread]);
+  }, [refreshUnread, status]);
 
-  if (!session?.user?.email) {
+  if (status !== 'authenticated' || !session?.user?.email) {
     return null;
   }
 

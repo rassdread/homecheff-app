@@ -7,7 +7,11 @@ export function logEmailVerificationDiag(
     | 'email_verification_send_success'
     | 'email_verification_send_failed'
     | 'email_verification_resend_success'
-    | 'email_verification_resend_failed',
+    | 'email_verification_resend_failed'
+    | 'config_missing_api_key'
+    | 'config_invalid_from'
+    | 'provider_rejected_sender'
+    | 'provider_unknown',
   extra?: Record<string, string | number | boolean | undefined>,
 ): void {
   try {

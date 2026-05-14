@@ -17,6 +17,8 @@ interface EmailVerificationModalProps {
   onVerified: () => void;
   onClose?: () => void;
   onLater?: () => void;
+  /** Required mode: veilige uitweg wanneer e-mailprovider niet bereikbaar is */
+  onNavigateBack?: () => void;
 }
 
 export default function EmailVerificationModal({
@@ -29,6 +31,7 @@ export default function EmailVerificationModal({
   onVerified,
   onClose,
   onLater,
+  onNavigateBack,
 }: EmailVerificationModalProps) {
   const { t } = useTranslation();
   const isRequired = mode === 'required';
@@ -39,6 +42,7 @@ export default function EmailVerificationModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [providerDown, setProviderDown] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,7 +51,10 @@ export default function EmailVerificationModal({
     setError(null);
     setSuccess(false);
     setResendSuccess(false);
-  }, [isOpen, isRequired]);
+    setProviderDown(
+      Boolean(providerUnavailable) || (isRequired && initialSendOk === false),
+    );
+  }, [isOpen, isRequired, providerUnavailable, initialSendOk]);
 
   const requiredTitle = t('emailVerification.requiredTitle');
   const requiredBody = (() => {
@@ -84,7 +91,14 @@ export default function EmailVerificationModal({
       }
 
       if (response.status === 503 || data?.code === 'EMAIL_UNAVAILABLE') {
+        setProviderDown(true);
         setError(t('emailVerification.emailSendFailed'));
+        return false;
+      }
+
+      if (response.status === 500 && data?.code === 'EMAIL_NOT_CONFIGURED') {
+        setProviderDown(true);
+        setError(t('emailVerification.emailNotConfiguredHint'));
         return false;
       }
 
@@ -94,6 +108,7 @@ export default function EmailVerificationModal({
       }
 
       if (response.ok && data.success) {
+        setProviderDown(false);
         setResendSuccess(true);
         setError(null);
         return true;
@@ -294,6 +309,22 @@ export default function EmailVerificationModal({
 
         {!success && !showIntro && (
           <>
+            {isRequired && providerDown && onNavigateBack ? (
+              <div className="mb-6 space-y-3">
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
+                  <p className="text-sm text-amber-900">
+                    {t('emailVerification.requiredProviderUnavailableBody')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigateBack()}
+                  className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  {t('emailVerification.backToSafety')}
+                </button>
+              </div>
+            ) : null}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('emailVerification.codeLabel')}
