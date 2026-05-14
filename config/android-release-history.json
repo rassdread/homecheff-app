@@ -39,6 +39,16 @@
         "apk",
         "aab"
       ]
+    },
+    {
+      "versionName": "1.0.15",
+      "versionCode": 20,
+      "at": "2026-05-14T16:12:08.929Z",
+      "changelog": "Fix notification and chat unread consistency",
+      "artifacts": [
+        "apk",
+        "aab"
+      ]
     }
   ]
 }
