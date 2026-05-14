@@ -27,10 +27,6 @@ function pathSkipsOnboardingGate(pathname: string | null): boolean {
   return false;
 }
 
-function registerAllowsEmailFlow(pathname: string | null, social: string | null): boolean {
-  return pathname === '/register' && social !== 'true';
-}
-
 function pathSkipsIntentResume(pathname: string | null): boolean {
   if (!pathname) return true;
   if (pathname.startsWith('/login')) return true;
@@ -69,11 +65,8 @@ export default function AuthCompletionGate() {
         socialOnboardingCompleted?: boolean | null;
       };
       const flags = onboardingFlagsFromSessionUser(user);
-      const social = searchParams?.get('social');
-
       if (needsProfileOnboardingFromFlags(flags)) {
         if (pathSkipsOnboardingGate(pathname)) return;
-        if (registerAllowsEmailFlow(pathname, social)) return;
         replaceOnce('/onboarding/complete-profile');
         return;
       }

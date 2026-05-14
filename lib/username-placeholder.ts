@@ -10,5 +10,8 @@ export function usernameContainsTempPlaceholder(
 
 /** Definitieve naam na hernoemen mag het woord "temp" niet bevatten (éénmalige overstap). */
 export function isDisallowedFinalUsername(username: string): boolean {
-  return username.toLowerCase().includes("temp");
+  const t = username.trim();
+  if (t.toLowerCase().includes("temp")) return true;
+  if (/^user_\d+$/i.test(t)) return true;
+  return false;
 }

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { encryptText, decryptText, generateKeyFromPassword, generateSalt } from '@/lib/encryption';
 import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
@@ -200,12 +201,21 @@ export async function POST(
         id: true,
         email: true,
         name: true,
-        username: true
-      }
+        username: true,
+        emailVerified: true,
+        termsAccepted: true,
+        passwordHash: true,
+        stripeConnectAccountId: true,
+        stripeConnectOnboardingCompleted: true,
+        Account: { select: { provider: true } },
+      },
     });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    const reqBlock = assertAccountRequirementsOr403(user, 'sendMessage');
+    if (reqBlock) return reqBlock;
 
     // 🔒 WATERMARK VALIDATION: Check if user is participant in conversation
     const participant = await prisma.conversationParticipant.findFirst({

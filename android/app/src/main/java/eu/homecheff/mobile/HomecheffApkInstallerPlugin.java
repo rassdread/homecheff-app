@@ -1,4 +1,4 @@
-package com.homecheff.app;
+package eu.homecheff.mobile;
 
 import android.app.DownloadManager;
 import android.content.ClipData;

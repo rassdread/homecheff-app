@@ -11,6 +11,7 @@ import { useSessionIsolation } from '@/hooks/useSessionIsolation';
 import SessionGuard from '@/components/SessionGuard';
 import AuthCompletionGate from '@/components/auth/AuthCompletionGate';
 import SoftAuthGateHost from '@/components/auth/SoftAuthGateHost';
+import AccountRequirementsGateHost from '@/components/account/AccountRequirementsGateHost';
 import ScrollRestoreFromSoftGate from '@/components/auth/ScrollRestoreFromSoftGate';
 import RouteTransitionHost from '@/components/layout/RouteTransitionHost';
 import { CreateFlowProvider } from '@/components/create/CreateFlowContext';
@@ -65,6 +66,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         </Suspense>
         <Suspense fallback={null}>
           <SoftAuthGateHost />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountRequirementsGateHost />
         </Suspense>
         <Suspense fallback={null}>
           <ScrollRestoreFromSoftGate />

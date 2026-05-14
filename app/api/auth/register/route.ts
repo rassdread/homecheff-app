@@ -66,12 +66,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Wachtwoord is verplicht" }, { status: 400 });
     }
     
-    if (!firstName) {
+    const firstNameTrim = typeof firstName === "string" ? firstName.trim() : "";
+    const lastNameTrim = typeof lastName === "string" ? lastName.trim() : "";
+
+    if (!firstNameTrim) {
       return NextResponse.json({ error: "Voornaam is verplicht" }, { status: 400 });
-    }
-    
-    if (!lastName) {
-      return NextResponse.json({ error: "Achternaam is verplicht" }, { status: 400 });
     }
 
     // E-mail validatie
@@ -102,36 +101,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: usernamePasswordConflict }, { status: 400 });
     }
 
-    // Gebruikersnaam validatie (indien opgegeven)
-    if (username) {
-      if (username.length < 3 || username.length > 20) {
-        return NextResponse.json({ error: "Gebruikersnaam moet tussen 3 en 20 tekens lang zijn" }, { status: 400 });
-      }
-      
-      // Allow letters, numbers, underscores, dots and dashes
-      if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
-        return NextResponse.json({ error: "Gebruikersnaam mag alleen letters, cijfers, - . en _ bevatten" }, { status: 400 });
-      }
-      
-      // Check reserved usernames
-      const reservedWords = [
-        'admin', 'administrator', 'homecheff', 'api', 'www', 'mail', 'support', 
-        'help', 'info', 'contact', 'about', 'terms', 'privacy', 'login', 'register',
-        'dashboard', 'profile', 'settings', 'logout', 'user', 'users', 'seller',
-        'buyer', 'delivery', 'order', 'orders', 'product', 'products', 'message',
-        'messages', 'conversation', 'conversations', 'review', 'reviews', 'favorite',
-        'favorites', 'follow', 'follows', 'notification', 'notifications'
-      ];
-      
-      if (reservedWords.includes(username.toLowerCase())) {
-        return NextResponse.json({ error: "Deze gebruikersnaam is gereserveerd. Kies een andere gebruikersnaam." }, { status: 400 });
-      }
+    const usernameTrim = typeof username === "string" ? username.trim() : "";
+    if (!usernameTrim) {
+      return NextResponse.json({ error: "Gebruikersnaam is verplicht" }, { status: 400 });
     }
 
-    // Validatie van gebruikersrollen - alleen als er geen selectedBuyerType is
-    if ((!userTypes || userTypes.length === 0) && !selectedBuyerType) {
-      return NextResponse.json({ error: "Selecteer minimaal één gebruikersrol (Koper of Verkoper)" }, { status: 400 });
+    if (usernameTrim.length < 3 || usernameTrim.length > 20) {
+      return NextResponse.json({ error: "Gebruikersnaam moet tussen 3 en 20 tekens lang zijn" }, { status: 400 });
     }
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(usernameTrim)) {
+      return NextResponse.json({ error: "Gebruikersnaam mag alleen letters, cijfers, - . en _ bevatten" }, { status: 400 });
+    }
+
+    const reservedWords = [
+      'admin', 'administrator', 'homecheff', 'api', 'www', 'mail', 'support',
+      'help', 'info', 'contact', 'about', 'terms', 'privacy', 'login', 'register',
+      'dashboard', 'profile', 'settings', 'logout', 'user', 'users', 'seller',
+      'buyer', 'delivery', 'order', 'orders', 'product', 'products', 'message',
+      'messages', 'conversation', 'conversations', 'review', 'reviews', 'favorite',
+      'favorites', 'follow', 'follows', 'notification', 'notifications'
+    ];
+
+    if (reservedWords.includes(usernameTrim.toLowerCase())) {
+      return NextResponse.json({ error: "Deze gebruikersnaam is gereserveerd. Kies een andere gebruikersnaam." }, { status: 400 });
+    }
+
+    const normalizedUserTypes = Array.isArray(userTypes)
+      ? userTypes.filter((t: unknown) => typeof t === "string")
+      : [];
+    const buyerType =
+      typeof selectedBuyerType === "string" && selectedBuyerType.trim().length > 0
+        ? selectedBuyerType.trim()
+        : "";
 
     // Privacy en voorwaarden validatie
     if (!acceptPrivacyPolicy) {
@@ -143,7 +145,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Belastingverantwoordelijkheid validatie voor verkopers
-    if (userTypes && userTypes.length > 0 && userTypes.some(type => ['chef', 'garden', 'designer'].includes(type)) && !acceptTaxResponsibility) {
+    if (
+      normalizedUserTypes.length > 0 &&
+      normalizedUserTypes.some((type: string) => ['chef', 'garden', 'designer'].includes(type)) &&
+      !acceptTaxResponsibility
+    ) {
       return NextResponse.json({ error: "Als verkoper moet je de belastingverantwoordelijkheid accepteren" }, { status: 400 });
     }
 
@@ -180,7 +186,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const name = `${firstName} ${lastName}`.trim();
+    const name = [firstNameTrim, lastNameTrim].filter(Boolean).join(" ").trim() || firstNameTrim;
 
     // Controleer of e-mail al bestaat
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -188,12 +194,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dit e-mailadres is al geregistreerd. Gebruik een ander e-mailadres of probeer in te loggen." }, { status: 400 });
     }
 
-    // Controleer of gebruikersnaam al bestaat (indien opgegeven)
-    if (username) {
-      const existingUsername = await prisma.user.findUnique({ where: { username } });
-      if (existingUsername) {
-        return NextResponse.json({ error: "Deze gebruikersnaam is al in gebruik. Kies een andere gebruikersnaam." }, { status: 400 });
-      }
+    const existingUsername = await prisma.user.findUnique({ where: { username: usernameTrim } });
+    if (existingUsername) {
+      return NextResponse.json({ error: "Deze gebruikersnaam is al in gebruik. Kies een andere gebruikersnaam." }, { status: 400 });
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -227,8 +230,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Determine user role based on userTypes
-    const hasSellerRole = userTypes && userTypes.length > 0;
+    // Determine user role based on userTypes (light signup = buyer, no seller roles)
+    const hasSellerRole = normalizedUserTypes.length > 0;
     const userRole = hasSellerRole ? 'SELLER' : 'BUYER';
 
     let user;
@@ -242,7 +245,8 @@ export async function POST(req: NextRequest) {
           email,
           passwordHash: hashed,
           role: userRole,
-          username,
+          username: usernameTrim,
+          socialOnboardingCompleted: true,
           gender,
           dateOfBirth: dateOfBirth,
           bio: bio || null,
@@ -254,7 +258,7 @@ export async function POST(req: NextRequest) {
           lat: lat,
           lng: lng,
           interests: interests || [],
-          sellerRoles: userTypes || [], // Store seller roles
+          sellerRoles: normalizedUserTypes,
           // Privacy en marketing toestemmingen
           privacyPolicyAccepted: acceptPrivacyPolicy || false,
           privacyPolicyAcceptedAt: acceptPrivacyPolicy ? new Date() : null,
@@ -305,7 +309,8 @@ export async function POST(req: NextRequest) {
           email,
           passwordHash: hashed,
           role: userRole,
-          username, 
+          username: usernameTrim,
+          socialOnboardingCompleted: true,
           gender,
           dateOfBirth: dateOfBirth,
           bio: bio || null,
@@ -317,7 +322,7 @@ export async function POST(req: NextRequest) {
           lat: lat,
           lng: lng,
           interests: interests || [],
-          buyerRoles: selectedBuyerType ? [selectedBuyerType] : [], // Store buyer type
+          buyerRoles: buyerType ? [buyerType] : [],
           // Privacy en marketing toestemmingen
           privacyPolicyAccepted: acceptPrivacyPolicy || false,
           privacyPolicyAcceptedAt: acceptPrivacyPolicy ? new Date() : null,
@@ -444,7 +449,7 @@ export async function POST(req: NextRequest) {
         id: user.id,
         email,
         name,
-        username,
+        username: usernameTrim,
         role: userRole
       }
     });

@@ -18,6 +18,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { markOptionalDismissedSession } from '@/lib/android-beta-update-derived';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
+import { isHomecheffApkInstallerNativeAvailable } from '@/lib/native/isHomecheffApkInstallerNativeAvailable';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 
@@ -132,7 +133,10 @@ export default function AppUpdateGate() {
     const raw = (p.apkUrl ?? '').trim();
     const resolvedApk = raw.startsWith('/') ? `${origin}${raw}` : raw;
     const browserTarget = resolveApkUrl();
-    const useNativeInstall = isNativeAndroid() && /^https:\/\//i.test(resolvedApk);
+    const useNativeInstall =
+      isNativeAndroid() &&
+      isHomecheffApkInstallerNativeAvailable() &&
+      /^https:\/\//i.test(resolvedApk);
     const targetVer = (p.latestApkVersion ?? '').trim();
 
     const logFlow = (extra: Record<string, unknown>) => {
@@ -197,6 +201,7 @@ export default function AppUpdateGate() {
   }, [payload, runSoftWebRefresh, resetInstallUi]);
 
   const openUnknownSourcesSettings = useCallback(async () => {
+    if (!isHomecheffApkInstallerNativeAvailable()) return;
     try {
       await HomecheffApkInstaller.openManageUnknownAppSources();
     } catch {
@@ -205,6 +210,7 @@ export default function AppUpdateGate() {
   }, []);
 
   const openDownloadsFolderAfterExport = useCallback(async () => {
+    if (!isHomecheffApkInstallerNativeAvailable()) return;
     try {
       await HomecheffApkInstaller.openSystemDownloads();
     } catch {
@@ -231,6 +237,10 @@ export default function AppUpdateGate() {
           })
         : t('appUpdateGate.exportedToAppStorage'),
     );
+    if (!isHomecheffApkInstallerNativeAvailable()) {
+      setExportSaveError(t('appUpdateGate.exportSaveFailed'));
+      return;
+    }
     try {
       await HomecheffApkInstaller.openPackageInstaller({ uri: r.uri });
       writeAndroidBetaInstallerOpened();

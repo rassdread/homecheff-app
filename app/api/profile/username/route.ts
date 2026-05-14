@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { usernameContainsTempPlaceholder } from "@/lib/username-placeholder";
+import { needsDefinitiveUsername } from "@/lib/account-requirements";
 import { validateUsernameCandidate } from "@/lib/username-validation";
 
 /** JSON POST: { "username": "nieuweNaam" } — zelfde regels als profiel-update (eenmalig bij temp-naam). */
@@ -38,11 +38,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, username: nextUsername });
     }
 
-    if (!usernameContainsTempPlaceholder(oldName)) {
+    if (!needsDefinitiveUsername(oldName)) {
       return NextResponse.json(
         {
           error:
-            "Gebruikersnaam kan niet worden gewijzigd, tenzij je nog een tijdelijke naam hebt (met “temp”). Dat mag maar één keer.",
+            "Gebruikersnaam kan niet worden gewijzigd, tenzij je nog een tijdelijke of voorlopige naam hebt. Dat mag maar één keer.",
         },
         { status: 400 }
       );

@@ -1,7 +1,7 @@
 import { isNativeApp } from "@/lib/native/capacitor";
 
 /** Moet matchen met android defaultConfig applicationId / capacitor appId. */
-const ANDROID_PACKAGE = "com.homecheff.app";
+const ANDROID_PACKAGE = "eu.homecheff.mobile";
 
 /**
  * Opent Android app-detailinstellingen (meldingen per app zijn daar te vinden).

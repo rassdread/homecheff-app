@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
 import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
 
@@ -109,18 +110,21 @@ export async function POST(req: Request) {
       sessionUserId &&
       (await prisma.user.findUnique({
         where: { id: sessionUserId },
-        include: { SellerProfile: true },
+        include: { SellerProfile: true, Account: { select: { provider: true } } },
       }));
     if (!user && sessionEmail) {
       user = await prisma.user.findUnique({
         where: { email: sessionEmail },
-        include: { SellerProfile: true },
+        include: { SellerProfile: true, Account: { select: { provider: true } } },
       });
     }
 
     if (!user) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
     }
+
+    const accBlock = assertAccountRequirementsOr403(user, 'postItem');
+    if (accBlock) return accBlock;
 
     // Always create SellerProfile if it doesn't exist (user is trying to sell, so allow it)
     let sellerProfileId = user.SellerProfile?.id;

@@ -77,7 +77,7 @@ export async function validateUsernameCandidate(
     return {
       available: false,
       message:
-        'Kies een definitieve gebruikersnaam zonder het woord "temp" (controle op tijdelijke accounts).',
+        'Kies een definitieve gebruikersnaam zonder tijdelijk patroon (zoals temp_… of user_1234).',
     };
   }
 

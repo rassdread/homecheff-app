@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
+import type { AccountRequirementsSnapshot } from '@/lib/account-requirements';
+
 type ProfileUser = {
   id: string;
   email?: string | null;
@@ -17,6 +19,8 @@ type ProfileUser = {
   place?: string | null;
   postalCode?: string | null;
   address?: string | null;
+  emailVerified?: boolean;
+  accountRequirements?: AccountRequirementsSnapshot;
 };
 
 type BootstrapStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -27,6 +31,8 @@ type UserBootstrapContextValue = {
   ensureProfile: () => Promise<ProfileUser | null>;
   refreshProfile: () => Promise<ProfileUser | null>;
 };
+
+import AccountFinalizeBanner from '@/components/account/AccountFinalizeBanner';
 
 const UserBootstrapContext = createContext<UserBootstrapContextValue | null>(null);
 
@@ -116,7 +122,12 @@ export function UserBootstrapProvider({ children }: { children: React.ReactNode 
     [profile, status, loadProfile]
   );
 
-  return <UserBootstrapContext.Provider value={value}>{children}</UserBootstrapContext.Provider>;
+  return (
+    <UserBootstrapContext.Provider value={value}>
+      <AccountFinalizeBanner />
+      {children}
+    </UserBootstrapContext.Provider>
+  );
 }
 
 export function useUserBootstrap() {

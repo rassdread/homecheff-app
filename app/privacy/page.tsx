@@ -95,6 +95,26 @@ export default function PrivacyPage() {
                 </ul>
               </div>
 
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('register.privacyPage.platformActivityTitle')}
+                </h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li>• <strong>{t('register.privacyPage.optionalDataMessages')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataListingsContent')}</strong></li>
+                  <li>• <strong>{t('register.privacyPage.optionalDataPushNotifications')}</strong></li>
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('register.privacyPage.serviceProvidersTitle')}
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  {t('register.privacyPage.serviceProvidersBody')}
+                </p>
+              </div>
+
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 {t('register.privacyPage.howWeProtect')}
               </h2>

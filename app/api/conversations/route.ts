@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { loadConversationsForSessionUser } from '@/lib/chat/loadConversationsForSessionUser';
 
 export async function OPTIONS(req: NextRequest) {
@@ -52,11 +53,18 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
+    }
+
+    const reqBlock = assertAccountRequirementsOr403(user, 'sendMessage');
+    if (reqBlock) {
+      const data = await reqBlock.json();
+      return NextResponse.json(data, { status: reqBlock.status, headers: cors });
     }
 
     // Check if conversation already exists

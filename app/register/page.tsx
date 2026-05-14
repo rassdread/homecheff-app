@@ -5,7 +5,7 @@ import { signIn, getSession, useSession } from "next-auth/react";
 import { isSafari, isIOS, getSafariCookieDelay, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
 import { Button } from "@/components/ui/Button";
 import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
+import { Eye, EyeOff, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
 import Link from "next/link";
 import CountrySelector from "@/components/ui/CountrySelector";
 import InfoIcon from "@/components/onboarding/InfoIcon";
@@ -266,6 +266,21 @@ function RegisterPageContent() {
 
   // Get inviteToken from URL (for sub-affiliate signup)
   const inviteToken = searchParams?.get('inviteToken');
+
+  const resolveEmailSignupFallbackUrl = React.useCallback(
+    (dataRedirect: unknown) => {
+      const raw =
+        searchParams?.get('callbackUrl') || searchParams?.get('returnUrl');
+      return (
+        sanitizePostAuthRelativeUrl(raw) ||
+        sanitizePostAuthRelativeUrl(
+          typeof dataRedirect === 'string' ? dataRedirect : null,
+        ) ||
+        '/'
+      );
+    },
+    [searchParams],
+  );
   
   // Get translated user types and buyer types
   const userTypes = getUserTypes(t);
@@ -528,7 +543,7 @@ function RegisterPageContent() {
     usePersistentState<RegisterState>(REGISTER_DRAFT_STORAGE_KEY, REGISTER_INITIAL_STATE, {
       storage: "session",
       ttl: REGISTER_DRAFT_TTL,
-      version: 2,
+      version: 3,
       omitKeysBeforePersist: ["password", "confirmPassword", "registrationPassword"],
     });
 
@@ -559,7 +574,7 @@ function RegisterPageContent() {
     }
   }, [resetRegistrationDraft]);
 
-  // Authenticated users: never stay on the email signup wizard; clear draft; send incomplete profiles to social completion.
+  // Authenticated users: never stay on the signup page; align with social onboarding routing.
   useEffect(() => {
     let cancelled = false;
 
@@ -596,29 +611,14 @@ function RegisterPageContent() {
         flags ?? onboardingFlagsFromSessionUser(session.user as any);
       const target = resolvePathAfterSocialAuth(resolved);
 
-      if (target === "/") {
-        resetRegistrationDraft();
-        clearRegisterDraftStorage();
-        safeSessionStorageRemoveItem("pendingRegistration");
-        safeSessionStorageRemoveItem("register_cleared");
-        window.location.replace("/");
-        return;
-      }
-
       resetRegistrationDraft();
       clearRegisterDraftStorage();
+      safeSessionStorageRemoveItem("pendingRegistration");
+      safeSessionStorageRemoveItem("register_cleared");
 
-      if (!isSocialLogin && typeof window !== "undefined") {
-        const next = new URL("/register", window.location.origin);
-        next.searchParams.set("social", "true");
-        if (inviteToken) {
-          next.searchParams.set("inviteToken", inviteToken);
-        }
-        window.location.replace(next.toString());
-        return;
+      if (typeof window !== "undefined") {
+        window.location.replace(target);
       }
-
-      setIsCheckingOnboarding(false);
     };
 
     void run();
@@ -628,8 +628,6 @@ function RegisterPageContent() {
   }, [
     session,
     status,
-    isSocialLogin,
-    inviteToken,
     resetRegistrationDraft,
     updateSession,
   ]);
@@ -1656,18 +1654,34 @@ function RegisterPageContent() {
         return;
       }
 
-      if (
-        !state.address ||
-        !state.city ||
-        !state.country ||
-        state.lat === null ||
-        state.lng === null ||
-        (state.country === 'NL' &&
-          (!state.postalCode || !state.street || !state.houseNumber))
-      ) {
-        setState(prev => ({
+      if (!state.firstName?.trim()) {
+        setState((prev) => ({
           ...prev,
-          error: t('register.validation.validateAddress')
+          error: t('register.validation.firstNameRequired'),
+        }));
+        return;
+      }
+
+      if (!state.email?.trim()) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.emailRequired'),
+        }));
+        return;
+      }
+
+      if (state.emailValidation.isValid !== true) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.emailInvalid'),
+        }));
+        return;
+      }
+
+      if (!state.password || state.password.length < 6) {
+        setState((prev) => ({
+          ...prev,
+          error: t('register.validation.passwordMinLength'),
         }));
         return;
       }
@@ -1688,41 +1702,34 @@ function RegisterPageContent() {
         return;
       }
 
-      const normalizedPostalCode = state.postalCode ? state.postalCode.replace(/\s/g, '').toUpperCase() : "";
-      const formattedAddress =
-        state.country === 'NL'
-          ? [state.street, state.houseNumber].filter(Boolean).join(' ').trim() ||
-            state.address
-          : state.address;
-
       const requestBody = {
-        firstName: state.firstName,
-        lastName: state.lastName,
-        username: state.username,
-        email: state.email,
+        firstName: state.firstName.trim(),
+        lastName: (state.lastName || '').trim(),
+        username: state.username.trim(),
+        email: state.email.trim(),
         password: state.password,
         confirmPassword: state.confirmPassword,
-        gender: state.gender,
-        birthMonth: state.birthMonth,
-        birthYear: state.birthYear,
-        userTypes: state.userTypes,
-        selectedBuyerType: state.selectedBuyerType,
-        interests: state.interests,
-        location: state.location,
-        country: state.country,
-        address: formattedAddress,
-        street: state.street,
-        houseNumber: state.houseNumber,
-        city: state.city,
-        postalCode: normalizedPostalCode,
-        lat: state.lat,
-        lng: state.lng,
-        bio: state.bio,
-        isBusiness: state.isBusiness,
-        kvk: state.kvk,
-        btw: state.btw,
-        company: state.company,
-        subscription: state.subscription || null,
+        gender: '',
+        birthMonth: '',
+        birthYear: '',
+        userTypes: [] as string[],
+        selectedBuyerType: '',
+        interests: [] as string[],
+        location: '',
+        country: 'NL',
+        address: '',
+        street: '',
+        houseNumber: '',
+        city: '',
+        postalCode: '',
+        lat: null as number | null,
+        lng: null as number | null,
+        bio: '',
+        isBusiness: false,
+        kvk: '',
+        btw: '',
+        company: '',
+        subscription: null as string | null,
         // Uitbetaalgegevens - nu via Stripe
         // Privacy en marketing
         acceptPrivacyPolicy: state.acceptPrivacyPolicy,
@@ -1821,11 +1828,11 @@ function RegisterPageContent() {
       try {
         trackRegistration({
           method: 'email',
-          userRole: data?.role || (state.isBusiness ? 'SELLER' : (state.userTypes?.length ? 'SELLER' : 'BUYER')),
-          buyerRoles: state.selectedBuyerType ? [state.selectedBuyerType] : state.userTypes?.filter((t: string) => !['chef', 'garden', 'designer'].includes(t)) || [],
-          sellerRoles: state.userTypes?.filter((t: string) => ['chef', 'garden', 'designer'].includes(t)) || [],
+          userRole: data?.user?.role || 'BUYER',
+          buyerRoles: [],
+          sellerRoles: [],
           hasDelivery: false,
-          isBusiness: state.isBusiness || false,
+          isBusiness: false,
         });
       } catch (gaError) {
         console.error('Failed to track registration in GA:', gaError);
@@ -1842,17 +1849,8 @@ function RegisterPageContent() {
       
       // Check if email verification is needed
       if (data?.needsVerification) {
-        // Show verification modal instead of auto-login
-        const rawReturn = searchParams?.get("returnUrl");
-        const fromQuery = sanitizePostAuthRelativeUrl(rawReturn);
-        const fromApi = sanitizePostAuthRelativeUrl(
-          typeof data?.redirectUrl === "string" ? data.redirectUrl : null,
-        );
-        const redirectUrl =
-          fromQuery ||
-          fromApi ||
-          (state.isBusiness ? "/sell" : "/");
-        
+        const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
+
         setState(prev => ({
           ...prev,
           showVerificationModal: true,
@@ -1870,16 +1868,8 @@ function RegisterPageContent() {
         success: true,
       }));
       
-      // Bepaal redirect URL op basis van returnUrl parameter, response of default (home)
-      const rawReturnPost = searchParams?.get("returnUrl");
-      const fromQueryPost = sanitizePostAuthRelativeUrl(rawReturnPost);
-      const fromApiPost = sanitizePostAuthRelativeUrl(
-        typeof data?.redirectUrl === "string" ? data.redirectUrl : null,
-      );
-      const redirectUrl =
-        fromQueryPost ||
-        fromApiPost ||
-        (state.isBusiness ? "/sell" : "/");
+      // Bepaal redirect URL: pending intent (na sessie) > callback/returnUrl > home
+      const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
       
       // Probeer automatisch in te loggen - Safari-compatibele versie
       // Gebruik redirect: false eerst om te controleren of login werkt
@@ -1964,27 +1954,40 @@ function RegisterPageContent() {
           // The destination page will check session again after page load
           if (isSafariOnIOS || isIOSDevice) {
             console.warn('⚠️ [REGISTER] No session found after retries on iOS, using refresh redirect');
-            const finalRedirectUrl = redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'welcome=true&registered=true&_refresh=1';
-            
+            const u0 = currentSession?.user as
+              | { username?: string | null; socialOnboardingCompleted?: boolean | null }
+              | undefined;
+            const pathAfterSession0 =
+              (u0 && consumeAndResolvePostAuthUrl(u0)) || redirectUrl;
+            const finalRedirectUrl =
+              pathAfterSession0 +
+              (pathAfterSession0.includes('?') ? '&' : '?') +
+              'welcome=true&registered=true&_refresh=1';
+
             // Use window.location.replace to avoid back button issues
             window.location.replace(finalRedirectUrl);
             return;
           }
-          
+
           // For other browsers, redirect to login with message
           console.warn('⚠️ [REGISTER] No session found after all retries, redirecting to login');
           router.push(`/login?message=${encodeURIComponent(t('register.paymentSuccess') || 'Account aangemaakt! Log in met je email en wachtwoord.')}&email=${encodeURIComponent(state.email)}`);
           return;
         }
-        
+
         // iOS Safari: Wait a bit more before redirect to ensure cookies are fully set
         const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
         await new Promise(resolve => setTimeout(resolve, redirectDelay));
-        
-        // Gebruik window.location.replace voor betere Safari-compatibiliteit op iOS
-        // Dit zorgt ervoor dat cookies correct worden meegenomen en voorkomt back button issues
-        const finalRedirectUrl = redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'welcome=true&registered=true';
-        
+
+        const u = currentSession.user as
+          | { username?: string | null; socialOnboardingCompleted?: boolean | null }
+          | undefined;
+        const pathAfterSession = (u && consumeAndResolvePostAuthUrl(u)) || redirectUrl;
+        const finalRedirectUrl =
+          pathAfterSession +
+          (pathAfterSession.includes('?') ? '&' : '?') +
+          'welcome=true&registered=true';
+
         if (isSafariOnIOS || isIOSDevice) {
           window.location.replace(finalRedirectUrl);
         } else {
@@ -2043,13 +2046,13 @@ function RegisterPageContent() {
               </div>
             </div>
             <div className="text-sm text-white/80 bg-white/10 px-3 py-1 rounded-full">
-              Stap {state.currentStep} van {steps.length}
+              {isSocialLogin ? `${state.currentStep} / ${steps.length}` : t('register.lightStepBadge')}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Progress Bar */}
+      {isSocialLogin ? (
       <div className="bg-white/80 backdrop-blur-sm border-b border-emerald-100">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center space-x-4">
@@ -2080,6 +2083,7 @@ function RegisterPageContent() {
           </div>
         </div>
       </div>
+      ) : null}
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-6 py-8">
@@ -2128,41 +2132,14 @@ function RegisterPageContent() {
                       </div>
                     </>
                   ) : (
-                    <>
-                      <div className="relative">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
-                          {t('register.welcome')} 
-                          {pageHints?.hints.welcome && (
-                            <InfoIcon hint={pageHints.hints.welcome} pageId="register" size="md" />
-                          )}
-                        </h2>
-                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-6 mb-8 shadow-sm">
-                          <p className="text-lg text-gray-800 font-medium mb-4 text-center">
-                            🎭 {t('register.welcomeMessage')}
-                          </p>
-                          <div className="grid md:grid-cols-3 gap-4 text-center">
-                            <div className="bg-white rounded-xl p-4 border border-emerald-100">
-                              <div className="text-3xl mb-2">👨‍🍳</div>
-                              <h3 className="font-semibold text-gray-900 mb-2">{t('register.userTypes.chef.title')}</h3>
-                              <p className="text-sm text-gray-600">{t('register.welcomeChef')}</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 border border-emerald-100">
-                              <div className="text-3xl mb-2">🌱</div>
-                              <h3 className="font-semibold text-gray-900 mb-2">{t('register.userTypes.garden.title')}</h3>
-                              <p className="text-sm text-gray-600">{t('register.welcomeGarden')}</p>
-                            </div>
-                            <div className="bg-white rounded-xl p-4 border border-emerald-100">
-                              <div className="text-3xl mb-2">🎨</div>
-                              <h3 className="font-semibold text-gray-900 mb-2">{t('register.userTypes.designer.title')}</h3>
-                              <p className="text-sm text-gray-600">{t('register.welcomeDesigner')}</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-4 text-center">
-                            {t('register.welcomeTip')}
-                          </p>
-                        </div>
-                      </div>
-                    </>
+                    <div className="space-y-3 mb-6 text-center">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {t('register.lightTitle')}
+                      </h2>
+                      <p className="text-base text-gray-600">{t('register.lightSubtitle')}</p>
+                      <p className="text-sm font-semibold text-emerald-800">{t('register.lightTagline')}</p>
+                      <p className="text-sm text-gray-500 max-w-md mx-auto">{t('register.lightHint')}</p>
+                    </div>
                   )}
                 </div>
 
@@ -2230,21 +2207,264 @@ function RegisterPageContent() {
                   </div>
                 </div>
 
-                {/* Email Option */}
-                <button
-                  onClick={() => setState(prev => ({ ...prev, currentStep: 2 }))}
-                  className="w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md font-medium text-base"
-                >
-                  <Mail className="w-6 h-6 mr-3" />
-                  {t('register.signUpWithEmail')}
-                </button>
+                {/* E-mail registratie (licht) */}
+                <div className="max-w-lg mx-auto space-y-5 text-left">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-light-name">
+                      {t('register.lightDisplayNameLabel')}
+                    </label>
+                    <input
+                      id="hc-register-light-name"
+                      name="given-name"
+                      type="text"
+                      value={state.firstName}
+                      onChange={(e) => setState((prev) => ({ ...prev, firstName: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder={t('register.lightDisplayNamePlaceholder')}
+                      autoComplete="name"
+                    />
+                  </div>
 
-                <div className="mt-6 text-sm text-gray-500">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-light-email">
+                        {t('register.email')} *
+                      </label>
+                      {pageHints?.hints.email && (
+                        <InfoIcon hint={pageHints.hints.email} pageId="register" size="sm" />
+                      )}
+                    </div>
+                    <input
+                      id="hc-register-light-email"
+                      name="email"
+                      type="email"
+                      value={state.email}
+                      onChange={(e) => setState((prev) => ({ ...prev, email: e.target.value }))}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                        state.emailValidation.isValid === true
+                          ? 'border-green-300 bg-green-50'
+                          : state.emailValidation.isValid === false
+                            ? 'border-red-300 bg-red-50'
+                            : 'border-gray-300'
+                      }`}
+                      placeholder={t('register.emailPlaceholder')}
+                      autoComplete="email"
+                      inputMode="email"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck="false"
+                    />
+                    {state.emailValidation.message ? (
+                      <p
+                        className={`mt-2 text-sm ${
+                          state.emailValidation.isValid === true
+                            ? 'text-green-600'
+                            : state.emailValidation.isValid === false
+                              ? 'text-red-600'
+                              : 'text-gray-500'
+                        }`}
+                      >
+                        {state.emailValidation.isChecking ? '… ' : null}
+                        {state.emailValidation.message}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-light-username">
+                        {t('register.username')} *
+                      </label>
+                      {pageHints?.hints.username && (
+                        <InfoIcon hint={pageHints.hints.username} pageId="register" size="sm" />
+                      )}
+                    </div>
+                    <p className="mb-2 text-xs text-gray-600">{t('register.usernamePublicHandleHint')}</p>
+                    <div className="relative">
+                      <input
+                        id="hc-register-light-username"
+                        name="username"
+                        type="text"
+                        value={state.username}
+                        onChange={(e) => setState((prev) => ({ ...prev, username: e.target.value }))}
+                        className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:border-transparent transition-colors ${
+                          state.usernameValidation.isValid === true
+                            ? 'border-green-500 bg-green-50 focus:ring-green-500'
+                            : state.usernameValidation.isValid === false
+                              ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                              : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                        }`}
+                        placeholder={t('register.usernamePlaceholder')}
+                        autoComplete="username"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
+                      {state.usernameValidation.isChecking ? (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600" />
+                        </div>
+                      ) : null}
+                      {state.usernameValidation.isValid === true && !state.usernameValidation.isChecking ? (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                      ) : null}
+                      {state.usernameValidation.isValid === false && !state.usernameValidation.isChecking ? (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                        </div>
+                      ) : null}
+                    </div>
+                    {state.usernameValidation.message ? (
+                      <div
+                        className={`mt-2 text-sm ${
+                          state.usernameValidation.isValid === true
+                            ? 'text-green-600'
+                            : state.usernameValidation.isValid === false
+                              ? 'text-red-600'
+                              : 'text-gray-500'
+                        }`}
+                      >
+                        {state.usernameValidation.message}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="hc-register-light-password">
+                        {t('register.password')} *
+                      </label>
+                      {pageHints?.hints.password && (
+                        <InfoIcon hint={pageHints.hints.password} pageId="register" size="sm" />
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="hc-register-light-password"
+                        name="new-password"
+                        type={state.showPassword ? 'text' : 'password'}
+                        value={state.password}
+                        onChange={(e) => setState((prev) => ({ ...prev, password: e.target.value }))}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder={t('register.passwordPlaceholder')}
+                        autoComplete="new-password"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setState((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
+                      >
+                        {state.showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                    {state.password ? (
+                      <p
+                        className={`text-sm mt-2 ${
+                          state.password.length >= 6 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {state.password.length >= 6 ? t('register.passwordStrong') : t('register.passwordWeak')}
+                      </p>
+                    ) : null}
+                    <div className="mt-4">
+                      <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-light-confirm">
+                        {t('register.confirmPassword')} *
+                      </label>
+                      <input
+                        id="hc-register-light-confirm"
+                        type="password"
+                        value={state.confirmPassword}
+                        onChange={(e) => setState((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                        placeholder={t('register.confirmPasswordPlaceholder')}
+                        autoComplete="new-password"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        id="acceptPrivacyPolicy-light"
+                        checked={state.acceptPrivacyPolicy}
+                        onChange={(e) =>
+                          setState((prev) => ({ ...prev, acceptPrivacyPolicy: e.target.checked }))
+                        }
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>
+                        <span className="font-medium">{t('register.acceptPrivacy')}</span>
+                        <span className="block text-xs text-gray-500">{t('register.acceptPrivacySubtext')}</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        id="acceptTerms-light"
+                        checked={state.acceptTerms}
+                        onChange={(e) => setState((prev) => ({ ...prev, acceptTerms: e.target.checked }))}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>
+                        <span className="font-medium">{t('register.acceptTerms')}</span>
+                        <span className="block text-xs text-gray-500">{t('register.acceptTermsSubtext')}</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        id="acceptMarketing-light"
+                        checked={state.acceptMarketing}
+                        onChange={(e) =>
+                          setState((prev) => ({ ...prev, acceptMarketing: e.target.checked }))
+                        }
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>
+                        <span className="font-medium">{t('register.acceptMarketing')}</span>
+                        <span className="block text-xs text-gray-500">{t('register.acceptMarketingSubtext')}</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleRegister}
+                    disabled={
+                      !state.acceptPrivacyPolicy ||
+                      !state.acceptTerms ||
+                      state.usernameValidation.isChecking ||
+                      state.usernameValidation.isValid !== true ||
+                      state.emailValidation.isChecking ||
+                      state.emailValidation.isValid !== true
+                    }
+                    className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t('register.createAccount')}
+                  </Button>
+                </div>
+
+                <div className="mt-6 text-sm text-gray-500 text-center">
                   <p>{t('register.alreadyHaveAccount')} <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">{t('register.login')}</Link></p>
                 </div>
               </div>
             )}
 
+            {isSocialLogin && (
+            <>
             {/* Step 2: Role Selection */}
             {state.currentStep === 2 && (
               <div>
@@ -2593,11 +2813,11 @@ function RegisterPageContent() {
                       </div>
                       {state.password && (
                         <p className={`text-sm mt-2 ${
-                          state.password.length >= 8
+                          state.password.length >= 6
                             ? 'text-green-600'
                             : 'text-red-600'
                         }`}>
-                          {state.password.length >= 8
+                          {state.password.length >= 6
                             ? t('register.passwordStrong')
                             : t('register.passwordWeak')
                           }
@@ -2658,11 +2878,11 @@ function RegisterPageContent() {
                       </div>
                       {state.password && (
                         <p className={`text-sm mt-2 ${
-                          state.password.length >= 8 
+                          state.password.length >= 6 
                             ? 'text-green-600' 
                             : 'text-red-600'
                         }`}>
-                          {state.password.length >= 8 
+                          {state.password.length >= 6 
                             ? t('register.passwordStrong')
                             : t('register.passwordWeak')
                           }
@@ -3613,6 +3833,9 @@ function RegisterPageContent() {
                 </Button>
               )}
             </div>
+            </>
+            )}
+
           </>
         )}
       </div>
@@ -3626,60 +3849,64 @@ function RegisterPageContent() {
           // Auto-login after verification
           if (state.registrationPassword && state.verificationEmail) {
             try {
-              const redirectUrl =
+              const fallback =
                 sanitizePostAuthRelativeUrl(state.registrationRedirectUrl || undefined) ||
-                "/";
-              
+                '/';
+
               // iOS Safari needs more time for cookies
               const isIOSDevice = isIOS();
               const isSafariOnIOS = isSafari() && isIOS();
-              
+
               // Use redirect: false first to check if login works
-              const loginResult = await signIn("credentials", {
+              const loginResult = await signIn('credentials', {
                 emailOrUsername: state.verificationEmail,
                 password: state.registrationPassword,
                 redirect: false,
               });
-              
+
               if (loginResult?.error) {
-                console.error("Auto sign-in after verification failed:", loginResult.error);
+                console.error('Auto sign-in after verification failed:', loginResult.error);
                 router.push('/login?verified=true');
                 return;
               }
-              
+
               // Wait for cookies to be set (especially important for iOS Safari)
               const initialDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : getSafariCookieDelay();
-              await new Promise(resolve => setTimeout(resolve, initialDelay));
-              
+              await new Promise((resolve) => setTimeout(resolve, initialDelay));
+
               // Update session
-              if (typeof updateSession === "function") {
+              if (typeof updateSession === 'function') {
                 try {
                   await updateSession({});
                   const updateDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-                  await new Promise(resolve => setTimeout(resolve, updateDelay));
+                  await new Promise((resolve) => setTimeout(resolve, updateDelay));
                 } catch (sessionError) {
-                  console.warn("Session update warning:", sessionError);
+                  console.warn('Session update warning:', sessionError);
                 }
               }
-              
+
               // Retry session check for iOS Safari
               let currentSession = await getSession();
               const maxRetries = isSafariOnIOS ? 3 : isIOSDevice ? 2 : 1;
               const retryDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-              
+
               for (let attempt = 0; attempt < maxRetries && !currentSession?.user?.email; attempt++) {
                 console.log(`🔍 [REGISTER-VERIFY] Retry attempt ${attempt + 1}/${maxRetries}...`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                await new Promise((resolve) => setTimeout(resolve, retryDelay));
                 currentSession = await getSession();
                 if (currentSession?.user?.email) break;
               }
-              
+
               // Final redirect with delay for iOS Safari
               const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
-              await new Promise(resolve => setTimeout(resolve, redirectDelay));
-              
-              // Use window.location.href for better iOS Safari compatibility
-              window.location.href = redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'welcome=true&verified=true';
+              await new Promise((resolve) => setTimeout(resolve, redirectDelay));
+
+              const u = currentSession?.user as
+                | { username?: string | null; socialOnboardingCompleted?: boolean | null }
+                | undefined;
+              const pathAfterSession = (u && consumeAndResolvePostAuthUrl(u)) || fallback;
+              const sep = pathAfterSession.includes('?') ? '&' : '?';
+              window.location.href = `${pathAfterSession}${sep}welcome=true&verified=true`;
             } catch (error: any) {
               if (error?.message?.includes('NEXT_REDIRECT')) {
                 throw error;

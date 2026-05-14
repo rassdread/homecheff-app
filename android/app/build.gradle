@@ -1,13 +1,38 @@
 apply plugin: 'com.android.application'
 
+// --- Release signing (optional): android/keystore.properties + storeFile path (see android/.gitignore) ---
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+boolean releaseSigningEnabled = false
+if (keystorePropertiesFile.exists()) {
+    try {
+        keystorePropertiesFile.withInputStream { stream -> keystoreProperties.load(stream) }
+        def storeFileProp = keystoreProperties["storeFile"]?.toString()?.trim()
+        if (storeFileProp && keystoreProperties["storePassword"] && keystoreProperties["keyAlias"] && keystoreProperties["keyPassword"]) {
+            def ksFile = rootProject.file(storeFileProp)
+            if (ksFile.isFile()) {
+                releaseSigningEnabled = true
+            } else {
+                logger.warn("[HomeCheff] Keystore file not found: ${ksFile.absolutePath} (storeFile=${storeFileProp})")
+            }
+        } else {
+            logger.warn("[HomeCheff] android/keystore.properties must define storeFile, storePassword, keyAlias, and keyPassword.")
+        }
+    } catch (Exception e) {
+        logger.warn("[HomeCheff] Could not read keystore.properties: ${e.message}")
+    }
+} else {
+    logger.lifecycle("[HomeCheff] android/keystore.properties not found — release signing disabled; add it to produce a signed AAB/APK.")
+}
+
 android {
-    namespace = "com.homecheff.app"
+    namespace = "eu.homecheff.mobile"
     compileSdk = rootProject.ext.compileSdkVersion
     buildFeatures {
         buildConfig = true
     }
     defaultConfig {
-        applicationId "com.homecheff.app"
+        applicationId "eu.homecheff.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 15
@@ -19,10 +44,25 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    if (releaseSigningEnabled) {
+        signingConfigs {
+            release {
+                storeFile rootProject.file(keystoreProperties["storeFile"].toString().trim())
+                storePassword keystoreProperties["storePassword"].toString()
+                keyAlias keystoreProperties["keyAlias"].toString()
+                keyPassword keystoreProperties["keyPassword"].toString()
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseSigningEnabled) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

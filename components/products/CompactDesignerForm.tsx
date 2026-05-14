@@ -12,6 +12,7 @@ import VideoUploader from '@/components/ui/VideoUploader';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
+import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
 type Uploaded = { 
   url: string; 
@@ -442,6 +443,10 @@ export default function CompactDesignerForm({
           error: data.error,
           details: data.details
         });
+        if (tryShowAccountRequirementsFromApiBody(res.status, data)) {
+          setMessage(t('accountRequirementsGate.hint'));
+          return;
+        }
         setMessage(
           [data.error, data.details].filter(Boolean).join(' ').trim() ||
             t('productForm.errorOccurred')

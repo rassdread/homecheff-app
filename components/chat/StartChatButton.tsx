@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
+import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
 interface StartChatButtonProps {
   productId?: string;
@@ -83,6 +84,11 @@ export default function StartChatButton({
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (tryShowAccountRequirementsFromApiBody(response.status, errorData)) {
+        setShowModal(false);
+        setInitialMessage('');
+        return;
+      }
       throw new Error(
         (errorData as { error?: string }).error ||
           'Failed to start conversation'

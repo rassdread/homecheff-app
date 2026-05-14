@@ -52,6 +52,10 @@ next-env.d.ts
 # Firebase Android (lokaal plaatsen: android/app/google-services.json)
 android/app/google-services.json
 
+# Android release signing (lokaal: android/keystore.properties + android/*.jks)
+android/keystore.properties
+android/*.jks
+
 # Sensitive files
 STRIPE_KEYS.txt
 *_KEYS.txt

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { getCorsHeaders } from '@/lib/apiCors';
+import { buildProfileMePayload } from '@/lib/profile/build-profile-me-payload';
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
@@ -60,6 +61,9 @@ export async function GET(req: NextRequest) {
             termsAccepted: true,
             hideHomeHero: true,
             hideHowItWorks: true,
+            emailVerified: true,
+            passwordHash: true,
+            Account: { select: { provider: true } },
           },
         });
         
@@ -67,28 +71,7 @@ export async function GET(req: NextRequest) {
           return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
         }
         
-        // Fix for social login accounts: prioritize profileImage over image, but handle base64
-        const { Business, SellerProfile, DeliveryProfile, affiliate, ...rest } = user;
-        const kvkNumber = Business?.kvkNumber ?? SellerProfile?.kvk ?? null;
-
-        const processedUser = {
-          ...rest,
-          kvkNumber,
-          address: rest.address,
-          city: rest.city,
-          postalCode: rest.postalCode,
-          country: rest.country,
-          lat: rest.lat,
-          lng: rest.lng,
-          businessKvkNumber: Business?.kvkNumber ?? null,
-          sellerKvk: SellerProfile?.kvk ?? null,
-          DeliveryProfile: DeliveryProfile || null,
-          affiliate: affiliate || null,
-          profileImage: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.profileImage || rest.image),
-          image: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.image || rest.profileImage)
-        };
-        
-        return NextResponse.json({ user: processedUser }, { headers: cors });
+        return NextResponse.json(buildProfileMePayload(user as any), { headers: cors });
       }
     } catch {}
 
@@ -145,6 +128,9 @@ export async function GET(req: NextRequest) {
             termsAccepted: true,
             hideHomeHero: true,
             hideHowItWorks: true,
+            emailVerified: true,
+            passwordHash: true,
+            Account: { select: { provider: true } },
           },
         });
         
@@ -152,28 +138,7 @@ export async function GET(req: NextRequest) {
           return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
         }
         
-        // Fix for social login accounts: prioritize profileImage over image, but handle base64
-        const { Business, SellerProfile, DeliveryProfile, affiliate, ...rest } = user;
-        const kvkNumber = Business?.kvkNumber ?? SellerProfile?.kvk ?? null;
-
-        const processedUser = {
-          ...rest,
-          kvkNumber,
-          address: rest.address,
-          city: rest.city,
-          postalCode: rest.postalCode,
-          country: rest.country,
-          lat: rest.lat,
-          lng: rest.lng,
-          businessKvkNumber: Business?.kvkNumber ?? null,
-          sellerKvk: SellerProfile?.kvk ?? null,
-          DeliveryProfile: DeliveryProfile || null,
-          affiliate: affiliate || null,
-          profileImage: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.profileImage || rest.image),
-          image: rest.profileImage?.startsWith('data:') ? rest.profileImage : (rest.image || rest.profileImage)
-        };
-        
-        return NextResponse.json({ user: processedUser }, { headers: cors });
+        return NextResponse.json(buildProfileMePayload(user as any), { headers: cors });
       }
     } catch {}
 

@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.homecheff.app',
+  appId: 'eu.homecheff.mobile',
   appName: 'HomeCheff',
   webDir: 'dist',
   /** Wit achter WebView vóór eerste paint (Capacitor Android past dit toe in Bridge.initWebView). */

@@ -1,4 +1,4 @@
-package com.homecheff.app;
+package eu.homecheff.mobile;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -25,7 +25,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
-        registerPlugin(HomecheffApkInstallerPlugin.class);
+        // Play Store release: no sideload installer plugin (avoids REQUEST_INSTALL_PACKAGES).
+        if (BuildConfig.DEBUG) {
+            registerPlugin(HomecheffApkInstallerPlugin.class);
+        }
         super.onCreate(savedInstanceState);
         ensureChatNotificationChannel();
         ensureOrderNotificationChannel();

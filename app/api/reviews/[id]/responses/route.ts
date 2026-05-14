@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { tryAwardReviewReplyPublishedHcp } from '@/lib/gamification/interaction-hcp';
 
 // POST - Voeg een response toe aan een review
@@ -27,12 +28,25 @@ export async function POST(
     // Get user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, role: true }
+      select: {
+        id: true,
+        role: true,
+        emailVerified: true,
+        username: true,
+        termsAccepted: true,
+        passwordHash: true,
+        stripeConnectAccountId: true,
+        stripeConnectOnboardingCompleted: true,
+        Account: { select: { provider: true } },
+      },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    const reqBlock = assertAccountRequirementsOr403(user, 'postItem');
+    if (reqBlock) return reqBlock;
 
     // Get review and check if user is the seller
     const review = await prisma.productReview.findUnique({

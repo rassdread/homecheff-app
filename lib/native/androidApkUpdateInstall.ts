@@ -10,6 +10,7 @@ import {
   writeAndroidBetaInstallerOpened,
 } from '@/lib/native/android-beta-install-state';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
+import { isHomecheffApkInstallerNativeAvailable } from '@/lib/native/isHomecheffApkInstallerNativeAvailable';
 
 /** Relatief pad onder {@link Directory.Cache}; moet matchen met FileProvider `cache-path`. */
 export const ANDROID_BETA_CACHE_APK_RELATIVE_PATH = 'updates/homecheff-beta.apk';
@@ -92,6 +93,9 @@ function parseCopyCachedApkResult(raw: unknown): CopyCachedApkToDownloadsResult 
 
 /** Cache-APK naar Downloads (MediaStore / public map / app-external), voor zichtbare fallback. */
 export async function copyCachedBetaApkToDownloads(): Promise<CopyCachedApkToDownloadsResult> {
+  if (!isHomecheffApkInstallerNativeAvailable()) {
+    return { success: false, reason: 'installer_unavailable' };
+  }
   const raw = await HomecheffApkInstaller.copyCachedApkToDownloads({
     cacheRelativePath: CACHE_APK_PATH,
     fileName: ANDROID_BETA_EXPORT_APK_FILE_NAME,
@@ -166,6 +170,20 @@ export async function downloadApkAndOpenInstaller(
   targetVersion: string,
   onPhase: (phase: ApkInstallPhase, progressPct?: number) => void,
 ): Promise<ApkInstallResult> {
+  if (!isHomecheffApkInstallerNativeAvailable()) {
+    const reason = 'installer_plugin_unavailable';
+    storeFailure({ stage: 'precheck', reason });
+    logApk('precheck-fail', { reason });
+    return {
+      ok: false,
+      fallbackToBrowser: true,
+      message:
+        'App-updates via APK-installatie zijn in deze build niet beschikbaar. Gebruik de Play Store of open de download in de browser.',
+      kind: 'generic',
+      fallbackReason: reason,
+    };
+  }
+
   if (!apkUrl || !/^https:\/\//i.test(apkUrl)) {
     const reason = 'invalid_apk_url_not_https';
     storeFailure({ stage: 'precheck', reason });
@@ -343,6 +361,22 @@ export async function openCachedApkInstallerOnly(
   targetVersion: string,
   onPhase: (phase: ApkInstallPhase, progressPct?: number) => void,
 ): Promise<ApkInstallResult> {
+  if (!isHomecheffApkInstallerNativeAvailable()) {
+    const reason = 'installer_plugin_unavailable';
+    storeFailure({ stage: 'openCachedApk', reason });
+    logApk('retry-cached-fail', { kind: 'generic', message: reason });
+    onPhase('error');
+    return {
+      ok: false,
+      fallbackToBrowser: true,
+      message:
+        'APK-installatie is in deze build niet beschikbaar. Gebruik de Play Store of open de download in de browser.',
+      kind: 'generic',
+      fallbackReason: reason,
+      cachedApkMayExist: false,
+    };
+  }
+
   const ver = targetVersion.trim();
   if (ver) {
     writeAndroidBetaInstallStarted(ver);

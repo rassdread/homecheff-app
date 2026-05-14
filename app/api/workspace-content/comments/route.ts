@@ -4,14 +4,22 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 
 // POST - Add comment
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
     }
+
+    const sessionUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
+    });
+    const postBlock = assertAccountRequirementsOr403(sessionUser, 'postItem');
+    if (postBlock) return postBlock;
 
     const body = await req.json();
     const { workspaceContentId, content, parentId } = body;

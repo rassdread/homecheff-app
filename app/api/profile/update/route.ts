@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { geocodeAddress } from '@/lib/global-geocoding';
-import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
+import { needsDefinitiveUsername } from '@/lib/account-requirements';
 import { validateUsernameCandidate } from '@/lib/username-validation';
 import { tryAwardProfileCompleted } from '@/lib/gamification/profile-hcp';
 
@@ -61,11 +61,11 @@ export async function PUT(request: NextRequest) {
 
     if (currentUser?.username !== trimmedIncomingUsername) {
       const oldName = currentUser?.username ?? '';
-      if (!usernameContainsTempPlaceholder(oldName)) {
+      if (!needsDefinitiveUsername(oldName)) {
         return NextResponse.json(
           {
             error:
-              'Gebruikersnaam kan niet worden gewijzigd. Alleen accounts met een tijdelijke naam (waarin “temp” voorkomt) mogen eenmalig een definitieve, unieke naam kiezen — zoals op de site beschreven.',
+              'Gebruikersnaam kan niet worden gewijzigd. Alleen accounts met een tijdelijke of voorlopige naam mogen eenmalig een definitieve, unieke naam kiezen — zoals op de site beschreven.',
           },
           { status: 400 }
         );

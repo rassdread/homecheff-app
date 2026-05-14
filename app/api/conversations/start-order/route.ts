@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { tryAwardConversationStartedHcp } from '@/lib/gamification/interaction-hcp';
 
 export async function POST(req: NextRequest) {
@@ -23,12 +24,16 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    const reqBlock = assertAccountRequirementsOr403(user, 'sendMessage');
+    if (reqBlock) return reqBlock;
 
     // Get order with items and seller info
     const order = await prisma.order.findUnique({
