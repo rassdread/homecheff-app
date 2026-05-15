@@ -46,6 +46,10 @@ export async function syncGoogleProfileToDatabase(
   let isNewSocialUser = false;
 
   if (existingUser) {
+    if (existingUser.accountDeletedAt) {
+      throw new Error('account_deleted');
+    }
+
     const updateData: Record<string, unknown> = {
       name: input.name || existingUser.name,
       email,

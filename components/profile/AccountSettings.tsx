@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Shield, Key, Mail, Eye, EyeOff, Save, AlertCircle, Trash2, BadgeCheck } from 'lucide-react';
 import DeleteAccount from './DeleteAccount';
 import HelpSettings from '@/components/onboarding/HelpSettings';
@@ -19,12 +20,21 @@ interface AccountSettingsProps {
   onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   onUpdateEmail: (newEmail: string) => Promise<void>;
   onAccountDeleted?: () => void;
+  initialTab?: 'password' | 'email' | 'delete';
+  deleteInitialStep?: number;
 }
 
-export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail, onAccountDeleted }: AccountSettingsProps) {
+export default function AccountSettings({
+  user,
+  onUpdatePassword,
+  onUpdateEmail,
+  onAccountDeleted,
+  initialTab = 'password',
+  deleteInitialStep = 1,
+}: AccountSettingsProps) {
   const { t } = useTranslation();
   const hasPassword = user.hasPassword !== false;
-  const [activeTab, setActiveTab] = useState('password');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -45,6 +55,32 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
     newEmail: '',
     confirmEmail: ''
   });
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const dangerZone = (
+    <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+      <h3 className="text-base font-semibold text-red-900">{t('accountSettings.dangerZoneTitle')}</h3>
+      <p className="text-sm text-red-800">{t('accountSettings.dangerZoneBody')}</p>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('delete')}
+          className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          {t('accountSettings.dangerZoneCta')}
+        </button>
+        <Link
+          href="/delete-account"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
+        >
+          {t('accountSettings.publicDeletePageLink')}
+        </Link>
+      </div>
+    </div>
+  );
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,6 +286,8 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
             <Save className="w-4 h-4" />
             <span>{isLoading ? t('accountSettings.saving') || t('common.loading') : t('accountSettings.updatePassword')}</span>
           </button>
+
+          {dangerZone}
         </form>
       )}
 
@@ -307,14 +345,18 @@ export default function AccountSettings({ user, onUpdatePassword, onUpdateEmail,
             <Save className="w-4 h-4" />
             <span>{isLoading ? t('accountSettings.saving') || t('common.loading') : t('accountSettings.updateEmail')}</span>
           </button>
+
+          {dangerZone}
         </form>
       )}
 
       {/* Delete Account Tab */}
       {activeTab === 'delete' && (
-        <DeleteAccount 
-          user={user} 
-          onAccountDeleted={onAccountDeleted || (() => {})} 
+        <DeleteAccount
+          user={user}
+          hasPassword={hasPassword}
+          initialStep={deleteInitialStep}
+          onAccountDeleted={onAccountDeleted || (() => {})}
         />
       )}
     </div>

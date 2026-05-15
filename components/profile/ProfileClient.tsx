@@ -210,6 +210,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState('profile');
+  const [accountSettingsTab, setAccountSettingsTab] = useState<'password' | 'email' | 'delete'>('password');
+  const [deleteInitialStep, setDeleteInitialStep] = useState(1);
   const [isProfileEditing, setIsProfileEditing] = useState(false);
   const profileSettingsRef = useRef<ProfileSettingsRef>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -268,6 +270,22 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         else tab = 'dishes';
       }
       setActiveTab(tab);
+    }
+
+    const openSettings =
+      searchParams?.openSettings === '1' ||
+      searchParams?.openSettings === 'true' ||
+      searchParams?.openSettings === true;
+    if (openSettings) {
+      setShowSettings(true);
+    }
+    if (searchParams?.settingsSection === 'account') {
+      setSettingsSection('account');
+    }
+    if (searchParams?.accountTab === 'delete') {
+      setSettingsSection('account');
+      setAccountSettingsTab('delete');
+      setDeleteInitialStep(3);
     }
   }, [searchParams, user?.sellerRoles]);
 
@@ -430,6 +448,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
             onUpdatePassword={handlePasswordUpdate}
             onUpdateEmail={handleEmailUpdate}
             onAccountDeleted={() => (window.location.href = "/")}
+            initialTab={accountSettingsTab}
+            deleteInitialStep={deleteInitialStep}
           />
         );
       case 'notifications':

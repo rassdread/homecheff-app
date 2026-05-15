@@ -61,12 +61,13 @@ export async function generateMetadata({
       bio: true,
       place: true,
       showProfileToEveryone: true,
+      accountDeletedAt: true,
       displayFullName: true,
       displayNameOption: true,
     },
   });
 
-  if (!user || !user.showProfileToEveryone) {
+  if (!user || user.accountDeletedAt || !user.showProfileToEveryone) {
     return { title: "Profiel" };
   }
 
@@ -140,6 +141,7 @@ export default async function PublicProfilePage({
       displayNameOption: true,
       showFansList: true,
       showProfileToEveryone: true,
+      accountDeletedAt: true,
       createdAt: true,
       profileViews: true,
       // Publieke producten (alleen gepubliceerde)
@@ -279,6 +281,7 @@ export default async function PublicProfilePage({
           displayNameOption: true,
           showFansList: true,
           showProfileToEveryone: true,
+          accountDeletedAt: true,
           createdAt: true,
           profileViews: true,
           // Publieke producten (alleen gepubliceerde)
@@ -399,6 +402,10 @@ export default async function PublicProfilePage({
   });
 
   if (!user) {
+    notFound();
+  }
+
+  if (user.accountDeletedAt) {
     notFound();
   }
 

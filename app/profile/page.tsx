@@ -30,6 +30,7 @@ export default async function ProfilePage({
       username: true,
       passwordHash: true,
       email: true,
+      accountDeletedAt: true,
       bio: true,
       quote: true,
       place: true,
@@ -128,9 +129,13 @@ export default async function ProfilePage({
     );
   }
 
+  if (user.accountDeletedAt) {
+    redirect('/login?error=account_deleted');
+  }
+
   const openNewProducts = (searchParams?.added ?? "") === "1";
 
-  const { passwordHash, ...userForClient } = user;
+  const { passwordHash, accountDeletedAt: _accountDeletedAt, ...userForClient } = user;
   const clientUser = {
     ...userForClient,
     hasPassword: Boolean(passwordHash),

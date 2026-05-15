@@ -122,6 +122,7 @@ export const authOptions: NextAuthOptions = {
                     role: true,
                     name: true,
                     image: true,
+                    accountDeletedAt: true,
                   },
                 })
               : null
@@ -134,11 +135,16 @@ export const authOptions: NextAuthOptions = {
                   role: true,
                   name: true,
                   image: true,
+                  accountDeletedAt: true,
                 },
               });
             
           if (!user) {
 
+            return null;
+          }
+
+          if ((user as { accountDeletedAt?: Date | null }).accountDeletedAt) {
             return null;
           }
           
@@ -209,6 +215,10 @@ export const authOptions: NextAuthOptions = {
           const msg = error instanceof Error ? error.message : String(error);
           if (msg === "google_email_not_verified") {
             console.error("❌ Google sign-in rejected: email not verified");
+            return false;
+          }
+          if (msg === "account_deleted") {
+            console.error("❌ Sign-in rejected: account was deleted");
             return false;
           }
           console.error("❌ Error in signIn callback:", error);

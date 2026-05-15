@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { 
   Shield, Eye, EyeOff, MessageCircle, Users, UserPlus, 
-  Bell, Activity, Save, AlertCircle, Check, Home, ArrowLeft
+  Bell, Activity, Save, AlertCircle, Check, Home, ArrowLeft, Trash2
 } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -380,6 +380,28 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
             <Save className="w-4 h-4" />
             {saving ? t('common.saving') : t('common.saveSettings')}
           </button>
+        </div>
+
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-5 h-5 text-red-600" />
+            <h3 className="font-medium text-red-900">{t('accountSettings.dangerZoneTitle')}</h3>
+          </div>
+          <p className="text-sm text-red-800">{t('accountSettings.dangerZoneBody')}</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Link
+              href="/profile?openSettings=1&settingsSection=account&accountTab=delete"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              {t('accountSettings.dangerZoneCta')}
+            </Link>
+            <Link
+              href="/delete-account"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
+            >
+              {t('accountSettings.publicDeletePageLink')}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

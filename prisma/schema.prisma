@@ -84,6 +84,8 @@ model User {
   /// Beta onboarding sheet (meldingen/locatie-stappen) afgerond
   androidBetaOnboardingCompletedAt       DateTime?
   dateOfBirth                            DateTime? // Geboortedatum voor leeftijdscategorieën
+  /// Gezet bij accountverwijdering: login geblokkeerd, profiel geanonimiseerd (zie lib/account-deletion.ts).
+  accountDeletedAt                       DateTime?
   Account                                Account[]
   AdminAction                            AdminAction[]
   adminPermissions                       AdminPermissions?
@@ -130,6 +132,7 @@ model User {
   userHcpRewards                         UserHcpReward[]
 
   @@index([username])
+  @@index([accountDeletedAt])
   @@index([name])
   @@index([role])
   @@index([createdAt])
