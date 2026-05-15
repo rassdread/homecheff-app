@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, Suspense, useRef } from "react";
+import React, { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type VerificationState = {
-  status: 'loading' | 'success' | 'error' | 'expired' | 'pending';
+  status: "loading" | "success" | "error" | "expired" | "pending";
   message: string;
   email?: string;
   canResend: boolean;
@@ -14,75 +15,85 @@ type VerificationState = {
 };
 
 function VerifyEmailContent() {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams?.get('token');
-  const email = searchParams?.get('email');
-  
+  const token = searchParams?.get("token");
+  const email = searchParams?.get("email");
+
   const [state, setState] = useState<VerificationState>({
-    status: 'pending',
-    message: '',
-    email: email || '',
+    status: "pending",
+    message: "",
+    email: email || "",
     canResend: false,
     isResending: false,
     mailDown: false,
   });
+  const [hasRequestedCode, setHasRequestedCode] = useState(false);
 
   const lastResendAtRef = useRef(0);
   const MAIL_DOWN_COOLDOWN_MS = 45_000;
 
-  // Auto-verify if token is provided in URL
+  const verifyEmail = useCallback(
+    async (verificationToken: string) => {
+      setState((prev) => ({
+        ...prev,
+        status: "loading",
+        message: t("verifyEmailPage.verifying"),
+      }));
+
+      try {
+        const response = await fetch(
+          `/api/auth/verify-email-simple?token=${verificationToken}`,
+        );
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setState({
+            status: "success",
+            message: typeof data.message === "string" ? data.message : "",
+            email: data.user?.email || email || "",
+            canResend: false,
+            isResending: false,
+          });
+          setTimeout(() => {
+            router.push("/");
+          }, 3000);
+        } else {
+          setState({
+            status: "error",
+            message: data.error || t("verifyEmailPage.verifyFailed"),
+            email: email || "",
+            canResend: true,
+            isResending: false,
+          });
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        setState({
+          status: "error",
+          message: t("verifyEmailPage.verifyError"),
+          email: email || "",
+          canResend: true,
+          isResending: false,
+        });
+      }
+    },
+    [t, router, email],
+  );
+
   useEffect(() => {
     if (token) {
       verifyEmail(token);
     }
-  }, [token]);
-
-  const verifyEmail = async (verificationToken: string) => {
-    setState(prev => ({ ...prev, status: 'loading', message: 'E-mailadres wordt geverifieerd...' }));
-    
-    try {
-      const response = await fetch(`/api/auth/verify-email-simple?token=${verificationToken}`);
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setState({
-          status: 'success',
-          message: data.message,
-          email: data.user?.email || email,
-          canResend: false,
-          isResending: false
-        });
-        
-        // Redirect to home after 3 seconds
-        setTimeout(() => {
-          router.push('/');
-        }, 3000);
-      } else {
-        setState({
-          status: 'error',
-          message: data.error || 'Verificatie mislukt',
-          email: email || '',
-          canResend: true,
-          isResending: false
-        });
-      }
-    } catch (error) {
-      console.error('Verification error:', error);
-      setState({
-        status: 'error',
-        message: 'Er is een fout opgetreden bij het verifiëren van je e-mailadres',
-        email: email || '',
-        canResend: true,
-        isResending: false
-      });
-    }
-  };
+  }, [token, verifyEmail]);
 
   const resendVerification = async () => {
     if (!state.email) {
-      setState(prev => ({ ...prev, message: 'E-mailadres is vereist voor het opnieuw verzenden' }));
+      setState((prev) => ({
+        ...prev,
+        message: t("verifyEmailPage.emailRequired"),
+      }));
       return;
     }
 
@@ -91,9 +102,9 @@ function VerifyEmailContent() {
       const prev = lastResendAtRef.current;
       if (prev > 0 && now - prev < MAIL_DOWN_COOLDOWN_MS) {
         const sec = Math.ceil((MAIL_DOWN_COOLDOWN_MS - (now - prev)) / 1000);
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
-          message: `Even geduld: e-mail is tijdelijk niet beschikbaar. Probeer over ${sec} seconden opnieuw.`,
+          message: t("verifyEmailPage.resendWaitMailDown", { seconds: String(sec) }),
           isResending: false,
         }));
         return;
@@ -101,15 +112,20 @@ function VerifyEmailContent() {
     }
     lastResendAtRef.current = Date.now();
 
-    setState(prev => ({ ...prev, isResending: true, message: 'Verificatie-e-mail wordt opnieuw verzonden...' }));
-    
+    setState((prev) => ({
+      ...prev,
+      isResending: true,
+      message: hasRequestedCode
+        ? t("verifyEmailPage.resendingMail")
+        : t("verifyEmailPage.sendingMail"),
+    }));
+
     try {
-      const response = await fetch('/api/auth/resend-verification-simple', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: state.email }),
+      const locale = language === "en" ? "en" : "nl";
+      const response = await fetch("/api/auth/resend-verification-simple", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: state.email, locale }),
       });
 
       const data = (await response.json().catch(() => ({}))) as {
@@ -120,10 +136,11 @@ function VerifyEmailContent() {
       };
 
       if (response.ok && data.success) {
-        setState(prev => ({
+        setHasRequestedCode(true);
+        setState((prev) => ({
           ...prev,
-          status: 'pending',
-          message: data.message || 'Nieuwe code verzonden.',
+          status: "pending",
+          message: data.message || t("verifyEmailPage.codeSentOk"),
           canResend: false,
           isResending: false,
           mailDown: false,
@@ -131,162 +148,175 @@ function VerifyEmailContent() {
         return;
       }
 
-      if (response.status === 429 && data.code === 'RATE_LIMITED') {
+      if (response.status === 429 && data.code === "RATE_LIMITED") {
         const sec =
-          typeof data.retryAfterSec === 'number' ? data.retryAfterSec : 60;
-        setState(prev => ({
+          typeof data.retryAfterSec === "number" ? data.retryAfterSec : 60;
+        setState((prev) => ({
           ...prev,
-          message: `Wacht even voordat je een nieuwe code aanvraagt (${sec}s).`,
-          isResending: false
+          message: t("verifyEmailPage.rateLimited", { seconds: String(sec) }),
+          isResending: false,
         }));
         return;
       }
 
-      if (response.status === 409 && data.code === 'ALREADY_VERIFIED') {
-        setState(prev => ({
+      if (response.status === 409 && data.code === "ALREADY_VERIFIED") {
+        setState((prev) => ({
           ...prev,
-          message: 'Je e-mailadres is al geverifieerd. Je kunt inloggen.',
-          isResending: false
+          message: t("verifyEmailPage.alreadyVerified"),
+          isResending: false,
         }));
         return;
       }
 
-      if (response.status === 503 || data.code === 'EMAIL_UNAVAILABLE') {
-        setState(prev => ({
+      if (response.status === 503 || data.code === "EMAIL_UNAVAILABLE") {
+        setState((prev) => ({
           ...prev,
-          message:
-            'Er is momenteel een probleem met het verzenden van verificatie-e-mails. Je kunt verder browsen; probeer later opnieuw of wijzig je e-mail in je profiel.',
+          message: t("verifyEmailPage.mailUnavailable"),
           isResending: false,
           mailDown: true,
         }));
         return;
       }
 
-      if (response.status === 500 && data.code === 'EMAIL_NOT_CONFIGURED') {
-        setState(prev => ({
+      if (response.status === 500 && data.code === "EMAIL_NOT_CONFIGURED") {
+        setState((prev) => ({
           ...prev,
-          message:
-            'E-mail verzenden is nu niet mogelijk (configuratie). Probeer het later opnieuw of neem contact op.',
+          message: t("verifyEmailPage.mailNotConfigured"),
           isResending: false,
           mailDown: true,
         }));
         return;
       }
 
-      if (response.status === 400 || data.code === 'INVALID_EMAIL') {
-        setState(prev => ({
+      if (response.status === 400 || data.code === "INVALID_EMAIL") {
+        setState((prev) => ({
           ...prev,
-          message: 'Voer een geldig e-mailadres in.',
-          isResending: false
+          message: t("verifyEmailPage.invalidEmail"),
+          isResending: false,
         }));
         return;
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        message:
-          'Het opnieuw verzenden lukte niet. Probeer het zo opnieuw of neem contact op als het blijft gebeuren.',
-        isResending: false
+        message: t("verifyEmailPage.resendFailed"),
+        isResending: false,
       }));
     } catch (error) {
-      console.error('Resend error:', error);
-      setState(prev => ({
+      console.error("Resend error:", error);
+      setState((prev) => ({
         ...prev,
-        message: 'Er is een fout opgetreden bij het opnieuw verzenden van de verificatie-e-mail',
-        isResending: false
+        message: t("verifyEmailPage.resendNetworkError"),
+        isResending: false,
       }));
     }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setState(prev => ({ ...prev, email: e.target.value }));
+    setState((prev) => ({ ...prev, email: e.target.value }));
   };
+
+  const title =
+    state.status === "success"
+      ? t("verifyEmailPage.titleSuccess")
+      : state.status === "error" || state.status === "expired"
+        ? t("verifyEmailPage.titleError")
+        : t("verifyEmailPage.titlePending");
+
+  const subtitle =
+    state.status === "success"
+      ? t("verifyEmailPage.subtitleSuccess")
+      : state.status === "error" || state.status === "expired"
+        ? t("verifyEmailPage.subtitleError")
+        : t("verifyEmailPage.subtitlePending");
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              {state.status === 'success' ? (
+              {state.status === "success" ? (
                 <CheckCircle className="w-8 h-8 text-emerald-600" />
-              ) : state.status === 'error' || state.status === 'expired' ? (
+              ) : state.status === "error" || state.status === "expired" ? (
                 <AlertCircle className="w-8 h-8 text-red-600" />
               ) : (
                 <Mail className="w-8 h-8 text-emerald-600" />
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {state.status === 'success' ? 'E-mail Geverifieerd!' : 
-               state.status === 'error' || state.status === 'expired' ? 'Verificatie Mislukt' :
-               'E-mail Verificatie'}
-            </h1>
-            <p className="text-gray-600">
-              {state.status === 'success' ? 'Je account is nu volledig actief!' :
-               state.status === 'error' || state.status === 'expired' ? 'Er is iets misgegaan' :
-               'Controleer je e-mail voor de verificatielink'}
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+            <p className="text-gray-600">{subtitle}</p>
           </div>
 
-          {/* Status Message */}
           {state.message && (
-            <div className={`mb-6 p-4 rounded-xl ${
-              state.status === 'success' ? 'bg-green-50 border border-green-200' :
-              state.status === 'error' || state.status === 'expired' ? 'bg-red-50 border border-red-200' :
-              'bg-blue-50 border border-blue-200'
-            }`}>
+            <div
+              className={`mb-6 p-4 rounded-xl ${
+                state.status === "success"
+                  ? "bg-green-50 border border-green-200"
+                  : state.status === "error" || state.status === "expired"
+                    ? "bg-red-50 border border-red-200"
+                    : "bg-blue-50 border border-blue-200"
+              }`}
+            >
               <div className="flex items-center">
-                {state.status === 'loading' && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                {state.status === "loading" && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3" />
                 )}
-                <p className={`text-sm ${
-                  state.status === 'success' ? 'text-green-800' :
-                  state.status === 'error' || state.status === 'expired' ? 'text-red-800' :
-                  'text-blue-800'
-                }`}>
+                <p
+                  className={`text-sm ${
+                    state.status === "success"
+                      ? "text-green-800"
+                      : state.status === "error" || state.status === "expired"
+                        ? "text-red-800"
+                        : "text-blue-800"
+                  }`}
+                >
                   {state.message}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Email Input for Resend */}
           {state.canResend && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                E-mailadres
+                {t("verifyEmailPage.emailLabel")}
               </label>
               <input
                 type="email"
                 value={state.email}
                 onChange={handleEmailChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="je@email.com"
+                placeholder={t("verifyEmailPage.emailPlaceholder")}
               />
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="space-y-3">
-            {state.status === 'success' && (
+            {state.status === "success" && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-4">
-                  Je wordt automatisch doorgestuurd naar de homepage...
+                  {t("verifyEmailPage.redirectHome")}
                 </p>
                 <Link
                   href="/"
                   className="inline-flex items-center justify-center w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
                 >
-                  Naar Homepage
+                  {t("verifyEmailPage.toHome")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </div>
             )}
 
-            {state.status === 'error' || state.status === 'expired' ? (
+            {state.status === "error" || state.status === "expired" ? (
               <div className="space-y-3">
+                <p className="text-sm text-center text-slate-600 leading-relaxed">
+                  {state.mailDown
+                    ? t("emailVerification.explainProviderDown")
+                    : t("emailVerification.explainRequestCode")}
+                </p>
                 <button
+                  type="button"
                   onClick={resendVerification}
                   disabled={state.isResending || !state.email}
                   className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
@@ -294,72 +324,91 @@ function VerifyEmailContent() {
                   {state.isResending ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Verzenden...
+                      {t("emailVerification.resending")}
                     </>
                   ) : (
                     <>
                       <Mail className="w-4 h-4 mr-2" />
-                      Verificatie-e-mail Opnieuw Verzenden
+                      {hasRequestedCode
+                        ? t("emailVerification.resendCodeCta")
+                        : t("emailVerification.requestCodeCta")}
                     </>
                   )}
                 </button>
-                
+
                 <Link
                   href="/login"
                   className="block w-full text-center px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
                 >
-                  Terug naar Inloggen
+                  {t("verifyEmailPage.backToLogin")}
                 </Link>
               </div>
-            ) : state.status === 'pending' && !token ? (
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-4">
-                  We hebben een verificatie-e-mail gestuurd naar je e-mailadres.
+            ) : state.status === "pending" && !token ? (
+              <div className="text-center space-y-3">
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {t("verifyEmailPage.introPending")}
                 </p>
-                <div className="space-y-3">
-                  <button
-                    onClick={resendVerification}
-                    disabled={state.isResending || !state.email}
-                    className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                  >
-                    {state.isResending ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Verzenden...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Verificatie-e-mail Opnieuw Verzenden
-                      </>
-                    )}
-                  </button>
-                  
-                  <Link
-                    href="/login"
-                    className="block w-full text-center px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
-                  >
-                    Terug naar Inloggen
-                  </Link>
-                </div>
+                <p className="text-sm text-slate-600">
+                  {state.mailDown
+                    ? t("emailVerification.explainProviderDown")
+                    : t("emailVerification.explainRequestCode")}
+                </p>
+                <button
+                  type="button"
+                  onClick={resendVerification}
+                  disabled={state.isResending || !state.email}
+                  className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {state.isResending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      {t("emailVerification.resending")}
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      {hasRequestedCode
+                        ? t("emailVerification.resendCodeCta")
+                        : t("emailVerification.requestCodeCta")}
+                    </>
+                  )}
+                </button>
+
+                <Link
+                  href="/login"
+                  className="block w-full text-center px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  {t("verifyEmailPage.backToLogin")}
+                </Link>
               </div>
             ) : null}
           </div>
 
-          {/* Help Text */}
           <div className="mt-8 p-4 bg-gray-50 rounded-xl">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Hulp nodig?</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">
+              {t("verifyEmailPage.helpTitle")}
+            </h3>
             <ul className="text-xs text-gray-600 space-y-1">
-              <li>• Controleer je spam/junk folder</li>
-              <li>• Verificatielinks zijn 24 uur geldig</li>
+              <li>• {t("verifyEmailPage.helpSpam")}</li>
+              <li>• {t("verifyEmailPage.helpExpiry")}</li>
               <li>
-                • <Link href="/profile" className="text-emerald-600 hover:text-emerald-700">Profiel</Link>
-                {' — e-mailadres wijzigen'}
+                •{" "}
+                <Link
+                  href="/profile"
+                  className="text-emerald-600 hover:text-emerald-700"
+                >
+                  {t("verifyEmailPage.helpProfile")}
+                </Link>
               </li>
               <li>
-                • <Link href="/contact" className="text-emerald-600 hover:text-emerald-700">Contact</Link>
-                {' of '}
-                <a href="mailto:support@homecheff.eu" className="text-emerald-600 hover:text-emerald-700">support@homecheff.eu</a>
+                •{" "}
+                <Link
+                  href="/contact"
+                  className="text-emerald-600 hover:text-emerald-700"
+                >
+                  {t("verifyEmailPage.helpContact")}
+                </Link>{" "}
+                {t("verifyEmailPage.helpSupport")}
               </li>
             </ul>
           </div>
@@ -371,14 +420,16 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Laden...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4" />
+            <p className="text-gray-600">…</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );

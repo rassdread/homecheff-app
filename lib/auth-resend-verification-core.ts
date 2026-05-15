@@ -38,6 +38,7 @@ function isMissingResendKey(err: unknown): boolean {
  */
 export async function runResendVerificationCore(
   rawEmail: unknown,
+  options?: { locale?: 'nl' | 'en' },
 ): Promise<ResendVerificationCoreResult> {
   const email =
     typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
@@ -88,11 +89,17 @@ export async function runResendVerificationCore(
   });
 
   try {
+    const locale = options?.locale === 'en' ? 'en' : 'nl';
+    const displayName =
+      locale === 'en'
+        ? user.name || user.username || 'User'
+        : user.name || user.username || 'Gebruiker';
     await sendVerificationEmail({
       email: user.email,
-      name: user.name || user.username || 'Gebruiker',
+      name: displayName,
       verificationToken,
       verificationCode,
+      locale,
     });
     markResendVerificationSent(user.email);
     logEmailVerificationDiag('email_verification_resend_success', {});

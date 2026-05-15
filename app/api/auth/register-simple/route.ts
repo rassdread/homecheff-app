@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/email";
-import { logEmailSendFailure } from "@/lib/email-log";
 import {
   generateVerificationCode,
   generateVerificationToken,
@@ -288,22 +286,6 @@ export async function POST(req: NextRequest) {
         emailVerificationExpires: verificationExpires,
       },
     });
-
-    // Send verification email
-    try {
-      await sendVerificationEmail({
-        email: normalizedEmail,
-        name: name || usernameTrim || 'Gebruiker',
-        verificationToken,
-        verificationCode,
-      });
-
-    } catch (emailError) {
-      logEmailSendFailure('register_simple_verification', emailError, {
-        recipientEmail: normalizedEmail,
-      });
-      // Don't fail registration if email sending fails
-    }
 
     return NextResponse.json({ 
       ok: true, 

@@ -12,13 +12,6 @@ import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
-import { sendVerificationEmail } from "@/lib/email";
-import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
-import { logEmailVerificationDiag } from "@/lib/email-verification-diagnostics";
-import { logEmailDeliveryDiag } from "@/lib/email-delivery-diagnostics";
-import { emailFailureReasonToDiagCategory } from "@/lib/email-public-diag";
-import { EmailSendFailure } from "@/lib/email-send-failure";
-import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { buildRegistrationFullName } from "@/lib/person-name";
 import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
@@ -440,52 +433,8 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    let verificationEmailSent = false;
-    let verificationEmailSkippedReason:
-      | 'EMAIL_UNAVAILABLE'
-      | 'EMAIL_NOT_CONFIGURED'
-      | null = null;
-
-    // Send verification email
-    try {
-      await sendVerificationEmail({
-        email: normalizedEmail,
-        name: name || username || 'Gebruiker',
-        verificationToken,
-        verificationCode
-      });
-      verificationEmailSent = true;
-      logEmailVerificationDiag('email_verification_send_success', { context: 'register' });
-    } catch (emailError) {
-      logEmailSendFailure("register_verification", emailError, {
-        recipientEmail: normalizedEmail,
-      });
-      logEmailVerificationDiag('email_verification_send_failed', {
-        context: 'register',
-        reason: summarizeEmailError(emailError, 120),
-      });
-      const diagCat =
-        emailError instanceof EmailSendFailure
-          ? emailFailureReasonToDiagCategory(emailError.category)
-          : 'email_provider_unknown';
-      logEmailDeliveryDiag('email_send_skipped', {
-        route: 'POST /api/auth/register',
-        emailDiagCategory: diagCat,
-      });
-      if (emailError instanceof EmailSendFailure) {
-        verificationEmailSkippedReason =
-          emailError.apiCode === 'EMAIL_NOT_CONFIGURED'
-            ? 'EMAIL_NOT_CONFIGURED'
-            : 'EMAIL_UNAVAILABLE';
-      } else {
-        const msg = emailError instanceof Error ? emailError.message : String(emailError);
-        if (msg.includes('RESEND_API_KEY_NOT_CONFIGURED')) {
-          verificationEmailSkippedReason = 'EMAIL_NOT_CONFIGURED';
-        } else if (msg.includes('Email service unavailable')) {
-          verificationEmailSkippedReason = 'EMAIL_UNAVAILABLE';
-        }
-      }
-    }
+    const verificationEmailSent = false;
+    const verificationEmailSkippedReason = null;
 
     // Als bedrijf met abonnement: start Stripe Checkout direct
     let checkoutUrl: string | null = null;

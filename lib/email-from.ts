@@ -1,15 +1,32 @@
 /** Transactionele afzender voor Resend (na verificatie domein in Resend). */
 
-const DEFAULT_FROM = "HomeCheff <noreply@homecheff.eu>";
+const DEFAULT_FROM = "HomeCheff <no-reply@homecheff.eu>";
 
 const SIMPLE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Eerste niet-lege waarde: FROM_EMAIL, RESEND_FROM (alias), dan default. */
+/**
+ * Sommige omgevingen plakken per ongeluk de variabelenaam in de waarde
+ * (bijv. `FROM_EMAIL=HomeCheff <noreply@...>`). Strip dat veilig.
+ */
+function stripEnvKeyArtifact(raw: string): string {
+  let v = raw.trim();
+  v = v.replace(/^FROM_EMAIL\s*=\s*/i, "");
+  v = v.replace(/^RESEND_FROM\s*=\s*/i, "");
+  return v.trim();
+}
+
+/** Eerste geldige niet-lege waarde: FROM_EMAIL, RESEND_FROM (alias), dan default. */
 export function getRawFromEnv(): string {
   const a = process.env.FROM_EMAIL?.trim();
-  if (a) return a;
+  if (a) {
+    const cleaned = stripEnvKeyArtifact(a);
+    if (cleaned && validateFromHeader(cleaned)) return cleaned;
+  }
   const b = process.env.RESEND_FROM?.trim();
-  if (b) return b;
+  if (b) {
+    const cleaned = stripEnvKeyArtifact(b);
+    if (cleaned && validateFromHeader(cleaned)) return cleaned;
+  }
   return DEFAULT_FROM;
 }
 

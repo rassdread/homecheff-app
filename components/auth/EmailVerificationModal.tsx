@@ -34,7 +34,7 @@ export default function EmailVerificationModal({
   onLater,
   onNavigateBack,
 }: EmailVerificationModalProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const isRequired = mode === 'required';
   const lastResendAtRef = useRef(0);
   const PROVIDER_RESEND_COOLDOWN_MS = 45_000;
@@ -46,6 +46,7 @@ export default function EmailVerificationModal({
   const [success, setSuccess] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [providerDown, setProviderDown] = useState(false);
+  const [hasRequestedCode, setHasRequestedCode] = useState(false);
 
   const canSendResendNow = useCallback(() => {
     if (!providerDown) return true;
@@ -96,6 +97,7 @@ export default function EmailVerificationModal({
     setProviderDown(
       Boolean(providerUnavailable) || (isRequired && initialSendOk === false),
     );
+    setHasRequestedCode(false);
   }, [isOpen, isRequired, providerUnavailable, initialSendOk]);
 
   useEffect(() => {
@@ -159,6 +161,7 @@ export default function EmailVerificationModal({
 
       if (response.ok && data.success) {
         setProviderDown(false);
+        setHasRequestedCode(true);
         setResendSuccess(true);
         setError(null);
         return true;
@@ -171,12 +174,13 @@ export default function EmailVerificationModal({
   );
 
   const postResend = useCallback(async () => {
+    const locale = language === 'en' ? 'en' : 'nl';
     return fetch('/api/auth/resend-verification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, locale }),
     });
-  }, [email]);
+  }, [email, language]);
 
   const handleVerifyNow = async () => {
     setError(null);
@@ -310,7 +314,11 @@ export default function EmailVerificationModal({
           ) : (
             <>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('emailVerification.title')}</h2>
-              <p className="text-gray-600 text-sm">{t('emailVerification.description')}</p>
+              <p className="text-gray-600 text-sm">
+                {hasRequestedCode
+                  ? t('emailVerification.descriptionAfterSent')
+                  : t('emailVerification.descriptionBeforeSent')}
+              </p>
             </>
           )}
           <p className="text-emerald-600 font-medium mt-2 break-all">{email}</p>
@@ -347,13 +355,22 @@ export default function EmailVerificationModal({
 
         {showIntro && !success ? (
           <div className="space-y-3">
+            <p className="text-sm text-center text-slate-600 leading-relaxed px-1">
+              {providerUnavailable || providerDown
+                ? t('emailVerification.explainProviderDown')
+                : t('emailVerification.explainRequestCode')}
+            </p>
             <button
               type="button"
               onClick={handleVerifyNow}
               disabled={isResending}
               className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isResending ? t('emailVerification.resending') : t('emailVerification.verifyNow')}
+              {isResending
+                ? t('emailVerification.resending')
+                : initialSendOk && !providerUnavailable
+                  ? t('emailVerification.continueToCodeCta')
+                  : t('emailVerification.requestCodeCta')}
             </button>
             <button
               type="button"
@@ -383,6 +400,21 @@ export default function EmailVerificationModal({
                 >
                   {t('emailVerification.continueBrowsing')}
                 </button>
+              </div>
+            ) : null}
+            {!(isRequired && providerDown && onNavigateBack) ? (
+              <div className="mb-4 text-center text-sm px-1">
+                {!providerDown ? (
+                  <p className="text-slate-600 leading-relaxed">
+                    {hasRequestedCode
+                      ? t('emailVerification.descriptionAfterSent')
+                      : t('emailVerification.explainRequestCode')}
+                  </p>
+                ) : (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-900 leading-relaxed">
+                    {t('emailVerification.explainProviderDown')}
+                  </p>
+                )}
               </div>
             ) : null}
             <div className="mb-6">
@@ -434,7 +466,9 @@ export default function EmailVerificationModal({
                 ) : (
                   <>
                     <RefreshCw className="w-4 h-4" />
-                    {t('emailVerification.resend')}
+                    {hasRequestedCode
+                      ? t('emailVerification.resendCodeCta')
+                      : t('emailVerification.requestCodeCta')}
                   </>
                 )}
               </button>

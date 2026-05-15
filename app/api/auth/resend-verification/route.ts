@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
     const fromSession =
       typeof session?.user?.email === 'string' ? session.user.email.trim() : '';
     const resolvedEmail = fromBody || fromSession;
-    const result = await runResendVerificationCore(resolvedEmail || undefined);
+    const locale = body?.locale === 'en' ? 'en' : 'nl';
+    const result = await runResendVerificationCore(resolvedEmail || undefined, { locale });
 
     switch (result.status) {
       case 'sent':
