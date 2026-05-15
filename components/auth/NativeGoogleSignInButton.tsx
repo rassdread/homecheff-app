@@ -1,33 +1,30 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useAndroidBridgePresent } from '@/lib/native/useAndroidBridgePresent';
 import { useNativeAndroid } from '@/lib/native/useNativeAndroid';
+import { shouldUseNativeGoogleLogin } from '@/lib/native/subscribeNativeShell';
 import {
   applySessionMode,
   setRememberPreference,
 } from '@/lib/session-mode';
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
+import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 
 const WEB_CLIENT_ID =
   typeof process !== 'undefined'
     ? process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || ''
     : '';
 
-const CLIENT_LOG = '[HomeCheff native-google client]';
-
 type NativeGoogleLoginShape = {
   provider?: string;
   result?: unknown;
 };
 
-/**
- * Capgo kan per platform iets andere vormen teruggeven; nooit tokens loggen.
- */
 function extractNativeGoogleIdToken(login: unknown): {
   idToken: string | null;
-  /** Waar idToken vandaan kwam of waarom hij ontbreekt (structuur-hint). */
   pluginPayloadHint: string;
 } {
   if (!login || typeof login !== 'object') {
@@ -100,11 +97,14 @@ function mapNativeGoogleApiError(code: string): string {
   }
 }
 
+function redactErrorMessage(msg: string): string {
+  return msg.replace(/ya29\.[a-zA-Z0-9._-]+/gi, '[redacted]').slice(0, 200);
+}
+
 export type NativeGoogleSignInButtonProps = {
   rememberMe?: boolean;
   disabled?: boolean;
   buttonLabel: string;
-  /** Styling: login page uses bordered card; register uses compact bordered button */
   variant?: 'login' | 'register';
   analyticsContext: 'login' | 'register';
 };
@@ -119,33 +119,60 @@ export function NativeGoogleSignInButton({
   const router = useRouter();
   const androidBridge = useAndroidBridgePresent();
   const nativeAndroid = useNativeAndroid();
-  const showNativeGoogle = androidBridge || nativeAndroid;
+  const preferNative = shouldUseNativeGoogleLogin({
+    androidBridge,
+    nativeAndroid,
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  /** Lazy module load: alleen na user-tap; geen top-level import van @capgo/… */
   const capgoModulePromiseRef = useRef<Promise<
     typeof import('@capgo/capacitor-social-login')
   > | null>(null);
 
-  const onClick = useCallback(async () => {
-    if (busy || disabled) return;
-    setError(null);
-    setBusy(true);
+  const runWebGoogleLogin = useCallback(async (): Promise<boolean> => {
+    logGoogleLoginDiag('google_login_web_start', { preferNative });
     try {
-      console.info('[HomeCheff] native Google tap → SocialLogin only (no signIn/location)');
-      const webClientId = WEB_CLIENT_ID;
-      if (!webClientId) {
-        setError('Google login is niet geconfigureerd (ontbrekende client id).');
-        return;
-      }
-
       setRememberPreference(rememberMe);
+      await signIn('google', {
+        callbackUrl: '/auth/social-success',
+        redirect: true,
+      });
+      return true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logGoogleLoginDiag('google_login_web_failed', {
+        message: redactErrorMessage(msg),
+      });
+      setError(
+        'Google inloggen via browser is mislukt. Controleer je verbinding en probeer opnieuw.',
+      );
+      return false;
+    }
+  }, [preferNative, rememberMe]);
 
-      if (typeof window === 'undefined') {
-        setError('Google login is alleen beschikbaar in de app.');
-        return;
-      }
+  const runNativeGoogleLogin = useCallback(async (): Promise<boolean> => {
+    logGoogleLoginDiag('google_login_native_start', {
+      hasWebClientId: Boolean(WEB_CLIENT_ID),
+      androidBridge,
+      nativeAndroid,
+    });
 
+    if (!WEB_CLIENT_ID) {
+      setError('Google login is niet geconfigureerd (ontbrekende client id).');
+      logGoogleLoginDiag('google_login_native_failed', { reason: 'missing_web_client_id' });
+      return false;
+    }
+
+    if (typeof window === 'undefined') {
+      setError('Google login is alleen beschikbaar in de app.');
+      logGoogleLoginDiag('google_login_native_failed', { reason: 'no_window' });
+      return false;
+    }
+
+    setRememberPreference(rememberMe);
+
+    let SocialLogin: typeof import('@capgo/capacitor-social-login').SocialLogin;
+    try {
       if (!capgoModulePromiseRef.current) {
         capgoModulePromiseRef.current = import('@capgo/capacitor-social-login').catch(
           (e) => {
@@ -154,134 +181,193 @@ export function NativeGoogleSignInButton({
           },
         );
       }
-      const { SocialLogin } = await capgoModulePromiseRef.current;
+      ({ SocialLogin } = await capgoModulePromiseRef.current);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'plugin_import_failed',
+        message: redactErrorMessage(msg),
+      });
+      return false;
+    }
+
+    try {
       await SocialLogin.initialize({
         google: {
-          webClientId,
+          webClientId: WEB_CLIENT_ID,
           mode: 'online',
         },
       });
-      // Geen custom scopes: Capgo Android weigert scopes zonder ModifiedMainActivity.
-      // Alleen { provider } sturen zodat de bridge géén options-object serialiseert
-      // (oude bundles + SW-cache-first op .js stuurden nog scopes: ["email","profile"]).
-      const login = await SocialLogin.login(
-        { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
-      );
-
-      const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(login);
-      const accessTok =
-        login &&
-        typeof login === 'object' &&
-        (login as NativeGoogleLoginShape).provider === 'google' &&
-        (login as NativeGoogleLoginShape).result &&
-        typeof (login as { result: Record<string, unknown> }).result === 'object'
-          ? (login as { result: { accessToken?: { token?: string } | null } }).result
-              .accessToken
-          : null;
-      const hasAccessToken = Boolean(
-        accessTok && typeof accessTok === 'object' && typeof accessTok.token === 'string',
-      );
-
-      console.info(CLIENT_LOG, {
-        nativeGoogleLoginStarted: true,
-        hasIdToken: Boolean(idToken),
-        provider: (login as NativeGoogleLoginShape).provider,
-        hasAccessToken,
-        pluginPayloadHint,
-      });
-
-      if (!idToken) {
-        setError(
-          pluginPayloadHint.includes('offline')
-            ? 'Geen Google token ontvangen (offline-modus). Zet native login op online/idToken.'
-            : 'Geen Google token ontvangen. Controleer app-configuratie (SHA-1, Web client id) en herbouw de app.',
-        );
-        return;
-      }
-
-      const post = await fetch('/api/auth/native/google', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-      const payload = (await post.json().catch(() => ({}))) as {
-        ok?: boolean;
-        code?: string;
-      };
-      if (!post.ok || !payload.ok) {
-        const code = typeof payload.code === 'string' ? payload.code : '';
-        console.info(CLIENT_LOG, {
-          nativeGooglePostFailed: true,
-          httpStatus: post.status,
-          code: code || 'unknown',
-        });
-        setError(mapNativeGoogleApiError(code));
-        return;
-      }
-
-      if (analyticsContext === 'login') {
-        try {
-          trackLogin('google');
-        } catch {
-          /* ignore */
-        }
-      } else {
-        try {
-          trackRegistration({ method: 'google' });
-        } catch {
-          /* ignore */
-        }
-      }
-
-      await applySessionMode(rememberMe);
-      try {
-        sessionStorage.setItem('hc_npush_gate', '1');
-      } catch {
-        /* ignore */
-      }
-      try {
-        router.refresh();
-      } catch {
-        /* ignore */
-      }
-      router.replace('/auth/social-success');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.info(CLIENT_LOG, {
-        nativeGoogleClientException: true,
-        message: msg.replace(/ya29\.[a-zA-Z0-9._-]+/gi, '[redacted]').slice(0, 200),
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'plugin_init_failed',
+        message: redactErrorMessage(msg),
       });
+      return false;
+    }
+
+    let login: unknown;
+    try {
+      login = await SocialLogin.login(
+        { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
       if (/cancel|canceled|12501|user_cancel|10:/i.test(msg)) {
-        setError(null);
-      } else if (/scopes|main activity/i.test(msg)) {
-        setError('Google login configuratie moet opnieuw worden opgebouwd.');
-      } else {
-        setError(
-          'Google inloggen is mislukt (onverwachte fout). Controleer je verbinding of gebruik e-mail en wachtwoord.',
-        );
+        logGoogleLoginDiag('google_login_native_failed', { reason: 'user_cancelled' });
+        return true;
       }
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'plugin_login_failed',
+        message: redactErrorMessage(msg),
+      });
+      if (/scopes|main activity/i.test(msg)) {
+        setError('Google login configuratie moet opnieuw worden opgebouwd.');
+      }
+      return false;
+    }
+
+    const { idToken, pluginPayloadHint } = extractNativeGoogleIdToken(login);
+    if (!idToken) {
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'missing_id_token',
+        pluginPayloadHint,
+      });
+      setError(
+        pluginPayloadHint.includes('offline')
+          ? 'Geen Google token ontvangen (offline-modus).'
+          : 'Geen Google token ontvangen. Controleer app-configuratie (SHA-1, Web client id).',
+      );
+      return false;
+    }
+
+    const post = await fetch('/api/auth/native/google', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+    const payload = (await post.json().catch(() => ({}))) as {
+      ok?: boolean;
+      code?: string;
+    };
+    if (!post.ok || !payload.ok) {
+      const code = typeof payload.code === 'string' ? payload.code : '';
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'api_rejected',
+        httpStatus: post.status,
+        code: code || 'unknown',
+      });
+      setError(mapNativeGoogleApiError(code));
+      return false;
+    }
+
+    logGoogleLoginDiag('google_login_native_success');
+
+    if (analyticsContext === 'login') {
+      try {
+        trackLogin('google');
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        trackRegistration({ method: 'google' });
+      } catch {
+        /* ignore */
+      }
+    }
+
+    await applySessionMode(rememberMe);
+    try {
+      sessionStorage.setItem('hc_npush_gate', '1');
+    } catch {
+      /* ignore */
+    }
+    try {
+      router.refresh();
+    } catch {
+      /* ignore */
+    }
+    router.replace('/auth/social-success');
+    return true;
+  }, [
+    analyticsContext,
+    androidBridge,
+    nativeAndroid,
+    rememberMe,
+    router,
+  ]);
+
+  const onClick = useCallback(async () => {
+    if (busy || disabled) return;
+
+    logGoogleLoginDiag('google_login_tap', {
+      preferNative,
+      androidBridge,
+      nativeAndroid,
+      disabled: Boolean(disabled),
+    });
+
+    setError(null);
+    setBusy(true);
+
+    try {
+      if (preferNative) {
+        const nativeOk = await runNativeGoogleLogin();
+        if (nativeOk) return;
+
+        logGoogleLoginDiag('google_login_native_failed', { reason: 'fallback_to_web' });
+        setError(null);
+        const webStarted = await runWebGoogleLogin();
+        if (!webStarted) {
+          setError((prev) =>
+            prev ??
+            'Google inloggen is mislukt. Probeer opnieuw of gebruik e-mail en wachtwoord.',
+          );
+        }
+        return;
+      }
+
+      await runWebGoogleLogin();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logGoogleLoginDiag('google_login_native_failed', {
+        reason: 'unexpected',
+        message: redactErrorMessage(msg),
+      });
+      setError(
+        'Google inloggen is mislukt. Controleer je verbinding of gebruik e-mail en wachtwoord.',
+      );
     } finally {
       setBusy(false);
     }
-  }, [analyticsContext, busy, disabled, rememberMe, router]);
-
-  if (!showNativeGoogle) {
-    return null;
-  }
+  }, [
+    busy,
+    disabled,
+    preferNative,
+    androidBridge,
+    nativeAndroid,
+    runNativeGoogleLogin,
+    runWebGoogleLogin,
+  ]);
 
   const baseClass =
     variant === 'register'
       ? 'w-full max-w-sm mx-auto inline-flex justify-center items-center px-6 py-4 border border-gray-300 rounded-xl shadow-sm bg-white text-base font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'
       : 'w-full inline-flex justify-center items-center px-6 py-4 border-2 border-gray-200 rounded-2xl shadow-sm bg-white text-base font-semibold text-gray-800 hover:border-emerald-300 hover:bg-emerald-50 active:bg-emerald-100 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 group';
 
+  const configBlocked = preferNative && !WEB_CLIENT_ID;
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 relative z-10">
       <button
         type="button"
         onClick={() => void onClick()}
-        disabled={disabled || busy || !WEB_CLIENT_ID}
+        disabled={disabled || busy || configBlocked}
         className={baseClass}
+        aria-busy={busy}
       >
         <svg
           className={`w-6 h-6 mr-3 ${variant === 'login' ? 'group-hover:scale-110 transition-transform duration-200' : ''}`}
@@ -311,15 +397,22 @@ export function NativeGoogleSignInButton({
             Bezig…
           </span>
         ) : (
-          <span className={variant === 'login' ? 'group-hover:text-emerald-700 transition-colors duration-200' : ''}>
+          <span
+            className={
+              variant === 'login'
+                ? 'group-hover:text-emerald-700 transition-colors duration-200'
+                : ''
+            }
+          >
             {buttonLabel}
           </span>
         )}
       </button>
       {error ? <p className="text-xs text-center text-red-600">{error}</p> : null}
-      {!WEB_CLIENT_ID ? (
+      {configBlocked ? (
         <p className="text-xs text-center text-amber-700">
-          Google login in de app vereist NEXT_PUBLIC_GOOGLE_CLIENT_ID (zelfde waarde als de web Google client).
+          Google login in de app vereist NEXT_PUBLIC_GOOGLE_CLIENT_ID (zelfde waarde als de web
+          Google client).
         </p>
       ) : null}
     </div>

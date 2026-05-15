@@ -14,7 +14,8 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useTranslation } from "@/hooks/useTranslation";
 import DynamicAddressFields, { AddressData } from "@/components/ui/DynamicAddressFields";
 import { trackRegistration } from "@/components/GoogleAnalytics";
-import EmailVerificationModal from "@/components/auth/EmailVerificationModal";import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
+import EmailVerificationModal from "@/components/auth/EmailVerificationModal";
+import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
 import {
   isAndroidWebViewBridgePresent,
   isNativeAndroid,
@@ -22,6 +23,8 @@ import {
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
+import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved";
+import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 import {
   REGISTER_DRAFT_STORAGE_KEY,
   clearRegisterDraftStorage,
@@ -256,6 +259,7 @@ function RegisterPageContent() {
   const nativeMounted = useIsNativeAppMounted();
   const googleLoginMode = useGoogleLoginUiMode();
   const androidBridgePresent = useAndroidBridgePresent();
+  const googleUi = useGoogleLoginUiResolved();
 
   // Get inviteToken from URL (for sub-affiliate signup)
   const inviteToken = searchParams?.get('inviteToken');
@@ -1552,13 +1556,16 @@ function RegisterPageContent() {
 
 
   async function handleSocialLogin(provider: string) {
-    if (provider === "google" && isNativeAndroid()) {
-      setState((prev) => ({
-        ...prev,
-        error:
-          "Google in de app verloopt via de native knop — WebView-OAuth is uitgeschakeld.",
-      }));
-      return;
+    if (provider === "google") {
+      logGoogleLoginDiag("google_login_tap", { surface: "register_web_button" });
+      if (isNativeAndroid()) {
+        setState((prev) => ({
+          ...prev,
+          error:
+            "Google in de app verloopt via de native knop — tik op de knop hierboven.",
+        }));
+        return;
+      }
     }
     if (provider === "google" && !googleAuthEnabled) {
       setState(prev => ({
@@ -1570,12 +1577,17 @@ function RegisterPageContent() {
       return;
     }
     try {
-      // OAuth eindigt op /auth/social-success (sessie + doorverwijzing naar / of /onboarding/complete-profile).
+      if (provider === "google") {
+        logGoogleLoginDiag("google_login_web_start", { surface: "register" });
+      }
       await signIn(provider, {
         callbackUrl: '/auth/social-success',
         redirect: true,
       });
     } catch (error) {
+      if (provider === "google") {
+        logGoogleLoginDiag("google_login_web_failed", { surface: "register" });
+      }
       console.error("Social login error:", error);
       setState(prev => ({
         ...prev,
@@ -2210,19 +2222,14 @@ function RegisterPageContent() {
 
                 {/* Social Login Options - only show for non-social login */}
                 {!isSocialLogin && (
-                  <div className="space-y-4 mb-8">
-                    {googleAuthEnabled &&
-                    (!googleAuthChecked ||
-                      (!androidBridgePresent && googleLoginMode === "pending")) ? (
+                  <div className="space-y-4 mb-8 relative z-10">
+                    {googleAuthEnabled && (!googleAuthChecked || googleUi.showSkeleton) ? (
                       <div
                         className="h-14 max-w-sm mx-auto w-full rounded-xl bg-gray-100 animate-pulse"
                         aria-hidden
                       />
                     ) : null}
-                    {googleAuthEnabled &&
-                    googleAuthChecked &&
-                    (androidBridgePresent ||
-                      googleLoginMode === "android_native") ? (
+                    {googleAuthEnabled && googleAuthChecked && googleUi.showNativeButton ? (
                       <NativeGoogleSignInButton
                         rememberMe
                         disabled={!googleAuthEnabled}
@@ -2231,10 +2238,7 @@ function RegisterPageContent() {
                         analyticsContext="register"
                       />
                     ) : null}
-                    {googleAuthEnabled &&
-                    googleAuthChecked &&
-                    !androidBridgePresent &&
-                    googleLoginMode === "web" ? (
+                    {googleAuthEnabled && googleAuthChecked && googleUi.showWebButton ? (
                       <button
                         type="button"
                         onClick={(e) => {

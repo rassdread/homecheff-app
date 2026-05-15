@@ -1,19 +1,16 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-
-const emptySubscribe = () => () => {};
+import { readNativeShellSnapshot, subscribeNativeShell } from '@/lib/native/subscribeNativeShell';
 
 /**
- * `true` alleen in Capacitor **Android** WebView (native zet `window.androidBridge`).
- * Harde schakel: web-Google / signIn('google') nooit tonen als dit `true` is.
+ * `true` in Capacitor Android WebView when `window.androidBridge` is set.
+ * Re-renders when the bridge appears (often after first paint).
  */
 export function useAndroidBridgePresent(): boolean {
   return useSyncExternalStore(
-    emptySubscribe,
-    () =>
-      typeof window !== 'undefined' &&
-      !!(window as unknown as { androidBridge?: unknown }).androidBridge,
+    subscribeNativeShell,
+    () => readNativeShellSnapshot().androidBridge,
     () => false,
   );
 }

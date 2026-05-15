@@ -22,7 +22,9 @@ import {
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
+import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved";
 import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
+import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 
 type LoginState = {
   emailOrUsername: string;
@@ -43,6 +45,7 @@ function LoginForm() {
   const nativeMounted = useIsNativeAppMounted();
   const googleLoginMode = useGoogleLoginUiMode();
   const androidBridgePresent = useAndroidBridgePresent();
+  const googleUi = useGoogleLoginUiResolved();
   const [state, setState] = useState<LoginState>({
     emailOrUsername: "",
     password: "",
@@ -409,6 +412,7 @@ function LoginForm() {
 
   const handleSocialLogin = async (provider: string) => {
     if (provider === "google") {
+      logGoogleLoginDiag("google_login_tap", { surface: "login_web_button" });
       if (
         typeof window !== "undefined" &&
         (isAndroidWebViewBridgePresent() || isNativeAndroid())
@@ -446,15 +450,19 @@ function LoginForm() {
     }
     
     try {
-      // "Onthoud mij" voorkeur klaarzetten zodat hij de OAuth-redirect overleeft.
-      // /auth/social-success past sessie-modus toe en stuurt door naar / of /onboarding/complete-profile.
       setRememberPreference(state.rememberMe);
+      if (provider === "google") {
+        logGoogleLoginDiag("google_login_web_start", { surface: "login" });
+      }
 
       await signIn(provider, {
         callbackUrl: '/auth/social-success',
         redirect: true,
       });
     } catch (error) {
+      if (provider === "google") {
+        logGoogleLoginDiag("google_login_web_failed", { surface: "login" });
+      }
       setState({ 
         ...state, 
         error: t('login.errors.socialLoginError', { provider }), 
@@ -714,18 +722,14 @@ function LoginForm() {
             </div>
 
             {/* Android WebView (androidBridge): alleen native Google — web-knop onmogelijk. */}
-            <div className="mt-6 space-y-3">
-              {googleAuthEnabled &&
-              (!googleAuthChecked ||
-                (!androidBridgePresent && googleLoginMode === "pending")) ? (
+            <div className="mt-6 space-y-3 relative z-10">
+              {googleAuthEnabled && (!googleAuthChecked || googleUi.showSkeleton) ? (
                 <div
                   className="h-14 w-full rounded-2xl bg-gray-100 animate-pulse"
                   aria-hidden
                 />
               ) : null}
-              {googleAuthEnabled &&
-              googleAuthChecked &&
-              (androidBridgePresent || googleLoginMode === "android_native") ? (
+              {googleAuthEnabled && googleAuthChecked && googleUi.showNativeButton ? (
                 <NativeGoogleSignInButton
                   rememberMe={state.rememberMe}
                   disabled={state.isLoading || !googleAuthEnabled}
@@ -733,10 +737,7 @@ function LoginForm() {
                   analyticsContext="login"
                 />
               ) : null}
-              {googleAuthEnabled &&
-              googleAuthChecked &&
-              !androidBridgePresent &&
-              googleLoginMode === "web" ? (
+              {googleAuthEnabled && googleAuthChecked && googleUi.showWebButton ? (
                 <button
                   type="button"
                   onClick={(e) => {

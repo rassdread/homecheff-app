@@ -1,22 +1,20 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { isNativeAndroid } from '@/lib/native/capacitor';
-
-const emptySubscribe = () => () => {};
+import { readNativeShellSnapshot, subscribeNativeShell } from '@/lib/native/subscribeNativeShell';
 
 export type GoogleLoginUiMode = 'pending' | 'android_native' | 'web';
 
 /**
- * `pending` op server + eerste hydration: géén web-Google-knop in HTML (voorkomt tap vóór JS).
- * Daarna: native op Android WebView, web elders.
+ * `pending` only on server / pre-hydration snapshot.
+ * Client re-evaluates when Capacitor / androidBridge becomes available.
  */
 export function useGoogleLoginUiMode(): GoogleLoginUiMode {
   return useSyncExternalStore(
-    emptySubscribe,
+    subscribeNativeShell,
     (): GoogleLoginUiMode => {
       if (typeof window === 'undefined') return 'pending';
-      return isNativeAndroid() ? 'android_native' : 'web';
+      return readNativeShellSnapshot().nativeAndroid ? 'android_native' : 'web';
     },
     (): GoogleLoginUiMode => 'pending',
   );

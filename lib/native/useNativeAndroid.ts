@@ -1,19 +1,16 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { isNativeAndroid } from '@/lib/native/capacitor';
-
-const emptySubscribe = () => () => {};
+import { readNativeShellSnapshot, subscribeNativeShell } from '@/lib/native/subscribeNativeShell';
 
 /**
- * Zelfde detectie als isNativeAndroid(), maar hydration-safe:
- * server snapshot = false; client leest androidBridge / Capacitor zonder te wachten op useEffect.
- * Voorkomt dat de WebView-Google-knop één frame zichtbaar is vóór native CTA.
+ * Capacitor Android WebView (bridge or Capacitor platform).
+ * Re-renders when native shell becomes ready.
  */
 export function useNativeAndroid(): boolean {
   return useSyncExternalStore(
-    emptySubscribe,
-    () => (typeof window !== 'undefined' ? isNativeAndroid() : false),
+    subscribeNativeShell,
+    () => readNativeShellSnapshot().nativeAndroid,
     () => false,
   );
 }

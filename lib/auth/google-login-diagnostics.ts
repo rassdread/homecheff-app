@@ -1,0 +1,25 @@
+/**
+ * Client-side Google login diagnostics (no tokens, emails, or PII).
+ */
+
+export type GoogleLoginDiagEvent =
+  | 'google_login_tap'
+  | 'google_login_native_start'
+  | 'google_login_native_success'
+  | 'google_login_native_failed'
+  | 'google_login_web_start'
+  | 'google_login_web_failed';
+
+export type GoogleLoginDiagDetail = Record<string, string | boolean | number>;
+
+export function logGoogleLoginDiag(
+  event: GoogleLoginDiagEvent,
+  detail?: GoogleLoginDiagDetail,
+): void {
+  if (typeof window === 'undefined') return;
+  try {
+    console.info('[HomeCheff google-login]', event, detail ?? {});
+  } catch {
+    /* ignore */
+  }
+}
