@@ -8,6 +8,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -46,6 +50,93 @@ public class HomecheffApkInstallerPlugin extends Plugin {
             out.write(buf, 0, n);
         }
         out.flush();
+    }
+
+    /**
+     * Ensures the APK updates the installed app (same package + signing), not a side-by-side install.
+     * @return null if OK; otherwise a stable reject code for the WebView layer.
+     */
+    private String verifyApkCanReplaceInstalledApp(File apkFile) {
+        String installedPackage = getContext().getPackageName();
+        PackageManager pm = getContext().getPackageManager();
+
+        int flags = PackageManager.GET_SIGNING_CERTIFICATES;
+        PackageInfo archive;
+        try {
+            archive = pm.getPackageArchiveInfo(apkFile.getAbsolutePath(), flags);
+        } catch (Exception e) {
+            logLine("verify_apk", "archive_parse_error=" + e.getMessage());
+            return "apk_parse_failed";
+        }
+        if (archive == null) {
+            logLine("verify_apk", "archive_null");
+            return "apk_parse_failed";
+        }
+
+        String apkPackage = archive.packageName != null ? archive.packageName : "";
+        logLine(
+                "verify_apk",
+                "installed=" + installedPackage + " apk=" + apkPackage + " apkLen=" + apkFile.length());
+
+        if (!installedPackage.equals(apkPackage)) {
+            return "package_mismatch";
+        }
+
+        PackageInfo installed;
+        try {
+            installed = pm.getPackageInfo(installedPackage, flags);
+        } catch (PackageManager.NameNotFoundException e) {
+            logLine("verify_apk", "installed_not_found");
+            return null;
+        }
+
+        if (!signaturesCompatible(installed, archive)) {
+            logLine("verify_apk", "signature_mismatch");
+            return "signature_mismatch";
+        }
+
+        return null;
+    }
+
+    private static boolean signaturesCompatible(PackageInfo installed, PackageInfo archive) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            SigningInfo ins = installed.signingInfo;
+            SigningInfo ars = archive.signingInfo;
+            if (ins == null || ars == null) {
+                return false;
+            }
+            if (ins.hasMultipleSigners() || ars.hasMultipleSigners()) {
+                Signature[] a = ins.getApkContentsSigners();
+                Signature[] b = ars.getApkContentsSigners();
+                if (a == null || b == null || a.length != b.length) {
+                    return false;
+                }
+                for (int i = 0; i < a.length; i++) {
+                    if (!a[i].equals(b[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            Signature s1 = ins.getSigningCertificateHistory() != null && ins.getSigningCertificateHistory().length > 0
+                    ? ins.getSigningCertificateHistory()[0]
+                    : null;
+            Signature s2 = ars.getSigningCertificateHistory() != null && ars.getSigningCertificateHistory().length > 0
+                    ? ars.getSigningCertificateHistory()[0]
+                    : null;
+            return s1 != null && s1.equals(s2);
+        }
+
+        Signature[] is = installed.signatures;
+        Signature[] as = archive.signatures;
+        if (is == null || as == null || is.length == 0 || as.length == 0) {
+            return false;
+        }
+        return is[0].equals(as[0]);
+    }
+
+    private void rejectApkCompatibility(PluginCall call, String code) {
+        call.reject("APK cannot replace installed app: " + code, code, (Exception) null);
     }
 
     /** @return null if call was rejected */
@@ -132,6 +223,11 @@ public class HomecheffApkInstallerPlugin extends Plugin {
                 if (apkFile == null) {
                     return;
                 }
+                String compat = verifyApkCanReplaceInstalledApp(apkFile);
+                if (compat != null) {
+                    rejectApkCompatibility(call, compat);
+                    return;
+                }
                 contentUri = FileProvider.getUriForFile(getContext(), authorityExpected, apkFile);
             } else if (uriString != null && !uriString.isEmpty()) {
                 Uri parsed = Uri.parse(uriString);
@@ -151,6 +247,11 @@ public class HomecheffApkInstallerPlugin extends Plugin {
                             "abs=" + apkFile.getAbsolutePath() + " exists=" + apkFile.exists());
                     if (!apkFile.exists() || !apkFile.isFile()) {
                         call.reject("apk_not_found", "File URI path not found", (Exception) null);
+                        return;
+                    }
+                    String compat = verifyApkCanReplaceInstalledApp(apkFile);
+                    if (compat != null) {
+                        rejectApkCompatibility(call, compat);
                         return;
                     }
                     contentUri = FileProvider.getUriForFile(getContext(), authorityExpected, apkFile);
@@ -190,6 +291,11 @@ public class HomecheffApkInstallerPlugin extends Plugin {
         try {
             File apkFile = requireCacheApkFile(call, cacheRelativePath);
             if (apkFile == null) {
+                return;
+            }
+            String compat = verifyApkCanReplaceInstalledApp(apkFile);
+            if (compat != null) {
+                rejectApkCompatibility(call, compat);
                 return;
             }
             Uri contentUri = FileProvider.getUriForFile(getContext(), authorityExpected, apkFile);

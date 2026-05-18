@@ -35,6 +35,8 @@ import {
 } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
 import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verification-prompt-storage";
+import { PolicyAgreementTermsLabel } from "@/components/legal/PolicyAgreementTermsLabel";
+import { PRIVACY_URL } from "@/lib/legal/policy-urls";
 
 // User types will be loaded dynamically based on language
 const getUserTypes = (t: (key: string) => string) => [
@@ -2512,10 +2514,15 @@ function RegisterPageContent() {
                       />
                       <span>
                         <span className="font-medium">{t('register.acceptPrivacy')}</span>
-                        <span className="block text-xs text-gray-500">{t('register.acceptPrivacySubtext')}</span>
+                        <span className="block text-xs text-gray-500">
+                          {t('register.acceptPrivacySubtext')}{' '}
+                          <Link href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+                            {t('legalPolicies.privacy')}
+                          </Link>
+                        </span>
                       </span>
                     </label>
-                    <label className="flex items-start gap-2 text-sm text-gray-700">
+                    <label className="flex items-start gap-2 text-sm text-gray-700" htmlFor="acceptTerms-light">
                       <input
                         type="checkbox"
                         id="acceptTerms-light"
@@ -2523,10 +2530,7 @@ function RegisterPageContent() {
                         onChange={(e) => setState((prev) => ({ ...prev, acceptTerms: e.target.checked }))}
                         className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                       />
-                      <span>
-                        <span className="font-medium">{t('register.acceptTerms')}</span>
-                        <span className="block text-xs text-gray-500">{t('register.acceptTermsSubtext')}</span>
-                      </span>
+                      <PolicyAgreementTermsLabel />
                     </label>
                     <label className="flex items-start gap-2 text-sm text-gray-700">
                       <input
@@ -3850,8 +3854,14 @@ function RegisterPageContent() {
                         className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                       />
                       <label htmlFor="acceptPrivacyPolicy" className="text-sm text-gray-700 cursor-pointer">
-                        <span className="font-medium">{t('register.acceptPrivacy')}</span><br/>
-                        <span className="text-gray-500">{t('register.acceptPrivacySubtext')}</span>
+                        <span className="font-medium">{t('register.acceptPrivacy')}</span>
+                        <br />
+                        <span className="text-gray-500">
+                          {t('register.acceptPrivacySubtext')}{' '}
+                          <Link href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+                            {t('legalPolicies.privacy')}
+                          </Link>
+                        </span>
                       </label>
                     </div>
 
@@ -3864,8 +3874,7 @@ function RegisterPageContent() {
                         className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                       />
                       <label htmlFor="acceptTerms" className="text-sm text-gray-700 cursor-pointer">
-                        <span className="font-medium">{t('register.acceptTerms')}</span><br/>
-                        <span className="text-gray-500">{t('register.acceptTermsSubtext')}</span>
+                        <PolicyAgreementTermsLabel />
                       </label>
                     </div>
 

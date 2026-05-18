@@ -73,6 +73,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Never use applicationIdSuffix — beta/debug must match release package for OTA replace.
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

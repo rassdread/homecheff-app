@@ -21,6 +21,7 @@ import { HomecheffApkInstaller } from '@/lib/native/homecheffApkInstaller';
 import { isHomecheffApkInstallerNativeAvailable } from '@/lib/native/isHomecheffApkInstallerNativeAvailable';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
+import { apkInstallUserMessage } from '@/lib/native/apkInstallUserMessage';
 
 const LS_LAST_WEB_VERSION = 'hc:lastSeenWebVersion';
 
@@ -171,7 +172,7 @@ export default function AppUpdateGate() {
       syncInstallPersist();
       if (!result.ok) {
         setFailureKind(result.kind);
-        setInstallError(result.message);
+        setInstallError(apkInstallUserMessage(result.kind, t, result.message));
         setInstallFallbackReason(result.fallbackReason ?? null);
         setInstallCachedApkAvailable(Boolean(result.cachedApkMayExist));
         setInstallPhase('error');
@@ -275,7 +276,7 @@ export default function AppUpdateGate() {
     syncInstallPersist();
     if (!result.ok) {
       setFailureKind(result.kind);
-      setInstallError(result.message);
+      setInstallError(apkInstallUserMessage(result.kind, t, result.message));
       setInstallFallbackReason(result.fallbackReason ?? null);
       setInstallCachedApkAvailable(Boolean(result.cachedApkMayExist));
       setInstallPhase('error');

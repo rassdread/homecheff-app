@@ -16,6 +16,7 @@ import {
   saveLastConversationId,
 } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
+import { HC_MOBILE_CHAT_ABOVE_NAV_BOTTOM } from '@/lib/layout/bottomNavInset';
 import { useTranslation } from '@/hooks/useTranslation';
 import BackButton from '@/components/navigation/BackButton';
 import {
@@ -207,8 +208,12 @@ function MessagesPageContent() {
             className={cn(
               'flex min-h-0 flex-1 flex-col overflow-hidden',
               hidePageChromeForMobileChat
-                ? /* Boven bottom-nav: iets strakkere reserve (tabbalk ~5.75rem; composer heeft eigen safe-area). */
-                  'fixed inset-x-0 bottom-0 top-16 z-[60] bg-[#f4f6f8] pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-0 lg:bg-transparent lg:pb-0'
+                ? /* Eindigt boven vaste tabbalk (z-65); geen bottom-0 + pb (bedekte anders de nav). */
+                  cn(
+                    'fixed inset-x-0 top-16 z-40 bg-[#f4f6f8]',
+                    HC_MOBILE_CHAT_ABOVE_NAV_BOTTOM,
+                    'lg:static lg:inset-auto lg:top-auto lg:bottom-auto lg:z-0 lg:bg-transparent'
+                  )
                 : 'lg:min-w-0'
             )}
           >

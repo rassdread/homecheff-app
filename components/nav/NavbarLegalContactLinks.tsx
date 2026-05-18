@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, FileText, Mail, Info } from 'lucide-react';
+import { Shield, FileText, Mail, Info, ShieldAlert, Users } from 'lucide-react';
+import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
@@ -62,6 +63,24 @@ export function NavbarLegalContactLinks(props: NavbarLegalContactLinksProps) {
         >
           <FileText className="h-4 w-4 shrink-0" aria-hidden />
           <span>{t('siteFooter.terms')}</span>
+        </Link>
+        <Link
+          href={COMMUNITY_GUIDELINES_URL}
+          prefetch={false}
+          className={rowClass}
+          onClick={() => onNavigate?.()}
+        >
+          <Users className="h-4 w-4 shrink-0" aria-hidden />
+          <span>{t('siteFooter.communityGuidelines')}</span>
+        </Link>
+        <Link
+          href={SAFETY_STANDARDS_URL}
+          prefetch={false}
+          className={rowClass}
+          onClick={() => onNavigate?.()}
+        >
+          <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden />
+          <span>{t('siteFooter.safety')}</span>
         </Link>
         <Link
           href="/contact"

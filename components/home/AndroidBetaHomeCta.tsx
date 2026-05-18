@@ -132,20 +132,20 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
     return (
       <section
         className={cn(
-          'rounded-xl border border-gray-200/80 bg-gray-50/90 px-3 py-2.5 shadow-sm sm:px-4 sm:py-3',
+          'w-full min-w-0 rounded-xl border border-gray-200/80 bg-gray-50/90 px-3 py-2.5 shadow-sm sm:px-4 sm:py-3 md:max-w-3xl',
           className
         )}
         aria-labelledby="home-android-beta-native-share-title"
       >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <div className="min-w-0">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
+          <div className="min-w-0 flex-1 md:min-w-[12rem] md:max-w-xl">
             <h2
               id="home-android-beta-native-share-title"
-              className="text-sm font-semibold leading-snug text-gray-800"
+              className="text-sm font-semibold leading-snug text-gray-800 md:text-base"
             >
               {t(`${HK}.nativeShareCompactTitle`)}
             </h2>
-            <p className="mt-0.5 text-xs leading-relaxed text-gray-600">
+            <p className="mt-0.5 text-xs leading-relaxed text-gray-600 md:text-sm">
               {t(`${HK}.nativeShareCompactBody`)}
             </p>
           </div>
@@ -153,7 +153,7 @@ export default function AndroidBetaHomeCta({ className }: { className?: string }
             type="button"
             onClick={() => void onShareInvite()}
             disabled={shareBusy}
-            className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gray-300/90 bg-white/90 px-3 py-2 text-xs font-medium text-gray-800 shadow-sm transition hover:bg-white disabled:opacity-60 sm:min-h-0 sm:py-1.5 touch-manipulation"
+            className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gray-300/90 bg-white/90 px-4 py-2.5 text-xs font-medium text-gray-800 shadow-sm transition hover:bg-white disabled:opacity-60 touch-manipulation md:min-h-0 md:w-auto md:min-w-[9.5rem] md:py-2"
           >
             <Share2 className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
             {shareBusy ? shareBusyLabel : t(`${HK}.nativeShareCompactCta`)}

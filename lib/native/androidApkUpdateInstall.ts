@@ -11,6 +11,7 @@ import {
 } from '@/lib/native/android-beta-install-state';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 import { isHomecheffApkInstallerNativeAvailable } from '@/lib/native/isHomecheffApkInstallerNativeAvailable';
+import { apkInstallUserMessage } from '@/lib/native/apkInstallUserMessage';
 
 /** Relatief pad onder {@link Directory.Cache}; moet matchen met FileProvider `cache-path`. */
 export const ANDROID_BETA_CACHE_APK_RELATIVE_PATH = 'updates/homecheff-beta.apk';
@@ -56,7 +57,9 @@ export type ApkInstallFailureKind =
   | 'unknown_sources'
   | 'no_handler'
   | 'download_timeout'
-  | 'network';
+  | 'network'
+  | 'package_mismatch'
+  | 'signature_mismatch';
 
 export type ApkInstallResult =
   | { ok: true }
@@ -146,10 +149,12 @@ export function classifyApkInstallError(e: unknown): ApkInstallFailureKind {
   if (m.includes('no_install_handler') || m.includes('no app can handle')) {
     return 'no_handler';
   }
-  if (m.includes('network') || m.includes('failed to fetch') || m.includes('internet')) {
-    return 'network';
+  if (m.includes('package_mismatch') || m.includes('package id')) {
+    return 'package_mismatch';
   }
-  return 'generic';
+  if (m.includes('signature_mismatch') || m.includes('signatures do not match')) {
+    return 'signature_mismatch';
+  }
 }
 
 function capErrorDetail(e: unknown): string {
@@ -309,11 +314,11 @@ export async function downloadApkAndOpenInstaller(
       onPhase('error');
       return {
         ok: false,
-        fallbackToBrowser: kind !== 'unknown_sources',
+        fallbackToBrowser: kind === 'package_mismatch' ? false : kind !== 'unknown_sources',
         message: msg,
         kind,
         fallbackReason: reason,
-        cachedApkMayExist: true,
+        cachedApkMayExist: kind !== 'package_mismatch',
       };
     }
 

@@ -1,8 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
 /**
- * True when the native HomeCheff APK installer Capacitor plugin is registered.
- * Release (Play Store) builds omit the plugin; calling it would throw.
+ * True when the native HomeCheff APK installer Capacitor plugin is registered (Android release + debug).
  */
 export function isHomecheffApkInstallerNativeAvailable(): boolean {
   return (

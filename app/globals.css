@@ -438,16 +438,28 @@ html.hc-pwa-standalone #navbar-dropdown-portal-root {
  * Hogere ondermarge voor native / PWA bottom nav + touch targets + safe-area.
  * Alleen als bottom-nav zichtbaar (data attribuut gezet door AppPageChrome).
  */
-html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"],
-html.hc-pwa-standalone [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+html.hc-native-capacitor
+  [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+    [data-messages-route="true"]
+  ),
+html.hc-pwa-standalone
+  [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+    [data-messages-route="true"]
+  ) {
   padding-bottom: calc(
     6.75rem + env(safe-area-inset-bottom, 0px)
   ) !important;
 }
 
 @media (min-width: 640px) {
-  html.hc-native-capacitor [data-homecheff-app-chrome][data-bottom-nav-visible="true"],
-  html.hc-pwa-standalone [data-homecheff-app-chrome][data-bottom-nav-visible="true"] {
+  html.hc-native-capacitor
+    [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+      [data-messages-route="true"]
+    ),
+  html.hc-pwa-standalone
+    [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+      [data-messages-route="true"]
+    ) {
     padding-bottom: calc(
       6.35rem + env(safe-area-inset-bottom, 0px)
     ) !important;
@@ -455,6 +467,30 @@ html.hc-pwa-standalone [data-homecheff-app-chrome][data-bottom-nav-visible="true
 }
 
 /* Native feed: compact filter grid + grotere mediavlakken + dichtere kaarten (web ongewijzigd). */
+/* Discover grid tiles (feed layout toggle). */
+.feed-discover-tile-media.feed-card-primary-media {
+  aspect-ratio: 1 / 1;
+}
+
+.hc-discover-feed-grid {
+  animation: hc-feed-layout-in 0.28s ease-out;
+}
+
+.hc-feed-cards-column {
+  animation: hc-feed-layout-in 0.28s ease-out;
+}
+
+@keyframes hc-feed-layout-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 html.hc-native-capacitor .hc-native-feed-grid {
   gap: 0.5rem;
 }
@@ -592,9 +628,13 @@ html.hc-native-capacitor .hc-native-thread-route .hc-native-chat-root-native {
   min-height: 0;
 }
 
-html.hc-native-capacitor .hc-native-messages-page {
-  min-height: 100dvh;
-  min-height: 100vh;
+/* Hoogte via .hc-messages-root (minus top + bottom nav). Geen 100dvh min-height — bedekt anders de tabbalk. */
+html.hc-native-capacitor .hc-messages-root.hc-native-messages-page {
+  min-height: 0;
+}
+
+html.hc-native-capacitor [data-hc-bottom-nav] {
+  z-index: 65;
 }
 
 html.hc-native-capacitor .hc-native-messages-page .hc-native-chat-shell {

@@ -64,27 +64,29 @@ export default function CreatorAudiencePanel() {
 
   return (
     <section
-      className="rounded-2xl border border-emerald-100/90 bg-gradient-to-br from-white via-emerald-50/40 to-slate-50/80 p-4 shadow-sm sm:p-5"
+      className="min-w-0 rounded-2xl border border-emerald-100/90 bg-gradient-to-br from-white via-emerald-50/40 to-slate-50/80 p-4 shadow-sm sm:p-5"
       aria-label={t('creatorAudience.sectionAria')}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-emerald-900">
             <Sparkles className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-            <h3 className="text-base font-semibold tracking-tight">{t('creatorAudience.title')}</h3>
+            <h3 className="text-base font-semibold tracking-tight break-words text-pretty">{t('creatorAudience.title')}</h3>
           </div>
-          <p className="mt-1 max-w-prose text-sm text-slate-600">{t('creatorAudience.subtitle')}</p>
+          <p className="mt-1 text-sm leading-normal text-slate-600 whitespace-normal break-words">
+            {t('creatorAudience.subtitle')}
+          </p>
         </div>
         {data.place ? (
-          <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-xs text-slate-600">
+          <div className="inline-flex w-full shrink-0 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1.5 text-xs text-slate-600 sm:w-auto sm:max-w-[14rem]">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
             <span className="truncate">{t('creatorAudience.localPresence', { place: data.place })}</span>
           </div>
         ) : null}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
+      <div className="mt-4 grid min-w-0 grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="min-w-0 rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
             <Users className="h-3.5 w-3.5" aria-hidden />
             {t('creatorAudience.metrics.followers')}
@@ -104,7 +106,7 @@ export default function CreatorAudiencePanel() {
             {t('creatorAudience.metrics.distinctSaversWeek', { count: data.distinctSaversWeek })}
           </p>
         </div>
-        <div className="rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
+        <div className="min-w-0 rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
             {t('creatorAudience.metrics.recurring')}
@@ -114,9 +116,9 @@ export default function CreatorAudiencePanel() {
           </p>
           <p className="mt-0.5 text-xs text-slate-500">{t('creatorAudience.metrics.recurringHint')}</p>
         </div>
-        <div className="rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm sm:col-span-1">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-            <Heart className="h-3.5 w-3.5" aria-hidden />
+        <div className="min-w-0 rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+            <Heart className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t('creatorAudience.metrics.profileViews')}
           </div>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{data.profileViews}</p>
@@ -129,9 +131,9 @@ export default function CreatorAudiencePanel() {
       {hintLines.length > 0 ? (
         <ul className="mt-4 space-y-2 border-t border-emerald-100/80 pt-4 text-sm text-slate-700">
           {hintLines.map((line, i) => (
-            <li key={`${line}-${i}`} className="flex gap-2 leading-snug">
+            <li key={`${line}-${i}`} className="flex gap-2 leading-normal">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/80" aria-hidden />
-              <span>{line}</span>
+              <span className="min-w-0 break-words">{line}</span>
             </li>
           ))}
         </ul>

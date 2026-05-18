@@ -1568,18 +1568,23 @@ export default function BottomNavigation() {
         </div>
       )}
 
-      {/* Bottom Navigation Bar */}
+      {/* Bottom nav: phone = full width; md+ = centered floating bar (tablet). */}
+      <div
+        className={cn(
+          'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
+          'pb-[env(safe-area-inset-bottom,0px)] md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] md:px-4'
+        )}
+      >
       <div
         data-hc-bottom-nav
         className={cn(
-          /* Geen pointer-events-none hier: op Android WebView kan dat scroll-gesture routing breken. */
-          /* z-[58]: boven o.a. cookie-banner (z-30) en gelijk met/onder promo-modals (z-[70]). */
-          'fixed bottom-0 left-0 right-0 max-w-[100vw] overflow-x-hidden z-[58] transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
-          'bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/88 border-t border-emerald-100/70',
-          'shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
+          'pointer-events-auto mx-auto w-full transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
+          'bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/88',
+          'border-t border-emerald-100/70 shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
+          'md:max-w-[760px] md:rounded-2xl md:border md:shadow-[0_8px_40px_-12px_rgba(13,148,136,0.18),0_12px_32px_-10px_rgba(0,0,0,0.12)]',
           isNativeShell
-            ? 'py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))] px-2 sm:px-3'
-            : 'py-2.5 px-2 sm:px-4'
+            ? 'py-3 pt-[0.625rem] pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+10px))] px-2 sm:px-3 md:px-4 md:pb-[max(0.75rem,10px)]'
+            : 'py-2.5 px-2 sm:px-4 md:px-3 md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]'
         )}
       >
         {appUpdateStatus.showOptionalReminder ? (
@@ -1598,12 +1603,13 @@ export default function BottomNavigation() {
         ) : null}
         <div
           className={cn(
-            'flex items-center max-w-4xl mx-auto min-w-0',
-            'gap-x-1 sm:gap-x-2 md:gap-x-3'
+            'flex w-full min-w-0 items-center mx-auto',
+            'gap-x-1 sm:gap-x-2',
+            'md:max-w-[720px] md:justify-between md:gap-x-0 md:px-1'
           )}
         >
           {/* Ontdekken — één Link (geen router.push + prefetch dubbel) */}
-          <div className="flex-1 min-w-0 flex justify-center">
+          <div className="flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             <Link
               href="/#homecheff-feed"
               prefetch={false}
@@ -1621,7 +1627,7 @@ export default function BottomNavigation() {
           </div>
 
           {/* Dashboard */}
-          <div className="relative group flex-1 min-w-0 flex justify-center">
+          <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {useDirectTabLinks ? (
               <Link
                 href="/verkoper/dashboard"
@@ -1704,7 +1710,7 @@ export default function BottomNavigation() {
           </div>
 
           {/* Berichten */}
-          <div className="relative group flex-1 min-w-0 flex justify-center">
+          <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {messagesTabUseLink ? (
               <Link
                 href="/messages"
@@ -1776,7 +1782,7 @@ export default function BottomNavigation() {
           ) : null}
 
           {/* Profiel */}
-          <div className="relative group flex-1 min-w-0 flex justify-center">
+          <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
             {profileTabUseLink ? (
               <Link
                 href="/profile"
@@ -1817,12 +1823,17 @@ export default function BottomNavigation() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Flow-spacer: meestal onder AppPageChrome-pb; op /messages uit (eigen inset). */}
       <div
         className={cn(
           'pointer-events-none shrink-0',
-          suppressFlowSpacer ? 'h-0' : isNativeShell ? 'h-[6.5rem]' : 'h-20'
+          suppressFlowSpacer
+            ? 'h-0'
+            : isNativeShell
+              ? 'h-[6.5rem] md:h-[7.25rem]'
+              : 'h-20 md:h-[5.75rem]'
         )}
         aria-hidden
       />

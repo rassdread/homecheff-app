@@ -25,10 +25,8 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
-        // Play Store release: no sideload installer plugin (avoids REQUEST_INSTALL_PACKAGES).
-        if (BuildConfig.DEBUG) {
-            registerPlugin(HomecheffApkInstallerPlugin.class);
-        }
+        // In-app beta APK updates (release + debug); same applicationId as Play Store app.
+        registerPlugin(HomecheffApkInstallerPlugin.class);
         super.onCreate(savedInstanceState);
         ensureChatNotificationChannel();
         ensureOrderNotificationChannel();

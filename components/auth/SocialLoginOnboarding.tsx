@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { CheckCircle, User, Mail, Loader2, ArrowRight, ArrowLeft, Eye, EyeOff, KeyRound } from 'lucide-react';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import { PolicyAgreementTermsLabel } from '@/components/legal/PolicyAgreementTermsLabel';
+import { PRIVACY_URL } from '@/lib/legal/policy-urls';
+import Link from 'next/link';
 
 // User types (verkoper rollen) - consistent met register form
 const userTypes = [
@@ -758,17 +761,7 @@ export default function SocialLoginOnboarding() {
                     }}
                     className="mt-1 w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500"
                   />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                    Ik ga akkoord met de{' '}
-                    <a
-                      href="/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-600 hover:text-emerald-700 underline font-medium"
-                    >
-                      Algemene Voorwaarden
-                    </a>
-                  </span>
+                  <PolicyAgreementTermsLabel />
                 </label>
 
                 <label className="flex items-start space-x-3 cursor-pointer group">
@@ -782,15 +775,19 @@ export default function SocialLoginOnboarding() {
                     className="mt-1 w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500"
                   />
                   <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                    Ik ga akkoord met het{' '}
-                    <a
-                      href="/privacy"
+                    Ik ga akkoord met de{' '}
+                    <Link
+                      href={PRIVACY_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-emerald-600 hover:text-emerald-700 underline font-medium"
                     >
-                      Privacybeleid
-                    </a>
+                      Privacyverklaring
+                    </Link>
+                    <span className="text-red-600" aria-hidden>
+                      {' '}
+                      *
+                    </span>
                   </span>
                 </label>
 

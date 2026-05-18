@@ -1,0 +1,6 @@
+{
+  "expectedApplicationId": "eu.homecheff.mobile",
+  "expectedSigningSha256": "9e992c2909f16f0a049d800abe7ea450990f72a797440af086c0779b15e9f28b",
+  "requireSignedReleaseApk": true,
+  "rejectUnsignedApkForBetaDownload": true
+}

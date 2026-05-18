@@ -17,6 +17,7 @@ import {
   appendReleaseHistory,
   bumpAndroidVersionState,
 } from './lib/android-version-core.mjs';
+import { validateApkIdentity } from './lib/apk-identity.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -75,6 +76,64 @@ function gradleTask(task) {
   const androidDir = path.join(root, 'android');
   const gw = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
   run(gw, [task], androidDir);
+}
+
+function loadAndroidReleaseConfig(root) {
+  const p = path.join(root, 'config', 'android-release.json');
+  if (!fs.existsSync(p)) {
+    return {
+      expectedApplicationId: 'eu.homecheff.mobile',
+      expectedSigningSha256: null,
+      requireSignedReleaseApk: true,
+      rejectUnsignedApkForBetaDownload: true,
+    };
+  }
+  return JSON.parse(fs.readFileSync(p, 'utf8'));
+}
+
+function validateBetaApkBeforePublish(root, apkPath) {
+  const cfg = loadAndroidReleaseConfig(root);
+  const expectedId = String(cfg.expectedApplicationId || 'eu.homecheff.mobile').trim();
+  const expectedSha =
+    cfg.expectedSigningSha256 != null && String(cfg.expectedSigningSha256).trim()
+      ? String(cfg.expectedSigningSha256).replace(/:/g, '').toLowerCase()
+      : null;
+  const requireSigned = cfg.requireSignedReleaseApk !== false;
+
+  console.info('\n=== APK identity check (beta download) ===\n');
+  const result = validateApkIdentity({
+    apkPath,
+    expectedApplicationId: expectedId,
+    expectedSigningSha256: expectedSha,
+    requireSigned: requireSigned,
+  });
+
+  if (result.badging?.ok) {
+    console.info(`  package:      ${result.badging.packageName}`);
+    console.info(`  versionName:  ${result.badging.versionName}`);
+    console.info(`  versionCode:  ${result.badging.versionCode}`);
+    if (result.certs?.ok && result.certs.sha256) {
+      console.info(`  signing SHA-256: ${result.certs.sha256}`);
+    }
+  }
+
+  if (!result.ok) {
+    for (const err of result.errors) {
+      console.error(`\n✗ ${err}`);
+    }
+    console.error(
+      '\nRelease aborted: APK packageId differs or signing is invalid — this would install as a second app or fail to update.',
+    );
+    process.exit(1);
+  }
+
+  if (expectedSha && result.certs?.sha256 && result.certs.sha256 !== expectedSha) {
+    console.error('\n✗ APK signing SHA-256 does not match config/android-release.json expectedSigningSha256');
+    process.exit(1);
+  }
+
+  console.info('\n✓ APK identity OK (same applicationId; signed for in-place update)\n');
+  return result;
 }
 
 function copyFile(src, dest) {
@@ -200,6 +259,10 @@ if (wantApk) {
   const built = findReleaseApk();
   const dest = path.join(root, 'public', 'downloads', 'homecheff-beta.apk');
   if (built) {
+    const cfg = loadAndroidReleaseConfig(root);
+    if (cfg.rejectUnsignedApkForBetaDownload !== false) {
+      validateBetaApkBeforePublish(root, built);
+    }
     copyFile(built, dest);
     console.info(`\nCopied:\n  ${built}\n  → ${dest}`);
   } else {

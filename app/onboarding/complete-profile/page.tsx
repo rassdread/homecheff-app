@@ -11,6 +11,8 @@ import {
   onboardingFlagsFromSessionUser,
 } from '@/lib/auth/post-auth-redirect';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { PolicyAgreementTermsLabel } from '@/components/legal/PolicyAgreementTermsLabel';
+import { PRIVACY_URL, SAFETY_STANDARDS_URL, COMMUNITY_GUIDELINES_URL, TERMS_URL } from '@/lib/legal/policy-urls';
 
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession();
@@ -146,7 +148,7 @@ export default function CompleteProfilePage() {
               onChange={(e) => setAcceptTerms(e.target.checked)}
               className="mt-1"
             />
-            <span>{t('onboardingProfile.termsLabel')}</span>
+            <PolicyAgreementTermsLabel />
           </label>
           <label className="flex items-start gap-2 text-sm text-slate-700">
             <input
@@ -155,7 +157,12 @@ export default function CompleteProfilePage() {
               onChange={(e) => setAcceptPrivacy(e.target.checked)}
               className="mt-1"
             />
-            <span>{t('onboardingProfile.privacyLabel')}</span>
+            <span>
+              {t('onboardingProfile.privacyLabel')}{' '}
+              <Link href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline">
+                {t('legalPolicies.privacy')}
+              </Link>
+            </span>
           </label>
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -177,13 +184,21 @@ export default function CompleteProfilePage() {
           {t('onboardingProfile.signOut')}
         </button>
 
-        <p className="mt-6 text-xs text-slate-500 text-center">
-          <Link href="/terms" className="underline">
-            {t('register.termsLink')}
+        <p className="mt-6 text-xs text-slate-500 text-center flex flex-wrap justify-center gap-x-2 gap-y-1">
+          <Link href={TERMS_URL} className="underline">
+            {t('legalPolicies.terms')}
           </Link>
-          {' · '}
-          <Link href="/profile/privacy" className="underline">
-            {t('register.privacyStatementLink')}
+          <span aria-hidden>·</span>
+          <Link href={PRIVACY_URL} className="underline">
+            {t('legalPolicies.privacy')}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href={COMMUNITY_GUIDELINES_URL} className="underline">
+            {t('legalPolicies.communityGuidelines')}
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href={SAFETY_STANDARDS_URL} className="underline">
+            {t('legalPolicies.safetyStandards')}
           </Link>
         </p>
       </div>

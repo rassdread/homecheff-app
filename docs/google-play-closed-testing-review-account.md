@@ -49,4 +49,5 @@ Document in **Play Console → App content → App access** (or the review instr
 
 ## Related Android release notes
 
-- **Play Store release** builds omit `REQUEST_INSTALL_PACKAGES` and the optional APK installer plugin; updates are expected via **Play**. Debug builds may still include the installer for internal sideload testing.
+- **Play Store** and **beta sideload** share `applicationId` **`eu.homecheff.mobile`** (see `capacitor.config.ts` / `android/app/build.gradle`). Beta APK updates must be signed with the same release key as previous beta builds so Android replaces the app in place.
+- Release builds include the in-app APK installer plugin for beta OTA; Play updates still use the Play Store.

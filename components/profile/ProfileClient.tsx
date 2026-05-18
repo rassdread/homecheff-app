@@ -481,7 +481,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden max-w-[100vw] w-full box-border overflow-hidden">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden max-w-[100vw] w-full box-border">
       <HcpWelcomeGate />
       {/* Settings Button - Floating */}
       <div className="fixed top-20 right-2 sm:right-4 z-40">
@@ -520,16 +520,17 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 w-full min-w-0 max-w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8 min-w-0 w-full">
+      <div className="mx-auto w-full max-w-[1100px] px-3 sm:px-6 xl:max-w-[1200px] py-4 sm:py-8 min-w-0">
+        {/* Phone: stacked. Tablet+: sidebar ~320px + flexible main — avoids squeezed single column mid-breakpoints */}
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] md:gap-8 lg:gap-10 min-w-0 w-full">
           {/* Sidebar */}
-          <div className="lg:col-span-1 min-w-0 overflow-hidden">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 overflow-hidden">
+          <aside className="min-w-0 shrink-0 md:max-w-[320px] md:justify-self-start w-full space-y-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 min-w-0 break-words">
               {/* Profile Header */}
               <div className="text-center">
                 {/* Quote/Motto als titel boven profielfoto */}
                 {user?.quote && user.quote.trim() && (
-                  <div className="mb-6 p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl border border-emerald-200 shadow-sm overflow-hidden">
+                  <div className="mb-6 p-4 sm:p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl border border-emerald-200 shadow-sm min-w-0">
                     <div className="flex items-start gap-4 min-w-0">
                       <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-sm">
                         <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
@@ -974,12 +975,12 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 min-w-0 overflow-x-hidden max-w-full">
+          <div className="min-w-0 w-full max-w-full isolate">
             {/* Tabs */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 overflow-hidden min-w-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-4 sm:mb-6 min-w-0 overflow-x-hidden">
               {/* Mobile: Grid Layout */}
               <div className="md:hidden p-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -1019,7 +1020,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-2 py-2.5 px-4 rounded-lg font-medium text-sm transition-all duration-300 relative whitespace-nowrap ${
+                        className={`flex items-center space-x-2 py-2.5 px-4 pb-3 rounded-lg font-medium text-sm transition-all duration-300 relative whitespace-nowrap ${
                           isActive
                             ? 'bg-emerald-500 text-white shadow-md'
                             : 'text-gray-600 hover:text-emerald-600 hover:bg-white hover:shadow-sm'
@@ -1040,20 +1041,20 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
               <div className="p-4 sm:p-6">
                 {activeTab === 'overview' && (
                   <div className="space-y-6 min-w-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h2 className="text-lg font-semibold text-gray-900">{t('profilePage.overview')}</h2>
-                      <div className="flex items-center flex-wrap gap-2">
-                        <div className="relative">
-                          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h2 className="text-lg font-semibold text-gray-900 min-w-0 shrink">{t('profilePage.overview')}</h2>
+                      <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+                        <div className="relative min-w-0 grow sm:grow-0 sm:max-w-[16rem]">
+                          <Search className="pointer-events-none w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                           <input
                             type="text"
                             placeholder={t('profilePage.search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
+                            className="w-full min-w-0 max-w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand transition-colors"
                           />
                         </div>
-                        <div className="flex border border-gray-300 rounded-lg">
+                        <div className="flex shrink-0 border border-gray-300 rounded-lg">
                           <button
                             onClick={() => setViewMode('grid')}
                             className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-primary-100 text-primary-brand' : 'text-gray-400 hover:text-primary-brand'}`}

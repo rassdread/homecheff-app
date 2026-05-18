@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Logo from '@/components/Logo';
-import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp } from 'lucide-react';
+import { FileText, Shield, Mail, Info, HelpCircle, MessageSquare, BookOpen, Trophy, TrendingUp, ShieldAlert, Users } from 'lucide-react';
+import { COMMUNITY_GUIDELINES_URL, SAFETY_STANDARDS_URL } from '@/lib/legal/policy-urls';
 import { isCompactMobileFooterPath } from '@/lib/layout/compactFooterRoutes';
 
 export default function Footer() {
@@ -17,6 +18,8 @@ export default function Footer() {
     { href: '/seo-hub', label: t('siteFooter.seoHub'), icon: BookOpen },
     { href: '/privacy', label: t('siteFooter.privacy'), icon: Shield },
     { href: '/terms', label: t('siteFooter.terms'), icon: FileText },
+    { href: COMMUNITY_GUIDELINES_URL, label: t('siteFooter.communityGuidelines'), icon: Users },
+    { href: SAFETY_STANDARDS_URL, label: t('siteFooter.safety'), icon: ShieldAlert },
     { href: '/contact', label: t('siteFooter.contact'), icon: Mail },
     { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/faq', label: t('siteFooter.faq'), icon: HelpCircle },

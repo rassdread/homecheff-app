@@ -25,7 +25,14 @@ import {
 import {
   classifyFeedItem,
   getFeedItemHref,
+  getInspirationFeedItemHref,
+  getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
+import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
+import DiscoverGridTile, {
+  inspirationApiToCardItem,
+} from "@/components/feed/DiscoverGridTile";
+import { useFeedLayoutMode } from "@/lib/feed/feedLayoutPreference";
 import {
   rankSalesByScore,
   applyColdStartScoreOrder,
@@ -1483,6 +1490,28 @@ export default function GeoFeed({
               {t("feed.chipInspiration")}
             </button>
           </div>
+          <div
+            className={
+              feedCompactChrome
+                ? "mt-2.5 flex flex-wrap items-end justify-between gap-2"
+                : "mt-3 flex flex-wrap items-end justify-between gap-3"
+            }
+          >
+            <p
+              className={
+                feedCompactChrome
+                  ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide"
+                  : "text-xs font-medium text-gray-500 uppercase tracking-wide"
+              }
+            >
+              {t("feed.layoutModeLabel")}
+            </p>
+            <FeedLayoutToggle
+              mode={feedLayoutMode}
+              onChange={setFeedLayoutMode}
+              compact={feedCompactChrome}
+            />
+          </div>
           {feedQuickCreateIntent ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -1915,18 +1944,33 @@ export default function GeoFeed({
         </div>
       ) : (
         <div
+          key={feedLayoutMode}
           className={
-            nativeMounted
-              ? "grid sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 hc-native-feed-grid"
-              : "grid sm:grid-cols-2 md:grid-cols-3 gap-4"
+            feedLayoutMode === "discover"
+              ? "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid"
+              : `flex flex-col gap-4 hc-feed-cards-column${
+                  nativeMounted ? " hc-native-feed-cards-column" : ""
+                }`
           }
         >
           {feedRowsToRender.map((row, idx) => {
             if (row.row === "sale") {
+              const card = toCardItem(row.item);
+              if (feedLayoutMode === "discover") {
+                return (
+                  <DiscoverGridTile
+                    key={`sale-${row.item.id}-${idx}`}
+                    item={card}
+                    href={getSaleItemHref(card)}
+                    kind="sale"
+                    t={t}
+                  />
+                );
+              }
               return (
                 <FeedSaleCard
                   key={`sale-${row.item.id}-${idx}`}
-                  item={toCardItem(row.item)}
+                  item={card}
                   baseUrl={baseUrl}
                   t={t}
                 />
@@ -1934,6 +1978,18 @@ export default function GeoFeed({
             }
             const slot = row.slot;
             if (slot.kind === "api") {
+              if (feedLayoutMode === "discover") {
+                const card = inspirationApiToCardItem(slot.item);
+                return (
+                  <DiscoverGridTile
+                    key={`insp-api-${slot.item.id}-${idx}`}
+                    item={card}
+                    href={inspirationDetailHrefApi(slot.item)}
+                    kind="inspiration"
+                    t={t}
+                  />
+                );
+              }
               return (
                 <FeedInspirationCardApi
                   key={`insp-api-${slot.item.id}-${idx}`}
@@ -1943,10 +1999,22 @@ export default function GeoFeed({
                 />
               );
             }
+            const card = toCardItem(slot.item);
+            if (feedLayoutMode === "discover") {
+              return (
+                <DiscoverGridTile
+                  key={`insp-feed-${slot.item.id}-${idx}`}
+                  item={card}
+                  href={getInspirationFeedItemHref(card)}
+                  kind="inspiration"
+                  t={t}
+                />
+              );
+            }
             return (
               <FeedInspirationCardFeed
                 key={`insp-feed-${slot.item.id}-${idx}`}
-                item={toCardItem(slot.item)}
+                item={card}
                 baseUrl={baseUrl}
                 t={t}
               />
