@@ -579,6 +579,7 @@ export default function GeoFeed({
   const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
+  const [feedLayoutMode, setFeedLayoutMode] = useFeedLayoutMode();
   /** Smalle browser + native: compacte filter-chips, sort bovenaan, geo onder uitklap. */
   const feedCompactChrome = nativeMounted || narrowViewport;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
