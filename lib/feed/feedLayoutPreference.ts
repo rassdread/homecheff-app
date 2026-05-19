@@ -50,3 +50,11 @@ export function useFeedLayoutMode(): [FeedLayoutMode, (mode: FeedLayoutMode) => 
   }, []);
   return [mode, setMode];
 }
+
+/** Layout toggle (cards vs discover grid) applies only on mobile / native shell. */
+export function getEffectiveFeedLayoutMode(
+  mode: FeedLayoutMode,
+  isMobileFeedUi: boolean
+): FeedLayoutMode {
+  return isMobileFeedUi ? mode : "cards";
+}

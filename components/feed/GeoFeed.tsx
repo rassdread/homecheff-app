@@ -32,7 +32,10 @@ import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
 import DiscoverGridTile, {
   inspirationApiToCardItem,
 } from "@/components/feed/DiscoverGridTile";
-import { useFeedLayoutMode } from "@/lib/feed/feedLayoutPreference";
+import {
+  getEffectiveFeedLayoutMode,
+  useFeedLayoutMode,
+} from "@/lib/feed/feedLayoutPreference";
 import {
   rankSalesByScore,
   applyColdStartScoreOrder,
@@ -580,8 +583,14 @@ export default function GeoFeed({
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
   const [feedLayoutMode, setFeedLayoutMode] = useFeedLayoutMode();
+  /** Mobile web (<768px) or Capacitor shell: compact chrome + layout toggle. */
+  const isMobileFeedUi = nativeMounted || narrowViewport;
+  const effectiveFeedLayoutMode = getEffectiveFeedLayoutMode(
+    feedLayoutMode,
+    isMobileFeedUi
+  );
   /** Smalle browser + native: compacte filter-chips, sort bovenaan, geo onder uitklap. */
-  const feedCompactChrome = nativeMounted || narrowViewport;
+  const feedCompactChrome = isMobileFeedUi;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
@@ -1439,6 +1448,21 @@ export default function GeoFeed({
     [category, feedChip]
   );
 
+  const feedResultsContainerClass = useMemo(() => {
+    if (!isMobileFeedUi) {
+      return "grid sm:grid-cols-2 md:grid-cols-3 gap-4";
+    }
+    if (effectiveFeedLayoutMode === "discover") {
+      return "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid";
+    }
+    return `flex flex-col gap-4 hc-feed-cards-column${
+      nativeMounted ? " hc-native-feed-cards-column" : ""
+    }`;
+  }, [isMobileFeedUi, effectiveFeedLayoutMode, nativeMounted]);
+
+  const useDiscoverGridTiles =
+    isMobileFeedUi && effectiveFeedLayoutMode === "discover";
+
   return (
     <div id="homecheff-feed" className="space-y-4">
       <div
@@ -1491,28 +1515,18 @@ export default function GeoFeed({
               {t("feed.chipInspiration")}
             </button>
           </div>
-          <div
-            className={
-              feedCompactChrome
-                ? "mt-2.5 flex flex-wrap items-end justify-between gap-2"
-                : "mt-3 flex flex-wrap items-end justify-between gap-3"
-            }
-          >
-            <p
-              className={
-                feedCompactChrome
-                  ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide"
-                  : "text-xs font-medium text-gray-500 uppercase tracking-wide"
-              }
-            >
-              {t("feed.layoutModeLabel")}
-            </p>
-            <FeedLayoutToggle
-              mode={feedLayoutMode}
-              onChange={setFeedLayoutMode}
-              compact={feedCompactChrome}
-            />
-          </div>
+          {isMobileFeedUi ? (
+            <div className="mt-2.5 flex flex-wrap items-end justify-between gap-2">
+              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                {t("feed.layoutModeLabel")}
+              </p>
+              <FeedLayoutToggle
+                mode={feedLayoutMode}
+                onChange={setFeedLayoutMode}
+                compact
+              />
+            </div>
+          ) : null}
           {feedQuickCreateIntent ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -1945,19 +1959,13 @@ export default function GeoFeed({
         </div>
       ) : (
         <div
-          key={feedLayoutMode}
-          className={
-            feedLayoutMode === "discover"
-              ? "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid"
-              : `flex flex-col gap-4 hc-feed-cards-column${
-                  nativeMounted ? " hc-native-feed-cards-column" : ""
-                }`
-          }
+          key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
+          className={feedResultsContainerClass}
         >
           {feedRowsToRender.map((row, idx) => {
             if (row.row === "sale") {
               const card = toCardItem(row.item);
-              if (feedLayoutMode === "discover") {
+              if (useDiscoverGridTiles) {
                 return (
                   <DiscoverGridTile
                     key={`sale-${row.item.id}-${idx}`}
@@ -1979,7 +1987,7 @@ export default function GeoFeed({
             }
             const slot = row.slot;
             if (slot.kind === "api") {
-              if (feedLayoutMode === "discover") {
+              if (useDiscoverGridTiles) {
                 const card = inspirationApiToCardItem(slot.item);
                 return (
                   <DiscoverGridTile
@@ -2001,7 +2009,7 @@ export default function GeoFeed({
               );
             }
             const card = toCardItem(slot.item);
-            if (feedLayoutMode === "discover") {
+            if (useDiscoverGridTiles) {
               return (
                 <DiscoverGridTile
                   key={`insp-feed-${slot.item.id}-${idx}`}
