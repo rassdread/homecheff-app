@@ -4,6 +4,8 @@ import { sendPasswordResetEmail } from "@/lib/email";
 import { generateVerificationToken } from "@/lib/verification";
 import { getPublicAppUrl } from "@/lib/public-app-url";
 import { logEmailSendFailure } from "@/lib/email-log";
+import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +19,15 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
     const rawEmail = typeof body?.email === "string" ? body.email.trim() : "";
-    if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    const normalizedEmail = tryNormalizeEmail(rawEmail);
+    if (!normalizedEmail) {
       return NextResponse.json(
         { error: "Voer een geldig e-mailadres in." },
         { status: 400 }
       );
     }
 
-    const user = await prisma.user.findFirst({
-      where: { email: { equals: rawEmail, mode: "insensitive" } },
+    const user = await findUserByCanonicalEmail(prisma, normalizedEmail, {
       select: {
         id: true,
         email: true,

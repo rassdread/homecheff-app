@@ -17,6 +17,8 @@ import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 import { getDuplicateSignupKindForUser } from "@/lib/auth/signup-duplicate";
 import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
+import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
+import { trySendSignupVerificationEmail } from "@/lib/auth/send-signup-verification-email";
 import { Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
@@ -433,8 +435,15 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const verificationEmailSent = false;
-    const verificationEmailSkippedReason = null;
+    const signupLocale = (body as { locale?: string })?.locale === "en" ? "en" : "nl";
+    const { sent: verificationEmailSent, skippedReason: verificationEmailSkippedReason } =
+      await trySendSignupVerificationEmail({
+        email: normalizedEmail,
+        name: name || usernameTrim,
+        verificationToken,
+        verificationCode,
+        locale: signupLocale,
+      });
 
     // Als bedrijf met abonnement: start Stripe Checkout direct
     let checkoutUrl: string | null = null;

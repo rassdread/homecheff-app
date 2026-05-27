@@ -15,6 +15,7 @@ import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 import { getDuplicateSignupKindForUser } from "@/lib/auth/signup-duplicate";
 import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
+import { trySendSignupVerificationEmail } from "@/lib/auth/send-signup-verification-email";
 import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
@@ -287,9 +288,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const signupLocale = (body as { locale?: string })?.locale === "en" ? "en" : "nl";
+    const { sent: verificationEmailSent, skippedReason: verificationEmailSkippedReason } =
+      await trySendSignupVerificationEmail({
+        email: normalizedEmail,
+        name: name || usernameTrim,
+        verificationToken,
+        verificationCode,
+        locale: signupLocale,
+      });
+
     return NextResponse.json({ 
       ok: true, 
       redirectUrl: "/login",
+      needsVerification: true,
+      verificationEmailSent,
+      verificationEmailSkippedReason,
       user: {
         id: user.id,
         email: normalizedEmail,

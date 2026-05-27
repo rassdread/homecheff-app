@@ -1833,7 +1833,8 @@ function RegisterPageContent() {
           'BUSINESS_REGISTRATION_REQUIRED': t('register.validation.businessRegistrationRequiredError'),
           'KVK_INVALID_FORMAT': t('register.validation.kvkInvalidFormatError'),
           'VAT_INVALID_FORMAT': t('register.validation.vatInvalidFormatError'),
-          'BUSINESS_REGISTRATION_INVALID_FORMAT': t('register.validation.businessRegistrationInvalidFormatError')
+          'BUSINESS_REGISTRATION_INVALID_FORMAT': t('register.validation.businessRegistrationInvalidFormatError'),
+          'ACCOUNT_CREATION_ERROR': t('register.validation.registrationError'),
         };
         
         if (errorCodeMap[data.error]) {
