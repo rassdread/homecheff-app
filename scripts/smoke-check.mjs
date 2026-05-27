@@ -88,6 +88,13 @@ if (process.env.DATABASE_URL) {
 const routes = [
   "app/api/auth/[...nextauth]/route.ts",
   "app/api/auth/native/google/route.ts",
+  "app/api/auth/register/route.ts",
+  "app/api/auth/forgot-password/route.ts",
+  "app/api/auth/reset-password/route.ts",
+  "app/api/auth/resend-verification/route.ts",
+  "app/api/auth/verify-email/route.ts",
+  "app/api/auth/verify-email-simple/route.ts",
+  "lib/auth/send-signup-verification-email.ts",
   "app/api/register/route.ts",
   "app/api/checkout/session/route.ts",
   "app/api/stripe/webhook/route.ts",
@@ -95,11 +102,29 @@ const routes = [
   "app/api/upload/video-token/route.ts",
   "app/login/page.tsx",
   "app/register/page.tsx",
+  "app/forgot-password/page.tsx",
+  "app/reset-password/page.tsx",
+  "app/verify-email/page.tsx",
 ];
 for (const rel of routes) {
   const abs = resolve(root, rel);
   if (existsSync(abs)) ok(`route file ${rel}`);
   else fail(`ontbreekt: ${rel}`);
+}
+
+const registerRoutePath = resolve(root, "app/api/auth/register/route.ts");
+if (existsSync(registerRoutePath)) {
+  const registerSrc = readFileSync(registerRoutePath, "utf8");
+  if (
+    registerSrc.includes("registrationUsernamePasswordConflictMessage") &&
+    registerSrc.includes("trySendSignupVerificationEmail")
+  ) {
+    ok("register API: username guard + signup verification mail");
+  } else {
+    fail(
+      "register API mist registrationUsernamePasswordConflictMessage of trySendSignupVerificationEmail",
+    );
+  }
 }
 
 // 5) next build al gedraaid? — alleen hint

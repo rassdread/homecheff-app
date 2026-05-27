@@ -2,7 +2,7 @@
 import React, { useEffect, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, getSession, useSession } from "next-auth/react";
-import { isSafari, isIOS, getSafariCookieDelay, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
+import { isSafari, isIOS, safeSessionStorageGetItem, safeSessionStorageSetItem, safeSessionStorageRemoveItem } from "@/lib/browser-utils";
 import { Button } from "@/components/ui/Button";
 import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
 import { Eye, EyeOff, Lock, ArrowRight, AlertCircle, CheckCircle, User, MapPin, Heart } from "lucide-react";
@@ -19,7 +19,14 @@ import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInBu
 import {
   isAndroidWebViewBridgePresent,
   isNativeAndroid,
+  isNativeApp,
 } from "@/lib/native/capacitor";
+import {
+  getPostCredentialsSessionTiming,
+  shouldUseLocationReplaceAfterAuth,
+  shouldUseNativeRouterRedirectAfterAuth,
+  waitForSessionAfterCredentialsSignIn,
+} from "@/lib/auth/post-credentials-session-client";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
@@ -254,7 +261,7 @@ function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status, update: updateSession } = useSession();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
   const [googleAuthChecked, setGoogleAuthChecked] = useState(false);
@@ -1787,7 +1794,8 @@ function RegisterPageContent() {
         // Belastingverantwoordelijkheid
         acceptTaxResponsibility: state.acceptTaxResponsibility,
         // Sub-affiliate invite token (from URL)
-        subAffiliateInviteToken: inviteToken || null
+        subAffiliateInviteToken: inviteToken || null,
+        locale: language === 'en' ? 'en' : 'nl',
       };
       
       console.log('🔵 [FRONTEND] Sending registration request:', {
@@ -1953,71 +1961,35 @@ function RegisterPageContent() {
           return;
         }
         
-        // iOS Safari needs significantly more time for cookies to be set
+        const sessionTiming = getPostCredentialsSessionTiming();
         const isIOSDevice = isIOS();
-        const isSafariOnIOS = isSafari() && isIOS();
-        const initialDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : getSafariCookieDelay();
-        
+        const isSafariOnIOS = isSafari() && isIOSDevice;
+
         console.log('🔍 [REGISTER] Device detection:', {
           isIOS: isIOSDevice,
-          isSafariOnIOS: isSafariOnIOS,
-          initialDelay
+          isSafariOnIOS,
+          nativeApp: isNativeApp(),
+          initialDelay: sessionTiming.initialDelayMs,
         });
-        
-        // Initial wait for cookies to be set (especially important for iOS Safari)
-        await new Promise(resolve => setTimeout(resolve, initialDelay));
-        
-        // Verifieer dat session is gezet door session te refreshen
+
         if (typeof updateSession === "function") {
           try {
             await updateSession({});
-            // Wait longer for session to update (iOS Safari needs more time)
-            const updateDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-            await new Promise(resolve => setTimeout(resolve, updateDelay));
+            await new Promise((resolve) =>
+              setTimeout(resolve, sessionTiming.updateDelayMs),
+            );
           } catch (sessionError) {
             console.warn("Session update warning (non-critical):", sessionError);
           }
         }
-        
-        // iOS Safari: Retry multiple times with longer delays
-        let currentSession = await getSession();
-        const maxRetries = isSafariOnIOS ? 3 : isIOSDevice ? 2 : 1;
-        const retryDelay = isSafariOnIOS ? 1500 : isIOSDevice ? 1200 : 1000;
-        
-        for (let attempt = 0; attempt < maxRetries && !currentSession?.user?.email; attempt++) {
-          console.log(`🔍 [REGISTER] No session after login, retry attempt ${attempt + 1}/${maxRetries}...`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-          currentSession = await getSession();
-          
-          if (currentSession?.user?.email) {
-            console.log('✅ [REGISTER] Session found after retry!');
-            break;
-          }
-        }
-        
-        // If still no session after all retries, try one more time with API call
+
+        let currentSession = await waitForSessionAfterCredentialsSignIn(
+          getSession,
+          sessionTiming,
+        );
+
         if (!currentSession?.user?.email) {
-          console.log('🔍 [REGISTER] Trying API session check as last resort...');
-          try {
-            const apiResponse = await fetch('/api/auth/session');
-            if (apiResponse.ok) {
-              const apiSession = await apiResponse.json();
-              if (apiSession?.user?.email) {
-                console.log('✅ [REGISTER] Session found via API!');
-                currentSession = apiSession;
-              }
-            }
-          } catch (apiError) {
-            console.error('❌ [REGISTER] API session check failed:', apiError);
-          }
-        }
-        
-        // Final check - if still no session, try one more approach for iOS Safari
-        if (!currentSession?.user?.email) {
-          // On iOS Safari, cookies might be set but not immediately readable
-          // Try a hard refresh approach: redirect to redirectUrl with a refresh parameter
-          // The destination page will check session again after page load
-          if (isSafariOnIOS || isIOSDevice) {
+          if (sessionTiming.useIosRefreshRedirectIfNoSession) {
             console.warn('⚠️ [REGISTER] No session found after retries on iOS, using refresh redirect');
             const u0 = currentSession?.user as
               | { username?: string | null; socialOnboardingCompleted?: boolean | null }
@@ -2040,9 +2012,9 @@ function RegisterPageContent() {
           return;
         }
 
-        // iOS Safari: Wait a bit more before redirect to ensure cookies are fully set
-        const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
-        await new Promise(resolve => setTimeout(resolve, redirectDelay));
+        await new Promise((resolve) =>
+          setTimeout(resolve, sessionTiming.redirectDelayMs),
+        );
 
         const u = currentSession.user as
           | { username?: string | null; socialOnboardingCompleted?: boolean | null }
@@ -2053,7 +2025,28 @@ function RegisterPageContent() {
           (pathAfterSession.includes('?') ? '&' : '?') +
           'welcome=true&registered=true';
 
-        if (isSafariOnIOS || isIOSDevice) {
+        if (shouldUseNativeRouterRedirectAfterAuth()) {
+          try {
+            sessionStorage.setItem('hc_npush_gate', '1');
+          } catch {
+            /* ignore */
+          }
+          try {
+            router.refresh();
+          } catch {
+            /* ignore */
+          }
+          router.replace(finalRedirectUrl);
+          return;
+        }
+        if (shouldUseLocationReplaceAfterAuth()) {
+          if (isNativeApp()) {
+            try {
+              sessionStorage.setItem('hc_npush_gate', '1');
+            } catch {
+              /* ignore */
+            }
+          }
           window.location.replace(finalRedirectUrl);
         } else {
           window.location.href = finalRedirectUrl;
@@ -3985,7 +3978,7 @@ function RegisterPageContent() {
 }
 
 function LoadingFallback() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100">
       <div className="text-center">

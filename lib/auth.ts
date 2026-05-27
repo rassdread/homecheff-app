@@ -377,6 +377,7 @@ export const authOptions: NextAuthOptions = {
             dbUser = await findUserByCanonicalEmail(prisma, token.email as string, {
               select: {
                 email: true,
+                emailVerified: true,
                 name: true,
                 image: true,
                 profileImage: true,
@@ -421,6 +422,8 @@ export const authOptions: NextAuthOptions = {
           }
           (session.user as { role?: Role }).role = (dbUser.role as Role) || (token as { role?: Role }).role;
           (session.user as { name?: string }).name = dbUser.name || session.user.name;
+          (session.user as { emailVerified?: Date | null }).emailVerified =
+            dbUser.emailVerified ?? null;
           (session.user as { image?: string | null }).image = dbUser.profileImage || dbUser.image || session.user.image;
           // ALWAYS use username from database - this ensures temp usernames are replaced
           (session.user as any).username = dbUser.username || null;

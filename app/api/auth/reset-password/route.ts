@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 
 export const dynamic = "force-dynamic";
 
@@ -48,9 +49,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const email = vt.identifier.slice(RESET_PREFIX.length);
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const emailFromToken = vt.identifier.slice(RESET_PREFIX.length);
+    const user = await findUserByCanonicalEmail(prisma, emailFromToken, {
       select: { id: true, email: true },
     });
 

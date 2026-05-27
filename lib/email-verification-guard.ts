@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 
@@ -14,13 +15,12 @@ export async function requireEmailVerification() {
     return { verified: false, user: null };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+  const user = await findUserByCanonicalEmail(prisma, session.user.email, {
     select: {
       id: true,
       email: true,
       emailVerified: true,
-    }
+    },
   });
 
   if (!user || !user.emailVerified) {
@@ -42,13 +42,12 @@ export async function checkEmailVerificationOrRedirect() {
     return;
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+  const user = await findUserByCanonicalEmail(prisma, session.user.email, {
     select: {
       id: true,
       email: true,
       emailVerified: true,
-    }
+    },
   });
 
   // If not verified, redirect to verify-email page
