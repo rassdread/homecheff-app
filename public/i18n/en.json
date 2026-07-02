@@ -6316,6 +6316,33 @@
       }
     }
   },
+  "guestSalesPanels": {
+    "ctaRegister": "Sign up",
+    "ctaLogin": "Log in",
+    "discover": {
+      "title": "Discover what's happening nearby",
+      "body": "Browse meals, garden products, creations and inspiration from people close to you."
+    },
+    "share": {
+      "title": "Share what you make or offer",
+      "body": "Post a meal, garden product, creation or inspiration. Let people pay via HomeCheff or contact you directly.",
+      "bullet1": "Sell with HomeCheff checkout",
+      "bullet2": "Or let people contact you directly",
+      "bullet3": "Share inspiration without selling"
+    },
+    "cheff": {
+      "title": "HomeCheff",
+      "body": "Homemade meals, local flavours and recipes from your neighbourhood."
+    },
+    "garden": {
+      "title": "HomeGarden",
+      "body": "Vegetables, herbs, plants, harvest and garden ideas from people nearby."
+    },
+    "designer": {
+      "title": "HomeDesigner",
+      "body": "Clothing, art, creations and crafts from local makers."
+    }
+  },
   "publicProfile": {
     "reputationAria": "This maker's reputation",
     "reputationLabel": "Local reputation",

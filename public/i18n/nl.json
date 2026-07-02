@@ -6316,6 +6316,33 @@
       }
     }
   },
+  "guestSalesPanels": {
+    "ctaRegister": "Aanmelden",
+    "ctaLogin": "Inloggen",
+    "discover": {
+      "title": "Ontdek wat er leeft in jouw buurt",
+      "body": "Bekijk maaltijden, tuinproducten, creaties en inspiratie van mensen dichtbij."
+    },
+    "share": {
+      "title": "Deel wat jij maakt of aanbiedt",
+      "body": "Plaats een maaltijd, tuinproduct, creatie of inspiratie. Je kunt mensen via HomeCheff laten betalen of direct contact laten opnemen.",
+      "bullet1": "Verkoop via HomeCheff betalen",
+      "bullet2": "Of laat mensen direct contact opnemen",
+      "bullet3": "Deel ook inspiratie zonder iets te verkopen"
+    },
+    "cheff": {
+      "title": "HomeCheff",
+      "body": "Huisgemaakte maaltijden, lokale smaken en recepten uit de buurt."
+    },
+    "garden": {
+      "title": "HomeGarden",
+      "body": "Groenten, kruiden, planten, oogst en tuinideeën van mensen dichtbij."
+    },
+    "designer": {
+      "title": "HomeDesigner",
+      "body": "Kleding, kunst, creaties en handwerk van makers uit de buurt."
+    }
+  },
   "publicProfile": {
     "reputationAria": "Reputatie van deze maker",
     "reputationLabel": "Reputatie in de buurt",

@@ -200,11 +200,7 @@ function RegisterPageContent() {
     },
     [searchParams],
   );
-  
-  // Get translated user types and buyer types
-  const userTypes = getUserTypes(t);
-  const buyerTypes = getBuyerTypes(t);
-  
+
   // Handle Stripe payment success/cancel redirects
   useEffect(() => {
     const paymentStatus = searchParams?.get('payment');
@@ -343,7 +339,7 @@ function RegisterPageContent() {
       state.lastName ||
       state.email ||
       state.username ||
-      state.userTypes.length ||
+      state.userTypes?.length ||
       state.interests.length ||
       state.bio ||
       state.currentStep > 1
