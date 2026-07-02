@@ -6343,6 +6343,40 @@
       "body": "Clothing, art, creations and crafts from local makers."
     }
   },
+  "guestBottomNav": {
+    "ctaRegister": "Join",
+    "ctaLogin": "Log in",
+    "earn": {
+      "title": "Earn from what you already do",
+      "body": "Sell meals, share your harvest, offer creations or soon help people nearby with small services.",
+      "bullet1": "List something for sale",
+      "bullet2": "Let people contact you directly",
+      "bullet3": "Earn via HomeCheff payments when you want",
+      "bullet4": "Help & chores coming soon"
+    },
+    "create": {
+      "title": "Share what you make or offer",
+      "body": "Post a meal, garden product, creation or inspiration. You choose whether people pay via HomeCheff or contact you directly.",
+      "bullet1": "List something for sale",
+      "bullet2": "Share inspiration",
+      "bullet3": "Use direct contact or HomeCheff checkout",
+      "bullet4": "Services, help requests and swaps coming soon"
+    },
+    "messages": {
+      "title": "Get in touch directly",
+      "body": "Ask questions, make arrangements and discuss pickup, delivery or swaps with people in your area.",
+      "bullet1": "Send messages via HomeCheff",
+      "bullet2": "Make arrangements with makers",
+      "bullet3": "Discuss direct contact or delivery"
+    },
+    "profile": {
+      "title": "Your place on HomeCheff",
+      "body": "With a profile you show who you are, what you make and how people can reach you.",
+      "bullet1": "Build your reputation",
+      "bullet2": "Collect appreciation and reviews",
+      "bullet3": "Show your offerings, inspiration and contact options"
+    }
+  },
   "publicProfile": {
     "reputationAria": "This maker's reputation",
     "reputationLabel": "Local reputation",

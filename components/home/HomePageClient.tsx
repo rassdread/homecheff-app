@@ -19,6 +19,7 @@ import CreatorMomentumCard from "@/components/home/CreatorMomentumCard";
 import HomeProfileProgressCard from "@/components/home/HomeProfileProgressCard";
 import ReturnBelongingStrip from "@/components/home/ReturnBelongingStrip";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
+import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -80,6 +81,13 @@ export default function HomePageClient({
       const fromHtml = document.documentElement.getAttribute('data-domain');
       setCurrentDomain(fromHtml || window.location.origin);
     }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#homecheff-feed') return;
+    const t = window.setTimeout(() => scrollToHomeFeed(), 400);
+    return () => window.clearTimeout(t);
   }, []);
 
   useEffect(() => {

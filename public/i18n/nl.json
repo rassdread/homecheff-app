@@ -6343,6 +6343,40 @@
       "body": "Kleding, kunst, creaties en handwerk van makers uit de buurt."
     }
   },
+  "guestBottomNav": {
+    "ctaRegister": "Meedoen",
+    "ctaLogin": "Inloggen",
+    "earn": {
+      "title": "Verdien met wat je al doet",
+      "body": "Verkoop maaltijden, deel je oogst, bied creaties aan of help straks mensen uit je buurt met kleine diensten.",
+      "bullet1": "Plaats iets te koop",
+      "bullet2": "Laat mensen direct contact opnemen",
+      "bullet3": "Verdien via HomeCheff-betalingen wanneer je dat wilt",
+      "bullet4": "Binnenkort ook hulp & klusjes"
+    },
+    "create": {
+      "title": "Deel wat jij maakt of aanbiedt",
+      "body": "Plaats een maaltijd, tuinproduct, creatie of inspiratie. Je kiest zelf of mensen via HomeCheff betalen of direct contact opnemen.",
+      "bullet1": "Zet iets te koop",
+      "bullet2": "Deel inspiratie",
+      "bullet3": "Gebruik direct contact of HomeCheff betalen",
+      "bullet4": "Straks ook diensten, hulpvragen en ruilen"
+    },
+    "messages": {
+      "title": "Kom direct in contact",
+      "body": "Stel vragen, maak afspraken en bespreek ophalen, bezorgen of ruilen met mensen uit je buurt.",
+      "bullet1": "Stuur berichten via HomeCheff",
+      "bullet2": "Maak afspraken met makers",
+      "bullet3": "Bespreek direct contact of bezorging"
+    },
+    "profile": {
+      "title": "Jouw plek op HomeCheff",
+      "body": "Met een profiel laat je zien wie je bent, wat je maakt en hoe mensen jou kunnen bereiken.",
+      "bullet1": "Bouw reputatie op",
+      "bullet2": "Verzamel waardering en reviews",
+      "bullet3": "Toon je aanbod, inspiratie en contactopties"
+    }
+  },
   "publicProfile": {
     "reputationAria": "Reputatie van deze maker",
     "reputationLabel": "Reputatie in de buurt",

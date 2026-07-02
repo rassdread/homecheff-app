@@ -8,7 +8,9 @@ import { ChefHat, Sprout, Palette, Compass, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
-import GuestSalesInfoPanel, { type GuestSalesPanelId } from '@/components/home/GuestSalesInfoPanel';
+import GuestSalesInfoPanel from '@/components/home/GuestSalesInfoPanel';
+import type { GuestSalesPanelId } from '@/lib/guest/guest-explanation-panels';
+import { scrollToHomeFeed } from '@/lib/guest/guest-explanation-panels';
 
 const VERTICALS = [
   {
@@ -58,7 +60,7 @@ export default function HomeHeroSection() {
   const isGuest = status !== 'loading' && !session?.user;
 
   const scrollToFeed = useCallback(() => {
-    document.getElementById('homecheff-feed')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToHomeFeed();
   }, []);
 
   const openVerticalFeed = useCallback(

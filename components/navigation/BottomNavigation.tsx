@@ -5,8 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus, Download } from 'lucide-react';
-import { openSoftAuthGate } from '@/lib/onboarding/open-soft-auth-gate';
 import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
+import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
+import GuestExplanationPanel from '@/components/home/GuestExplanationPanel';
+import {
+  scrollToHomeFeed,
+  type GuestBottomNavPanelId,
+} from '@/lib/guest/guest-explanation-panels';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
@@ -117,6 +123,24 @@ export default function BottomNavigation() {
    */
   const filePickerGuardUntilRef = useRef<number>(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [guestBottomNavPanel, setGuestBottomNavPanel] = useState<GuestBottomNavPanelId | null>(null);
+  const [guestPanelAuthPaths, setGuestPanelAuthPaths] = useState({
+    register: '/register',
+    login: '/login',
+  });
+
+  const openGuestBottomNavPanel = useCallback(
+    (id: GuestBottomNavPanelId, returnPath: string, onBeforeOpen?: () => void) => {
+      onBeforeOpen?.();
+      const safeReturn = sanitizePostAuthRelativeUrl(returnPath) || returnPath;
+      setGuestPanelAuthPaths({
+        register: `/register?returnUrl=${encodeURIComponent(safeReturn)}`,
+        login: `/login?callbackUrl=${encodeURIComponent(safeReturn)}`,
+      });
+      setGuestBottomNavPanel(id);
+    },
+    []
+  );
 
   const isQuickAddDebug =
     typeof process !== 'undefined' &&
@@ -356,15 +380,15 @@ export default function BottomNavigation() {
     const sellNewPath = `/sell/new${sellNewSuffix}`;
     const safeSellNew = sanitizePostAuthRelativeUrl(sellNewPath) || sellNewPath;
 
-    const openSoftAuthForCreate = () => {
-      openSoftAuthGate({
-        copyKey: 'create',
-        intent: {
+    const openGuestPanelForCreate = () => {
+      openGuestBottomNavPanel('create', safeSellNew, () => {
+        setPendingOpenQuickAddAfterLogin();
+        savePendingIntent({
           type: 'create_item',
           mode: intent?.mode === 'inspiratie' ? 'inspiratie' : 'dorpsplein',
           vertical: intent?.vertical,
           returnPath: safeSellNew,
-        },
+        });
       });
     };
 
@@ -400,7 +424,7 @@ export default function BottomNavigation() {
           router.push(sellNewPath);
           return;
         }
-        openSoftAuthForCreate();
+        openGuestPanelForCreate();
         return;
       }
       router.push(sellNewPath);
@@ -411,18 +435,18 @@ export default function BottomNavigation() {
         bootstrapQuickAddUiFromIntent();
         return;
       }
-      openSoftAuthForCreate();
+      openGuestPanelForCreate();
       return;
     }
     bootstrapQuickAddUiFromIntent();
-  }, [session?.user, sessionStatus, shouldHide, router]);
+  }, [session?.user, sessionStatus, shouldHide, router, openGuestBottomNavPanel]);
 
   const handleQuickAddClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
       const p = sanitizePostAuthRelativeUrl('/sell/new') || '/sell/new';
-      openSoftAuthGate({
-        copyKey: 'create',
-        intent: { type: 'create_item', mode: 'dorpsplein', returnPath: p },
+      openGuestBottomNavPanel('create', p, () => {
+        setPendingOpenQuickAddAfterLogin();
+        savePendingIntent({ type: 'create_item', mode: 'dorpsplein', returnPath: p });
       });
       return;
     }
@@ -469,12 +493,9 @@ export default function BottomNavigation() {
 
   const handleDashboardClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      openSoftAuthGate({
-        copyKey: 'generic',
-        intent: {
-          type: 'complete_profile',
-          returnPath: sanitizePostAuthRelativeUrl('/verkoper/dashboard') || '/verkoper/dashboard',
-        },
+      const p = sanitizePostAuthRelativeUrl('/verkoper/dashboard') || '/verkoper/dashboard';
+      openGuestBottomNavPanel('earn', p, () => {
+        savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
@@ -483,12 +504,9 @@ export default function BottomNavigation() {
 
   const handleMessagesClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      openSoftAuthGate({
-        copyKey: 'message',
-        intent: {
-          type: 'complete_profile',
-          returnPath: sanitizePostAuthRelativeUrl('/messages') || '/messages',
-        },
+      const p = sanitizePostAuthRelativeUrl('/messages') || '/messages';
+      openGuestBottomNavPanel('messages', p, () => {
+        savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
@@ -497,12 +515,9 @@ export default function BottomNavigation() {
 
   const handleProfileClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      openSoftAuthGate({
-        copyKey: 'generic',
-        intent: {
-          type: 'complete_profile',
-          returnPath: sanitizePostAuthRelativeUrl('/profile') || '/profile',
-        },
+      const p = sanitizePostAuthRelativeUrl('/profile') || '/profile';
+      openGuestBottomNavPanel('profile', p, () => {
+        savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
@@ -1613,11 +1628,14 @@ export default function BottomNavigation() {
             <Link
               href="/#homecheff-feed"
               prefetch={false}
-              scroll={false}
               className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
-              onClick={() =>
-                navDebug('bottom-nav:tap', { tab: 'discover', href: '/#homecheff-feed', path: pathname })
-              }
+              onClick={(e) => {
+                navDebug('bottom-nav:tap', { tab: 'discover', href: '/#homecheff-feed', path: pathname });
+                if (pathname === '/') {
+                  e.preventDefault();
+                  scrollToHomeFeed();
+                }
+              }}
             >
               <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">{discoverIcon}</div>
               <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
@@ -1836,6 +1854,14 @@ export default function BottomNavigation() {
               : 'h-20 md:h-[5.75rem]'
         )}
         aria-hidden
+      />
+
+      <GuestExplanationPanel
+        namespace="guestBottomNav"
+        panel={guestBottomNavPanel}
+        onClose={() => setGuestBottomNavPanel(null)}
+        registerHref={guestPanelAuthPaths.register}
+        loginHref={guestPanelAuthPaths.login}
       />
 
     </>
