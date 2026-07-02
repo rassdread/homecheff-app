@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateDistance } from "@/lib/geocoding";
 import { getRouteDistance } from "@/lib/google-maps-distance";
+import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
+import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +52,7 @@ export async function GET(req: NextRequest) {
     // Get all active delivery profiles from the same country/island
     const deliveryProfiles = await prisma.deliveryProfile.findMany({
       where: {
-        isActive: true,
+        ...delivererMatchingWhere(),
         user: {
           lat: { not: null },
           lng: { not: null },
@@ -67,6 +69,9 @@ export async function GET(req: NextRequest) {
         gpsTrackingEnabled: true,
         currentLat: true,
         currentLng: true,
+        lastGpsUpdate: true,
+        homeLat: true,
+        homeLng: true,
         isOnline: true,
         user: {
           select: {
@@ -90,14 +95,11 @@ export async function GET(req: NextRequest) {
     // Priority: Use GPS location (currentLat/currentLng) if GPS tracking is enabled and online, otherwise use home location (user.lat/lng)
     const matchedDeliverers = await Promise.all(
       deliveryProfiles.map(async (delivery) => {
-        // Determine which location to use: GPS location if enabled and online, otherwise home location
-        const useGpsLocation = delivery.gpsTrackingEnabled && 
-                               delivery.isOnline && 
-                               delivery.currentLat && 
-                               delivery.currentLng;
-        
-        const delivererLat = useGpsLocation ? delivery.currentLat! : delivery.user.lat!;
-        const delivererLng = useGpsLocation ? delivery.currentLng! : delivery.user.lng!;
+        const position = resolveDelivererPosition(delivery);
+        if (!position) return null;
+
+        const delivererLat = position.lat;
+        const delivererLng = position.lng;
         
         // Calculate route distance from delivery person to seller (pickup location)
         const routeToSeller = await getRouteDistance(
@@ -164,7 +166,9 @@ export async function GET(req: NextRequest) {
     );
 
     // Filter and sort the matched deliverers
-    const filteredAndSortedDeliverers = matchedDeliverers.filter(delivery => {
+    const filteredAndSortedDeliverers = matchedDeliverers
+      .filter((delivery): delivery is NonNullable<typeof delivery> => delivery != null)
+      .filter(delivery => {
         if (isCaribbean) {
           // For Caribbean islands: only check if deliverer is on the same island
           // Distance is less important since islands are small

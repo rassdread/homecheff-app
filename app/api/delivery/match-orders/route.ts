@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateDistance } from "@/lib/geocoding";
 import { getRouteDistance } from "@/lib/google-maps-distance";
+import { assertDelivererCanAccept } from "@/lib/delivery/delivery-eligibility";
+import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
 
 export const dynamic = "force-dynamic";
 
@@ -25,27 +27,54 @@ export async function GET(req: NextRequest) {
         DeliveryProfile: {
           select: {
             isActive: true,
+            isVerified: true,
+            age: true,
             maxDistance: true,
             transportation: true,
             deliveryMode: true,
             gpsTrackingEnabled: true,
             currentLat: true,
             currentLng: true,
+            lastGpsUpdate: true,
+            homeLat: true,
+            homeLng: true,
             isOnline: true
           }
         }
       }
     });
 
-    if (!deliveryUser || (!deliveryUser.lat && !deliveryUser.DeliveryProfile?.currentLat)) {
-      return NextResponse.json({ error: 'Delivery user location not found' }, { status: 404 });
+    if (!deliveryUser?.DeliveryProfile) {
+      return NextResponse.json({ error: 'Delivery profile not found' }, { status: 404 });
     }
 
-    if (!deliveryUser.DeliveryProfile?.isActive) {
+    if (!deliveryUser.DeliveryProfile.isActive) {
       return NextResponse.json({ error: 'Delivery profile not active' }, { status: 400 });
     }
 
-    // Get available delivery orders (not yet assigned)
+    const acceptCheck = assertDelivererCanAccept(deliveryUser.DeliveryProfile);
+    if (!acceptCheck.ok) {
+      return NextResponse.json({ error: acceptCheck.error, code: acceptCheck.code }, { status: 403 });
+    }
+
+    const position = resolveDelivererPosition({
+      gpsTrackingEnabled: deliveryUser.DeliveryProfile.gpsTrackingEnabled,
+      isOnline: deliveryUser.DeliveryProfile.isOnline,
+      currentLat: deliveryUser.DeliveryProfile.currentLat,
+      currentLng: deliveryUser.DeliveryProfile.currentLng,
+      lastGpsUpdate: deliveryUser.DeliveryProfile.lastGpsUpdate,
+      homeLat: deliveryUser.DeliveryProfile.homeLat,
+      homeLng: deliveryUser.DeliveryProfile.homeLng,
+      user: deliveryUser,
+    });
+
+    if (!position) {
+      return NextResponse.json({ error: 'Delivery user location not found' }, { status: 404 });
+    }
+
+    const delivererLat = position.lat;
+    const delivererLng = position.lng;
+    const useGpsLocation = position.source === 'gps';
     const availableOrders = await prisma.deliveryOrder.findMany({
       where: {
         status: 'PENDING'
@@ -77,19 +106,6 @@ export async function GET(req: NextRequest) {
         }
       }
     });
-
-    // Determine which location to use: GPS location if enabled and online, otherwise home location
-    const useGpsLocation = deliveryUser.DeliveryProfile?.gpsTrackingEnabled && 
-                           deliveryUser.DeliveryProfile?.isOnline && 
-                           deliveryUser.DeliveryProfile?.currentLat && 
-                           deliveryUser.DeliveryProfile?.currentLng;
-    
-    const delivererLat = useGpsLocation 
-      ? deliveryUser.DeliveryProfile.currentLat! 
-      : deliveryUser.lat!;
-    const delivererLng = useGpsLocation 
-      ? deliveryUser.DeliveryProfile.currentLng! 
-      : deliveryUser.lng!;
 
     // Filter orders within delivery radius using Google Maps for accurate route distances
     const matchedOrders = await Promise.all(

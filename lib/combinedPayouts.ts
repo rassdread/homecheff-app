@@ -54,8 +54,9 @@ export async function getCombinedRequestablePayout(
         toUserId: userId,
         providerRef: null,
         OR: [
-          { transactionId: { contains: 'delivery' } },
           { transactionId: { contains: 'txn_delivery' } },
+          { id: { startsWith: 'payout_delivery_' } },
+          // Legacy: orderId was incorrectly used as transactionId
           { transactionId: { in: Array.from(deliveredOrderIds) } },
         ],
       },

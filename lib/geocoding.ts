@@ -2,26 +2,34 @@
 // Uses Haversine formula for "as-the-crow-flies" distance
 // Note: For route-based distances, use lib/google-maps-distance.ts instead
 
-// Helper function to calculate distance between two coordinates (Haversine formula)
+import { haversineKm } from '@/lib/community/geoDistance';
+
+/**
+ * Safe distance — returns null when coords invalid (never use null as 0 km in UI).
+ */
+export function safeDistanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number | null {
+  if (
+    !Number.isFinite(lat1) ||
+    !Number.isFinite(lng1) ||
+    !Number.isFinite(lat2) ||
+    !Number.isFinite(lng2)
+  ) {
+    return null;
+  }
+  return haversineKm(lat1, lng1, lat2, lng2);
+}
+
+/** @deprecated Prefer safeDistanceKm for display; returns 0 when coords invalid (legacy callers). */
 export function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number
 ): number {
-  // Check for null, undefined, or invalid coordinates
-  if (!lat1 || !lng1 || !lat2 || !lng2 || 
-      isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
-    return 0; // Return 0 if coordinates are invalid
-  }
-
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLng/2) * Math.sin(dLng/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c; // Distance in kilometers
+  return safeDistanceKm(lat1, lng1, lat2, lng2) ?? 0;
 }

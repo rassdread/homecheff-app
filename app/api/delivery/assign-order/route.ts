@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import {
+  assertDelivererCanAccept,
+  delivererAcceptDenialResponse,
+} from "@/lib/delivery/delivery-eligibility";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +19,18 @@ export async function POST(req: NextRequest) {
 
     if (!orderId || !deliveryProfileId) {
       return NextResponse.json({ error: 'Order ID and Delivery Profile ID are required' }, { status: 400 });
+    }
+
+    const deliveryProfile = await prisma.deliveryProfile.findUnique({
+      where: { id: deliveryProfileId },
+    });
+
+    const acceptCheck = assertDelivererCanAccept(deliveryProfile);
+    if (!acceptCheck.ok) {
+      return NextResponse.json(
+        delivererAcceptDenialResponse(acceptCheck),
+        { status: acceptCheck.status }
+      );
     }
 
     // Check if the order exists and is not already assigned

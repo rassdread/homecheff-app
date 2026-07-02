@@ -10,6 +10,11 @@ import { calculateDistance } from "@/lib/geocoding";
 import { createShippingLabel, EctaroShipLabelRequest } from "@/lib/ectaroship";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
+import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
+import {
+  resolveDelivererPosition,
+  resolveSellerCoords,
+} from "@/lib/delivery/delivery-position";
 
 async function readBuffer(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader();
@@ -911,7 +916,7 @@ export async function POST(req: NextRequest) {
               // Find all available deliverers within range
               const availableDeliverers = await prisma.deliveryProfile.findMany({
                 where: {
-                  isActive: true,
+                  ...delivererMatchingWhere(),
                   user: {
                     lat: { not: null },
                     lng: { not: null }
@@ -922,7 +927,6 @@ export async function POST(req: NextRequest) {
                     select: {
                       id: true,
                       name: true,
-                      email: true,
                       lat: true,
                       lng: true
                     }
@@ -937,7 +941,9 @@ export async function POST(req: NextRequest) {
                 },
                 include: {
                   seller: {
-                    include: {
+                    select: {
+                      lat: true,
+                      lng: true,
                       User: {
                         select: {
                           lat: true,
@@ -952,13 +958,14 @@ export async function POST(req: NextRequest) {
               // Eén DeliveryOrder per order (orderId is @unique): ongeassigneed, bezorgers zien hem in dashboard en kunnen accepteren
               const firstItemWithSellerLocation = items.find((item: any) => {
                 const product = orderProducts.find(p => p.id === item.productId);
-                return product?.seller?.User?.lat && product?.seller?.User?.lng;
+                return resolveSellerCoords(product?.seller);
               });
               const firstProduct = firstItemWithSellerLocation
                 ? orderProducts.find(p => p.id === firstItemWithSellerLocation.productId)
                 : null;
+              const sellerCoords = resolveSellerCoords(firstProduct?.seller);
 
-              if (firstProduct?.seller?.User?.lat && firstProduct?.seller?.User?.lng) {
+              if (sellerCoords) {
                 const deliveryOrder = await prisma.deliveryOrder.create({
                   data: {
                     orderId: createdOrder.id,
@@ -973,16 +980,26 @@ export async function POST(req: NextRequest) {
 
                 // Filter deliverers within range of BOTH (first product) seller and buyer
                 const eligibleDeliverers = availableDeliverers.filter(deliverer => {
-                  if (!deliverer.user.lat || !deliverer.user.lng) return false;
+                  const position = resolveDelivererPosition({
+                    gpsTrackingEnabled: deliverer.gpsTrackingEnabled,
+                    isOnline: deliverer.isOnline,
+                    currentLat: deliverer.currentLat,
+                    currentLng: deliverer.currentLng,
+                    lastGpsUpdate: deliverer.lastGpsUpdate,
+                    homeLat: deliverer.homeLat,
+                    homeLng: deliverer.homeLng,
+                    user: deliverer.user,
+                  });
+                  if (!position) return false;
                   const distanceToSeller = calculateDistance(
-                    deliverer.user.lat,
-                    deliverer.user.lng,
-                    firstProduct.seller.User.lat!,
-                    firstProduct.seller.User.lng!
+                    position.lat,
+                    position.lng,
+                    sellerCoords.lat,
+                    sellerCoords.lng
                   );
                   const distanceToBuyer = calculateDistance(
-                    deliverer.user.lat,
-                    deliverer.user.lng,
+                    position.lat,
+                    position.lng,
                     coordinates.lat,
                     coordinates.lng
                   );
@@ -990,9 +1007,20 @@ export async function POST(req: NextRequest) {
                 });
 
                 for (const deliverer of eligibleDeliverers) {
+                  const position = resolveDelivererPosition({
+                    gpsTrackingEnabled: deliverer.gpsTrackingEnabled,
+                    isOnline: deliverer.isOnline,
+                    currentLat: deliverer.currentLat,
+                    currentLng: deliverer.currentLng,
+                    lastGpsUpdate: deliverer.lastGpsUpdate,
+                    homeLat: deliverer.homeLat,
+                    homeLng: deliverer.homeLng,
+                    user: deliverer.user,
+                  });
+                  if (!position) continue;
                   const distanceToBuyer = calculateDistance(
-                    deliverer.user.lat!,
-                    deliverer.user.lng!,
+                    position.lat,
+                    position.lng,
                     coordinates.lat,
                     coordinates.lng
                   );

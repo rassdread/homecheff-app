@@ -12,12 +12,14 @@ import {
   resolvePrimaryMediaForInspirationApi,
 } from "@/components/feed/feedMedia";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
-import {
-  getInspirationFeedItemHref,
-  getSaleItemHref,
-} from "@/components/feed/feedItemClassification";
+import { resolveFeedItemHref } from "@/lib/feed/feed-item-href";
 import UserBadgeChips from "@/components/gamification/UserBadgeChips";
-import type { ProductOrderMethodValue } from "@/lib/product/order-method";
+import {
+  formatProductPriceLabel,
+  isContactOnlyProduct,
+  type ProductOrderMethodValue,
+} from "@/lib/product/order-method";
+import type { FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 
 export type GeoFeedCardItem = {
   id: string;
@@ -46,6 +48,8 @@ export type GeoFeedCardItem = {
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
   sellerBadges?: Array<{ key: string; name: string; icon: string }>;
+  /** Afgeleide V3 taxonomy (Fase 5D, optioneel). */
+  taxonomy?: FeedTaxonomy;
 };
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -80,7 +84,7 @@ export function FeedSaleCard({
   baseUrl: string;
   t: TFn;
 }) {
-  const listingHref = getSaleItemHref(it);
+  const listingHref = resolveFeedItemHref(it, it.taxonomy);
   const contactOnly = isContactOnlyProduct(it);
   const priceLabel =
     contactOnly || (it.priceCents != null && Number(it.priceCents) > 0)
@@ -135,7 +139,7 @@ export function FeedSaleCard({
         <div className="feed-card-meta-cluster">
           <p className="text-xs text-gray-600">
             {it.place ?? t("feed.unknownPlace")}
-            {it.distanceKm != null && it.distanceKm !== Infinity
+            {it.distanceKm != null && it.distanceKm > 0 && it.distanceKm !== Infinity
               ? ` · ${it.distanceKm.toFixed(1)} km`
               : ""}
           </p>
@@ -229,7 +233,7 @@ function fromGeoFeedItem(it: GeoFeedCardItem, t: TFn): NormalizedInspirationCard
     id: it.id,
     title: it.title,
     description: it.description,
-    detailHref: getInspirationFeedItemHref(it),
+    detailHref: resolveFeedItemHref(it, it.taxonomy),
     label: feedInspirationSoftLabel(it, t),
     place: it.place ?? null,
     distanceKm: it.distanceKm ?? null,
@@ -338,7 +342,7 @@ function FeedInspirationCard({
         <div className="feed-card-meta-cluster">
           <p className="text-xs text-gray-600">
             {data.place ?? t("feed.unknownPlace")}
-            {data.distanceKm != null && data.distanceKm !== Infinity
+            {data.distanceKm != null && data.distanceKm > 0 && data.distanceKm !== Infinity
               ? ` · ${data.distanceKm.toFixed(1)} km`
               : ""}
           </p>

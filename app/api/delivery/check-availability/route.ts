@@ -5,6 +5,8 @@ export const dynamic = 'force-dynamic';
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
+import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
+import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +21,7 @@ export async function POST(req: NextRequest) {
     // Find active delivery profiles with GPS coordinates
     const availableProfiles = await prisma.deliveryProfile.findMany({
       where: {
-        isActive: true,
+        ...delivererMatchingWhere(),
         user: {
           lat: { not: null },
           lng: { not: null }
@@ -31,6 +33,9 @@ export async function POST(req: NextRequest) {
         gpsTrackingEnabled: true,
         currentLat: true,
         currentLng: true,
+        lastGpsUpdate: true,
+        homeLat: true,
+        homeLng: true,
         isOnline: true,
         availableDays: true,
         availableTimeSlots: true,
@@ -38,7 +43,6 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true,
             lat: true,
             lng: true
           }
@@ -47,17 +51,13 @@ export async function POST(req: NextRequest) {
     });
 
     // Calculate distance for each profile using Google Maps and filter within radius
-    // Priority: Use GPS location (currentLat/currentLng) if GPS tracking is enabled and online, otherwise use home location (user.lat/lng)
     const profilesWithDistances = await Promise.all(
       availableProfiles.map(async (profile) => {
-        // Determine which location to use: GPS location if enabled and online, otherwise home location
-        const useGpsLocation = profile.gpsTrackingEnabled && 
-                               profile.isOnline && 
-                               profile.currentLat && 
-                               profile.currentLng;
-        
-        const delivererLat = useGpsLocation ? profile.currentLat! : profile.user.lat!;
-        const delivererLng = useGpsLocation ? profile.currentLng! : profile.user.lng!;
+        const position = resolveDelivererPosition(profile);
+        if (!position) return null;
+
+        const delivererLat = position.lat;
+        const delivererLng = position.lng;
 
         // Calculate route distance from deliverer to buyer location using Google Maps
         const routeToBuyer = await getRouteDistance(
@@ -90,17 +90,18 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // Filter profiles within radius
-    const profilesInRange = profilesWithDistances.filter(profile => {
-      // If seller location provided, deliverer must be within radius of BOTH seller and buyer
-      if (sellerLat && sellerLng) {
-        return profile.distanceToSeller <= profile.maxDistance && 
-               profile.distanceToBuyer <= profile.maxDistance;
+    const profilesInRange = profilesWithDistances.filter(
+      (profile): profile is NonNullable<typeof profile> => {
+        if (!profile) return false;
+        if (sellerLat && sellerLng) {
+          return (
+            profile.distanceToSeller <= profile.maxDistance &&
+            profile.distanceToBuyer <= profile.maxDistance
+          );
+        }
+        return profile.distanceToBuyer <= profile.maxDistance;
       }
-
-      // If no seller location, only check distance to buyer
-      return profile.distanceToBuyer <= profile.maxDistance;
-    });
+    );
 
     // Check availability based on delivery time
     const requestedDate = deliveryDate ? new Date(deliveryDate) : new Date();

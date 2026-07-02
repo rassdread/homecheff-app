@@ -241,7 +241,7 @@ export function renderShiftReminderEmail(data: ShiftReminderData): string {
       </p>
       <p style="margin-top: 15px;">
         <a href="${process.env.NEXT_PUBLIC_URL}/bezorger" style="color: #10b981; text-decoration: none;">Dashboard</a> • 
-        <a href="${process.env.NEXT_PUBLIC_URL}/bezorger/settings" style="color: #10b981; text-decoration: none;">Instellingen</a>
+        <a href="${process.env.NEXT_PUBLIC_URL}/delivery/settings" style="color: #10b981; text-decoration: none;">Instellingen</a>
       </p>
     </div>
   </div>

@@ -27,11 +27,6 @@ function verticalFromProfileDishesTab(activeTab: string): CreateFlowVertical | u
 
 import dynamic from 'next/dynamic';
 import PhotoUploader from './PhotoUploader';
-import SettingsMenu from './SettingsMenu';
-import ProfileSettings, { ProfileSettingsRef } from './ProfileSettings';
-import MakerContactSettings from './MakerContactSettings';
-import AccountSettings from './AccountSettings';
-import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
@@ -209,12 +204,18 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
     return () => window.clearTimeout(t);
   }, [activeTab, contentSubTab]);
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [settingsSection, setSettingsSection] = useState('profile');
-  const [accountSettingsTab, setAccountSettingsTab] = useState<'password' | 'email' | 'delete'>('password');
-  const [deleteInitialStep, setDeleteInitialStep] = useState(1);
-  const [isProfileEditing, setIsProfileEditing] = useState(false);
-  const profileSettingsRef = useRef<ProfileSettingsRef>(null);
+  const goToSettings = (tab?: string, extra?: Record<string, string>) => {
+    const params = new URLSearchParams();
+    if (tab) params.set('tab', tab);
+    if (extra) {
+      for (const [key, value] of Object.entries(extra)) {
+        params.set(key, value);
+      }
+    }
+    const qs = params.toString();
+    router.push(qs ? `/settings?${qs}` : '/settings');
+  };
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [profileImage, setProfileImage] = useState(user?.profileImage ?? user?.image ?? null);
@@ -278,17 +279,22 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       searchParams?.openSettings === 'true' ||
       searchParams?.openSettings === true;
     if (openSettings) {
-      setShowSettings(true);
+      const section = searchParams?.settingsSection;
+      const tab =
+        section === 'account'
+          ? 'privacy'
+          : section === 'notifications'
+            ? 'notifications'
+            : section === 'contact'
+              ? 'contact'
+              : 'profile';
+      const extra: Record<string, string> = {};
+      if (searchParams?.accountTab === 'delete') {
+        extra.accountTab = 'delete';
+      }
+      goToSettings(tab, Object.keys(extra).length ? extra : undefined);
     }
-    if (searchParams?.settingsSection === 'account') {
-      setSettingsSection('account');
-    }
-    if (searchParams?.accountTab === 'delete') {
-      setSettingsSection('account');
-      setAccountSettingsTab('delete');
-      setDeleteInitialStep(3);
-    }
-  }, [searchParams, user?.sellerRoles]);
+  }, [searchParams, user?.sellerRoles, router]);
 
   const fetchStats = async () => {
     try {
@@ -382,86 +388,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
 
   const tabs = getTabs();
 
-  const handleProfileSave = async (data: Partial<User>) => {
-    try {
-      const response = await fetch('/api/profile/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Profile update error:', errorData);
-        throw new Error(errorData.error || 'An error occurred');
-      }
-
-      const result = await response.json();
-      window.location.reload();
-      
-      return result;
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      throw error;
-    }
-  };
-
-  const handlePasswordUpdate = async (currentPassword: string, newPassword: string) => {
-    const res = await fetch("/api/profile/password", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(typeof data.error === "string" ? data.error : "Wachtwoord bijwerken mislukt");
-    }
-  };
-
-  const handleEmailUpdate = async (newEmail: string) => {
-    return Promise.resolve();
-  };
-
-  const handleNotificationSettingsUpdate = async (settings: Record<string, boolean>) => {
-    return Promise.resolve();
-  };
-
-  const renderSettingsContent = () => {
-    if (!user) {
-      return <div>Loading...</div>;
-    }
-    
-    switch (settingsSection) {
-      case 'profile':
-        return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
-      case 'account':
-        return (
-          <AccountSettings
-            user={{
-              id: user.id,
-              email: user.email,
-              name: user.name || "",
-              hasPassword: user.hasPassword !== false,
-              emailVerified: user.emailVerified,
-            }}
-            onUpdatePassword={handlePasswordUpdate}
-            onUpdateEmail={handleEmailUpdate}
-            onAccountDeleted={() => (window.location.href = "/")}
-            initialTab={accountSettingsTab}
-            deleteInitialStep={deleteInitialStep}
-          />
-        );
-      case 'notifications':
-        return <NotificationSettings onUpdateSettings={handleNotificationSettingsUpdate} />;
-      case 'contact':
-        return <MakerContactSettings />;
-      default:
-        return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
-    }
-  };
-
   // Helper functies om te checken of er opties beschikbaar zijn op basis van rollen
   const hasAvailableDorpspleinOptions = () => {
     const userRoles = user?.sellerRoles || [];
@@ -489,7 +415,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
       {/* Settings Button - Floating */}
       <div className="fixed top-20 right-2 sm:right-4 z-40">
         <button
-          onClick={() => setShowSettings(true)}
+          onClick={() => goToSettings()}
           className="p-3 bg-white text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full shadow-lg border border-gray-200 transition-colors"
         >
           <Settings className="w-5 h-5" />
@@ -587,7 +513,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     !(user?.SellerProfile?.companyName ?? '').trim()) && (
                   <p className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs text-gray-800">
                     {t('profilePage.sellerBusinessUpgrade.body')}{' '}
-                    <Link href="/verkoper/instellingen" className="font-semibold text-emerald-800 underline underline-offset-2">
+                    <Link href="/settings?tab=payments" className="font-semibold text-emerald-800 underline underline-offset-2">
                       {t('profilePage.sellerBusinessUpgrade.ctaSettings')}
                     </Link>
                   </p>
@@ -615,7 +541,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                     {!(user?.SellerProfile?.kvk ?? '').trim() && (user.sellerRoles?.length ?? 0) > 0 ? (
                       <span className="text-center">
                         Nog geen KVK gekoppeld —{' '}
-                        <Link href="/verkoper/instellingen" className="font-semibold text-emerald-800 underline">
+                        <Link href="/settings?tab=payments" className="font-semibold text-emerald-800 underline">
                           instellingen
                         </Link>
                       </span>
@@ -961,7 +887,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => { setSettingsSection('notifications'); setShowSettings(true); }}
+                    onClick={() => goToSettings('notifications')}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
                   >
                     <Bell className="w-4 h-4" />
@@ -969,7 +895,7 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setSettingsSection('profile'); setShowSettings(true); }}
+                    onClick={() => goToSettings('profile')}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
@@ -1813,67 +1739,6 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
           </div>
         </div>
       </div>
-
-      {/* Settings Modal */}
-      {showSettings && (
-        <div className="fixed inset-0 z-[70] overflow-hidden">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)} aria-hidden />
-          <div className="absolute right-0 top-0 h-full w-full sm:max-w-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <Settings className="w-6 h-6 text-primary-brand" />
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('navigation.settings') || 'Instellingen'}</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSettings(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label={t('common.close') || 'Sluiten'}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Settings Navigation */}
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-1 px-4 sm:px-6">
-                  {[
-                    { id: 'profile', label: t('navbar.myProfile') || 'Profiel', icon: User },
-                    { id: 'account', label: t('settingsMenu.accountTitle') || 'Account', icon: Shield },
-                    { id: 'notifications', label: t('notificationSettings.title') || 'Meldingen', icon: Bell }
-                  ].map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setSettingsSection(tab.id)}
-                        className={`flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
-                          settingsSection === tab.id
-                            ? 'border-primary-brand text-primary-brand bg-primary-50'
-                            : 'border-transparent text-gray-500 hover:text-primary-brand hover:border-primary-200'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              {/* Settings Content */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
-                {renderSettingsContent()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <FeedMediaLightbox
         open={Boolean(avatarPreviewUrl)}

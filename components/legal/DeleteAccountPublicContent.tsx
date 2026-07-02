@@ -46,7 +46,7 @@ export default function DeleteAccountPublicContent() {
               <li>{t('deleteAccountPage.inAppStep4')}</li>
             </ol>
             <Link
-              href="/profile?openSettings=1&settingsSection=account&accountTab=delete"
+              href="/settings?tab=privacy&accountTab=delete"
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               {t('deleteAccountPage.inAppCta')}

@@ -23,11 +23,15 @@ export function computeRecencyBoost(createdAt: string, nowMs: number): number {
 }
 
 export function computeDistanceBoost(distanceKm?: number): number {
-  if (distanceKm == null || !Number.isFinite(distanceKm)) return 0;
+  if (distanceKm == null || !Number.isFinite(distanceKm) || distanceKm <= 0) {
+    return 0;
+  }
   const d = distanceKm;
-  if (d < 1) return 40;
-  if (d < 5) return 25;
-  if (d < 10) return 10;
+  if (d < 1) return 60;
+  if (d < 5) return 45;
+  if (d < 10) return 30;
+  if (d < 25) return 18;
+  if (d < 50) return 8;
   return 0;
 }
 

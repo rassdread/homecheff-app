@@ -93,7 +93,7 @@ export default function CompleteProfilePage() {
       trackOnboardingEvent('ONBOARDING_COMPLETED', { surface: 'complete_profile_minimal' });
       await update({});
       await new Promise((r) => setTimeout(r, 400));
-      window.location.replace('/?profile_gate=done');
+      window.location.replace('/onboarding/interests?profile_gate=done');
     } finally {
       setSaving(false);
     }

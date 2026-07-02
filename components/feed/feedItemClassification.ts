@@ -1,92 +1,33 @@
 /**
- * Prijs-gedreven feed-classificatie en routes (zelfde basis als productdetail in de app).
+ * Prijs-gedreven feed-classificatie — re-exports voor backward compatibility.
+ * Fase 5D: taxonomy + href in lib/feed/.
  */
 
-import { buildProductSlugPath } from "@/lib/seo/productSlug";
+import {
+  deriveFeedTaxonomy,
+  hasValidSalePrice,
+  taxonomyToLegacyFeedKind,
+} from '@/lib/feed/feed-taxonomy';
+import {
+  getFeedItemHref,
+  getInspirationFeedItemHref,
+  getSaleItemHref,
+  resolveFeedItemHref,
+} from '@/lib/feed/feed-item-href';
 
-export type FeedClassifiable = {
-  id: string;
-  priceCents: number | null;
-  type?: string | null;
-  isRecipe?: boolean | null;
-  isInspiration?: boolean | null;
-  /** Aanwezig op nieuwe productregels uit /api/feed (= verkoper-user-id). */
-  ownerId?: string | null;
-  category?: string | null;
-  /** Voor SEO-vriendelijke product-URL's */
-  title?: string | null;
-  place?: string | null;
-};
+export type { FeedClassifiable } from '@/lib/feed/feed-types';
+export type { FeedTaxonomy } from '@/lib/feed/feed-taxonomy';
 
-/** Verkoopbaar: strikt priceCents > 0 (null/0/NaN = geen verkoopprijs). */
-export function hasValidSalePrice(item: FeedClassifiable): boolean {
-  const p = item.priceCents;
-  return p != null && Number.isFinite(Number(p)) && Number(p) > 0;
+export { hasValidSalePrice, resolveFeedItemHref };
+
+export type FeedItemKind = 'sale' | 'inspiration';
+
+/** Legacy chip classificatie — derived from taxonomy, not authoritative. */
+export function classifyFeedItem(
+  item: import('@/lib/feed/feed-types').FeedClassifiable
+): FeedItemKind {
+  const tax = item.taxonomy ?? deriveFeedTaxonomy(item);
+  return taxonomyToLegacyFeedKind(tax);
 }
 
-export type FeedItemKind = "sale" | "inspiration";
-
-export function classifyFeedItem(item: FeedClassifiable): FeedItemKind {
-  return hasValidSalePrice(item) ? "sale" : "inspiration";
-}
-
-function productHrefFromFeedItem(item: Pick<FeedClassifiable, "id" | "title" | "place">): string {
-  const t = item.title?.trim();
-  if (t) {
-    return `/product/${buildProductSlugPath(t, item.place, item.id)}`;
-  }
-  return `/product/${item.id}`;
-}
-
-/** Verkoopitems: detailpad met slug indien titel bekend. */
-export function getSaleItemHref(item: FeedClassifiable): string {
-  return productHrefFromFeedItem(item);
-}
-
-/**
- * Content zonder verkoopprijs:
- * - `type: dish` → id is prisma.Dish → `/recipe` | `/garden` | `/design` (nooit `/product` — dat triggert fetch die faalt → redirect naar `/`).
- * - `type: product` → id is prisma.Product → `/product/[slug]`.
- * - Zonder type (legacy feed): route op categorie waar mogelijk; anders product-URL als owner bekend.
- */
-export function getInspirationFeedItemHref(item: FeedClassifiable): string {
-  const id = item.id;
-  if (!id || !String(id).trim()) {
-    return "/inspiratie";
-  }
-  const cat = (item.category || "").toUpperCase();
-  const kind = (item.type || "").toLowerCase();
-
-  if (kind === "dish") {
-    if (cat === "GROWN") return `/garden/${id}`;
-    if (cat === "DESIGNER") return `/design/${id}`;
-    return `/recipe/${id}`;
-  }
-
-  if (kind === "recipe" || item.isRecipe) {
-    return `/recipe/${id}`;
-  }
-
-  if (kind === "product") {
-    return productHrefFromFeedItem(item);
-  }
-
-  // Legacy payloads zonder `type`: verticale categorieën gaan naar Dish-routes (feed publishedDishes / profiel).
-  if (cat === "GROWN") return `/garden/${id}`;
-  if (cat === "DESIGNER") return `/design/${id}`;
-  if (cat === "CHEFF") return `/recipe/${id}`;
-
-  if (item.ownerId != null && String(item.ownerId).trim() !== "") {
-    return productHrefFromFeedItem(item);
-  }
-  if (cat === "HOMECHEFF" || !cat) {
-    return productHrefFromFeedItem(item);
-  }
-  return `/inspiratie/${id}`;
-}
-
-export function getFeedItemHref(item: FeedClassifiable): string {
-  return classifyFeedItem(item) === "sale"
-    ? getSaleItemHref(item)
-    : getInspirationFeedItemHref(item);
-}
+export { getSaleItemHref, getInspirationFeedItemHref, getFeedItemHref };

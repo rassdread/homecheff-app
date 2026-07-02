@@ -492,7 +492,7 @@ export default function SellerDashboardClient() {
                 <span>{t('seller.newProductDescription')}</span>
               </button>
               <Link
-                href="/verkoper/instellingen"
+                href="/settings?tab=payments"
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
                 <Settings className="w-4 h-4" />

@@ -3,11 +3,20 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { getRouteDistance } from '@/lib/google-maps-distance';
-
-const prisma = new PrismaClient();
+import {
+  assertDelivererCanAccept,
+  delivererAcceptDenialResponse,
+} from '@/lib/delivery/delivery-eligibility';
+import { resolveDelivererPosition, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import {
+  customerAddressForPhase,
+  customerPhoneForPhase,
+  sellerAddressForPhase,
+  sellerPhoneForPhase,
+} from '@/lib/delivery/delivery-privacy';
 
 export async function POST(
   req: NextRequest,
@@ -26,6 +35,14 @@ export async function POST(
       where: { userId: (session.user as any).id },
       include: { user: { select: { lat: true, lng: true } } }
     });
+
+    const acceptCheck = assertDelivererCanAccept(profile);
+    if (!acceptCheck.ok) {
+      return NextResponse.json(
+        delivererAcceptDenialResponse(acceptCheck),
+        { status: acceptCheck.status }
+      );
+    }
 
     if (!profile) {
       return NextResponse.json({ error: 'Geen bezorger profiel gevonden' }, { status: 404 });
@@ -222,33 +239,33 @@ export async function POST(
       console.error('Error sending delivery accepted notifications:', notifError);
       // Don't fail the request if notifications fail
     }
-    // Transform for frontend
     const product = updatedOrder.order.items[0]?.Product;
-    const sellerAddress = [
-      product?.seller?.User?.address,
-      product?.seller?.User?.postalCode,
-      product?.seller?.User?.city
-    ].filter(Boolean).join(', ') || product?.seller?.User?.place || 'Ophaaladres niet beschikbaar';
+    const sellerUser = product?.seller?.User;
+    const buyerUser = updatedOrder.order.User;
 
-    const customerAddress = [
-      updatedOrder.order.User?.address,
-      updatedOrder.order.User?.postalCode,
-      updatedOrder.order.User?.city
-    ].filter(Boolean).join(', ') || updatedOrder.deliveryAddress || 'Bezorgadres niet beschikbaar';
+    const delivererOrigin = resolveDelivererPosition({
+      gpsTrackingEnabled: profile.gpsTrackingEnabled,
+      isOnline: profile.isOnline,
+      currentLat: profile.currentLat,
+      currentLng: profile.currentLng,
+      lastGpsUpdate: profile.lastGpsUpdate,
+      homeLat: profile.homeLat,
+      homeLng: profile.homeLng,
+      user: profile.user,
+    });
 
     let distanceKm = 0;
     let estimatedMin = updatedOrder.estimatedTime || 30;
-    const sellerUser = product?.seller?.User as { lat?: number | null; lng?: number | null } | undefined;
-    const buyerUser = updatedOrder.order.User as { lat?: number | null; lng?: number | null } | undefined;
-    const delivererOrigin = (profile.currentLat != null && profile.currentLng != null)
-      ? { lat: profile.currentLat, lng: profile.currentLng }
-      : (profile.user?.lat != null && profile.user?.lng != null)
-        ? { lat: profile.user.lat, lng: profile.user.lng }
+    const sellerCoords = resolveSellerCoords(product?.seller);
+    const buyerCoords =
+      buyerUser?.lat != null && buyerUser?.lng != null
+        ? { lat: buyerUser.lat, lng: buyerUser.lng }
         : null;
-    if (delivererOrigin && sellerUser?.lat != null && sellerUser?.lng != null && buyerUser?.lat != null && buyerUser?.lng != null) {
+
+    if (delivererOrigin && sellerCoords && buyerCoords) {
       const [r1, r2] = await Promise.all([
-        getRouteDistance(delivererOrigin, { lat: sellerUser.lat, lng: sellerUser.lng }, 'driving'),
-        getRouteDistance({ lat: sellerUser.lat, lng: sellerUser.lng }, { lat: buyerUser.lat, lng: buyerUser.lng }, 'driving')
+        getRouteDistance(delivererOrigin, sellerCoords, 'driving'),
+        getRouteDistance(sellerCoords, buyerCoords, 'driving')
       ]);
       if ('distance' in r1 && 'distance' in r2) {
         distanceKm = Math.round((r1.distance + r2.distance) * 10) / 10;
@@ -263,9 +280,13 @@ export async function POST(
       deliveryFee: updatedOrder.deliveryFee,
       estimatedTime: estimatedMin,
       distance: distanceKm,
-      customerName: updatedOrder.order.User?.name || updatedOrder.order.User?.username || 'Klant',
-      customerAddress: customerAddress,
-      customerPhone: updatedOrder.order.User?.phoneNumber || 'Niet beschikbaar',
+      customerName: buyerUser?.name || buyerUser?.username || 'Klant',
+      customerAddress: customerAddressForPhase(
+        buyerUser,
+        updatedOrder.deliveryAddress,
+        'assigned'
+      ),
+      customerPhone: customerPhoneForPhase(buyerUser, 'assigned'),
       notes: updatedOrder.notes || updatedOrder.order.notes || '',
       createdAt: updatedOrder.createdAt,
       acceptedAt: new Date(),
@@ -274,9 +295,9 @@ export async function POST(
         title: product?.title || 'Product',
         image: product?.Image?.[0]?.fileUrl || '',
         seller: {
-          name: product?.seller?.User?.name || 'Verkoper',
-          address: sellerAddress,
-          phone: product?.seller?.User?.phoneNumber || 'Niet beschikbaar'
+          name: sellerUser?.name || 'Verkoper',
+          address: sellerAddressForPhase(sellerUser, 'assigned'),
+          phone: sellerPhoneForPhase(sellerUser, 'assigned'),
         }
       }
     };

@@ -9,7 +9,7 @@ export default function BuyerOnboardingPage() {
   return (
     <main className="min-h-screen p-4 max-w-3xl mx-auto">
       <section className="bg-white rounded-2xl p-6 shadow border border-gray-200">
-        <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-2">Stap 1 van 3</p>
+        <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-2">Stap 1 van 4</p>
         <h1 className="text-2xl font-bold mb-2">Wat wil je doen?</h1>
         <p className="text-gray-600 mb-6">Kies je startpunt. Je kunt later altijd wisselen.</p>
 

@@ -9,10 +9,27 @@ import { batchComputeUserStatsPreview } from "@/lib/userStatsBatchPreview";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { calculateDistance } from "@/lib/geocoding";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
-import { haversineKm } from "@/lib/community/geoDistance";
 import { isContactOnlyProduct } from "@/lib/product/order-method";
+import {
+  FEED_RADIUS_DEFAULT_KM,
+  normalizeFeedRadiusKm,
+  resolveMarketplaceItemCoords,
+  sellerBboxWhere,
+  sortFeedItemsLocalFirst,
+} from "@/lib/geo/local-discovery";
+import { deriveFeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+
+function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
+  item.taxonomy = deriveFeedTaxonomy({
+    priceCents: item.priceCents as number | null | undefined,
+    orderMethod: item.orderMethod as string | null | undefined,
+    category: item.category as string | null | undefined,
+    type: item.type as string | null | undefined,
+    isRecipe: item.isRecipe as boolean | null | undefined,
+    isInspiration: item.isInspiration as boolean | null | undefined,
+  });
+}
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -81,7 +98,7 @@ export async function GET(req: NextRequest) {
   const productCategory = resolveProductCategory(vertical);
   const listingCategory = resolveListingCategory(vertical);
   const subfilters = (searchParams.get("subfilters") || "").split(",").map(s => s.trim()).filter(Boolean);
-  let radius = toNumber(searchParams.get("radius"), 10);
+  let radius = toNumber(searchParams.get("radius"), FEED_RADIUS_DEFAULT_KM);
   const place = searchParams.get("place")?.trim() || "";
 
   const session = await getServerSession(authOptions as any);
@@ -168,37 +185,7 @@ export async function GET(req: NextRequest) {
       ? { lat: Number(lat), lng: Number(lng) }
       : null;
 
-  // Build where clause for products
-  const where: any = {
-    isActive: true
-  };
-
-  // Search query
-  if (q) {
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { description: { contains: q, mode: "insensitive" } }
-    ];
-  }
-
-  // Category filter - when "all" is selected, show all categories
-  if (productCategory) {
-    where.category = productCategory;
-  }
-  // When vertical is "all", no category filter is applied (shows all categories)
-
-  // Location filters - Note: SellerProfile doesn't have place field, so we'll skip place filtering for now
-  if (lat && lng) {
-    const lat0 = Number(lat);
-    const lng0 = Number(lng);
-    const dLat = radius / 111.32;
-    const dLng = radius / (111.32 * Math.cos((lat0 * Math.PI) / 180));
-    
-    where.seller = {
-      lat: { gte: lat0 - dLat, lte: lat0 + dLat },
-      lng: { gte: lng0 - dLng, lte: lng0 + dLng }
-    };
-  }
+  const effectiveRadius = normalizeFeedRadiusKm(radius);
 
   // Get Products from both new and old models
   // Include both active products AND inactive products that have orders (to ensure existing products with sales history remain visible)
@@ -228,8 +215,9 @@ export async function GET(req: NextRequest) {
         ...(productCategory ? {
           category: productCategory as any
         } : {}),
-        // Note: We don't filter by location here anymore - we'll filter in JavaScript
-        // to support both pickup location and seller location fallback
+        ...(viewerGeo && effectiveRadius > 0
+          ? sellerBboxWhere(viewerGeo, effectiveRadius)
+          : {}),
       },
       orderBy: [{ createdAt: "desc" }],
       take: 50,
@@ -258,7 +246,9 @@ export async function GET(req: NextRequest) {
                 profileImage: true, 
                 displayFullName: true, 
                 displayNameOption: true,
-                stripeConnectAccountId: true
+                stripeConnectAccountId: true,
+                lat: true,
+                lng: true,
               } 
             }
           }
@@ -295,34 +285,6 @@ export async function GET(req: NextRequest) {
         // Live accounts are allowed
         return !isStripeTestId(seller.stripeConnectAccountId);
       });
-      
-      // Filter by location (pickup location or seller location) if lat/lng and radius are provided
-      // IMPORTANT: Products without pickup location are ALWAYS shown (don't filter them out)
-      if (lat && lng && radius > 0) {
-        const lat0 = Number(lat);
-        const lng0 = Number(lng);
-        const dLat = radius / 111.32;
-        const dLng = radius / (111.32 * Math.cos((lat0 * Math.PI) / 180));
-        
-        filtered = filtered.filter(product => {
-          // If product has no pickup location, ALWAYS show it
-          // This ensures products created from recipes/inspiratie without pickup location are always visible
-          // Note: pickupLat/pickupLng columns don't exist in database yet, so always show products
-          if (!(product as any).pickupLat || !(product as any).pickupLng) {
-            return true;
-          }
-          
-          // Product has pickup location - filter by it
-          const productLat = (product as any).pickupLat;
-          const productLng = (product as any).pickupLng;
-          
-          // Check if within radius
-          const withinLat = productLat >= (lat0 - dLat) && productLat <= (lat0 + dLat);
-          const withinLng = productLng >= (lng0 - dLng) && productLng <= (lng0 + dLng);
-          
-          return withinLat && withinLng;
-        });
-      }
       
       return filtered;
     }),
@@ -439,8 +401,8 @@ export async function GET(req: NextRequest) {
         category: (listing as any).vertical || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: "Nederland",
-    lat: listing.lat || 52.3676,
-    lng: listing.lng || 4.9041,
+    lat: listing.lat ?? null,
+    lng: listing.lng ?? null,
     isPublic: true,
     viewCount: 0,
     createdAt: listing.createdAt,
@@ -474,10 +436,8 @@ export async function GET(req: NextRequest) {
     category: product.category || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: "Nederland",
-      // Use pickup location if available, otherwise fallback to seller location
-      // Note: pickupLat/pickupLng columns don't exist in database yet
-      lat: (product as any).pickupLat ?? product.seller?.lat ?? null,
-      lng: (product as any).pickupLng ?? product.seller?.lng ?? null,
+      lat: resolveMarketplaceItemCoords(product.seller)?.lat ?? null,
+      lng: resolveMarketplaceItemCoords(product.seller)?.lng ?? null,
     isPublic: true,
     viewCount: 0,
     createdAt: product.createdAt,
@@ -516,7 +476,6 @@ export async function GET(req: NextRequest) {
   const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
 
   /** Binnen ~7 dagen licht voorrang voor makers die je volgt (tie-break, geen harde filter). */
-  const FOLLOW_RECENCY_MS = 7 * 24 * 60 * 60 * 1000;
   let followedSellerUserIds = new Set<string>();
   if (userId) {
     try {
@@ -531,44 +490,16 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const sortedPool = [...allItems].sort((a, b) => {
-    const ta = new Date((a as { createdAt: string }).createdAt).getTime();
-    const tb = new Date((b as { createdAt: string }).createdAt).getTime();
-    const sa = followedSellerUserIds.has(extractFeedItemSellerUserId(a as Record<string, unknown>) || '')
-      ? 1
-      : 0;
-    const sb = followedSellerUserIds.has(extractFeedItemSellerUserId(b as Record<string, unknown>) || '')
-      ? 1
-      : 0;
-    if (sa !== sb && Math.abs(tb - ta) < FOLLOW_RECENCY_MS) {
-      return sb - sa;
-    }
-    if (
-      sa === sb &&
-      viewerGeo &&
-      userId &&
-      Math.abs(tb - ta) < FOLLOW_RECENCY_MS
-    ) {
-      const ca = extractItemLatLng(a as Record<string, unknown>);
-      const cb = extractItemLatLng(b as Record<string, unknown>);
-      if (ca && cb) {
-        const da = haversineKm(viewerGeo.lat, viewerGeo.lng, ca.lat, ca.lng);
-        const db = haversineKm(viewerGeo.lat, viewerGeo.lng, cb.lat, cb.lng);
-        if (Math.abs(da - db) > 2) {
-          return da - db;
-        }
-      } else if (ca && !cb) {
-        return -1;
-      } else if (!ca && cb) {
-        return 1;
-      }
-    }
-    if (tb !== ta) return tb - ta;
-    return String((b as { id: string }).id).localeCompare(String((a as { id: string }).id));
+  const sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
+    viewerGeo,
+    radiusKm: effectiveRadius,
+    followedSellerUserIds,
+    extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
+    extractCoords: (item) => extractItemLatLng(item),
   });
 
   // Sorteer eerst op datum (+ lichte relatie-boost), beperk naar responsgrootte; daarna pas enrichment.
-  const sortedItems = sortedPool.slice(0, 30);
+  const sortedItems = sortedPool.slice(0, 30) as typeof allItems;
 
   // Get view counts, review counts, and average ratings only for returned items
   const allItemIds = sortedItems.map(item => item.id);
@@ -649,25 +580,6 @@ export async function GET(req: NextRequest) {
     });
   }
   
-  // Calculate distances if location is available
-  if (lat && lng) {
-    const userLat = Number(lat);
-    const userLng = Number(lng);
-    
-    sortedItems.forEach(item => {
-      // Only calculate distance for items with real location data (not null)
-      if ((item as any).lat !== null && (item as any).lng !== null && 
-          !isNaN((item as any).lat) && !isNaN((item as any).lng)) {
-        (item as any).distanceKm = Math.round(calculateDistance(
-          userLat,
-          userLng,
-          (item as any).lat,
-          (item as any).lng
-        ) * 10) / 10;
-      }
-    });
-  }
-  
   const sellerIdsForBadges: string[] = [];
   const seenBadges = new Set<string>();
   for (const item of sortedItems) {
@@ -710,6 +622,10 @@ export async function GET(req: NextRequest) {
     console.error("[feed] statsPreview:", e);
   }
 
+  for (const item of sortedItems) {
+    attachFeedItemTaxonomy(item as Record<string, unknown>);
+  }
+
   const cors = getCorsHeaders(req);
   const headers = {
     ...cors,
@@ -723,7 +639,7 @@ export async function GET(req: NextRequest) {
         q,
         vertical,
         subfilters,
-        radius,
+        radius: effectiveRadius,
         lat: lat ? Number(lat) : null,
         lng: lng ? Number(lng) : null,
       },

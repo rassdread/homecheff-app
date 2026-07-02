@@ -1640,6 +1640,73 @@ export class NotificationService {
   }
 
   /**
+   * Send notification when a deliverer cancels before completion (or re-opens the job).
+   */
+  static async sendDeliveryCancelledNotification(
+    buyerId: string,
+    sellerId: string,
+    delivererId: string,
+    orderId: string,
+    orderNumber: string
+  ): Promise<void> {
+    const buyerMessage: NotificationMessage = {
+      title: '❌ Bezorging geannuleerd',
+      body: `De bezorger heeft bestelling #${orderNumber} geannuleerd. We zoeken een nieuwe bezorger.`,
+      urgent: true,
+      data: {
+        type: 'DELIVERY_CANCELLED',
+        orderId,
+        orderNumber,
+        link: `/orders/${orderId}`,
+      },
+    };
+
+    const sellerMessage: NotificationMessage = {
+      title: '❌ Bezorging geannuleerd',
+      body: `Bezorging voor bestelling #${orderNumber} is geannuleerd door de bezorger.`,
+      urgent: true,
+      data: {
+        type: 'DELIVERY_CANCELLED',
+        orderId,
+        orderNumber,
+        link: `/verkoper/orders`,
+      },
+    };
+
+    const delivererMessage: NotificationMessage = {
+      title: 'Bezorging geannuleerd',
+      body: `Je hebt bezorgopdracht #${orderNumber} geannuleerd.`,
+      data: {
+        type: 'DELIVERY_CANCELLED',
+        orderId,
+        orderNumber,
+        link: `/bezorger/dashboard`,
+      },
+    };
+
+    await Promise.all([
+      this.send({
+        userId: buyerId,
+        message: buyerMessage,
+        channels: ['push', 'email'],
+        saveToDatabase: true,
+      }),
+      this.send({
+        userId: sellerId,
+        message: sellerMessage,
+        channels: ['push', 'email'],
+        saveToDatabase: true,
+      }),
+      this.send({
+        userId: delivererId,
+        message: delivererMessage,
+        channels: ['push'],
+        saveToDatabase: true,
+      }),
+    ]);
+  }
+
+  /**
    * Send notification when delivery countdown warning is triggered
    */
   static async sendDeliveryCountdownWarning(delivererId: string, deliveryOrderId: string, orderId: string, orderNumber: string, minutesRemaining: number): Promise<void> {

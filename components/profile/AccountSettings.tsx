@@ -22,6 +22,8 @@ interface AccountSettingsProps {
   onAccountDeleted?: () => void;
   initialTab?: 'password' | 'email' | 'delete';
   deleteInitialStep?: number;
+  /** Hide e-mail wijzigen when geen backend (Fase 4B). */
+  hideEmailTab?: boolean;
 }
 
 export default function AccountSettings({
@@ -31,10 +33,21 @@ export default function AccountSettings({
   onAccountDeleted,
   initialTab = 'password',
   deleteInitialStep = 1,
+  hideEmailTab = false,
 }: AccountSettingsProps) {
   const { t } = useTranslation();
   const hasPassword = user.hasPassword !== false;
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const tabs = [
+    { id: 'password', label: t('accountSettings.password'), icon: Key },
+    ...(hideEmailTab
+      ? []
+      : [{ id: 'email' as const, label: t('accountSettings.email'), icon: Mail }]),
+    { id: 'delete', label: t('accountSettings.deleteAccount'), icon: Trash2 },
+  ];
+
+  const safeInitialTab =
+    hideEmailTab && initialTab === 'email' ? 'password' : initialTab;
+  const [activeTab, setActiveTab] = useState(safeInitialTab);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -57,8 +70,8 @@ export default function AccountSettings({
   });
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    setActiveTab(safeInitialTab);
+  }, [initialTab, hideEmailTab]);
 
   const dangerZone = (
     <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
@@ -133,12 +146,6 @@ export default function AccountSettings({
       setIsLoading(false);
     }
   };
-
-  const tabs = [
-    { id: 'password', label: t('accountSettings.password'), icon: Key },
-    { id: 'email', label: t('accountSettings.email'), icon: Mail },
-    { id: 'delete', label: t('accountSettings.deleteAccount'), icon: Trash2 }
-  ];
 
   return (
     <div className="space-y-6">

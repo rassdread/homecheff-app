@@ -26,7 +26,7 @@ import RedirectAfterLogin from "@/components/auth/RedirectAfterLogin";
 import ClickableName from "@/components/ui/ClickableName";
 import UserStatsTile from "@/components/ui/UserStatsTile";
 import UserBadgeChips from "@/components/gamification/UserBadgeChips";
-import { calculateDistance } from "@/lib/geocoding";
+import { safeDistanceKm } from "@/lib/geocoding";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
 import { getDisplayName } from "@/lib/displayName";
@@ -784,12 +784,13 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       const searchLocation = startLocationCoords || (locationMode === 'current' ? userLocation : postcodeLocation);
       
       if (searchLocation && it.location?.lat && it.location?.lng) {
-        distanceKm = Math.round(calculateDistance(
-          searchLocation.lat, 
-          searchLocation.lng, 
-          it.location.lat, 
+        const d = safeDistanceKm(
+          searchLocation.lat,
+          searchLocation.lng,
+          it.location.lat,
           it.location.lng
-        ) * 10) / 10;
+        );
+        distanceKm = d != null ? Math.round(d * 10) / 10 : null;
       }
 
       return {
@@ -863,28 +864,28 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       // This ensures users see products even if they haven't set their location yet
       if (radius > 0 && referenceLocation && hasLocation) {
         // Herbereken afstand vanaf startlocatie als die is ingesteld
-        let distance: number;
+        let distance: number | null = null;
         if (startLocationCoords) {
-          distance = Math.round(calculateDistance(
+          const d = safeDistanceKm(
             startLocationCoords.lat,
             startLocationCoords.lng,
             it.location.lat!,
             it.location.lng!
-          ) * 10) / 10;
-        } else if (it.location.distanceKm !== null && it.location.distanceKm !== undefined) {
+          );
+          distance = d != null ? Math.round(d * 10) / 10 : null;
+        } else if (it.location.distanceKm != null && it.location.distanceKm > 0) {
           distance = it.location.distanceKm;
         } else {
-          // No distance calculated yet, calculate it now
-          distance = Math.round(calculateDistance(
+          const d = safeDistanceKm(
             referenceLocation.lat,
             referenceLocation.lng,
             it.location.lat!,
             it.location.lng!
-          ) * 10) / 10;
+          );
+          distance = d != null ? Math.round(d * 10) / 10 : null;
         }
-        
-        // Filter out items that are outside the selected radius
-        if (distance > radius) return false;
+
+        if (distance != null && distance > radius) return false;
       }
       
       // If no reference location OR radius is 0 (worldwide), show ALL items
@@ -957,12 +958,13 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       let distanceKm: number | null = null;
       const referenceLocation = startLocationCoords || userLocation;
       if (referenceLocation && user.location?.lat && user.location?.lng) {
-        distanceKm = Math.round(calculateDistance(
-          referenceLocation.lat, 
-          referenceLocation.lng, 
-          user.location.lat, 
+        const d = safeDistanceKm(
+          referenceLocation.lat,
+          referenceLocation.lng,
+          user.location.lat,
           user.location.lng
-        ) * 10) / 10;
+        );
+        distanceKm = d != null ? Math.round(d * 10) / 10 : null;
       }
 
       return {
@@ -1371,8 +1373,8 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                         <div className="flex items-center mt-2 text-sm text-gray-500">
                           <MapPin className="w-4 h-4 mr-1" />
                           <span>{user.location.place}</span>
-                          {user.location.distanceKm !== undefined && user.location.distanceKm !== null && (
-                            <span className="ml-2">({user.location.distanceKm!.toFixed(1)} km)</span>
+                          {user.location.distanceKm != null && user.location.distanceKm > 0 && (
+                            <span className="ml-2">({user.location.distanceKm.toFixed(1)} km)</span>
                           )}
                         </div>
                       )}
@@ -1647,7 +1649,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             </span>
                           ) : null}
                         </div>
-                        {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
+                        {item.location?.distanceKm != null && item.location.distanceKm > 0 && (
                           <p className="text-sm font-medium text-emerald-700">{item.location.distanceKm.toFixed(1)} km</p>
                         )}
                       </div>
@@ -1712,7 +1714,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             <span>{item.location.place}</span>
                           </div>
                         )}
-                        {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
+                        {item.location?.distanceKm != null && item.location.distanceKm > 0 && (
                           <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full" data-tour={index === 0 ? "location-info" : undefined}>
                             <span>📍</span>
                             <span>{item.location.distanceKm.toFixed(1)} km</span>

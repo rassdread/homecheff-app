@@ -6,7 +6,8 @@ export const revalidate = 3600; // 1 hour cache like big platforms
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { calculateDistance } from '@/lib/geocoding';
+import { safeDistanceKm } from '@/lib/geocoding';
+import { FEED_RADIUS_DEFAULT_KM } from '@/lib/geo/local-discovery';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
     const userRole = searchParams.get('userRole') || 'all';
-    const radius = parseFloat(searchParams.get('radius') || '10');
+    const radius = parseFloat(searchParams.get('radius') || String(FEED_RADIUS_DEFAULT_KM));
     const lat = parseFloat(searchParams.get('lat') || '0');
     const lng = parseFloat(searchParams.get('lng') || '0');
     const take = Math.min(parseInt(searchParams.get('take') || '10'), 50); // Reduced default to 10
@@ -137,13 +138,17 @@ export async function GET(request: NextRequest) {
         followerCount: followerCountMap.get(user.id) || 0,
         productCount: user.SellerProfile?._count?.products || 0,
         location: {
-          place: user.place || 'Nederland',
-          city: user.city || 'Amsterdam',
-          lat: user.lat || 52.3676,
-          lng: user.lng || 4.9041,
-          distanceKm: (lat !== 0 && lng !== 0 && user.lat && user.lng) 
-            ? Math.round(calculateDistance(lat, lng, user.lat, user.lng) * 10) / 10
-            : null
+          place: user.place || null,
+          city: user.city || null,
+          lat: user.lat ?? null,
+          lng: user.lng ?? null,
+          distanceKm:
+            lat !== 0 && lng !== 0 && user.lat != null && user.lng != null
+              ? (() => {
+                  const d = safeDistanceKm(lat, lng, user.lat, user.lng);
+                  return d != null ? Math.round(d * 10) / 10 : null;
+                })()
+              : null,
         }
       }));
 

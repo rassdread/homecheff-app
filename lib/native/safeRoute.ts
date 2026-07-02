@@ -64,6 +64,7 @@ function matchesAllowed(normalized: string): boolean {
   if (normalized === "/notifications" || normalized.startsWith("/notifications/"))
     return true;
   if (normalized === "/settings/app") return true;
+  if (normalized === "/settings" || normalized.startsWith("/settings/")) return true;
   if (normalized === "/app") return true;
   return false;
 }

@@ -5,7 +5,11 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/notifications/notification-service';
-import { DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
+import { ensureDeliveryPayout } from '@/lib/delivery/delivery-payout';
+import {
+  assertDeliveryStatusTransition,
+  shouldReopenDeliveryAfterCancel,
+} from '@/lib/delivery/delivery-status';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 
 export async function POST(
@@ -40,11 +44,57 @@ export async function POST(
       }, { status: 404 });
     }
 
+    const existingOrder = await prisma.deliveryOrder.findFirst({
+      where: {
+        id: orderId,
+        deliveryProfileId: profile.id,
+      },
+      include: {
+        order: {
+          select: {
+            id: true,
+            userId: true,
+            orderNumber: true,
+            items: {
+              take: 1,
+              select: {
+                Product: {
+                  select: {
+                    seller: { select: { userId: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: 'Bezorgopdracht niet gevonden of niet aan jou toegewezen' },
+        { status: 404 }
+      );
+    }
+
+    const transition = assertDeliveryStatusTransition(
+      existingOrder.status,
+      status
+    );
+    if (!transition.ok) {
+      return NextResponse.json({ error: transition.error }, { status: 400 });
+    }
+
     // Update delivery order status
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
-      notes: notes || null
+      notes: notes || null,
     };
+
+    if (status === 'CANCELLED' && shouldReopenDeliveryAfterCancel(existingOrder.status)) {
+      updateData.status = 'PENDING';
+      updateData.deliveryProfileId = null;
+    }
 
     // Add timestamp for specific statuses
     if (status === 'PICKED_UP') {
@@ -62,21 +112,22 @@ export async function POST(
         await DeliveryCountdownService.stopCountdown(orderId);
       }
       
-      // Update delivery profile stats
       await prisma.deliveryProfile.update({
         where: { id: profile.id },
         data: {
           totalDeliveries: { increment: 1 },
-          totalEarnings: { increment: profile.totalEarnings || 0 } // Will be updated with actual fee
-        }
+        },
       });
     }
 
+    const updateWhere =
+      status === 'CANCELLED' &&
+      shouldReopenDeliveryAfterCancel(existingOrder.status)
+        ? { id: orderId }
+        : { id: orderId, deliveryProfileId: profile.id };
+
     const updatedOrder = await prisma.deliveryOrder.update({
-      where: {
-        id: orderId,
-        deliveryProfileId: profile.id
-      },
+      where: updateWhere,
       data: updateData,
       include: {
         order: {
@@ -126,12 +177,20 @@ export async function POST(
         );
       } else if (status === 'DELIVERED') {
         await NotificationService.sendDeliveryCompletedNotification(
-          updatedOrder.order.User.id, // buyer
-          sellerId || updatedOrder.order.User.id, // seller
-          (session.user as any).id, // deliverer
+          updatedOrder.order.User.id,
+          sellerId || updatedOrder.order.User.id,
+          (session.user as any).id,
           updatedOrder.orderId,
           orderNumber,
           updatedOrder.deliveryFee
+        );
+      } else if (status === 'CANCELLED') {
+        await NotificationService.sendDeliveryCancelledNotification(
+          updatedOrder.order.User.id,
+          sellerId || updatedOrder.order.User.id,
+          (session.user as any).id,
+          updatedOrder.orderId,
+          orderNumber
         );
       }
     } catch (notifError) {
@@ -141,7 +200,13 @@ export async function POST(
 
     // If delivered, trigger payout to delivery person
     if (status === 'DELIVERED') {
-      await triggerDeliveryPayout(updatedOrder, profile);
+      await ensureDeliveryPayout(prisma, {
+        deliveryOrderId: updatedOrder.id,
+        orderId: updatedOrder.orderId,
+        deliveryFeeCents: Math.round(updatedOrder.deliveryFee),
+        delivererUserId: profile.userId,
+        buyerUserId: updatedOrder.order.User.id,
+      });
       
       // Also update main order status to DELIVERED if all delivery orders are delivered
       const allDeliveryOrders = await prisma.deliveryOrder.findMany({
@@ -286,27 +351,5 @@ export async function POST(
     return NextResponse.json({ 
       error: 'Er is een fout opgetreden bij het updaten van de bestelling' 
     }, { status: 500 });
-  }
-}
-
-async function triggerDeliveryPayout(deliveryOrder: any, profile: any) {
-  try {
-    // 12% Homecheff fee on delivery costs; 88% to deliverer (fee already deducted)
-    const deliveryPersonCut = Math.round(deliveryOrder.deliveryFee * DELIVERY_DELIVERER_PERCENT / 100);
-
-    // Create payout record with providerRef null – wordt meegenomen in gecombineerde
-    // uitbetaling (verkoop + bezorging) wanneer gebruiker "Uitbetaling aanvragen" gebruikt
-    await prisma.payout.create({
-      data: {
-        id: `payout_delivery_${deliveryOrder.id}_${Date.now()}`,
-        toUserId: profile.userId,
-        amountCents: deliveryPersonCut,
-        transactionId: deliveryOrder.orderId,
-        providerRef: null,
-      }
-    });
-    // Geen directe Stripe-transfer meer: alles gaat in één keer mee bij "Uitbetaling aanvragen"
-  } catch (error) {
-    console.error('Error triggering delivery payout:', error);
   }
 }

@@ -23,7 +23,19 @@ import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
+import { resolvePrimaryDashboardHref } from '@/lib/settings/settings-hub';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
+
+function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
+  if (!user) return null;
+  const href = resolvePrimaryDashboardHref({
+    role: user.role as string | undefined,
+    sellerRoles: (user.sellerRoles as string[] | undefined) ?? [],
+    hasDeliveryProfile: Boolean(user.hasDeliveryProfile),
+    hasAffiliate: Boolean(user.hasAffiliate),
+  });
+  return href === '/profile' ? null : href;
+}
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -81,6 +93,11 @@ export default function NavBar() {
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
+
+  const navMenuUser = user
+    ? ({ ...(user as Record<string, unknown>), ...(bootstrapProfile ?? {}) } as Record<string, unknown>)
+    : null;
+  const dashboardHref = resolveNavDashboardHref(navMenuUser);
 
   // Bereken dropdown-positie binnen viewport (niet buiten beeld)
   const updateDropdownPosition = () => {
@@ -528,110 +545,28 @@ export default function NavBar() {
                           </span>
                         )}
                       </Link>
-                      
-                      <Link 
-                        href="/orders" 
+
+                      {dashboardHref ? (
+                        <Link
+                          href={dashboardHref}
+                          prefetch={false}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-emerald-700 hover:bg-emerald-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <LayoutGrid className="w-4 h-4" />
+                          <span>{t('navbar.dashboard') || 'Dashboard'}</span>
+                        </Link>
+                      ) : null}
+
+                      <Link
+                        href="/settings"
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
-                        <Package className="w-4 h-4" />
-                        <span>{t('navbar.orders')}</span>
+                        <Settings className="w-4 h-4" />
+                        <span>{t('navigation.settings') || 'Instellingen'}</span>
                       </Link>
 
-                      {/* Privacy Instellingen */}
-                      <Link 
-                        href="/profile/privacy" 
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        <Shield className="w-4 h-4" />
-                        <span>{t('navbar.privacy')}</span>
-                      </Link>
-                      
-                      {/* Dynamic Dashboard Links - Based on roles */}
-                      {/* Admin Dashboard - Show for ADMIN/SUPERADMIN role OR if user has adminRoles */}
-                      {(((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') || ((user as any)?.adminRoles && (user as any)?.adminRoles.length > 0)) && (
-                        <Link
-                          href="/admin"
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                          }}
-                        >
-                          <Shield className="w-4 h-4" />
-                          <span>{t('navbar.adminDashboard')}</span>
-                        </Link>
-                      )}
-
-                      {/* Seller Dashboard - Show if user has seller roles OR is SELLER role OR is ADMIN/SUPERADMIN with seller roles */}
-                      {(((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') || 
-                        (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && (user as any)?.sellerRoles?.length > 0)) && (
-                        <>
-                          <Link
-                            href="/verkoper/dashboard"
-                            prefetch={false}
-                            className="relative flex items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50 transition-colors"
-                            onClick={() => {
-                              setIsProfileDropdownOpen(false);
-                            }}
-                          >
-                            <LayoutGrid className="w-4 h-4" />
-                            <span>{t('navbar.sellerDashboard')}</span>
-                            {sellerOrdersUnread > 0 && (
-                              <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
-                                {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
-                              </span>
-                            )}
-                          </Link>
-                        </>
-                      )}
-                      
-                      {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel (ook verkoper-bezorgers) */}
-                      {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
-                        <Link
-                          href="/delivery/dashboard"
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                          }}
-                        >
-                          <Package className="w-4 h-4" />
-                          <span>{t('navbar.deliveryDashboard')}</span>
-                        </Link>
-                      )}
-
-                      {/* Affiliate Dashboard - Show if user has affiliate account */}
-                      {(user as any)?.hasAffiliate && (
-                        <Link
-                          href="/affiliate/dashboard"
-                          prefetch={false}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors"
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                          }}
-                        >
-                          <TrendingUp className="w-4 h-4" />
-                          <span>{t("navbar.affiliateDashboard")}</span>
-                        </Link>
-                      )}
-
-                      {/* Multi-role indicator - Show if user has multiple roles/dashboards */}
-                      {(
-                        (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && ((user as any)?.sellerRoles?.length > 0 || (user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                        ((user as any)?.role === 'SELLER' && ((user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                        ((user as any)?.sellerRoles?.length > 0 && ((user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                        ((user as any)?.hasDeliveryProfile && (user as any)?.hasAffiliate)
-                      ) && (
-                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 mt-2">
-                          <span className="flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            {t('navbar.multiRole')}
-                          </span>
-                        </div>
-                      )}
-                      
                       <NavbarLegalContactLinks
                         variant="dropdown"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
@@ -871,118 +806,34 @@ export default function NavBar() {
                     )}
                   </Link>
 
-                  <Link
-                    href="/orders"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/orders' });
-                    }}
-                  >
-                    <Package className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.orders')}</span>
-                  </Link>
-
-                  <Link
-                    href="/profile/privacy"
-                    prefetch={false}
-                    className={mobileNavRowClass}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/profile/privacy' });
-                    }}
-                  >
-                    <Shield className="w-4 h-4 shrink-0" />
-                    <span>{t('navbar.privacy')}</span>
-                  </Link>
-
-                  {/* Multi-role Dashboard Links - Based on user roles (zelfde logica als desktop) */}
-                  {/* Admin Dashboard - Show for ADMIN/SUPERADMIN role OR if user has adminRoles */}
-                  {(((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') || ((user as any)?.adminRoles && (user as any)?.adminRoles.length > 0)) && (
+                  {dashboardHref ? (
                     <Link
-                      href="/admin"
+                      href={dashboardHref}
                       prefetch={false}
-                      className={cn(mobileNavRowClass, 'text-red-600 hover:bg-red-50')}
+                      className={cn(mobileNavRowClass, 'text-emerald-700 hover:bg-emerald-50')}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/admin' });
-                      }}
-                    >
-                      <Shield className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.adminDashboard')}</span>
-                    </Link>
-                  )}
-                  
-                  {/* Seller Dashboard - Show if user has seller roles OR is SELLER role OR admin met seller roles */}
-                  {(((user as any)?.sellerRoles?.length > 0 || (user as any)?.role === 'SELLER') || 
-                    (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && (user as any)?.sellerRoles?.length > 0)) && (
-                    <Link
-                      href="/verkoper/dashboard"
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'relative text-green-600 hover:bg-green-50')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/verkoper/dashboard' });
+                        navDebug('navbar:mobile', { href: dashboardHref });
                       }}
                     >
                       <LayoutGrid className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.sellerDashboard')}</span>
-                      {sellerOrdersUnread > 0 && (
-                        <span className="ml-auto flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-semibold text-white">
-                          {sellerOrdersUnread > 99 ? '99+' : sellerOrdersUnread}
-                        </span>
-                      )}
+                      <span>{t('navbar.dashboard') || 'Dashboard'}</span>
                     </Link>
-                  )}
-                  
-                  {/* Bezorgdashboard – voor rol DELIVERY of iedereen met bezorgerprofiel */}
-                  {((user as any)?.role === 'DELIVERY' || (user as any)?.hasDeliveryProfile) && (
-                    <Link
-                      href="/delivery/dashboard"
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'text-blue-600 hover:bg-blue-50')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/delivery/dashboard' });
-                      }}
-                    >
-                      <Package className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.deliveryDashboard')}</span>
-                    </Link>
-                  )}
+                  ) : null}
 
-                  {/* Affiliate Dashboard - Show if user has affiliate account */}
-                  {(user as any)?.hasAffiliate && (
-                    <Link
-                      href="/affiliate/dashboard"
-                      prefetch={false}
-                      className={cn(mobileNavRowClass, 'text-emerald-600 hover:bg-emerald-50')}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        navDebug('navbar:mobile', { href: '/affiliate/dashboard' });
-                      }}
-                    >
-                      <TrendingUp className="w-4 h-4 shrink-0" />
-                      <span>{t('navbar.affiliateDashboard')}</span>
-                    </Link>
-                  )}
+                  <Link
+                    href="/settings"
+                    prefetch={false}
+                    className={mobileNavRowClass}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navDebug('navbar:mobile', { href: '/settings' });
+                    }}
+                  >
+                    <Settings className="w-4 h-4 shrink-0" />
+                    <span>{t('navigation.settings') || 'Instellingen'}</span>
+                  </Link>
 
-                  {/* Multi-role indicator for mobile - Show if user has multiple roles/dashboards */}
-                  {(
-                    (((user as any)?.role === 'ADMIN' || (user as any)?.role === 'SUPERADMIN') && ((user as any)?.sellerRoles?.length > 0 || (user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                    ((user as any)?.role === 'SELLER' && ((user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                    ((user as any)?.sellerRoles?.length > 0 && ((user as any)?.hasDeliveryProfile || (user as any)?.hasAffiliate)) ||
-                    ((user as any)?.hasDeliveryProfile && (user as any)?.hasAffiliate)
-                  ) && (
-                    <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-200 mt-2">
-                      <span className="flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        {t('navbar.multiRole')}
-                      </span>
-                    </div>
-                  )}
-                  
                   <div className="border-t border-gray-200 my-2"></div>
                   
                   <Button 

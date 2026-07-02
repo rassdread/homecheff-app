@@ -1,5 +1,7 @@
 # HomeCheff — registratie, bereikbaarheid en contact (Fase 4A)
 
+> Strategische productvisie: [HomeCheff Ecosysteem V3](HOMECHEFF_ECOSYSTEM_V3.md)
+
 Leidende structuur voor account, profiel, bereikbaarheid en betalingen.
 
 ## Actieve registratiepaden

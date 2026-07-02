@@ -79,7 +79,7 @@ export default function BusinessUpgradeCallout() {
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:max-w-[min(100%,20rem)]">
           {needsCompanyInfo ? (
             <Link
-              href="/verkoper/instellingen"
+              href="/settings?tab=payments"
               className="inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
               {t('seller.businessUpgradeCallout.ctaSettings')}
@@ -96,7 +96,7 @@ export default function BusinessUpgradeCallout() {
           )}
           {!needsCompanyInfo && (
             <Link
-              href="/verkoper/instellingen"
+              href="/settings?tab=payments"
               className="text-center text-sm font-medium text-emerald-800 hover:text-emerald-900 underline-offset-2 hover:underline"
             >
               {t('seller.businessUpgradeCallout.editCompanyLink')}

@@ -24,9 +24,11 @@ interface PrivacySettings {
 
 interface PrivacySettingsProps {
   onClose?: () => void;
+  /** When true: hide standalone page chrome (used in /settings hub). */
+  embedded?: boolean;
 }
 
-export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
+export default function PrivacySettings({ onClose, embedded = false }: PrivacySettingsProps) {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const [settings, setSettings] = useState<PrivacySettings>({
@@ -116,46 +118,48 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Back to Home Button */}
-      <div className="px-6 pt-4">
-        <Link 
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Terug naar Home</span>
-        </Link>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-2 pb-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Shield className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Privacy Instellingen</h2>
-            <p className="text-sm text-gray-600">Beheer wie je profiel en berichten kan zien</p>
-          </div>
-        </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+    <div className={embedded ? '' : 'bg-white rounded-lg shadow-sm border border-gray-200'}>
+      {!embedded && (
+        <div className="px-6 pt-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <EyeOff className="w-5 h-5 text-gray-500" />
-          </button>
-        )}
-      </div>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Terug naar Home</span>
+          </Link>
+        </div>
+      )}
 
-      {/* Help & Uitleg - BOVENAAN */}
-      <div className="px-6 pt-4">
-        <HelpSettings />
-      </div>
+      {!embedded && (
+        <div className="flex items-center justify-between px-6 pt-2 pb-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Shield className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Privacy Instellingen</h2>
+              <p className="text-sm text-gray-600">Beheer wie je profiel en berichten kan zien</p>
+            </div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <EyeOff className="w-5 h-5 text-gray-500" />
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* Settings Content */}
-      <div className="p-6 space-y-6">
+      {!embedded && (
+        <div className="px-6 pt-4">
+          <HelpSettings />
+        </div>
+      )}
+
+      <div className={`space-y-6 ${embedded ? '' : 'p-6'}`}>
         {/* Message Privacy */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -390,7 +394,7 @@ export default function PrivacySettings({ onClose }: PrivacySettingsProps) {
           <p className="text-sm text-red-800">{t('accountSettings.dangerZoneBody')}</p>
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
-              href="/profile?openSettings=1&settingsSection=account&accountTab=delete"
+              href="/settings?tab=privacy&accountTab=delete"
               className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
             >
               {t('accountSettings.dangerZoneCta')}

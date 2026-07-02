@@ -12,9 +12,6 @@ import {
   Plus,
 } from "lucide-react";
 import {
-  FeedSaleCard,
-  FeedInspirationCardFeed,
-  FeedInspirationCardApi,
   inspirationDetailHrefApi,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
@@ -25,9 +22,13 @@ import {
 import {
   classifyFeedItem,
   getFeedItemHref,
-  getInspirationFeedItemHref,
-  getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
+import {
+  FeedMarketplaceCard,
+  feedMarketplaceItemHref,
+} from "@/components/feed/FeedMarketplaceCard";
+import type { FeedChip, FeedViewFilterId } from "@/lib/feed/feed-taxonomy";
+import { deriveFeedTaxonomy, type FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
 import DiscoverGridTile, {
   inspirationApiToCardItem,
@@ -79,6 +80,7 @@ import {
   loadFeedSurfaceState,
   saveFeedSurfaceState,
 } from "@/lib/feed/feedSurfaceState";
+import { RADIUS_LOCAL_KM } from "@/lib/geo/local-discovery";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 
@@ -125,9 +127,12 @@ type FeedItem = {
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
   sellerBadges?: AuthorBadgeChip[];
+  /** Afgeleide V3 taxonomy (Fase 5D). */
+  taxonomy?: FeedTaxonomy;
 };
 
-type FeedChip = "all" | "sale" | "inspiration";
+/** UI view filter — decoupled from item taxonomy (Fase 5D). Today: all | sale | inspiration. */
+type FeedViewFilter = FeedViewFilterId;
 
 function createIntentForSaleOrInspiration(
   categorySlug: string,
@@ -143,7 +148,7 @@ function createIntentForSaleOrInspiration(
 /** Volledige 6-way intent: alleen als verticaal én dorpsplein/inspiratie-weergave gekozen. */
 function resolvedVerticalModeIntent(
   categorySlug: string,
-  feedChip: FeedChip
+  feedChip: FeedViewFilter
 ): CreateFlowIntent | null {
   if (categorySlug === "all") return null;
   if (feedChip !== "sale" && feedChip !== "inspiration") return null;
@@ -251,6 +256,17 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       )
     : undefined;
 
+  const rawTaxonomy = raw.taxonomy as FeedTaxonomy | undefined;
+  const taxonomyInput = {
+    priceCents,
+    orderMethod: raw.orderMethod != null ? String(raw.orderMethod) : null,
+    category,
+    type: (raw.type as string) ?? null,
+    isRecipe: raw.isRecipe as boolean | null | undefined,
+    isInspiration: raw.isInspiration as boolean | null | undefined,
+  };
+  const taxonomy = rawTaxonomy ?? deriveFeedTaxonomy(taxonomyInput);
+
   return {
     id: String(raw.id ?? ""),
     title: (raw.title as string) ?? null,
@@ -290,6 +306,7 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     favoriteCount:
       raw.favoriteCount != null ? Number(raw.favoriteCount) : undefined,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
+    taxonomy,
   };
 }
 
@@ -480,6 +497,7 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
     title: it.title,
     description: it.description,
     priceCents: it.priceCents,
+    orderMethod: it.orderMethod,
     type: it.type,
     isRecipe: it.isRecipe,
     isInspiration: it.isInspiration,
@@ -501,6 +519,7 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
     sellerDisplayFullName: it.sellerDisplayFullName,
     sellerDisplayNameOption: it.sellerDisplayNameOption,
     sellerBadges: it.sellerBadges,
+    taxonomy: it.taxonomy,
   };
 }
 
@@ -546,7 +565,7 @@ export default function GeoFeed({
   const [loading, setLoading] = useState(true);
   const feedInteractionStartedRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
-  const [radius, setRadius] = useState(25);
+  const [radius, setRadius] = useState(RADIUS_LOCAL_KM);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState(
     () => initialFeedPlace?.trim().slice(0, 200) || ""
@@ -1973,18 +1992,19 @@ export default function GeoFeed({
                   <DiscoverGridTile
                     key={`sale-${row.item.id}-${idx}`}
                     item={card}
-                    href={getSaleItemHref(card)}
+                    href={feedMarketplaceItemHref(card)}
                     kind="sale"
                     t={t}
                   />
                 );
               }
               return (
-                <FeedSaleCard
+                <FeedMarketplaceCard
                   key={`sale-${row.item.id}-${idx}`}
                   item={card}
                   baseUrl={baseUrl}
                   t={t}
+                  variant="sale"
                 />
               );
             }
@@ -2003,11 +2023,13 @@ export default function GeoFeed({
                 );
               }
               return (
-                <FeedInspirationCardApi
+                <FeedMarketplaceCard
                   key={`insp-api-${slot.item.id}-${idx}`}
-                  item={slot.item}
+                  item={inspirationApiToCardItem(slot.item)}
                   baseUrl={baseUrl}
                   t={t}
+                  variant="inspiration-api"
+                  inspirationApiItem={slot.item}
                 />
               );
             }
@@ -2017,18 +2039,19 @@ export default function GeoFeed({
                 <DiscoverGridTile
                   key={`insp-feed-${slot.item.id}-${idx}`}
                   item={card}
-                  href={getInspirationFeedItemHref(card)}
+                  href={feedMarketplaceItemHref(card)}
                   kind="inspiration"
                   t={t}
                 />
               );
             }
             return (
-              <FeedInspirationCardFeed
+              <FeedMarketplaceCard
                 key={`insp-feed-${slot.item.id}-${idx}`}
                 item={card}
                 baseUrl={baseUrl}
                 t={t}
+                variant="inspiration-feed"
               />
             );
           })}

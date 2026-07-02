@@ -24,6 +24,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 **Production URL**: [https://homecheff.eu](https://homecheff.eu)
 
+## Productdocumentatie
+
+- **[HomeCheff Ecosysteem V3](docs/HOMECHEFF_ECOSYSTEM_V3.md)** — strategische productvisie (dorpsplein, profiel, aanbod, waarde-uitwisseling)
+- [Registratie, bereikbaarheid en contact](docs/HOMECHEFF_REGISTRATION_AND_CONTACT.md) — implementatierichtlijnen account en contactkanalen
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
