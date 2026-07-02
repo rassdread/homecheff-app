@@ -4,8 +4,8 @@
     "via": "Deel via",
     "copyLink": "Link kopiëren",
     "copied": "Gekopieerd!",
-    "affiliateHint": "Je affiliate link wordt automatisch meegestuurd bij delen",
-    "preparingLink": "Je deel-link wordt voorbereid (affiliate-ref wordt zo toegevoegd)…",
+    "affiliateHint": "Je persoonlijke deel-link wordt automatisch meegestuurd",
+    "preparingLink": "Je deel-link wordt voorbereid…",
     "whatsapp": "WhatsApp",
     "instagram": "Instagram",
     "tiktok": "TikTok",
@@ -97,7 +97,7 @@
     },
     "giveProp": {
       "title": "Stuur waardering naar deze maker",
-      "body": "Props zijn een klein bedankje van de community. Ga verder met je account — één tik en je bent terug.",
+      "body": "Waardering is een klein bedankje van de community. Ga verder met je account — één tik en je bent terug.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Word lid van HomeCheff"
     },
@@ -222,12 +222,12 @@
     }
   },
   "communityPulse": {
-    "heading": "Live uit de community",
-    "fallbackLine": "Kleine acties dichtbij tellen op — ontdek makers, aanbod en inspiratie.",
+    "heading": "Wat er leeft in de buurt",
+    "fallbackLine": "Ontdek wat makers en buren nu delen — aanbod, inspiratie en kleine momenten dichtbij.",
     "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
     "newCreators7d": "{count} nieuwe accounts deze week",
     "newInspiration7d": "{count} nieuwe openbare inspiratieposts deze week",
-    "topHcpSpotlight": "{name} staat bovenaan op HomeCheff-punten ({points} pt)",
+    "topHcpSpotlight": "{name} valt op door actieve deelname in de buurt",
     "savesWeek": "{count} nieuwe favorieten (aanbod & inspiratie) deze week",
     "followsWeek": "{count} nieuwe volgers deze week",
     "discussionWeek": "{count} nieuwe reviews en reacties deze week",
@@ -400,12 +400,12 @@
     "continueShopping": "Ontdek meer op het dorpsplein",
     "checkout": "Naar checkout",
     "subtotal": "Subtotaal",
-    "stripeFee": "Stripe fee",
+    "stripeFee": "Betaalkosten",
     "total": "Totaal",
     "quantity": "Aantal",
     "remove": "Verwijderen",
     "sellerInfo": "Verkopers informatie",
-    "sellerInfoText": "Verkopers betalen een kleine platform fee bij uitbetaling. Houd hier rekening mee bij het instellen van je verkoopprijzen."
+    "sellerInfoText": "Verkopers betalen een kleine servicekosten bij uitbetaling. Houd hier rekening mee bij het instellen van je verkoopprijzen."
   },
   "hero": {
     "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
@@ -638,10 +638,10 @@
     "followingButton": "Fan"
   },
   "props": {
-    "giveProps": "Props geven",
-    "propsGiven": "Props!",
-    "propsButton": "Props",
-    "propsWithdrawn": "Props ingetrokken"
+    "giveProps": "Waardering geven",
+    "propsGiven": "Waardering!",
+    "propsButton": "Waardering",
+    "propsWithdrawn": "Waardering ingetrokken"
   },
   "dorpsplein": {
     "greeting": "Hey {firstName},",
@@ -1871,8 +1871,9 @@
       },
       "stripeConnectPaymentsBanner": {
         "message": "Je producten kunnen zichtbaar zijn, maar klanten kunnen pas afrekenen zodra je betalingen hebt ingesteld.",
-        "cta": "Betalingen instellen (Stripe Connect)",
-        "error": "Kon Stripe Connect niet starten. Probeer het opnieuw of ga naar je profiel."
+        "cta": "Betalingen instellen",
+        "error": "Kon betalingen niet starten. Probeer het opnieuw of ga naar je profiel.",
+        "hint": "Dit is alleen nodig als mensen via HomeCheff kunnen afrekenen. Voor direct contact is dit niet verplicht."
       },
       "financialOverview": "Financieel Overzicht",
       "grossRevenue": "Bruto Omzet",
@@ -3338,8 +3339,9 @@
     "shareIdeas": "Ideeën delen",
     "addItems": "➕ Items Toevoegen",
     "addItemsDesc": "Voeg producten of inspiraties toe via galerij.",
-    "hcpCapsuleAria": "Naar HomeCheff Points",
-    "hcpCapsuleBadge": "HCP",
+    "hcpCapsuleAria": "Naar je reputatie en waardering",
+    "hcpCapsuleBadge": "Reputatie",
+    "reputationTab": "Reputatie",
     "messages": "Berichten",
     "messagesDesc": "Verbind met de community. Deel inspiraties en bouw relaties.",
     "profile": "Profiel",
@@ -4007,12 +4009,22 @@
       "chooseSubscription": "Kies abonnement"
     },
     "subscription": {
+      "title": "Abonnement",
+      "description": "Beheer je bedrijfsabonnement en servicekosten",
       "upgrade": "Upgraden",
-      "lowerFees": "Lagere kosten voor hogere omzet?",
+      "lowerFees": "Lagere servicekosten bij een hoger abonnement?",
       "viewPlans": "Bekijk abonnementsplannen",
       "basicYours": "Basic (jouw plan)",
       "pro": "Pro",
-      "premium": "Premium"
+      "premium": "Premium",
+      "feeOverview": "Kostenoverzicht",
+      "perMonth": "/ maand",
+      "validUntil": "Geldig tot {date}",
+      "active": "Actief",
+      "unknownPlan": "Bedrijfsabonnement",
+      "emptyTitle": "Abonnementen komen later",
+      "emptyBody": "Abonnementen komen later beschikbaar. Je kunt HomeCheff nu gratis gebruiken om je profiel op te bouwen en je eerste aanbod te delen.",
+      "emptyCta": "Eerste aanbod plaatsen"
     },
     "buyerRoles": {
       "explorer": {
@@ -6244,5 +6256,178 @@
     "helpProfile": "Profiel — e-mailadres wijzigen",
     "helpContact": "Contact",
     "helpSupport": "of support@homecheff.eu"
+  },
+  "homePhase1": {
+    "heroTitle": "Het digitale dorpsplein van jouw buurt",
+    "heroSubtitle": "Ontdek wat mensen dichtbij maken, koken, kweken en creëren — of deel zelf iets met je buurt.",
+    "ctaDiscover": "Ontdek in je buurt",
+    "ctaShare": "Deel wat je maakt",
+    "schemaWebsiteDescription": "HomeCheff — het digitale dorpsplein om lokaal eten, oogst en creaties te ontdekken en te delen.",
+    "verticals": {
+      "cheff": {
+        "title": "HomeCheff",
+        "description": "Huisgemaakte maaltijden en lokale smaken."
+      },
+      "garden": {
+        "title": "HomeGarden",
+        "description": "Groenten, kruiden, planten en oogst uit de buurt."
+      },
+      "designer": {
+        "title": "HomeDesigner",
+        "description": "Kleding, kunst, creaties en handwerk van makers dichtbij."
+      }
+    }
+  },
+  "publicProfile": {
+    "reputationAria": "Reputatie van deze maker",
+    "reputationLabel": "Reputatie in de buurt",
+    "showMoreBadges": "Meer badges",
+    "showLessBadges": "Minder tonen",
+    "noBadgesYet": "Deze maker bouwt nog aan zichtbare waardering in de community.",
+    "emptyBio": "Deze maker heeft nog geen verhaal toegevoegd.",
+    "emptyOfferings": "Deze maker heeft nog geen aanbod geplaatst.",
+    "emptyInspiration": "Deze maker heeft nog geen inspiratie gedeeld.",
+    "contactIntro": "Stel een vraag of spreek af via een veilig bericht op HomeCheff.",
+    "roles": {
+      "kitchen": "Keuken",
+      "garden": "Tuin",
+      "studio": "Atelier",
+      "maker": "Maker"
+    },
+    "sections": {
+      "about": "Over deze maker",
+      "offerings": "Aanbod",
+      "inspiration": "Inspiratie",
+      "appreciation": "Waardering",
+      "contact": "Contact"
+    },
+    "stats": {
+      "items": "items",
+      "reviews": "reviews",
+      "fans": "fans",
+      "appreciation": "waardering",
+      "views": "weergaven"
+    }
+  },
+  "productOrder": {
+    "priceOnRequest": "Prijs op aanvraag",
+    "priceLabel": "Prijs",
+    "priceIncludesVat": "Inclusief BTW",
+    "quantityLabel": "Aantal",
+    "badgeContactOnly": "Bestellen via contact",
+    "badgeViaContact": "Via contact",
+    "buyerContactIntro": "Deze maker handelt bestellingen rechtstreeks af. Neem contact op om prijs, beschikbaarheid en ophalen of bezorgen af te spreken.",
+    "buyerPaymentsNotReady": "Deze maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
+    "priceOptionalLabel": "Prijs (optioneel)",
+    "priceOptionalHint": "Laat leeg voor “Prijs op aanvraag”, of vul een indicatieve prijs in.",
+    "priceOptionalPlaceholder": "Leeg = prijs op aanvraag",
+    "method": {
+      "heading": "Hoe wil je bestellingen ontvangen?",
+      "homecheff": {
+        "title": "Via HomeCheff betalen",
+        "description": "Kopers betalen veilig via HomeCheff. Stel daarvoor je betalingen in."
+      },
+      "contact": {
+        "title": "Via direct contact",
+        "description": "Kopers nemen contact op. Geen winkelwagen of checkout via HomeCheff."
+      }
+    },
+    "errors": {
+      "invalidOptionalPrice": "Voer een geldige prijs in of laat het veld leeg."
+    },
+    "publish": {
+      "paymentsRequired": "Wil je via HomeCheff laten betalen? Stel dan eerst je betalingen in. Je item is opgeslagen als concept en staat nog niet live."
+    },
+    "payments": {
+      "setupTitle": "Betalingen instellen",
+      "setupIntro": "Dit is alleen nodig als mensen via HomeCheff kunnen afrekenen.",
+      "setupContactHint": "Voor direct contact is dit niet verplicht.",
+      "setupCta": "Betalingen instellen",
+      "setupError": "Betalingen instellen is mislukt. Probeer het later opnieuw.",
+      "readyTitle": "Betalingen ingesteld",
+      "readySubtitle": "Uitbetalingen via HomeCheff"
+    }
+  },
+  "checkout": {
+    "errors": {
+      "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
+      "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen."
+    }
+  },
+  "productCategory": {
+    "cheff": "Uit de keuken",
+    "garden": "Uit de tuin",
+    "designer": "Van de maker",
+    "default": "Lokaal aanbod"
+  },
+  "makerContact": {
+    "settingsTitle": "Bereikbaarheid",
+    "settingsIntro": "Kies hoe mensen jou mogen benaderen voor vragen of bestellingen. Je bepaalt zelf wat zichtbaar is op je profiel.",
+    "premiumFutureNote": "Externe contactknoppen kunnen later onderdeel worden van een premium profiel. Je kunt ze nu alvast instellen.",
+    "settingsMenuDescription": "Telefoon, WhatsApp en socials op je profiel",
+    "chatAlwaysOn": "Altijd beschikbaar via HomeCheff — onafhankelijk van onderstaande opties.",
+    "save": "Bereikbaarheid opslaan",
+    "saveSuccess": "Je bereikbaarheid is opgeslagen.",
+    "fields": {
+      "chat": "HomeCheff chat",
+      "phone": "Telefoon",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "website": "Website",
+      "telegram": "Telegram"
+    },
+    "placeholders": {
+      "phone": "+31 6 12345678",
+      "whatsapp": "+31 6 12345678",
+      "instagram": "gebruikersnaam of instagram.com/…",
+      "facebook": "pagina of facebook.com/…",
+      "tiktok": "@gebruikersnaam of tiktok.com/…",
+      "website": "jouwsite.nl",
+      "telegram": "@gebruikersnaam of t.me/…"
+    },
+    "errors": {
+      "phoneInvalid": "Voer een geldig telefoonnummer in.",
+      "whatsappInvalid": "Voer een geldig WhatsApp-nummer in.",
+      "instagramInvalid": "Voer een geldige Instagram-link of gebruikersnaam in.",
+      "facebookInvalid": "Voer een geldige Facebook-link in.",
+      "tiktokInvalid": "Voer een geldige TikTok-link of gebruikersnaam in.",
+      "websiteInvalid": "Voer een geldige website-URL in.",
+      "telegramInvalid": "Voer een geldige Telegram-link of gebruikersnaam in.",
+      "enabledWithoutValue": "Vul een waarde in of schakel deze optie uit.",
+      "saveFailed": "Opslaan mislukt. Probeer het opnieuw."
+    },
+    "public": {
+      "heading": "Neem contact op",
+      "chat": "Stuur een bericht via HomeCheff",
+      "phone": "Bel deze maker",
+      "whatsapp": "Stuur een WhatsApp",
+      "instagram": "Bekijk Instagram",
+      "facebook": "Bekijk Facebook",
+      "tiktok": "Bekijk TikTok",
+      "website": "Bekijk website",
+      "telegram": "Bekijk Telegram"
+    },
+    "compact": {
+      "chat": "Stuur bericht",
+      "phone": "Bel",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "website": "Website",
+      "telegram": "Telegram"
+    },
+    "strip": {
+      "product": {
+        "heading": "Vragen of bestellen?",
+        "intro": "Neem contact op met de maker of gebruik HomeCheff betalen wanneer dit beschikbaar is."
+      },
+      "inspiration": {
+        "heading": "Meer weten?",
+        "intro": "Stel je vraag aan de maker."
+      }
+    }
   }
 }

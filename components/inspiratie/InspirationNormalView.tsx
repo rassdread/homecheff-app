@@ -11,8 +11,11 @@ import BackButton from '@/components/navigation/BackButton';
 import ShareButton from '@/components/ui/ShareButton';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ImageSlider from '@/components/ui/ImageSlider';
+import Link from 'next/link';
+import MakerContactSection from '@/components/profile/MakerContactSection';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getDisplayName } from '@/lib/displayName';
+import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 
 type InspirationNormalViewProps = {
   item: {
@@ -46,13 +49,16 @@ type InspirationNormalViewProps = {
       username: string | null;
       name: string | null;
       profileImage: string | null;
+      displayFullName?: boolean | null;
+      displayNameOption?: string | null;
     };
   };
   isOwner: boolean;
   category: 'CHEFF' | 'GROWN' | 'DESIGNER';
+  publicContactChannels?: PublicContactChannel[];
 };
 
-const getCategoryTheme = (category: string) => {
+const getCategoryTheme = (category: string, t: (key: string) => string) => {
   switch (category) {
     case 'CHEFF':
       return {
@@ -61,7 +67,7 @@ const getCategoryTheme = (category: string) => {
         text: 'text-orange-700',
         badge: 'bg-orange-100 text-orange-800 border-orange-200',
         icon: ChefHat,
-        label: 'Chef Special',
+        label: t('productCategory.cheff'),
         accent: 'bg-orange-500'
       };
     case 'GROWN':
@@ -71,7 +77,7 @@ const getCategoryTheme = (category: string) => {
         text: 'text-emerald-700',
         badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
         icon: Sprout,
-        label: 'Garden Fresh',
+        label: t('productCategory.garden'),
         accent: 'bg-emerald-500'
       };
     case 'DESIGNER':
@@ -81,7 +87,7 @@ const getCategoryTheme = (category: string) => {
         text: 'text-purple-700',
         badge: 'bg-purple-100 text-purple-800 border-purple-200',
         icon: Palette,
-        label: 'Designer Piece',
+        label: t('productCategory.designer'),
         accent: 'bg-purple-500'
       };
     default:
@@ -91,7 +97,7 @@ const getCategoryTheme = (category: string) => {
         text: 'text-gray-700',
         badge: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: ChefHat,
-        label: 'Special Item',
+        label: t('productCategory.default'),
         accent: 'bg-gray-500'
       };
   }
@@ -131,7 +137,12 @@ const DIFFICULTY_LABELS: Record<string, string> = {
   'HARD': '🌳 Gevorderd'
 };
 
-export default function InspirationNormalView({ item, isOwner, category }: InspirationNormalViewProps) {
+export default function InspirationNormalView({
+  item,
+  isOwner,
+  category,
+  publicContactChannels = [],
+}: InspirationNormalViewProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -157,7 +168,7 @@ export default function InspirationNormalView({ item, isOwner, category }: Inspi
     }
   }, [category, item.growthPhotos, item.id]);
 
-  const theme = getCategoryTheme(category);
+  const theme = getCategoryTheme(category, t);
   const CategoryIcon = theme.icon;
   const images = item.photos || [];
   const currentImage = images[selectedImageIndex];
@@ -634,8 +645,47 @@ export default function InspirationNormalView({ item, isOwner, category }: Inspi
               )}
             </div>
 
-            {/* Sidebar - Actions Card */}
+            {/* Sidebar - Maker & contact */}
             <div className="lg:col-span-1 space-y-6">
+              <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+                <p className="text-sm text-gray-500 mb-3">{t('inspiratie.detail.postedBy')}</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-emerald-100 shadow">
+                    {item.user.profileImage ? (
+                      <Image
+                        src={item.user.profileImage}
+                        alt={getDisplayName(item.user)}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gray-200 text-lg font-semibold text-gray-600">
+                        {getDisplayName(item.user).charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-900">{getDisplayName(item.user)}</p>
+                    {item.user.username ? (
+                      <Link
+                        href={`/user/${item.user.username}`}
+                        className="text-sm text-emerald-600 hover:text-emerald-700"
+                      >
+                        {t('inspiratie.detail.viewProfile')}
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+                {!isOwner && publicContactChannels.length > 0 ? (
+                  <MakerContactSection
+                    variant="inspiration"
+                    makerId={item.user.id}
+                    makerName={getDisplayName(item.user)}
+                    channels={publicContactChannels}
+                  />
+                ) : null}
+              </div>
+
               <div className={`bg-gradient-to-br ${theme.gradient} rounded-3xl p-6 shadow-2xl text-white sticky top-8`}>
                 <h3 className="text-xl font-bold mb-6">Acties</h3>
                 

@@ -6,6 +6,7 @@ import GardenProjectView from '@/components/profile/GardenProjectView';
 import InspirationNormalView from '@/components/inspiratie/InspirationNormalView';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 
 type PageProps = {
   params: { id: string };
@@ -89,6 +90,8 @@ export default async function GardenProjectPage({ params, searchParams }: PagePr
   // Check if print view is requested
   const showPrintView = searchParams?.view === 'print' || searchParams?.print === 'true';
 
+  const publicContactChannels = await loadPublicContactChannelsForUser(project.userId);
+
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -168,6 +171,7 @@ export default async function GardenProjectPage({ params, searchParams }: PagePr
             }}
             isOwner={isOwner}
             category="GROWN"
+            publicContactChannels={publicContactChannels}
           />
         </>
       )}

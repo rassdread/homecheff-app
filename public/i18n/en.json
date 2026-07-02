@@ -4,8 +4,8 @@
     "via": "Share via",
     "copyLink": "Copy link",
     "copied": "Copied!",
-    "affiliateHint": "Your affiliate link is automatically included when sharing",
-    "preparingLink": "Preparing your share link (adding referral if applicable)…",
+    "affiliateHint": "Your personal share link is included automatically",
+    "preparingLink": "Preparing your share link…",
     "whatsapp": "WhatsApp",
     "instagram": "Instagram",
     "tiktok": "TikTok",
@@ -222,12 +222,12 @@
     }
   },
   "communityPulse": {
-    "heading": "Live from the community",
-    "fallbackLine": "Small actions nearby add up — explore makers, listings, and inspiration.",
+    "heading": "What's happening nearby",
+    "fallbackLine": "See what makers and neighbours are sharing — listings, inspiration and small moments close to home.",
     "newProducts24h": "{count} new listings in the last 24 hours",
     "newCreators7d": "{count} new accounts this week",
     "newInspiration7d": "{count} new public inspiration posts this week",
-    "topHcpSpotlight": "{name} is high on the HomeCheff points board ({points} pts)",
+    "topHcpSpotlight": "{name} stands out for active participation nearby",
     "savesWeek": "{count} new favorites (listings & inspiration) this week",
     "followsWeek": "{count} new follows this week",
     "discussionWeek": "{count} new reviews and comments this week",
@@ -463,12 +463,12 @@
     "continueShopping": "Continue Shopping",
     "checkout": "Go to Checkout",
     "subtotal": "Subtotal",
-    "stripeFee": "Stripe fee",
+    "stripeFee": "Payment fees",
     "total": "Total",
     "quantity": "Quantity",
     "remove": "Remove",
     "sellerInfo": "Seller Information",
-    "sellerInfoText": "Sellers pay a small platform fee upon payout. Keep this in mind when setting your selling prices."
+    "sellerInfoText": "Sellers pay a small service fee upon payout. Keep this in mind when setting your selling prices."
   },
   "hero": {
     "title": "HomeCheff – Homemade. Home Delivered.",
@@ -1860,9 +1860,9 @@
     "followingButton": "Following"
   },
   "props": {
-    "giveProps": "Give props",
-    "propsGiven": "Props!",
-    "propsButton": "Props",
+    "giveProps": "Give appreciation",
+    "propsGiven": "Appreciated!",
+    "propsButton": "Appreciation",
     "propsWithdrawn": "Props withdrawn"
   },
   "discover": {
@@ -2607,8 +2607,9 @@
       },
       "stripeConnectPaymentsBanner": {
         "message": "Your products can be visible, but customers can only check out once you have set up payments.",
-        "cta": "Set up payments (Stripe Connect)",
-        "error": "Could not start Stripe Connect. Try again or go to your profile."
+        "cta": "Set up payments",
+        "error": "Could not start payment setup. Try again or go to your profile.",
+        "hint": "Only required when people can checkout via HomeCheff. Not required for direct contact listings."
       },
       "financialOverview": "Financial Overview",
       "grossRevenue": "Gross Revenue",
@@ -4057,8 +4058,9 @@
     "shareIdeas": "Share ideas",
     "addItems": "➕ Add Items",
     "addItemsDesc": "Add products or inspirations via gallery.",
-    "hcpCapsuleAria": "Go to HomeCheff Points",
-    "hcpCapsuleBadge": "HCP",
+    "hcpCapsuleAria": "Go to your reputation and appreciation",
+    "hcpCapsuleBadge": "Reputation",
+    "reputationTab": "Reputation",
     "messages": "Messages",
     "messagesDesc": "Connect with the community. Share inspirations and build relationships.",
     "profile": "Profile",
@@ -5414,12 +5416,22 @@
       "chooseSubscription": "Choose subscription"
     },
     "subscription": {
+      "title": "Subscription",
+      "description": "Manage your business subscription and service fees",
       "upgrade": "Upgrade",
-      "lowerFees": "Lower fees for higher revenue?",
+      "lowerFees": "Lower service fees with a higher plan?",
       "viewPlans": "View subscription plans",
       "basicYours": "Basic (yours)",
       "pro": "Pro",
-      "premium": "Premium"
+      "premium": "Premium",
+      "feeOverview": "Fee overview",
+      "perMonth": "/ month",
+      "validUntil": "Valid until {date}",
+      "active": "Active",
+      "unknownPlan": "Business subscription",
+      "emptyTitle": "Subscriptions coming later",
+      "emptyBody": "Subscriptions will be available later. You can use HomeCheff for free now to build your profile and share your first listing.",
+      "emptyCta": "Create your first listing"
     },
     "buyerRoles": {
       "explorer": {
@@ -6244,5 +6256,178 @@
     "helpProfile": "Profile — change email",
     "helpContact": "Contact",
     "helpSupport": "or support@homecheff.eu"
+  },
+  "homePhase1": {
+    "heroTitle": "Your neighbourhood's digital village square",
+    "heroSubtitle": "Discover what people nearby cook, grow and create — or share something with your community.",
+    "ctaDiscover": "Discover nearby",
+    "ctaShare": "Share what you make",
+    "schemaWebsiteDescription": "HomeCheff — the digital village square to discover and share local food, harvest and crafts.",
+    "verticals": {
+      "cheff": {
+        "title": "HomeCheff",
+        "description": "Homemade meals and local flavours."
+      },
+      "garden": {
+        "title": "HomeGarden",
+        "description": "Vegetables, herbs, plants and harvest from nearby."
+      },
+      "designer": {
+        "title": "HomeDesigner",
+        "description": "Clothing, art, crafts and handmade work from local makers."
+      }
+    }
+  },
+  "publicProfile": {
+    "reputationAria": "This maker's reputation",
+    "reputationLabel": "Local reputation",
+    "showMoreBadges": "More badges",
+    "showLessBadges": "Show less",
+    "noBadgesYet": "This maker is still building visible appreciation in the community.",
+    "emptyBio": "This maker has not added their story yet.",
+    "emptyOfferings": "This maker has not listed anything for sale yet.",
+    "emptyInspiration": "This maker has not shared inspiration yet.",
+    "contactIntro": "Ask a question or arrange pickup via a secure HomeCheff message.",
+    "roles": {
+      "kitchen": "Kitchen",
+      "garden": "Garden",
+      "studio": "Studio",
+      "maker": "Maker"
+    },
+    "sections": {
+      "about": "About this maker",
+      "offerings": "Listings",
+      "inspiration": "Inspiration",
+      "appreciation": "Appreciation",
+      "contact": "Contact"
+    },
+    "stats": {
+      "items": "items",
+      "reviews": "reviews",
+      "fans": "fans",
+      "appreciation": "appreciation",
+      "views": "views"
+    }
+  },
+  "productOrder": {
+    "priceOnRequest": "Price on request",
+    "priceLabel": "Price",
+    "priceIncludesVat": "Including VAT",
+    "quantityLabel": "Quantity",
+    "badgeContactOnly": "Order via contact",
+    "badgeViaContact": "Via contact",
+    "buyerContactIntro": "This maker handles orders directly. Contact them to agree on price, availability, and pickup or delivery.",
+    "buyerPaymentsNotReady": "This maker still needs to set up payments before you can checkout via HomeCheff.",
+    "priceOptionalLabel": "Price (optional)",
+    "priceOptionalHint": "Leave blank for “Price on request”, or enter an indicative price.",
+    "priceOptionalPlaceholder": "Empty = price on request",
+    "method": {
+      "heading": "How do you want to receive orders?",
+      "homecheff": {
+        "title": "Pay via HomeCheff",
+        "description": "Buyers pay securely via HomeCheff. Set up your payments for this option."
+      },
+      "contact": {
+        "title": "Via direct contact",
+        "description": "Buyers contact you directly. No cart or checkout through HomeCheff."
+      }
+    },
+    "errors": {
+      "invalidOptionalPrice": "Enter a valid price or leave the field empty."
+    },
+    "publish": {
+      "paymentsRequired": "Want buyers to pay via HomeCheff? Set up your payments first. Your item is saved as a draft and is not live yet."
+    },
+    "payments": {
+      "setupTitle": "Set up payments",
+      "setupIntro": "This is only required when people can checkout via HomeCheff.",
+      "setupContactHint": "Not required for direct contact listings.",
+      "setupCta": "Set up payments",
+      "setupError": "Could not set up payments. Please try again later.",
+      "readyTitle": "Payments set up",
+      "readySubtitle": "Payouts via HomeCheff"
+    }
+  },
+  "checkout": {
+    "errors": {
+      "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
+      "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff."
+    }
+  },
+  "productCategory": {
+    "cheff": "From the kitchen",
+    "garden": "From the garden",
+    "designer": "From the maker",
+    "default": "Local listing"
+  },
+  "makerContact": {
+    "settingsTitle": "Reachability",
+    "settingsIntro": "Choose how people can reach you for questions or orders. You decide what appears on your profile.",
+    "premiumFutureNote": "External contact buttons may later become part of a premium profile. You can set them up now in advance.",
+    "settingsMenuDescription": "Phone, WhatsApp and social links on your profile",
+    "chatAlwaysOn": "Always available via HomeCheff — regardless of the options below.",
+    "save": "Save reachability",
+    "saveSuccess": "Your reachability settings have been saved.",
+    "fields": {
+      "chat": "HomeCheff chat",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "website": "Website",
+      "telegram": "Telegram"
+    },
+    "placeholders": {
+      "phone": "+31 6 12345678",
+      "whatsapp": "+31 6 12345678",
+      "instagram": "username or instagram.com/…",
+      "facebook": "page or facebook.com/…",
+      "tiktok": "@username or tiktok.com/…",
+      "website": "yoursite.com",
+      "telegram": "@username or t.me/…"
+    },
+    "errors": {
+      "phoneInvalid": "Enter a valid phone number.",
+      "whatsappInvalid": "Enter a valid WhatsApp number.",
+      "instagramInvalid": "Enter a valid Instagram link or username.",
+      "facebookInvalid": "Enter a valid Facebook link.",
+      "tiktokInvalid": "Enter a valid TikTok link or username.",
+      "websiteInvalid": "Enter a valid website URL.",
+      "telegramInvalid": "Enter a valid Telegram link or username.",
+      "enabledWithoutValue": "Enter a value or turn this option off.",
+      "saveFailed": "Could not save. Please try again."
+    },
+    "public": {
+      "heading": "Get in touch",
+      "chat": "Send a message via HomeCheff",
+      "phone": "Call this maker",
+      "whatsapp": "Send a WhatsApp",
+      "instagram": "View Instagram",
+      "facebook": "View Facebook",
+      "tiktok": "View TikTok",
+      "website": "View website",
+      "telegram": "View Telegram"
+    },
+    "compact": {
+      "chat": "Send message",
+      "phone": "Call",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok",
+      "website": "Website",
+      "telegram": "Telegram"
+    },
+    "strip": {
+      "product": {
+        "heading": "Questions or ordering?",
+        "intro": "Contact the maker directly, or pay via HomeCheff when that option is available."
+      },
+      "inspiration": {
+        "heading": "Want to know more?",
+        "intro": "Ask the maker your question."
+      }
+    }
   }
 }

@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import PublicSellerProfile from '@/components/seller/PublicSellerProfileNew';
+import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 
 interface PublicSellerProfilePageProps {
   params: {
@@ -140,5 +141,13 @@ export default async function PublicSellerProfilePage({ params }: PublicSellerPr
   // Check if this is the owner's own profile (only if user is logged in)
   const isOwner = session?.user ? (session.user as any).id === sellerProfile.User.id : false;
 
-  return <PublicSellerProfile sellerProfile={sellerProfileWithRecipes} isOwner={isOwner} />;
+  const publicContactChannels = await loadPublicContactChannelsForUser(sellerProfile.User.id);
+
+  return (
+    <PublicSellerProfile
+      sellerProfile={sellerProfileWithRecipes}
+      isOwner={isOwner}
+      publicContactChannels={publicContactChannels}
+    />
+  );
 }

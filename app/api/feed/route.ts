@@ -12,6 +12,7 @@ import { authOptions } from "@/lib/auth";
 import { calculateDistance } from "@/lib/geocoding";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 import { haversineKm } from "@/lib/community/geoDistance";
+import { isContactOnlyProduct } from "@/lib/product/order-method";
 
 function toNumber(v: string | null, fallback: number) {
   const n = v ? Number(v) : NaN;
@@ -237,6 +238,7 @@ export async function GET(req: NextRequest) {
         title: true,
         description: true,
         priceCents: true,
+        orderMethod: true,
         delivery: true,
         category: true,
         createdAt: true,
@@ -274,6 +276,9 @@ export async function GET(req: NextRequest) {
       // Inspiration content (without price) always visible
       // Products without Stripe Connect account are also shown (for products created from recipes)
       let filtered = products.filter(product => {
+        if (isContactOnlyProduct(product)) {
+          return true;
+        }
         // If product has no price (inspiration), always show
         if (!product.priceCents || product.priceCents === 0) {
           return true;
@@ -465,6 +470,7 @@ export async function GET(req: NextRequest) {
     title: product.title || "",
     description: product.description || "",
     priceCents: product.priceCents || 0,
+    orderMethod: product.orderMethod ?? 'HOMECHEFF_PAYMENT',
     category: product.category || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: "Nederland",

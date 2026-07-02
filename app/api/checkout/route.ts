@@ -11,6 +11,7 @@ import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
+import { isContactOnlyProduct, requiresStripeForHomecheffCheckout, sellerPaymentsReady } from '@/lib/product/order-method';
 
 const prisma = new PrismaClient();
 
@@ -99,6 +100,32 @@ export async function POST(req: NextRequest) {
 
       if (products.length !== items.length) {
         return { error: 'Some products not found', products: null };
+      }
+
+      const contactOnlyProducts = products.filter((p) => isContactOnlyProduct(p));
+      if (contactOnlyProducts.length > 0) {
+        return {
+          error: 'CONTACT_ONLY_NOT_CHECKOUT',
+          errorKey: 'checkout.errors.contactOnly',
+          products: null,
+          contactOnlyProductIds: contactOnlyProducts.map((p) => p.id),
+        };
+      }
+
+      const sellersWithoutPayments = products.filter((product) => {
+        if (!requiresStripeForHomecheffCheckout(product)) return false;
+        const seller = product.seller?.User;
+        return !sellerPaymentsReady(seller);
+      });
+      if (sellersWithoutPayments.length > 0) {
+        return {
+          error: 'PAYMENTS_NOT_READY',
+          errorKey: 'checkout.errors.paymentsNotReady',
+          products: null,
+          sellerNames: sellersWithoutPayments.map(
+            (p) => p.seller?.User?.name || 'Onbekend',
+          ),
+        };
       }
 
       // Validate delivery mode compatibility with products
@@ -413,24 +440,21 @@ export async function POST(req: NextRequest) {
     // A buyer can be anyone (no Stripe Connect required)
     // Only the sellers need Stripe Connect to receive payouts
     const sellersWithoutConnect = products.filter(product => {
-      // Only check if seller has a seller profile (they're actually selling)
+      if (!requiresStripeForHomecheffCheckout(product)) return false;
       const hasSellerProfile = product.seller && product.seller.User;
       if (!hasSellerProfile) return false;
-      
-      // Check if seller has Stripe Connect (required for receiving payouts)
-      return !product.seller?.User?.stripeConnectAccountId || 
-             !product.seller?.User?.stripeConnectOnboardingCompleted;
+      return !sellerPaymentsReady(product.seller?.User);
     });
 
     if (sellersWithoutConnect.length > 0) {
-      const sellerNames = sellersWithoutConnect.map(p => p.seller?.User?.name || 'Onbekend').join(', ');
       return NextResponse.json({
-        error: `De volgende verkopers hebben nog geen betalingsgegevens ingesteld: ${sellerNames}. Zij moeten eerst hun betalingsgegevens configureren via hun profiel voordat je kunt kopen.`,
+        error: 'PAYMENTS_NOT_READY',
+        errorKey: 'checkout.errors.paymentsNotReady',
+        messageKey: 'checkout.errors.paymentsNotReady',
         sellersNeedConnect: true,
         sellers: sellersWithoutConnect.map(p => ({
           id: p.seller?.User?.id,
           name: p.seller?.User?.name,
-          email: p.seller?.User?.email
         }))
       }, { status: 400 });
     }

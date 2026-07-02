@@ -40,9 +40,11 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import ShareButton from '@/components/ui/ShareButton';
 import Image from 'next/image';
-import StartChatButton from '@/components/chat/StartChatButton';
 import FollowButton from '@/components/follow/FollowButton';
 import RecipeModal from '@/components/recipes/RecipeModal';
+import MakerContactSection from '@/components/profile/MakerContactSection';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 
 interface WorkplacePhoto {
   id: string;
@@ -199,9 +201,15 @@ interface SellerProfile {
 interface PublicSellerProfileProps {
   sellerProfile: SellerProfile;
   isOwner?: boolean;
+  publicContactChannels?: PublicContactChannel[];
 }
 
-export default function PublicSellerProfile({ sellerProfile, isOwner = false }: PublicSellerProfileProps) {
+export default function PublicSellerProfile({
+  sellerProfile,
+  isOwner = false,
+  publicContactChannels = [],
+}: PublicSellerProfileProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows' | 'dishes-chef' | 'dishes-garden' | 'dishes-designer' | 'dishes'>('overview');
   const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -454,11 +462,6 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   {/* Only show follow/chat buttons if user is logged in */}
                   <div className="flex flex-col sm:flex-row gap-2">
                     <FollowButton sellerId={sellerProfile.id} sellerName={getDisplayName(sellerProfile.User)} />
-                    <StartChatButton 
-                      sellerId={sellerProfile.id} 
-                      sellerName={getDisplayName(sellerProfile.User)} 
-                      showSuccessMessage={true}
-                    />
                   </div>
                 </div>
               </div>
@@ -512,7 +515,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
             <div className="space-y-6">
               {/* About Card */}
               <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Over {sellerProfile.User.name}</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('publicProfile.sections.about')}</h3>
                 
                 {/* Location */}
                 {sellerProfile.User.place && (
@@ -586,6 +589,14 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   </div>
                 )}
               </div>
+
+              {!isOwner && publicContactChannels.length > 0 ? (
+                <MakerContactSection
+                  makerId={sellerProfile.User.id}
+                  makerName={getDisplayName(sellerProfile.User)}
+                  channels={publicContactChannels}
+                />
+              ) : null}
 
               {/* Stats Card */}
               <div className="bg-white rounded-xl shadow-sm border p-6">
@@ -662,14 +673,14 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                   {(() => {
                     const baseTabs = [
                       { id: 'overview', label: 'Overzicht', icon: Grid },
-                      { id: 'products', label: 'Producten', icon: ShoppingBag },
+                      { id: 'products', label: t('publicProfile.sections.offerings'), icon: ShoppingBag },
                       { 
                         id: 'workspace', 
                         label: getWorkspaceTabLabel(sellerProfile.User.sellerRoles[0] || 'generic'),
                         icon: Camera
                       },
-                      { id: 'recipes', label: 'Recepten', icon: ChefHat },
-                      { id: 'reviews', label: 'Reviews', icon: Star },
+                      { id: 'recipes', label: t('publicProfile.sections.inspiration'), icon: ChefHat },
+                      { id: 'reviews', label: t('publicProfile.sections.appreciation'), icon: Star },
                       { id: 'orders', label: 'Bestellingen', icon: Calendar },
                       { id: 'follows', label: 'Fan', icon: Heart }
                     ];
@@ -746,7 +757,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                     {sellerProfile.products.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-xl font-semibold text-gray-900">Uitgelichte Producten</h3>
+                          <h3 className="text-xl font-semibold text-gray-900">{t('publicProfile.sections.offerings')}</h3>
                           <Link 
                             href="#products"
                             onClick={() => setActiveTab('products')}
@@ -870,7 +881,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {activeTab === 'products' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">Alle Producten</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{t('publicProfile.sections.offerings')}</h3>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">
                           {totalProducts} producten
@@ -978,7 +989,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {activeTab === 'recipes' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">Recepten</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{t('publicProfile.sections.inspiration')}</h3>
                       <span className="text-sm text-gray-600">
                         {recipes.length} recepten
                       </span>
@@ -1081,7 +1092,7 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                 {activeTab === 'reviews' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">Reviews & Beoordelingen</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{t('publicProfile.sections.appreciation')}</h3>
                       <div className="flex items-center gap-2">
                         {renderStars(Math.floor(stats.averageRating))}
                         <span className="font-semibold text-lg">{stats.averageRating.toFixed(1)}</span>

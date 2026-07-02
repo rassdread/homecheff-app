@@ -88,7 +88,10 @@ export default function StripeConnectPaymentsBanner() {
     'Je producten kunnen zichtbaar zijn, maar klanten kunnen pas afrekenen zodra je betalingen hebt ingesteld.';
   const cta =
     t('seller.stripeConnectPaymentsBanner.cta') ||
-    'Betalingen instellen (Stripe Connect)';
+    'Betalingen instellen';
+  const hint =
+    t('seller.stripeConnectPaymentsBanner.hint') ||
+    'Wil je dat mensen via HomeCheff kunnen betalen? Stel dan veilig je betalingen in.';
 
   return (
     <div
@@ -104,6 +107,9 @@ export default function StripeConnectPaymentsBanner() {
           <div className="min-w-0 flex-1">
             <p className="break-words text-sm leading-relaxed text-amber-950">
               {message}
+            </p>
+            <p className="mt-1.5 break-words text-xs leading-relaxed text-amber-900/80">
+              {hint}
             </p>
           </div>
         </div>

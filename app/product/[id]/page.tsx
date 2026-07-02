@@ -14,7 +14,8 @@ import AddToCartButton from "@/components/cart/AddToCartButton";
 import ShareButton from "@/components/ui/ShareButton";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
-import StartChatButton from "@/components/chat/StartChatButton";
+import MakerContactSection from "@/components/profile/MakerContactSection";
+import type { PublicContactChannel } from "@/lib/profile/maker-contact-preferences";
 import PropsButton from "@/components/props/PropsButton";
 import ReportContentButton from "@/components/reporting/ReportContentButton";
 import ClickableName from "@/components/ui/ClickableName";
@@ -29,12 +30,20 @@ import {
   maaltijdenPathFromPlace,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
+import {
+  formatProductPriceLabel,
+  hasPublicDisplayPrice,
+  isContactOnlyProduct,
+  requiresStripeForHomecheffCheckout,
+} from '@/lib/product/order-method';
+import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 
 type Product = {
   id: string;
   title: string;
   description?: string | null;
   priceCents: number;
+  orderMethod?: ProductOrderMethodValue;
   image?: string | null;
   photos?: { id: string; url: string; idx: number }[];
   stock?: number | null;
@@ -71,7 +80,7 @@ type ProductStats = {
   reviewCount: number;
 };
 
-const getCategoryTheme = (category?: string) => {
+const getCategoryTheme = (category: string | undefined, t: (key: string) => string) => {
   switch (category) {
     case 'CHEFF':
       return {
@@ -80,7 +89,7 @@ const getCategoryTheme = (category?: string) => {
         text: 'text-orange-700',
         badge: 'bg-orange-100 text-orange-800 border-orange-200',
         icon: ChefHat,
-        label: 'Chef Special',
+        label: t('productCategory.cheff'),
         accent: 'bg-orange-500'
       };
     case 'GROWN':
@@ -90,7 +99,7 @@ const getCategoryTheme = (category?: string) => {
         text: 'text-emerald-700',
         badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
         icon: Sprout,
-        label: 'Garden Fresh',
+        label: t('productCategory.garden'),
         accent: 'bg-emerald-500'
       };
     case 'DESIGNER':
@@ -100,7 +109,7 @@ const getCategoryTheme = (category?: string) => {
         text: 'text-purple-700',
         badge: 'bg-purple-100 text-purple-800 border-purple-200',
         icon: Palette,
-        label: 'Designer Piece',
+        label: t('productCategory.designer'),
         accent: 'bg-purple-500'
       };
     default:
@@ -110,7 +119,7 @@ const getCategoryTheme = (category?: string) => {
         text: 'text-gray-700',
         badge: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: Package,
-        label: 'Special Item',
+        label: t('productCategory.default'),
         accent: 'bg-gray-500'
       };
   }
@@ -179,6 +188,8 @@ export default function ProductPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [publicContactChannels, setPublicContactChannels] = useState<PublicContactChannel[]>([]);
+  const [checkoutAvailable, setCheckoutAvailable] = useState(true);
   const [showPrintView, setShowPrintView] = useState(false);
   const [dishInfo, setDishInfo] = useState<{ 
     isDish: boolean; 
@@ -269,6 +280,7 @@ export default function ProductPage() {
           title: data.product.title,
           description: data.product.description,
           priceCents: data.product.priceCents,
+          orderMethod: data.product.orderMethod === 'CONTACT' ? 'CONTACT' : 'HOMECHEFF_PAYMENT',
           image: data.product.photos?.[0]?.url || data.product.ListingMedia?.[0]?.url || data.product.Image?.[0]?.fileUrl || null,
           photos: data.product.photos || data.product.ListingMedia?.map((media: any) => ({
             id: media.id,
@@ -305,6 +317,12 @@ export default function ProductPage() {
         };
         
         setProduct(transformedProduct);
+
+        if (Array.isArray(data.publicContactChannels)) {
+          setPublicContactChannels(data.publicContactChannels);
+        }
+
+        setCheckoutAvailable(data.checkoutAvailable !== false);
         
         if (session?.user?.email) {
           try {
@@ -526,7 +544,7 @@ export default function ProductPage() {
     );
   }
 
-  const theme = getCategoryTheme(product.category);
+  const theme = getCategoryTheme(product.category, t);
   const CategoryIcon = theme.icon;
   const baseImages = product.Image || product.photos || (product.image ? [{ id: '1', fileUrl: product.image, url: product.image }] : []);
   
@@ -909,6 +927,13 @@ export default function ProductPage() {
                             {product.subcategory}
                           </div>
                   )}
+                  {isContactOnlyProduct(product) ? (
+                    <div className="mt-3">
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800 border border-emerald-200">
+                        {t('productOrder.badgeContactOnly')}
+                      </span>
+                    </div>
+                  ) : null}
                     </div>
                       <FavoriteButton 
                         productId={product.id}
@@ -1217,15 +1242,22 @@ export default function ProductPage() {
               <div className={`bg-gradient-to-br ${theme.gradient} rounded-3xl p-6 shadow-2xl text-white`}>
                 {/* Price */}
                 <div className="mb-6">
-                  <div className="text-sm opacity-80 mb-1">Prijs</div>
-                  <div className="text-5xl font-bold mb-2">
-                  €{(product.priceCents / 100).toFixed(2)}
+                  <div className="text-sm opacity-80 mb-1">{t('productOrder.priceLabel')}</div>
+                  <div className={`font-bold mb-2 ${hasPublicDisplayPrice(product) ? 'text-5xl' : 'text-2xl sm:text-3xl'}`}>
+                    {formatProductPriceLabel(product, t)}
                   </div>
-                  <div className="text-sm opacity-80">Inclusief BTW</div>
+                  {!isContactOnlyProduct(product) ? (
+                    <div className="text-sm opacity-80">{t('productOrder.priceIncludesVat')}</div>
+                  ) : (
+                    <p className="text-sm opacity-90 leading-relaxed mt-2">
+                      {t('productOrder.buyerContactIntro')}
+                    </p>
+                  )}
                 </div>
 
                 {/* Quantity Selector */}
                 {(() => {
+                  if (isContactOnlyProduct(product)) return null;
                   const availableStock = getAvailableStock(product);
                   const isOutOfStock = availableStock !== null && availableStock === 0;
                   
@@ -1233,7 +1265,7 @@ export default function ProductPage() {
                   
                   return (
                     <div className="mb-6">
-                      <label className="block text-sm opacity-80 mb-2">Aantal</label>
+                      <label className="block text-sm opacity-80 mb-2">{t('productOrder.quantityLabel')}</label>
                       <select 
                         value={quantity} 
                         onChange={(e) => setQuantity(Number(e.target.value))}
@@ -1250,6 +1282,31 @@ export default function ProductPage() {
                 {/* CTA Buttons */}
                 <div className="space-y-3">
               {(() => {
+                if (isContactOnlyProduct(product) && !isOwner && product.seller?.User?.id && publicContactChannels.length > 0) {
+                  return (
+                    <MakerContactSection
+                      variant="product"
+                      makerId={product.seller.User.id}
+                      makerName={getSellerDisplayName(product)}
+                      channels={publicContactChannels}
+                      productId={product.id}
+                      className="!border-white/30 !bg-white/95 text-gray-900 shadow-lg"
+                    />
+                  );
+                }
+
+                if (
+                  !isOwner &&
+                  requiresStripeForHomecheffCheckout(product) &&
+                  !checkoutAvailable
+                ) {
+                  return (
+                    <div className="w-full py-4 px-6 bg-white/95 text-amber-950 rounded-2xl text-center font-medium border-2 border-white/40 shadow-lg leading-relaxed">
+                      {t('productOrder.buyerPaymentsNotReady')}
+                    </div>
+                  );
+                }
+
                 const availableStock = getAvailableStock(product);
                 const isOutOfStock = availableStock !== null && availableStock === 0;
                 
@@ -1295,15 +1352,6 @@ export default function ProductPage() {
                 );
               })()}
 
-                  {!isOwner && (
-                    <StartChatButton
-                      productId={product.id}
-                      sellerId={product.seller?.User?.id || ''}
-                      sellerName={getSellerDisplayName(product)}
-                      showSuccessMessage={true}
-                      className="w-full bg-white/20 backdrop-blur-sm border-2 border-white/30 hover:bg-white/30 text-white py-4 px-6 rounded-2xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"
-                    />
-                  )}
             </div>
 
                 {/* Print/Download Actions (only if product is linked to a dish) */}
@@ -1473,6 +1521,17 @@ export default function ProductPage() {
                     </li>
                   </ul>
                 </nav>
+
+                {!isOwner && product.seller?.User?.id && publicContactChannels.length > 0 && !isContactOnlyProduct(product) ? (
+                  <MakerContactSection
+                    variant="product"
+                    makerId={product.seller.User.id}
+                    makerName={getSellerDisplayName(product)}
+                    channels={publicContactChannels}
+                    productId={product.id}
+                    className="mb-6"
+                  />
+                ) : null}
 
                 {(product.seller?.User?.username || product.seller?.User?.id) ? (
                 <Link

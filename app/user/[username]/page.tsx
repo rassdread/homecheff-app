@@ -10,7 +10,8 @@ import { mondayStartUtc } from "@/lib/gamification/leaderboard-queries";
 import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
 import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
 import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
-import PublicProfileClient from "./PublicProfileClient";
+import PublicProfileClient, { type PublicProfileHcpPayload } from "./PublicProfileClient";
+import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-contact-channels";
 import { getDisplayName } from "@/lib/displayName";
 
 export const revalidate = 0;
@@ -494,6 +495,8 @@ export default async function PublicProfilePage({
       : {}),
   };
 
+  const publicContactChannels = await loadPublicContactChannelsForUser(user.id);
+
   return (
     <>
       <Script
@@ -508,6 +511,7 @@ export default async function PublicProfilePage({
           isOwnProfile={isOwnProfile}
           publicHcp={publicHcp}
           ecosystemChipKeys={ecosystemChipKeys}
+          publicContactChannels={publicContactChannels}
         />
       </div>
     </>

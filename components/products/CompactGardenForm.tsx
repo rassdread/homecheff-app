@@ -11,6 +11,8 @@ import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
+import ProductOrderMethodSelector from '@/components/products/ProductOrderMethodSelector';
+import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
@@ -59,6 +61,7 @@ export default function CompactGardenForm({
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [price, setPrice] = React.useState('');
+  const [orderMethod, setOrderMethod] = React.useState<ProductOrderMethodValue>('HOMECHEFF_PAYMENT');
   const [subcategory, setSubcategory] = React.useState('');
   const [deliveryOptions, setDeliveryOptions] = React.useState<string[]>(['PICKUP']);
   
@@ -145,6 +148,9 @@ export default function CompactGardenForm({
       setTitle(existingProduct.title || '');
       setDescription(existingProduct.description || '');
       setPrice(existingProduct.priceCents ? (existingProduct.priceCents / 100).toString() : '');
+      setOrderMethod(
+        existingProduct.orderMethod === 'CONTACT' ? 'CONTACT' : 'HOMECHEFF_PAYMENT',
+      );
       setSubcategory(existingProduct.subcategory || '');
       // Convert deliveryMode to array of options
       const existingMode = existingProduct.deliveryMode || 'PICKUP';
@@ -291,10 +297,30 @@ export default function CompactGardenForm({
     e.preventDefault();
     setMessage(null);
 
-    const priceNumber = Number(price.replace(',', '.'));
-    if (!title || !description || !Number.isFinite(priceNumber)) {
+    const priceNumber = price.trim()
+      ? Number(price.replace(',', '.'))
+      : NaN;
+    const isContactOrder = orderMethod === 'CONTACT';
+
+    if (!title || !description) {
       setMessage(t('compactForms.shared.fillTitleDescriptionPrice'));
       return;
+    }
+
+    let priceCents = 0;
+    if (isContactOrder) {
+      if (price.trim()) {
+        if (!Number.isFinite(priceNumber) || priceNumber < 0) {
+          setMessage(t('productOrder.errors.invalidOptionalPrice'));
+          return;
+        }
+        priceCents = Math.round(priceNumber * 100);
+      }
+    } else if (!Number.isFinite(priceNumber) || priceNumber <= 0) {
+      setMessage(t('compactForms.shared.fillTitleDescriptionPrice'));
+      return;
+    } else {
+      priceCents = Math.round(priceNumber * 100);
     }
     if (images.length === 0) {
       setMessage(t('productForm.addAtLeastOnePhoto'));
@@ -311,7 +337,6 @@ export default function CompactGardenForm({
       setMessage(t('productForm.photosNeedValidUrl'));
       return;
     }
-    const priceCents = Math.round(priceNumber * 100);
 
     // Prepare pickup address - use user address if useMyAddress is true, otherwise use entered address
     let finalPickupAddress: string | null = null;
@@ -373,6 +398,7 @@ export default function CompactGardenForm({
             title,
             description,
             priceCents,
+            orderMethod,
             category: 'GARDEN',
             subcategory: subcategory || null,
             deliveryMode: deliveryModeFromOptions(deliveryOptions),
@@ -419,6 +445,7 @@ export default function CompactGardenForm({
             title,
             description,
             priceCents,
+            orderMethod,
             category: 'GARDEN',
             subcategory: subcategory || null,
             deliveryMode: deliveryModeFromOptions(deliveryOptions),
@@ -453,6 +480,9 @@ export default function CompactGardenForm({
       
       if (res.ok) {
         console.log('✅ [CompactGardenForm] Product created/updated successfully');
+        if (data.publishBlocked && data.publishBlockReason === 'PAYMENTS_REQUIRED') {
+          setMessage(t('productOrder.publish.paymentsRequired'));
+        }
         await hcpRewardUi?.refetchGamification();
         if (onSave) {
           onSave(data.product || data);
@@ -529,6 +559,12 @@ export default function CompactGardenForm({
           />
         </div>
 
+        {/* Verkoopvorm */}
+        <ProductOrderMethodSelector
+          value={orderMethod}
+          onChange={setOrderMethod}
+        />
+
         {/* Titel & Prijs - Side by side */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -544,12 +580,25 @@ export default function CompactGardenForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('compactForms.shared.priceLabelEuro')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {orderMethod === 'CONTACT'
+                ? t('productOrder.priceOptionalLabel')
+                : t('compactForms.shared.priceLabelEuro')}
+            </label>
+            {orderMethod === 'CONTACT' ? (
+              <p className="text-xs text-gray-500 mb-1.5 leading-snug">
+                {t('productOrder.priceOptionalHint')}
+              </p>
+            ) : null}
             <input
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder={t('compactForms.shared.pricePlaceholderGarden')}
+              placeholder={
+                orderMethod === 'CONTACT'
+                  ? t('productOrder.priceOptionalPlaceholder')
+                  : t('compactForms.shared.pricePlaceholderGarden')
+              }
               inputMode="decimal"
             />
           </div>

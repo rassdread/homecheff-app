@@ -30,6 +30,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getDisplayName } from '@/lib/displayName';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
+import MakerContactSection from '@/components/profile/MakerContactSection';
+import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 
 type InspirationCategory = 'CHEFF' | 'GROWN' | 'DESIGNER';
 
@@ -110,6 +112,7 @@ export type InspiratieDetailProps = {
       title?: string | null;
     }>;
   };
+  publicContactChannels?: PublicContactChannel[];
 };
 
 const CATEGORY_META: Record<
@@ -175,7 +178,7 @@ const formatTime = (minutes?: number | null) => {
   return mins ? `${hrs} uur ${mins} min` : `${hrs} uur`;
 };
 
-export default function InspiratieDetail({ item }: InspiratieDetailProps) {
+export default function InspiratieDetail({ item, publicContactChannels = [] }: InspiratieDetailProps) {
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -614,6 +617,15 @@ export default function InspiratieDetail({ item }: InspiratieDetailProps) {
                     )}
                   </div>
                 </div>
+                {publicContactChannels.length > 0 ? (
+                  <MakerContactSection
+                    variant="inspiration"
+                    makerId={item.user.id}
+                    makerName={getDisplayName(item.user)}
+                    channels={publicContactChannels}
+                    className="mt-4"
+                  />
+                ) : null}
                 {item.tags && item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {item.tags.map(tag => (

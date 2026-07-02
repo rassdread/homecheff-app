@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { randomUUID } from 'crypto';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
+import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
+import { parseProductOrderMethod } from '@/lib/product/order-method';
+import {
+  canPurchaseViaHomecheff,
+  computePublishGateFromProductUpdate,
+  requiresStripeForHomecheffCheckout,
+  resolveProductPublishState,
+} from '@/lib/product/order-method';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +39,7 @@ export async function GET(
                 lat: true,
                 lng: true,
                 displayFullName: true,
-                displayNameOption: true
+                displayNameOption: true,
               }
             }
           }
@@ -222,11 +230,44 @@ export async function GET(
         })
       : product.Video;
 
+    const sellerUserId =
+      product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
+    const publicContactChannels = await loadPublicContactChannelsForUser(sellerUserId);
+
+    const sellerStripe = sellerUserId
+      ? await prisma.user.findUnique({
+          where: { id: sellerUserId },
+          select: {
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
+          },
+        })
+      : null;
+
+    const checkoutAvailable = canPurchaseViaHomecheff(
+      {
+        orderMethod: (product as { orderMethod?: string }).orderMethod,
+        priceCents: product.priceCents,
+      },
+      sellerStripe,
+    );
+    const checkoutBlockedReason =
+      !checkoutAvailable &&
+      requiresStripeForHomecheffCheckout({
+        orderMethod: (product as { orderMethod?: string }).orderMethod,
+        priceCents: product.priceCents,
+      })
+        ? 'PAYMENTS_NOT_READY'
+        : null;
+
     return NextResponse.json({ 
       product: {
         ...product,
         Video: sortedVideo
       },
+      publicContactChannels,
+      checkoutAvailable,
+      checkoutBlockedReason,
       isDish: isDish || false,
       dishCategory: dishCategory || null,
       dish: dish ? {
@@ -325,6 +366,20 @@ export async function PATCH(
           }
         }
 
+        const sellerUserForPublish = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: {
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
+          },
+        });
+
+        const publishState = computePublishGateFromProductUpdate(
+          body,
+          product,
+          sellerUserForPublish,
+        );
+
         // Update product in appropriate model
         if (isNewModel) {
           // Handle image updates if provided
@@ -333,7 +388,7 @@ export async function PATCH(
             description: body.description,
             priceCents: body.priceCents,
             category: body.category,
-            isActive: body.isActive !== undefined ? body.isActive : true,
+            isActive: publishState.isActive,
             unit: body.unit || 'PORTION',
             delivery: body.delivery,
             maxStock: body.maxStock !== undefined ? body.maxStock : null,
@@ -348,6 +403,9 @@ export async function PATCH(
             // Seller delivery fields
             sellerCanDeliver: body.sellerCanDeliver !== undefined ? Boolean(body.sellerCanDeliver) : undefined,
             deliveryRadiusKm: body.deliveryRadiusKm !== undefined && body.deliveryRadiusKm !== null ? Number(body.deliveryRadiusKm) : null,
+            ...(body.orderMethod !== undefined
+              ? { orderMethod: parseProductOrderMethod(body.orderMethod) }
+              : {}),
           };
 
           // Update images if provided
@@ -403,7 +461,11 @@ export async function PATCH(
               updatedProduct.Image?.length ?? 0,
             ).catch((e) => console.warn('[gamification] product PATCH', e));
           }
-          return NextResponse.json({ product: updatedProduct });
+          return NextResponse.json({
+            product: updatedProduct,
+            publishBlocked: publishState.publishBlocked,
+            publishBlockReason: publishState.publishBlockReason ?? null,
+          });
         } else {
           const updatedListing = await prisma.listing.update({
             where: { id: id },
@@ -508,6 +570,9 @@ export async function PATCH(
             // Seller delivery fields
             sellerCanDeliver: body.sellerCanDeliver !== undefined ? Boolean(body.sellerCanDeliver) : undefined,
             deliveryRadiusKm: body.deliveryRadiusKm !== undefined && body.deliveryRadiusKm !== null ? Number(body.deliveryRadiusKm) : null,
+            ...(body.orderMethod !== undefined
+              ? { orderMethod: parseProductOrderMethod(body.orderMethod) }
+              : {}),
           };
 
           // Update images if provided

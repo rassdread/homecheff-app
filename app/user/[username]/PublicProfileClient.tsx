@@ -8,7 +8,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import WorkspacePhotosDisplay from '@/components/profile/WorkspacePhotosDisplay';
 import FollowButton from '@/components/follow/FollowButton';
-import StartChatButton from '@/components/chat/StartChatButton';
 import PhotoCarousel from '@/components/ui/PhotoCarousel';
 import FansAndFollowsList from '@/components/FansAndFollowsList';
 import BusinessBadge from '@/components/ui/BusinessBadge';
@@ -18,6 +17,8 @@ import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import type { FeedMediaLightboxPayload } from '@/components/feed/FeedMediaLightbox';
 import { hrefForProfileGridItem } from '@/lib/profile/profilePublicItemHref';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
+import MakerContactSection from '@/components/profile/MakerContactSection';
+import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { getDisplayName } from '@/lib/displayName';
 
@@ -126,7 +127,8 @@ interface PublicProfileClientProps {
   /** Publieke HCP-weergave (geen eventgeschiedenis). */
   publicHcp?: PublicProfileHcpPayload | null;
   /** Rustige ecosystem-/communitylabels (alleen server-afgeleide sleutels). */
-  ecosystemChipKeys?: string[];
+  /** Publieke contactkanalen (server-gefilterd; geen privé phoneNumber). */
+  publicContactChannels?: PublicContactChannel[];
 }
 
 export default function PublicProfileClient({
@@ -135,6 +137,7 @@ export default function PublicProfileClient({
   isOwnProfile = false,
   publicHcp = null,
   ecosystemChipKeys = [],
+  publicContactChannels = [{ id: 'chat', href: '' }],
 }: PublicProfileClientProps) {
   const { t } = useTranslation();
   const [showAllPublicBadges, setShowAllPublicBadges] = useState(false);
@@ -436,15 +439,27 @@ export default function PublicProfileClient({
   const publicDisplayName = getDisplayName(user);
 
   const getRoleLabel = (role: string) => {
-    const roleInfo = {
-      'chef': { icon: '👨‍🍳', label: 'Chef' },
-      'garden': { icon: '🌱', label: 'Tuinier' },
-      'designer': { icon: '🎨', label: 'Designer' },
-      'CHEFF': { icon: '👨‍🍳', label: 'Chef' },
-      'GROWN': { icon: '🌱', label: 'Tuinier' },
-      'DESIGNER': { icon: '🎨', label: 'Designer' }
-    }[role];
-    return roleInfo ? `${roleInfo.icon} ${roleInfo.label}` : 'Verkoper';
+    const keyMap: Record<string, string> = {
+      chef: 'publicProfile.roles.kitchen',
+      garden: 'publicProfile.roles.garden',
+      designer: 'publicProfile.roles.studio',
+      CHEFF: 'publicProfile.roles.kitchen',
+      GROWN: 'publicProfile.roles.garden',
+      DESIGNER: 'publicProfile.roles.studio',
+    };
+    const iconMap: Record<string, string> = {
+      chef: '👨‍🍳',
+      garden: '🌱',
+      designer: '🎨',
+      CHEFF: '👨‍🍳',
+      GROWN: '🌱',
+      DESIGNER: '🎨',
+    };
+    const i18nKey = keyMap[role];
+    if (i18nKey) {
+      return `${iconMap[role] ?? ''} ${t(i18nKey)}`.trim();
+    }
+    return t('publicProfile.roles.maker');
   };
 
   const getFilteredProducts = () => {
@@ -573,39 +588,15 @@ export default function PublicProfileClient({
                 </div>
               ) : null}
 
-              {/* HomeCheff Points — publiek (level, badges, streak; geen HCP-eventlog) */}
+              {(hcpPublic.totalHcp > 0 || hcpPublic.badges.length > 0) && (
               <div
                 className="mb-4 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 px-3 py-3 sm:px-4 sm:py-3.5 shadow-sm"
-                aria-label="HomeCheff Points op dit profiel"
+                aria-label={t('publicProfile.reputationAria')}
               >
                 <p className="text-sm font-semibold text-gray-900">
-                  Level {hcpPublic.level}{' '}
+                  {t('publicProfile.reputationLabel')}{' '}
                   <span className="font-normal text-gray-600">· {hcpPublic.levelTitle}</span>
-                  {hcpPublic.currentStreak >= 1 ? (
-                    <span className="font-normal text-amber-900">
-                      {' '}
-                      · 🔥{' '}
-                      {hcpPublic.currentStreak === 1
-                        ? '1 dag streak'
-                        : `${hcpPublic.currentStreak} dagen streak`}
-                    </span>
-                  ) : null}
                 </p>
-                {(hcpPublic.activeThisWeek || (hcpPublic.weeklyHcpEarned ?? 0) > 0) && (
-                  <p className="mt-1.5 text-xs text-gray-600">
-                    {hcpPublic.activeThisWeek ? (
-                      <span className="font-medium text-emerald-900">Actief deze week</span>
-                    ) : null}
-                    {hcpPublic.activeThisWeek && (hcpPublic.weeklyHcpEarned ?? 0) > 0 ? (
-                      <span aria-hidden> · </span>
-                    ) : null}
-                    {(hcpPublic.weeklyHcpEarned ?? 0) > 0 ? (
-                      <span>
-                        +{hcpPublic.weeklyHcpEarned!.toLocaleString('nl-NL')} HCP deze week
-                      </span>
-                    ) : null}
-                  </p>
-                )}
                 {hcpPublic.badges.length > 0 ? (
                   <div className="mt-2.5 space-y-2">
                     <div className="flex flex-wrap justify-center lg:justify-start gap-2">
@@ -619,7 +610,9 @@ export default function PublicProfileClient({
                           aria-expanded={showAllPublicBadges}
                           onClick={() => setShowAllPublicBadges((v) => !v)}
                         >
-                          {showAllPublicBadges ? 'Minder tonen' : 'Bekijk alle badges'}
+                          {showAllPublicBadges
+                            ? t('publicProfile.showLessBadges')
+                            : t('publicProfile.showMoreBadges')}
                         </button>
                         {showAllPublicBadges ? (
                           <div className="mt-2 flex flex-wrap justify-center lg:justify-start gap-2">
@@ -630,28 +623,29 @@ export default function PublicProfileClient({
                     ) : null}
                   </div>
                 ) : isOwnProfile ? (
-                  <p className="mt-2 text-xs text-gray-600">
-                    Nog geen badges zichtbaar voor anderen —{' '}
-                    <Link href="/mijn-hcp" className="font-semibold text-emerald-800 hover:underline">
-                      bekijk HomeCheff Points
-                    </Link>
-                  </p>
+                  <p className="mt-2 text-xs text-gray-600">{t('publicProfile.noBadgesYet')}</p>
                 ) : null}
               </div>
+              )}
 
-              {/* Quote */}
               {user.quote && (
                 <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
                   <blockquote className="text-sm sm:text-base text-gray-700 italic leading-relaxed">
-                    "{user.quote}"
+                    &ldquo;{user.quote}&rdquo;
                   </blockquote>
                 </div>
               )}
 
-              {/* Bio */}
-              {user.bio && (
-                <p className="text-sm sm:text-base text-gray-700 mb-4 leading-relaxed">{user.bio}</p>
-              )}
+              <section className="mb-4 text-left w-full" aria-labelledby="public-profile-about">
+                <h2 id="public-profile-about" className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                  {t('publicProfile.sections.about')}
+                </h2>
+                {user.bio ? (
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{user.bio}</p>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">{t('publicProfile.emptyBio')}</p>
+                )}
+              </section>
 
               {/* Roles */}
               <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
@@ -695,55 +689,50 @@ export default function PublicProfileClient({
               </div>
 
               {/* Stats — grid blijft stabiel op mobiel (o.a. 2 kolommen, daarna meer) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-6">
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100 min-w-0">
                   <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-blue-600" />
                   <span className="font-medium text-gray-900 tabular-nums">{allProducts.length}</span>
-                  <span className="hidden sm:inline truncate">items</span>
+                  <span className="hidden sm:inline truncate">{t('publicProfile.stats.items')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-2 rounded-lg border border-yellow-100 min-w-0">
                   <Star className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-yellow-600" />
                   <span className="font-medium text-gray-900 tabular-nums">{userStats.reviews}</span>
-                  <span className="hidden sm:inline truncate">reviews</span>
+                  <span className="hidden sm:inline truncate">{t('publicProfile.stats.reviews')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100 min-w-0">
                   <Users className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-purple-600" />
                   <span className="font-medium text-gray-900 tabular-nums">{userStats.followers}</span>
-                  <span className="hidden sm:inline truncate">fans</span>
+                  <span className="hidden sm:inline truncate">{t('publicProfile.stats.fans')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-pink-50 to-red-50 px-3 py-2 rounded-lg border border-pink-100 min-w-0">
                   <Heart className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-pink-600" />
                   <span className="font-medium text-gray-900 tabular-nums">{userStats.props}</span>
-                  <span className="hidden sm:inline truncate">props</span>
+                  <span className="hidden sm:inline truncate">{t('publicProfile.stats.appreciation')}</span>
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-teal-50 to-cyan-50 px-3 py-2 rounded-lg border border-teal-100 min-w-0">
                   <Eye className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-teal-600" />
                   <span className="font-medium text-gray-900 tabular-nums">{user.profileViews || 0}</span>
-                  <span className="hidden sm:inline truncate">views</span>
-                </div>
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-gradient-to-br from-amber-50 to-yellow-50 px-3 py-2 rounded-lg border border-amber-200 min-w-0">
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 text-amber-600" />
-                  <span className="font-medium text-gray-900 tabular-nums">
-                    {hcpPublic.totalHcp.toLocaleString('nl-NL')}
-                  </span>
-                  <span className="truncate text-gray-700 font-medium">HCP</span>
+                  <span className="hidden sm:inline truncate">{t('publicProfile.stats.views')}</span>
                 </div>
               </div>
 
-              {/* Action Buttons - Volledig Responsive */}
-              <div className="grid grid-cols-2 gap-3">
-                <FollowButton 
-                  sellerId={user.id}
-                  sellerName={publicDisplayName}
-                  className="w-full px-4 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
-                />
-                <StartChatButton
-                  sellerId={user.id}
-                  sellerName={publicDisplayName}
-                  showSuccessMessage={true}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base"
-                />
-              </div>
+              <MakerContactSection
+                makerId={user.id}
+                makerName={publicDisplayName}
+                channels={publicContactChannels}
+                className="mb-6"
+              />
+
+              {!isOwnProfile && (
+                <div className="mb-6">
+                  <FollowButton
+                    sellerId={user.id}
+                    sellerName={publicDisplayName}
+                    className="w-full px-4 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -860,8 +849,8 @@ export default function PublicProfileClient({
                       <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                       <p>
                         {contentSubTab === 'dorpsplein'
-                          ? (t('profilePage.tabs.noDorpspleinItems') || 'Nog geen dorpsplein items')
-                          : (t('profilePage.tabs.noInspiratieItems') || 'Nog geen inspiratie items')}
+                          ? t('publicProfile.emptyOfferings')
+                          : t('publicProfile.emptyInspiration')}
                       </p>
                     </div>
                   ) : (

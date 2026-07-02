@@ -64,6 +64,21 @@ model User {
   messageGuidelinesAcceptedAt            DateTime?
   socialOnboardingCompleted              Boolean                   @default(true)
   phoneNumber                            String?
+  /// Publieke bereikbaarheid (opt-in; nooit automatisch van phoneNumber)
+  publicPhoneEnabled                     Boolean                   @default(false)
+  publicPhoneNumber                      String?
+  publicWhatsappEnabled                  Boolean                   @default(false)
+  publicWhatsappNumber                   String?
+  publicInstagramEnabled                 Boolean                   @default(false)
+  instagramUrl                           String?
+  publicFacebookEnabled                  Boolean                   @default(false)
+  facebookUrl                            String?
+  publicTikTokEnabled                    Boolean                   @default(false)
+  tiktokUrl                              String?
+  publicWebsiteEnabled                   Boolean                   @default(false)
+  websiteUrl                             String?
+  publicTelegramEnabled                  Boolean                   @default(false)
+  telegramUrl                            String?
   downloadPermission                     DownloadPermission        @default(EVERYONE)
   printPermission                        PrintPermission           @default(EVERYONE)
   lastLocationUpdate                     DateTime?
@@ -392,6 +407,7 @@ model Product {
   sellerCanDeliver  Boolean            @default(false)
   deliveryRadiusKm  Float?
   tags              String[]           @default([])
+  orderMethod       ProductOrderMethod @default(HOMECHEFF_PAYMENT)
   conversations     Conversation[]
   deliveryOrders    DeliveryOrder[]
   favorites         Favorite[]
@@ -1884,6 +1900,11 @@ enum ProductCategory {
   CHEFF
   GROWN
   DESIGNER
+}
+
+enum ProductOrderMethod {
+  HOMECHEFF_PAYMENT
+  CONTACT
 }
 
 enum ReportStatus {

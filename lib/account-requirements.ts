@@ -57,7 +57,7 @@ const MISSING_TERMS: MissingRequirement = {
 
 const MISSING_STRIPE: MissingRequirement = {
   key: 'stripeOnboarding',
-  label: 'Rond je uitbetalingen (Stripe) af',
+  label: 'Stel je betalingen in',
   actionHref: '/verkoper/dashboard',
 };
 

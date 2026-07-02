@@ -17,12 +17,14 @@ import {
   getSaleItemHref,
 } from "@/components/feed/feedItemClassification";
 import UserBadgeChips from "@/components/gamification/UserBadgeChips";
+import type { ProductOrderMethodValue } from "@/lib/product/order-method";
 
 export type GeoFeedCardItem = {
   id: string;
   title: string | null;
   description: string | null;
   priceCents: number | null;
+  orderMethod?: ProductOrderMethodValue | string | null;
   type?: string | null;
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
@@ -79,11 +81,14 @@ export function FeedSaleCard({
   t: TFn;
 }) {
   const listingHref = getSaleItemHref(it);
-  const hasPrice =
-    it.priceCents != null && Number(it.priceCents) > 0;
-  const priceLabel = hasPrice
-    ? `€ ${(Number(it.priceCents) / 100).toFixed(2)}`
-    : null;
+  const contactOnly = isContactOnlyProduct(it);
+  const priceLabel =
+    contactOnly || (it.priceCents != null && Number(it.priceCents) > 0)
+      ? formatProductPriceLabel(
+          { priceCents: it.priceCents, orderMethod: it.orderMethod },
+          t,
+        )
+      : null;
 
   return (
     <div className="feed-card-geo rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
@@ -94,10 +99,15 @@ export function FeedSaleCard({
         videoPoster={it.videoThumbnail}
         imageUrl={it.photo}
         badgeOverlay={
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
             <span className="inline-flex items-center rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-sm">
               {t("feed.chipSale")}
             </span>
+            {contactOnly ? (
+              <span className="inline-flex items-center rounded-lg bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-200 shadow-sm">
+                {t("productOrder.badgeViaContact")}
+              </span>
+            ) : null}
           </div>
         }
       />

@@ -6,6 +6,7 @@ import RecipeView from '@/components/recipes/RecipeView';
 import InspirationNormalView from '@/components/inspiratie/InspirationNormalView';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 
 type PageProps = {
   params: { id: string };
@@ -89,6 +90,8 @@ export default async function RecipePage({ params, searchParams }: PageProps) {
   // Check if print view is requested
   const showPrintView = searchParams?.view === 'print' || searchParams?.print === 'true';
 
+  const publicContactChannels = await loadPublicContactChannelsForUser(recipe.userId);
+
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
@@ -142,6 +145,7 @@ export default async function RecipePage({ params, searchParams }: PageProps) {
           }}
           isOwner={isOwner}
           category="CHEFF"
+          publicContactChannels={publicContactChannels}
         />
       )}
     </Suspense>

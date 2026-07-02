@@ -44,12 +44,18 @@ import {
   type FeedSurfaceId,
 } from "@/lib/feed/feedSurfaceState";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
+import {
+  formatProductPriceLabel,
+  isContactOnlyProduct,
+} from "@/lib/product/order-method";
+import type { ProductOrderMethodValue } from "@/lib/product/order-method";
 
 type HomeItem = {
   id: string;
   title: string;
   description?: string | null;
   priceCents: number;
+  orderMethod?: ProductOrderMethodValue;
   image?: string | null;
   images?: string[]; // Array of all images for slider
   video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null } | null;
@@ -1521,9 +1527,14 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
 
                       {/* Price - positioned to not block video controls */}
                       {/* Lower z-index to ensure video controls are always clickable */}
-                      <div className="absolute bottom-4 left-4 z-[1] pointer-events-none">
+                      <div className="absolute bottom-4 left-4 z-[1] pointer-events-none flex flex-col gap-1.5 items-start">
+                        {isContactOnlyProduct(item) ? (
+                          <span className="bg-white/95 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full text-xs font-semibold shadow pointer-events-auto">
+                            {t('productOrder.badgeViaContact')}
+                          </span>
+                        ) : null}
                         <span className="bg-primary-brand text-white px-3 py-1 rounded-full text-lg font-bold shadow-lg pointer-events-auto">
-                          €{(item.priceCents / 100).toFixed(2)}
+                          {formatProductPriceLabel(item, t)}
                         </span>
                       </div>
                       {item.video?.url && (
@@ -1628,7 +1639,14 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                       )}
 
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-xl font-bold text-gray-900">€{(item.priceCents / 100).toFixed(2)}</p>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-xl font-bold text-gray-900">{formatProductPriceLabel(item, t)}</p>
+                          {isContactOnlyProduct(item) ? (
+                            <span className="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                              {t('productOrder.badgeViaContact')}
+                            </span>
+                          ) : null}
+                        </div>
                         {item.location?.distanceKm !== null && item.location?.distanceKm !== undefined && (
                           <p className="text-sm font-medium text-emerald-700">{item.location.distanceKm.toFixed(1)} km</p>
                         )}

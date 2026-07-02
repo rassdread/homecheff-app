@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getCurrentDomain } from '@/lib/seo/metadata';
 import InspiratieDetail from '@/components/inspiratie/InspiratieDetail';
+import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 
 const CATEGORY_VALUES = ['CHEFF', 'GROWN', 'DESIGNER'] as const;
 type InspirationCategory = (typeof CATEGORY_VALUES)[number];
@@ -118,8 +119,10 @@ export default async function InspiratieItemPage({ params }: PageProps) {
     notFound();
   }
 
+  const publicContactChannels = await loadPublicContactChannelsForUser(item.user.id);
+
   return (
-    <InspiratieDetail item={item} />
+    <InspiratieDetail item={item} publicContactChannels={publicContactChannels} />
   );
 }
 

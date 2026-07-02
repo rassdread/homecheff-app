@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, User, Shield, Bell, Palette, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import { Settings, User, Shield, Bell, Palette, HelpCircle, LogOut, ChevronRight, MessageCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { performLogout } from '@/lib/session-cleanup';
 
@@ -33,6 +33,12 @@ export default function SettingsMenu({ isOpen, onClose, activeSection, setActive
       title: t('settingsMenu.accountTitle') || 'Account',
       icon: Shield,
       description: t('settingsMenu.accountDescription') || 'Password, email and security'
+    },
+    {
+      id: 'contact',
+      title: t('makerContact.settingsTitle'),
+      icon: MessageCircle,
+      description: t('makerContact.settingsMenuDescription'),
     },
     {
       id: 'notifications',

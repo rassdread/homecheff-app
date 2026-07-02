@@ -29,6 +29,7 @@ import dynamic from 'next/dynamic';
 import PhotoUploader from './PhotoUploader';
 import SettingsMenu from './SettingsMenu';
 import ProfileSettings, { ProfileSettingsRef } from './ProfileSettings';
+import MakerContactSettings from './MakerContactSettings';
 import AccountSettings from './AccountSettings';
 import NotificationSettings from './NotificationSettings';
 import StripeConnectSetup from './StripeConnectSetup';
@@ -454,6 +455,8 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
         );
       case 'notifications':
         return <NotificationSettings onUpdateSettings={handleNotificationSettingsUpdate} />;
+      case 'contact':
+        return <MakerContactSettings />;
       default:
         return <ProfileSettings ref={profileSettingsRef} user={user} onSave={handleProfileSave} onEditStateChange={setIsProfileEditing} />;
     }
@@ -1615,64 +1618,77 @@ export default function ProfileClient({ user, openNewProducts, searchParams }: P
                 {/* Subscription tab content */}
                 {activeTab === 'subscription' && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                          <Award className="w-5 h-5 mr-2 text-emerald-600" />
-                          Subscription & Fees
+                    {user?.SellerProfile?.subscriptionId &&
+                    user.SellerProfile.Subscription?.isActive ? (
+                      <>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                            <Award className="w-5 h-5 mr-2 text-emerald-600" />
+                            {t('profilePage.subscription.title')}
+                          </h2>
+                          <p className="text-sm text-gray-500">{t('profilePage.subscription.description')}</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl border border-emerald-200 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                              {user.SellerProfile.Subscription?.name ?? t('profilePage.subscription.unknownPlan')}
+                            </h3>
+                            {user.SellerProfile.Subscription?.priceCents != null && (
+                              <p className="text-2xl font-bold text-emerald-600">
+                                {new Intl.NumberFormat('nl-NL', {
+                                  style: 'currency',
+                                  currency: 'EUR',
+                                }).format(user.SellerProfile.Subscription.priceCents / 100)}
+                                <span className="text-sm font-normal text-gray-600">
+                                  {' '}
+                                  {t('profilePage.subscription.perMonth')}
+                                </span>
+                              </p>
+                            )}
+                            {user.SellerProfile.subscriptionValidUntil && (
+                              <p className="text-sm text-gray-600 mt-2">
+                                {t('profilePage.subscription.validUntil', {
+                                  date: new Date(user.SellerProfile.subscriptionValidUntil).toLocaleDateString('nl-NL'),
+                                })}
+                              </p>
+                            )}
+                            <div className="mt-4">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
+                                {t('profilePage.subscription.active')}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              {t('profilePage.subscription.feeOverview')}
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-4">{t('profilePage.subscription.lowerFees')}</p>
+                            <Button
+                              className="w-full bg-primary-brand hover:bg-primary-700 text-white"
+                              onClick={() => router.push('/sell')}
+                            >
+                              {t('profilePage.subscription.viewPlans')}
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-8 text-center">
+                        <Award className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+                        <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                          {t('profilePage.subscription.emptyTitle')}
                         </h2>
-                        <p className="text-sm text-gray-500">Manage your subscription and view fee structure</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {/* Huidig abonnement */}
-                      <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl border border-emerald-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Business</h3>
-                        <p className="text-2xl font-bold text-emerald-600">€39/month</p>
-                        <p className="text-sm text-gray-600 mt-2">7% payout fee</p>
-                        <div className="mt-4">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-emerald-100 text-emerald-800">
-                            Active
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Fee vergelijking */}
-                      <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Fee Comparison</h3>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Private</span>
-                            <span className="text-sm font-medium">12%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-emerald-600">Basic (yours)</span>
-                            <span className="text-sm font-medium text-emerald-600">7%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">{t('profilePage.subscription.pro')}</span>
-                            <span className="text-sm font-medium">4%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">{t('profilePage.subscription.premium')}</span>
-                            <span className="text-sm font-medium">2%</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Upgrade optie */}
-                      <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.subscription.upgrade')}</h3>
-                        <p className="text-sm text-gray-600 mb-4">{t('profilePage.subscription.lowerFees')}</p>
+                        <p className="text-sm text-gray-600 max-w-md mx-auto mb-6">
+                          {t('profilePage.subscription.emptyBody')}
+                        </p>
                         <Button
-                          className="w-full bg-primary-brand hover:bg-primary-700 text-white"
-                          onClick={() => router.push('/sell')}
+                          className="bg-primary-brand hover:bg-primary-700 text-white"
+                          onClick={() => router.push('/sell/new')}
                         >
-                          {t('profilePage.subscription.viewPlans')}
+                          {t('profilePage.subscription.emptyCta')}
                         </Button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

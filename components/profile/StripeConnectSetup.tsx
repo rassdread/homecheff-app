@@ -11,7 +11,6 @@ interface StripeConnectSetupProps {
 }
 
 export default function StripeConnectSetup({ 
-  stripeConnectAccountId, 
   stripeConnectOnboardingCompleted,
   onUpdate 
 }: StripeConnectSetupProps) {
@@ -24,7 +23,6 @@ export default function StripeConnectSetup({
     setError(null);
 
     try {
-      console.log('🔍 Starting Stripe Connect onboarding...');
       const response = await fetch('/api/stripe/connect/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -33,50 +31,25 @@ export default function StripeConnectSetup({
       let data;
       try {
         data = await response.json();
-      } catch (parseError) {
-        console.error('❌ Failed to parse response:', parseError);
-        setError(t('admin.stripeError'));
+      } catch {
+        setError(t('productOrder.payments.setupError'));
         return;
       }
 
-      console.log('📥 Response:', { ok: response.ok, status: response.status, data });
-      
-      // Log full error details for debugging (visible in browser console)
       if (!response.ok) {
-        console.error('❌ Full error response:', JSON.stringify(data, null, 2));
-        console.error('❌ Error details:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: data?.error,
-          details: data?.details,
-          stripeErrorCode: data?.stripeErrorCode,
-          stripeErrorType: data?.stripeErrorType
-        });
-      }
-
-      if (!response.ok) {
-        // Don't show technical details or links to Stripe Dashboard
-        const errorMsg = data?.error || data?.message || 'Er is een fout opgetreden. Probeer het later opnieuw.';
-        console.error('❌ Error message:', errorMsg);
-        setError(errorMsg);
+        setError(data?.error || data?.message || t('productOrder.payments.setupError'));
         return;
       }
 
       if (data.onboardingUrl) {
-        // Redirect naar Stripe onboarding
-        console.log('✅ Redirecting to Stripe onboarding:', data.onboardingUrl);
         window.location.href = data.onboardingUrl;
       } else if (data.success && data.message) {
-        // Account already set up
-        console.log('ℹ️ Account already set up');
-        onUpdate(); // Refresh parent component
+        onUpdate();
       } else {
-        console.error('❌ No onboardingUrl in response:', data);
-        setError(t('admin.stripeError'));
+        setError(t('productOrder.payments.setupError'));
       }
-    } catch (err) {
-      console.error('❌ Exception during onboarding:', err);
-        setError(t('admin.stripeSetupError'));
+    } catch {
+      setError(t('productOrder.payments.setupError'));
     } finally {
       setLoading(false);
     }
@@ -89,11 +62,11 @@ export default function StripeConnectSetup({
           <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <span className="text-sm font-medium text-gray-700">
-              Stripe Connect Ingesteld
+              {t('productOrder.payments.readyTitle')}
             </span>
           </div>
           <span className="text-xs text-gray-500">
-            Uitbetalingen automatisch
+            {t('productOrder.payments.readySubtitle')}
           </span>
         </div>
       </div>
@@ -106,21 +79,21 @@ export default function StripeConnectSetup({
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <span className="text-sm font-medium text-gray-700">
-            Stripe Connect Vereist
+            {t('productOrder.payments.setupTitle')}
           </span>
         </div>
       </div>
       
-      <p className="text-xs text-gray-600 mb-3">
-        Om betalingen te ontvangen, zet je Stripe Connect op (5 minuten).
+      <p className="text-xs text-gray-600 mb-2">
+        {t('productOrder.payments.setupIntro')}
+      </p>
+      <p className="text-xs text-gray-500 mb-3">
+        {t('productOrder.payments.setupContactHint')}
       </p>
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
           <p className="text-red-700 text-xs">{error}</p>
-          <p className="text-red-600 text-xs mt-1">
-            Neem contact op met de beheerder als dit probleem aanhoudt.
-          </p>
         </div>
       )}
 
@@ -130,9 +103,8 @@ export default function StripeConnectSetup({
         className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-sm py-2 px-4"
       >
         <CreditCard className="h-3 w-3 mr-2" />
-        {loading ? t('common.loading') : t('common.stripeConnectSetup')}
+        {loading ? t('common.loading') : t('productOrder.payments.setupCta')}
       </Button>
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import { isStripeTestId } from "@/lib/stripe";
 import { sanitizeInput } from "@/lib/security";
 import { sanitizeProductForPublic } from "@/lib/data-isolation";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
+import { isContactOnlyProduct } from "@/lib/product/order-method";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
           title: true,
           description: isMobile ? false : true,
           priceCents: true,
+          orderMethod: true,
           category: true,
           delivery: true,
           createdAt: true,
@@ -170,6 +172,12 @@ export async function GET(req: Request) {
       }
       
       console.log(`[Products API] ✅ Product ${product.id} is ACTIVE (title: "${product.title}")`);
+      
+      // Contact-only: altijd tonen, geen Stripe vereist
+      if (isContactOnlyProduct(product)) {
+        console.log(`[Products API] ✅ Product ${product.id} - contact-only, showing`);
+        return true;
+      }
       
       // If product has no price (inspiration), always show
       if (!product.priceCents || product.priceCents === 0) {
@@ -371,6 +379,7 @@ export async function GET(req: Request) {
         title: p.title,
         description: p.description,
         priceCents: p.priceCents,
+        orderMethod: p.orderMethod ?? 'HOMECHEFF_PAYMENT',
         image: allImages[0] || undefined,
         images: allImages,
         video: video ? {

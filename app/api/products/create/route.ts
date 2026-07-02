@@ -8,6 +8,10 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
+import {
+  parseProductOrderMethod,
+  resolveProductPublishState,
+} from '@/lib/product/order-method';
 import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
 
 const CATEGORY_MAP: Record<string, any> = {
@@ -70,7 +74,11 @@ export async function POST(req: Request) {
       maxStock,
       tags = [],
       growthPhotos = [],
+      orderMethod: orderMethodRaw,
     } = body || {};
+    
+    const orderMethod = parseProductOrderMethod(orderMethodRaw);
+    const isContactOrder = orderMethod === 'CONTACT';
     
     // Use isActive if provided, otherwise use isPublic, otherwise default to true
     const finalIsPublic = isActive !== undefined ? isActive : (isPublic !== undefined ? isPublic : true);
@@ -84,21 +92,22 @@ export async function POST(req: Request) {
       (u): u is string => typeof u === 'string' && u.trim().length > 0
     );
 
-    if (
-      !titleStr ||
-      !descStr ||
-      !Number.isFinite(priceCentsNum) ||
-      priceCentsNum < 0 ||
-      validImageUrls.length === 0
-    ) {
+    const priceValid =
+      Number.isFinite(priceCentsNum) &&
+      priceCentsNum >= 0 &&
+      (isContactOrder || priceCentsNum > 0);
+
+    if (!titleStr || !descStr || !priceValid || validImageUrls.length === 0) {
       return NextResponse.json(
         {
           error: 'Ontbrekende of ongeldige velden',
           details:
             validImageUrls.length === 0
               ? 'Minstens één geldige foto-URL is verplicht.'
-              : !Number.isFinite(priceCentsNum) || priceCentsNum < 0
-                ? 'Prijs ontbreekt of is ongeldig.'
+              : !priceValid
+                ? isContactOrder
+                  ? 'Prijs is ongeldig (laat leeg voor prijs op aanvraag).'
+                  : 'Prijs ontbreekt of is ongeldig.'
                 : undefined,
         },
         { status: 400 }
@@ -168,6 +177,13 @@ export async function POST(req: Request) {
     
     console.log('[Products Create API] Using sellerProfileId:', sellerProfileId);
 
+    const publishState = resolveProductPublishState({
+      requestedActive: finalIsPublic,
+      orderMethod,
+      priceCents: priceCentsNum,
+      sellerUser: user,
+    });
+
     const cat = CATEGORY_MAP[category as string] ?? 'CHEFF';
     const delivery = normalizeDeliveryModeInput(
       typeof deliveryMode === 'string' ? deliveryMode : 'PICKUP'
@@ -180,8 +196,9 @@ export async function POST(req: Request) {
       title: titleStr,
       category: cat,
       priceCents: priceCentsNum,
-      isActive: Boolean(finalIsPublic),
+      isActive: publishState.isActive,
       finalIsPublic,
+      publishBlocked: publishState.publishBlocked,
       sellerProfileId
     });
     
@@ -194,7 +211,7 @@ export async function POST(req: Request) {
         category: cat as any,
         unit: 'PORTION', // Default unit
         delivery: delivery as any,
-        isActive: Boolean(finalIsPublic),
+        isActive: publishState.isActive,
         displayNameType: displayNameType === 'firstname' ? 'first' : 
                         displayNameType === 'lastname' ? 'last' : 
                         displayNameType === 'username' ? 'username' : 'full',
@@ -209,6 +226,7 @@ export async function POST(req: Request) {
         stock: stock !== undefined && stock !== null ? Number(stock) : 0,
         maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
         tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
+        orderMethod,
         sellerId: sellerProfileId!,
         Image: {
           create: validImageUrls.map((url: string, i: number) => ({
@@ -325,11 +343,11 @@ export async function POST(req: Request) {
       console.log('[Products Create API] ✅ Verified product in database:', {
         id: verifyProduct.id,
         isActive: verifyProduct.isActive,
-        matches: verifyProduct.isActive === Boolean(finalIsPublic)
+        matches: verifyProduct.isActive === publishState.isActive
       });
       
-      if (verifyProduct.isActive !== Boolean(finalIsPublic)) {
-        console.error('[Products Create API] ⚠️ WARNING: isActive mismatch! Expected:', Boolean(finalIsPublic), 'Got:', verifyProduct.isActive);
+      if (verifyProduct.isActive !== publishState.isActive) {
+        console.error('[Products Create API] ⚠️ WARNING: isActive mismatch! Expected:', publishState.isActive, 'Got:', verifyProduct.isActive);
       }
     } else {
       console.error('[Products Create API] ❌ ERROR: Product not found in database after creation!');
@@ -410,9 +428,11 @@ export async function POST(req: Request) {
       ok: true, 
       product: {
         ...result,
-        isActive: result.isActive // Explicitly include isActive
+        isActive: result.isActive
       },
-      item: result // For backwards compatibility
+      item: result,
+      publishBlocked: publishState.publishBlocked,
+      publishBlockReason: publishState.publishBlockReason ?? null,
     }, { status: 201 });
   } catch (err: any) {
     console.error('❌ [Products Create API] Create product failed:', err);
