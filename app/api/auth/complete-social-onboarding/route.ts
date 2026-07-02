@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    /** @legacy Full onboarding path — vereist adres; geen actieve app-UI (Fase 4A). Gebruik completionMode: 'minimal'. */
     const {
       username,
       role,

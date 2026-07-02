@@ -10,7 +10,10 @@ export type GoogleLoginDiagEvent =
   | 'google_login_web_start'
   | 'google_login_web_failed';
 
-export type GoogleLoginDiagDetail = Record<string, string | boolean | number>;
+export type GoogleLoginDiagDetail = Record<
+  string,
+  string | boolean | number | null | undefined
+>;
 
 export function logGoogleLoginDiag(
   event: GoogleLoginDiagEvent,
@@ -18,7 +21,16 @@ export function logGoogleLoginDiag(
 ): void {
   if (typeof window === 'undefined') return;
   try {
-    console.info('[HomeCheff google-login]', event, detail ?? {});
+    const payload = detail ?? {};
+    console.info('[HomeCheff google-login]', event, payload);
+    if (
+      typeof (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } })
+        .Capacitor?.isNativePlatform === 'function' &&
+      (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor!
+        .isNativePlatform!()
+    ) {
+      console.warn('[HomeCheff google-login]', event, JSON.stringify(payload));
+    }
   } catch {
     /* ignore */
   }

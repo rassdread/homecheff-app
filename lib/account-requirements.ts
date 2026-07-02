@@ -1,10 +1,14 @@
 /**
- * Centrale regels: browsen blijft open; actieve acties (berichten, plaatsen, verkopen) pas na verificatie + definitieve username (+ voorwaarden / Stripe waar van toepassing).
+ * Centrale regels: browsen blijft open; actieve acties (berichten, plaatsen) pas na verificatie + definitieve username (+ voorwaarden).
+ *
+ * Stripe / verkopen: `canSell` is een UI-snapshot; API-enforcement voor betaalproducten loopt via
+ * `resolveProductPublishState` (lib/product/order-method.ts, Fase 2D).
+ * `assertAccountRequirementsOr403(..., 'sell')` wordt nergens aangeroepen — bewust legacy-compat.
  */
 
 import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
 
-export type AccountRequirementsAction = 'sendMessage' | 'postItem' | 'sell';
+export type AccountRequirementsAction = 'sendMessage' | 'postItem' | /** @legacy UI-only; enforcement via publish gate */ 'sell';
 
 export type MissingRequirementKey =
   | 'emailVerified'

@@ -99,6 +99,7 @@ type FeedItem = {
   title: string | null;
   description: string | null;
   priceCents: number | null;
+  orderMethod?: string | null;
   type?: string | null;
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
@@ -255,6 +256,8 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     title: (raw.title as string) ?? null,
     description: (raw.description as string) ?? null,
     priceCents,
+    orderMethod:
+      raw.orderMethod != null ? String(raw.orderMethod) : null,
     ownerId,
     category,
     sellerUserId,

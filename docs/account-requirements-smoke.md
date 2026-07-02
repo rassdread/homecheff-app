@@ -37,4 +37,5 @@ Gebruik na wijzigingen aan onboarding / account-requirements. Geen DB-migratie n
 ## Edge cases
 
 - Gebruiker met **Google account** en **geen** `passwordHash`: als `emailVerified` ontbreekt in DB, wordt e-mail alsnog als betrouwbaar gezien (alleen in combinatie met Google-link).
-- **Stripe**: ontbrekende onboarding telt alleen als `stripeConnectAccountId` gezet is en onboarding niet af — dan verschijnt stap in `missing` voor **sell**-acties; product plaatsen gebruikt **postItem** (geen stripe in die filter).
+- **Stripe**: ontbrekende onboarding telt alleen als `stripeConnectAccountId` gezet is en onboarding niet af — dan verschijnt stap in `missing` voor **sell**-snapshot (`canSell`); product plaatsen gebruikt **postItem** (geen stripe in die filter). Live betaalproducten: publish gate in `lib/product/order-method.ts` (Fase 2D).
+- **Inspiratie (Dish)**: bewust lichter dan product — alleen login, geen `postItem`-gate. Zie `docs/HOMECHEFF_REGISTRATION_AND_CONTACT.md`.

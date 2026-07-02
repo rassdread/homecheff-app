@@ -1,3 +1,8 @@
+/**
+ * LEGACY_CONTACT_SYSTEM — mobiele verkoper (GPS + contactPhone/contactEmail).
+ * Niet wired in app-UI. Publiek contact: MakerContactSettings → publicContactChannels.
+ * Zie docs/HOMECHEFF_REGISTRATION_AND_CONTACT.md
+ */
 'use client';
 
 import React, { useState, useEffect } from 'react';

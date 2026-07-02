@@ -173,8 +173,8 @@
     "sell_profile": "Complete the missing account details before you can sell."
   },
   "sellerActivation": {
-    "title": "When you're ready to sell: add your location",
-    "body": "You can explore first. A city and country (and postal code in NL) help buyers and nearby feeds — update whenever it suits you.",
+    "title": "Optional: add your location",
+    "body": "You can explore and list first. City and country (and postcode in NL) help nearby buyers — update when it suits you.",
     "ctaProfile": "Update profile",
     "later": "Not now"
   },
@@ -3037,7 +3037,8 @@
     "lightTitle": "Welcome to HomeCheff",
     "lightSubtitle": "Sign up with email or continue with Google.",
     "lightTagline": "Start your place on HomeCheff",
-    "lightHint": "You can add address, seller details, and payout information later — only when you need them.",
+    "lightHint": "Phone, reachability, and payments are optional — add your profile and contact options later when you want.",
+    "socialRedirect": "Completing your account…",
     "lightStepBadge": "Quick signup",
     "lightDisplayNameLabel": "Display name",
     "lightDisplayNamePlaceholder": "How you appear on HomeCheff",

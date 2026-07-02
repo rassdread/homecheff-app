@@ -1,6 +1,6 @@
 {
-  "versionName": "1.0.15",
-  "versionCode": 20,
+  "versionName": "1.0.17",
+  "versionCode": 23,
   "forceUpdate": true,
   "minRequiredVersion": "1.0.15",
   "enabled": true,
@@ -10,6 +10,6 @@
   "updateTitleForced": "Update vereist",
   "updateMessageForced": "Deze versie van HomeCheff wordt niet meer ondersteund. Werk de app bij om verder te gaan.",
   "changelog": [
-    "Fix notification and chat unread consistency"
+    "Fix Google Sign-In for Play Store builds (Firebase SHA / App Signing)"
   ]
 }

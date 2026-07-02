@@ -12,6 +12,7 @@ import {
 } from '@/lib/session-mode';
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
+import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
 
 const WEB_CLIENT_ID =
   typeof process !== 'undefined'
@@ -199,11 +200,19 @@ export function NativeGoogleSignInButton({
         },
       });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const parsed = parseGoogleSignInError(e);
       logGoogleLoginDiag('google_login_native_failed', {
         reason: 'plugin_init_failed',
-        message: redactErrorMessage(msg),
+        message: parsed.message,
+        statusCode: parsed.statusCode ?? undefined,
+        statusName: parsed.statusName ?? undefined,
+        likelyConfigError: parsed.likelyConfigError,
       });
+      if (parsed.likelyConfigError) {
+        setError(
+          'Google login init mislukt (DEVELOPER_ERROR). Controleer Firebase SHA en google-services.json.',
+        );
+      }
       return false;
     }
 
@@ -213,17 +222,28 @@ export function NativeGoogleSignInButton({
         { provider: 'google' } as import('@capgo/capacitor-social-login').LoginOptions,
       );
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (/cancel|canceled|12501|user_cancel|10:/i.test(msg)) {
+      const parsed = parseGoogleSignInError(e);
+      if (parsed.statusCode === 12501 || /cancel/i.test(parsed.message)) {
         logGoogleLoginDiag('google_login_native_failed', { reason: 'user_cancelled' });
         return true;
       }
       logGoogleLoginDiag('google_login_native_failed', {
         reason: 'plugin_login_failed',
-        message: redactErrorMessage(msg),
+        message: parsed.message,
+        statusCode: parsed.statusCode ?? undefined,
+        statusName: parsed.statusName ?? undefined,
+        likelyConfigError: parsed.likelyConfigError,
       });
-      if (/scopes|main activity/i.test(msg)) {
+      if (parsed.likelyConfigError) {
+        setError(
+          'Google login configuratie (Play Store): voeg Play App Signing SHA-1 toe in Firebase en installeer een nieuwe build. Fout: DEVELOPER_ERROR (10).',
+        );
+      } else if (/scopes|main activity/i.test(parsed.message)) {
         setError('Google login configuratie moet opnieuw worden opgebouwd.');
+      } else if (parsed.statusCode === 7) {
+        setError('Netwerkfout bij Google inloggen. Controleer je verbinding.');
+      } else {
+        setError(parsed.summary);
       }
       return false;
     }

@@ -2,10 +2,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Compass, Users, Briefcase, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Users, Briefcase } from "lucide-react";
 import type { Language } from "@/hooks/useTranslation";
-import Logo from "@/components/Logo";
 import StructuredData from "@/components/seo/StructuredData";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -20,11 +18,9 @@ import CommunityPulseBar from "@/components/home/CommunityPulseBar";
 import CreatorMomentumCard from "@/components/home/CreatorMomentumCard";
 import HomeProfileProgressCard from "@/components/home/HomeProfileProgressCard";
 import ReturnBelongingStrip from "@/components/home/ReturnBelongingStrip";
-import EcosystemDiscoverStrip from "@/components/community/EcosystemDiscoverStrip";
+import HomeHeroSection from "@/components/home/HomeHeroSection";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
-
-const SPLASH_STORAGE_KEY = 'homecheff_splash_dismissed';
 
 /** Lazy chunk: voorkomt webpack/module-boundary issues bij statische bundeling met de tour. */
 const OnboardingTour = dynamic(
@@ -75,27 +71,10 @@ export default function HomePageClient({
   const { t, tOr, language, changeLanguage } = useTranslation();
   const { data: session } = useSession();
   const { profile: bootstrapProfile } = useUserBootstrap();
-  const [splashDismissed, setSplashDismissed] = useState(false);
   const [currentDomain, setCurrentDomain] = useState(MAIN_DOMAIN);
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [affiliateCheckComplete, setAffiliateCheckComplete] = useState(false);
 
-  useEffect(() => {
-    try {
-      const stored = typeof window !== 'undefined' ? sessionStorage.getItem(SPLASH_STORAGE_KEY) : null;
-      setSplashDismissed(stored === '1');
-    } catch {
-      setSplashDismissed(false);
-    }
-  }, []);
-
-  const dismissSplash = () => {
-    setSplashDismissed(true);
-    try {
-      sessionStorage.setItem(SPLASH_STORAGE_KEY, '1');
-    } catch {}
-  };
-  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const fromHtml = document.documentElement.getAttribute('data-domain');
@@ -116,30 +95,6 @@ export default function HomePageClient({
     setIsSubAffiliate(!!bootstrapProfile.affiliate?.parentAffiliateId);
     setAffiliateCheckComplete(true);
   }, [session?.user, bootstrapProfile]);
-  
-  const handleLanguageChange = async (newLanguage: Language) => {
-    if (language !== newLanguage) await changeLanguage(newLanguage);
-  };
-  
-  const splashTitle = tOr(
-    'splash.title',
-    'Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra.',
-    'Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.'
-  );
-
-  const splashSubtitle = tOr(
-    'splash.subtitle',
-    'Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.',
-    'Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.'
-  );
-
-  const splashValueProposition = tOr(
-    'splash.valueProposition',
-    'Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.',
-    'Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.'
-  );
-
-  const discoverLabel = tOr('bottomNav.discoverTab', 'Discover', 'Ontdekken');
 
   const firstName = pickFirstName(session?.user);
   const welcomeFromT = firstName
@@ -167,9 +122,9 @@ export default function HomePageClient({
     'HomeCheff is een lokaal platform waar particulieren hun handgemaakte producten kunnen verkopen.'
   );
   const schemaWebsiteDescription = tOr(
-    'home.schemaWebsiteDescription',
-    'HomeCheff — discover digital studios, gardens, and kitchens in your neighborhood.',
-    'HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.'
+    'homePhase1.schemaWebsiteDescription',
+    'HomeCheff — the digital village square to discover and share local food, harvest and crafts.',
+    'HomeCheff — het digitale dorpsplein om lokaal eten, oogst en creaties te ontdekken en te delen.'
   );
   const schemaContactType = tOr(
     'home.schemaContactCustomerService',
@@ -196,7 +151,7 @@ export default function HomePageClient({
     areaServed: { '@type': 'Country', name: schemaAreaCountry },
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
-  
+
   const websiteStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -208,76 +163,44 @@ export default function HomePageClient({
     inLanguage: language === 'nl' ? 'nl-NL' : 'en-US',
     potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${currentDomain}/?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
   };
-  
+
   return (
     <>
       <StructuredData data={structuredData} />
       <StructuredData data={websiteStructuredData} />
       <PostAuthPersonaBanner />
-      {!splashDismissed && (
-        <section className="relative bg-gradient-to-br from-primary-brand via-emerald-600 to-secondary-600 py-6 sm:py-8 px-4 sm:px-6 shadow-lg">
-          <button type="button" onClick={dismissSplash} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label={tOr('home.splashDismissAria', 'Close welcome banner', 'Welkomstblok sluiten')}>
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-          <div className="relative max-w-4xl mx-auto text-center">
-            <div className="flex justify-center mb-3 sm:mb-4 pointer-events-none">
-              <div className="[&_span]:!text-white [&_span]:!drop-shadow-lg [&_svg_path]:drop-shadow-md [&_svg_circle]:drop-shadow-md [&_svg_rect]:drop-shadow-md">
-                <Logo size="lg" showText={true} className="pointer-events-none" />
-              </div>
-            </div>
-            <div className="flex justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <button type="button" onClick={() => handleLanguageChange('nl')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'nl' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>{tOr('home.heroLangNl', '🇳🇱 NL', '🇳🇱 NL')}</button>
-              <button type="button" onClick={() => handleLanguageChange('en')} className={`px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full font-semibold text-sm transition-all ${language === 'en' ? 'bg-white text-primary-brand shadow-lg' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/30'}`}>{tOr('home.heroLangEn', '🇬🇧 EN', '🇬🇧 EN')}</button>
-            </div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 leading-tight px-2">{splashTitle}</h1>
-            <p className="text-sm sm:text-base text-primary-100 mb-2 max-w-2xl mx-auto px-2">{splashSubtitle}</p>
-            <p className="text-xs sm:text-sm text-white/90 mb-4 sm:mb-5 max-w-xl mx-auto px-2">{splashValueProposition}</p>
-            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
-              <Link
-                href="/#homecheff-feed"
-                prefetch={false}
-                scroll={false}
-                className={cn(
-                  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-medium sm:text-base sm:py-3',
-                  'bg-primary-brand text-white shadow-lg transition-all duration-200',
-                  'hover:bg-primary-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
-                  'touch-manipulation select-none'
-                )}
-              >
-                <Compass className="w-4 h-4 shrink-0" aria-hidden />
-                {discoverLabel}
-              </Link>
-            </div>
-            <p className="text-xs text-white/80 mt-4">
-              <Link href="/#homecheff-feed" className="underline hover:text-white">{discoverLabel}</Link>
-              {' · '}
-              <Link href="/faq" className="underline hover:text-white">{t('siteFooter.faq')}</Link>
-            </p>
-          </div>
-        </section>
-      )}
       <main className="min-h-[60vh]">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <HomeHeroSection />
+
           {session?.user && welcomeLine && (
             <p className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 text-center sm:text-left">
               {welcomeLine}
             </p>
           )}
-          {session?.user ? <HcpActivationCard className="mb-4 sm:mb-5" /> : null}
+
+          {session?.user ? (
+            <>
+              <HcpActivationCard className="mb-4 sm:mb-5" />
+              <CreatorMomentumCard />
+              <ReturnBelongingStrip />
+              <HomeProfileProgressCard />
+            </>
+          ) : null}
+
           <CommunityPulseBar />
-          <EcosystemDiscoverStrip variant="home" />
-          {session?.user ? <CreatorMomentumCard /> : null}
-          {session?.user ? <ReturnBelongingStrip /> : null}
-          {session?.user ? <HomeProfileProgressCard /> : null}
-          <AndroidBetaHomeCta className="mb-4 sm:mb-5" />
-          <AndroidBetaOptionalUpdateReminder className="mb-4 sm:mb-5" />
+
           <GeoFeed
             initialInspiratieItems={initialInspiratieItems}
             initialFeedChip={initialFeedChip}
             initialFeedCategory={initialFeedCategory}
             initialFeedPlace={initialFeedPlace}
           />
+
+          <AndroidBetaHomeCta className="mt-6 mb-4 sm:mb-5" />
+          <AndroidBetaOptionalUpdateReminder className="mb-4 sm:mb-5" />
         </div>
+
         <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 pt-2 border-t border-gray-200/80">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
             {tOr('home.moreSectionHeading', 'More', 'Meer')}

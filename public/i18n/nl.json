@@ -173,8 +173,8 @@
     "sell_profile": "Vul eerst de ontbrekende gegevens aan om te kunnen verkopen."
   },
   "sellerActivation": {
-    "title": "Klaar om te verkopen: voeg je locatie toe",
-    "body": "Je mag eerst verkennen. Stad en land (en postcode in NL) helpen kopers en feeds in de buurt — pas aan wanneer het jou uitkomt.",
+    "title": "Optioneel: voeg je locatie toe",
+    "body": "Je mag eerst verkennen en aanbod plaatsen. Stad en land (en postcode in NL) helpen kopers in de buurt — pas aan wanneer het jou uitkomt.",
     "ctaProfile": "Profiel bijwerken",
     "later": "Nu niet"
   },
@@ -2916,7 +2916,8 @@
     "lightTitle": "Welkom op HomeCheff",
     "lightSubtitle": "Maak een account met je e-mailadres of ga verder met Google.",
     "lightTagline": "Start jouw plek op HomeCheff",
-    "lightHint": "Je kunt adres, verkopersgegevens en uitbetaling later aanvullen — alleen wanneer je dat nodig hebt.",
+    "lightHint": "Telefoon, bereikbaarheid en betalingen zijn optioneel — vul je profiel en bereikbaarheid later aan wanneer je dat wilt.",
+    "socialRedirect": "Je account wordt afgerond…",
     "lightStepBadge": "Snelle aanmelding",
     "lightDisplayNameLabel": "Weergavenaam",
     "lightDisplayNamePlaceholder": "Hoe je op HomeCheff heet",

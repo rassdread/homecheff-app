@@ -45,7 +45,9 @@
     "cap:add:android": "npx cap add android",
     "cap:open:android": "npx cap open android",
     "cap:build:android": "npm run build && npm run cap:sync && npx cap open android",
-    "release:android": "node scripts/release-android.mjs"
+    "release:android": "node scripts/release-android.mjs",
+    "android:fingerprints": "node scripts/android-signing-fingerprints.mjs",
+    "android:validate-google-services": "node scripts/validate-google-services.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

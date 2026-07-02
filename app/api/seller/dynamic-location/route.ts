@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+/** LEGACY_CONTACT_SYSTEM: contactPhone/contactEmail — zie docs/HOMECHEFF_REGISTRATION_AND_CONTACT.md */
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

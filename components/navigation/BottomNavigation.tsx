@@ -1774,8 +1774,8 @@ export default function BottomNavigation() {
                 <span className="text-[0.7rem] leading-none sm:text-sm" aria-hidden>
                   ⭐
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-teal-800 leading-tight mt-1">
-                  HCP
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight text-teal-800 leading-tight mt-1">
+                  {t('bottomNav.reputationTab')}
                 </span>
               </Link>
             </div>

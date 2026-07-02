@@ -1,6 +1,9 @@
 /**
  * Maker contact preferences — opslag, validatie en publieke zichtbaarheid.
  * Fase 2A: opt-in only. Fase 3A/3B: premium-gating via evaluateContactFeature().
+ *
+ * Contactveld-waarheid: docs/HOMECHEFF_REGISTRATION_AND_CONTACT.md
+ * Privé: User.phoneNumber | Publiek: public* + enabled flags | Legacy: DynamicSeller.contact*
  */
 
 import {

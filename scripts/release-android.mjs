@@ -204,8 +204,25 @@ if (args.bumpOnly && (wantApk || wantAab)) {
   process.exit(1);
 }
 
+function validateGoogleServicesForRelease() {
+  const validator = path.join(root, 'scripts', 'validate-google-services.mjs');
+  if (!fs.existsSync(validator)) return;
+  console.info('\n=== google-services.json (Google Sign-In / FCM) ===\n');
+  const r = spawnSync(process.execPath, [validator], { cwd: root, stdio: 'inherit' });
+  if ((r.status ?? 1) !== 0) {
+    console.error(
+      '\nRelease aborted: fix Firebase SHA fingerprints and re-download google-services.json.',
+    );
+    console.error('See docs/ANDROID_GOOGLE_SIGNIN_PLAY.md\n');
+    process.exit(1);
+  }
+}
+
 if (!args.bumpOnly) {
   runQuality();
+  if (wantApk || wantAab) {
+    validateGoogleServicesForRelease();
+  }
 } else {
   console.info('\n(--bump-only: skipping lint / build / smoke-check — run full release for gates)\n');
 }

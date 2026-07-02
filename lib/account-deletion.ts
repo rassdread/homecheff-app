@@ -218,6 +218,20 @@ export async function performUserAccountDeletion(
       profileImage: null,
       image: null,
       phoneNumber: null,
+      publicPhoneEnabled: false,
+      publicPhoneNumber: null,
+      publicWhatsappEnabled: false,
+      publicWhatsappNumber: null,
+      publicInstagramEnabled: false,
+      instagramUrl: null,
+      publicFacebookEnabled: false,
+      facebookUrl: null,
+      publicTikTokEnabled: false,
+      tiktokUrl: null,
+      publicWebsiteEnabled: false,
+      websiteUrl: null,
+      publicTelegramEnabled: false,
+      telegramUrl: null,
       address: null,
       city: null,
       postalCode: null,
@@ -249,6 +263,8 @@ export async function performUserAccountDeletion(
       where: { id: userId },
       data: anonymized,
     });
+
+    // TODO(GDPR_DYNAMIC_SELLER): verwijder/anonymiseer DynamicSeller.contactPhone/contactEmail bij account deletion
 
     // Audit trail (retained; no PII in meta beyond hashed id reference)
     await tx.auditLog.create({

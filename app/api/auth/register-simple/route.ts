@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+/** @legacy Niet gebruikt door app-UI; prefer `/api/auth/register`. Alleen voor externe callers/docs. */
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
