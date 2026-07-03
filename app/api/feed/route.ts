@@ -13,12 +13,26 @@ import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-ba
 import { isContactOnlyProduct } from "@/lib/product/order-method";
 import {
   FEED_RADIUS_DEFAULT_KM,
+  FEED_RADIUS_MODE_LOCAL_FIRST,
   normalizeFeedRadiusKm,
-  resolveMarketplaceItemCoords,
-  sellerBboxWhere,
   sortFeedItemsLocalFirst,
 } from "@/lib/geo/local-discovery";
+import {
+  resolveDishCoords,
+  resolveDishPlaceLabel,
+  resolveFeedItemCoordsFromRaw,
+  resolveListingCoords,
+  resolveListingPlaceLabel,
+  resolveProductCoords,
+  resolveProductPlaceLabel,
+} from "@/lib/geo/item-location";
 import { deriveFeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+import {
+  isMarketplaceSaleItem,
+  marketplaceSaleAuditSample,
+} from "@/lib/feed/marketplace-sale";
+import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope";
+import { geocodePlaceQuery } from "@/lib/global-geocoding";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   item.taxonomy = deriveFeedTaxonomy({
@@ -50,21 +64,7 @@ function extractFeedItemSellerUserId(item: Record<string, unknown>): string | nu
 }
 
 function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: number } | null {
-  const flatLat = item.lat;
-  const flatLng = item.lng;
-  if (typeof flatLat === "number" && typeof flatLng === "number" && Number.isFinite(flatLat) && Number.isFinite(flatLng)) {
-    return { lat: flatLat, lng: flatLng };
-  }
-  const seller = item.seller as { lat?: number | null; lng?: number | null } | undefined;
-  if (
-    seller?.lat != null &&
-    seller?.lng != null &&
-    Number.isFinite(seller.lat) &&
-    Number.isFinite(seller.lng)
-  ) {
-    return { lat: seller.lat, lng: seller.lng };
-  }
-  return null;
+  return resolveFeedItemCoordsFromRaw(item);
 }
 
 const STATS_PREVIEW_SELLER_CAP = 9;
@@ -99,14 +99,19 @@ export async function GET(req: NextRequest) {
   const listingCategory = resolveListingCategory(vertical);
   const subfilters = (searchParams.get("subfilters") || "").split(",").map(s => s.trim()).filter(Boolean);
   let radius = toNumber(searchParams.get("radius"), FEED_RADIUS_DEFAULT_KM);
-  const place = searchParams.get("place")?.trim() || "";
+  const placeParam = searchParams.get("place")?.trim() || "";
+  const feedScope = normalizeFeedScope(searchParams.get("scope"));
+  const place = scopeUsesRadiusFilter(feedScope) ? placeParam : "";
+  if (!scopeUsesRadiusFilter(feedScope)) {
+    radius = 0;
+  }
 
   const session = await getServerSession(authOptions as any);
   const userId = (session as any)?.user?.id || null;
   const isPublicDefaultFeed =
     !userId &&
     !q &&
-    !place &&
+    !placeParam &&
     vertical === 'all' &&
     !searchParams.get('lat') &&
     !searchParams.get('lng') &&
@@ -115,61 +120,22 @@ export async function GET(req: NextRequest) {
   let lat = searchParams.get("lat");
   let lng = searchParams.get("lng");
 
-  // Handle international place geocoding
-  if (place && (!lat || !lng)) {
+  // Viewer priority: place text (nearby filter or national distance labels) → profile User
+  if (placeParam && (!lat || !lng)) {
     try {
-      // Try multiple geocoding strategies
-      let geocodingSuccess = false;
-      
-      // Use Google Maps geocoding for all countries (including Netherlands)
-      const geocodeResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/geocoding/global`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: place,
-          city: '',
-          countryCode: 'NL'
-        })
-      });
-      
-      if (geocodeResponse.ok) {
-        const geocodeData = await geocodeResponse.json();
-        if (geocodeData.lat && geocodeData.lng) {
-          lat = String(geocodeData.lat);
-          lng = String(geocodeData.lng);
-          geocodingSuccess = true;
-        }
+      const geocodeResult = await geocodePlaceQuery(placeParam, "NL");
+      if (
+        geocodeResult.lat &&
+        geocodeResult.lng &&
+        !geocodeResult.error
+      ) {
+        lat = String(geocodeResult.lat);
+        lng = String(geocodeResult.lng);
       }
-      
-      // Strategy 3: Fallback to OpenStreetMap Nominatim
-      if (!geocodingSuccess) {
-        const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1&addressdetails=1`, {
-          headers: { 'User-Agent': 'HomeCheff-App/1.0' }
-        });
-        if (nominatimResponse.ok) {
-          const nominatimData = await nominatimResponse.json();
-          if (nominatimData && nominatimData.length > 0) {
-            lat = String(nominatimData[0].lat);
-            lng = String(nominatimData[0].lon);
-            geocodingSuccess = true;
-
-          }
-        }
-      }
-      
-      if (!geocodingSuccess) {
-
-      }
-      
     } catch (error) {
-
+      console.warn("[feed] place geocode failed:", error);
     }
-  }
-
-  // Fallback to user profile location if no coordinates found
-  if ((!lat || !lng) && userId) {
+  } else if ((!lat || !lng) && userId) {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { lat: true, lng: true } });
     if (u?.lat != null && u?.lng != null) {
       lat = String(u.lat);
@@ -188,8 +154,7 @@ export async function GET(req: NextRequest) {
   const effectiveRadius = normalizeFeedRadiusKm(radius);
 
   // Get Products from both new and old models
-  // Include both active products AND inactive products that have orders (to ensure existing products with sales history remain visible)
-  const [allNewProducts, oldListings, publishedDishes] = await Promise.all([
+  const [rawProductsFromDb, oldListings, publishedDishes] = await Promise.all([
     prisma.product.findMany({
       where: {
         OR: [
@@ -215,12 +180,9 @@ export async function GET(req: NextRequest) {
         ...(productCategory ? {
           category: productCategory as any
         } : {}),
-        ...(viewerGeo && effectiveRadius > 0
-          ? sellerBboxWhere(viewerGeo, effectiveRadius)
-          : {}),
       },
       orderBy: [{ createdAt: "desc" }],
-      take: 50,
+      take: 100,
       select: {
         id: true,
         title: true,
@@ -230,7 +192,9 @@ export async function GET(req: NextRequest) {
         delivery: true,
         category: true,
         createdAt: true,
-        // pickupAddress, pickupLat, pickupLng - columns don't exist in database yet
+        pickupAddress: true,
+        pickupLat: true,
+        pickupLng: true,
         seller: {
           select: {
             id: true,
@@ -249,6 +213,8 @@ export async function GET(req: NextRequest) {
                 stripeConnectAccountId: true,
                 lat: true,
                 lng: true,
+                place: true,
+                city: true,
               } 
             }
           }
@@ -261,32 +227,6 @@ export async function GET(req: NextRequest) {
           select: { url: true, thumbnail: true },
         },
       }
-    }).then(products => {
-      // Filter out products with price that were created with test Stripe Connect accounts
-      // Inspiration content (without price) always visible
-      // Products without Stripe Connect account are also shown (for products created from recipes)
-      let filtered = products.filter(product => {
-        if (isContactOnlyProduct(product)) {
-          return true;
-        }
-        // If product has no price (inspiration), always show
-        if (!product.priceCents || product.priceCents === 0) {
-          return true;
-        }
-        
-        // If product has price, check if seller has Stripe Connect account
-        const seller = product.seller?.User;
-        if (!seller?.stripeConnectAccountId) {
-          // Show products without Stripe Connect account (e.g., created from recipes)
-          return true;
-        }
-        
-        // Only hide products with price if seller has test Stripe Connect account
-        // Live accounts are allowed
-        return !isStripeTestId(seller.stripeConnectAccountId);
-      });
-      
-      return filtered;
     }),
     prisma.listing.findMany({
       where: {
@@ -300,15 +240,28 @@ export async function GET(req: NextRequest) {
         ...(listingCategory ? {
           category: listingCategory
         } : {}),
-        ...(lat && lng ? {
-          lat: { gte: Number(lat) - (radius / 111.32), lte: Number(lat) + (radius / 111.32) },
-          lng: { gte: Number(lng) - (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
+        ...(lat && lng && effectiveRadius > 0 ? {
+          lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
+          lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
         } : {})
       },
       orderBy: [{ createdAt: "desc" }],
       take: 50,
       include: {
-        User: { select: { id: true, name: true, username: true, profileImage: true, displayFullName: true, displayNameOption: true } },
+        User: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true,
+            place: true,
+            city: true,
+            lat: true,
+            lng: true,
+          },
+        },
         ListingMedia: { 
           select: { url: true, order: true },
           orderBy: { order: 'asc' }
@@ -325,16 +278,29 @@ export async function GET(req: NextRequest) {
             { description: { contains: q, mode: "insensitive" } }
           ]
         } : {}),
-        ...(lat && lng ? {
-          lat: { gte: Number(lat) - (radius / 111.32), lte: Number(lat) + (radius / 111.32) },
-          lng: { gte: Number(lng) - (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (radius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
+        ...(lat && lng && effectiveRadius > 0 ? {
+          lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
+          lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
         } : {}),
         ...(productCategory ? { category: productCategory } : {}),
       },
       orderBy: [{ createdAt: "desc" }],
       take: 50,
       include: {
-        user: { select: { id: true, name: true, username: true, profileImage: true, displayFullName: true, displayNameOption: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            profileImage: true,
+            displayFullName: true,
+            displayNameOption: true,
+            place: true,
+            city: true,
+            lat: true,
+            lng: true,
+          },
+        },
         photos: { 
           select: { url: true, idx: true },
           orderBy: { idx: 'asc' }
@@ -348,15 +314,42 @@ export async function GET(req: NextRequest) {
     })
   ]);
 
+  const activeProductsFromDb = rawProductsFromDb.length;
+  const productsWithPrice = rawProductsFromDb.filter(
+    (p) => (p.priceCents ?? 0) > 0
+  ).length;
+
+  const allNewProducts = rawProductsFromDb.filter((product) => {
+    if (isContactOnlyProduct(product)) return true;
+    if (!product.priceCents || product.priceCents === 0) return true;
+    const seller = product.seller?.User;
+    if (!seller?.stripeConnectAccountId) return true;
+    return !isStripeTestId(seller.stripeConnectAccountId);
+  });
+
   // Transform dishes to match new product format
-  const transformedDishes = publishedDishes.map(dish => ({
+  const transformedDishes = publishedDishes.map((dish) => {
+    const dishCoords = resolveDishCoords({
+      lat: dish.lat,
+      lng: dish.lng,
+      user: dish.user,
+    });
+    const dishPlace = resolveDishPlaceLabel({
+      place: dish.place,
+      user: dish.user,
+    });
+    return {
     id: dish.id,
+    feedSource: 'DISH' as const,
     title: dish.title || "",
     description: dish.description || "",
     priceCents: dish.priceCents || 0,
     delivery: dish.deliveryMode || "PICKUP",
     category: "CHEFF", // Default category for dishes
     createdAt: dish.createdAt,
+    place: dishPlace,
+    lat: dishCoords?.lat ?? null,
+    lng: dishCoords?.lng ?? null,
     User: {
       id: dish.user.id,
       name: dish.user.name,
@@ -376,9 +369,9 @@ export async function GET(req: NextRequest) {
         : [],
     videoUrl: dish.videos?.[0]?.url ?? null,
     location: {
-      place: dish.place,
-      lat: dish.lat,
-      lng: dish.lng
+      place: dishPlace,
+      lat: dishCoords?.lat ?? null,
+      lng: dishCoords?.lng ?? null
     },
     stock: dish.stock || 0,
     maxStock: dish.maxStock,
@@ -390,19 +383,24 @@ export async function GET(req: NextRequest) {
       displayFullName: dish.user.displayFullName,
       displayNameOption: dish.user.displayNameOption
     }
-  }));
+  };
+  });
 
   // Transform old listings to match new product format
-  const transformedListings = oldListings.map(listing => ({
+  const transformedListings = oldListings.map((listing) => {
+    const listingCoords = resolveListingCoords(listing);
+    const listingPlace = resolveListingPlaceLabel(listing);
+    return {
     id: listing.id,
+    feedSource: 'LISTING' as const,
     title: listing.title || "",
     description: listing.description || "",
     priceCents: listing.priceCents || 0,
         category: (listing as any).vertical || "HOMECHEFF",
     status: "ACTIVE" as const,
-    place: "Nederland",
-    lat: listing.lat ?? null,
-    lng: listing.lng ?? null,
+    place: listingPlace,
+    lat: listingCoords?.lat ?? null,
+    lng: listingCoords?.lng ?? null,
     isPublic: true,
     viewCount: 0,
     createdAt: listing.createdAt,
@@ -423,11 +421,16 @@ export async function GET(req: NextRequest) {
       displayFullName: listing.User.displayFullName || undefined,
       displayNameOption: listing.User.displayNameOption || undefined
     } : undefined
-  }));
+  };
+  });
 
   // Transform new products to match listing format
-  const transformedProducts = allNewProducts.map(product => ({
+  const transformedProducts = allNewProducts.map((product) => {
+    const productCoords = resolveProductCoords(product);
+    const productPlace = resolveProductPlaceLabel(product);
+    return {
     id: product.id,
+    feedSource: 'PRODUCT' as const,
     ownerId: product.seller?.User?.id || "",
     title: product.title || "",
     description: product.description || "",
@@ -435,9 +438,11 @@ export async function GET(req: NextRequest) {
     orderMethod: product.orderMethod ?? 'HOMECHEFF_PAYMENT',
     category: product.category || "HOMECHEFF",
     status: "ACTIVE" as const,
-    place: "Nederland",
-      lat: resolveMarketplaceItemCoords(product.seller)?.lat ?? null,
-      lng: resolveMarketplaceItemCoords(product.seller)?.lng ?? null,
+    place: productPlace,
+    lat: productCoords?.lat ?? null,
+    lng: productCoords?.lng ?? null,
+    pickupLat: product.pickupLat ?? null,
+    pickupLng: product.pickupLng ?? null,
     isPublic: true,
     viewCount: 0,
     createdAt: product.createdAt,
@@ -457,8 +462,14 @@ export async function GET(req: NextRequest) {
       avatar: product.seller.User?.profileImage || undefined,
       displayFullName: product.seller.User?.displayFullName || undefined,
       displayNameOption: product.seller.User?.displayNameOption || undefined,
-      lat: product.seller.lat || null, // Include seller location for distance calculation
-      lng: product.seller.lng || null,
+      lat: product.seller.lat ?? null,
+      lng: product.seller.lng ?? null,
+      User: product.seller.User
+        ? {
+            lat: product.seller.User.lat ?? null,
+            lng: product.seller.User.lng ?? null,
+          }
+        : undefined,
       isBusiness: !!(product.seller.kvk && product.seller.companyName),
       companyName: product.seller.companyName || null,
       kvk: product.seller.kvk || null
@@ -470,7 +481,8 @@ export async function GET(req: NextRequest) {
       : undefined,
     videoUrl: product.Video?.url ?? null,
     primaryVideoUrl: product.Video?.url ?? null,
-  }));
+  };
+  });
 
   // Combine all items
   const allItems = [...transformedProducts, ...transformedListings, ...transformedDishes];
@@ -493,12 +505,12 @@ export async function GET(req: NextRequest) {
   const sortedPool = sortFeedItemsLocalFirst(allItems as Record<string, unknown>[], {
     viewerGeo,
     radiusKm: effectiveRadius,
+    radiusMode: FEED_RADIUS_MODE_LOCAL_FIRST,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
     extractCoords: (item) => extractItemLatLng(item),
   });
 
-  // Sorteer eerst op datum (+ lichte relatie-boost), beperk naar responsgrootte; daarna pas enrichment.
   const sortedItems = sortedPool.slice(0, 30) as typeof allItems;
 
   // Get view counts, review counts, and average ratings only for returned items
@@ -626,6 +638,30 @@ export async function GET(req: NextRequest) {
     attachFeedItemTaxonomy(item as Record<string, unknown>);
   }
 
+  const feedDebug =
+    process.env.NODE_ENV === "development"
+      ? (() => {
+          const saleInResponse = sortedItems.filter((item) =>
+            isMarketplaceSaleItem(item as Record<string, unknown>)
+          );
+          return {
+            scope: feedScope,
+            activeProductsFromDb,
+            productsWithPrice,
+            productsAfterStripeFilter: allNewProducts.length,
+            transformedProducts: transformedProducts.length,
+            transformedListings: transformedListings.length,
+            transformedDishes: transformedDishes.length,
+            combinedBeforeSort: allItems.length,
+            finalFeedItems: sortedItems.length,
+            saleItemsInResponse: saleInResponse.length,
+            saleSample: marketplaceSaleAuditSample(
+              sortedItems as Record<string, unknown>[]
+            ),
+          };
+        })()
+      : undefined;
+
   const cors = getCorsHeaders(req);
   const headers = {
     ...cors,
@@ -639,12 +675,14 @@ export async function GET(req: NextRequest) {
         q,
         vertical,
         subfilters,
+        scope: feedScope,
         radius: effectiveRadius,
         lat: lat ? Number(lat) : null,
         lng: lng ? Number(lng) : null,
       },
       count: sortedItems.length,
       items: sortedItems,
+      ...(feedDebug ? { debug: feedDebug } : {}),
       ...(statsPreview ? { statsPreview } : {}),
     },
     { headers }

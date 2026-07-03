@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {
   inspirationDetailHrefApi,
+  feedLocationLine,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
@@ -581,7 +582,14 @@ function orderedSaleOnlyFromTop(
   return [top.winner, top.second, ...tail];
 }
 
-function toCardItem(it: FeedItem): GeoFeedCardItem {
+function toCardItem(
+  it: FeedItem,
+  viewer: ViewerCoords | null | undefined
+): GeoFeedCardItem {
+  const distanceKm =
+    it.distanceKm != null && it.distanceKm > 0
+      ? it.distanceKm
+      : computeViewerDistanceKm(viewer, it.lat, it.lng);
   return {
     id: it.id,
     title: it.title,
@@ -596,7 +604,7 @@ function toCardItem(it: FeedItem): GeoFeedCardItem {
     photo: it.photo,
     videoUrl: it.videoUrl,
     videoThumbnail: it.videoThumbnail,
-    distanceKm: it.distanceKm,
+    distanceKm,
     viewCount: it.viewCount,
     propsCount: it.propsCount,
     favoriteCount: it.favoriteCount,
@@ -794,12 +802,35 @@ export default function GeoFeed({
   const [pushLastEvent, setPushLastEvent] = useState<string | null>(null);
 
   const profileCoords = useMemo(() => {
-    if (bootstrapProfile?.lat == null || bootstrapProfile?.lng == null) return null;
-    const la = Number(bootstrapProfile.lat);
-    const ln = Number(bootstrapProfile.lng);
+    const rawLat = profileLocation?.lat ?? bootstrapProfile?.lat;
+    const rawLng = profileLocation?.lng ?? bootstrapProfile?.lng;
+    if (rawLat == null || rawLng == null) return null;
+    const la = Number(rawLat);
+    const ln = Number(rawLng);
     if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
     return { lat: la, lng: ln };
-  }, [bootstrapProfile?.lat, bootstrapProfile?.lng]);
+  }, [
+    profileLocation?.lat,
+    profileLocation?.lng,
+    bootstrapProfile?.lat,
+    bootstrapProfile?.lng,
+  ]);
+
+  /** Place text for national/international viewer geocoding (distance labels). */
+  const viewerPlaceForApi = useMemo(() => {
+    if (appliedScope === FEED_SCOPE_NEARBY) return appliedPlace;
+    return (
+      appliedPlace.trim() ||
+      profileLocation?.place?.trim() ||
+      bootstrapProfile?.place?.trim() ||
+      ""
+    );
+  }, [
+    appliedScope,
+    appliedPlace,
+    profileLocation?.place,
+    bootstrapProfile?.place,
+  ]);
 
   /** Coords sent as lat/lng query — only when scope is nearby (manual uses geocoded place). */
   const feedCoords = useMemo(() => {
@@ -1294,7 +1325,7 @@ export default function GeoFeed({
       category: appliedCategory,
       lat: coordsForApiLabels?.lat ?? null,
       lng: coordsForApiLabels?.lng ?? null,
-      place: appliedScope === FEED_SCOPE_NEARBY ? appliedPlace : "",
+      place: viewerPlaceForApi,
       locationSource:
         appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
     });
@@ -1471,8 +1502,11 @@ export default function GeoFeed({
     appliedPlace,
     coordsForApiLabels?.lat,
     coordsForApiLabels?.lng,
+    viewerPlaceForApi,
     apiLocationSource,
     appliedCategory,
+    effectiveViewerForDistance?.lat,
+    effectiveViewerForDistance?.lng,
   ]);
 
   const activeFeedItems = useMemo(
@@ -1652,6 +1686,19 @@ export default function GeoFeed({
   ]);
 
   const sortedSales = rankingResult.orderedSaleOnly;
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    if (feedChip === "inspiration") return;
+    console.table(
+      sortedSales.slice(0, 12).map((item) => ({
+        cardTitle: item.title?.slice(0, 40) ?? "",
+        place: item.place,
+        distanceKm: item.distanceKm ?? null,
+        renderedLocationLine: feedLocationLine(item, t),
+      }))
+    );
+  }, [sortedSales, feedChip, t]);
 
   const mixedRows = useMemo(() => {
     if (!useSmartRanking) {
@@ -2878,7 +2925,7 @@ export default function GeoFeed({
 
             feedRowsToRender.forEach((row, idx) => {
               if (row.row === "sale") {
-                const card = toCardItem(row.item);
+                const card = toCardItem(row.item, effectiveViewerForDistance);
                 if (useDiscoverGridTiles) {
                   nodes.push(
                     <DiscoverGridTile
@@ -2930,7 +2977,7 @@ export default function GeoFeed({
                   );
                 }
               } else {
-                const card = toCardItem(slot.item);
+                const card = toCardItem(slot.item, effectiveViewerForDistance);
                 if (useDiscoverGridTiles) {
                   nodes.push(
                     <DiscoverGridTile

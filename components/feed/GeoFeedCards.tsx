@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import ShareButton from "@/components/ui/ShareButton";
 import PropsButton from "@/components/props/PropsButton";
 import { Eye } from "lucide-react";
@@ -20,6 +21,96 @@ import {
   type ProductOrderMethodValue,
 } from "@/lib/product/order-method";
 import type { FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+import { formatItemPlaceDistanceLine } from "@/lib/geo/item-location";
+import { getDisplayName } from "@/lib/displayName";
+import {
+  EMPTY_USER_STATS,
+  fetchUserStatsDeduped,
+  getCachedUserStats,
+} from "@/lib/userStatsClientCache";
+import type { UserBadgeChipItem } from "@/components/gamification/UserBadgeChips";
+
+/** Desktop homepage feed: one-line seller stats instead of UserStatsTile grid. */
+function FeedCardCompactStats({
+  userId,
+  badges,
+}: {
+  userId: string;
+  badges?: UserBadgeChipItem[] | null;
+}) {
+  const [stats, setStats] = useState(() => getCachedUserStats(userId));
+
+  useEffect(() => {
+    const cached = getCachedUserStats(userId);
+    if (cached) setStats(cached);
+    let cancelled = false;
+    void fetchUserStatsDeduped(userId).then((data) => {
+      if (!cancelled) setStats(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const s = stats ?? EMPTY_USER_STATS;
+  const parts: string[] = [];
+  if (s.fansCount > 0) parts.push(`${s.fansCount} fans`);
+  if (s.totalProps > 0) parts.push(`${s.totalProps} props`);
+  if (s.totalReviews > 0) parts.push(`${s.totalReviews} reviews`);
+  if (s.averageRating > 0) parts.push(`${s.averageRating.toFixed(1)}★`);
+  if (s.totalViews > 0) parts.push(`${s.totalViews} views`);
+
+  if (parts.length === 0 && (!badges || badges.length === 0)) {
+    return null;
+  }
+
+  return (
+    <div className="feed-card-stats-compact hidden lg:flex lg:flex-wrap lg:items-center lg:gap-x-2 lg:gap-y-0.5">
+      {parts.length > 0 ? (
+        <span className="text-[11px] font-medium text-gray-500">{parts.join(" · ")}</span>
+      ) : null}
+      {badges && badges.length > 0 ? (
+        <UserBadgeChips badges={badges} max={2} size="sm" />
+      ) : null}
+    </div>
+  );
+}
+
+function FeedSellerMediaChip({
+  avatar,
+  name,
+  username,
+  displayFullName,
+  displayNameOption,
+}: {
+  avatar?: string | null;
+  name?: string | null;
+  username?: string | null;
+  displayFullName?: boolean | null;
+  displayNameOption?: string | null;
+}) {
+  const label = getDisplayName({
+    name,
+    username,
+    displayFullName,
+    displayNameOption,
+  });
+  if (!label && !avatar) return null;
+  return (
+    <div className="absolute bottom-2 left-2 z-10 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-full bg-white/95 pl-0.5 pr-2.5 py-0.5 shadow-md ring-1 ring-white/90">
+      {avatar ? (
+        <img src={avatar} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+      ) : (
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-brand">
+          {label?.[0]?.toUpperCase() ?? "?"}
+        </span>
+      )}
+      {label ? (
+        <span className="truncate text-[11px] font-semibold text-gray-800">{label}</span>
+      ) : null}
+    </div>
+  );
+}
 
 export type GeoFeedCardItem = {
   id: string;
@@ -74,6 +165,19 @@ function feedInspirationSoftLabel(it: GeoFeedCardItem, t: TFn): string {
   return t("feed.badgeInspiration");
 }
 
+/** Shared sale/inspiration card location line — place · distance with safe fallbacks. */
+export function feedLocationLine(
+  it: { place?: string | null; distanceKm?: number | null },
+  t: TFn
+): string {
+  return formatItemPlaceDistanceLine({
+    place: it.place,
+    distanceKm: it.distanceKm,
+    unknownPlaceLabel: t("feed.unknownPlace"),
+    unknownDistanceLabel: t("feed.unknownDistance"),
+  });
+}
+
 /** Verkoop: duidelijk koopbaar, badge, prijs, CTA. */
 export function FeedSaleCard({
   item: it,
@@ -95,30 +199,40 @@ export function FeedSaleCard({
       : null;
 
   return (
-    <div className="feed-card-geo rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <div className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift overflow-hidden flex flex-col border-primary-brand/15">
       <FeedCardPrimaryMedia
         href={listingHref}
         alt={it.title ?? ""}
         videoUrl={it.videoUrl}
         videoPoster={it.videoThumbnail}
         imageUrl={it.photo}
+        className="hc-feed-media-tall feed-card-primary-media"
         badgeOverlay={
-          <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
-            <span className="inline-flex items-center rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-sm">
-              {t("feed.chipSale")}
-            </span>
-            {contactOnly ? (
-              <span className="inline-flex items-center rounded-lg bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-200 shadow-sm">
-                {t("productOrder.badgeViaContact")}
+          <>
+            <div className="absolute top-2 left-2 flex flex-col gap-1 items-start z-10">
+              <span className="inline-flex items-center rounded-lg bg-primary-brand px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-md">
+                {t("feed.chipSale")}
               </span>
-            ) : null}
-          </div>
+              {contactOnly ? (
+                <span className="inline-flex items-center rounded-lg bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-primary-brand border border-primary-200 shadow-sm">
+                  {t("productOrder.badgeViaContact")}
+                </span>
+              ) : null}
+            </div>
+            <FeedSellerMediaChip
+              avatar={it.sellerAvatar}
+              name={it.sellerName}
+              username={it.sellerUsername}
+              displayFullName={it.sellerDisplayFullName}
+              displayNameOption={it.sellerDisplayNameOption}
+            />
+          </>
         }
       />
-      <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
+      <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={listingHref} className="flex-1 min-w-0">
-            <p className="feed-card-title font-semibold text-gray-900 line-clamp-2 leading-snug">
+            <p className="feed-card-title font-bold text-gray-900 line-clamp-2 leading-snug text-[15px] sm:text-base">
               {it.title ?? t("common.dish")}
             </p>
           </Link>
@@ -126,22 +240,19 @@ export function FeedSaleCard({
             url={`${baseUrl}${listingHref}`}
             title={it.title ?? t("common.dish")}
             description={it.description || ""}
-            className="shrink-0 p-1 text-gray-400 hover:text-blue-600"
+            className="shrink-0 p-1 text-gray-400 hover:text-secondary-brand"
           />
         </div>
         {priceLabel ? (
-          <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+          <p className="text-xl sm:text-2xl font-extrabold text-primary-brand tabular-nums">
             {priceLabel}
           </p>
         ) : (
-          <p className="text-sm font-semibold text-emerald-800">{t("feed.saleSeeOffer")}</p>
+          <p className="text-sm font-semibold text-primary-brand">{t("feed.saleSeeOffer")}</p>
         )}
         <div className="feed-card-meta-cluster">
-          <p className="text-xs text-gray-600">
-            {it.place ?? t("feed.unknownPlace")}
-            {it.distanceKm != null && it.distanceKm > 0 && it.distanceKm !== Infinity
-              ? ` · ${it.distanceKm.toFixed(1)} km`
-              : ""}
+          <p className="text-xs font-medium text-gray-600">
+            {feedLocationLine(it, t)}
           </p>
           <p className="text-xs text-gray-500">
             {it.deliveryMode === "PICKUP"
@@ -153,30 +264,30 @@ export function FeedSaleCard({
                   : ""}
           </p>
           {(it.favoriteCount ?? 0) >= 2 ? (
-            <p className="text-[11px] font-medium text-emerald-800/90 mt-0.5">
+            <p className="text-[11px] font-medium text-secondary-brand/90 mt-0.5">
               {t("feed.density.savedByCommunity", { count: it.favoriteCount ?? 0 })}
             </p>
           ) : null}
         </div>
         {it.sellerUserId ? (
-          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
-            <UserStatsTile
-              userId={it.sellerUserId}
-              userName={it.sellerName || null}
-              userUsername={it.sellerUsername || null}
-              userAvatar={it.sellerAvatar || null}
-              displayFullName={it.sellerDisplayFullName}
-              displayNameOption={it.sellerDisplayNameOption}
-              className="!pt-3"
-            />
-            <UserBadgeChips badges={it.sellerBadges} max={2} size="sm" className="mt-1" />
-          </div>
+          <>
+            <div className="feed-card-stats-wrap mt-1 min-h-[4.5rem] lg:hidden">
+              <UserStatsTile
+                userId={it.sellerUserId}
+                userName={it.sellerName || null}
+                userUsername={it.sellerUsername || null}
+                userAvatar={it.sellerAvatar || null}
+                displayFullName={it.sellerDisplayFullName}
+                displayNameOption={it.sellerDisplayNameOption}
+                className="!pt-2"
+              />
+              <UserBadgeChips badges={it.sellerBadges} max={2} size="sm" className="mt-1" />
+            </div>
+            <FeedCardCompactStats userId={it.sellerUserId} badges={it.sellerBadges} />
+          </>
         ) : null}
-        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-1">
-          <Link
-            href={listingHref}
-            className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
-          >
+        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-2 lg:pt-1">
+          <Link href={listingHref} className="hc-btn-primary rounded-xl px-4 py-2">
             {t("feed.saleViewOffer")}
           </Link>
           <div className="flex items-center gap-2">
@@ -306,7 +417,7 @@ function FeedInspirationCard({
   const fallbackTitle = data.title ?? t("common.dish");
 
   return (
-    <div className="feed-card-geo rounded-xl border border-emerald-200/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+    <div className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift overflow-hidden flex flex-col border-primary-brand/10">
       <FeedCardPrimaryMedia
         href={data.detailHref}
         alt={data.alt}
@@ -314,18 +425,30 @@ function FeedInspirationCard({
         videoPoster={data.videoPoster}
         imageUrl={data.imageUrl}
         objectFit={data.objectFit}
+        className="hc-feed-media-tall feed-card-primary-media"
         badgeOverlay={
-          <div className="absolute top-2 left-2">
-            <span className="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-stone-700 shadow-sm">
-              {data.label}
-            </span>
-          </div>
+          <>
+            <div className="absolute top-2 left-2 z-10">
+              <span className="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-primary-brand shadow-md ring-1 ring-primary-brand/15">
+                {data.label}
+              </span>
+            </div>
+            {data.user ? (
+              <FeedSellerMediaChip
+                avatar={data.user.avatar}
+                name={data.user.name}
+                username={data.user.username}
+                displayFullName={data.user.displayFullName}
+                displayNameOption={data.user.displayNameOption}
+              />
+            ) : null}
+          </>
         }
       />
-      <div className="feed-card-body p-3 flex flex-col flex-1 gap-2">
+      <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
           <Link href={data.detailHref} className="flex-1 min-w-0">
-            <p className="feed-card-title font-semibold text-gray-900 line-clamp-2 leading-snug">
+            <p className="feed-card-title font-bold text-gray-900 line-clamp-2 leading-snug text-[15px] sm:text-base">
               {fallbackTitle}
             </p>
           </Link>
@@ -333,41 +456,38 @@ function FeedInspirationCard({
             url={`${baseUrl}${data.detailHref}`}
             title={fallbackTitle}
             description={data.description || ""}
-            className="shrink-0 p-1 text-gray-400 hover:text-blue-600"
+            className="shrink-0 p-1 text-gray-400 hover:text-secondary-brand"
           />
         </div>
-        <p className="feed-card-insp-secondary-label text-2xl font-bold text-emerald-700 tabular-nums">
+        <p className="feed-card-insp-secondary-label text-sm font-semibold text-secondary-brand uppercase tracking-wide lg:hidden">
           {data.label}
         </p>
         <div className="feed-card-meta-cluster">
-          <p className="text-xs text-gray-600">
-            {data.place ?? t("feed.unknownPlace")}
-            {data.distanceKm != null && data.distanceKm > 0 && data.distanceKm !== Infinity
-              ? ` · ${data.distanceKm.toFixed(1)} km`
-              : ""}
+          <p className="text-xs font-medium text-gray-600">
+            {feedLocationLine(data, t)}
           </p>
         </div>
         {data.user ? (
-          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]">
-            <UserStatsTile
-              userId={data.user.id}
-              userName={data.user.name}
-              userUsername={data.user.username}
-              userAvatar={data.user.avatar}
-              displayFullName={data.user.displayFullName}
-              displayNameOption={data.user.displayNameOption}
-              className="!pt-3"
-            />
-            <UserBadgeChips badges={data.user.badges} max={2} size="sm" className="mt-1" />
-          </div>
+          <>
+            <div className="feed-card-stats-wrap mt-1 min-h-[4.5rem] lg:hidden">
+              <UserStatsTile
+                userId={data.user.id}
+                userName={data.user.name}
+                userUsername={data.user.username}
+                userAvatar={data.user.avatar}
+                displayFullName={data.user.displayFullName}
+                displayNameOption={data.user.displayNameOption}
+                className="!pt-2"
+              />
+              <UserBadgeChips badges={data.user.badges} max={2} size="sm" className="mt-1" />
+            </div>
+            <FeedCardCompactStats userId={data.user.id} badges={data.user.badges} />
+          </>
         ) : (
-          <div className="feed-card-stats-wrap mt-2 min-h-[5.5rem]" aria-hidden />
+          <div className="feed-card-stats-wrap mt-1 min-h-[4.5rem] lg:hidden" aria-hidden />
         )}
-        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-1">
-          <Link
-            href={data.detailHref}
-            className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
-          >
+        <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-2 lg:pt-1">
+          <Link href={data.detailHref} className="hc-btn-primary rounded-xl px-4 py-2">
             {t("feed.inspirationViewCta")}
           </Link>
           <div className="flex items-center gap-2">

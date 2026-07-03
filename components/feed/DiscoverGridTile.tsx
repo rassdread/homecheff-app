@@ -6,15 +6,10 @@ import { FeedCardPrimaryMedia } from "@/components/feed/feedMedia";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
+import { feedLocationLine } from "@/components/feed/GeoFeedCards";
 import { getDisplayName } from "@/lib/displayName";
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
-
-function formatDistance(km: number | undefined): string | null {
-  if (km == null || !Number.isFinite(km)) return null;
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  return `${km.toFixed(1)} km`;
-}
 
 function creatorLabel(it: GeoFeedCardItem): string {
   return getDisplayName({
@@ -80,39 +75,52 @@ export default function DiscoverGridTile({
   const priceLabel = hasPrice
     ? `€ ${(Number(it.priceCents) / 100).toFixed(2)}`
     : null;
-  const distance = formatDistance(it.distanceKm);
-  const placeLine = [it.place?.trim() || t("feed.unknownPlace"), distance]
-    .filter(Boolean)
-    .join(" · ");
+  const placeLine = feedLocationLine(it, t);
   const creator = creatorLabel(it);
   const badge = categoryBadgeLabel(it, kind, t);
 
   return (
-    <article className="feed-discover-tile group flex flex-col overflow-hidden rounded-xl border border-emerald-200/70 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <article className="feed-discover-tile hc-dorpsplein-card hc-feed-card hc-card-lift group flex flex-col overflow-hidden border-primary-brand/15 shadow-sm">
       <FeedCardPrimaryMedia
         href={href}
         alt={it.title ?? ""}
         videoUrl={it.videoUrl}
         videoPoster={it.videoThumbnail}
         imageUrl={it.photo}
-        className="feed-discover-tile-media feed-card-primary-media"
+        className="feed-discover-tile-media feed-card-primary-media hc-feed-media-tall"
         badgeOverlay={
-          <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-start pointer-events-none">
-            <span
-              className={`inline-flex max-w-full items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm line-clamp-1 ${
-                kind === "sale"
-                  ? "bg-[#006D52] text-white"
-                  : "bg-white/95 text-gray-800 ring-1 ring-gray-200/80"
-              }`}
-            >
-              {badge}
-            </span>
-          </div>
+          <>
+            <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-start pointer-events-none z-10">
+              <span
+                className={`inline-flex max-w-full items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-md line-clamp-1 ${
+                  kind === "sale"
+                    ? "bg-[#006D52] text-white"
+                    : "bg-white/95 text-primary-brand ring-1 ring-primary-brand/15"
+                }`}
+              >
+                {badge}
+              </span>
+            </div>
+            {it.sellerAvatar || creator ? (
+              <div className="absolute bottom-1.5 left-1.5 z-10 flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full bg-white/95 pl-0.5 pr-2 py-0.5 shadow-md ring-1 ring-white/90">
+                {it.sellerAvatar ? (
+                  <img src={it.sellerAvatar} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-brand">
+                    {creator?.[0]?.toUpperCase() ?? "?"}
+                  </span>
+                )}
+                {creator ? (
+                  <span className="truncate text-[10px] font-semibold text-gray-800">{creator}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </>
         }
       />
-      <div className="flex flex-1 flex-col gap-1 p-2">
+      <div className="flex flex-1 flex-col gap-1.5 p-2.5">
         <Link href={href} className="min-w-0">
-          <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-gray-900 group-hover:text-[#0067B1]">
+          <h3 className="line-clamp-2 text-[13px] font-bold leading-snug text-gray-900 group-hover:text-[#0067B1]">
             {it.title?.trim() || t("common.dish")}
           </h3>
         </Link>
