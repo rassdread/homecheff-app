@@ -9,12 +9,13 @@ const STORAGE_KEY = "homecheff.feedLayoutMode";
 const CHANGE_EVENT = "hc-feed-layout-mode";
 
 export function readFeedLayoutMode(): FeedLayoutMode {
-  if (typeof window === "undefined") return "cards";
+  if (typeof window === "undefined") return "discover";
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw === "discover" ? "discover" : "cards";
+    if (raw === "cards") return "cards";
+    return "discover";
   } catch {
-    return "cards";
+    return "discover";
   }
 }
 
@@ -43,7 +44,7 @@ export function useFeedLayoutMode(): [FeedLayoutMode, (mode: FeedLayoutMode) => 
   const mode = useSyncExternalStore(
     subscribeFeedLayoutMode,
     readFeedLayoutMode,
-    () => "cards" as FeedLayoutMode
+    () => "discover" as FeedLayoutMode
   );
   const setMode = useCallback((next: FeedLayoutMode) => {
     writeFeedLayoutMode(next);

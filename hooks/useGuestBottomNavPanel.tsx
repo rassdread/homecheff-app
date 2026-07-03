@@ -65,6 +65,17 @@ export function useGuestBottomNavPanel() {
     router.push('/mijn-hcp');
   }, [session?.user, sessionStatus, openGuestBottomNavPanel, router]);
 
+  const handleGuestCreateClick = useCallback(() => {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
+      const p = sanitizePostAuthRelativeUrl('/sell/new') || '/sell/new';
+      openGuestBottomNavPanel('create', p, () => {
+        savePendingIntent({ type: 'create_item', mode: 'dorpsplein', returnPath: p });
+      });
+      return;
+    }
+    router.push('/sell/new');
+  }, [session?.user, sessionStatus, openGuestBottomNavPanel, router]);
+
   const guestBottomNavPanelEl = (
     <GuestExplanationPanel
       namespace="guestBottomNav"
@@ -80,6 +91,7 @@ export function useGuestBottomNavPanel() {
     openGuestBottomNavPanel,
     handleGuestMessagesClick,
     handleGuestReputationClick,
+    handleGuestCreateClick,
     guestBottomNavPanelEl,
     closeGuestPanel,
   };

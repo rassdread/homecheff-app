@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const MQ = "(max-width: 767px)";
+const MQ = "(max-width: 1023px)";
 
 /**
- * True op smalle viewports (mobiel). Start false (SSR) → na mount sync voor geen layout flash.
+ * True op viewports onder lg (mobiel + tablet). Aligns with homepage `lg:hidden` shell.
  */
 export function useNarrowViewport(): boolean {
   const [narrow, setNarrow] = useState(false);

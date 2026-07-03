@@ -19,6 +19,8 @@ import {
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
 import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
+import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
+import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import {
   getFeedItemHref,
 } from "@/components/feed/feedItemClassification";
@@ -769,6 +771,7 @@ export default function GeoFeed({
   });
   /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
+  const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
   const [category, setCategory] = useState(() =>
     initialDorpspleinCategoryFromServer(initialFeedCategory)
   );
@@ -778,7 +781,7 @@ export default function GeoFeed({
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
   const [feedLayoutMode, setFeedLayoutMode] = useFeedLayoutMode();
-  /** Mobile web (<768px) or Capacitor shell: compact chrome + layout toggle. */
+  /** Mobile web (<1024px) or Capacitor shell: compact toolbar + filter sheet. */
   const isMobileFeedUi = nativeMounted || narrowViewport;
   const isDesktopSplit = Boolean(homeComposedLayout && !isMobileFeedUi);
   const [desktopFeedColumns, setDesktopFeedColumns] = useHomeDesktopFeedColumns();
@@ -2055,6 +2058,24 @@ export default function GeoFeed({
     ]
   );
 
+  const mobileToolbarFilterActive = useMemo(
+    () =>
+      appliedPlace.trim() !== "" ||
+      appliedQ.trim() !== "" ||
+      appliedCategory !== "all" ||
+      appliedSearchQuery.trim() !== "" ||
+      appliedPriceRange.min !== "" ||
+      appliedPriceRange.max !== "",
+    [
+      appliedPlace,
+      appliedQ,
+      appliedCategory,
+      appliedSearchQuery,
+      appliedPriceRange.min,
+      appliedPriceRange.max,
+    ]
+  );
+
   const chipBtn = (active: boolean) =>
     `${filterChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
       active
@@ -2608,78 +2629,116 @@ export default function GeoFeed({
           </>
         ) : null;
 
-  const filterCardEl = (
+  const mobileFilterSheetEl =
+    feedCompactChrome && !isDesktopSplit ? (
+      <FeedMobileFilterSheet
+        open={mobileFilterSheetOpen}
+        onClose={() => setMobileFilterSheetOpen(false)}
+        t={t}
+        place={place}
+        onPlaceChange={handlePlaceInput}
+        onUseMyLocation={handleUseMyLocation}
+        locationLoading={locationLoading}
+        locationSupported={locationSupported}
+        locationError={showGpsError ? locationError : null}
+        activeLocationChip={activeLocationChip}
+        onClearLocation={clearViewerLocation}
+        showLocationHint={showViewerLocationHint}
+        profileNeedsCoords={profileNeedsCoords}
+        appliedScope={appliedScope}
+        radius={radius}
+        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        q={q}
+        onQChange={setQ}
+        category={category}
+        onCategoryChange={setCategory}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        priceRange={priceRange}
+        onPriceRangeChange={setPriceRange}
+        filtersDirty={filtersDirty}
+        onApply={() => {
+          applyFilters();
+          setMobileFilterSheetOpen(false);
+        }}
+        onClear={() => {
+          clearFilters();
+          setMobileFilterSheetOpen(false);
+        }}
+      />
+    ) : null;
+
+  const filterCardEl = isDesktopSplit ? (
     <div
       className={`hc-dorpsplein-card bg-white/90 rounded-2xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
     >
-      {isDesktopSplit ? (
-        <FeedSidebarFilters
-          t={t}
-          place={place}
-          onPlaceChange={handlePlaceInput}
-          onUseMyLocation={handleUseMyLocation}
-          locationLoading={locationLoading}
-          locationSupported={locationSupported}
-          locationError={showGpsError ? locationError : null}
-          activeLocationChip={activeLocationChip}
-          onClearLocation={clearViewerLocation}
-          showLocationHint={showViewerLocationHint}
-          profileNeedsCoords={profileNeedsCoords}
-          scope={appliedScope}
-          onScopeChange={handleScopeChange}
-          radius={radius}
-          onRadiusChange={(n) =>
-            setRadius(Math.max(0, Math.min(100, n)))
-          }
-          distanceSortEnabled={distanceSortEnabled}
-          q={q}
-          onQChange={setQ}
-          category={category}
-          onCategoryChange={setCategory}
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSort={handleSort}
-          sortOptions={sortOptions}
-          priceRange={priceRange}
-          onPriceRangeChange={setPriceRange}
-          refineOpen={sidebarRefineOpen}
-          onRefineOpenChange={setSidebarRefineOpen}
-          filtersDirty={filtersDirty}
-          onApply={applyFilters}
-          onResetDraft={resetDraftFilters}
-        />
-      ) : (
-        <>
+      <FeedSidebarFilters
+        t={t}
+        place={place}
+        onPlaceChange={handlePlaceInput}
+        onUseMyLocation={handleUseMyLocation}
+        locationLoading={locationLoading}
+        locationSupported={locationSupported}
+        locationError={showGpsError ? locationError : null}
+        activeLocationChip={activeLocationChip}
+        onClearLocation={clearViewerLocation}
+        showLocationHint={showViewerLocationHint}
+        profileNeedsCoords={profileNeedsCoords}
+        scope={appliedScope}
+        onScopeChange={handleScopeChange}
+        radius={radius}
+        onRadiusChange={(n) => setRadius(Math.max(0, Math.min(100, n)))}
+        distanceSortEnabled={distanceSortEnabled}
+        q={q}
+        onQChange={setQ}
+        category={category}
+        onCategoryChange={setCategory}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSort}
+        sortOptions={sortOptions}
+        priceRange={priceRange}
+        onPriceRangeChange={setPriceRange}
+        refineOpen={sidebarRefineOpen}
+        onRefineOpenChange={setSidebarRefineOpen}
+        filtersDirty={filtersDirty}
+        onApply={applyFilters}
+        onResetDraft={resetDraftFilters}
+      />
+    </div>
+  ) : feedCompactChrome ? (
+    <>
+      <FeedMobileToolbar
+        t={t}
+        feedChip={feedChip}
+        onFeedChipChange={setFeedChip}
+        appliedScope={appliedScope}
+        onScopeChange={handleScopeChange}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        sortOptions={sortOptions}
+        onSort={handleSort}
+        onOpenFilters={() => setMobileFilterSheetOpen(true)}
+        filterActive={mobileToolbarFilterActive}
+        feedLayoutMode={feedLayoutMode}
+        onFeedLayoutModeChange={setFeedLayoutMode}
+      />
+      {mobileFilterSheetEl}
+      {resultCountEl}
+    </>
+  ) : (
+    <div
+      className={`hc-dorpsplein-card bg-white/90 rounded-2xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
+    >
+      <>
         <div>
-          <h2
-            className={
-              filterChrome
-                ? "text-sm font-semibold text-gray-900"
-                : "text-base font-semibold text-gray-900"
-            }
-          >
+          <h2 className="text-base font-semibold text-gray-900">
             {t("feed.discoverFiltersHeading")}
           </h2>
-          {!filterChrome && (
-            <p className="text-sm text-gray-600 mt-1 mb-3">
-              {t("feed.chipSectionIntro")}
-            </p>
-          )}
+          <p className="text-sm text-gray-600 mt-1 mb-3">{t("feed.chipSectionIntro")}</p>
           {viewModeChipsEl}
-          {isMobileFeedUi ? (
-            <div className="mt-2.5 flex flex-wrap items-end justify-between gap-2">
-              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-                {t("feed.layoutModeLabel")}
-              </p>
-              <FeedLayoutToggle
-                mode={feedLayoutMode}
-                onChange={setFeedLayoutMode}
-                compact
-              />
-            </div>
-          ) : null}
           {feedQuickCreateIntent ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -2695,38 +2754,10 @@ export default function GeoFeed({
             </div>
           ) : null}
         </div>
-
-      {feedCompactChrome && sortRowEl}
-
-      {feedCompactChrome && (
-        <button
-          type="button"
-          aria-expanded={nativeFeedExtraOpen}
-          onClick={() => setNativeFeedExtraOpen((o) => !o)}
-          className="inline-flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors"
-        >
-          {nativeFeedExtraOpen ? (
-            <ChevronUp className="w-4 h-4 shrink-0" />
-          ) : (
-            <ChevronDown className="w-4 h-4 shrink-0" />
-          )}
-          {nativeFeedExtraOpen
-            ? t("feed.nativeCollapseGeoFilters")
-            : t("feed.nativeExpandGeoFilters")}
-          {nativeGeoFilterActive && !nativeFeedExtraOpen ? (
-            <span
-              className="h-2 w-2 rounded-full bg-emerald-500"
-              aria-hidden
-            />
-          ) : null}
-        </button>
-      )}
-
-      {filterPanelBodyEl}
-
-      {!isDesktopSplit ? resultCountEl : null}
-        </>
-      )}
+        {sortRowEl}
+        {filterPanelBodyEl}
+        {resultCountEl}
+      </>
     </div>
   );
 
