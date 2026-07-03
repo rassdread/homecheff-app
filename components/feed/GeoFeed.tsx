@@ -57,8 +57,13 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useCreateFlow } from "@/components/create/CreateFlowContext";
-import { resolveHomeMobileInsert } from "@/lib/home/resolve-home-mobile-insert";
+import {
+  parsePromoInsertId,
+  resolveHomeMobileInsert,
+  resolveHomeMobileTrailingPromo,
+} from "@/lib/home/resolve-home-mobile-insert";
 import type { HomeMobileFeedInsertId } from "@/lib/home/resolve-home-mobile-insert";
+import type { HomePromotionId } from "@/lib/promotions/home-promotions";
 import type {
   CreateFlowIntent,
   CreateFlowMode,
@@ -644,6 +649,8 @@ type GeoFeedProps = {
   enableMobileFeedInserts?: boolean;
   /** Render homepage-only insert UI (keeps GeoFeed free of components/home imports). */
   renderMobileFeedInsert?: (insertId: HomeMobileFeedInsertId) => ReactNode;
+  /** Visible homepage promo ids — used for short-feed trailing insert. */
+  visibleHomePromotionIds?: HomePromotionId[];
   /** Narrower main column on desktop homepage (2-col grid). */
   feedColumnLayout?: 'default' | 'home-main';
   /**
@@ -680,6 +687,7 @@ export default function GeoFeed({
   initialFeedPlace,
   enableMobileFeedInserts = false,
   renderMobileFeedInsert,
+  visibleHomePromotionIds = [],
   feedColumnLayout = 'default',
   homeComposedLayout = false,
   children,
@@ -2941,17 +2949,21 @@ export default function GeoFeed({
             const nodes: ReactNode[] = [];
             let feedItemIndex = 0;
             const isLoggedIn = !!session?.user;
+            const insertedPromoIds = new Set<HomePromotionId>();
 
             const pushInsertIfNeeded = () => {
               if (!enableMobileFeedInserts || !isMobileFeedUi) return;
               const insertId = resolveHomeMobileInsert(feedItemIndex, isLoggedIn);
-              if (insertId && renderMobileFeedInsert) {
-                nodes.push(
-                  <div key={`feed-insert-${feedItemIndex}-${insertId}`} className="contents">
-                    {renderMobileFeedInsert(insertId)}
-                  </div>
-                );
-              }
+              if (!insertId || !renderMobileFeedInsert) return;
+              const insertEl = renderMobileFeedInsert(insertId);
+              if (!insertEl) return;
+              const promoId = parsePromoInsertId(insertId);
+              if (promoId) insertedPromoIds.add(promoId);
+              nodes.push(
+                <div key={`feed-insert-${feedItemIndex}-${insertId}`} className="contents">
+                  {insertEl}
+                </div>
+              );
             };
 
             feedRowsToRender.forEach((row, idx) => {
@@ -3034,6 +3046,23 @@ export default function GeoFeed({
               feedItemIndex += 1;
               pushInsertIfNeeded();
             });
+
+            const trailingInsertId = resolveHomeMobileTrailingPromo(
+              feedItemIndex,
+              insertedPromoIds,
+              visibleHomePromotionIds
+            );
+            if (trailingInsertId && renderMobileFeedInsert) {
+              const trailingEl = renderMobileFeedInsert(trailingInsertId);
+              if (trailingEl) {
+                nodes.push(
+                  <div key={`feed-insert-trailing-${trailingInsertId}`} className="contents">
+                    {trailingEl}
+                  </div>
+                );
+              }
+            }
+
             return nodes;
           })()}
         </div>

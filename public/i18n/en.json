@@ -6382,6 +6382,30 @@
     "mobileShareInsertTitle": "Share something with your neighborhood",
     "mobileShareInsertBody": "Cook, grow, or create — show neighbors what you make."
   },
+  "homePromotions": {
+    "sectionTitle": "Recommended",
+    "sectionSubtitle": "Updates and opportunities from HomeCheff",
+    "badgeRecommended": "Recommended",
+    "badgeSponsored": "Sponsored",
+    "androidBeta": {
+      "title": "HomeCheff beta app",
+      "eyebrow": "Android · Beta",
+      "description": "Try new features first and discover HomeCheff on mobile.",
+      "actionLabel": "Download"
+    },
+    "affiliate": {
+      "title": "Affiliate 12-12",
+      "eyebrow": "Earn",
+      "description": "Earn by sharing HomeCheff with makers and neighbors.",
+      "actionLabel": "Learn more"
+    },
+    "werkenBij": {
+      "title": "Work at HomeCheff",
+      "eyebrow": "Local opportunities",
+      "description": "Help local makers with delivery, promotion and community.",
+      "actionLabel": "More info"
+    }
+  },
   "homePhase1": {
     "heroTitleBefore": "Discover what people ",
     "heroTitleHighlight": "nearby",

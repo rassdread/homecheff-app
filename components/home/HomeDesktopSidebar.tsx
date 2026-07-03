@@ -12,6 +12,7 @@ import CommunityPulseBar from '@/components/home/CommunityPulseBar';
 import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
 import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
+import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
 
 type Props = {
   welcomeLine?: string | null;
@@ -50,6 +51,8 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
         />
 
         <CommunityPulseBar variant="sidebar" />
+
+        <HomeRecommendedPromotions variant="sidebar" />
 
         <div className="hc-dorpsplein-card px-4 py-3">
           <h3 className="hc-section-title text-base mb-3">

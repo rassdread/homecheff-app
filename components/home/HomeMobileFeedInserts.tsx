@@ -8,7 +8,8 @@ import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import HomeVerticalChipStrip from '@/components/home/HomeVerticalChipStrip';
-import type { HomeMobileFeedInsertId } from '@/lib/home/resolve-home-mobile-insert';
+import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
+import { parsePromoInsertId, type HomeMobileFeedInsertId } from '@/lib/home/resolve-home-mobile-insert';
 
 export type { HomeMobileFeedInsertId } from '@/lib/home/resolve-home-mobile-insert';
 export { resolveHomeMobileInsert } from '@/lib/home/resolve-home-mobile-insert';
@@ -21,7 +22,7 @@ export function HomeMobileFeedInsert({
   const { t } = useTranslation();
   const { data: session } = useSession();
   const { openCreateFlow } = useCreateFlow();
-  const { handleGuestCreateClick, handleGuestReputationClick, guestBottomNavPanelEl } =
+  const { handleGuestCreateClick, guestBottomNavPanelEl } =
     useGuestBottomNavPanel();
 
   if (insertId === 'verticals') {
@@ -76,6 +77,15 @@ export function HomeMobileFeedInsert({
           )}
         </div>
         {guestBottomNavPanelEl}
+      </div>
+    );
+  }
+
+  const promoId = parsePromoInsertId(insertId);
+  if (promoId) {
+    return (
+      <div className="col-span-2 w-full my-1">
+        <HomeRecommendedPromotions variant="feedInsert" promotionId={promoId} />
       </div>
     );
   }

@@ -6382,6 +6382,30 @@
     "mobileShareInsertTitle": "Deel iets met je buurt",
     "mobileShareInsertBody": "Kook, kweek of creëer — laat buren zien wat je maakt."
   },
+  "homePromotions": {
+    "sectionTitle": "Aanbevolen",
+    "sectionSubtitle": "Updates en kansen van HomeCheff",
+    "badgeRecommended": "Aanbevolen",
+    "badgeSponsored": "Gesponsord",
+    "androidBeta": {
+      "title": "HomeCheff beta-app",
+      "eyebrow": "Android · Beta",
+      "description": "Test nieuwe functies als eerste en ontdek HomeCheff mobiel.",
+      "actionLabel": "Download"
+    },
+    "affiliate": {
+      "title": "Affiliate 12-12",
+      "eyebrow": "Verdienen",
+      "description": "Verdien mee door HomeCheff te delen met makers en buren.",
+      "actionLabel": "Bekijk"
+    },
+    "werkenBij": {
+      "title": "Werken bij HomeCheff",
+      "eyebrow": "Lokale kansen",
+      "description": "Help lokale makers met bezorgen, promotie en community.",
+      "actionLabel": "Meer info"
+    }
+  },
   "homePhase1": {
     "heroTitleBefore": "Ontdek wat mensen ",
     "heroTitleHighlight": "dichtbij",
