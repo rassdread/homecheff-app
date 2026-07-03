@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
+import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
 import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
@@ -23,7 +24,11 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const { openCreateFlow } = useCreateFlow();
-  const { isGuest, requireAuthAction, guestAuthPanel } = useGuestAuthGate();
+  const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
+  const { sessionStatus, handleGuestMessagesClick, guestBottomNavPanelEl } =
+    useGuestBottomNavPanel();
+
+  const messagesTabUseLink = sessionStatus !== 'unauthenticated';
 
   return (
     <>
@@ -63,20 +68,20 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
                 {t('homePhase1.ctaShare')}
               </button>
             )}
-            {isGuest ? (
+            {messagesTabUseLink ? (
+              <Link href="/messages" className={quickActionClass}>
+                <MessageCircle className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />
+                {t('bottomNav.messages')}
+              </Link>
+            ) : (
               <button
                 type="button"
-                onClick={() => requireAuthAction('messages', '/messages')}
+                onClick={handleGuestMessagesClick}
                 className={quickActionClass}
               >
                 <MessageCircle className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />
                 {t('bottomNav.messages')}
               </button>
-            ) : (
-              <Link href="/messages" className={quickActionClass}>
-                <MessageCircle className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />
-                {t('bottomNav.messages')}
-              </Link>
             )}
             <Link
               href="/?chip=sale#homecheff-feed"
@@ -127,6 +132,7 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
         </div>
       </div>
       {guestAuthPanel}
+      {guestBottomNavPanelEl}
     </>
   );
 }
