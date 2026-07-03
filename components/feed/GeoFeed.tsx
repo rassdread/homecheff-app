@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, createContext, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import {
   Filter,
@@ -10,17 +10,15 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  MapPin,
+  Loader2,
 } from "lucide-react";
 import {
   inspirationDetailHrefApi,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
+import FeedSidebarFilters from "@/components/feed/FeedSidebarFilters";
 import {
-  pickPrimaryImageUrl,
-  pickPrimaryVideoUrl,
-} from "@/components/feed/feedMedia";
-import {
-  classifyFeedItem,
   getFeedItemHref,
 } from "@/components/feed/feedItemClassification";
 import {
@@ -30,9 +28,18 @@ import {
 import type { FeedChip, FeedViewFilterId } from "@/lib/feed/feed-taxonomy";
 import { deriveFeedTaxonomy, type FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
+import FeedDesktopColumnToggle from "@/components/feed/FeedDesktopColumnToggle";
+import {
+  useHomeDesktopFeedColumns,
+  homeDesktopFeedGridClass,
+} from "@/lib/feed/homeDesktopFeedColumns";
 import DiscoverGridTile, {
   inspirationApiToCardItem,
 } from "@/components/feed/DiscoverGridTile";
+import {
+  pickPrimaryImageUrl,
+  pickPrimaryVideoUrl,
+} from "@/components/feed/feedMedia";
 import {
   getEffectiveFeedLayoutMode,
   useFeedLayoutMode,
@@ -47,6 +54,8 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { useCreateFlow } from "@/components/create/CreateFlowContext";
+import { resolveHomeMobileInsert } from "@/lib/home/resolve-home-mobile-insert";
+import type { HomeMobileFeedInsertId } from "@/lib/home/resolve-home-mobile-insert";
 import type {
   CreateFlowIntent,
   CreateFlowMode,
@@ -80,9 +89,64 @@ import {
   loadFeedSurfaceState,
   saveFeedSurfaceState,
 } from "@/lib/feed/feedSurfaceState";
-import { RADIUS_LOCAL_KM } from "@/lib/geo/local-discovery";
+import {
+  compareFeedSaleItems,
+  feedItemCategoryEnum,
+  feedVerticalSlugToCategoryEnum,
+  matchesFeedClientPriceRange,
+  sortFeedSaleItems,
+  type FeedClientSortField,
+  type FeedClientSortOrder,
+} from "@/lib/feed/feed-client-sort";
+import {
+  buildGeoFeedApiParams,
+  buildInspiratieCategoryParam,
+} from "@/lib/feed/feed-query-params";
+import {
+  FEED_SCOPE_INTERNATIONAL,
+  FEED_SCOPE_NATIONAL,
+  FEED_SCOPE_NEARBY,
+  migrateHomeFeedPersist,
+  scopeDefaultSort,
+  scopeUsesFarthestFirstSort,
+  type FeedScope,
+} from "@/lib/feed/feed-scope";
+import {
+  countSaleAfterSearch,
+  logFeedSaleVisibilityAudit,
+} from "@/lib/feed/feed-sale-visibility-audit";
+import {
+  nextWiderFeedRadiusKm,
+  RADIUS_LOCAL_KM,
+} from "@/lib/geo/local-discovery";
+import { partitionSaleItemsByRadius } from "@/lib/geo/feed-radius-filter";
+import {
+  countMarketplaceSaleItems,
+  isMarketplaceSaleItem,
+} from "@/lib/feed/marketplace-sale";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
+import { computeViewerDistanceKm, resolveFeedItemCoordsFromRaw } from "@/lib/geo/item-location";
+
+type ViewerCoords = { lat: number; lng: number };
+
+function enrichFeedItemDistance(
+  item: FeedItem,
+  viewer: ViewerCoords | null | undefined
+): FeedItem {
+  if (item.distanceKm != null && item.distanceKm > 0) return item;
+  const km = computeViewerDistanceKm(viewer, item.lat, item.lng);
+  if (km == null) return item;
+  return { ...item, distanceKm: km };
+}
+
+function enrichFeedItemsWithDistance(
+  items: FeedItem[],
+  viewer: ViewerCoords | null | undefined
+): FeedItem[] {
+  if (!viewer) return items;
+  return items.map((item) => enrichFeedItemDistance(item, viewer));
+}
 
 /** Native Capacitor GPS-testblok: alleen in dev, of met expliciete flag (niet op productie voor eindgebruikers). */
 const SHOW_NATIVE_GPS_DEBUG_UI =
@@ -129,6 +193,7 @@ type FeedItem = {
   sellerBadges?: AuthorBadgeChip[];
   /** Afgeleide V3 taxonomy (Fase 5D). */
   taxonomy?: FeedTaxonomy;
+  feedSource?: string | null;
 };
 
 /** UI view filter — decoupled from item taxonomy (Fase 5D). Today: all | sale | inspiration. */
@@ -267,6 +332,8 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
   };
   const taxonomy = rawTaxonomy ?? deriveFeedTaxonomy(taxonomyInput);
 
+  const resolvedCoords = resolveFeedItemCoordsFromRaw(raw);
+
   return {
     id: String(raw.id ?? ""),
     title: (raw.title as string) ?? null,
@@ -291,14 +358,16 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     place:
       (raw.place as string) ??
       ((raw.location as { place?: string } | undefined)?.place ?? null),
-    lat: raw.lat != null ? Number(raw.lat) : null,
-    lng: raw.lng != null ? Number(raw.lng) : null,
+    lat: resolvedCoords?.lat ?? null,
+    lng: resolvedCoords?.lng ?? null,
     photo,
     videoUrl,
     videoThumbnail,
     createdAt,
     distanceKm:
-      raw.distanceKm != null ? Number(raw.distanceKm) : undefined,
+      raw.distanceKm != null && Number(raw.distanceKm) > 0
+        ? Number(raw.distanceKm)
+        : undefined,
     viewCount:
       raw.viewCount != null ? Number(raw.viewCount) : undefined,
     propsCount:
@@ -307,7 +376,34 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       raw.favoriteCount != null ? Number(raw.favoriteCount) : undefined,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
     taxonomy,
+    feedSource:
+      raw.feedSource != null
+        ? String(raw.feedSource)
+        : raw.kind != null
+          ? String(raw.kind)
+          : null,
   };
+}
+
+function safeNormalizeFeedItem(
+  raw: Record<string, unknown>,
+  index: number
+): FeedItem | null {
+  try {
+    return normalizeFeedItem(raw);
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[GeoFeed] feed item normalize failed", {
+        index,
+        id: raw.id,
+        error,
+      });
+    }
+    reportAppDiagnostic("feed_item_normalize_failed", {
+      id: raw.id != null ? String(raw.id) : null,
+    });
+    return null;
+  }
 }
 
 function isVisible(item: FeedItem) {
@@ -328,45 +424,39 @@ function matchesSearch(
   );
 }
 
-function sortSales(
-  list: FeedItem[],
-  sortBy: "newest" | "price" | "views" | "distance",
-  sortOrder: "asc" | "desc"
-) {
-  return [...list].sort((a, b) => {
-    let aValue: number;
-    let bValue: number;
-    switch (sortBy) {
-      case "newest":
-        aValue = new Date(a.createdAt).getTime();
-        bValue = new Date(b.createdAt).getTime();
-        break;
-      case "price":
-        aValue = a.priceCents || 0;
-        bValue = b.priceCents || 0;
-        break;
-      case "views":
-        aValue = a.viewCount || 0;
-        bValue = b.viewCount || 0;
-        break;
-      case "distance":
-        aValue = a.distanceKm ?? Infinity;
-        bValue = b.distanceKm ?? Infinity;
-        break;
-      default:
-        aValue = new Date(a.createdAt).getTime();
-        bValue = new Date(b.createdAt).getTime();
-    }
-    if (aValue !== bValue) {
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      }
-      return aValue < bValue ? 1 : -1;
-    }
-    return sortOrder === "asc"
-      ? a.id.localeCompare(b.id)
-      : b.id.localeCompare(a.id);
-  });
+function inspSlotToSortable(slot: InspSlot) {
+  if (slot.kind === "api") {
+    return {
+      id: slot.item.id,
+      createdAt: slot.item.createdAt,
+      priceCents: null as number | null,
+      viewCount: slot.item.viewCount,
+      distanceKm: slot.item.location?.distanceKm ?? undefined,
+    };
+  }
+  return {
+    id: slot.item.id,
+    createdAt: slot.item.createdAt,
+    priceCents: slot.item.priceCents,
+    orderMethod: slot.item.orderMethod,
+    viewCount: slot.item.viewCount,
+    distanceKm: slot.item.distanceKm,
+  };
+}
+
+function sortInspirationSlots(
+  slots: InspSlot[],
+  sortBy: FeedClientSortField,
+  sortOrder: FeedClientSortOrder
+): InspSlot[] {
+  return [...slots].sort((a, b) =>
+    compareFeedSaleItems(
+      inspSlotToSortable(a),
+      inspSlotToSortable(b),
+      sortBy,
+      sortOrder
+    )
+  );
 }
 
 function buildInspSlots(
@@ -540,13 +630,49 @@ type GeoFeedProps = {
   initialFeedCategory?: string;
   /** Vrije plaats-tekst vanuit URL (`/?place=Utrecht`). */
   initialFeedPlace?: string;
+  /** Inject community/reputation cards between feed items on mobile. */
+  enableMobileFeedInserts?: boolean;
+  /** Render homepage-only insert UI (keeps GeoFeed free of components/home imports). */
+  renderMobileFeedInsert?: (insertId: HomeMobileFeedInsertId) => ReactNode;
+  /** Narrower main column on desktop homepage (2-col grid). */
+  feedColumnLayout?: 'default' | 'home-main';
+  /**
+   * Homepage desktop: HomePageClient owns the 3-col sticky grid.
+   * Render children with `<FeedFiltersPanel />`, `<FeedContent />`, sidebar.
+   */
+  homeComposedLayout?: boolean;
+  children?: ReactNode;
 };
+
+type GeoFeedHomeLayoutValue = {
+  filtersPanel: ReactNode;
+  feedContent: ReactNode;
+};
+
+const GeoFeedHomeLayoutContext = createContext<GeoFeedHomeLayoutValue | null>(null);
+
+/** Filters column for homepage desktop sticky grid — must be inside GeoFeed with homeComposedLayout. */
+export function FeedFiltersPanel() {
+  const ctx = useContext(GeoFeedHomeLayoutContext);
+  return ctx?.filtersPanel ?? null;
+}
+
+/** Feed column for homepage desktop sticky grid — must be inside GeoFeed with homeComposedLayout. */
+export function FeedContent() {
+  const ctx = useContext(GeoFeedHomeLayoutContext);
+  return ctx?.feedContent ?? null;
+}
 
 export default function GeoFeed({
   initialInspiratieItems = [],
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
+  enableMobileFeedInserts = false,
+  renderMobileFeedInsert,
+  feedColumnLayout = 'default',
+  homeComposedLayout = false,
+  children,
 }: GeoFeedProps) {
   const { t, language } = useTranslation();
   const { data: session, status: sessionStatus } = useSession();
@@ -554,6 +680,18 @@ export default function GeoFeed({
   const { profile: bootstrapProfile, ensureProfile, status: bootstrapStatus } =
     useUserBootstrap();
   const [items, setItems] = useState<FeedItem[]>([]);
+  /** Last raw API payload count (audit). */
+  const [apiRawItems, setApiRawItems] = useState<Record<string, unknown>[]>(
+    []
+  );
+  const [lastFeedApiDebug, setLastFeedApiDebug] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  /** Geocoded viewer from /api/feed filters (manual place search). */
+  const [apiViewerCoords, setApiViewerCoords] = useState<ViewerCoords | null>(
+    null
+  );
   const [inspiratiePool, setInspiratiePool] = useState<InspirationItem[]>(
     initialInspiratieItems
   );
@@ -595,24 +733,56 @@ export default function GeoFeed({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
+  /** Desktop sidebar: refinement collapsed by default. */
+  const [sidebarRefineOpen, setSidebarRefineOpen] = useState(false);
+  const [showGpsError, setShowGpsError] = useState(false);
+  /** Applied filter state — drives API fetch and client-side ranking. */
+  const [appliedRadius, setAppliedRadius] = useState(RADIUS_LOCAL_KM);
+  const [appliedScope, setAppliedScope] = useState<FeedScope>(
+    FEED_SCOPE_NATIONAL
+  );
+  const [appliedPlace, setAppliedPlace] = useState(
+    () => initialFeedPlace?.trim().slice(0, 200) || ""
+  );
+  const [appliedQ, setAppliedQ] = useState("");
+  const [appliedCategory, setAppliedCategory] = useState(() =>
+    initialDorpspleinCategoryFromServer(initialFeedCategory)
+  );
+  const [appliedSortBy, setAppliedSortBy] = useState<
+    "newest" | "price" | "views" | "distance"
+  >("newest");
+  const [appliedSortOrder, setAppliedSortOrder] = useState<"asc" | "desc">(
+    "desc"
+  );
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
+  const [appliedPriceRange, setAppliedPriceRange] = useState({
+    min: "",
+    max: "",
+  });
   /** Capacitor: standaard ingeklapt zodat chips + sorteren boven de vouw blijven. */
   const [nativeFeedExtraOpen, setNativeFeedExtraOpen] = useState(false);
   const [category, setCategory] = useState(() =>
     initialDorpspleinCategoryFromServer(initialFeedCategory)
   );
   const profileLocationLoadedRef = useRef(false);
+  const gpsRequestPendingRef = useRef(false);
   const nativeFeedPrefsBootRef = useRef(true);
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
   const [feedLayoutMode, setFeedLayoutMode] = useFeedLayoutMode();
   /** Mobile web (<768px) or Capacitor shell: compact chrome + layout toggle. */
   const isMobileFeedUi = nativeMounted || narrowViewport;
+  const isDesktopSplit = Boolean(homeComposedLayout && !isMobileFeedUi);
+  const [desktopFeedColumns, setDesktopFeedColumns] = useHomeDesktopFeedColumns();
   const effectiveFeedLayoutMode = getEffectiveFeedLayoutMode(
     feedLayoutMode,
     isMobileFeedUi
   );
   /** Smalle browser + native: compacte filter-chips, sort bovenaan, geo onder uitklap. */
   const feedCompactChrome = isMobileFeedUi;
+  const filterChrome = feedCompactChrome || isDesktopSplit;
+  const showGeoFilters =
+    !feedCompactChrome || nativeFeedExtraOpen || isDesktopSplit;
   const [nativeGpsLoading, setNativeGpsLoading] = useState(false);
   const [nativeGpsCoords, setNativeGpsCoords] =
     useState<NativeLocationCoords | null>(null);
@@ -623,27 +793,92 @@ export default function GeoFeed({
   const [pushDebugError, setPushDebugError] = useState<string | null>(null);
   const [pushLastEvent, setPushLastEvent] = useState<string | null>(null);
 
-  /** Coördinaten voor /api/feed: state (GPS/profiel) óf bootstrap-profiel vóór state-update — één query i.p.v. fetch→fetch. */
+  const profileCoords = useMemo(() => {
+    if (bootstrapProfile?.lat == null || bootstrapProfile?.lng == null) return null;
+    const la = Number(bootstrapProfile.lat);
+    const ln = Number(bootstrapProfile.lng);
+    if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
+    return { lat: la, lng: ln };
+  }, [bootstrapProfile?.lat, bootstrapProfile?.lng]);
+
+  /** Coords sent as lat/lng query — only when scope is nearby (manual uses geocoded place). */
   const feedCoords = useMemo(() => {
-    if (userLocation) return userLocation;
-    if (
-      session?.user?.email &&
-      bootstrapProfile?.lat != null &&
-      bootstrapProfile?.lng != null
-    ) {
-      const la = Number(bootstrapProfile.lat);
-      const ln = Number(bootstrapProfile.lng);
-      if (Number.isFinite(la) && Number.isFinite(ln)) {
-        return { lat: la, lng: ln };
-      }
-    }
+    if (appliedScope !== FEED_SCOPE_NEARBY) return null;
+    if (appliedPlace.trim()) return null;
+    if (locationSource === "gps" && userLocation) return userLocation;
+    if (locationSource === "profile" && profileCoords) return profileCoords;
+    if (!locationSource && profileCoords && session?.user?.email) return profileCoords;
     return null;
   }, [
+    appliedScope,
+    appliedPlace,
+    locationSource,
     userLocation,
+    profileCoords,
     session?.user?.email,
-    bootstrapProfile?.lat,
-    bootstrapProfile?.lng,
   ]);
+
+  /** Coords for API distance labels (national/international: no place geocode). */
+  const coordsForApiLabels = useMemo((): ViewerCoords | null => {
+    if (appliedScope === FEED_SCOPE_NEARBY) return feedCoords;
+    if (locationSource === "gps" && userLocation) return userLocation;
+    if (profileCoords) return profileCoords;
+    return null;
+  }, [appliedScope, feedCoords, locationSource, userLocation, profileCoords]);
+
+  /** Viewer coords for client-side distance enrichment and sort. */
+  const effectiveViewerForDistance = useMemo((): ViewerCoords | null => {
+    if (appliedScope === FEED_SCOPE_NEARBY) {
+      if (appliedPlace.trim() && apiViewerCoords) return apiViewerCoords;
+      if (feedCoords) return feedCoords;
+      return apiViewerCoords;
+    }
+    if (apiViewerCoords) return apiViewerCoords;
+    if (locationSource === "gps" && userLocation) return userLocation;
+    if (profileCoords) return profileCoords;
+    return null;
+  }, [
+    appliedScope,
+    appliedPlace,
+    apiViewerCoords,
+    feedCoords,
+    locationSource,
+    userLocation,
+    profileCoords,
+  ]);
+
+  const itemsWithDistance = useMemo(
+    () => enrichFeedItemsWithDistance(items, effectiveViewerForDistance),
+    [items, effectiveViewerForDistance]
+  );
+
+  const apiLocationSource = useMemo((): "gps" | "manual" | "profile" | null => {
+    if (appliedPlace.trim()) return "manual";
+    if (locationSource === "gps" && userLocation) return "gps";
+    if (profileCoords && session?.user?.email) {
+      if (locationSource === "profile" || locationSource === null) return "profile";
+    }
+    return locationSource;
+  }, [
+    appliedPlace,
+    locationSource,
+    userLocation,
+    profileCoords,
+    session?.user?.email,
+  ]);
+
+  const profileHasCoords =
+    bootstrapProfile?.lat != null &&
+    bootstrapProfile?.lng != null &&
+    Number.isFinite(Number(bootstrapProfile.lat)) &&
+    Number.isFinite(Number(bootstrapProfile.lng));
+
+  const profileNeedsCoords =
+    !!session?.user &&
+    bootstrapStatus === "ready" &&
+    !profileHasCoords &&
+    !userLocation &&
+    !!(bootstrapProfile?.place?.trim() || bootstrapProfile?.postalCode?.trim());
 
   /** Wacht op sessie + profile-bootstrap zodat eerste fetch niet als anoniem/andere radius loopt. */
   const feedStartupBlocked =
@@ -677,6 +912,8 @@ export default function GeoFeed({
     type HomePersist = {
       feedChip?: FeedChip;
       radius?: number;
+      scope?: string;
+      nationalView?: boolean;
       category?: string;
       sortBy?: "newest" | "price" | "views" | "distance";
       sortOrder?: "asc" | "desc";
@@ -690,49 +927,69 @@ export default function GeoFeed({
 
     const persisted = loadFeedSurfaceState<HomePersist>("home");
     if (persisted && typeof persisted === "object") {
-      const fc = persisted.feedChip;
+      const migrated = migrateHomeFeedPersist(persisted);
+      setAppliedScope(migrated.scope);
+      const fc = migrated.feedChip;
       if (fc === "all" || fc === "sale" || fc === "inspiration") {
         setFeedChip(fc);
       }
-      const r = persisted.radius;
-      if (typeof r === "number" && r >= 1 && r <= 500) setRadius(r);
-      if (
-        typeof persisted.category === "string" &&
-        persisted.category.length < 80
-      ) {
-        setCategory(persisted.category);
+      const r = migrated.radius;
+      if (typeof r === "number" && r >= 0 && r <= 500) {
+        setRadius(r);
+        setAppliedRadius(r);
       }
-      const sb = persisted.sortBy;
+      // Legacy radiusMode / nationalView stripped by migrateHomeFeedPersist.
+      if (
+        typeof migrated.category === "string" &&
+        migrated.category.length < 80
+      ) {
+        setCategory(migrated.category);
+        setAppliedCategory(migrated.category);
+      }
+      const sb = migrated.sortBy;
       if (sb === "newest" || sb === "price" || sb === "views" || sb === "distance") {
         setSortBy(sb);
+        setAppliedSortBy(sb);
       }
-      const so = persisted.sortOrder;
-      if (so === "asc" || so === "desc") setSortOrder(so);
-      if (typeof persisted.searchQuery === "string") {
-        setSearchQuery(persisted.searchQuery.slice(0, 200));
+      const so = migrated.sortOrder;
+      if (so === "asc" || so === "desc") {
+        setSortOrder(so);
+        setAppliedSortOrder(so);
       }
-      if (typeof persisted.q === "string") setQ(persisted.q.slice(0, 200));
-      if (typeof persisted.place === "string") {
-        setPlace(persisted.place.slice(0, 200));
+      if (typeof migrated.searchQuery === "string") {
+        const sq = migrated.searchQuery.slice(0, 200);
+        setSearchQuery(sq);
+        setAppliedSearchQuery(sq);
+      }
+      if (typeof migrated.q === "string") {
+        const qq = migrated.q.slice(0, 200);
+        setQ(qq);
+        setAppliedQ(qq);
+      }
+      if (typeof migrated.place === "string") {
+        const pl = migrated.place.slice(0, 200);
+        setPlace(pl);
+        setAppliedPlace(pl);
       }
       if (
-        typeof persisted.priceMin === "string" ||
-        typeof persisted.priceMax === "string"
+        typeof migrated.priceMin === "string" ||
+        typeof migrated.priceMax === "string"
       ) {
-        setPriceRange((pr) => ({
-          ...pr,
+        const nextPrice = {
           min:
-            typeof persisted.priceMin === "string"
-              ? persisted.priceMin.slice(0, 32)
-              : pr.min,
+            typeof migrated.priceMin === "string"
+              ? migrated.priceMin.slice(0, 32)
+              : "",
           max:
-            typeof persisted.priceMax === "string"
-              ? persisted.priceMax.slice(0, 32)
-              : pr.max,
-        }));
+            typeof migrated.priceMax === "string"
+              ? migrated.priceMax.slice(0, 32)
+              : "",
+        };
+        setPriceRange(nextPrice);
+        setAppliedPriceRange(nextPrice);
       }
-      if (typeof persisted.showFilters === "boolean") {
-        setShowFilters(persisted.showFilters);
+      if (typeof migrated.showFilters === "boolean") {
+        setShowFilters(migrated.showFilters);
       }
       trackOnboardingEvent("FEED_STATE_RESTORED", { surface: "home" });
       queueMicrotask(() => {
@@ -791,33 +1048,38 @@ export default function GeoFeed({
     if (!feedHydrated) return;
     if (typeof window === "undefined") return;
     const t = window.setTimeout(() => {
-      saveFeedSurfaceState("home", {
-        feedChip,
-        radius,
-        category,
-        sortBy,
-        sortOrder,
-        searchQuery,
-        q: q.trim(),
-        place: place.trim().slice(0, 200),
-        priceMin: priceRange.min,
-        priceMax: priceRange.max,
-        showFilters,
-      });
+      saveFeedSurfaceState(
+        "home",
+        migrateHomeFeedPersist({
+          feedChip,
+          radius: appliedRadius,
+          scope: appliedScope,
+          category: appliedCategory,
+          sortBy: appliedSortBy,
+          sortOrder: appliedSortOrder,
+          searchQuery: appliedSearchQuery,
+          q: appliedQ.trim(),
+          place: appliedPlace.trim().slice(0, 200),
+          priceMin: appliedPriceRange.min,
+          priceMax: appliedPriceRange.max,
+          showFilters,
+        })
+      );
     }, 380);
     return () => window.clearTimeout(t);
   }, [
     feedHydrated,
     feedChip,
-    radius,
-    category,
-    sortBy,
-    sortOrder,
-    searchQuery,
-    q,
-    place,
-    priceRange.min,
-    priceRange.max,
+    appliedRadius,
+    appliedScope,
+    appliedCategory,
+    appliedSortBy,
+    appliedSortOrder,
+    appliedSearchQuery,
+    appliedQ,
+    appliedPlace,
+    appliedPriceRange.min,
+    appliedPriceRange.max,
     showFilters,
   ]);
 
@@ -833,12 +1095,12 @@ export default function GeoFeed({
       lat,
       lng,
     });
-    setUserLocation({ lat, lng });
+    if (locationSource === "gps" || locationSource === "manual") return;
     setLocationSource("profile");
     if (pl || postalCode || address) {
-      setPlace(pl || postalCode || address || "");
+      setPlace((prev) => (prev.trim() ? prev : pl || postalCode || address || ""));
     }
-  }, [session?.user, bootstrapProfile, ensureProfile]);
+  }, [session?.user, bootstrapProfile, ensureProfile, locationSource]);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -861,6 +1123,29 @@ export default function GeoFeed({
       if (timer) clearTimeout(timer);
     };
   }, [session?.user, loadProfileLocation]);
+
+  useEffect(() => {
+    if (!session?.user || userLocation || locationSource) return;
+    if (profileHasCoords) {
+      setLocationSource("profile");
+    }
+  }, [session?.user, userLocation, locationSource, profileHasCoords]);
+
+  const handleUseMyLocation = useCallback(() => {
+    if (!locationSupported) return;
+    gpsRequestPendingRef.current = true;
+    setShowGpsError(false);
+    setPlace("");
+    getCurrentPosition();
+  }, [locationSupported, getCurrentPosition]);
+
+  useEffect(() => {
+    if (!gpsRequestPendingRef.current || locationLoading || coords) return;
+    if (locationError) {
+      gpsRequestPendingRef.current = false;
+      setShowGpsError(true);
+    }
+  }, [coords, locationLoading, locationError]);
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
@@ -965,11 +1250,20 @@ export default function GeoFeed({
   }, []);
 
   useEffect(() => {
-    if (coords) {
-      setUserLocation(coords);
-      setLocationSource("gps");
-    }
-  }, [coords]);
+    if (!coords || !gpsRequestPendingRef.current) return;
+    gpsRequestPendingRef.current = false;
+    setShowGpsError(false);
+    setUserLocation(coords);
+    setLocationSource("gps");
+    setAppliedScope(FEED_SCOPE_NEARBY);
+    setAppliedRadius(radius);
+    setAppliedPlace("");
+    setPlace("");
+    setSortBy("distance");
+    setSortOrder("asc");
+    setAppliedSortBy("distance");
+    setAppliedSortOrder("asc");
+  }, [coords, radius]);
 
   useEffect(() => {
     if (locationError && !userLocation && !profileLocation && session?.user) {
@@ -977,32 +1271,33 @@ export default function GeoFeed({
     }
   }, [locationError, userLocation, profileLocation, session?.user, loadProfileLocation]);
 
-  const handlePlaceInput = async (inputPlace: string) => {
-    if (!inputPlace.trim()) {
-      setPlace("");
-      return;
-    }
+  const handleScopeChange = useCallback((next: FeedScope) => {
+    setAppliedScope(next);
+    const defaults = scopeDefaultSort(next);
+    setSortBy(defaults.sortBy);
+    setSortOrder(defaults.sortOrder);
+    setAppliedSortBy(defaults.sortBy);
+    setAppliedSortOrder(defaults.sortOrder);
+  }, []);
+
+  const handlePlaceInput = (inputPlace: string) => {
     setPlace(inputPlace);
-    setLocationSource("manual");
   };
 
   useEffect(() => {
     if (feedStartupBlocked) return;
 
-    const params = new URLSearchParams();
-    // Altijd radius meesturen (server default 10 vs client 25 gaf eerder verschillende filters)
-    params.set("radius", String(radius));
-    // Bij coördinaten: die gebruiken i.p.v. place-tekst (voorkomt tweede fetch na profiel-place + geocode)
-    if (locationSource === "manual" && place.trim()) {
-      params.set("place", place.trim());
-    } else if (feedCoords) {
-      params.set("lat", String(feedCoords.lat));
-      params.set("lng", String(feedCoords.lng));
-    } else if (place.trim()) {
-      params.set("place", place.trim());
-    }
-    if (q.trim()) params.set("q", q.trim());
-    if (category && category !== "all") params.set("vertical", category);
+    const params = buildGeoFeedApiParams({
+      scope: appliedScope,
+      radius: appliedRadius,
+      q: appliedQ,
+      category: appliedCategory,
+      lat: coordsForApiLabels?.lat ?? null,
+      lng: coordsForApiLabels?.lng ?? null,
+      place: appliedScope === FEED_SCOPE_NEARBY ? appliedPlace : "",
+      locationSource:
+        appliedScope === FEED_SCOPE_NEARBY ? apiLocationSource : null,
+    });
 
     const requestKey = params.toString();
 
@@ -1028,12 +1323,16 @@ export default function GeoFeed({
     const run = async () => {
       try {
         const feedP = fetch(feedUrl, { signal: ac.signal, cache: "no-store" });
-        const inspP = startupInspParallel
-          ? fetch("/api/inspiratie?take=48&sortBy=newest", {
-              signal: ac.signal,
-              cache: "no-store",
-            })
-          : Promise.resolve(null as Response | null);
+        const inspCategory = buildInspiratieCategoryParam(appliedCategory);
+        const inspParams = new URLSearchParams({
+          take: "48",
+          sortBy: "newest",
+          category: inspCategory,
+        });
+        const inspP = fetch(`/api/inspiratie?${inspParams.toString()}`, {
+          signal: ac.signal,
+          cache: "no-store",
+        });
 
         const [feedRes, inspRes] = await Promise.all([feedP, inspP]);
 
@@ -1051,6 +1350,7 @@ export default function GeoFeed({
           }
           if (cancelled) return;
           const rawItems = (data.items || []) as Record<string, unknown>[];
+          setApiRawItems(rawItems);
           const previewRaw = data.statsPreview as
             | Record<string, unknown>
             | undefined;
@@ -1073,7 +1373,43 @@ export default function GeoFeed({
               })),
             });
           }
-          const normalized = rawItems.map((r) => normalizeFeedItem(r));
+          if (process.env.NODE_ENV === "development") {
+            const debugRaw = data.debug as Record<string, unknown> | undefined;
+            if (debugRaw) {
+              setLastFeedApiDebug(debugRaw);
+              console.log("[GeoFeed feed-fetch debug]", debugRaw);
+            }
+          } else {
+            setLastFeedApiDebug(
+              (data.debug as Record<string, unknown> | undefined) ?? null
+            );
+          }
+          const filtersRaw = data.filters as
+            | { lat?: number | null; lng?: number | null }
+            | undefined;
+          const viewerFromApi =
+            filtersRaw?.lat != null &&
+            filtersRaw?.lng != null &&
+            Number.isFinite(Number(filtersRaw.lat)) &&
+            Number.isFinite(Number(filtersRaw.lng))
+              ? { lat: Number(filtersRaw.lat), lng: Number(filtersRaw.lng) }
+              : null;
+          if (viewerFromApi) {
+            setApiViewerCoords(viewerFromApi);
+          } else if (!appliedPlace.trim()) {
+            setApiViewerCoords(null);
+          }
+          const viewerForDistance =
+            appliedScope === FEED_SCOPE_NEARBY
+              ? viewerFromApi ?? feedCoords ?? null
+              : effectiveViewerForDistance;
+
+          const normalized: FeedItem[] = [];
+          rawItems.forEach((r, index) => {
+            const item = safeNormalizeFeedItem(r, index);
+            if (!item) return;
+            normalized.push(enrichFeedItemDistance(item, viewerForDistance));
+          });
           let dropped = 0;
           const valid = normalized.filter((row) => {
             if (row.id?.trim()) return true;
@@ -1086,7 +1422,7 @@ export default function GeoFeed({
           setItems(valid);
         }
 
-        if (inspRes?.ok) {
+        if (inspRes.ok) {
           let inspData: { items?: unknown };
           try {
             inspData = await inspRes.json();
@@ -1129,18 +1465,19 @@ export default function GeoFeed({
     };
   }, [
     feedStartupBlocked,
-    radius,
-    q,
-    place,
-    feedCoords?.lat,
-    feedCoords?.lng,
-    locationSource,
-    category,
+    appliedRadius,
+    appliedScope,
+    appliedQ,
+    appliedPlace,
+    coordsForApiLabels?.lat,
+    coordsForApiLabels?.lng,
+    apiLocationSource,
+    appliedCategory,
   ]);
 
   const activeFeedItems = useMemo(
-    () => items.filter(isVisible),
-    [items]
+    () => itemsWithDistance.filter(isVisible),
+    [itemsWithDistance]
   );
 
   const apiInspirationIds = useMemo(
@@ -1149,7 +1486,7 @@ export default function GeoFeed({
   );
 
   const saleCandidates = useMemo(
-    () => activeFeedItems.filter((item) => classifyFeedItem(item) === "sale"),
+    () => activeFeedItems.filter((item) => isMarketplaceSaleItem(item)),
     [activeFeedItems]
   );
 
@@ -1157,7 +1494,7 @@ export default function GeoFeed({
     () =>
       activeFeedItems.filter(
         (item) =>
-          classifyFeedItem(item) === "inspiration" &&
+          !isMarketplaceSaleItem(item) &&
           !apiInspirationIds.has(item.id)
       ),
     [activeFeedItems, apiInspirationIds]
@@ -1165,11 +1502,8 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
-    const saleN = activeFeedItems.filter((i) => classifyFeedItem(i) === "sale")
-      .length;
-    const inspN = activeFeedItems.filter(
-      (i) => classifyFeedItem(i) === "inspiration"
-    ).length;
+    const saleN = countMarketplaceSaleItems(activeFeedItems);
+    const inspN = activeFeedItems.length - saleN;
     console.log("[GeoFeed] classificatie", {
       total: activeFeedItems.length,
       sale: saleN,
@@ -1178,57 +1512,111 @@ export default function GeoFeed({
         id: item.id,
         title: item.title,
         priceCents: item.priceCents,
-        type: item.type,
-        classifiedAs: classifyFeedItem(item),
+        orderMethod: item.orderMethod,
+        feedSource: item.feedSource,
+        classifiedAs: isMarketplaceSaleItem(item) ? "sale" : "inspiration",
         href: getFeedItemHref(item),
       })),
     });
   }, [activeFeedItems]);
 
+  const saleAfterSearchCount = useMemo(
+    () =>
+      countSaleAfterSearch(
+        saleCandidates,
+        appliedSearchQuery,
+        matchesSearch
+      ),
+    [saleCandidates, appliedSearchQuery]
+  );
+
+  const categoryEnum = useMemo(
+    () =>
+      appliedCategory !== "all"
+        ? feedVerticalSlugToCategoryEnum(appliedCategory)
+        : null,
+    [appliedCategory]
+  );
+
   const filteredSaleBase = useMemo(() => {
-    const qn = searchQuery.trim();
+    const qn = appliedSearchQuery.trim();
     return saleCandidates.filter((item) => {
       if (!matchesSearch(item.title, item.description, qn)) return false;
-      const minOk =
-        !priceRange.min ||
-        (item.priceCents || 0) >= parseFloat(priceRange.min) * 100;
-      const maxOk =
-        !priceRange.max ||
-        (item.priceCents || 0) <= parseFloat(priceRange.max) * 100;
-      return minOk && maxOk;
+      return matchesFeedClientPriceRange(
+        item,
+        appliedPriceRange.min,
+        appliedPriceRange.max
+      );
     });
-  }, [saleCandidates, searchQuery, priceRange]);
+  }, [saleCandidates, appliedSearchQuery, appliedPriceRange]);
 
-  const useSmartRanking = sortBy === "newest" && sortOrder === "desc";
+  const hasViewerCoordsForSort = effectiveViewerForDistance != null;
+
+  const locationFilterActive =
+    appliedScope === FEED_SCOPE_NEARBY && appliedRadius > 0;
+
+  const { local: localSalePool, fallback: saleFallbackPool } = useMemo(
+    () =>
+      partitionSaleItemsByRadius(filteredSaleBase, appliedRadius, {
+        scope: appliedScope,
+      }),
+    [filteredSaleBase, appliedRadius, appliedScope]
+  );
+
+  const salePoolForRanking = locationFilterActive
+    ? localSalePool
+    : filteredSaleBase;
+
+  const useSmartRanking =
+    feedChip !== "sale" &&
+    appliedScope === FEED_SCOPE_NATIONAL &&
+    appliedSortBy === "newest" &&
+    appliedSortOrder === "desc" &&
+    !locationFilterActive;
 
   /** Vaste tijd per dataset zodat score-ranking niet verschuift tussen re-renders. */
   const rankNowMs = useMemo(
     () => Date.now(),
-    [filteredSaleBase]
+    [salePoolForRanking]
   );
 
   const filteredApiInspiration = useMemo(() => {
-    const qn = searchQuery.trim();
-    return inspiratiePool.filter((item) =>
-      matchesSearch(item.title, item.description, qn)
-    );
-  }, [inspiratiePool, searchQuery]);
+    const qn = appliedSearchQuery.trim();
+    return inspiratiePool.filter((item) => {
+      if (categoryEnum && item.category !== categoryEnum) return false;
+      return matchesSearch(item.title, item.description, qn);
+    });
+  }, [inspiratiePool, appliedSearchQuery, categoryEnum]);
 
   const filteredFeedInspiration = useMemo(() => {
-    const qn = searchQuery.trim();
-    return feedOnlyInspiration.filter((item) =>
-      matchesSearch(item.title, item.description, qn)
-    );
-  }, [feedOnlyInspiration, searchQuery]);
+    const qn = appliedSearchQuery.trim();
+    return feedOnlyInspiration.filter((item) => {
+      if (categoryEnum) {
+        const itemCat = feedItemCategoryEnum(item.category);
+        if (itemCat !== categoryEnum) return false;
+      }
+      return matchesSearch(item.title, item.description, qn);
+    });
+  }, [feedOnlyInspiration, appliedSearchQuery, categoryEnum]);
 
-  const inspirationSlots = useMemo(
-    () => buildInspSlots(filteredApiInspiration, filteredFeedInspiration),
-    [filteredApiInspiration, filteredFeedInspiration]
-  );
+  const inspirationSlots = useMemo(() => {
+    const built = buildInspSlots(filteredApiInspiration, filteredFeedInspiration);
+    if (appliedSortBy === "newest" && appliedSortOrder === "desc") return built;
+    return sortInspirationSlots(built, appliedSortBy, appliedSortOrder);
+  }, [
+    filteredApiInspiration,
+    filteredFeedInspiration,
+    appliedSortBy,
+    appliedSortOrder,
+  ]);
 
   const rankingResult = useMemo(() => {
     if (!useSmartRanking) {
-      const ordered = sortSales(filteredSaleBase, sortBy, sortOrder);
+      const ordered = sortFeedSaleItems(
+        salePoolForRanking,
+        appliedSortBy,
+        appliedSortOrder
+      );
       return {
         orderedForMix: ordered,
         orderedSaleOnly: ordered,
@@ -1236,7 +1624,7 @@ export default function GeoFeed({
       };
     }
 
-    const ranked = rankSalesByScore(filteredSaleBase, rankNowMs);
+    const ranked = rankSalesByScore(salePoolForRanking, rankNowMs);
     const coldOrdered = applyColdStartScoreOrder(ranked);
     const scoreById = new Map(ranked.map((r) => [r.item.id, r.score]));
 
@@ -1255,11 +1643,11 @@ export default function GeoFeed({
       topForMix,
     };
   }, [
-    filteredSaleBase,
+    salePoolForRanking,
     rankNowMs,
     useSmartRanking,
-    sortBy,
-    sortOrder,
+    appliedSortBy,
+    appliedSortOrder,
     inspirationSlots.length,
   ]);
 
@@ -1302,6 +1690,54 @@ export default function GeoFeed({
 
   const displayCount = displayRows.length;
 
+  useEffect(() => {
+    logFeedSaleVisibilityAudit({
+      apiItems: apiRawItems,
+      normalizedItems: items,
+      visibleItems: activeFeedItems,
+      saleCandidates,
+      saleAfterSearch: saleAfterSearchCount,
+      saleAfterSearchAndPrice: filteredSaleBase.length,
+      saleAfterScopeFilter: salePoolForRanking.length,
+      finalVisibleSaleCards:
+        feedChip === "sale"
+          ? sortedSales.length
+          : displayRows.filter((r) => r.row === "sale").length,
+      feedChip,
+      appliedScope,
+      appliedRadius,
+      appliedPlace,
+      appliedCategory,
+      appliedSearchQuery,
+      appliedPriceRange,
+      sortBy: appliedSortBy,
+      sortOrder: appliedSortOrder,
+      locationFilterActive,
+      apiDebug: lastFeedApiDebug,
+    });
+  }, [
+    apiRawItems,
+    items,
+    activeFeedItems,
+    saleCandidates,
+    saleAfterSearchCount,
+    filteredSaleBase.length,
+    salePoolForRanking.length,
+    sortedSales.length,
+    displayRows,
+    feedChip,
+    appliedScope,
+    appliedRadius,
+    appliedPlace,
+    appliedCategory,
+    appliedSearchQuery,
+    appliedPriceRange,
+    appliedSortBy,
+    appliedSortOrder,
+    locationFilterActive,
+    lastFeedApiDebug,
+  ]);
+
   /**
    * Native: false = toon eerst 2 kaarten; true = volledige lijst (na idle).
    * Web: nativeMounted is altijd false tot mount — slice wordt niet gebruikt.
@@ -1340,22 +1776,188 @@ export default function GeoFeed({
     return displayRows.slice(0, 2);
   }, [nativeMounted, nativeFeedRenderMore, displayRows]);
 
-  const handleSort = (field: "newest" | "price" | "views" | "distance") => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(field);
-      setSortOrder("desc");
+  const applyFilters = useCallback(() => {
+    const trimmedPlace = place.trim();
+    setAppliedRadius(radius);
+    setAppliedPlace(trimmedPlace);
+    setAppliedQ(q);
+    setAppliedCategory(category);
+    setAppliedSortBy(sortBy);
+    setAppliedSortOrder(sortOrder);
+    setAppliedSearchQuery(searchQuery);
+    setAppliedPriceRange({ ...priceRange });
+
+    const hasNewLocation =
+      trimmedPlace !== "" ||
+      (userLocation != null && locationSource === "gps") ||
+      (profileCoords != null && locationSource === "profile");
+
+    if (appliedScope === FEED_SCOPE_NEARBY && hasNewLocation && radius > 0) {
+      setSortBy("distance");
+      setSortOrder("asc");
+      setAppliedSortBy("distance");
+      setAppliedSortOrder("asc");
     }
+
+    if (trimmedPlace) {
+      setLocationSource("manual");
+      setUserLocation(null);
+      setShowGpsError(false);
+    } else if (userLocation && locationSource === "gps") {
+      setLocationSource("gps");
+    } else if (profileCoords) {
+      setLocationSource("profile");
+      setUserLocation(null);
+    } else {
+      setLocationSource(null);
+      setUserLocation(null);
+    }
+  }, [
+    appliedScope,
+    radius,
+    place,
+    q,
+    category,
+    sortBy,
+    sortOrder,
+    searchQuery,
+    priceRange,
+    userLocation,
+    locationSource,
+    profileCoords,
+  ]);
+
+  const clearViewerLocation = useCallback(() => {
+    const profilePlace =
+      profileLocation?.place ?? profileLocation?.postcode ?? "";
+    setUserLocation(null);
+    setAppliedPlace("");
+    setShowGpsError(false);
+    if (profileCoords) {
+      setLocationSource("profile");
+      setPlace(profilePlace);
+    } else {
+      setLocationSource(null);
+      setPlace("");
+    }
+  }, [profileCoords, profileLocation]);
+
+  const resetDraftFilters = useCallback(() => {
+    setRadius(appliedRadius);
+    setPlace(appliedPlace);
+    setQ(appliedQ);
+    setCategory(appliedCategory);
+    setSortBy(appliedSortBy);
+    setSortOrder(appliedSortOrder);
+    setSearchQuery(appliedSearchQuery);
+    setPriceRange({ ...appliedPriceRange });
+  }, [
+    appliedScope,
+    appliedRadius,
+    appliedPlace,
+    appliedQ,
+    appliedCategory,
+    appliedSortBy,
+    appliedSortOrder,
+    appliedSearchQuery,
+    appliedPriceRange,
+  ]);
+
+  const filtersDirty = useMemo(
+    () =>
+      radius !== appliedRadius ||
+      place !== appliedPlace ||
+      q !== appliedQ ||
+      category !== appliedCategory ||
+      sortBy !== appliedSortBy ||
+      sortOrder !== appliedSortOrder ||
+      searchQuery !== appliedSearchQuery ||
+      priceRange.min !== appliedPriceRange.min ||
+      priceRange.max !== appliedPriceRange.max,
+    [
+      radius,
+      appliedRadius,
+      place,
+      appliedPlace,
+      q,
+      appliedQ,
+      category,
+      appliedCategory,
+      sortBy,
+      appliedSortBy,
+      sortOrder,
+      appliedSortOrder,
+      searchQuery,
+      appliedSearchQuery,
+      priceRange.min,
+      priceRange.max,
+      appliedPriceRange.min,
+      appliedPriceRange.max,
+    ]
+  );
+
+  const handleSort = (field: FeedClientSortField) => {
+    const farthest = scopeUsesFarthestFirstSort(appliedScope);
+    const nextOrder =
+      sortBy === field
+        ? sortOrder === "asc"
+          ? "desc"
+          : "asc"
+        : field === "distance"
+          ? farthest
+            ? "desc"
+            : "asc"
+          : "desc";
+    setSortBy(field);
+    setSortOrder(nextOrder);
+    setAppliedSortBy(field);
+    setAppliedSortOrder(nextOrder);
   };
 
   const clearFilters = () => {
-    setSearchQuery("");
-    setPriceRange({ min: "", max: "" });
-    setSortBy("newest");
-    setSortOrder("desc");
-    setCategory("all");
+    resetDraftFilters();
   };
+
+  const effectiveLocationSource = useMemo((): "manual" | "gps" | "profile" | null => {
+    if (appliedPlace.trim()) return "manual";
+    if (locationSource === "gps" && userLocation) return "gps";
+    if (profileCoords && session?.user?.email) return "profile";
+    return null;
+  }, [appliedPlace, locationSource, userLocation, profileCoords, session?.user?.email]);
+
+  const activeLocationChip = useMemo(() => {
+    if (effectiveLocationSource === "manual" && appliedPlace.trim()) {
+      return t("feed.searchingInPlace", { place: appliedPlace.trim() });
+    }
+    if (effectiveLocationSource === "gps") {
+      return t("feed.activeLocationGps");
+    }
+    if (effectiveLocationSource === "profile") {
+      const label =
+        profileLocation?.place ??
+        profileLocation?.postcode ??
+        bootstrapProfile?.place ??
+        bootstrapProfile?.postalCode ??
+        null;
+      return label
+        ? t("feed.profileLocationChip", { place: String(label) })
+        : t("feed.activeLocationProfile");
+    }
+    return null;
+  }, [
+    effectiveLocationSource,
+    appliedPlace,
+    profileLocation,
+    bootstrapProfile?.place,
+    bootstrapProfile?.postalCode,
+    t,
+  ]);
+
+  const showViewerLocationHint =
+    !activeLocationChip && !locationLoading && !profileNeedsCoords;
+
+  const distanceSortEnabled =
+    appliedScope === FEED_SCOPE_INTERNATIONAL || hasViewerCoordsForSort;
 
   const sortOptions = useMemo(
     () =>
@@ -1363,36 +1965,54 @@ export default function GeoFeed({
         { id: "newest" as const, label: t("filters.sortNewest") },
         { id: "price" as const, label: t("common.price") },
         { id: "views" as const, label: t("feed.sortViews") },
-        { id: "distance" as const, label: t("feed.sortDistance") },
+        ...(distanceSortEnabled
+          ? [
+              {
+                id: "distance" as const,
+                label: scopeUsesFarthestFirstSort(appliedScope)
+                  ? t("feed.sortFarthestFirst")
+                  : t("feed.sortDistanceFirst"),
+              },
+            ]
+          : []),
       ] as const,
-    [language, t]
+    [language, t, distanceSortEnabled, appliedScope]
   );
+
+  useEffect(() => {
+    if (!distanceSortEnabled && sortBy === "distance") {
+      setSortBy("newest");
+      setSortOrder("desc");
+      setAppliedSortBy("newest");
+      setAppliedSortOrder("desc");
+    }
+  }, [distanceSortEnabled, sortBy]);
 
   const nativeGeoFilterActive = useMemo(
     () =>
-      place.trim() !== "" ||
-      q.trim() !== "" ||
-      category !== "all" ||
-      searchQuery.trim() !== "" ||
-      priceRange.min !== "" ||
-      priceRange.max !== "" ||
+      appliedPlace.trim() !== "" ||
+      appliedQ.trim() !== "" ||
+      appliedCategory !== "all" ||
+      appliedSearchQuery.trim() !== "" ||
+      appliedPriceRange.min !== "" ||
+      appliedPriceRange.max !== "" ||
       showFilters,
     [
-      place,
-      q,
-      category,
-      searchQuery,
-      priceRange.min,
-      priceRange.max,
+      appliedPlace,
+      appliedQ,
+      appliedCategory,
+      appliedSearchQuery,
+      appliedPriceRange.min,
+      appliedPriceRange.max,
       showFilters,
     ]
   );
 
   const chipBtn = (active: boolean) =>
-    `${feedCompactChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
+    `${filterChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
       active
-        ? "bg-emerald-600 text-white shadow-sm"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        ? "bg-primary-brand text-white shadow-sm"
+        : "bg-[#faf8f4] text-gray-700 hover:bg-primary-50 border border-gray-200/80"
     }`;
 
   const sortRowEl = (
@@ -1429,10 +2049,18 @@ export default function GeoFeed({
     </div>
   );
 
-  const feedPanelPad = feedCompactChrome ? "p-3 space-y-3" : "p-4 sm:p-5 space-y-5";
-  const feedSectionBorder = feedCompactChrome
+  const feedPanelPad = filterChrome
+    ? "p-3 space-y-3"
+    : "p-4 sm:p-5 space-y-5";
+  const feedSectionBorder = filterChrome
     ? "border-t border-gray-200 pt-3"
     : "border-t border-gray-200 pt-5";
+  const filterLabelClass = filterChrome
+    ? "block text-sm font-semibold mb-1"
+    : "block text-base font-semibold mb-1";
+  const filterInputClass = filterChrome
+    ? "w-full min-w-0 px-3 py-2 rounded-xl border border-primary/40 text-sm placeholder-gray-400"
+    : "w-full min-w-0 px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400";
 
   const resultCountEl = (
     <div
@@ -1446,24 +2074,48 @@ export default function GeoFeed({
       {displayCount === 1
         ? t("feed.resultSingular")
         : t("feed.resultPlural")}
-      {searchQuery
-        ? t("feed.filteredByQuery", { query: searchQuery })
+      {appliedSearchQuery
+        ? t("feed.filteredByQuery", { query: appliedSearchQuery })
         : ""}
     </div>
   );
 
+  const emptyRadiusNoLocal =
+    feedChip === "sale" &&
+    appliedScope === FEED_SCOPE_NEARBY &&
+    locationFilterActive &&
+    !loading &&
+    feedHydrated &&
+    sortedSales.length === 0 &&
+    filteredSaleBase.length > 0;
+
   const emptySale =
+    !emptyRadiusNoLocal &&
     feedChip === "sale" &&
     !loading &&
     feedHydrated &&
-    sortedSales.length === 0;
+    filteredSaleBase.length === 0;
   const emptyInsp =
     feedChip === "inspiration" &&
     !loading &&
     feedHydrated &&
     inspirationSlots.length === 0;
   const emptyAll =
-    feedChip === "all" && !loading && feedHydrated && displayCount === 0;
+    !emptyRadiusNoLocal &&
+    feedChip === "all" &&
+    !loading &&
+    feedHydrated &&
+    displayCount === 0;
+
+  const handleWidenRadius = () => {
+    const next = Math.min(100, nextWiderFeedRadiusKm(appliedRadius));
+    setRadius(next);
+    setAppliedRadius(next);
+  };
+
+  const handleViewNationalScope = () => {
+    handleScopeChange(FEED_SCOPE_NATIONAL);
+  };
 
   const feedQuickCreateIntent = useMemo(
     () => resolvedVerticalModeIntent(category, feedChip),
@@ -1472,6 +2124,12 @@ export default function GeoFeed({
 
   const feedResultsContainerClass = useMemo(() => {
     if (!isMobileFeedUi) {
+      if (isDesktopSplit) {
+        return homeDesktopFeedGridClass(desktopFeedColumns);
+      }
+      if (feedColumnLayout === "home-main") {
+        return "grid grid-cols-2 gap-4 xl:gap-5";
+      }
       return "grid sm:grid-cols-2 md:grid-cols-3 gap-4";
     }
     if (effectiveFeedLayoutMode === "discover") {
@@ -1480,119 +2138,96 @@ export default function GeoFeed({
     return `flex flex-col gap-4 hc-feed-cards-column${
       nativeMounted ? " hc-native-feed-cards-column" : ""
     }`;
-  }, [isMobileFeedUi, effectiveFeedLayoutMode, nativeMounted]);
+  }, [
+    isMobileFeedUi,
+    isDesktopSplit,
+    desktopFeedColumns,
+    effectiveFeedLayoutMode,
+    nativeMounted,
+    feedColumnLayout,
+  ]);
 
   const useDiscoverGridTiles =
     isMobileFeedUi && effectiveFeedLayoutMode === "discover";
 
-  return (
-    <div id="homecheff-feed" className="space-y-4">
-      <div
-        className={`bg-white/70 rounded-xl border border-gray-200 shadow-sm ${feedPanelPad}`}
+  const viewModeChipsEl = (
+    <>
+      <p
+        className={
+          filterChrome
+            ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5"
+            : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
+        }
       >
-        <div>
-          <h2
-            className={
-              feedCompactChrome
-                ? "text-sm font-semibold text-gray-900"
-                : "text-base font-semibold text-gray-900"
-            }
-          >
-            {t("feed.discoverFiltersHeading")}
-          </h2>
-          {!feedCompactChrome && (
-            <p className="text-sm text-gray-600 mt-1 mb-3">
-              {t("feed.chipSectionIntro")}
-            </p>
-          )}
-          <p
-            className={
-              feedCompactChrome
-                ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5"
-                : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
-            }
-          >
-            {t("feed.viewModeLabel")}
-          </p>
-          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 sm:flex-wrap sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0">
-            <button
-              type="button"
-              className={chipBtn(feedChip === "all")}
-              onClick={() => setFeedChip("all")}
-            >
-              {t("filters.all")}
-            </button>
-            <button
-              type="button"
-              className={chipBtn(feedChip === "sale")}
-              onClick={() => setFeedChip("sale")}
-            >
-              {t("feed.chipSale")}
-            </button>
-            <button
-              type="button"
-              className={chipBtn(feedChip === "inspiration")}
-              onClick={() => setFeedChip("inspiration")}
-            >
-              {t("feed.chipInspiration")}
-            </button>
-          </div>
-          {isMobileFeedUi ? (
-            <div className="mt-2.5 flex flex-wrap items-end justify-between gap-2">
-              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-                {t("feed.layoutModeLabel")}
-              </p>
-              <FeedLayoutToggle
-                mode={feedLayoutMode}
-                onChange={setFeedLayoutMode}
-                compact
-              />
-            </div>
-          ) : null}
-          {feedQuickCreateIntent ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  createFlow.openCreateFlowWithIntent(feedQuickCreateIntent)
-                }
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
-              >
-                <Plus className="h-4 w-4 shrink-0" aria-hidden />
-                {t(quickCreateLabelKey(feedQuickCreateIntent))}
-              </button>
-            </div>
-          ) : null}
-        </div>
+        {t("feed.viewModeLabel")}
+      </p>
+      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        <button
+          type="button"
+          className={chipBtn(feedChip === "all")}
+          onClick={() => setFeedChip("all")}
+        >
+          {t("filters.all")}
+        </button>
+        <button
+          type="button"
+          className={chipBtn(feedChip === "sale")}
+          onClick={() => setFeedChip("sale")}
+        >
+          {t("feed.chipSale")}
+        </button>
+        <button
+          type="button"
+          className={chipBtn(feedChip === "inspiration")}
+          onClick={() => setFeedChip("inspiration")}
+        >
+          {t("feed.chipInspiration")}
+        </button>
+      </div>
+    </>
+  );
 
-        {feedCompactChrome && sortRowEl}
-
-        {feedCompactChrome && (
-          <button
-            type="button"
-            aria-expanded={nativeFeedExtraOpen}
-            onClick={() => setNativeFeedExtraOpen((o) => !o)}
-            className="inline-flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors"
-          >
-            {nativeFeedExtraOpen ? (
-              <ChevronUp className="w-4 h-4 shrink-0" />
-            ) : (
-              <ChevronDown className="w-4 h-4 shrink-0" />
-            )}
-            {nativeFeedExtraOpen
-              ? t("feed.nativeCollapseGeoFilters")
-              : t("feed.nativeExpandGeoFilters")}
-            {nativeGeoFilterActive && !nativeFeedExtraOpen ? (
-              <span
-                className="h-2 w-2 rounded-full bg-emerald-500"
-                aria-hidden
-              />
-            ) : null}
-          </button>
-        )}
-
-        {(!feedCompactChrome || nativeFeedExtraOpen) && (
+  const filterPanelBodyEl = showGeoFilters ? (
           <>
+            <div className={feedSectionBorder}>
+              <p
+                className={
+                  feedCompactChrome
+                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
+                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
+                }
+              >
+                {t("feed.scopeLabel")}
+              </p>
+              <div className="grid grid-cols-1 gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 mb-4">
+                {(
+                  [
+                    [FEED_SCOPE_NEARBY, "feed.scopeNearby"],
+                    [FEED_SCOPE_NATIONAL, "feed.scopeNational"],
+                    [FEED_SCOPE_INTERNATIONAL, "feed.scopeInternational"],
+                  ] as const
+                ).map(([id, labelKey]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => handleScopeChange(id)}
+                    className={`rounded-lg px-2.5 py-2 text-xs font-semibold text-left transition-colors ${
+                      appliedScope === id
+                        ? "bg-white text-emerald-800 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    aria-pressed={appliedScope === id}
+                  >
+                    {t(labelKey)}
+                  </button>
+                ))}
+              </div>
+              {appliedScope === FEED_SCOPE_INTERNATIONAL ? (
+                <p className="mb-3 text-[10px] text-gray-500 leading-snug">
+                  {t("feed.scopeInternationalHint")}
+                </p>
+              ) : null}
+            </div>
             <div className={feedSectionBorder}>
               <p
                 className={
@@ -1603,84 +2238,128 @@ export default function GeoFeed({
               >
                 {t("feed.locationSectionLabel")}
               </p>
-              <div className="flex flex-wrap gap-3 items-end max-md:flex-col max-md:items-stretch">
-                <div className="flex-1 min-w-[180px] max-md:min-w-0 max-md:w-full">
-                  <label className="block text-base font-semibold mb-1">
+              {!feedCoords && !appliedPlace.trim() && !locationLoading ? (
+                <p className="mb-3 text-xs text-gray-600 leading-relaxed rounded-lg border border-primary-brand/10 bg-primary-50/40 px-3 py-2">
+                  {t("feed.viewerLocationHint")}
+                </p>
+              ) : null}
+              {profileNeedsCoords ? (
+                <p className="mb-3 text-xs text-amber-800 leading-relaxed rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2">
+                  {t("feed.completeProfileLocationHint")}
+                </p>
+              ) : null}
+              <div className="space-y-4">
+                <div>
+                  <label className={filterLabelClass}>
                     {t("common.place")}
                   </label>
-                  <input
-                    value={place}
-                    onChange={(e) => handlePlaceInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-                    placeholder={t("common.typePlaceOrPostcode")}
-                  />
-                </div>
-                <div className="min-w-[120px] max-md:w-full">
-                  <label className="block text-base font-semibold mb-1">
-                    {t("feed.radiusLabel")}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={radius}
-                    onChange={(e) =>
-                      setRadius(
-                        Math.max(1, Math.min(100, Number(e.target.value)))
-                      )
+                  <div
+                    className={
+                      isDesktopSplit
+                        ? "grid grid-cols-1 gap-2"
+                        : "grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-2 md:items-stretch"
                     }
-                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
-                  />
-                </div>
-                <div className="flex-1 min-w-[180px] max-md:min-w-0 max-md:w-full">
-                  <label className="block text-base font-semibold mb-1">
-                    {t("common.search")}
-                  </label>
-                  <input
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg placeholder-gray-400"
-                    placeholder={t("common.searchPlaceholder")}
-                  />
-                </div>
-                <div className="min-w-[140px] max-md:w-full">
-                  <label className="block text-base font-semibold mb-1">
-                    {t("common.category")}
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg"
                   >
-                    <option value="all">{t("common.allCategories")}</option>
-                    <option value="cheff">
-                      {t("feed.categoryVerticalCheff")}
-                    </option>
-                    <option value="garden">
-                      {t("feed.categoryVerticalGarden")}
-                    </option>
-                    <option value="designer">
-                      {t("feed.categoryVerticalDesigner")}
-                    </option>
-                  </select>
+                    <input
+                      value={place}
+                      onChange={(e) => handlePlaceInput(e.target.value)}
+                      className={filterInputClass}
+                      placeholder={t("common.typePlaceOrPostcode")}
+                      autoComplete="postal-code"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUseMyLocation}
+                      disabled={locationLoading || !locationSupported}
+                      aria-busy={locationLoading}
+                      className="inline-flex w-full md:w-auto md:min-w-[11rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-primary-brand/30 bg-white px-4 py-3 text-sm font-semibold text-primary-brand hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
+                    >
+                      {locationLoading ? (
+                        <>
+                          <Loader2
+                            className="h-4 w-4 shrink-0 animate-spin"
+                            aria-hidden
+                          />
+                          <span>{t("common.loading")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                          <span>
+                            {isDesktopSplit
+                              ? t("feed.useMyLocationShort")
+                              : t("feed.useMyLocation")}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {locationError && locationSource === "gps" ? (
+                    <p className="mt-1.5 text-xs text-red-600">
+                      {t("common.locationCouldNotBeDetermined")}
+                    </p>
+                  ) : null}
                 </div>
-                <div className="min-w-[120px] max-md:w-full">
-                  <label className="block text-base font-semibold mb-1">
-                    {t("common.location")}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={getCurrentPosition}
-                    disabled={locationLoading || !locationSupported}
-                    className="w-full px-4 py-3 rounded-xl border border-primary/40 text-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {locationLoading ? "⏳" : coords ? "📍" : "🌍"}
-                    {locationLoading
-                      ? t("common.loading")
-                      : coords
-                        ? t("common.gps")
-                        : t("common.location")}
-                  </button>
+
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-start">
+                  <div className="min-w-[120px] sm:w-28">
+                    <label className={filterLabelClass}>
+                      {t("feed.radiusLabel")}
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={radius}
+                      disabled={appliedScope !== FEED_SCOPE_NEARBY}
+                      onChange={(e) =>
+                        setRadius(
+                          Math.max(0, Math.min(100, Number(e.target.value)))
+                        )
+                      }
+                      className={filterInputClass}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {appliedScope === FEED_SCOPE_NEARBY
+                        ? t("feed.radiusFilterHint")
+                        : t("feed.radiusNotUsedHint")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 min-w-0">
+                    <label className={filterLabelClass}>
+                      {t("common.search")}
+                    </label>
+                    <input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      className={filterInputClass}
+                      placeholder={t("common.searchPlaceholder")}
+                    />
+                  </div>
+                  <div className="min-w-[140px] sm:w-48">
+                    <label className={filterLabelClass}>
+                      {t("common.category")}
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className={filterInputClass}
+                    >
+                      <option value="all">{t("common.allCategories")}</option>
+                      <option value="cheff">
+                        {t("feed.categoryVerticalCheff")}
+                      </option>
+                      <option value="garden">
+                        {t("feed.categoryVerticalGarden")}
+                      </option>
+                      <option value="designer">
+                        {t("feed.categoryVerticalDesigner")}
+                      </option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="w-full mt-2">
@@ -1701,9 +2380,7 @@ export default function GeoFeed({
                 )}
                 {!userLocation && !place && (
                   <p className="text-xs text-gray-500">
-                    {locationSupported
-                      ? t("common.getLocation")
-                      : t("common.typePlaceOrPostcode")}
+                    {t("feed.placeOrGpsHint")}
                   </p>
                 )}
                 {place && (
@@ -1775,6 +2452,29 @@ export default function GeoFeed({
               </div>
             </div>
 
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {filtersDirty ? (
+                <p className="text-xs text-amber-700 w-full sm:flex-1 sm:min-w-[12rem]">
+                  {t("feed.filtersPendingHint")}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={applyFilters}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors touch-manipulation"
+              >
+                {t("feed.applyFilters")}
+              </button>
+              <button
+                type="button"
+                onClick={resetDraftFilters}
+                disabled={!filtersDirty}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation"
+              >
+                {t("feed.resetFiltersDraft")}
+              </button>
+            </div>
+
             <div className={feedSectionBorder}>
               <p
                 className={
@@ -1808,7 +2508,7 @@ export default function GeoFeed({
                 </button>
               </div>
 
-              {!feedCompactChrome && sortRowEl}
+              {!filterChrome && sortRowEl}
 
               {showFilters && (
                 <div className="border-t pt-4">
@@ -1839,7 +2539,7 @@ export default function GeoFeed({
                               max: e.target.value,
                             }))
                           }
-                          placeholder={t("filterBar.maxPrice")}
+                          placeholder={t("filters.maxPricePlaceholder")}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
@@ -1859,22 +2559,197 @@ export default function GeoFeed({
               )}
             </div>
           </>
-        )}
+        ) : null;
 
-        {resultCountEl}
+  const filterCardEl = (
+    <div
+      className={`hc-dorpsplein-card bg-white/90 rounded-2xl border border-primary-brand/10 shadow-sm ${feedPanelPad}`}
+    >
+      {isDesktopSplit ? (
+        <FeedSidebarFilters
+          t={t}
+          place={place}
+          onPlaceChange={handlePlaceInput}
+          onUseMyLocation={handleUseMyLocation}
+          locationLoading={locationLoading}
+          locationSupported={locationSupported}
+          locationError={showGpsError ? locationError : null}
+          activeLocationChip={activeLocationChip}
+          onClearLocation={clearViewerLocation}
+          showLocationHint={showViewerLocationHint}
+          profileNeedsCoords={profileNeedsCoords}
+          scope={appliedScope}
+          onScopeChange={handleScopeChange}
+          radius={radius}
+          onRadiusChange={(n) =>
+            setRadius(Math.max(0, Math.min(100, n)))
+          }
+          distanceSortEnabled={distanceSortEnabled}
+          q={q}
+          onQChange={setQ}
+          category={category}
+          onCategoryChange={setCategory}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          sortOptions={sortOptions}
+          priceRange={priceRange}
+          onPriceRangeChange={setPriceRange}
+          refineOpen={sidebarRefineOpen}
+          onRefineOpenChange={setSidebarRefineOpen}
+          filtersDirty={filtersDirty}
+          onApply={applyFilters}
+          onResetDraft={resetDraftFilters}
+        />
+      ) : (
+        <>
+        <div>
+          <h2
+            className={
+              filterChrome
+                ? "text-sm font-semibold text-gray-900"
+                : "text-base font-semibold text-gray-900"
+            }
+          >
+            {t("feed.discoverFiltersHeading")}
+          </h2>
+          {!filterChrome && (
+            <p className="text-sm text-gray-600 mt-1 mb-3">
+              {t("feed.chipSectionIntro")}
+            </p>
+          )}
+          {viewModeChipsEl}
+          {isMobileFeedUi ? (
+            <div className="mt-2.5 flex flex-wrap items-end justify-between gap-2">
+              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                {t("feed.layoutModeLabel")}
+              </p>
+              <FeedLayoutToggle
+                mode={feedLayoutMode}
+                onChange={setFeedLayoutMode}
+                compact
+              />
+            </div>
+          ) : null}
+          {feedQuickCreateIntent ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  createFlow.openCreateFlowWithIntent(feedQuickCreateIntent)
+                }
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+              >
+                <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                {t(quickCreateLabelKey(feedQuickCreateIntent))}
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+      {feedCompactChrome && sortRowEl}
+
+      {feedCompactChrome && (
+        <button
+          type="button"
+          aria-expanded={nativeFeedExtraOpen}
+          onClick={() => setNativeFeedExtraOpen((o) => !o)}
+          className="inline-flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm font-semibold text-gray-800 hover:bg-gray-100 transition-colors"
+        >
+          {nativeFeedExtraOpen ? (
+            <ChevronUp className="w-4 h-4 shrink-0" />
+          ) : (
+            <ChevronDown className="w-4 h-4 shrink-0" />
+          )}
+          {nativeFeedExtraOpen
+            ? t("feed.nativeCollapseGeoFilters")
+            : t("feed.nativeExpandGeoFilters")}
+          {nativeGeoFilterActive && !nativeFeedExtraOpen ? (
+            <span
+              className="h-2 w-2 rounded-full bg-emerald-500"
+              aria-hidden
+            />
+          ) : null}
+        </button>
+      )}
+
+      {filterPanelBodyEl}
+
+      {!isDesktopSplit ? resultCountEl : null}
+        </>
+      )}
+    </div>
+  );
+
+  const desktopFeedHeaderEl = isDesktopSplit ? (
+    <div className="hc-dorpsplein-card bg-white/90 rounded-2xl border border-primary-brand/10 shadow-sm p-3 space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">{viewModeChipsEl}</div>
+        <FeedDesktopColumnToggle
+          columns={desktopFeedColumns}
+          onChange={setDesktopFeedColumns}
+        />
       </div>
+      {feedQuickCreateIntent ? (
+        <button
+          type="button"
+          onClick={() =>
+            createFlow.openCreateFlowWithIntent(feedQuickCreateIntent)
+          }
+          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 touch-manipulation"
+        >
+          <Plus className="h-4 w-4 shrink-0" aria-hidden />
+          {t(quickCreateLabelKey(feedQuickCreateIntent))}
+        </button>
+      ) : null}
+      {resultCountEl}
+    </div>
+  ) : null;
 
-      {loading ? (
+  const feedResultsBlock = loading ? (
         <div className="space-y-4" aria-hidden>
           <div className="h-48 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
           <div className="h-32 rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
         </div>
+      ) : emptyRadiusNoLocal ? (
+        <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+          <p className="text-base font-semibold text-gray-900">
+            {t("feed.emptyRadiusTitle", { radius: appliedRadius })}
+          </p>
+          <p className="mt-1">
+            {t("feed.emptyRadiusBody")}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleWidenRadius}
+              className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              {t("feed.emptyRadiusWiden")}
+            </button>
+            <button
+              type="button"
+              onClick={handleViewNationalScope}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("feed.emptyRadiusViewAll")}
+            </button>
+          </div>
+        </div>
       ) : emptySale ? (
         <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
           <p className="text-base font-semibold text-gray-900">
-            {t("feed.emptySaleTitle")}
+            {appliedScope === FEED_SCOPE_NEARBY
+              ? t("feed.emptySaleTitle")
+              : t("feed.emptyNationalTitle")}
           </p>
-          <p className="mt-1">{t("feed.emptySaleBody")}</p>
+          <p className="mt-1">
+            {appliedScope === FEED_SCOPE_NEARBY
+              ? t("feed.emptySaleBody")
+              : t("feed.emptyNationalBody")}
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             {t("emptyState.noResultsHint")}
           </p>
@@ -1984,79 +2859,153 @@ export default function GeoFeed({
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
         >
-          {feedRowsToRender.map((row, idx) => {
-            if (row.row === "sale") {
-              const card = toCardItem(row.item);
-              if (useDiscoverGridTiles) {
-                return (
-                  <DiscoverGridTile
-                    key={`sale-${row.item.id}-${idx}`}
-                    item={card}
-                    href={feedMarketplaceItemHref(card)}
-                    kind="sale"
-                    t={t}
-                  />
+          {(() => {
+            const nodes: ReactNode[] = [];
+            let feedItemIndex = 0;
+            const isLoggedIn = !!session?.user;
+
+            const pushInsertIfNeeded = () => {
+              if (!enableMobileFeedInserts || !isMobileFeedUi) return;
+              const insertId = resolveHomeMobileInsert(feedItemIndex, isLoggedIn);
+              if (insertId && renderMobileFeedInsert) {
+                nodes.push(
+                  <div key={`feed-insert-${feedItemIndex}-${insertId}`} className="contents">
+                    {renderMobileFeedInsert(insertId)}
+                  </div>
                 );
               }
-              return (
-                <FeedMarketplaceCard
-                  key={`sale-${row.item.id}-${idx}`}
-                  item={card}
-                  baseUrl={baseUrl}
-                  t={t}
-                  variant="sale"
-                />
-              );
-            }
-            const slot = row.slot;
-            if (slot.kind === "api") {
-              if (useDiscoverGridTiles) {
-                const card = inspirationApiToCardItem(slot.item);
-                return (
-                  <DiscoverGridTile
-                    key={`insp-api-${slot.item.id}-${idx}`}
-                    item={card}
-                    href={inspirationDetailHrefApi(slot.item)}
-                    kind="inspiration"
-                    t={t}
-                  />
-                );
+            };
+
+            feedRowsToRender.forEach((row, idx) => {
+              if (row.row === "sale") {
+                const card = toCardItem(row.item);
+                if (useDiscoverGridTiles) {
+                  nodes.push(
+                    <DiscoverGridTile
+                      key={`sale-${row.item.id}-${idx}`}
+                      item={card}
+                      href={feedMarketplaceItemHref(card)}
+                      kind="sale"
+                      t={t}
+                    />
+                  );
+                } else {
+                  nodes.push(
+                    <FeedMarketplaceCard
+                      key={`sale-${row.item.id}-${idx}`}
+                      item={card}
+                      baseUrl={baseUrl}
+                      t={t}
+                      variant="sale"
+                    />
+                  );
+                }
+                feedItemIndex += 1;
+                pushInsertIfNeeded();
+                return;
               }
-              return (
-                <FeedMarketplaceCard
-                  key={`insp-api-${slot.item.id}-${idx}`}
-                  item={inspirationApiToCardItem(slot.item)}
-                  baseUrl={baseUrl}
-                  t={t}
-                  variant="inspiration-api"
-                  inspirationApiItem={slot.item}
-                />
-              );
-            }
-            const card = toCardItem(slot.item);
-            if (useDiscoverGridTiles) {
-              return (
-                <DiscoverGridTile
-                  key={`insp-feed-${slot.item.id}-${idx}`}
-                  item={card}
-                  href={feedMarketplaceItemHref(card)}
-                  kind="inspiration"
-                  t={t}
-                />
-              );
-            }
-            return (
-              <FeedMarketplaceCard
-                key={`insp-feed-${slot.item.id}-${idx}`}
-                item={card}
-                baseUrl={baseUrl}
-                t={t}
-                variant="inspiration-feed"
-              />
-            );
-          })}
+              const slot = row.slot;
+              if (slot.kind === "api") {
+                if (useDiscoverGridTiles) {
+                  const card = inspirationApiToCardItem(slot.item);
+                  nodes.push(
+                    <DiscoverGridTile
+                      key={`insp-api-${slot.item.id}-${idx}`}
+                      item={card}
+                      href={inspirationDetailHrefApi(slot.item)}
+                      kind="inspiration"
+                      t={t}
+                    />
+                  );
+                } else {
+                  nodes.push(
+                    <FeedMarketplaceCard
+                      key={`insp-api-${slot.item.id}-${idx}`}
+                      item={inspirationApiToCardItem(slot.item)}
+                      baseUrl={baseUrl}
+                      t={t}
+                      variant="inspiration-api"
+                      inspirationApiItem={slot.item}
+                    />
+                  );
+                }
+              } else {
+                const card = toCardItem(slot.item);
+                if (useDiscoverGridTiles) {
+                  nodes.push(
+                    <DiscoverGridTile
+                      key={`insp-feed-${slot.item.id}-${idx}`}
+                      item={card}
+                      href={feedMarketplaceItemHref(card)}
+                      kind="inspiration"
+                      t={t}
+                    />
+                  );
+                } else {
+                  nodes.push(
+                    <FeedMarketplaceCard
+                      key={`insp-feed-${slot.item.id}-${idx}`}
+                      item={card}
+                      baseUrl={baseUrl}
+                      t={t}
+                      variant="inspiration-feed"
+                    />
+                  );
+                }
+              }
+              feedItemIndex += 1;
+              pushInsertIfNeeded();
+            });
+            return nodes;
+          })()}
         </div>
-      )}
+      );
+
+  if (homeComposedLayout && isMobileFeedUi) {
+    return null;
+  }
+
+  if (isDesktopSplit) {
+    const feedContent = (
+      <>
+        {desktopFeedHeaderEl}
+        {feedResultsBlock}
+      </>
+    );
+
+    if (homeComposedLayout && children) {
+      return (
+        <GeoFeedHomeLayoutContext.Provider
+          value={{ filtersPanel: filterCardEl, feedContent }}
+        >
+          {children}
+        </GeoFeedHomeLayoutContext.Provider>
+      );
+    }
+
+    return (
+      <>
+        <div id="homecheff-feed" className="lg:hidden space-y-4">
+          {filterCardEl}
+          {feedResultsBlock}
+        </div>
+        <aside className="hidden lg:block sticky top-20 z-[1] self-start max-h-[calc(100vh-5rem)] overflow-y-auto overflow-x-hidden pb-3">
+          {filterCardEl}
+        </aside>
+        <div
+          id="homecheff-feed-desktop"
+          className="hidden lg:block min-w-0 space-y-4 self-start hc-home-feed-grid"
+        >
+          {feedContent}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div id="homecheff-feed" className="space-y-4">
+      {filterCardEl}
+      {feedResultsBlock}
     </div>
   );
 }
