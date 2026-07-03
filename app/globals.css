@@ -875,3 +875,115 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
     max-width: 22rem;
   }
 }
+
+.hc-hero-dorpsplein {
+  @apply ring-1 ring-white/10;
+}
+
+/* Homepage hero — Globeman orbit (desktop only) */
+.hc-hero-orbit-stage {
+  position: relative;
+  width: 17.5rem;
+  height: 17.5rem;
+  overflow: visible;
+}
+
+.hc-hero-orbit-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hc-hero-orbit-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.hc-hero-orbit-satellite-wrap {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 3.5rem;
+  pointer-events: none;
+}
+
+.hc-hero-orbit-satellite-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  font-size: 1rem;
+  line-height: 1;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.hc-hero-orbit-satellite-label {
+  max-width: 4.75rem;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 1024px) {
+  .hc-hero-visual-cluster {
+    min-height: 7.5rem;
+  }
+
+  .hc-hero-orbit {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .hc-hero-orbit-lg {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.375rem;
+  }
+
+  .hc-hero-orbit-md {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.0625rem;
+  }
+
+  .hc-hero-orbit-sm {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.9375rem;
+  }
+}
+
+.hc-hero-platform-strip {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.14);
+}

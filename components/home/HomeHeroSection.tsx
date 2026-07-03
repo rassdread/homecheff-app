@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Compass, Heart, Plus, Sparkles } from 'lucide-react';
@@ -64,6 +64,10 @@ const mobileActionClass =
 
 function HeroVisualCluster() {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    console.log('orbit image src', GLOBEMAN_SRC);
+  }, []);
 
   return (
     <div
