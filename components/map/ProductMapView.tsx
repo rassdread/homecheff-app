@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, Info } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 
 // Load Google Maps dynamically
 declare global {
@@ -181,7 +182,7 @@ export default function ProductMapView({
             <span style="margin-right: 4px;">📍</span>${item.place}
           </p>` : ''}
           ${item.distanceKm !== null && item.distanceKm !== undefined ? `<p style="margin: 0; font-size: 12px; color: #6b7280;">
-            ${item.distanceKm.toFixed(1)} km
+            ${formatMarketplaceDistanceKm(item.distanceKm)}
           </p>` : ''}
           <button 
             onclick="window.dispatchEvent(new CustomEvent('mapMarkerClick', { detail: '${item.id}' }))"

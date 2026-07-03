@@ -3,6 +3,7 @@
  * Seller anchor: SellerProfile.lat/lng (via resolveSellerCoords in delivery-position).
  */
 
+import { formatMarketplaceDistanceLabel } from '@/lib/geo/distance-format';
 import { haversineKm, bboxFromCenter } from '@/lib/community/geoDistance';
 import { safeDistanceKm } from '@/lib/geocoding';
 import { resolveSellerCoords } from '@/lib/delivery/delivery-position';
@@ -34,6 +35,29 @@ export const RADIUS_PRESET_OPTIONS = [
 
 export type Coords = { lat: number; lng: number };
 
+/** Default: local items first, national tail fills the feed. */
+export const FEED_RADIUS_MODE_LOCAL_FIRST = 'local_first' as const;
+
+/** Hard filter: only items with valid coords within radius. */
+export const FEED_RADIUS_MODE_STRICT_LOCAL = 'strict_local' as const;
+
+export type FeedRadiusMode =
+  | typeof FEED_RADIUS_MODE_LOCAL_FIRST
+  | typeof FEED_RADIUS_MODE_STRICT_LOCAL;
+
+export function normalizeFeedRadiusMode(
+  input: string | null | undefined
+): FeedRadiusMode {
+  if (input === FEED_RADIUS_MODE_STRICT_LOCAL) {
+    return FEED_RADIUS_MODE_STRICT_LOCAL;
+  }
+  return FEED_RADIUS_MODE_LOCAL_FIRST;
+}
+
+export function isStrictLocalRadiusMode(mode: FeedRadiusMode): boolean {
+  return mode === FEED_RADIUS_MODE_STRICT_LOCAL;
+}
+
 export function normalizeFeedRadiusKm(input: number | null | undefined): number {
   if (input == null || !Number.isFinite(input) || input <= 0) {
     return RADIUS_NATIONAL_KM;
@@ -52,8 +76,9 @@ export function roundedDistanceKm(
   lng2: number
 ): number | null {
   const d = safeDistanceKm(lat1, lng1, lat2, lng2);
-  if (d == null) return null;
-  return Math.round(d * 10) / 10;
+  if (d == null || !Number.isFinite(d) || d <= 0) return null;
+  const rounded = Math.round(d * 10) / 10;
+  return rounded > 0 ? rounded : null;
 }
 
 export function isWithinRadiusKm(
@@ -65,28 +90,81 @@ export function isWithinRadiusKm(
   return distanceKm <= radiusKm + 0.001;
 }
 
-/** UI: never show "0 km" for unknown/invalid distance. */
-export function formatDistanceLabel(km: number | null | undefined): string | null {
-  if (km == null || !Number.isFinite(km) || km <= 0) return null;
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  return `${km.toFixed(1)} km`;
-}
-
 export const DISTANCE_UNKNOWN_LABEL = 'Locatie onbekend';
 
-export function sellerBboxWhere(viewer: Coords, radiusKm: number) {
+/** UI: never show "0 km" for unknown/invalid distance. */
+export function formatDistanceLabel(km: number | null | undefined): string | null {
+  return formatMarketplaceDistanceLabel(km);
+}
+
+export { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
+
+export type SellerBboxWhereOptions = {
+  /** When false (STRICT_LOCAL), sellers without coords are excluded from the DB prefilter. */
+  includeNullCoords?: boolean;
+};
+
+/**
+ * DB prefilter for STRICT_LOCAL only.
+ * Matches products whose anchor coords fall inside the viewer bbox:
+ * pickup → SellerProfile → User (same priority as item-location).
+ * LOCAL_FIRST must not use this — national tail needs items outside bbox.
+ */
+export function productGeoBboxWhere(
+  viewer: Coords,
+  radiusKm: number
+) {
   const bbox = bboxFromCenter(viewer.lat, viewer.lng, radiusKm);
-  return {
-    OR: [
-      { seller: { OR: [{ lat: null }, { lng: null }] } },
-      {
-        seller: {
-          lat: { gte: bbox.latMin, lte: bbox.latMax },
-          lng: { gte: bbox.lngMin, lte: bbox.lngMax },
-        },
-      },
-    ],
+
+  const pickupInBbox = {
+    pickupLat: { gte: bbox.latMin, lte: bbox.latMax },
+    pickupLng: { gte: bbox.lngMin, lte: bbox.lngMax },
   };
+
+  const sellerProfileInBbox = {
+    seller: {
+      lat: { gte: bbox.latMin, lte: bbox.latMax },
+      lng: { gte: bbox.lngMin, lte: bbox.lngMax },
+    },
+  };
+
+  const userFallbackInBbox = {
+    seller: {
+      OR: [{ lat: null }, { lng: null }],
+      User: {
+        lat: { gte: bbox.latMin, lte: bbox.latMax },
+        lng: { gte: bbox.lngMin, lte: bbox.lngMax },
+      },
+    },
+  };
+
+  return {
+    OR: [pickupInBbox, sellerProfileInBbox, userFallbackInBbox],
+  };
+}
+
+/** @deprecated Use productGeoBboxWhere — kept for scripts/tests. */
+export function sellerBboxWhere(
+  viewer: Coords,
+  radiusKm: number,
+  options?: SellerBboxWhereOptions
+) {
+  const includeNullCoords = options?.includeNullCoords !== false;
+  if (includeNullCoords) {
+    const bbox = bboxFromCenter(viewer.lat, viewer.lng, radiusKm);
+    return {
+      OR: [
+        { seller: { OR: [{ lat: null }, { lng: null }] } },
+        {
+          seller: {
+            lat: { gte: bbox.latMin, lte: bbox.latMax },
+            lng: { gte: bbox.lngMin, lte: bbox.lngMax },
+          },
+        },
+      ],
+    };
+  }
+  return productGeoBboxWhere(viewer, radiusKm);
 }
 
 export type SellerCoordsInput = {
@@ -105,11 +183,14 @@ export function resolveMarketplaceItemCoords(
 export function filterProductWithinRadius(
   seller: SellerCoordsInput | null | undefined,
   viewer: Coords,
-  radiusKm: number
+  radiusKm: number,
+  mode: FeedRadiusMode = FEED_RADIUS_MODE_LOCAL_FIRST
 ): boolean {
   if (isUnlimitedRadius(radiusKm)) return true;
   const coords = resolveMarketplaceItemCoords(seller);
-  if (!coords) return true;
+  if (!coords) {
+    return !isStrictLocalRadiusMode(mode);
+  }
   const d = safeDistanceKm(viewer.lat, viewer.lng, coords.lat, coords.lng);
   return isWithinRadiusKm(d, radiusKm);
 }
@@ -185,8 +266,23 @@ function toRankable<T extends Record<string, unknown>>(item: T): RankableSaleIte
   };
 }
 
+function sortLocalBucketByScore<T extends Record<string, unknown>>(
+  local: T[],
+  nowMs: number
+): T[] {
+  return local
+    .map((item) => ({ item, score: computeSaleScore(toRankable(item), nowMs) }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(b.item.id).localeCompare(String(a.item.id));
+    })
+    .map((x) => x.item);
+}
+
 /**
- * Local-first feed order: items within radius (by score), then national tail (recency).
+ * Feed geo sort/filter.
+ * - LOCAL_FIRST: items within radius first (by score), then national tail (recency).
+ * - STRICT_LOCAL: only items with valid distanceKm <= radius; no national tail.
  * When no viewer or unlimited radius: national discovery sort only.
  */
 export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
@@ -194,12 +290,14 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
   opts: {
     viewerGeo: Coords | null;
     radiusKm: number;
+    radiusMode?: FeedRadiusMode;
     followedSellerUserIds: Set<string>;
     extractSellerUserId: (item: T) => string | null;
     extractCoords: (item: T) => Coords | null;
   }
 ): T[] {
   const radius = normalizeFeedRadiusKm(opts.radiusKm);
+  const radiusMode = opts.radiusMode ?? FEED_RADIUS_MODE_LOCAL_FIRST;
   const nowMs = Date.now();
 
   for (const item of items) {
@@ -225,6 +323,18 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     );
   }
 
+  const strictActive =
+    isStrictLocalRadiusMode(radiusMode) &&
+    opts.viewerGeo != null &&
+    !isUnlimitedRadius(radius);
+
+  if (strictActive) {
+    const within = items.filter((item) =>
+      isWithinRadiusKm(item.distanceKm as number | undefined, radius)
+    );
+    return sortLocalBucketByScore(within, nowMs);
+  }
+
   const local: T[] = [];
   const national: T[] = [];
 
@@ -237,17 +347,20 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     }
   }
 
-  const localSorted = local
-    .map((item) => ({ item, score: computeSaleScore(toRankable(item), nowMs) }))
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(b.item.id).localeCompare(String(a.item.id));
-    })
-    .map((x) => x.item);
+  const localSorted = sortLocalBucketByScore(local, nowMs);
 
   const nationalSorted = [...national].sort((a, b) =>
     compareRecencyFollowDistance(a, b, { ...opts, viewerGeo: opts.viewerGeo })
   );
 
   return [...localSorted, ...nationalSorted];
+}
+
+/** Next preset radius larger than current (for “widen radius” CTA). */
+export function nextWiderFeedRadiusKm(current: number): number {
+  const positive = RADIUS_PRESET_OPTIONS.filter((r) => r > 0);
+  for (const preset of positive) {
+    if (preset > current) return preset;
+  }
+  return Math.min(100, Math.max(current + 10, current * 2));
 }

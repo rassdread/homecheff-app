@@ -13,6 +13,7 @@ import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ClickableName from '@/components/ui/ClickableName';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
+import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 
 type HomeItem = {
   id: string;
@@ -87,12 +88,8 @@ export default function ItemCard({ item, priority = false }: ItemCardProps) {
     return date.toLocaleDateString('nl-NL');
   };
 
-  const formatDistance = (distanceKm: number) => {
-    if (distanceKm < 1) {
-      return `${Math.round(distanceKm * 1000)}m`;
-    }
-    return `${distanceKm.toFixed(1)}km`;
-  };
+  const formatDistance = (distanceKm: number) =>
+    formatMarketplaceDistanceKm(distanceKm);
 
   // Seller name will be handled by ClickableName component
 

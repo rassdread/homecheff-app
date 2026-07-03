@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getDisplayName } from '@/lib/displayName';
+import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 
 interface ProductLocation {
   id: string;
@@ -166,7 +167,7 @@ export default function ProductMap({ products, height = '600px' }: ProductMapPro
             ${product.city}
           </p>` : ''}
           ${product.distanceKm !== null && product.distanceKm !== undefined ? `<p style="margin: 4px 0; font-size: 12px; color: #10b981; font-weight: 500;">
-            ${product.distanceKm.toFixed(1)} km
+            ${formatMarketplaceDistanceKm(product.distanceKm)}
           </p>` : ''}
           ${product.seller ? `<p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px;">
             Verkoper: ${getDisplayName(product.seller)}

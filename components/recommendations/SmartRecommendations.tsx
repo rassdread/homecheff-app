@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sparkles, TrendingUp, MapPin, Clock, Heart, Eye } from 'lucide-react';
+import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 
 interface Product {
   id: string;
@@ -279,7 +280,7 @@ export default function SmartRecommendations({
                     </p>
                     {product.location?.distanceKm && (
                       <p className="text-xs text-gray-500">
-                        {product.location.distanceKm.toFixed(1)}km
+                        {formatMarketplaceDistanceKm(product.location.distanceKm)}
                       </p>
                     )}
                   </div>
