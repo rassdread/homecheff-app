@@ -54,6 +54,17 @@ export function useGuestBottomNavPanel() {
     router.push('/messages');
   }, [session?.user, sessionStatus, openGuestBottomNavPanel, router]);
 
+  const handleGuestReputationClick = useCallback(() => {
+    if (!session?.user && sessionStatus === 'unauthenticated') {
+      const p = sanitizePostAuthRelativeUrl('/mijn-hcp') || '/mijn-hcp';
+      openGuestBottomNavPanel('reputation', p, () => {
+        savePendingIntent({ type: 'complete_profile', returnPath: p });
+      });
+      return;
+    }
+    router.push('/mijn-hcp');
+  }, [session?.user, sessionStatus, openGuestBottomNavPanel, router]);
+
   const guestBottomNavPanelEl = (
     <GuestExplanationPanel
       namespace="guestBottomNav"
@@ -68,6 +79,7 @@ export function useGuestBottomNavPanel() {
     sessionStatus,
     openGuestBottomNavPanel,
     handleGuestMessagesClick,
+    handleGuestReputationClick,
     guestBottomNavPanelEl,
     closeGuestPanel,
   };

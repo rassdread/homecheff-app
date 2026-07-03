@@ -4946,7 +4946,7 @@
     "reputationCompact": {
       "title": "Jouw reputatie",
       "body": "Je bouwt vertrouwen op door te delen, reageren en mensen in je buurt te helpen.",
-      "cta": "Bekijk reputatie",
+      "cta": "Bekijk",
       "levelLabel": "Niveau {level}"
     },
     "heroCtaSecondary": "Ontdek aanbod",

@@ -25,8 +25,12 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { data: session } = useSession();
   const { openCreateFlow } = useCreateFlow();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
-  const { sessionStatus, handleGuestMessagesClick, guestBottomNavPanelEl } =
-    useGuestBottomNavPanel();
+  const {
+    sessionStatus,
+    handleGuestMessagesClick,
+    handleGuestReputationClick,
+    guestBottomNavPanelEl,
+  } = useGuestBottomNavPanel();
 
   const messagesTabUseLink = sessionStatus !== 'unauthenticated';
 
@@ -40,7 +44,10 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           </div>
         ) : null}
 
-        {session?.user ? <HomeReputationCompactCard variant="sidebar" /> : null}
+        <HomeReputationCompactCard
+          variant="sidebar"
+          onGuestClick={handleGuestReputationClick}
+        />
 
         <CommunityPulseBar variant="sidebar" />
 

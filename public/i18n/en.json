@@ -3662,7 +3662,7 @@
     "reputationCompact": {
       "title": "Your reputation",
       "body": "You build trust by sharing, responding and helping people in your neighborhood.",
-      "cta": "View reputation",
+      "cta": "View",
       "levelLabel": "Level {level}"
     },
     "heroCtaSecondary": "Discover listings",
