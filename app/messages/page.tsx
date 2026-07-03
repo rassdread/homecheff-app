@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { MessageCircle } from 'lucide-react';
 import ConversationsList from '@/components/chat/ConversationsList';
 import ChatBox from '@/components/chat/ChatBox';
@@ -30,11 +31,21 @@ type Conversation = NormalizedConversationListItem;
 function MessagesPageContent() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const messagesPath = usePathname() ?? '/messages';
   const nativeMounted = useIsNativeAppMounted();
   const isLargeDisplay = useMediaQuery('(min-width: 1024px)');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (sessionStatus === 'loading') return;
+    if (sessionStatus === 'unauthenticated' || !session?.user) {
+      router.replace(
+        `/login?callbackUrl=${encodeURIComponent(messagesPath)}`
+      );
+    }
+  }, [session, sessionStatus, router, messagesPath]);
 
   /** Native: één keer per tab gesprek-URL herstellen uit resume-hint (API blijft leidend). */
   useEffect(() => {
@@ -124,6 +135,10 @@ function MessagesPageContent() {
     isNativeAndroid() &&
     !selectedConversation &&
     !isLargeDisplay;
+
+  if (sessionStatus === 'loading' || !session?.user) {
+    return null;
+  }
 
   return (
     <main

@@ -19,7 +19,7 @@ export default async function ProfilePage({
   const session = await getServerSession(authOptions);
   
   if (!session?.user?.email) {
-    redirect('/login');
+    redirect('/login?callbackUrl=%2Fprofile');
   }
 
   const user = await prisma.user.findUnique({ 
