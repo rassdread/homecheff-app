@@ -2602,6 +2602,14 @@
       "seller": "Seller",
       "dashboard": "Seller Dashboard",
       "dashboardDescription": "Overview of your sales activities and performance",
+      "actionCenter": {
+        "title": "Action required",
+        "subtitle": "Items that need your attention",
+        "healthyTitle": "Everything looks good",
+        "healthyDescription": "Your account has no open actions right now.",
+        "viewAll": "View all actions",
+        "showLess": "Show less"
+      },
       "businessUpgradeCallout": {
         "regionLabel": "Business and subscription",
         "title": "Selling as a business (Chamber of Commerce)?",

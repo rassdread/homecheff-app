@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import AppBackBar from '@/components/navigation/AppBackBar';
-import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import SellerActionCenter from '@/components/seller/SellerActionCenter';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
@@ -385,8 +385,14 @@ export default function SellerDashboardClient() {
           />
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6 sm:mb-8">
+            <div className="mb-4 block w-full min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
+            </div>
+            <SellerActionCenter variant="dashboard" />
+          </div>
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-lg p-6">
@@ -418,9 +424,10 @@ export default function SellerDashboardClient() {
           <div className="mb-4 block w-full min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
-            <StripeConnectPaymentsBanner />
-            <BusinessUpgradeCallout />
           </div>
+
+          <SellerActionCenter variant="dashboard" />
+          <BusinessUpgradeCallout />
 
           {/* Regel 2: Periode + Instellingen op eigen rij eronder, visueel gescheiden */}
           <div className="w-full pt-3 border-t border-gray-200 flex flex-wrap items-center gap-3 sm:gap-4">

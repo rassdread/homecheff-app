@@ -1866,6 +1866,14 @@
       "seller": "Verkoper",
       "dashboard": "Verkoper Dashboard",
       "dashboardDescription": "Overzicht van je verkoopactiviteiten en prestaties",
+      "actionCenter": {
+        "title": "Acties vereist",
+        "subtitle": "Items die jouw aandacht nodig hebben",
+        "healthyTitle": "Alles ziet er goed uit",
+        "healthyDescription": "Je account heeft momenteel geen openstaande acties.",
+        "viewAll": "Bekijk alle acties",
+        "showLess": "Minder tonen"
+      },
       "businessUpgradeCallout": {
         "regionLabel": "Bedrijf en abonnement",
         "title": "Verkopen als bedrijf (KVK)?",
