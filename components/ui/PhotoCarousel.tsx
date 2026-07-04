@@ -38,6 +38,8 @@ interface PhotoCarouselProps {
   showThumbnails?: boolean;
   autoPlay?: boolean;
   autoPlayInterval?: number;
+  /** feed = cover + aspect-video; detail = contain + height cap (product detail) */
+  variant?: 'feed' | 'detail';
 }
 
 export default function PhotoCarousel({ 
@@ -47,7 +49,8 @@ export default function PhotoCarousel({
   className = '', 
   showThumbnails = true,
   autoPlay = false,
-  autoPlayInterval = 4000
+  autoPlayInterval = 4000,
+  variant = 'feed',
 }: PhotoCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -257,13 +260,19 @@ export default function PhotoCarousel({
   }
 
   const currentMedia = mediaItems[currentIndex];
+  const isDetail = variant === 'detail';
+  const mainMediaClass = isDetail
+    ? 'relative h-[280px] max-h-[320px] sm:h-[300px] lg:h-[380px] lg:max-h-[420px] bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center'
+    : 'relative aspect-video bg-gray-100 rounded-xl overflow-hidden';
+  const imageFitClass = isDetail ? 'object-contain' : 'object-cover';
+  const videoFitClass = isDetail ? 'object-contain' : 'object-cover';
 
   return (
     <>
       {/* Main Carousel */}
       <div className={`relative group ${className}`}>
         {/* Main Media Container */}
-        <div className="relative aspect-video bg-gray-100 rounded-xl overflow-hidden">
+        <div className={mainMediaClass}>
           {currentMedia.type === 'video' ? (
             <div className="video-smooth relative z-0 w-full h-full">
               <HomeCheffVideoPlayer
@@ -290,7 +299,7 @@ export default function PhotoCarousel({
                 muted
                 preload="auto"
                 className="relative h-full w-full"
-                videoClassName="h-full w-full object-cover"
+                videoClassName={`h-full w-full ${videoFitClass}`}
                 poster={currentMedia.thumbnail || undefined}
                 playsInline
                 autoPlay
@@ -330,7 +339,7 @@ export default function PhotoCarousel({
               src={currentMedia.fileUrl || ''}
               alt={`Foto ${currentIndex + 1}`}
               fill
-              className="object-cover transition-all duration-500 ease-in-out"
+              className={`${imageFitClass} transition-all duration-500 ease-in-out`}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
             />
           )}

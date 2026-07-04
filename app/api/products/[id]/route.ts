@@ -11,6 +11,12 @@ import {
   requiresStripeForHomecheffCheckout,
   resolveProductPublishState,
 } from '@/lib/product/order-method';
+import {
+  saleProductRequiresLocation,
+  validateProductLocationForPublish,
+} from '@/lib/geo/product-location-requirements';
+import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
+import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +33,12 @@ export async function GET(
       where: { id },
       include: {
         seller: {
-          include: {
+          select: {
+            id: true,
+            lat: true,
+            lng: true,
+            kvk: true,
+            companyName: true,
             User: {
               select: {
                 id: true,
@@ -36,6 +47,7 @@ export async function GET(
                 profileImage: true,
                 image: true,
                 place: true,
+                city: true,
                 lat: true,
                 lng: true,
                 displayFullName: true,
@@ -51,28 +63,11 @@ export async function GET(
         Video: {
           select: { id: true, url: true, thumbnail: true, duration: true, createdAt: true }
         },
-        reviews: {
-          where: {
-            reviewSubmittedAt: { not: null }, // Only submitted reviews
-            rating: { gt: 0 } // Only reviews with rating > 0
-          },
-          include: {
-            buyer: {
-              select: {
-                name: true,
-                username: true,
-                profileImage: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 2 // Only show 2 recent reviews on product page
-        }
       }
     });
 
     // Get analytics statistics
-    const [viewCount, orderCount, favoriteCount] = await Promise.all([
+    const [viewCount, orderCount, favoriteCount, reviewAgg] = await Promise.all([
       // Count unique views from AnalyticsEvent (support both VIEW and PRODUCT_VIEW for compatibility)
       prisma.analyticsEvent.count({
         where: {
@@ -95,7 +90,16 @@ export async function GET(
       // Count favorites
       prisma.favorite.count({
         where: { productId: id }
-      })
+      }),
+      prisma.productReview.aggregate({
+        where: {
+          productId: id,
+          reviewSubmittedAt: { not: null },
+          rating: { gt: 0 },
+        },
+        _count: { _all: true },
+        _avg: { rating: true },
+      }),
     ]);
 
     // If not found in new model, try old Listing model
@@ -210,16 +214,10 @@ export async function GET(
       }
     }
 
-    // Calculate average rating from reviews
-    const reviewStats = product.reviews?.length > 0 
-      ? {
-          averageRating: product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length,
-          reviewCount: product.reviews.length
-        }
-      : {
-          averageRating: 0,
-          reviewCount: 0
-        };
+    const reviewStats = {
+      averageRating: reviewAgg._avg.rating ?? 0,
+      reviewCount: reviewAgg._count._all ?? 0,
+    };
 
     // Sort Video array by createdAt if it exists
     const sortedVideo = product.Video && Array.isArray(product.Video) && product.Video.length > 0
@@ -233,6 +231,14 @@ export async function GET(
     const sellerUserId =
       product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
     const publicContactChannels = await loadPublicContactChannelsForUser(sellerUserId);
+
+    const sellerBadgesMap = sellerUserId
+      ? await fetchAuthorBadgeSummariesByUserIds([sellerUserId], 2)
+      : new Map();
+    const sellerBadges = sellerUserId ? sellerBadgesMap.get(sellerUserId) ?? [] : [];
+    const isBusiness = Boolean(
+      product.seller?.kvk && product.seller?.companyName,
+    );
 
     const sellerStripe = sellerUserId
       ? await prisma.user.findUnique({
@@ -268,6 +274,9 @@ export async function GET(
       publicContactChannels,
       checkoutAvailable,
       checkoutBlockedReason,
+      sellerBadges,
+      isBusiness,
+      companyName: product.seller?.companyName ?? null,
       isDish: isDish || false,
       dishCategory: dishCategory || null,
       dish: dish ? {
@@ -380,6 +389,50 @@ export async function PATCH(
           sellerUserForPublish,
         );
 
+        if (publishState.isActive && isNewModel) {
+          const orderMethod =
+            body.orderMethod !== undefined
+              ? parseProductOrderMethod(body.orderMethod)
+              : (product as { orderMethod?: string }).orderMethod;
+          const priceCents =
+            body.priceCents ?? (product as { priceCents?: number }).priceCents;
+          if (saleProductRequiresLocation(orderMethod, priceCents)) {
+            const sellerProfile = await prisma.sellerProfile.findUnique({
+              where: { id: (product as { sellerId: string }).sellerId },
+              include: {
+                User: {
+                  select: { place: true, city: true, lat: true, lng: true },
+                },
+              },
+            });
+            const locCheck = validateProductLocationForPublish({
+              pickupAddress:
+                body.pickupAddress !== undefined
+                  ? body.pickupAddress
+                  : (product as { pickupAddress?: string | null }).pickupAddress,
+              pickupLat:
+                body.pickupLat !== undefined
+                  ? body.pickupLat != null
+                    ? Number(body.pickupLat)
+                    : null
+                  : (product as { pickupLat?: number | null }).pickupLat,
+              pickupLng:
+                body.pickupLng !== undefined
+                  ? body.pickupLng != null
+                    ? Number(body.pickupLng)
+                    : null
+                  : (product as { pickupLng?: number | null }).pickupLng,
+              seller: sellerProfile,
+            });
+            if (!locCheck.ok) {
+              return NextResponse.json(
+                { error: locCheck.message, code: locCheck.errorCode },
+                { status: 400 }
+              );
+            }
+          }
+        }
+
         // Update product in appropriate model
         if (isNewModel) {
           // Handle image updates if provided
@@ -460,6 +513,19 @@ export async function PATCH(
               updatedProduct.id,
               updatedProduct.Image?.length ?? 0,
             ).catch((e) => console.warn('[gamification] product PATCH', e));
+          }
+          const sellerProfileId = (product as { sellerId?: string }).sellerId;
+          const patchPickupLat = updateData.pickupLat as number | null | undefined;
+          const patchPickupLng = updateData.pickupLng as number | null | undefined;
+          if (
+            sellerProfileId &&
+            patchPickupLat != null &&
+            patchPickupLng != null
+          ) {
+            await syncSellerProfileCoordsIfEmpty(sellerProfileId, {
+              lat: patchPickupLat,
+              lng: patchPickupLng,
+            }).catch((e) => console.warn('[product PATCH] seller coords sync', e));
           }
           return NextResponse.json({
             product: updatedProduct,

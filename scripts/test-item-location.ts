@@ -217,6 +217,27 @@ function testViewerDistance() {
   assert.equal(computeViewerDistanceKm({ lat: 52.09, lng: 5.12 }, null, 4.89), undefined);
 }
 
+import {
+  normalizeProductVideo,
+  resolveProductDetailVideo,
+} from '../lib/product/normalize-product-video';
+
+function testProductVideoNormalize() {
+  const single = { id: 'v1', url: 'https://example.com/v.mp4', thumbnail: null };
+  assert.deepEqual(normalizeProductVideo(single), single);
+  assert.equal(normalizeProductVideo([single]), single);
+  assert.equal(normalizeProductVideo(null), null);
+  assert.equal(normalizeProductVideo([]), null);
+  assert.equal(
+    resolveProductDetailVideo(null, { id: 'd1', url: 'https://d.mp4' })?.id,
+    'd1',
+  );
+  assert.equal(
+    resolveProductDetailVideo(single, { id: 'd1', url: 'https://d.mp4' })?.id,
+    'v1',
+  );
+}
+
 testPlaceLabels();
 testPlaceDistanceLine();
 testGeocodeQueryString();
@@ -224,4 +245,5 @@ testFeedItemCoordsFromRaw();
 testViewerDistance();
 testCoords();
 testRequirements();
+testProductVideoNormalize();
 console.log('test-item-location: all passed');

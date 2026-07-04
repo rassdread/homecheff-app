@@ -2397,6 +2397,25 @@
     "downloadPdf": "Download PDF",
     "madeByHeading": "Gemaakt door"
   },
+  "productDetail": {
+    "pickupOnly": "Alleen ophalen",
+    "deliveryAvailable": "Bezorging mogelijk",
+    "deliveryUpToKm": "Bezorging tot {km} km",
+    "contactForDelivery": "Neem contact op voor levering",
+    "pickupAreaPrefix": "Ophalen in",
+    "viewProfile": "Bekijk profiel",
+    "trustReviews": "{rating} sterren · {count} review(s)",
+    "trustStripe": "Veilig betalen via HomeCheff en Stripe.",
+    "trustContactDirect": "Neem direct contact op met de maker.",
+    "trustNeutral": "Bekijk het profiel van de maker voor meer informatie over het aanbod.",
+    "ordersCount": "{count} verkopen",
+    "noReviewsYet": "Nog geen beoordelingen voor dit product.",
+    "contactMaker": "Bericht sturen",
+    "viewOffer": "Bekijk aanbod",
+    "askMaker": "Vraag iets aan maker",
+    "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
+    "viewLinkedStory": "Bekijk het verhaal achter dit product"
+  },
   "dish": {
     "noItemsShared": "Nog geen items gedeeld",
     "addToDorpsplein": "Toevoegen aan Dorpsplein",

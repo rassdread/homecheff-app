@@ -3022,6 +3022,25 @@
     "downloadPdf": "Download PDF",
     "madeByHeading": "Made by"
   },
+  "productDetail": {
+    "pickupOnly": "Pickup only",
+    "deliveryAvailable": "Delivery available",
+    "deliveryUpToKm": "Delivery up to {km} km",
+    "contactForDelivery": "Contact the maker for delivery",
+    "pickupAreaPrefix": "Pickup in",
+    "viewProfile": "View profile",
+    "trustReviews": "{rating} stars · {count} review(s)",
+    "trustStripe": "Secure payment via HomeCheff and Stripe.",
+    "trustContactDirect": "Contact the maker directly.",
+    "trustNeutral": "View the maker's profile for more information about this listing.",
+    "ordersCount": "{count} sales",
+    "noReviewsYet": "No reviews for this product yet.",
+    "contactMaker": "Message maker",
+    "viewOffer": "View listing",
+    "askMaker": "Ask the maker a question",
+    "contactNotConfigured": "This maker has not set up contact options yet.",
+    "viewLinkedStory": "View the story behind this product"
+  },
   "dish": {
     "noItemsShared": "No items shared yet",
     "addToDorpsplein": "Add to Village Square",

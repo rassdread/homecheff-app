@@ -13,7 +13,7 @@ interface AddToCartButtonProps {
     image?: string;
     sellerName: string;
     sellerId: string;
-    deliveryMode: string; // Can be 'PICKUP', 'DELIVERY', 'SHIPPING', 'BOTH', or comma-separated
+    deliveryMode: string;
     stock?: number | null;
   };
   variant?: 'default' | 'outline' | 'ghost';
@@ -21,41 +21,58 @@ interface AddToCartButtonProps {
   className?: string;
   quantity?: number;
   onAdded?: () => void;
+  /** light = white commerce card; dark = gradient sidebar (legacy) */
+  surface?: 'light' | 'dark';
 }
 
-export default function AddToCartButton({ 
-  product, 
+export default function AddToCartButton({
+  product,
   size = 'md',
   className = '',
   quantity = 1,
   onAdded,
+  surface = 'dark',
 }: AddToCartButtonProps) {
   const { t, tOr } = useTranslation();
-  const { addItem, totalItems } = useCart();
+  const { addItem, items } = useCart();
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const normalizedQuantity = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1;
+  const isLight = surface === 'light';
+  const productInCart = items.some(
+    (item) => item.productId === product.id || item.id === product.id,
+  );
+  const showCheckout = isAdded || productInCart;
 
   const handleAddToCart = async () => {
     setErrorMessage(null);
     setIsAdding(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
 
-    const result = addItem({
-      ...product,
-      productId: product.id,
-      maxQuantity: typeof product.stock === 'number' && product.stock >= 0 ? product.stock : null,
-    }, normalizedQuantity);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const result = addItem(
+      {
+        ...product,
+        productId: product.id,
+        maxQuantity:
+          typeof product.stock === 'number' && product.stock >= 0 ? product.stock : null,
+      },
+      normalizedQuantity,
+    );
 
     setIsAdding(false);
     if (result.addedQuantity <= 0) {
       const remaining = result.availableQuantity ?? 0;
       if (result.reason === 'OUT_OF_STOCK' || remaining === 0) {
-        setErrorMessage(tOr('cart.outOfStockMessage', 'This product is no longer in stock.', 'Dit product is helaas niet meer op voorraad.'));
+        setErrorMessage(
+          tOr(
+            'cart.outOfStockMessage',
+            'This product is no longer in stock.',
+            'Dit product is helaas niet meer op voorraad.',
+          ),
+        );
       } else {
         setErrorMessage(
           tOr(
@@ -71,7 +88,11 @@ export default function AddToCartButton({
 
     setIsAdded(true);
 
-    if (!result.success && result.reason === 'LIMIT_REACHED' && result.availableQuantity !== null) {
+    if (
+      !result.success &&
+      result.reason === 'LIMIT_REACHED' &&
+      result.availableQuantity !== null
+    ) {
       const maxAllowed = result.availableQuantity;
       const currentQuantity = result.newQuantity;
       setErrorMessage(
@@ -86,9 +107,8 @@ export default function AddToCartButton({
     }
 
     onAdded?.();
-    
-    // Reset added state after 2 seconds
-    setTimeout(() => setIsAdded(false), 2000);
+
+    setTimeout(() => setIsAdded(false), 4000);
   };
 
   const sizeStyles = {
@@ -107,10 +127,22 @@ export default function AddToCartButton({
   const labelAdding = tOr('cart.adding', 'Adding...', 'Toevoegen...');
   const labelCheckout = tOr('cart.goToCheckout', 'Go to checkout', 'Ga naar afrekenen');
 
-  const primaryBase = `inline-flex w-full items-center justify-center gap-2 rounded-2xl ${sz.padding} ${sz.text} font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-transparent disabled:cursor-not-allowed`;
+  const focusRing = isLight
+    ? 'focus:ring-primary-brand/30 focus:ring-offset-2 focus:ring-offset-white'
+    : 'focus:ring-white/60 focus:ring-offset-transparent';
+
+  const primaryBase = `inline-flex w-full items-center justify-center gap-2 rounded-2xl ${sz.padding} ${sz.text} font-semibold transition-all duration-200 focus:outline-none focus:ring-2 ${focusRing} disabled:cursor-not-allowed`;
+
+  const checkoutClass = isLight
+    ? `${primaryBase} bg-gray-900 text-white shadow-md hover:bg-gray-800 hover:scale-[1.01] active:scale-[0.99]`
+    : `${primaryBase} bg-white/15 text-white border border-white/40 backdrop-blur-sm hover:bg-white/25 hover:scale-[1.02] active:scale-[0.99]`;
+
+  const errorClass = isLight
+    ? 'text-sm font-medium text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2'
+    : 'text-sm font-medium text-red-100 bg-red-700/40 rounded-xl px-3 py-2';
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex w-full flex-col gap-3">
       <button
         type="button"
         onClick={handleAddToCart}
@@ -122,7 +154,7 @@ export default function AddToCartButton({
         {isAdding ? (
           <>
             <span
-              className={`${sz.icon} animate-spin rounded-full border-2 border-current border-t-transparent flex-shrink-0`}
+              className={`${sz.icon} flex-shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent`}
               aria-hidden
             />
             <span>{labelAdding}</span>
@@ -140,26 +172,21 @@ export default function AddToCartButton({
         )}
       </button>
 
-      {(isAdded || totalItems > 0) && (
+      {showCheckout ? (
         <button
           type="button"
           onClick={goToCheckout}
           title={labelCheckout}
           aria-label={labelCheckout}
-          className={`${primaryBase} bg-white/15 text-white border border-white/40 backdrop-blur-sm hover:bg-white/25 hover:scale-[1.02] active:scale-[0.99]`}
+          className={checkoutClass}
         >
           <ShoppingCart className={`${sz.icon} flex-shrink-0`} aria-hidden />
           <span>{labelCheckout}</span>
           <ArrowRight className={`${sz.icon} flex-shrink-0`} aria-hidden />
         </button>
-      )}
+      ) : null}
 
-      {errorMessage && (
-        <p className="text-sm font-medium text-red-100 bg-red-700/40 rounded-xl px-3 py-2">
-          {errorMessage}
-        </p>
-      )}
+      {errorMessage ? <p className={errorClass}>{errorMessage}</p> : null}
     </div>
   );
 }
-

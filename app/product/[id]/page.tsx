@@ -3,40 +3,27 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
-  ArrowLeft, Star, Clock, ChefHat, Sprout, Palette, Truck, Package, 
-  Euro, Shield, CheckCircle, Edit3, Trash2, MessageCircle, Heart, 
-  Share2, MapPin, Award, Zap, Eye, ShoppingBag, X, Check, AlertCircle,
-  Printer, Download
+  Star, Package, Edit3, Trash2, Eye, ShoppingBag, AlertCircle, Printer,
+  ChefHat, Sprout, Palette,
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import AddToCartButton from "@/components/cart/AddToCartButton";
-import ShareButton from "@/components/ui/ShareButton";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
-import MakerContactSection from "@/components/profile/MakerContactSection";
 import type { PublicContactChannel } from "@/lib/profile/maker-contact-preferences";
-import PropsButton from "@/components/props/PropsButton";
-import ReportContentButton from "@/components/reporting/ReportContentButton";
-import ClickableName from "@/components/ui/ClickableName";
 import BackButton from "@/components/navigation/BackButton";
-import FavoriteButton from "@/components/favorite/FavoriteButton";
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
 import { getDisplayName as getDisplayNameUtil, PUBLIC_DISPLAY_FALLBACK } from "@/lib/displayName";
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   buildProductSlugPath,
-  formatCityLabel,
-  maaltijdenPathFromPlace,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
-import {
-  formatProductPriceLabel,
-  hasPublicDisplayPrice,
-  isContactOnlyProduct,
-  requiresStripeForHomecheffCheckout,
-} from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
+import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
+import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTrustNote';
+import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
+import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
+import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 
 type Product = {
   id: string;
@@ -54,9 +41,19 @@ type Product = {
   subcategory?: string;
   displayNameType?: string;
   delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
+  tags?: string[];
+  pickupAddress?: string | null;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
+  sellerCanDeliver?: boolean;
+  deliveryRadiusKm?: number | null;
   Image?: { id: string; fileUrl: string }[];
-  Video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null }[];
+  Video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null } | null;
   seller?: { 
+    lat?: number | null;
+    lng?: number | null;
+    kvk?: string | null;
+    companyName?: string | null;
     User: {
       id: string;
       name?: string | null; 
@@ -67,6 +64,9 @@ type Product = {
       displayFullName?: boolean | null;
       displayNameOption?: string | null;
       place?: string | null;
+      city?: string | null;
+      lat?: number | null;
+      lng?: number | null;
       sellerRoles?: string[];
     };
   } | null;
@@ -172,7 +172,6 @@ export default function ProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [baseUrl, setBaseUrl] = useState('');
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isOwner, setIsOwner] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -190,7 +189,13 @@ export default function ProductPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [publicContactChannels, setPublicContactChannels] = useState<PublicContactChannel[]>([]);
   const [checkoutAvailable, setCheckoutAvailable] = useState(true);
-  const [showPrintView, setShowPrintView] = useState(false);
+  const [sellerBadges, setSellerBadges] = useState<UserBadgeChipItem[]>([]);
+  const [isBusiness, setIsBusiness] = useState(false);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [profileViewerCoords, setProfileViewerCoords] = useState<{
+    lat?: number | null;
+    lng?: number | null;
+  } | null>(null);
   const [dishInfo, setDishInfo] = useState<{ 
     isDish: boolean; 
     category: string | null;
@@ -257,22 +262,6 @@ export default function ProductPage() {
           video: data.dish?.video || null
         };
         
-        console.log('Dish info loaded:', {
-          isDish: dishData.isDish,
-          category: dishData.category,
-          instructionsCount: dishData.instructions.length,
-          stepPhotosCount: dishData.stepPhotos.length,
-          stepPhotos: dishData.stepPhotos,
-          hasVideo: !!dishData.video,
-          video: dishData.video
-        });
-        
-        console.log('Product data:', {
-          hasProductVideo: !!data.product.Video,
-          productVideo: data.product.Video,
-          productId: data.product.id
-        });
-        
         setDishInfo(dishData);
         
         const transformedProduct: Product = {
@@ -294,13 +283,23 @@ export default function ProductPage() {
           createdAt: data.product.createdAt,
           category: data.product.category,
           subcategory: data.product.subcategory,
+          tags: Array.isArray(data.product.tags) ? data.product.tags : [],
+          pickupAddress: data.product.pickupAddress ?? null,
+          pickupLat: data.product.pickupLat ?? null,
+          pickupLng: data.product.pickupLng ?? null,
+          sellerCanDeliver: Boolean(data.product.sellerCanDeliver),
+          deliveryRadiusKm: data.product.deliveryRadiusKm ?? null,
           displayNameType: data.product.displayNameType || 'fullname',
           Image: data.product.Image?.map((img: any) => ({
             id: img.id,
             fileUrl: img.fileUrl
           })) || [],
-          Video: data.product.Video || [],
+          Video: data.product.Video ?? null,
           seller: {
+            lat: data.product.seller?.lat ?? null,
+            lng: data.product.seller?.lng ?? null,
+            kvk: data.product.seller?.kvk ?? null,
+            companyName: data.product.seller?.companyName ?? null,
             User: {
               id: data.product.seller?.User?.id || data.product.User?.id,
               name: data.product.seller?.User?.name || data.product.User?.name,
@@ -311,12 +310,18 @@ export default function ProductPage() {
               displayFullName: data.product.seller?.User?.displayFullName || data.product.User?.displayFullName,
               displayNameOption: data.product.seller?.User?.displayNameOption || data.product.User?.displayNameOption,
               place: data.product.seller?.User?.place || data.product.User?.place,
+              city: data.product.seller?.User?.city || data.product.User?.city,
+              lat: data.product.seller?.User?.lat ?? data.product.User?.lat ?? null,
+              lng: data.product.seller?.User?.lng ?? data.product.User?.lng ?? null,
               sellerRoles: data.product.seller?.User?.sellerRoles || data.product.User?.sellerRoles
             }
           }
         };
         
         setProduct(transformedProduct);
+        setSellerBadges(Array.isArray(data.sellerBadges) ? data.sellerBadges : []);
+        setIsBusiness(Boolean(data.isBusiness));
+        setCompanyName(data.companyName ?? data.product.seller?.companyName ?? null);
 
         if (Array.isArray(data.publicContactChannels)) {
           setPublicContactChannels(data.publicContactChannels);
@@ -330,6 +335,10 @@ export default function ProductPage() {
             if (userResponse.ok) {
               const userData = await userResponse.json();
               setCurrentUser(userData);
+              setProfileViewerCoords({
+                lat: userData.lat ?? null,
+                lng: userData.lng ?? null,
+              });
               setIsOwner(userData.id === (data.product.seller?.User?.id || data.product.User?.id));
               
               setEditData({
@@ -498,17 +507,6 @@ export default function ProductPage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleDownloadPDF = () => {
-    alert('💡 In het print venster: kies "Opslaan als PDF" als bestemming om te downloaden!');
-    setTimeout(() => {
-      window.print();
-    }, 300);
-  };
-
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -548,19 +546,7 @@ export default function ProductPage() {
   const CategoryIcon = theme.icon;
   const baseImages = product.Image || product.photos || (product.image ? [{ id: '1', fileUrl: product.image, url: product.image }] : []);
   
-  // Get video from dish (if dish) or from product directly
-  const productVideo = product.Video?.[0] || null;
-  const video = dishInfo.video || productVideo;
-  
-  // Debug logging
-  console.log('🎬 Video debug:', {
-    hasDishVideo: !!dishInfo.video,
-    dishVideo: dishInfo.video,
-    hasProductVideo: !!productVideo,
-    productVideo: productVideo,
-    finalVideo: video,
-    baseImagesCount: baseImages.length
-  });
+  const video = resolveProductDetailVideo(product.Video, dishInfo.video);
   
   // Prepare photos for PhotoCarousel
   const carouselPhotos = baseImages.map((img, index) => ({
@@ -600,971 +586,240 @@ export default function ProductPage() {
     });
   });
 
-  // Get current image for print view
-  const currentImageUrl = carouselMedia.length > 0 && carouselMedia[selectedImageIndex]?.type === 'image' 
-    ? carouselMedia[selectedImageIndex].fileUrl 
-    : carouselPhotos.length > 0 
-      ? carouselPhotos[selectedImageIndex]?.fileUrl 
-      : product.image;
+  const availableStock = getAvailableStock(product);
+  const carouselImageUrl =
+    carouselMedia.find((m) => m.type === 'image')?.fileUrl ?? product.image ?? null;
+  const productShareUrl = `${baseUrl}/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}`;
+
+  const openLinkedDishView = () => {
+    if (dishInfo.category === 'CHEFF') router.push(`/recipe/${product.id}`);
+    else if (dishInfo.category === 'GROWN') router.push(`/garden/${product.id}`);
+    else if (dishInfo.category === 'DESIGNER') router.push(`/design/${product.id}`);
+  };
 
   return (
-    <>
-      <style jsx global>{`
-        @page {
-          size: A4;
-          margin: 12mm;
-        }
-        
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          body * {
-            visibility: hidden;
-          }
-          
-          #printable-product,
-          #printable-product * {
-            visibility: visible;
-          }
-          
-          #printable-product {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: white;
-          }
-          
-          .no-print {
-            display: none !important;
-          }
-          
-          .print-avoid-break {
-            page-break-inside: avoid;
-          }
-        }
-      `}</style>
-      <main className={`min-h-screen bg-gradient-to-br ${theme.bg} via-white to-gray-50`}>
-      {/* Header with Print/Download buttons */}
-      <div className="no-print bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <main className={`min-h-screen bg-gradient-to-br ${theme.bg} via-white to-gray-50 pb-[calc(env(safe-area-inset-bottom,0px)+10rem)] lg:pb-8`}>
+      <div className="no-print sticky top-0 z-10 border-b bg-white shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <BackButton variant="minimal" />
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <button
-              onClick={() => setShowPrintView(!showPrintView)}
-              className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
-            >
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">{showPrintView ? 'Sluit' : 'Print/PDF'} weergave</span>
-            </button>
-            {showPrintView && (
-              <>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all shadow-md hover:shadow-lg"
-                >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">PDF</span>
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Printen</span>
-                </button>
-              </>
-            )}
-          </div>
         </div>
       </div>
-      {/* Hero Section with Large Image */}
       <section id="printable-product" className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Image Gallery - Slideshow/Carousel (Default View) - ALWAYS shown when showPrintView is false */}
-          <div className={`relative mx-auto w-full max-w-4xl px-0 sm:px-4 lg:px-6 mb-8 ${showPrintView ? 'hidden' : 'block'}`}>
-            {/* Photo Carousel with support for videos */}
-            {carouselMedia.length > 0 ? (
-              <div className="relative">
-                <PhotoCarousel
-                  media={carouselMedia}
-                  className="rounded-3xl"
-                  showThumbnails={carouselMedia.length > 1}
-                  autoPlay={false}
-                />
-
-                {/* Category Badge - Overlay on carousel */}
-                <div className="absolute top-6 left-6 z-20 pointer-events-none">
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${theme.badge} border-2 backdrop-blur-sm shadow-lg pointer-events-auto`}>
-                    <CategoryIcon className="w-5 h-5" />
-                    <span className="font-bold text-sm">{theme.label}</span>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-8">
+              <div className="relative min-w-0">
+                {carouselMedia.length > 0 ? (
+                  <div className="relative">
+                    <PhotoCarousel
+                      media={carouselMedia}
+                      variant="detail"
+                      className="rounded-2xl"
+                      showThumbnails={carouselMedia.length > 1}
+                      autoPlay={false}
+                    />
+                    {isOwner ? (
+                      <div className="absolute bottom-3 right-3 z-20 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(!isEditing)}
+                          className="rounded-full bg-white/90 p-2.5 shadow-lg backdrop-blur-sm hover:bg-white"
+                          title={t('common.edit')}
+                        >
+                          <Edit3 className="h-5 w-5 text-blue-600" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="rounded-full bg-white/90 p-2.5 shadow-lg backdrop-blur-sm hover:bg-white"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 className="h-5 w-5 text-red-600" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-
-                {/* Stock Badge - Overlay on carousel */}
-                {(() => {
-                  // Use same logic as checkout: stock as primary, maxStock as fallback
-                  const availableStock = typeof product.stock === 'number' && product.stock !== null
-                    ? product.stock
-                    : typeof product.maxStock === 'number' && product.maxStock !== null
-                      ? product.maxStock
-                      : null;
-                  
-                  if (availableStock === null) {
-                    // No stock management
-                    return null;
-                  }
-                  
-                  return (
-                  <div className="absolute top-6 right-6 z-20 pointer-events-none">
-                    <div className={`px-4 py-2 rounded-full font-bold text-sm shadow-lg backdrop-blur-sm border-2 pointer-events-auto ${
-                        availableStock === 0 ? 'bg-red-100 text-red-800 border-red-200' :
-                        availableStock <= 5 ? 'bg-orange-100 text-orange-800 border-orange-200 animate-pulse' :
-                      'bg-green-100 text-green-800 border-green-200'
-                    }`}>
-                        {availableStock === 0 ? '❌ Uitverkocht' :
-                         availableStock <= 5 ? `⚠️ Nog ${availableStock} over!` :
-                         `✓ ${availableStock} beschikbaar`}
-                    </div>
-                  </div>
-                  );
-                })()}
-
-                {/* Owner Actions - Overlay on carousel */}
-                {isOwner && (
-                  <div className="absolute bottom-6 right-6 z-20 flex gap-2 pointer-events-none">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEditing(!isEditing);
-                      }}
-                      className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white shadow-lg transition-all hover:scale-110 pointer-events-auto"
-                      title={t('common.edit')}
-                    >
-                      <Edit3 className="w-5 h-5 text-blue-600" />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDeleteConfirm(true);
-                      }}
-                      className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white shadow-lg transition-all hover:scale-110 pointer-events-auto"
-                      title={t('common.delete')}
-                    >
-                      <Trash2 className="w-5 h-5 text-red-600" />
-                    </button>
+                ) : (
+                  <div className="flex h-[280px] max-h-[320px] items-center justify-center rounded-2xl bg-gray-100 lg:h-[380px] lg:max-h-[420px]">
+                    <CategoryIcon className="h-24 w-24 text-gray-300" />
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[5/3] lg:max-h-[520px] rounded-3xl overflow-hidden bg-white shadow-2xl flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <CategoryIcon className="w-32 h-32 text-gray-300" />
-              </div>
-            )}
-          </div>
 
-          {/* Print View - Only shown when showPrintView is true */}
-          <div className={`relative mx-auto w-full max-w-4xl px-0 sm:px-4 lg:px-6 mb-8 ${showPrintView ? 'block' : 'hidden'}`}>
-            {/* Main Image for Print */}
-            <div 
-              className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[5/3] lg:max-h-[520px] rounded-3xl overflow-hidden bg-white shadow-2xl"
-            >
-              {currentImageUrl ? (
-                <Image 
-                  src={currentImageUrl} 
-                  alt={product.title} 
-                  fill
-                  className="object-cover" 
-                  sizes="(max-width: 768px) 100vw, 90vw"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <CategoryIcon className="w-32 h-32 text-gray-300" />
-                </div>
-              )}
-
-              {/* Category Badge */}
-              <div className="absolute top-6 left-6">
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${theme.badge} border-2 backdrop-blur-sm shadow-lg`}>
-                  <CategoryIcon className="w-5 h-5" />
-                  <span className="font-bold text-sm">{theme.label}</span>
-                </div>
-              </div>
-
-              {/* Stock Badge */}
-              {(() => {
-                const availableStock = typeof product.stock === 'number' && product.stock !== null
-                  ? product.stock
-                  : typeof product.maxStock === 'number' && product.maxStock !== null
-                    ? product.maxStock
-                    : null;
-                
-                if (availableStock === null) {
-                  return null;
-                }
-                
-                return (
-                  <div className="absolute top-6 right-6">
-                    <div className={`px-4 py-2 rounded-full font-bold text-sm shadow-lg backdrop-blur-sm border-2 ${
-                      availableStock === 0 ? 'bg-red-100 text-red-800 border-red-200' :
-                      availableStock <= 5 ? 'bg-orange-100 text-orange-800 border-orange-200 animate-pulse' :
-                      'bg-green-100 text-green-800 border-green-200'
-                    }`}>
-                      {availableStock === 0 ? '❌ Uitverkocht' :
-                       availableStock <= 5 ? `⚠️ Nog ${availableStock} over!` :
-                       `✓ ${availableStock} beschikbaar`}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Thumbnail Gallery for Print View */}
-            {carouselPhotos.length > 1 && (
-              <div className="mt-6 flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-center">
-                {carouselPhotos.map((photo, index) => (
-                  <button
-                    key={photo.id}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden transition-all duration-300 ${
-                      selectedImageIndex === index 
-                        ? `ring-4 ring-emerald-500 ring-offset-2 scale-105 shadow-xl` 
-                        : 'opacity-60 hover:opacity-100 hover:scale-105'
-                    }`}
-                  >
-                    <Image 
-                      src={photo.fileUrl} 
-                      alt={`${product.title} ${index + 1}`}
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-cover" 
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content - 2 columns */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Product Title & Details */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
               {isEditing ? (
-                <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={editData.title}
-                      onChange={(e) => setEditData({...editData, title: e.target.value})}
-                      className="w-full text-3xl font-bold px-4 py-3 border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <textarea
-                      value={editData.description}
-                      onChange={(e) => setEditData({...editData, description: e.target.value})}
-                      rows={5}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <input
+                    type="text"
+                    value={editData.title}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                    className="w-full rounded-2xl border-2 border-gray-300 px-4 py-3 text-2xl font-bold focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <textarea
+                    value={editData.description}
+                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                    rows={5}
+                    className="w-full rounded-2xl border-2 border-gray-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('product.price')}</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{t('product.price')}</label>
                       <input
                         type="number"
                         step="0.01"
                         value={(editData.priceCents / 100).toFixed(2)}
-                        onChange={(e) => setEditData({...editData, priceCents: Math.round(parseFloat(e.target.value) * 100)})}
-                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            priceCents: Math.round(parseFloat(e.target.value) * 100),
+                          })
+                        }
+                        className="w-full rounded-xl border-2 border-gray-300 px-3 py-2"
                       />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('product.stock')}</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{t('product.stock')}</label>
                       <input
                         type="number"
                         value={editData.stock}
-                        onChange={(e) => setEditData({...editData, stock: parseInt(e.target.value) || 0})}
-                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                        onChange={(e) =>
+                          setEditData({ ...editData, stock: parseInt(e.target.value, 10) || 0 })
+                        }
+                        className="w-full rounded-xl border-2 border-gray-300 px-3 py-2"
                       />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('product.maxStock')}</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{t('product.maxStock')}</label>
                       <input
                         type="number"
                         value={editData.maxStock}
-                        onChange={(e) => setEditData({...editData, maxStock: parseInt(e.target.value) || 0})}
-                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                        onChange={(e) =>
+                          setEditData({ ...editData, maxStock: parseInt(e.target.value, 10) || 0 })
+                        }
+                        className="w-full rounded-xl border-2 border-gray-300 px-3 py-2"
                       />
                     </div>
                   </div>
-                    <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3">
                     <button
+                      type="button"
                       onClick={handleSave}
                       disabled={isSaving}
-                        className="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 disabled:opacity-50 transition-all font-semibold shadow-lg"
+                      className="flex-1 rounded-2xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                     >
-                        {isSaving ? t('product.saving') : t('product.saveSuccess')}
+                      {isSaving ? t('product.saving') : t('product.saveSuccess')}
                     </button>
                     <button
+                      type="button"
                       onClick={() => setIsEditing(false)}
-                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-2xl hover:bg-gray-300 transition-all font-semibold"
+                      className="rounded-2xl bg-gray-200 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-300"
                     >
                       {t('product.cancel')}
                     </button>
                   </div>
                 </div>
               ) : (
-                <>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-2 leading-tight">
-                          {product.title}
-                        </h1>
-                  {product.subcategory && (
-                          <div className="inline-block px-4 py-1.5 bg-gray-100 rounded-full text-sm font-semibold text-gray-700">
-                            {product.subcategory}
-                          </div>
-                  )}
-                  {isContactOnlyProduct(product) ? (
-                    <div className="mt-3">
-                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800 border border-emerald-200">
-                        {t('productOrder.badgeContactOnly')}
-                      </span>
-                    </div>
-                  ) : null}
-                    </div>
-                      <FavoriteButton 
-                        productId={product.id}
-                        productTitle={product.title}
-                        size="lg"
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                      {stats.reviewCount > 0 && (
-                        <div className="flex items-center gap-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star 
-                                key={star} 
-                                className={`w-5 h-5 ${
-                                  star <= Math.round(stats.averageRating)
-                                    ? 'text-yellow-400 fill-yellow-400'
-                                    : 'text-gray-300'
-                                }`} 
-                              />
-                            ))}
-                          </div>
-                          <span className="text-lg font-semibold text-gray-700">
-                            {stats.averageRating.toFixed(1)}
-                          </span>
-                          <span className="text-gray-500">({stats.reviewCount})</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm">
-                          Gepost {new Date(product.createdAt).toLocaleDateString('nl-NL', { 
-                            day: 'numeric', 
-                            month: 'long', 
-                            year: 'numeric' 
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Eye className="w-4 h-4" />
-                        <span className="text-sm">{stats.viewCount} weergaven</span>
-                      </div>
-                      {stats.orderCount > 0 && (
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <ShoppingBag className="w-4 h-4" />
-                          <span className="text-sm">{stats.orderCount} verkocht</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="prose prose-lg max-w-none">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3">Over dit product</h3>
-                      <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                        {product.description || t('product.noDescription')}
-                      </p>
-                    </div>
-
-                    {/* Ingredients (for recipes) */}
-                    {dishInfo.isDish && dishInfo.category === 'CHEFF' && dishInfo.ingredients && dishInfo.ingredients.length > 0 && (
-                      <div className="mt-8 bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <ChefHat className="w-6 h-6 text-orange-600" />
-                          Ingrediënten
-                        </h3>
-                        <ul className="space-y-2">
-                          {dishInfo.ingredients.map((ingredient, index) => (
-                            <li key={index} className="flex items-start gap-3">
-                              <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                                {index + 1}
-                              </span>
-                              <span className="text-gray-700">{ingredient}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Instructions with Step Photos (for recipes) - FOTOREPORTAGE */}
-                    {dishInfo.isDish && dishInfo.category === 'CHEFF' && dishInfo.instructions && dishInfo.instructions.length > 0 && (
-                      <div className="mt-8 bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                          <Clock className="w-6 h-6 text-orange-600" />
-                          Bereidingswijze
-                        </h3>
-                        <div className="space-y-6">
-                          {dishInfo.instructions.map((instruction, index) => {
-                            const stepNumber = index + 1;
-                            const stepPhotos = dishInfo.stepPhotos?.filter(photo => photo.stepNumber === stepNumber) || [];
-                            
-                            return (
-                              <div key={index} className="flex gap-4 items-start bg-gradient-to-br from-white to-orange-50 border-2 border-orange-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                                <div className="flex-shrink-0">
-                                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                                    {stepNumber}
-                                  </div>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-gray-800 leading-relaxed text-lg mb-3">{instruction}</p>
-                                  {/* FOTOREPORTAGE: Step Photos per stap */}
-                                  {stepPhotos.length > 0 && (
-                                    <div className="mt-4">
-                                      <div className="grid grid-cols-2 gap-3">
-                                        {stepPhotos.map((photo) => (
-                                          <div key={photo.id} className="relative group cursor-pointer">
-                                            <div className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-orange-300 shadow-md">
-                                              <Image
-                                                src={photo.url}
-                                                alt={`Stap ${stepNumber} foto`}
-                                                fill
-                                                className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                                sizes="(max-width: 640px) 50vw, 25vw)"
-                                              />
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Growth Phases (for garden projects) */}
-                    {dishInfo.isDish && dishInfo.category === 'GROWN' && (
-                      <div className="mt-8 bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                          <Sprout className="w-6 h-6 text-emerald-600" />
-                          Groeifases
-                        </h3>
-                        <div className="space-y-6">
-                          {(() => {
-                            // Growth phase names matching GardenManager
-                            const GROWTH_PHASE_NAMES = [
-                              '🌱 Zaaien/Planten',  // Phase 0
-                              '🌿 Kiemen',          // Phase 1
-                              '🌾 Groeien',         // Phase 2
-                              '🌺 Bloeien',         // Phase 3
-                              '🍅 Oogsten'          // Phase 4
-                            ];
-                            
-                            const growthPhotosArray = dishInfo.growthPhotos || [];
-                            
-                            // Get unique phase numbers and sort them numerically
-                            const uniquePhases = Array.from(new Set(growthPhotosArray.map(p => Number(p.phaseNumber))))
-                              .filter(p => !isNaN(p))
-                              .sort((a, b) => a - b);
-                            
-                            return uniquePhases.map((phaseNumber) => {
-                              const phasePhotos = growthPhotosArray.filter(photo => Number(photo.phaseNumber) === phaseNumber) || [];
-                              
-                              if (phasePhotos.length === 0) return null;
-                              
-                              // Get phase name (phaseNumber is 0-indexed in database: 0, 1, 2, 3, 4)
-                              const phaseName = GROWTH_PHASE_NAMES[phaseNumber] || `Fase ${phaseNumber + 1}`;
-                              
-                              return (
-                                <div key={phaseNumber} className="flex gap-4 items-start bg-gradient-to-br from-white to-emerald-50 border-2 border-emerald-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                                  <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                                      {phaseNumber + 1}
-                                    </div>
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="text-lg font-bold text-emerald-900 mb-2">{phaseName}</h4>
-                                    {phasePhotos[0]?.description && (
-                                      <p className="text-gray-800 leading-relaxed mb-3">{phasePhotos[0].description}</p>
-                                    )}
-                                    {/* FOTOREPORTAGE: Growth Photos per fase */}
-                                    <div className="grid grid-cols-2 gap-3 mt-4">
-                                      {phasePhotos.map((photo) => (
-                                        <div key={photo.id} className="relative aspect-video rounded-lg overflow-hidden border-2 border-emerald-300 shadow-md group cursor-pointer">
-                                          <Image
-                                            src={photo.url}
-                                            alt={`${phaseName} foto`}
-                                            fill
-                                            className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                            sizes="(max-width: 640px) 50vw, 25vw"
-                                          />
-                                          {/* Fase badge */}
-                                          <div className="absolute top-2 left-2 z-10">
-                                            <div className="px-2 py-1 bg-emerald-600/90 backdrop-blur-sm text-white rounded-md text-xs font-bold shadow-lg">
-                                              {phaseName.replace(/^[^\w\s]+\s*/, '') || `Fase ${phaseNumber + 1}`}
-                                            </div>
-                                          </div>
-                                          {photo.description && (
-                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                                              <p className="text-white text-xs text-center">{photo.description}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Materials (for designs) */}
-                    {dishInfo.isDish && dishInfo.category === 'DESIGNER' && dishInfo.materials && dishInfo.materials.length > 0 && (
-                      <div className="mt-8 bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <Palette className="w-6 h-6 text-purple-600" />
-                          Materialen
-                        </h3>
-                        <ul className="space-y-2">
-                          {dishInfo.materials.map((material, index) => (
-                            <li key={index} className="flex items-start gap-3">
-                              <span className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                                {index + 1}
-                              </span>
-                              <span className="text-gray-700">{material}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Delivery Options */}
-                    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {(product.delivery === 'PICKUP' || product.delivery === 'BOTH') && (
-                        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border-2 border-blue-100">
-                          <div className="p-3 bg-blue-500 rounded-xl">
-                            <Package className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{t('product.pickupAvailable')}</div>
-                            <div className="text-sm text-gray-600">{t('product.pickupDescription')}</div>
-                          </div>
-                        </div>
-                      )}
-                      {(product.delivery === 'DELIVERY' || product.delivery === 'BOTH') && (
-                        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-2xl border-2 border-green-100">
-                          <div className="p-3 bg-green-500 rounded-xl">
-                            <Truck className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">Bezorging mogelijk</div>
-                            <div className="text-sm text-gray-600">We bezorgen bij jou</div>
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                </>
+                <ProductSaleCommerceZone
+                  product={product}
+                  theme={theme}
+                  categoryIcon={CategoryIcon}
+                  stats={stats}
+                  sellerBadges={sellerBadges}
+                  isBusiness={isBusiness}
+                  companyName={companyName}
+                  profileViewerCoords={profileViewerCoords}
+                  sellerName={getSellerDisplayName(product)}
+                  quantity={quantity}
+                  availableStock={availableStock}
+                  isOwner={isOwner}
+                  checkoutAvailable={checkoutAvailable}
+                  publicContactChannels={publicContactChannels}
+                  carouselImageUrl={carouselImageUrl}
+                  shareUrl={productShareUrl}
+                  onQuantityChange={setQuantity}
+                  onAddedToCart={() => setQuantity(1)}
+                />
               )}
             </div>
 
-              {/* Trust & Safety */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-emerald-600" />
-                  Veilig & Vertrouwd
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-emerald-100 rounded-xl">
-                      <CheckCircle className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Veilig Betalen</div>
-                      <div className="text-sm text-gray-600">Via Stripe beveiligd</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-blue-100 rounded-xl">
-                      <Shield className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{t('product.buyerProtection')}</div>
-                      <div className="text-sm text-gray-600">{t('product.moneyBackGuarantee')}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-purple-100 rounded-xl">
-                      <Award className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Kwaliteit</div>
-                      <div className="text-sm text-gray-600">Top beoordelingen</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-orange-100 rounded-xl">
-                      <Zap className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Snelle Service</div>
-                      <div className="text-sm text-gray-600">Binnen 24u reactie</div>
-                    </div>
-                  </div>
+          {!isEditing ? (
+            <div className="mt-8 space-y-6">
+              <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">Over dit product</h2>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                  {product.description || t('product.noDescription')}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4 text-sm text-gray-500">
+                  {stats.reviewCount > 0 ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      {stats.averageRating.toFixed(1)} ({stats.reviewCount})
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    {stats.viewCount} weergaven
+                  </span>
+                  {stats.orderCount > 0 ? (
+                    <span className="inline-flex items-center gap-1">
+                      <ShoppingBag className="h-4 w-4" />
+                      {stats.orderCount} verkocht
+                    </span>
+                  ) : null}
                 </div>
-              </div>
-            </div>
-
-            {/* Sidebar - Floating Card */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Price & Actions Card */}
-              <div className={`bg-gradient-to-br ${theme.gradient} rounded-3xl p-6 shadow-2xl text-white`}>
-                {/* Price */}
-                <div className="mb-6">
-                  <div className="text-sm opacity-80 mb-1">{t('productOrder.priceLabel')}</div>
-                  <div className={`font-bold mb-2 ${hasPublicDisplayPrice(product) ? 'text-5xl' : 'text-2xl sm:text-3xl'}`}>
-                    {formatProductPriceLabel(product, t)}
-                  </div>
-                  {!isContactOnlyProduct(product) ? (
-                    <div className="text-sm opacity-80">{t('productOrder.priceIncludesVat')}</div>
-                  ) : (
-                    <p className="text-sm opacity-90 leading-relaxed mt-2">
-                      {t('productOrder.buyerContactIntro')}
-                    </p>
-                  )}
-                </div>
-
-                {/* Quantity Selector */}
-                {(() => {
-                  if (isContactOnlyProduct(product)) return null;
-                  const availableStock = getAvailableStock(product);
-                  const isOutOfStock = availableStock !== null && availableStock === 0;
-                  
-                  if (isOwner || isOutOfStock) return null;
-                  
-                  return (
-                    <div className="mb-6">
-                      <label className="block text-sm opacity-80 mb-2">{t('productOrder.quantityLabel')}</label>
-                      <select 
-                        value={quantity} 
-                        onChange={(e) => setQuantity(Number(e.target.value))}
-                        className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-2xl text-white font-semibold focus:ring-2 focus:ring-white/50 cursor-pointer"
-                      >
-                        {Array.from({ length: Math.min(10, availableStock || 10) }, (_, i) => i + 1).map(num => (
-                          <option key={num} value={num} className="text-gray-900">{num}</option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                })()}
-
-                {/* CTA Buttons */}
-                <div className="space-y-3">
-              {(() => {
-                if (isContactOnlyProduct(product) && !isOwner && product.seller?.User?.id && publicContactChannels.length > 0) {
-                  return (
-                    <MakerContactSection
-                      variant="product"
-                      makerId={product.seller.User.id}
-                      makerName={getSellerDisplayName(product)}
-                      channels={publicContactChannels}
-                      productId={product.id}
-                      className="!border-white/30 !bg-white/95 text-gray-900 shadow-lg"
-                    />
-                  );
-                }
-
-                if (
-                  !isOwner &&
-                  requiresStripeForHomecheffCheckout(product) &&
-                  !checkoutAvailable
-                ) {
-                  return (
-                    <div className="w-full py-4 px-6 bg-white/95 text-amber-950 rounded-2xl text-center font-medium border-2 border-white/40 shadow-lg leading-relaxed">
-                      {t('productOrder.buyerPaymentsNotReady')}
-                    </div>
-                  );
-                }
-
-                const availableStock = getAvailableStock(product);
-                const isOutOfStock = availableStock !== null && availableStock === 0;
-                
-                if (isOutOfStock) {
-                  return (
-                    <div className="w-full py-4 px-6 bg-white/20 backdrop-blur-sm rounded-2xl text-center font-bold border-2 border-white/30">
-                      Uitverkocht
-                    </div>
-                  );
-                }
-                
-                if (isOwner) {
-                  return (
-                    <Link
-                      href={`/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}/edit`}
-                      className="block w-full bg-white text-gray-900 py-4 px-6 rounded-2xl text-center font-bold transition-all hover:scale-105 shadow-xl"
-                    >
-                      <Edit3 className="w-5 h-5 inline mr-2" />
-                      {t('product.editProduct')}
-                    </Link>
-                  );
-                }
-                
-                return (
-                  <AddToCartButton
-                    product={{
-                      id: product.id,
-                      title: product.title,
-                      priceCents: product.priceCents,
-                      image: (carouselMedia.length > 0 && carouselMedia[0].type === 'image' ? carouselMedia[0].fileUrl : product.image) || undefined,
-                      sellerName: getSellerDisplayName(product),
-                      sellerId: product.seller?.User?.id || '',
-                      deliveryMode: (product.delivery as string) || 'PICKUP', // Can be single value, 'BOTH', or comma-separated
-                      // Use same logic as checkout: stock as primary, maxStock as fallback
-                      stock: availableStock,
-                    }}
-                    className="w-full font-bold transition-all hover:scale-105 shadow-xl flex items-center justify-center gap-2"
-                    size="lg"
-                    variant="outline"
-                    quantity={quantity}
-                    onAdded={() => setQuantity(1)}
-                  />
-                );
-              })()}
-
-            </div>
-
-                {/* Print/Download Actions (only if product is linked to a dish) */}
-                {dishInfo.isDish && dishInfo.category && (
-                  <div className="mt-6 pt-6 border-t border-white/20 space-y-2">
-                    <button
-                      onClick={() => {
-                        if (dishInfo.category === 'CHEFF') {
-                          router.push(`/recipe/${product.id}`);
-                        } else if (dishInfo.category === 'GROWN') {
-                          router.push(`/garden/${product.id}`);
-                        } else if (dishInfo.category === 'DESIGNER') {
-                          router.push(`/design/${product.id}`);
-                        }
-                      }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
-                    >
-                      <Printer className="w-5 h-5" />
-                      <span>{t('product.printButton')}</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (dishInfo.category === 'CHEFF') {
-                          router.push(`/recipe/${product.id}`);
-                        } else if (dishInfo.category === 'GROWN') {
-                          router.push(`/garden/${product.id}`);
-                        } else if (dishInfo.category === 'DESIGNER') {
-                          router.push(`/design/${product.id}`);
-                        }
-                      }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
-                    >
-                      <Download className="w-5 h-5" />
-                      <span>{t('product.downloadPdf')}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Quick Actions */}
-                {!isOwner && (
-                  <div className="mt-6 pt-6 border-t border-white/20 flex gap-2">
-                    <PropsButton 
-                      productId={product.id}
-                      productTitle={product.title}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
-                      variant="star"
-                    />
-                    <ShareButton
-                      url={`${baseUrl}/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}`}
-                      title={product.title}
-                      description={product.description || ''}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white rounded-xl font-semibold transition-all hover:scale-105"
-                    />
-                  </div>
-                )}
-            </div>
-
-              {/* Seller Card */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-                <div className="flex items-center gap-2 mb-6">
-                  <Award className="w-6 h-6 text-emerald-600" />
-                  <h3 className="text-xl font-semibold text-gray-900">{t('product.madeByHeading')}</h3>
-                </div>
-                
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="relative">
-                  {product.seller?.User?.avatar ? (
-                      <Image
-                      src={product.seller.User.avatar}
-                        alt={getSellerDisplayName(product)}
-                        width={80}
-                        height={80}
-                        loading="lazy"
-                        className="w-20 h-20 rounded-full object-cover border-4 border-emerald-100 shadow-lg"
-                    />
-                  ) : (
-                      <div className={`w-20 h-20 bg-gradient-to-br ${theme.gradient} rounded-full flex items-center justify-center border-4 border-emerald-100 shadow-lg`}>
-                        <span className="text-white font-bold text-2xl">
-                        {getSellerDisplayName(product).charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                  </div>
-                  
-                <div className="flex-1">
-                  <ClickableName 
-                    user={{
-                      id: product.seller?.User?.id,
-                      name: product.seller?.User?.name,
-                      username: product.seller?.User?.username,
-                      displayFullName: product.seller?.User?.displayFullName,
-                      displayNameOption: product.seller?.User?.displayNameOption
-                    }}
-                      className="text-xl font-bold text-gray-900 hover:text-emerald-600 transition-colors block mb-1"
-                    fallbackText="Verkoper"
-                    linkTo="profile"
-                  />
-                    <div className="flex items-center gap-3 text-sm">
-                      {stats.reviewCount > 0 && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="font-semibold">{stats.averageRating.toFixed(1)}</span>
-                          </div>
-                          <span className="text-gray-400">•</span>
-                        </>
-                      )}
-                      <span className="text-gray-600">{stats.orderCount} verkopen</span>
-                    </div>
-                    </div>
-                    </div>
-
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  {stats.reviewCount > 0 && (
-                    <div className="p-3 bg-emerald-50 rounded-xl text-center">
-                      <div className="text-2xl font-bold text-emerald-600">
-                        {Math.round((stats.averageRating / 5) * 100)}%
-                      </div>
-                      <div className="text-xs text-gray-600">Positief</div>
-                    </div>
-                  )}
-                  <div className={`p-3 bg-blue-50 rounded-xl text-center ${stats.reviewCount === 0 ? 'col-span-2' : ''}`}>
-                    <div className="text-2xl font-bold text-blue-600">{stats.favoriteCount}</div>
-                    <div className="text-xs text-gray-600">Favoriet</div>
-                  </div>
-                </div>
-
-                <nav
-                  className="mb-6 space-y-2 rounded-2xl border border-gray-100 bg-gray-50/80 p-4 text-sm"
-                  aria-label="Gerelateerde pagina's"
-                >
-                  <p className="font-semibold text-gray-800">Verder ontdekken</p>
-                  <ul className="flex flex-col gap-2 text-emerald-700">
-                    <li>
-                      <Link href="/?chip=sale#homecheff-feed" className="hover:underline">
-                        Ontdek het dorpsplein
-                      </Link>
-                    </li>
-                    {product.seller?.User?.username ? (
-                      <li>
-                        <Link
-                          href={`/user/${product.seller.User.username}`}
-                          className="hover:underline"
-                        >
-                          Meer van deze maker
-                        </Link>
-                      </li>
-                    ) : null}
-                    {maaltijdenPathFromPlace(product.seller?.User?.place) ? (
-                      <li>
-                        <Link
-                          href={maaltijdenPathFromPlace(product.seller?.User?.place)!}
-                          className="hover:underline"
-                        >
-                          Maaltijden in{" "}
-                          {formatCityLabel(product.seller?.User?.place)}
-                        </Link>
-                      </li>
-                    ) : null}
-                    <li>
-                      <Link href="/#homecheff-feed" className="hover:underline">
-                        Inspiratie en recepten
-                      </Link>
-                    </li>
-                  </ul>
-                </nav>
-
-                {!isOwner && product.seller?.User?.id && publicContactChannels.length > 0 && !isContactOnlyProduct(product) ? (
-                  <MakerContactSection
-                    variant="product"
-                    makerId={product.seller.User.id}
-                    makerName={getSellerDisplayName(product)}
-                    channels={publicContactChannels}
-                    productId={product.id}
-                    className="mb-6"
-                  />
-                ) : null}
-
-                {(product.seller?.User?.username || product.seller?.User?.id) ? (
-                <Link
-                  href={`/user/${encodeURIComponent(String(product.seller?.User?.username || product.seller?.User?.id))}`}
-                  className="w-full py-3 px-6 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-2xl text-center font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  Bekijk profiel
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
+                {dishInfo.isDish && dishInfo.category ? (
+                  <button
+                    type="button"
+                    onClick={openLinkedDishView}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 sm:w-auto sm:px-4"
+                  >
+                    <Printer className="h-4 w-4" aria-hidden />
+                    {t('productDetail.viewLinkedStory') || 'Bekijk het verhaal achter dit product'}
+                  </button>
                 ) : null}
               </div>
-          </div>
-        </div>
+
+              <ProductSaleDomainStory dishInfo={dishInfo} />
+
+              <ProductDetailTrustNote
+                orderMethod={product.orderMethod}
+                checkoutAvailable={checkoutAvailable}
+                reviewCount={stats.reviewCount}
+                averageRating={stats.averageRating}
+                sellerUsername={product.seller?.User?.username}
+              />
+            </div>
+          ) : null}
 
         {/* Reviews Section */}
-          <div className="mt-12 bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+          <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+                <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
                 Beoordelingen
+                {stats.reviewCount > 0 ? (
+                  <span className="text-base font-semibold text-gray-500">
+                    ({stats.reviewCount})
+                  </span>
+                ) : null}
               </h2>
-            {currentUser && !isOwner && (
+            {currentUser && !isOwner ? (
               <button
+                type="button"
                 onClick={() => setShowReviewForm(true)}
-                  className={`px-6 py-3 bg-gradient-to-r ${theme.gradient} text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105`}
+                  className={`rounded-xl bg-gradient-to-r px-4 py-2 text-sm font-semibold text-white shadow-md ${theme.gradient}`}
               >
                 Schrijf een beoordeling
               </button>
-            )}
+            ) : null}
           </div>
 
+          {stats.reviewCount === 0 && !showReviewForm ? (
+            <p className="mb-4 text-sm text-gray-500">
+              {t('productDetail.noReviewsYet') || 'Nog geen beoordelingen voor dit product.'}
+            </p>
+          ) : null}
+
           {showReviewForm && (
-              <div className="mb-8 p-6 bg-gray-50 rounded-2xl">
+              <div className="mb-6 rounded-xl bg-gray-50 p-4">
               <ReviewForm
                 productId={product.id}
                 onSubmit={handleReviewSubmit}
@@ -1574,6 +829,7 @@ export default function ProductPage() {
             </div>
           )}
 
+          {stats.reviewCount > 0 ? (
           <ReviewList
             reviews={reviews}
             onReply={handleReviewReply}
@@ -1581,9 +837,22 @@ export default function ProductPage() {
             canReply={isOwner}
             isSeller={isOwner}
           />
+          ) : null}
         </div>
-      </div>
+        </div>
       </section>
+
+      <ProductSaleStickyCta
+        product={product}
+        carouselImageUrl={carouselImageUrl}
+        sellerName={getSellerDisplayName(product)}
+        quantity={quantity}
+        availableStock={availableStock}
+        isOwner={isOwner}
+        checkoutAvailable={checkoutAvailable}
+        publicContactChannels={publicContactChannels}
+        hidden={showDeleteConfirm || showReviewForm || isEditing}
+      />
 
 
       {/* Delete Confirmation Modal */}
@@ -1612,7 +881,6 @@ export default function ProductPage() {
           </div>
         </div>
       )}
-      </main>
-    </>
+    </main>
   );
 }
