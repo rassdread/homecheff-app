@@ -231,7 +231,7 @@ export function FeedSaleCard({
       />
       <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
-          <Link href={listingHref} className="flex-1 min-w-0">
+          <Link href={listingHref} prefetch className="flex-1 min-w-0">
             <p className="feed-card-title font-bold text-gray-900 line-clamp-2 leading-snug text-[15px] sm:text-base">
               {it.title ?? t("common.dish")}
             </p>
@@ -287,7 +287,7 @@ export function FeedSaleCard({
           </>
         ) : null}
         <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-2 lg:pt-1">
-          <Link href={listingHref} className="hc-btn-primary rounded-xl px-4 py-2">
+          <Link href={listingHref} prefetch className="hc-btn-primary rounded-xl px-4 py-2">
             {t("feed.saleViewOffer")}
           </Link>
           <div className="flex items-center gap-2">
@@ -447,7 +447,7 @@ function FeedInspirationCard({
       />
       <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
         <div className="flex justify-between items-start gap-2">
-          <Link href={data.detailHref} className="flex-1 min-w-0">
+          <Link href={data.detailHref} prefetch className="flex-1 min-w-0">
             <p className="feed-card-title font-bold text-gray-900 line-clamp-2 leading-snug text-[15px] sm:text-base">
               {fallbackTitle}
             </p>
@@ -487,7 +487,7 @@ function FeedInspirationCard({
           <div className="feed-card-stats-wrap mt-1 min-h-[4.5rem] lg:hidden" aria-hidden />
         )}
         <div className="feed-card-cta-row flex items-center justify-between text-xs mt-auto pt-2 lg:pt-1">
-          <Link href={data.detailHref} className="hc-btn-primary rounded-xl px-4 py-2">
+          <Link href={data.detailHref} prefetch className="hc-btn-primary rounded-xl px-4 py-2">
             {t("feed.inspirationViewCta")}
           </Link>
           <div className="flex items-center gap-2">

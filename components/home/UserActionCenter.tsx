@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   AlertCircle,
@@ -153,7 +153,7 @@ function ActionRow({
           {stripeLoading ? '…' : item.actionLabel}
         </button>
       ) : (
-        <Link href={item.actionHref} className={ctaClass}>
+        <Link href={item.actionHref} prefetch className={ctaClass}>
           {item.actionLabel}
         </Link>
       )}
@@ -204,6 +204,9 @@ export default function UserActionCenter({
   const showDescription = variant !== 'mobileCompact';
   const maxVisible = VARIANT_MAX[variant];
 
+  const lastFetchRef = useRef(0);
+  const FOCUS_REFETCH_MS = 30_000;
+
   const load = useCallback(async () => {
     try {
       const res = await fetch(apiEndpoint);
@@ -220,25 +223,31 @@ export default function UserActionCenter({
       setData(null);
     } finally {
       setLoading(false);
+      lastFetchRef.current = Date.now();
     }
   }, [apiEndpoint]);
+
+  const loadIfStale = useCallback(() => {
+    if (Date.now() - lastFetchRef.current < FOCUS_REFETCH_MS) return;
+    void load();
+  }, [load]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   useEffect(() => {
-    const onRefresh = () => void load();
-    window.addEventListener('focus', onRefresh);
-    window.addEventListener('notificationsUpdated', onRefresh);
+    const onNotificationsUpdated = () => void load();
+    window.addEventListener('focus', loadIfStale);
+    window.addEventListener('notificationsUpdated', onNotificationsUpdated);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') void load();
+      if (document.visibilityState === 'visible') loadIfStale();
     });
     return () => {
-      window.removeEventListener('focus', onRefresh);
-      window.removeEventListener('notificationsUpdated', onRefresh);
+      window.removeEventListener('focus', loadIfStale);
+      window.removeEventListener('notificationsUpdated', onNotificationsUpdated);
     };
-  }, [load]);
+  }, [load, loadIfStale]);
 
   const title = tOr(
     'home.actionCenter.title',
@@ -420,6 +429,7 @@ export default function UserActionCenter({
         ) : (
           <Link
             href={allActionsHref}
+            prefetch
             className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-secondary-brand hover:text-secondary-700"
           >
             <ChevronDown className="h-3 w-3" aria-hidden />

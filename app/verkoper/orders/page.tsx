@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { auth } from '@/lib/auth';
 import { hasSellerAccess } from '@/lib/seller-access';
 import { redirect } from 'next/navigation';
+import { SellerOrdersLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 import SellerOrdersPageClient from './page-client';
 
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,7 @@ export default async function SellerOrdersPageWrapper() {
   }
 
   return (
-    <Suspense fallback={<div className="min-h-[40vh] bg-neutral-50" />}>
+    <Suspense fallback={<SellerOrdersLoadingSkeleton />}>
       <SellerOrdersPageClient />
     </Suspense>
   );

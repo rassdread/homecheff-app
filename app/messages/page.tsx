@@ -25,6 +25,7 @@ import {
   type NormalizedConversationListItem,
 } from '@/lib/chat/normalizeConversation';
 import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
+import { MessagesLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 
 type Conversation = NormalizedConversationListItem;
 
@@ -275,26 +276,7 @@ function MessagesPageContent() {
 
 export default function MessagesPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="hc-messages-root flex min-h-0 flex-col overflow-hidden bg-[#e8eaed]">
-          <div className="h-16 flex-shrink-0 animate-pulse border-b bg-white" />
-          <div className="flex min-h-0 flex-1">
-            <div className="w-full max-w-sm space-y-3 border-r bg-white p-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex animate-pulse gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gray-200" />
-                  <div className="flex-1 space-y-2 pt-1">
-                    <div className="h-3 w-2/3 rounded bg-gray-200" />
-                    <div className="h-3 w-full rounded bg-gray-100" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<MessagesLoadingSkeleton />}>
       <MessagesErrorBoundary>
         <MessagesPageContent />
       </MessagesErrorBoundary>
