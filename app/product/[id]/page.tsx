@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
@@ -22,6 +22,8 @@ import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomai
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
 import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTrustNote';
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
+import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
+import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 
@@ -734,6 +736,7 @@ export default function ProductPage() {
                   publicContactChannels={publicContactChannels}
                   carouselImageUrl={carouselImageUrl}
                   shareUrl={productShareUrl}
+                  sellerBadgeCount={sellerBadges.length}
                   onQuantityChange={setQuantity}
                   onAddedToCart={() => setQuantity(1)}
                 />
@@ -742,22 +745,31 @@ export default function ProductPage() {
 
           {!isEditing ? (
             <div className="mt-8 space-y-6">
-              <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                <h2 className="mb-2 text-lg font-semibold text-gray-900">Over dit product</h2>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                  {product.description || t('product.noDescription')}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4 text-sm text-gray-500">
+              <ProductSaleAboutSection
+                product={product}
+                sellerName={getSellerDisplayName(product)}
+                categoryLabel={theme.label}
+                stats={stats}
+                checkoutAvailable={checkoutAvailable}
+                isBusiness={isBusiness}
+                companyName={companyName}
+                sellerBadgeCount={sellerBadges.length}
+              />
+
+              {(stats.reviewCount > 0 || stats.orderCount > 0 || stats.viewCount > 0) ? (
+                <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-500 shadow-sm">
                   {stats.reviewCount > 0 ? (
                     <span className="inline-flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       {stats.averageRating.toFixed(1)} ({stats.reviewCount})
                     </span>
                   ) : null}
-                  <span className="inline-flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    {stats.viewCount} weergaven
-                  </span>
+                  {stats.viewCount > 0 ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      {stats.viewCount} weergaven
+                    </span>
+                  ) : null}
                   {stats.orderCount > 0 ? (
                     <span className="inline-flex items-center gap-1">
                       <ShoppingBag className="h-4 w-4" />
@@ -765,17 +777,18 @@ export default function ProductPage() {
                     </span>
                   ) : null}
                 </div>
-                {dishInfo.isDish && dishInfo.category ? (
-                  <button
-                    type="button"
-                    onClick={openLinkedDishView}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 sm:w-auto sm:px-4"
-                  >
-                    <Printer className="h-4 w-4" aria-hidden />
-                    {t('productDetail.viewLinkedStory') || 'Bekijk het verhaal achter dit product'}
-                  </button>
-                ) : null}
-              </div>
+              ) : null}
+
+              {dishInfo.isDish && dishInfo.category ? (
+                <button
+                  type="button"
+                  onClick={openLinkedDishView}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:px-4"
+                >
+                  <Printer className="h-4 w-4" aria-hidden />
+                  {t('productDetail.viewLinkedStory') || 'Bekijk het verhaal achter dit product'}
+                </button>
+              ) : null}
 
               <ProductSaleDomainStory dishInfo={dishInfo} />
 
@@ -813,9 +826,16 @@ export default function ProductPage() {
           </div>
 
           {stats.reviewCount === 0 && !showReviewForm ? (
-            <p className="mb-4 text-sm text-gray-500">
-              {t('productDetail.noReviewsYet') || 'Nog geen beoordelingen voor dit product.'}
-            </p>
+            <ProductSaleReviewEmpty
+              product={product}
+              sellerName={getSellerDisplayName(product)}
+              categoryLabel={theme.label}
+              stats={stats}
+              checkoutAvailable={checkoutAvailable}
+              isBusiness={isBusiness}
+              companyName={companyName}
+              sellerBadgeCount={sellerBadges.length}
+            />
           ) : null}
 
           {showReviewForm && (

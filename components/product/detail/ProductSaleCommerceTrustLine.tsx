@@ -1,59 +1,100 @@
 'use client';
 
-import { Star, Shield } from 'lucide-react';
-import BusinessBadge from '@/components/ui/BusinessBadge';
+import { useEffect, useMemo, useState } from 'react';
+import { Shield, Star } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { isContactOnlyProduct } from '@/lib/product/order-method';
-import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  buildSmartTrustLines,
+  toProductStoryInput,
+  type ProductStoryInput,
+} from '@/lib/product/product-story-copy';
+import {
+  EMPTY_USER_STATS,
+  fetchUserStatsDeduped,
+  getCachedUserStats,
+} from '@/lib/userStatsClientCache';
 import { cn } from '@/lib/utils';
 
 type Props = {
-  reviewCount?: number;
-  averageRating?: number;
-  orderCount?: number;
-  checkoutAvailable?: boolean;
-  orderMethod?: ProductOrderMethodValue;
+  product: Parameters<typeof toProductStoryInput>[0]['product'];
+  sellerName: string;
+  stats: {
+    reviewCount: number;
+    averageRating: number;
+    orderCount: number;
+  };
+  checkoutAvailable: boolean;
   isBusiness?: boolean;
   companyName?: string | null;
+  sellerBadgeCount?: number;
+  sellerUserId?: string | null;
   className?: string;
 };
 
 export default function ProductSaleCommerceTrustLine({
-  reviewCount = 0,
-  averageRating = 0,
-  orderCount = 0,
-  checkoutAvailable = true,
-  orderMethod,
+  product,
+  sellerName,
+  stats,
+  checkoutAvailable,
   isBusiness = false,
   companyName,
+  sellerBadgeCount = 0,
+  sellerUserId,
   className,
 }: Props) {
-  const { t } = useTranslation();
-  const contactOnly = isContactOnlyProduct({ orderMethod, priceCents: 1 });
-  const chips: string[] = [];
+  const { language } = useTranslation();
+  const locale = language?.startsWith('en') ? 'en' : 'nl';
+  const [sellerProps, setSellerProps] = useState<number | null>(() => {
+    if (!sellerUserId) return null;
+    return getCachedUserStats(sellerUserId)?.totalProps ?? null;
+  });
+  const [sellerFans, setSellerFans] = useState<number | null>(() => {
+    if (!sellerUserId) return null;
+    return getCachedUserStats(sellerUserId)?.fansCount ?? null;
+  });
 
-  if (reviewCount > 0 && averageRating > 0) {
-    chips.push(`review:${averageRating.toFixed(1)}:${reviewCount}`);
-  }
+  useEffect(() => {
+    if (!sellerUserId) return;
+    let cancelled = false;
+    void fetchUserStatsDeduped(sellerUserId).then((data) => {
+      if (!cancelled) {
+        setSellerProps(data.totalProps ?? EMPTY_USER_STATS.totalProps);
+        setSellerFans(data.fansCount ?? EMPTY_USER_STATS.fansCount);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sellerUserId]);
 
-  if (orderCount > 0) {
-    chips.push(
-      t('productDetail.ordersCount', { count: orderCount }) ||
-        `${orderCount} verkopen`,
-    );
-  }
+  const lines = useMemo(() => {
+    const input: ProductStoryInput = toProductStoryInput({
+      product,
+      sellerName,
+      stats,
+      checkoutAvailable,
+      isBusiness,
+      companyName,
+      sellerBadgeCount,
+      sellerTotalProps: sellerProps ?? 0,
+      sellerFansCount: sellerFans ?? 0,
+      locale,
+    });
+    return buildSmartTrustLines(input);
+  }, [
+    product,
+    sellerName,
+    stats,
+    checkoutAvailable,
+    isBusiness,
+    companyName,
+    sellerBadgeCount,
+    sellerProps,
+    sellerFans,
+    locale,
+  ]);
 
-  if (!contactOnly && checkoutAvailable) {
-    chips.push(t('productDetail.trustStripe') || 'Veilig betalen via HomeCheff en Stripe.');
-  }
-
-  if (contactOnly) {
-    chips.push(
-      t('productDetail.trustContactDirect') || 'Neem direct contact op met de maker.',
-    );
-  }
-
-  if (chips.length === 0 && !isBusiness) return null;
+  if (lines.length === 0) return null;
 
   return (
     <div
@@ -63,32 +104,18 @@ export default function ProductSaleCommerceTrustLine({
       )}
     >
       <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs font-medium text-gray-700">
-        {chips.map((chip, index) => (
-          <span key={chip} className="inline-flex items-center gap-1">
-            {index > 0 ? <span className="text-gray-300" aria-hidden>·</span> : null}
-            {chip.startsWith('review:') ? (
-              <>
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden />
-                <span>
-                  {chip.split(':')[1]} ({chip.split(':')[2]})
-                </span>
-              </>
-            ) : (
-              chip
-            )}
-          </span>
-        ))}
-        {isBusiness ? (
-          <>
-            {chips.length > 0 ? (
-              <span className="text-gray-300" aria-hidden>
-                ·
-              </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        {lines.map((line) => (
+          <p
+            key={line}
+            className="flex items-center gap-1 text-xs font-medium leading-snug text-gray-700"
+          >
+            {line.includes('sterren') || line.includes('stars') ? (
+              <Star className="h-3 w-3 shrink-0 fill-amber-400 text-amber-400" aria-hidden />
             ) : null}
-            <BusinessBadge companyName={companyName} variant="compact" />
-          </>
-        ) : null}
+            <span>{line.replace(/★/g, '').trim()}</span>
+          </p>
+        ))}
       </div>
     </div>
   );

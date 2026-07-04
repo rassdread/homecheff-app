@@ -10,6 +10,7 @@ import ProductDetailTags from '@/components/product/detail/ProductDetailTags';
 import ProductSalePrimaryActions from '@/components/product/detail/ProductSalePrimaryActions';
 import ProductSaleCommerceTrustLine from '@/components/product/detail/ProductSaleCommerceTrustLine';
 import ProductSaleSecondaryContact from '@/components/product/detail/ProductSaleSecondaryContact';
+import { useProductStoryCopy } from '@/components/product/detail/ProductSaleAboutSection';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 import {
@@ -86,6 +87,7 @@ type Props = {
   publicContactChannels: PublicContactChannel[];
   carouselImageUrl?: string | null;
   shareUrl: string;
+  sellerBadgeCount?: number;
   onQuantityChange: (n: number) => void;
   onAddedToCart?: () => void;
   className?: string;
@@ -108,12 +110,22 @@ export default function ProductSaleCommerceZone({
   publicContactChannels,
   carouselImageUrl,
   shareUrl,
+  sellerBadgeCount = 0,
   onQuantityChange,
   onAddedToCart,
   className,
 }: Props) {
   const { t } = useTranslation();
-  const descriptionTeaser = product.description?.trim() || null;
+  const { summary, makerLine } = useProductStoryCopy({
+    product,
+    sellerName,
+    categoryLabel: theme.label,
+    stats,
+    checkoutAvailable,
+    isBusiness,
+    companyName,
+    sellerBadgeCount,
+  });
 
   const showQuantity =
     !isContactOnlyProduct(product) &&
@@ -168,9 +180,9 @@ export default function ProductSaleCommerceZone({
         <h1 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
           {product.title}
         </h1>
-        {descriptionTeaser ? (
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-600">
-            {descriptionTeaser}
+        {summary ? (
+          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-600">
+            {summary}
           </p>
         ) : null}
       </div>
@@ -239,13 +251,14 @@ export default function ProductSaleCommerceZone({
       />
 
       <ProductSaleCommerceTrustLine
-        reviewCount={stats.reviewCount}
-        averageRating={stats.averageRating}
-        orderCount={stats.orderCount}
+        product={product}
+        sellerName={sellerName}
+        stats={stats}
         checkoutAvailable={checkoutAvailable}
-        orderMethod={product.orderMethod}
         isBusiness={isBusiness}
         companyName={companyName}
+        sellerBadgeCount={sellerBadges.length}
+        sellerUserId={product.seller?.User?.id ?? null}
       />
 
       <ProductSalePrimaryActions
@@ -271,6 +284,7 @@ export default function ProductSaleCommerceZone({
         sellerBadges={sellerBadges}
         isBusiness={isBusiness}
         companyName={companyName}
+        makerLine={makerLine}
         productStats={{
           reviewCount: stats.reviewCount,
           averageRating: stats.averageRating,

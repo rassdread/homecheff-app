@@ -2414,7 +2414,8 @@
     "viewOffer": "Bekijk aanbod",
     "askMaker": "Vraag iets aan maker",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
-    "viewLinkedStory": "Bekijk het verhaal achter dit product"
+    "viewLinkedStory": "Bekijk het verhaal achter dit product",
+    "aboutProduct": "Over dit product"
   },
   "dish": {
     "noItemsShared": "Nog geen items gedeeld",

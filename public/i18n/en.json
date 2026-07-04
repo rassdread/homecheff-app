@@ -3039,7 +3039,8 @@
     "viewOffer": "View listing",
     "askMaker": "Ask the maker a question",
     "contactNotConfigured": "This maker has not set up contact options yet.",
-    "viewLinkedStory": "View the story behind this product"
+    "viewLinkedStory": "View the story behind this product",
+    "aboutProduct": "About this product"
   },
   "dish": {
     "noItemsShared": "No items shared yet",

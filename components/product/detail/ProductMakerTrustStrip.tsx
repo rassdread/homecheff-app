@@ -37,6 +37,7 @@ type Props = {
     orderCount?: number;
     favoriteCount?: number;
   };
+  makerLine?: string | null;
   className?: string;
 };
 
@@ -46,6 +47,7 @@ export default function ProductMakerTrustStrip({
   isBusiness,
   companyName,
   productStats,
+  makerLine,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -130,6 +132,9 @@ export default function ProductMakerTrustStrip({
             {sellerUser.place ? (
               <p className="truncate text-xs text-gray-500">{sellerUser.place}</p>
             ) : null}
+            {makerLine ? (
+              <p className="text-xs leading-snug text-gray-600">{makerLine}</p>
+            ) : null}
           </div>
           <Link
             href={
@@ -181,6 +186,9 @@ export default function ProductMakerTrustStrip({
           </div>
           {sellerUser.place ? (
             <p className="truncate text-xs text-gray-500">{sellerUser.place}</p>
+          ) : null}
+          {makerLine ? (
+            <p className="text-xs leading-snug text-gray-600">{makerLine}</p>
           ) : null}
           {hasChips ? (
             <p className="flex flex-wrap items-center gap-x-1 text-[11px] font-medium text-gray-600">
