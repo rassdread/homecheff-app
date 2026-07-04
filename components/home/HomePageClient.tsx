@@ -14,6 +14,11 @@ import UserActionCenter from "@/components/home/UserActionCenter";
 import GeoFeed, { FeedContent, FeedFiltersPanel } from "@/components/feed/GeoFeed";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
+import {
+  readScrollPosition,
+  HOME_FEED_DESKTOP_SCROLL_KEY,
+  HOME_FEED_WINDOW_SCROLL_KEY,
+} from "@/lib/appResumeCache";
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
@@ -63,6 +68,14 @@ export default function HomePageClient({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (window.location.hash !== '#homecheff-feed') return;
+    const savedWindow = readScrollPosition(HOME_FEED_WINDOW_SCROLL_KEY);
+    const savedDesktop = readScrollPosition(HOME_FEED_DESKTOP_SCROLL_KEY);
+    if (
+      (savedWindow != null && savedWindow > 4) ||
+      (savedDesktop != null && savedDesktop > 4)
+    ) {
+      return;
+    }
     const t = window.setTimeout(() => scrollToHomeFeed(), 400);
     return () => window.clearTimeout(t);
   }, []);

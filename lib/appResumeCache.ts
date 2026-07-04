@@ -280,6 +280,11 @@ export function isResumeHomeEntry(pathname: string): boolean {
   return pathname === "/" || pathname === "/en" || pathname === "";
 }
 
+/** Window scroll on mobile homepage (existing key). */
+export const HOME_FEED_WINDOW_SCROLL_KEY = "feed:home";
+/** Desktop sticky feed column scroll (#homecheff-feed-desktop). */
+export const HOME_FEED_DESKTOP_SCROLL_KEY = "feed:home:desktop";
+
 export function getScrollStorageKey(
   pathname: string,
   search: string
@@ -289,7 +294,7 @@ export function getScrollStorageKey(
   const isMessagesPath =
     pathname === "/messages" || pathname === "/en/messages";
   if (isMessagesPath && sp.has("conversation")) return null;
-  if (pathname === "/" || pathname === "/en") return "feed:home";
+  if (pathname === "/" || pathname === "/en") return HOME_FEED_WINDOW_SCROLL_KEY;
   if (pathname === "/profile" || pathname === "/en/profile")
     return "feed:profile";
   if (pathname === "/mijn-hcp" || pathname === "/en/mijn-hcp")

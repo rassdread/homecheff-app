@@ -5,14 +5,17 @@
 const CUR = 'hc_nav_cur';
 const PREV = 'hc_nav_prev';
 
-export function syncNavPath(pathname: string): void {
+/** `path` = pathname + optional search + hash (e.g. `/?chip=sale#homecheff-feed`). */
+export function syncNavPath(path: string): void {
   if (typeof window === 'undefined') return;
+  if (!path.startsWith('/')) return;
   try {
+    const normalized = path.length > 3800 ? path.slice(0, 3800) : path;
     const cur = sessionStorage.getItem(CUR);
-    if (cur && cur !== pathname) {
+    if (cur && cur !== normalized) {
       sessionStorage.setItem(PREV, cur);
     }
-    sessionStorage.setItem(CUR, pathname);
+    sessionStorage.setItem(CUR, normalized);
   } catch {
     /* ignore quota / private mode */
   }

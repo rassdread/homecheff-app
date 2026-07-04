@@ -13,11 +13,39 @@ import {
   getScrollStorageKey,
   readScrollPosition,
   saveScrollPosition,
+  HOME_FEED_DESKTOP_SCROLL_KEY,
+  HOME_FEED_WINDOW_SCROLL_KEY,
 } from '@/lib/appResumeCache';
 
 function currentFullPath(pathname: string, search: string): string {
   if (!search) return pathname;
   return search.startsWith('?') ? `${pathname}${search}` : `${pathname}?${search}`;
+}
+
+function tryRestoreHomeFeedScroll(
+  windowY: number,
+  desktopY: number | null,
+  attempts: number,
+): void {
+  if (typeof document === 'undefined') return;
+  const desktop = document.getElementById('homecheff-feed-desktop');
+  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+
+  if (isDesktop && desktop && desktopY != null && desktopY > 3) {
+    desktop.scrollTop = desktopY;
+    return;
+  }
+
+  if (windowY > 3) {
+    window.scrollTo({ top: windowY, behavior: 'instant' as ScrollBehavior });
+    return;
+  }
+
+  if (attempts <= 0) return;
+  window.setTimeout(
+    () => tryRestoreHomeFeedScroll(windowY, desktopY, attempts - 1),
+    90,
+  );
 }
 
 function tryRestoreMessagesListScroll(y: number, attempts: number): void {
@@ -106,6 +134,15 @@ export default function AppResumeCoordinator() {
           }
         } else if (key) {
           saveScrollPosition(key, window.scrollY);
+          if (key === HOME_FEED_WINDOW_SCROLL_KEY) {
+            const desktop = document.getElementById('homecheff-feed-desktop');
+            if (desktop && desktop.scrollTop > 2) {
+              saveScrollPosition(
+                HOME_FEED_DESKTOP_SCROLL_KEY,
+                desktop.scrollTop,
+              );
+            }
+          }
         }
         if (path === '/messages' || path === '/en/messages') {
           const q = search.startsWith('?') ? search.slice(1) : search;
@@ -147,6 +184,11 @@ export default function AppResumeCoordinator() {
         tryRestoreMessagesListScroll(y, 12);
         return;
       }
+      if (key === HOME_FEED_WINDOW_SCROLL_KEY) {
+        const desktopY = readScrollPosition(HOME_FEED_DESKTOP_SCROLL_KEY);
+        tryRestoreHomeFeedScroll(y, desktopY, 14);
+        return;
+      }
       window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
     };
     requestAnimationFrame(() => requestAnimationFrame(run));
@@ -163,12 +205,40 @@ export default function AppResumeCoordinator() {
         scrollSaveTimerRef.current = null;
         const y = window.scrollY;
         if (y > 2) saveScrollPosition(key, y);
+        if (key === HOME_FEED_WINDOW_SCROLL_KEY) {
+          const desktop = document.getElementById('homecheff-feed-desktop');
+          if (desktop && desktop.scrollTop > 2) {
+            saveScrollPosition(HOME_FEED_DESKTOP_SCROLL_KEY, desktop.scrollTop);
+          }
+        }
       }, 450);
     };
 
     window.addEventListener('scroll', tick, { passive: true });
+
+    let desktopEl: HTMLElement | null = null;
+    let desktopTick: (() => void) | null = null;
+    if (key === HOME_FEED_WINDOW_SCROLL_KEY) {
+      desktopEl = document.getElementById('homecheff-feed-desktop');
+      if (desktopEl) {
+        desktopTick = () => {
+          if (scrollSaveTimerRef.current != null) return;
+          scrollSaveTimerRef.current = window.setTimeout(() => {
+            scrollSaveTimerRef.current = null;
+            if (desktopEl && desktopEl.scrollTop > 2) {
+              saveScrollPosition(HOME_FEED_DESKTOP_SCROLL_KEY, desktopEl.scrollTop);
+            }
+          }, 450);
+        };
+        desktopEl.addEventListener('scroll', desktopTick, { passive: true });
+      }
+    }
+
     return () => {
       window.removeEventListener('scroll', tick);
+      if (desktopEl && desktopTick) {
+        desktopEl.removeEventListener('scroll', desktopTick);
+      }
       if (scrollSaveTimerRef.current != null) {
         clearTimeout(scrollSaveTimerRef.current);
         scrollSaveTimerRef.current = null;

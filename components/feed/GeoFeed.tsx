@@ -98,6 +98,11 @@ import {
   saveFeedSurfaceState,
 } from "@/lib/feed/feedSurfaceState";
 import {
+  readHomeFeedReturnCache,
+  saveHomeFeedReturnCache,
+  peekFreshHomeFeedReturnCache,
+} from "@/lib/feed/home-feed-return-cache";
+import {
   compareFeedSaleItems,
   feedItemCategoryEnum,
   feedVerticalSlugToCategoryEnum,
@@ -720,7 +725,12 @@ export default function GeoFeed({
    */
   const [loading, setLoading] = useState(true);
   const feedInteractionStartedRef = useRef(false);
+  const feedRestoredFromCacheRef = useRef(false);
   const [feedHydrated, setFeedHydrated] = useState(false);
+  const itemsRef = useRef<FeedItem[]>([]);
+  const inspiratiePoolRef = useRef<InspirationItem[]>(initialInspiratieItems);
+  const apiViewerCoordsRef = useRef<ViewerCoords | null>(null);
+  const nativeFeedRenderMoreRef = useRef(false);
   const [radius, setRadius] = useState(RADIUS_LOCAL_KM);
   const [q, setQ] = useState("");
   const [place, setPlace] = useState(
@@ -939,17 +949,6 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
-    const urlLockedFeed =
-      initialFeedChip != null ||
-      (initialFeedCategory != null &&
-        initialDorpspleinCategoryFromServer(initialFeedCategory) !== "all") ||
-      Boolean(initialFeedPlace?.trim());
-    if (urlLockedFeed) {
-      queueMicrotask(() => {
-        nativeFeedPrefsBootRef.current = false;
-      });
-      return;
-    }
 
     type HomePersist = {
       feedChip?: FeedChip;
@@ -967,26 +966,35 @@ export default function GeoFeed({
       showFilters?: boolean;
     };
 
+    const urlLocksChip = initialFeedChip != null;
+    const urlLocksCategory =
+      initialFeedCategory != null &&
+      initialDorpspleinCategoryFromServer(initialFeedCategory) !== "all";
+    const urlLocksPlace = Boolean(initialFeedPlace?.trim());
+
     const persisted = loadFeedSurfaceState<HomePersist>("home");
     if (persisted && typeof persisted === "object") {
       const migrated = migrateHomeFeedPersist(persisted);
       setAppliedScope(migrated.scope);
-      const fc = migrated.feedChip;
-      if (fc === "all" || fc === "sale" || fc === "inspiration") {
-        setFeedChip(fc);
+      if (!urlLocksChip) {
+        const fc = migrated.feedChip;
+        if (fc === "all" || fc === "sale" || fc === "inspiration") {
+          setFeedChip(fc);
+        }
       }
       const r = migrated.radius;
       if (typeof r === "number" && r >= 0 && r <= 500) {
         setRadius(r);
         setAppliedRadius(r);
       }
-      // Legacy radiusMode / nationalView stripped by migrateHomeFeedPersist.
-      if (
-        typeof migrated.category === "string" &&
-        migrated.category.length < 80
-      ) {
-        setCategory(migrated.category);
-        setAppliedCategory(migrated.category);
+      if (!urlLocksCategory) {
+        if (
+          typeof migrated.category === "string" &&
+          migrated.category.length < 80
+        ) {
+          setCategory(migrated.category);
+          setAppliedCategory(migrated.category);
+        }
       }
       const sb = migrated.sortBy;
       if (sb === "newest" || sb === "price" || sb === "views" || sb === "distance") {
@@ -1008,10 +1016,12 @@ export default function GeoFeed({
         setQ(qq);
         setAppliedQ(qq);
       }
-      if (typeof migrated.place === "string") {
-        const pl = migrated.place.slice(0, 200);
-        setPlace(pl);
-        setAppliedPlace(pl);
+      if (!urlLocksPlace) {
+        if (typeof migrated.place === "string") {
+          const pl = migrated.place.slice(0, 200);
+          setPlace(pl);
+          setAppliedPlace(pl);
+        }
       }
       if (
         typeof migrated.priceMin === "string" ||
@@ -1049,7 +1059,7 @@ export default function GeoFeed({
 
     const uid = (session?.user as { id?: string } | undefined)?.id ?? null;
     const p = readNativeFeedPrefs(uid);
-    if (p?.feedChip) setFeedChip(p.feedChip);
+    if (!urlLocksChip && p?.feedChip) setFeedChip(p.feedChip);
     if (p?.sortBy) setSortBy(p.sortBy);
     if (p?.sortOrder) setSortOrder(p.sortOrder);
     queueMicrotask(() => {
@@ -1078,8 +1088,21 @@ export default function GeoFeed({
   ]);
 
   useEffect(() => {
+    if (feedRestoredFromCacheRef.current) return;
     setInspiratiePool(initialInspiratieItems);
   }, [initialInspiratieItems]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    inspiratiePoolRef.current = inspiratiePool;
+  }, [inspiratiePool]);
+
+  useEffect(() => {
+    apiViewerCoordsRef.current = apiViewerCoords;
+  }, [apiViewerCoords]);
 
   // Alleen URL-/server-chip toepassen wanneer die expliciet is meegegeven (anders: client restore / persist).
   useEffect(() => {
@@ -1343,6 +1366,28 @@ export default function GeoFeed({
 
     const requestKey = params.toString();
 
+    const cached =
+      !feedInteractionStartedRef.current
+        ? peekFreshHomeFeedReturnCache() ??
+          readHomeFeedReturnCache(requestKey)
+        : readHomeFeedReturnCache(requestKey);
+    if (cached) {
+      feedRestoredFromCacheRef.current = true;
+      setItems(cached.items as FeedItem[]);
+      setInspiratiePool(cached.inspiratiePool);
+      if (cached.apiViewerCoords) {
+        setApiViewerCoords(cached.apiViewerCoords);
+      }
+      if (cached.nativeFeedRenderMore) {
+        setNativeFeedRenderMore(true);
+        nativeFeedRenderMoreRef.current = true;
+      }
+      setLoading(false);
+      feedInteractionStartedRef.current = true;
+      setFeedHydrated(true);
+      return;
+    }
+
     if (feedInteractionStartedRef.current) {
       setLoading(true);
     }
@@ -1504,6 +1549,16 @@ export default function GeoFeed({
     return () => {
       cancelled = true;
       ac.abort();
+      const snapshot = itemsRef.current;
+      if (snapshot.length > 0) {
+        saveHomeFeedReturnCache({
+          requestKey,
+          items: snapshot,
+          inspiratiePool: inspiratiePoolRef.current,
+          apiViewerCoords: apiViewerCoordsRef.current,
+          nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
+        });
+      }
     };
   }, [
     feedStartupBlocked,
@@ -1805,12 +1860,17 @@ export default function GeoFeed({
   useEffect(() => {
     if (!nativeMounted) {
       setNativeFeedRenderMore(false);
+      nativeFeedRenderMoreRef.current = false;
       return;
     }
     setNativeFeedRenderMore(false);
+    nativeFeedRenderMoreRef.current = false;
     let cancelled = false;
     const finish = () => {
-      if (!cancelled) setNativeFeedRenderMore(true);
+      if (!cancelled) {
+        setNativeFeedRenderMore(true);
+        nativeFeedRenderMoreRef.current = true;
+      }
     };
     let idleId: number | undefined;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
