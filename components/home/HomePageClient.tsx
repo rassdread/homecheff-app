@@ -20,6 +20,7 @@ import {
   HOME_FEED_WINDOW_SCROLL_KEY,
 } from "@/lib/appResumeCache";
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
+import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
 
 type HomeFeedChip = 'all' | 'sale' | 'inspiration';
 
@@ -56,6 +57,8 @@ export default function HomePageClient({
   const { t, tOr, language } = useTranslation();
   const { data: session } = useSession();
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
+  const { narrow: isNarrowHome, resolved: viewportResolved } =
+    useNarrowViewportResolved();
   const [currentDomain, setCurrentDomain] = useState(MAIN_DOMAIN);
 
   useEffect(() => {
@@ -153,6 +156,11 @@ export default function HomePageClient({
   const stickyAsideClass =
     'sticky top-20 z-[1] self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-3';
 
+  /** After client viewport is known: exactly one GeoFeed tree (mobile or desktop). */
+  const showMobileHomeFeed = viewportResolved && isNarrowHome;
+  const showDesktopHomeFeed =
+    viewportResolved && !isNarrowHome && !stickyTestMode;
+
   return (
     <>
       <StructuredData data={structuredData} />
@@ -164,9 +172,9 @@ export default function HomePageClient({
             <HomeHeroSection />
           </div>
 
-          {stickyTestMode ? (
+          {stickyTestMode && showDesktopHomeFeed ? (
             <section
-              className="hc-home-sticky-grid max-lg:hidden lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-6 items-start mb-8"
+              className="hc-home-sticky-grid lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-6 items-start mb-8"
               data-sticky-test-shell
             >
               <aside data-sticky-test="left" className={`${stickyAsideClass} bg-red-100 p-4`}>
@@ -181,17 +189,18 @@ export default function HomePageClient({
             </section>
           ) : null}
 
-          <div className="lg:hidden min-w-0">
-            {session?.user ? (
-              <div className="mb-3">
-                <UserActionCenter variant="mobileCompact" />
-              </div>
-            ) : null}
-            <GeoFeed {...geoFeedProps} />
-          </div>
+          {showMobileHomeFeed ? (
+            <div className="min-w-0">
+              {session?.user ? (
+                <div className="mb-3">
+                  <UserActionCenter variant="mobileCompact" />
+                </div>
+              ) : null}
+              <GeoFeed {...geoFeedProps} />
+            </div>
+          ) : null}
 
-          <div className="max-lg:hidden">
-          {!stickyTestMode ? (
+          {showDesktopHomeFeed ? (
             <GeoFeed {...geoFeedProps} homeComposedLayout>
               <section
                 className="hc-home-sticky-grid hc-home-desktop-shell lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] gap-5 xl:gap-6 lg:items-stretch lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] lg:min-h-[28rem]"
@@ -212,7 +221,6 @@ export default function HomePageClient({
               </section>
             </GeoFeed>
           ) : null}
-          </div>
         </div>
       </div>
       <OnboardingTour pageId="home" autoStart={false} />
