@@ -10,6 +10,10 @@ import {
   requiresStripeForHomecheffCheckout,
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  getBuyerPaymentWarningKey,
+  type PublicPaymentStatus,
+} from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 import { cn } from '@/lib/utils';
@@ -37,6 +41,7 @@ type Props = {
   availableStock: number | null;
   isOwner: boolean;
   checkoutAvailable: boolean;
+  paymentStatus?: PublicPaymentStatus | null;
   publicContactChannels: PublicContactChannel[];
   onAdded?: () => void;
   compact?: boolean;
@@ -51,6 +56,7 @@ export default function ProductSalePrimaryActions({
   availableStock,
   isOwner,
   checkoutAvailable,
+  paymentStatus,
   publicContactChannels,
   onAdded,
   compact = false,
@@ -97,15 +103,36 @@ export default function ProductSalePrimaryActions({
     requiresStripeForHomecheffCheckout(product) &&
     !checkoutAvailable
   ) {
+    const warningKey = getBuyerPaymentWarningKey(paymentStatus);
+    const hasContactChannels = publicContactChannels.length > 0;
+
     return (
-      <div
-        id="commerce-cta"
-        className={cn(
-          'rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950 leading-relaxed',
-          className,
-        )}
-      >
-        {t('productOrder.buyerPaymentsNotReady')}
+      <div id="commerce-cta" className={cn('space-y-3', className)}>
+        <div
+          className={cn(
+            'rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950 leading-relaxed',
+          )}
+        >
+          {t(warningKey)}
+        </div>
+        {product.seller?.User?.id && hasContactChannels ? (
+          <MakerContactSection
+            variant="product"
+            makerId={product.seller.User.id}
+            makerName={sellerName}
+            channels={publicContactChannels}
+            productId={product.id}
+            className={compact ? '!p-3' : '!border-gray-200 !bg-gray-50 text-gray-900 shadow-sm'}
+          />
+        ) : !hasContactChannels ? (
+          <p className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+            {tOr(
+              'productDetail.contactNotConfigured',
+              'This maker has not set up contact options yet.',
+              'Deze maker heeft nog geen contactopties ingesteld.',
+            )}
+          </p>
+        ) : null}
       </div>
     );
   }

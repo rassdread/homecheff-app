@@ -6,11 +6,12 @@ import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 import { parseProductOrderMethod } from '@/lib/product/order-method';
 import {
-  canPurchaseViaHomecheff,
   computePublishGateFromProductUpdate,
   requiresStripeForHomecheffCheckout,
   resolveProductPublishState,
 } from '@/lib/product/order-method';
+import { buildPublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
+import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import {
   saleProductRequiresLocation,
   validateProductLocationForPublish,
@@ -240,7 +241,7 @@ export async function GET(
       product.seller?.kvk && product.seller?.companyName,
     );
 
-    const sellerStripe = sellerUserId
+    let sellerStripe = sellerUserId
       ? await prisma.user.findUnique({
           where: { id: sellerUserId },
           select: {
@@ -250,21 +251,28 @@ export async function GET(
         })
       : null;
 
-    const checkoutAvailable = canPurchaseViaHomecheff(
-      {
-        orderMethod: (product as { orderMethod?: string }).orderMethod,
-        priceCents: product.priceCents,
-      },
-      sellerStripe,
-    );
-    const checkoutBlockedReason =
-      !checkoutAvailable &&
-      requiresStripeForHomecheffCheckout({
-        orderMethod: (product as { orderMethod?: string }).orderMethod,
-        priceCents: product.priceCents,
-      })
-        ? 'PAYMENTS_NOT_READY'
-        : null;
+    if (sellerUserId && sellerStripe?.stripeConnectAccountId) {
+      sellerStripe = await refreshSellerStripeSnapshotIfStale(
+        sellerUserId,
+        sellerStripe,
+      );
+    }
+
+    const productCheckoutShape = {
+      orderMethod: (product as { orderMethod?: string }).orderMethod,
+      priceCents: product.priceCents,
+    };
+    const requiresStripeCheckout =
+      requiresStripeForHomecheffCheckout(productCheckoutShape);
+
+    const paymentStatus = buildPublicPaymentStatus({
+      requiresStripeCheckout,
+      seller: sellerStripe,
+    });
+    const checkoutAvailable = requiresStripeCheckout
+      ? paymentStatus.canCheckout
+      : false;
+    const checkoutBlockedReason = paymentStatus.reason;
 
     return NextResponse.json({ 
       product: {
@@ -274,6 +282,7 @@ export async function GET(
       publicContactChannels,
       checkoutAvailable,
       checkoutBlockedReason,
+      paymentStatus,
       sellerBadges,
       isBusiness,
       companyName: product.seller?.companyName ?? null,

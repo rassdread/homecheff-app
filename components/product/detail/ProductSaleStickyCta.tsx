@@ -62,6 +62,8 @@ export default function ProductSaleStickyCta({
   const contactOnlyNoChannels = contactOnly && !contactOnlyWithChannels;
   const paymentsBlocked =
     requiresStripeForHomecheffCheckout(product) && !checkoutAvailable;
+  const paymentsBlockedWithChannels =
+    paymentsBlocked && product.seller?.User?.id && publicContactChannels.length > 0;
   const productInCart = items.some(
     (item) => item.productId === product.id || item.id === product.id,
   );
@@ -121,6 +123,11 @@ export default function ProductSaleStickyCta({
     onAction = scrollToCta;
     disabled = false;
     showCartIcon = false;
+  } else if (paymentsBlockedWithChannels) {
+    actionLabel = tOr('productDetail.contactMaker', 'Contact maker', 'Bericht sturen');
+    onAction = scrollToCta;
+    disabled = false;
+    showCartIcon = false;
   } else if (paymentsBlocked) {
     actionLabel = tOr('productDetail.viewOffer', 'View offer', 'Bekijk aanbod');
     onAction = scrollToCta;
@@ -159,7 +166,7 @@ export default function ProductSaleStickyCta({
             <Check className="h-4 w-4" aria-hidden />
           ) : checkoutMode && !contactOnly ? (
             <ArrowRight className="h-4 w-4" aria-hidden />
-          ) : contactOnlyWithChannels || contactOnlyNoChannels ? (
+          ) : contactOnlyWithChannels || contactOnlyNoChannels || paymentsBlockedWithChannels ? (
             <MessageCircle className="h-4 w-4" aria-hidden />
           ) : showCartIcon ? (
             <ShoppingCart className="h-4 w-4" aria-hidden />

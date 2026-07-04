@@ -17,7 +17,7 @@ import {
   buildProductSlugPath,
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
-import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
 import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTrustNote';
@@ -191,6 +191,7 @@ export default function ProductPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [publicContactChannels, setPublicContactChannels] = useState<PublicContactChannel[]>([]);
   const [checkoutAvailable, setCheckoutAvailable] = useState(true);
+  const [paymentStatus, setPaymentStatus] = useState<PublicPaymentStatus | null>(null);
   const [sellerBadges, setSellerBadges] = useState<UserBadgeChipItem[]>([]);
   const [isBusiness, setIsBusiness] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
@@ -330,6 +331,7 @@ export default function ProductPage() {
         }
 
         setCheckoutAvailable(data.checkoutAvailable !== false);
+        setPaymentStatus(data.paymentStatus ?? null);
         
         if (session?.user?.email) {
           try {
@@ -733,6 +735,7 @@ export default function ProductPage() {
                   availableStock={availableStock}
                   isOwner={isOwner}
                   checkoutAvailable={checkoutAvailable}
+                  paymentStatus={paymentStatus}
                   publicContactChannels={publicContactChannels}
                   carouselImageUrl={carouselImageUrl}
                   shareUrl={productShareUrl}

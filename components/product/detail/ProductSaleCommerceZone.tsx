@@ -19,6 +19,7 @@ import {
   isContactOnlyProduct,
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
@@ -84,6 +85,7 @@ type Props = {
   availableStock: number | null;
   isOwner: boolean;
   checkoutAvailable: boolean;
+  paymentStatus?: PublicPaymentStatus | null;
   publicContactChannels: PublicContactChannel[];
   carouselImageUrl?: string | null;
   shareUrl: string;
@@ -107,6 +109,7 @@ export default function ProductSaleCommerceZone({
   availableStock,
   isOwner,
   checkoutAvailable,
+  paymentStatus,
   publicContactChannels,
   carouselImageUrl,
   shareUrl,
@@ -269,6 +272,7 @@ export default function ProductSaleCommerceZone({
         availableStock={availableStock}
         isOwner={isOwner}
         checkoutAvailable={checkoutAvailable}
+        paymentStatus={paymentStatus}
         publicContactChannels={publicContactChannels}
         onAdded={onAddedToCart}
       />
