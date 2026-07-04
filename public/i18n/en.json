@@ -3674,6 +3674,14 @@
       "complete": "Your profile looks ready.",
       "cta": "Continue on profile"
     },
+    "actionCenter": {
+      "title": "Action required",
+      "subtitle": "What needs your attention now",
+      "healthyTitle": "Everything looks good",
+      "healthyDescription": "You have no open actions right now.",
+      "viewAll": "View all actions",
+      "showLess": "Show less"
+    },
     "moreSectionHeading": "More",
     "seoHubLink": "All guides and topics (SEO hub)",
     "heroCollapsedLabel": "Welcome & discover",

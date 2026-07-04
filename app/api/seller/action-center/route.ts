@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildSellerActionItems } from '@/lib/seller/seller-action-center';
+import { isSellerDashboardOrderBadgeNotification } from '@/lib/notifications/notificationRouting';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,12 +72,41 @@ export async function GET() {
       });
     }
 
+    const [unreadMessagesCount, unreadOrderNotifs] = await Promise.all([
+      prisma.message.count({
+        where: {
+          Conversation: {
+            ConversationParticipant: { some: { userId: user.id } },
+          },
+          readAt: null,
+          NOT: { senderId: user.id },
+        },
+      }),
+      prisma.notification.findMany({
+        where: {
+          userId: user.id,
+          readAt: null,
+          type: { in: ['ORDER_RECEIVED', 'ORDER_UPDATE'] },
+        },
+        select: { type: true, payload: true },
+      }),
+    ]);
+
+    const sellerUnreadOrdersCount = unreadOrderNotifs.filter((row) =>
+      isSellerDashboardOrderBadgeNotification(
+        String(row.type),
+        (row.payload as Record<string, unknown>) || {},
+      ),
+    ).length;
+
     const items = buildSellerActionItems({
       user,
       stripeSnapshot,
       blockedProductsCount,
       pendingOrdersCount,
-      includeOrange: false,
+      unreadMessagesCount,
+      sellerUnreadOrdersCount,
+      includeOrange: true,
     });
 
     return NextResponse.json({

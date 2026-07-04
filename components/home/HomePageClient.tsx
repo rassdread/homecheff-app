@@ -10,7 +10,7 @@ import PostAuthPersonaBanner from "@/components/onboarding/PostAuthPersonaBanner
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
 import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
-import SellerActionCenter from "@/components/seller/SellerActionCenter";
+import UserActionCenter from "@/components/home/UserActionCenter";
 import GeoFeed, { FeedContent, FeedFiltersPanel } from "@/components/feed/GeoFeed";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
@@ -171,7 +171,7 @@ export default function HomePageClient({
           <div className="lg:hidden min-w-0">
             {session?.user ? (
               <div className="mb-3">
-                <SellerActionCenter variant="mobileCompact" />
+                <UserActionCenter variant="mobileCompact" />
               </div>
             ) : null}
             <GeoFeed {...geoFeedProps} />

@@ -13,7 +13,7 @@ import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
 import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
 import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
-import SellerActionCenter from '@/components/seller/SellerActionCenter';
+import UserActionCenter from '@/components/home/UserActionCenter';
 
 type Props = {
   welcomeLine?: string | null;
@@ -46,7 +46,7 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           </div>
         ) : null}
 
-        {session?.user ? <SellerActionCenter variant="sidebar" /> : null}
+        {session?.user ? <UserActionCenter variant="sidebar" /> : null}
 
         <HomeReputationCompactCard
           variant="sidebar"

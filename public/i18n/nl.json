@@ -4958,6 +4958,14 @@
       "complete": "Je profiel ziet er klaar uit.",
       "cta": "Verder op profiel"
     },
+    "actionCenter": {
+      "title": "Acties vereist",
+      "subtitle": "Wat nu jouw aandacht vraagt",
+      "healthyTitle": "Alles ziet er goed uit",
+      "healthyDescription": "Je hebt momenteel geen openstaande acties.",
+      "viewAll": "Bekijk alle acties",
+      "showLess": "Minder tonen"
+    },
     "moreSectionHeading": "Meer",
     "seoHubLink": "Alle gidsen en onderwerpen (SEO-hub)",
     "heroCollapsedLabel": "Welkom & ontdekken",
