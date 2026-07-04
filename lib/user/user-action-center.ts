@@ -15,6 +15,8 @@ import {
   resolveNotificationTargetUrl,
 } from '@/lib/notifications/notificationRouting';
 import { prismaTypeString } from '@/lib/notifications/mapNotificationForApi';
+import type { ActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
+import { resolveEntityHrefs } from '@/lib/action-center/fetch-action-center-entities';
 import type { PendingClientReward } from '@/lib/gamification/gamification-me-types';
 
 export type UserActionItem = SellerActionItem;
@@ -63,9 +65,9 @@ export type UserActionCenterInput = {
     recentSubAffiliateCount: number;
   } | null;
   pendingHcpRewards: PendingClientReward[];
+  entityHints?: ActionCenterEntityHints;
 };
 
-const MESSAGES_HREF = '/messages';
 const ORDERS_HREF = '/orders';
 const PROFILE_HREF = '/profile';
 const NOTIFICATIONS_HREF = '/notifications';
@@ -96,18 +98,25 @@ function dedupeAndSort(items: UserActionItem[]): UserActionItem[] {
     .sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
 }
 
-function buildMessagesAction(count: number): UserActionItem | null {
+function buildMessagesAction(
+  count: number,
+  hints?: ActionCenterEntityHints,
+): UserActionItem | null {
   if (count <= 0) return null;
+  const hrefs = resolveEntityHrefs(hints ?? {});
+  const sender = hints?.firstUnreadConversationSenderName?.trim();
   return {
     id: 'messages-unread',
     severity: 'orange',
     title:
-      count === 1
-        ? 'Je hebt 1 ongelezen bericht.'
-        : `Je hebt ${count} ongelezen berichten.`,
+      count === 1 && sender
+        ? `Bericht van ${sender}.`
+        : count === 1
+          ? 'Je hebt 1 ongelezen bericht.'
+          : `Je hebt ${count} ongelezen berichten.`,
     description: 'Reageer om contact en vertrouwen te behouden.',
-    actionLabel: 'Open berichten',
-    actionHref: MESSAGES_HREF,
+    actionLabel: 'Gesprek openen',
+    actionHref: hrefs.messagesHref,
   };
 }
 
@@ -395,6 +404,7 @@ export function buildUserActionItems(input: UserActionCenterInput): UserActionIt
         unreadMessagesCount: input.unreadMessagesCount,
         sellerUnreadOrdersCount: input.sellerOrderNotificationsCount,
         includeOrange: true,
+        entityHints: input.entityHints,
       }),
     );
   } else {
@@ -402,7 +412,10 @@ export function buildUserActionItems(input: UserActionCenterInput): UserActionIt
     if (account) items.push(account);
   }
 
-  const messages = buildMessagesAction(input.unreadMessagesCount);
+  const messages = buildMessagesAction(
+    input.unreadMessagesCount,
+    input.entityHints,
+  );
   if (messages && !items.some((i) => i.id === 'messages-unread')) {
     items.push(messages);
   }

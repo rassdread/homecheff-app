@@ -7,8 +7,12 @@ import {
   resolveSellerPaymentStatus,
   type SellerStripeSnapshot,
 } from '@/lib/stripe/seller-payment-status';
+import type { ActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
+import { resolveEntityHrefs } from '@/lib/action-center/fetch-action-center-entities';
 
 export type SellerActionSeverity = 'red' | 'orange' | 'green' | 'gray';
+
+export type SellerActionKind = 'link' | 'stripe-onboard';
 
 export type SellerActionItem = {
   id: string;
@@ -17,6 +21,7 @@ export type SellerActionItem = {
   description: string;
   actionLabel: string;
   actionHref: string;
+  actionKind?: SellerActionKind;
 };
 
 export type SellerActionCenterInput = {
@@ -28,12 +33,11 @@ export type SellerActionCenterInput = {
   unreadMessagesCount?: number;
   sellerUnreadOrdersCount?: number;
   includeOrange?: boolean;
+  entityHints?: ActionCenterEntityHints;
 };
 
 const STRIPE_SETTINGS_HREF = '/settings?tab=payments';
 const PROFILE_HREF = '/profile';
-const ORDERS_HREF = '/verkoper/orders';
-const MESSAGES_HREF = '/messages';
 
 function buildStripeActions(
   snapshot: SellerStripeSnapshot,
@@ -47,8 +51,9 @@ function buildStripeActions(
         severity: 'red',
         title: 'Je kunt nog geen betalingen ontvangen.',
         description: 'Koppel Stripe om producten via HomeCheff te verkopen.',
-        actionLabel: 'Betaalinstellingen openen',
+        actionLabel: 'Stripe koppelen',
         actionHref: STRIPE_SETTINGS_HREF,
+        actionKind: 'stripe-onboard',
       },
     ];
   }
@@ -62,6 +67,7 @@ function buildStripeActions(
         description: 'Rond Stripe af om betalingen te ontvangen.',
         actionLabel: 'Nu afronden',
         actionHref: STRIPE_SETTINGS_HREF,
+        actionKind: 'stripe-onboard',
       },
     ];
   }
@@ -72,18 +78,43 @@ function buildStripeActions(
 function buildBlockedProductsAction(
   count: number,
   paymentsReady: boolean,
+  hints?: ActionCenterEntityHints,
 ): SellerActionItem | null {
   if (count <= 0) return null;
+  const hrefs = resolveEntityHrefs(hints ?? {});
+  const productTitle = hints?.firstBlockedProductTitle?.trim();
+
+  if (count === 1 && productTitle) {
+    return {
+      id: 'products-blocked-payments',
+      severity: 'red',
+      title: `${productTitle} kan niet verkocht worden.`,
+      description: paymentsReady
+        ? 'Dit product staat nog niet live in de shop.'
+        : 'Betaalinstellingen ontbreken voor dit product.',
+      actionLabel: 'Product openen',
+      actionHref: hrefs.blockedProductHref,
+    };
+  }
+
   const label = count === 1 ? '1 product' : `${count} producten`;
   return {
     id: 'products-blocked-payments',
     severity: 'red',
-    title: `${label} ${count === 1 ? 'kan' : 'kunnen'} niet verkocht worden.`,
-    description: paymentsReady
-      ? 'Deze producten staan nog niet live in de shop.'
-      : 'Betaalinstellingen ontbreken voor deze producten.',
-    actionLabel: 'Bekijk producten',
-    actionHref: PROFILE_HREF,
+    title: productTitle
+      ? `${productTitle} kan niet verkocht worden.`
+      : `${label} ${count === 1 ? 'kan' : 'kunnen'} niet verkocht worden.`,
+    description: productTitle
+      ? count > 1
+        ? `Nog ${count - 1} andere producten wachten ook op actie.`
+        : paymentsReady
+          ? 'Dit product staat nog niet live in de shop.'
+          : 'Betaalinstellingen ontbreken voor dit product.'
+      : paymentsReady
+        ? 'Deze producten staan nog niet live in de shop.'
+        : 'Betaalinstellingen ontbreken voor deze producten.',
+    actionLabel: 'Product openen',
+    actionHref: hrefs.blockedProductHref,
   };
 }
 
@@ -103,16 +134,36 @@ function buildAccountIncompleteAction(
   };
 }
 
-function buildPendingOrdersAction(count: number): SellerActionItem | null {
+function buildPendingOrdersAction(
+  count: number,
+  hints?: ActionCenterEntityHints,
+): SellerActionItem | null {
   if (count <= 0) return null;
+  const hrefs = resolveEntityHrefs(hints ?? {});
+  const orderNumber = hints?.firstPendingOrderNumber?.trim();
+
+  if (orderNumber) {
+    return {
+      id: 'orders-pending',
+      severity: 'red',
+      title:
+        count === 1
+          ? `Bestelling #${orderNumber} wacht op je reactie.`
+          : `Bestelling #${orderNumber} wacht (+${count - 1} andere).`,
+      description: 'Bevestig of verwerk deze bestelling.',
+      actionLabel: 'Bestelling openen',
+      actionHref: hrefs.pendingOrderHref,
+    };
+  }
+
   const label = count === 1 ? '1 bestelling' : `${count} bestellingen`;
   return {
     id: 'orders-pending',
     severity: 'red',
     title: `${label} ${count === 1 ? 'wacht' : 'wachten'} op je reactie.`,
     description: 'Bevestig of verwerk deze bestellingen.',
-    actionLabel: 'Bekijk bestellingen',
-    actionHref: ORDERS_HREF,
+    actionLabel: 'Bestelling openen',
+    actionHref: hrefs.pendingOrderHref,
   };
 }
 
@@ -121,31 +172,39 @@ function buildOrangeActions(input: SellerActionCenterInput): SellerActionItem[] 
   if (!input.includeOrange) return [];
 
   const items: SellerActionItem[] = [];
+  const hints = input.entityHints;
+  const hrefs = resolveEntityHrefs(hints ?? {});
 
   const unreadMessages = input.unreadMessagesCount ?? 0;
   if (unreadMessages > 0) {
+    const sender = hints?.firstUnreadConversationSenderName?.trim();
     items.push({
       id: 'messages-unread',
       severity: 'orange',
       title:
-        unreadMessages === 1
-          ? 'Je hebt 1 onbeantwoord bericht.'
-          : `Je hebt ${unreadMessages} onbeantwoorde berichten.`,
+        unreadMessages === 1 && sender
+          ? `Bericht van ${sender}.`
+          : unreadMessages === 1
+            ? 'Je hebt 1 ongelezen bericht.'
+            : `Je hebt ${unreadMessages} ongelezen berichten.`,
       description: 'Reageer om vertrouwen en omzet te behouden.',
-      actionLabel: 'Open berichten',
-      actionHref: MESSAGES_HREF,
+      actionLabel: 'Gesprek openen',
+      actionHref: hrefs.messagesHref,
     });
   }
 
   const sellerOrderNotifs = input.sellerUnreadOrdersCount ?? 0;
   if (sellerOrderNotifs > 0) {
+    const orderNumber = hints?.firstSellerOrderNotificationOrderNumber?.trim();
     items.push({
       id: 'orders-notification',
       severity: 'orange',
-      title: 'Nieuwe bestelling ontvangen.',
+      title: orderNumber
+        ? `Nieuwe bestelling #${orderNumber}.`
+        : 'Nieuwe bestelling ontvangen.',
       description: 'Bekijk de details en reageer op tijd.',
-      actionLabel: 'Bekijk bestelling',
-      actionHref: ORDERS_HREF,
+      actionLabel: 'Bestelling openen',
+      actionHref: hrefs.sellerOrderNotifHref,
     });
   }
 
@@ -173,6 +232,7 @@ export function buildSellerActionItems(
       const blocked = buildBlockedProductsAction(
         input.blockedProductsCount,
         paymentsReady,
+        input.entityHints,
       );
       if (blocked) items.push(blocked);
     }
@@ -181,7 +241,10 @@ export function buildSellerActionItems(
   const accountAction = buildAccountIncompleteAction(input.user);
   if (accountAction) items.push(accountAction);
 
-  const pendingAction = buildPendingOrdersAction(input.pendingOrdersCount);
+  const pendingAction = buildPendingOrdersAction(
+    input.pendingOrdersCount,
+    input.entityHints,
+  );
   if (pendingAction) items.push(pendingAction);
 
   items.push(...buildOrangeActions(input));

@@ -11,6 +11,7 @@ import {
   notificationVisibleToSellerAndBuyer,
   resolveNotificationTargetUrl,
 } from '@/lib/notifications/notificationRouting';
+import { fetchActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
 
 export const dynamic = 'force-dynamic';
 
@@ -179,6 +180,12 @@ export async function GET() {
         (c) => c.createdAt >= sevenDaysAgo,
       ).length ?? 0;
 
+    const entityHints = await fetchActionCenterEntityHints(
+      prisma,
+      user.id,
+      sellerProfileId,
+    );
+
     const items = buildUserActionItems({
       user,
       roles: {
@@ -205,6 +212,7 @@ export async function GET() {
       pendingHcpRewards: normalizePendingRewards(
         user.hcpStats?.pendingClientRewards,
       ),
+      entityHints,
     });
 
     return NextResponse.json({

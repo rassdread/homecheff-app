@@ -5,6 +5,7 @@ import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildSellerActionItems } from '@/lib/seller/seller-action-center';
 import { isSellerDashboardOrderBadgeNotification } from '@/lib/notifications/notificationRouting';
+import { fetchActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +100,12 @@ export async function GET() {
       ),
     ).length;
 
+    const entityHints = await fetchActionCenterEntityHints(
+      prisma,
+      user.id,
+      sellerProfileId,
+    );
+
     const items = buildSellerActionItems({
       user,
       stripeSnapshot,
@@ -107,6 +114,7 @@ export async function GET() {
       unreadMessagesCount,
       sellerUnreadOrdersCount,
       includeOrange: true,
+      entityHints,
     });
 
     return NextResponse.json({

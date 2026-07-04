@@ -14,6 +14,7 @@ import {
   type UserActionItem,
   type UserActionCenterVariant,
 } from '@/lib/user/user-action-center';
+import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import { cn } from '@/lib/utils';
 
 type ActionCenterResponse = {
@@ -83,6 +84,21 @@ function ActionRow({
   showDescription: boolean;
 }) {
   const styles = severityStyles[item.severity] ?? severityStyles.gray;
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const ctaClass = cn(
+    'inline-flex shrink-0 items-center justify-center rounded-lg font-semibold transition-colors',
+    compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-2 text-xs sm:ml-3',
+    styles.cta,
+  );
+
+  const handleStripeOnboard = async () => {
+    setStripeLoading(true);
+    try {
+      await startStripeConnectOnboarding();
+    } finally {
+      setStripeLoading(false);
+    }
+  };
 
   return (
     <div
@@ -127,16 +143,20 @@ function ActionRow({
           </div>
         </div>
       </div>
-      <Link
-        href={item.actionHref}
-        className={cn(
-          'inline-flex shrink-0 items-center justify-center rounded-lg font-semibold transition-colors',
-          compact ? 'px-2 py-1 text-[10px]' : 'px-3 py-2 text-xs sm:ml-3',
-          styles.cta,
-        )}
-      >
-        {item.actionLabel}
-      </Link>
+      {item.actionKind === 'stripe-onboard' ? (
+        <button
+          type="button"
+          onClick={() => void handleStripeOnboard()}
+          disabled={stripeLoading}
+          className={cn(ctaClass, stripeLoading && 'opacity-70')}
+        >
+          {stripeLoading ? '…' : item.actionLabel}
+        </button>
+      ) : (
+        <Link href={item.actionHref} className={ctaClass}>
+          {item.actionLabel}
+        </Link>
+      )}
     </div>
   );
 }
@@ -205,6 +225,19 @@ export default function UserActionCenter({
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onRefresh = () => void load();
+    window.addEventListener('focus', onRefresh);
+    window.addEventListener('notificationsUpdated', onRefresh);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void load();
+    });
+    return () => {
+      window.removeEventListener('focus', onRefresh);
+      window.removeEventListener('notificationsUpdated', onRefresh);
+    };
   }, [load]);
 
   const title = tOr(
