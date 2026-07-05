@@ -114,6 +114,8 @@ export async function GET(request: NextRequest) {
       Image: product.Image, // Include full Image array for MyDishesManager
       createdAt: product.createdAt,
       category: product.category,
+      marketplaceCategory: product.marketplaceCategory ?? null,
+      specializations: product.specializations ?? [],
       subcategory: product.subcategory,
       delivery: product.delivery,
       stock: product.stock,

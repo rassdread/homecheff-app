@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X, Eye, PlayCircle } from "lucide-react";
 import Link from "next/link";
+import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import type { MarketplaceCategory } from "@prisma/client";
 import SafeImage from "@/components/ui/SafeImage";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
 import dynamic from 'next/dynamic';
@@ -66,6 +68,8 @@ type HomeItem = {
   video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null } | null;
   createdAt: string | Date;
   category?: string;
+  marketplaceCategory?: string | null;
+  specializations?: string[];
   subcategory?: string;
   delivery?: string;
   tags?: string[];
@@ -1530,6 +1534,17 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
 
                     {/* Content */}
                     <div className={viewMode === 'list' ? 'p-6 flex-1' : 'p-6'}>
+                      <MarketplaceBadgeList
+                        specializations={item.specializations}
+                        marketplaceCategory={
+                          (item.marketplaceCategory as MarketplaceCategory | null) ??
+                          null
+                        }
+                        legacyCategory={item.category}
+                        maxVisible={2}
+                        size="sm"
+                        className="mb-2"
+                      />
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-lg font-semibold text-neutral-900 line-clamp-2 flex-1 group-hover:text-primary-brand transition-colors">
                           {item.title}

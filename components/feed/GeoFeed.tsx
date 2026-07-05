@@ -208,6 +208,8 @@ type FeedItem = {
   sellerBadges?: AuthorBadgeChip[];
   /** Afgeleide V3 taxonomy (Fase 5D). */
   taxonomy?: FeedTaxonomy;
+  marketplaceCategory?: string | null;
+  specializations?: string[];
   feedSource?: string | null;
 };
 
@@ -370,6 +372,11 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
     ownerId,
     category,
+    marketplaceCategory:
+      raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
+    specializations: Array.isArray(raw.specializations)
+      ? raw.specializations.filter((v): v is string => typeof v === 'string')
+      : undefined,
     sellerUserId,
     sellerName,
     sellerUsername,
@@ -646,6 +653,8 @@ function toCardItem(
     sellerDisplayNameOption: it.sellerDisplayNameOption,
     sellerBadges: it.sellerBadges,
     taxonomy: it.taxonomy,
+    marketplaceCategory: it.marketplaceCategory,
+    specializations: it.specializations,
   };
 }
 

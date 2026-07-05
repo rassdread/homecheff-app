@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Eye, MapPin } from "lucide-react";
 import { FeedCardPrimaryMedia } from "@/components/feed/feedMedia";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
+import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import type { MarketplaceCategory } from "@prisma/client";
 import { formatProductPriceLabel } from "@/lib/product/order-method";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
@@ -131,6 +133,17 @@ export default function DiscoverGridTile({
             {it.title?.trim() || t("common.dish")}
           </h3>
         </Link>
+        {kind === "sale" ? (
+          <MarketplaceBadgeList
+            specializations={it.specializations}
+            marketplaceCategory={
+              (it.marketplaceCategory as MarketplaceCategory | null) ?? null
+            }
+            legacyCategory={it.category}
+            maxVisible={2}
+            size="sm"
+          />
+        ) : null}
         {creator ? (
           <p className="line-clamp-1 text-[11px] font-medium text-gray-600">
             {creator}

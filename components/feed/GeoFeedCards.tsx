@@ -29,6 +29,8 @@ import {
   getCachedUserStats,
 } from "@/lib/userStatsClientCache";
 import type { UserBadgeChipItem } from "@/components/gamification/UserBadgeChips";
+import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import type { MarketplaceCategory } from "@prisma/client";
 
 /** Desktop homepage feed: one-line seller stats instead of UserStatsTile grid. */
 function FeedCardCompactStats({
@@ -143,6 +145,8 @@ export type GeoFeedCardItem = {
   sellerBadges?: Array<{ key: string; name: string; icon: string }>;
   /** Afgeleide V3 taxonomy (Fase 5D, optioneel). */
   taxonomy?: FeedTaxonomy;
+  marketplaceCategory?: string | null;
+  specializations?: string[];
 };
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -233,6 +237,16 @@ export function FeedSaleCard({
         }
       />
       <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
+        <MarketplaceBadgeList
+          specializations={it.specializations}
+          marketplaceCategory={
+            (it.marketplaceCategory as MarketplaceCategory | null) ?? null
+          }
+          legacyCategory={it.category}
+          maxVisible={2}
+          size="sm"
+          className="min-h-0"
+        />
         <div className="flex justify-between items-start gap-2">
           <Link href={listingHref} prefetch className="flex-1 min-w-0">
             <p className="feed-card-title font-bold text-gray-900 line-clamp-2 leading-snug text-[15px] sm:text-base">

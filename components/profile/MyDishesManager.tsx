@@ -12,6 +12,8 @@ import DesignManager from "../designs/DesignManager";
 import SmartFitMediaImage from "@/components/inspiratie/SmartFitMediaImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
+import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import type { MarketplaceCategory } from "@prisma/client";
 
 type Dish = {
   id: string;
@@ -23,6 +25,8 @@ type Dish = {
   deliveryMode?: "PICKUP" | "DELIVERY" | "BOTH" | null;
   place?: string | null;
   category?: "CHEFF" | "GROWN" | "DESIGNER";
+  marketplaceCategory?: MarketplaceCategory | null;
+  specializations?: string[];
   subcategory?: string;
   stock?: number | null;
   maxStock?: number | null;
@@ -323,6 +327,8 @@ export default function MyDishesManager({
               product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
               null,
             category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
+            marketplaceCategory: product.marketplaceCategory ?? null,
+            specializations: product.specializations ?? [],
             subcategory: product.subcategory,
             stock: product.stock,
             maxStock: product.maxStock,
@@ -405,6 +411,8 @@ export default function MyDishesManager({
               product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
               null,
             category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
+            marketplaceCategory: product.marketplaceCategory ?? null,
+            specializations: product.specializations ?? [],
             subcategory: product.subcategory,
             stock: product.stock,
             maxStock: product.maxStock,
@@ -955,6 +963,16 @@ export default function MyDishesManager({
                   )}
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                    {item.priceCents ? (
+                      <MarketplaceBadgeList
+                        specializations={item.specializations}
+                        marketplaceCategory={item.marketplaceCategory}
+                        legacyCategory={item.category}
+                        maxVisible={2}
+                        size="sm"
+                        className="mb-2"
+                      />
+                    ) : null}
                     {item.description && (
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
                     )}

@@ -18,12 +18,14 @@ import {
   resolveProductIdFromParam,
 } from '@/lib/seo/productSlug';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
+import type { MarketplaceCategory } from '@prisma/client';
 import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
 import type { ProductInspirationLink } from '@/components/product/detail/ProductInspirationLinkCard';
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
 import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTrustNote';
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
+import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
@@ -42,6 +44,8 @@ type Product = {
   createdAt: string | Date;
   category?: string;
   subcategory?: string;
+  marketplaceCategory?: string | null;
+  specializations?: string[];
   displayNameType?: string;
   delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
   tags?: string[];
@@ -296,6 +300,10 @@ export default function ProductPage() {
           createdAt: data.product.createdAt,
           category: data.product.category,
           subcategory: data.product.subcategory,
+          marketplaceCategory: data.product.marketplaceCategory ?? null,
+          specializations: Array.isArray(data.product.specializations)
+            ? data.product.specializations
+            : [],
           tags: Array.isArray(data.product.tags) ? data.product.tags : [],
           pickupAddress: data.product.pickupAddress ?? null,
           pickupLat: data.product.pickupLat ?? null,
@@ -752,6 +760,14 @@ export default function ProductPage() {
 
           {!isEditing ? (
             <div className="mt-8 space-y-6">
+              <ProductOfferedBadgesSection
+                specializations={product.specializations}
+                marketplaceCategory={
+                  (product.marketplaceCategory as MarketplaceCategory | null) ?? null
+                }
+                legacyCategory={product.category}
+              />
+
               <ProductSaleAboutSection
                 product={product}
                 sellerName={getSellerDisplayName(product)}
