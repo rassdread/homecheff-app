@@ -4928,125 +4928,10 @@
     "savingFailed": "Er is een fout opgetreden bij het opslaan"
   },
   "checkout": {
-    "selectDeliveryOption": "Selecteer een bezorgoptie",
-    "fillPostcodeHouseNumber": "Vul postcode en huisnummer in om bezorgopties te zien",
-    "validateAddressFirst": "Valideer eerst je adres door op \"Valideer Adres\" te klikken",
-    "teenDeliveryUnavailable": "Jongeren bezorging is momenteel niet beschikbaar. Kies een andere optie.",
-    "sessionLoading": "Je sessie wordt geladen...",
-    "loginRequired": "Inloggen vereist",
-    "loginRequiredMessage": "Je moet ingelogd zijn om af te rekenen",
-    "login": "Inloggen",
-    "cartEmpty": "Je winkelwagen is leeg",
-    "continueShopping": "Verder winkelen",
-    "redirectingToStripe": "We leiden je om naar Stripe…",
-    "checkoutTitle": "Afrekenen",
-    "completeOrder": "Voltooi je bestelling",
-    "step1DeliveryAddress": "Stap 1: Bezorgadres",
-    "pickup": "Ophalen",
-    "pickupDescription": "Je haalt de producten zelf op bij de verkoper",
-    "pickupEstimatedTime": "Afhankelijk van verkoper",
-    "localDelivery": "Lokaal Bezorgen",
-    "localDeliveryDescription": "De verkoper bezorgt zelf in de buurt",
-    "localDeliveryEstimatedTime": "Binnen 24 uur",
-    "teenDelivery": "Jongeren Bezorgen (15+)",
-    "teenDeliveryDescription": "Beschikbare jongeren uit de buurt bezorgen jouw bestelling.",
-    "teenDeliveryEstimatedTime": "Binnen 3 uur",
-    "shipping": "Verzenden",
-    "shippingDescription": "Pakketpost via DHL/PostNL. Verzendkosten worden automatisch berekend op basis van gewicht, afmetingen en bestemming.",
-    "shippingEstimatedTime": "1-3 werkdagen",
-    "international": "Internationaal",
-    "national": "Nationaal",
-    "dhlPostnl": "DHL/PostNL verzending",
-    "deliveryDetails": "Bezorgdetails",
-    "deliveryOption": "Delivery Option",
-    "addressValidatedCalculating": "✅ Adres gevalideerd en bezorgopties worden berekend",
-    "fillAddressToSeeOptions": "Vul je adres in om te zien welke bezorgopties beschikbaar zijn",
-    "pickupDate": "Ophaaldatum",
-    "deliveryDate": "Bezorgdatum",
-    "deliveryTime": "Bezorgtijd",
-    "chooseTime": "Kies tijd",
-    "notesOptional": "Opmerkingen (optioneel)",
-    "notesPlaceholder": "Bijv. bel aan, achterdeur, etc.",
-    "smsNotificationForSellers": "SMS Notificatie voor verkopers",
-    "smsNotificationDescription": "Verkopers ontvangen een SMS bij nieuwe bestellingen.",
-    "smsCostPerSeller": "Kosten: €{cost} per verkoper.",
-    "smsCostForSellers": "Kosten: €{cost} voor {count} verkopers.",
-    "allAvailableDeliverers": "Alle beschikbare bezorgers in jouw gebied ontvangen een notificatie.",
-    "firstAcceptsDelivers": "De eerste die accepteert bezorgt jouw bestelling!",
-    "withinRadius": "Binnen radius van zowel verkoper als koper",
-    "availableInTimeSlot": "Beschikbaar in jouw gekozen tijdslot",
-    "notificationOnAcceptance": "Je krijgt meteen een melding bij acceptatie",
-    "directMessagesWithDeliverer": "Direct berichten met de bezorger mogelijk",
-    "noDeliverersAvailable": "Geen bezorgers beschikbaar in jouw regio op dit moment.",
-    "deliverersAvailable": "Bezorgers beschikbaar in jouw regio.",
-    "unknownError": "Onbekende fout",
-    "addressValidationError": "Er is een fout opgetreden bij het valideren van het adres.",
-    "checkoutError": "Checkout fout: {error}",
-    "checkoutErrorGeneric": "Er is een fout opgetreden bij het afrekenen",
-    "noCheckoutUrl": "Geen checkout URL ontvangen",
-    "trustLine": "Veilig betalen met Stripe · Geen verborgen kosten",
-    "couldNotValidateAddress": "Kon adres niet valideren. Probeer het opnieuw.",
-    "validateAddressToSeeTeenDeliverers": "Valideer je adres om beschikbare jongeren bezorgers te zien.",
-    "checkingAvailability": "Beschikbaarheid wordt gecontroleerd…",
-    "addressValidated": "Address Validated",
-    "addressValidatedAndCalculating": "Address validated! Calculating distances...",
-    "allAvailableDeliverersReceiveNotification": "All available deliverers in your area receive a notification.",
-    "availableInChosenTimeSlot": "✓ Available in your chosen time slot",
-    "cannotValidateAddress": "Cannot validate address",
-    "checkoutButton": "Checkout - €{amount}",
-    "checkoutErrorTitle": "Checkout Error",
-    "city": "City",
-    "costForOneSeller": "Cost: €{amount}.",
-    "costForSellers": "Cost: €{amount} for {count} seller{plural}.",
-    "delivererStatusUnknown": "Deliverer status unknown.",
-    "deliverersAvailableInRegion": "Deliverers available in your region.",
-    "deliverersReady": "{count} deliverer{plural} ready.",
-    "deliversYourOrder": "delivers your order!",
-    "deliveryCosts": "Delivery Costs",
-    "deliveryNotesPlaceholder": "Delivery notes (optional)",
-    "dependsOnSeller": "Depends on seller",
-    "enterPostcodeHouseNumber": "Please enter postal code and house number",
-    "enterPostcodeHouseNumberForOptions": "Please enter postal code and house number for delivery options",
-    "filledAfterValidation": "Will be filled after validation",
-    "firstToAccept": "The first to accept",
-    "free": "Free",
-    "houseNumber": "House Number",
-    "immediateNotificationOnAcceptance": "✓ You get an immediate notification on acceptance",
-    "loadingSession": "Loading session...",
-    "location": "Location",
-    "locationNotRetrieved": "Location could not be retrieved",
-    "minutes": "minutes",
-    "mustBeLoggedIn": "You must be logged in to checkout",
-    "noDeliverersAvailableInRegion": "No deliverers available in your region at this time.",
-    "orderSummary": "Order Summary",
-    "perSeller": "per seller",
-    "postcode": "Postal Code",
-    "processing": "Processing...",
-    "quantity": "Quantity",
-    "redirectedToStripeForSecurePayment": "You will be redirected to Stripe for secure payment",
-    "redirectingToStripeDescription": "You will be redirected to Stripe for secure payment",
-    "sellersReceiveSms": "Sellers receive an SMS for new orders.",
-    "smsNotification": "SMS Notification ({count} seller{plural})",
-    "step1Description": "Enter your delivery address to see available delivery options",
-    "streetName": "Street Name",
-    "stripeCostsPassedToBuyer": "Stripe costs are passed on to the buyer. HomeCheff costs are settled with the seller.",
-    "subtitle": "Complete your order",
-    "subtotal": "Subtotal",
-    "time": "Time",
-    "title": "Checkout",
-    "total": "Totaal",
-    "transactionCosts": "Transaction Costs (Stripe)",
-    "tryLaterOrPickup": "Try again later or choose pickup.",
-    "unknownAddress": "Unknown address",
-    "useCurrentGPSLocation": "Use current GPS location",
-    "validateAddress": "Validate Address",
-    "validateAddressToCheck": "Validate your address to check teen delivery availability.",
-    "validateAddressToSee": "Validate your address to see available teen deliverers.",
-    "validating": "Validating",
-    "within24Hours": "Within 24 hours",
-    "within3Hours": "Within 3 hours",
-    "withinRadiusOfBoth": "✓ Within radius of both seller and buyer",
-    "workdays": "2-3 workdays"
+    "errors": {
+      "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
+      "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen."
+    }
   },
   "deliverySignup": {
     "title": "Word Ambassadeur van HomeCheff!",
@@ -7294,6 +7179,13 @@
       "daily": "Dagtarief",
       "voluntary": "Vrijwillige bijdrage"
     },
+    "priceDisplay": {
+      "onRequest": "Prijs op aanvraag",
+      "voluntary": "Vrijwillige bijdrage",
+      "from": "Vanaf {{price}}",
+      "hourly": "{{price}} / uur",
+      "daily": "{{price}} / dag"
+    },
     "fulfillment": {
       "heading": "Hoe wordt dit geleverd?",
       "pickup": "Afhalen",
@@ -7344,6 +7236,352 @@
       "priceInvalidContact": "Prijs is ongeldig (laat leeg voor prijs op aanvraag).",
       "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig.",
       "specializationsRequired": "Selecteer minimaal één specialisatie."
+    },
+    "taxonomy": {
+      "groups": {
+        "create": {
+          "meals": {
+            "label": "Eten & homemade"
+          },
+          "craft": {
+            "label": "Ambacht & handmade"
+          },
+          "international": {
+            "label": "Internationaal & ambachtelijk"
+          }
+        },
+        "grow": {
+          "vegetables": {
+            "label": "Groente"
+          },
+          "fruit": {
+            "label": "Fruit"
+          },
+          "herbs": {
+            "label": "Kruiden"
+          }
+        }
+      },
+      "create": {
+        "meal": {
+          "label": "Maaltijden"
+        },
+        "baking": {
+          "label": "Bakken"
+        },
+        "bread": {
+          "label": "Brood"
+        },
+        "cake": {
+          "label": "Taart"
+        },
+        "cupcakes": {
+          "label": "Cupcakes"
+        },
+        "cookies": {
+          "label": "Koekjes"
+        },
+        "soup": {
+          "label": "Soep"
+        },
+        "pasta": {
+          "label": "Pasta"
+        },
+        "rice": {
+          "label": "Rijst"
+        },
+        "catering": {
+          "label": "Catering"
+        },
+        "clothing": {
+          "label": "Kleding"
+        },
+        "jewelry": {
+          "label": "Sieraden"
+        },
+        "decoration": {
+          "label": "Decoratie"
+        },
+        "art": {
+          "label": "Kunst"
+        },
+        "coffee": {
+          "label": "Koffie"
+        },
+        "tea": {
+          "label": "Thee"
+        },
+        "cacao": {
+          "label": "Cacao"
+        },
+        "olive_oil": {
+          "label": "Olijfolie"
+        },
+        "spices": {
+          "label": "Kruiden & specerijen"
+        },
+        "sauces": {
+          "label": "Sauzen"
+        },
+        "preserves": {
+          "label": "Conserven & jam"
+        },
+        "wine_vineyard": {
+          "label": "Wijn & wijngaard"
+        },
+        "craft_beer": {
+          "label": "Craftbier"
+        }
+      },
+      "grow": {
+        "vegetables": {
+          "label": "Groente"
+        },
+        "tomato": {
+          "label": "Tomaat"
+        },
+        "carrot": {
+          "label": "Wortel"
+        },
+        "pepper": {
+          "label": "Paprika"
+        },
+        "cucumber": {
+          "label": "Komkommer"
+        },
+        "potato": {
+          "label": "Aardappel"
+        },
+        "onion": {
+          "label": "Ui"
+        },
+        "garlic": {
+          "label": "Knoflook"
+        },
+        "fruit": {
+          "label": "Fruit"
+        },
+        "apple": {
+          "label": "Appel"
+        },
+        "pear": {
+          "label": "Peer"
+        },
+        "orange": {
+          "label": "Sinaasappel"
+        },
+        "lemon": {
+          "label": "Citroen"
+        },
+        "banana": {
+          "label": "Banaan"
+        },
+        "grapes": {
+          "label": "Druiven"
+        },
+        "strawberry": {
+          "label": "Aardbei"
+        },
+        "blueberry": {
+          "label": "Bosbes"
+        },
+        "mango": {
+          "label": "Mango"
+        },
+        "pineapple": {
+          "label": "Ananas"
+        },
+        "avocado": {
+          "label": "Avocado"
+        },
+        "olives": {
+          "label": "Olijven"
+        },
+        "herbs": {
+          "label": "Kruiden"
+        },
+        "basil": {
+          "label": "Basilicum"
+        },
+        "mint": {
+          "label": "Munt"
+        },
+        "parsley": {
+          "label": "Peterselie"
+        },
+        "rosemary": {
+          "label": "Rozemarijn"
+        },
+        "thyme": {
+          "label": "Tijm"
+        },
+        "oregano": {
+          "label": "Oregano"
+        },
+        "plants": {
+          "label": "Planten"
+        },
+        "honey": {
+          "label": "Honing"
+        }
+      },
+      "design": {
+        "logo": {
+          "label": "Logo"
+        },
+        "branding": {
+          "label": "Branding"
+        },
+        "website": {
+          "label": "Website"
+        },
+        "webshop": {
+          "label": "Webshop"
+        },
+        "app": {
+          "label": "App"
+        },
+        "uiux": {
+          "label": "UI/UX-design"
+        },
+        "video": {
+          "label": "Video"
+        },
+        "photo": {
+          "label": "Fotografie"
+        },
+        "illustration": {
+          "label": "Illustratie"
+        },
+        "animation": {
+          "label": "Animatie"
+        },
+        "marketing": {
+          "label": "Marketing"
+        },
+        "seo": {
+          "label": "SEO"
+        }
+      },
+      "artistic": {
+        "tattoo": {
+          "label": "Tattoo"
+        },
+        "nails": {
+          "label": "Nagels"
+        },
+        "makeup": {
+          "label": "Make-up"
+        },
+        "bodypaint": {
+          "label": "Bodypaint"
+        },
+        "airbrush": {
+          "label": "Airbrush"
+        },
+        "mural": {
+          "label": "Muurschildering"
+        },
+        "painting": {
+          "label": "Schilderen"
+        },
+        "portrait": {
+          "label": "Portret"
+        },
+        "music": {
+          "label": "Muziek"
+        },
+        "voice": {
+          "label": "Zang"
+        }
+      },
+      "practical": {
+        "gardenwork": {
+          "label": "Tuinwerk"
+        },
+        "cleaning": {
+          "label": "Schoonmaak"
+        },
+        "movinghelp": {
+          "label": "Verhuishulp"
+        },
+        "computerhelp": {
+          "label": "Computerhulp"
+        },
+        "repair": {
+          "label": "Reparatie"
+        },
+        "handyman": {
+          "label": "Klushulp"
+        },
+        "assembly": {
+          "label": "Montage"
+        }
+      },
+      "knowledge": {
+        "workshop": {
+          "label": "Workshop"
+        },
+        "cookingclass": {
+          "label": "Kookles"
+        },
+        "musicclass": {
+          "label": "Muziekles"
+        },
+        "tutoring": {
+          "label": "Bijles"
+        },
+        "language": {
+          "label": "Taalles"
+        },
+        "coaching": {
+          "label": "Coaching"
+        }
+      }
+    },
+    "blocklist": {
+      "dropshipping": {
+        "label": "Dropshipping",
+        "reason": "HomeCheff is bedoeld voor zelfgemaakte en lokaal geoogste producten, niet voor doorverkoop van anonieme massaproducten."
+      },
+      "resale": {
+        "label": "Wederverkoop",
+        "reason": "Alleen producten die je zelf maakt, oogst of aanbiedt zijn toegestaan — geen wederverkoop van bestaande goederen."
+      },
+      "rental": {
+        "label": "Verhuur",
+        "reason": "Verhuur van goederen valt buiten het aanbodmodel van HomeCheff."
+      },
+      "medical_treatment": {
+        "label": "Medische behandeling",
+        "reason": "Medische behandelingen en zorgdiensten zijn niet toegestaan op HomeCheff."
+      },
+      "botox_fillers": {
+        "label": "Botox & fillers",
+        "reason": "Injectables en cosmetische medische ingrepen zijn niet toegestaan op HomeCheff."
+      },
+      "health_claims": {
+        "label": "Gezondheidsclaims",
+        "reason": "Aanbiedingen met medische of gezondheidsclaims zijn niet toegestaan op HomeCheff."
+      },
+      "financial_advice": {
+        "label": "Financieel advies",
+        "reason": "Financieel advies en beleggingsdiensten zijn niet toegestaan op HomeCheff."
+      },
+      "legal_representation": {
+        "label": "Juridische vertegenwoordiging",
+        "reason": "Juridische diensten en rechtsbijstand zijn niet toegestaan op HomeCheff."
+      }
+    },
+    "badges": {
+      "offeredHeading": "Aangeboden",
+      "acceptsAlsoHeading": "Accepteert ook:",
+      "acceptsOnlyHeading": "Accepteert:",
+      "overflow": "+{{count}}"
+    },
+    "regulation": {
+      "alcoholDisclaimer": "Alcoholgerelateerde aanbiedingen zijn nog niet beschikbaar.",
+      "tattooAgeDisclaimer": "Tattoo's kunnen leeftijds- en hygiëneregels vereisen."
     }
   },
   "productOrder": {
@@ -7387,12 +7625,6 @@
       "setupError": "Betalingen instellen is mislukt. Probeer het later opnieuw.",
       "readyTitle": "Betalingen ingesteld",
       "readySubtitle": "Uitbetalingen via HomeCheff"
-    }
-  },
-  "checkout": {
-    "errors": {
-      "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
-      "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen."
     }
   },
   "productCategory": {

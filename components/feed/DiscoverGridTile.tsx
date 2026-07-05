@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Eye, MapPin } from "lucide-react";
 import { FeedCardPrimaryMedia } from "@/components/feed/feedMedia";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
+import { formatProductPriceLabel } from "@/lib/product/order-method";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { feedLocationLine } from "@/components/feed/GeoFeedCards";
@@ -70,11 +71,17 @@ export default function DiscoverGridTile({
   kind: "sale" | "inspiration";
   t: TFn;
 }) {
-  const hasPrice =
-    it.priceCents != null && Number(it.priceCents) > 0;
-  const priceLabel = hasPrice
-    ? `€ ${(Number(it.priceCents) / 100).toFixed(2)}`
-    : null;
+  const priceLabel =
+    kind === "sale"
+      ? formatProductPriceLabel(
+          {
+            priceCents: it.priceCents,
+            orderMethod: it.orderMethod,
+            priceModel: it.priceModel,
+          },
+          t,
+        )
+      : null;
   const placeLine = feedLocationLine(it, t);
   const creator = creatorLabel(it);
   const badge = categoryBadgeLabel(it, kind, t);

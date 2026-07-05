@@ -3,7 +3,11 @@
  * Single source of truth for "Te koop" visibility.
  */
 
-import { deriveFeedTaxonomy, type FeedTaxonomy } from '@/lib/feed/feed-taxonomy';
+import type { FeedTaxonomy } from '@/lib/feed/feed-taxonomy';
+import {
+  isOfferListing,
+  isRequestListing,
+} from '@/lib/marketplace/product-visibility';
 import { isContactOnlyProduct } from '@/lib/product/order-method';
 
 export type MarketplaceSaleSource =
@@ -20,6 +24,8 @@ export type MarketplaceSaleInput = {
   /** Legacy cents or euro field from older payloads. */
   price?: number | null;
   orderMethod?: string | null;
+  listingIntent?: string | null;
+  priceModel?: string | null;
   type?: string | null;
   kind?: string | null;
   feedSource?: MarketplaceSaleSource;
@@ -53,12 +59,28 @@ function explicitKind(item: MarketplaceSaleInput): string {
     .toUpperCase();
 }
 
+function isMarketplaceProductLike(item: MarketplaceSaleInput): boolean {
+  const kind = explicitKind(item);
+  return (
+    item.feedSource === 'PRODUCT' ||
+    kind === 'PRODUCT' ||
+    kind === 'LISTING'
+  );
+}
+
 /**
  * True when an item belongs in the Te koop / marketplace sale feed.
- * Does not treat feedSource=PRODUCT alone as sale (requires taxonomy, price, or contact).
+ * Based on listingIntent (OFFER or legacy null), not numeric price.
  */
 export function isMarketplaceSaleItem(item: MarketplaceSaleInput): boolean {
+  if (isRequestListing(item)) return false;
+  if (item.taxonomy?.direction === 'REQUEST') return false;
+
   if (item.taxonomy?.direction === 'OFFER' && item.taxonomy?.kind === 'PRODUCT') {
+    return true;
+  }
+
+  if (isOfferListing(item) && isMarketplaceProductLike(item)) {
     return true;
   }
 
@@ -67,17 +89,7 @@ export function isMarketplaceSaleItem(item: MarketplaceSaleInput): boolean {
 
   if (isContactOnlyProduct(item)) return true;
 
-  if (explicitKind(item) === 'LISTING' && priceCents != null && priceCents > 0) {
-    return true;
-  }
-
-  const tax = deriveFeedTaxonomy({
-    priceCents,
-    orderMethod: item.orderMethod,
-    category: null,
-    type: item.type,
-  });
-  return tax.direction === 'OFFER' && tax.kind === 'PRODUCT';
+  return false;
 }
 
 export function countMarketplaceSaleItems(
@@ -95,6 +107,8 @@ export function marketplaceSaleAuditSample(
     priceCents: resolveMarketplacePriceCents(item),
     orderMethod: item.orderMethod ?? null,
     feedSource: item.feedSource ?? explicitKind(item) ?? null,
+    listingIntent: item.listingIntent ?? null,
+    priceModel: item.priceModel ?? null,
     taxonomyKind: item.taxonomy?.kind ?? null,
     isSale: isMarketplaceSaleItem(item),
   }));

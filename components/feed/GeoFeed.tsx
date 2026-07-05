@@ -179,6 +179,8 @@ type FeedItem = {
   description: string | null;
   priceCents: number | null;
   orderMethod?: string | null;
+  listingIntent?: string | null;
+  priceModel?: string | null;
   type?: string | null;
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
@@ -342,6 +344,15 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     type: (raw.type as string) ?? null,
     isRecipe: raw.isRecipe as boolean | null | undefined,
     isInspiration: raw.isInspiration as boolean | null | undefined,
+    listingIntent:
+      raw.listingIntent != null ? String(raw.listingIntent) : null,
+    priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
+    feedSource:
+      raw.feedSource != null
+        ? String(raw.feedSource)
+        : raw.kind != null
+          ? String(raw.kind)
+          : null,
   };
   const taxonomy = rawTaxonomy ?? deriveFeedTaxonomy(taxonomyInput);
 
@@ -354,6 +365,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     priceCents,
     orderMethod:
       raw.orderMethod != null ? String(raw.orderMethod) : null,
+    listingIntent:
+      raw.listingIntent != null ? String(raw.listingIntent) : null,
+    priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
     ownerId,
     category,
     sellerUserId,
@@ -608,6 +622,8 @@ function toCardItem(
     description: it.description,
     priceCents: it.priceCents,
     orderMethod: it.orderMethod,
+    listingIntent: it.listingIntent,
+    priceModel: it.priceModel,
     type: it.type,
     isRecipe: it.isRecipe,
     isInspiration: it.isInspiration,

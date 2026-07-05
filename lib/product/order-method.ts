@@ -1,4 +1,4 @@
-/** Verkoopvorm: HomeCheff checkout vs. direct contact (Fase 2C). */
+import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 
 export type ProductOrderMethodValue = 'HOMECHEFF_PAYMENT' | 'CONTACT';
 
@@ -35,16 +35,11 @@ export function formatProductPriceLabel(
   product: {
     priceCents?: number | null;
     orderMethod?: ProductOrderMethodValue | string | null;
+    priceModel?: string | null;
   },
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string | number>) => string,
 ): string {
-  if (hasPublicDisplayPrice(product)) {
-    return `€${(product.priceCents! / 100).toFixed(2)}`;
-  }
-  if (isContactOnlyProduct(product)) {
-    return t('productOrder.priceOnRequest');
-  }
-  return `€${((product.priceCents ?? 0) / 100).toFixed(2)}`;
+  return getMarketplacePriceDisplay(product, t);
 }
 
 /** Product mag in feed/dorpsplein zichtbaar zijn zonder Stripe Connect. */

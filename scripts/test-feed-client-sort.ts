@@ -174,6 +174,23 @@ assert(
 assert(isMarketplaceSaleItem({ priceCents: 500, orderMethod: 'HOMECHEFF_PAYMENT' }), 'priced product is sale');
 assert(isMarketplaceSaleItem({ feedSource: 'LISTING', priceCents: 1000 }), 'listing with price is sale');
 assert(isMarketplaceSaleItem({ orderMethod: 'CONTACT', priceCents: 0 }), 'contact-only is sale');
+assert(
+  isMarketplaceSaleItem({
+    feedSource: 'PRODUCT',
+    listingIntent: 'OFFER',
+    priceModel: 'ON_REQUEST',
+    priceCents: 0,
+  }),
+  'ON_REQUEST offer product is sale'
+);
+assert(
+  !isMarketplaceSaleItem({
+    feedSource: 'PRODUCT',
+    listingIntent: 'REQUEST',
+    priceCents: 500,
+  }),
+  'REQUEST product is not sale'
+);
 assert(!isMarketplaceSaleItem({ priceCents: 0 }), 'zero price dish is not sale');
 assert(resolveMarketplacePriceCents({ price: 12.5 }) === 1250, 'legacy euro price');
 

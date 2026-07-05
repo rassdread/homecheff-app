@@ -118,6 +118,8 @@ export type GeoFeedCardItem = {
   description: string | null;
   priceCents: number | null;
   orderMethod?: ProductOrderMethodValue | string | null;
+  listingIntent?: string | null;
+  priceModel?: string | null;
   type?: string | null;
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
@@ -190,13 +192,14 @@ export function FeedSaleCard({
 }) {
   const listingHref = resolveFeedItemHref(it, it.taxonomy);
   const contactOnly = isContactOnlyProduct(it);
-  const priceLabel =
-    contactOnly || (it.priceCents != null && Number(it.priceCents) > 0)
-      ? formatProductPriceLabel(
-          { priceCents: it.priceCents, orderMethod: it.orderMethod },
-          t,
-        )
-      : null;
+  const priceLabel = formatProductPriceLabel(
+    {
+      priceCents: it.priceCents,
+      orderMethod: it.orderMethod,
+      priceModel: it.priceModel,
+    },
+    t,
+  );
 
   return (
     <div className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift overflow-hidden flex flex-col border-primary-brand/15">

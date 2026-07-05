@@ -3634,125 +3634,10 @@
     "swipeForNextPhoto": "Swipe for next photo"
   },
   "checkout": {
-    "title": "Checkout",
-    "subtitle": "Complete your order",
-    "loadingSession": "Loading session...",
-    "loginRequired": "Login Required",
-    "mustBeLoggedIn": "You must be logged in to checkout",
-    "redirectingToStripe": "Redirecting to Stripe",
-    "redirectingToStripeDescription": "You will be redirected to Stripe for secure payment",
-    "step1DeliveryAddress": "Step 1: Delivery Address",
-    "step1Description": "Enter your delivery address to see available delivery options",
-    "postcode": "Postal Code",
-    "houseNumber": "House Number",
-    "streetName": "Street Name",
-    "city": "City",
-    "filledAfterValidation": "Will be filled after validation",
-    "validating": "Validating",
-    "addressValidated": "Address Validated",
-    "validateAddress": "Validate Address",
-    "useCurrentGPSLocation": "Use current GPS location",
-    "addressValidatedAndCalculating": "Address validated! Calculating distances...",
-    "location": "Location",
-    "unknownAddress": "Unknown address",
-    "deliveryOption": "Delivery Option",
-    "pickup": "Pickup",
-    "pickupDescription": "Pick up your order from the seller",
-    "localDelivery": "Local Delivery",
-    "localDeliveryDescription": "Delivery by local delivery service",
-    "teenDelivery": "Teen Delivery",
-    "teenDeliveryDescription": "Delivery by young deliverers (15-23 years)",
-    "shipping": "Shipping",
-    "shippingDescription": "Parcel post via DHL/PostNL. Shipping costs are automatically calculated based on weight, dimensions and destination.",
-    "shippingEstimatedTime": "1-3 workdays",
-    "international": "International",
-    "national": "National",
-    "dhlPostnl": "DHL/PostNL shipping (only for Designer items)",
-    "dependsOnSeller": "Depends on seller",
-    "within24Hours": "Within 24 hours",
-    "within3Hours": "Within 3 hours",
-    "minutes": "minutes",
-    "workdays": "2-3 workdays",
-    "checkingAvailability": "Checking availability...",
-    "validateAddressToCheck": "Validate your address to check teen delivery availability.",
-    "delivererStatusUnknown": "Deliverer status unknown.",
-    "validateAddressToSee": "Validate your address to see available teen deliverers.",
-    "deliverersAvailableInRegion": "Deliverers available in your region.",
-    "noDeliverersAvailableInRegion": "No deliverers available in your region at this time.",
-    "deliverersReady": "{count} deliverer{plural} ready.",
-    "tryLaterOrPickup": "Try again later or choose pickup.",
-    "allAvailableDeliverersReceiveNotification": "All available deliverers in your area receive a notification.",
-    "firstToAccept": "The first to accept",
-    "deliversYourOrder": "delivers your order!",
-    "withinRadiusOfBoth": "✓ Within radius of both seller and buyer",
-    "availableInChosenTimeSlot": "✓ Available in your chosen time slot",
-    "immediateNotificationOnAcceptance": "✓ You get an immediate notification on acceptance",
-    "directMessagesWithDeliverer": "✓ Direct messages with the deliverer possible",
-    "deliveryDetails": "Delivery Details",
-    "addressValidatedCalculating": "✅ Address validated and delivery options are being calculated",
-    "fillAddressToSeeOptions": "Enter your address to see which delivery options are available",
-    "pickupDate": "Pickup Date",
-    "deliveryDate": "Delivery Date",
-    "time": "Time",
-    "chooseTime": "Choose time",
-    "deliveryNotesPlaceholder": "Delivery notes (optional)",
-    "smsNotificationForSellers": "SMS Notification for sellers",
-    "sellersReceiveSms": "Sellers receive an SMS for new orders.",
-    "costForSellers": "Cost: €{amount} for {count} seller{plural}.",
-    "costForOneSeller": "Cost: €{amount}.",
-    "orderSummary": "Order Summary",
-    "quantity": "Quantity",
-    "subtotal": "Subtotal",
-    "deliveryCosts": "Delivery Costs",
-    "smsNotification": "SMS Notification ({count} seller{plural})",
-    "transactionCosts": "Transaction Costs (Stripe)",
-    "total": "Total",
-    "stripeCostsPassedToBuyer": "Stripe costs are passed on to the buyer. HomeCheff costs are settled with the seller.",
-    "processing": "Processing...",
-    "checkoutButton": "Checkout - €{amount}",
-    "redirectedToStripeForSecurePayment": "You will be redirected to Stripe for secure payment",
-    "perSeller": "per seller",
-    "selectDeliveryOption": "Please select a delivery option",
-    "enterPostcodeHouseNumberForOptions": "Please enter postal code and house number for delivery options",
-    "validateAddressFirst": "Please validate your address first",
-    "teenDeliveryUnavailable": "Teen delivery is not available for your location",
-    "checkoutError": "An error occurred during checkout",
-    "checkoutErrorTitle": "Checkout Error",
-    "noCheckoutUrl": "No checkout URL received",
-    "trustLine": "Secure payment with Stripe · No hidden fees",
-    "locationNotRetrieved": "Location could not be retrieved",
-    "enterPostcodeHouseNumber": "Please enter postal code and house number",
-    "cannotValidateAddress": "Cannot validate address",
-    "addressValidationError": "Address validation error",
-    "free": "Free",
-    "allAvailableDeliverers": "All available deliverers in your area receive a notification.",
-    "availableInTimeSlot": "Available in your chosen time slot",
-    "cartEmpty": "Your shopping cart is empty",
-    "checkoutErrorGeneric": "An error occurred during checkout",
-    "checkoutTitle": "Checkout",
-    "completeOrder": "Complete your order",
-    "continueShopping": "Continue shopping",
-    "couldNotValidateAddress": "Could not validate address. Try again.",
-    "deliverersAvailable": "Deliverers available in your region.",
-    "deliveryTime": "Delivery time",
-    "fillPostcodeHouseNumber": "Enter postcode and house number to see delivery options",
-    "firstAcceptsDelivers": "The first to accept will deliver your order!",
-    "localDeliveryEstimatedTime": "Within 24 hours",
-    "login": "Login",
-    "loginRequiredMessage": "You must be logged in to checkout",
-    "noDeliverersAvailable": "No deliverers available in your region at this time.",
-    "notesOptional": "Notes (optional)",
-    "notesPlaceholder": "E.g. ring doorbell, back door, etc.",
-    "notificationOnAcceptance": "You will receive a notification immediately upon acceptance",
-    "pickupEstimatedTime": "Depends on seller",
-    "sessionLoading": "Your session is loading...",
-    "smsCostForSellers": "Cost: €{cost} for {count} sellers.",
-    "smsCostPerSeller": "Cost: €{cost} per seller.",
-    "smsNotificationDescription": "Sellers receive an SMS for new orders.",
-    "teenDeliveryEstimatedTime": "Within 3 hours",
-    "unknownError": "Unknown error",
-    "validateAddressToSeeTeenDeliverers": "Validate your address to see available teen deliverers.",
-    "withinRadius": "Within radius of both seller and buyer"
+    "errors": {
+      "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
+      "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff."
+    }
   },
   "camera": {
     "takePhoto": "Take Photo",
@@ -7294,6 +7179,13 @@
       "daily": "Daily rate",
       "voluntary": "Voluntary contribution"
     },
+    "priceDisplay": {
+      "onRequest": "Price on request",
+      "voluntary": "Voluntary contribution",
+      "from": "From {{price}}",
+      "hourly": "{{price}} / hour",
+      "daily": "{{price}} / day"
+    },
     "fulfillment": {
       "heading": "How is this delivered?",
       "pickup": "Pickup",
@@ -7344,6 +7236,352 @@
       "priceInvalidContact": "Price is invalid (leave empty for price on request).",
       "priceMissingOrInvalid": "Price is missing or invalid.",
       "specializationsRequired": "Select at least one specialization."
+    },
+    "taxonomy": {
+      "groups": {
+        "create": {
+          "meals": {
+            "label": "Food & homemade"
+          },
+          "craft": {
+            "label": "Craft & handmade"
+          },
+          "international": {
+            "label": "International & artisan"
+          }
+        },
+        "grow": {
+          "vegetables": {
+            "label": "Vegetables"
+          },
+          "fruit": {
+            "label": "Fruit"
+          },
+          "herbs": {
+            "label": "Herbs"
+          }
+        }
+      },
+      "create": {
+        "meal": {
+          "label": "Meals"
+        },
+        "baking": {
+          "label": "Baking"
+        },
+        "bread": {
+          "label": "Bread"
+        },
+        "cake": {
+          "label": "Cake"
+        },
+        "cupcakes": {
+          "label": "Cupcakes"
+        },
+        "cookies": {
+          "label": "Cookies"
+        },
+        "soup": {
+          "label": "Soup"
+        },
+        "pasta": {
+          "label": "Pasta"
+        },
+        "rice": {
+          "label": "Rice"
+        },
+        "catering": {
+          "label": "Catering"
+        },
+        "clothing": {
+          "label": "Clothing"
+        },
+        "jewelry": {
+          "label": "Jewelry"
+        },
+        "decoration": {
+          "label": "Decoration"
+        },
+        "art": {
+          "label": "Art"
+        },
+        "coffee": {
+          "label": "Coffee"
+        },
+        "tea": {
+          "label": "Tea"
+        },
+        "cacao": {
+          "label": "Cacao"
+        },
+        "olive_oil": {
+          "label": "Olive oil"
+        },
+        "spices": {
+          "label": "Spices"
+        },
+        "sauces": {
+          "label": "Sauces"
+        },
+        "preserves": {
+          "label": "Preserves & jam"
+        },
+        "wine_vineyard": {
+          "label": "Wine & vineyard"
+        },
+        "craft_beer": {
+          "label": "Craft beer"
+        }
+      },
+      "grow": {
+        "vegetables": {
+          "label": "Vegetables"
+        },
+        "tomato": {
+          "label": "Tomato"
+        },
+        "carrot": {
+          "label": "Carrot"
+        },
+        "pepper": {
+          "label": "Pepper"
+        },
+        "cucumber": {
+          "label": "Cucumber"
+        },
+        "potato": {
+          "label": "Potato"
+        },
+        "onion": {
+          "label": "Onion"
+        },
+        "garlic": {
+          "label": "Garlic"
+        },
+        "fruit": {
+          "label": "Fruit"
+        },
+        "apple": {
+          "label": "Apple"
+        },
+        "pear": {
+          "label": "Pear"
+        },
+        "orange": {
+          "label": "Orange"
+        },
+        "lemon": {
+          "label": "Lemon"
+        },
+        "banana": {
+          "label": "Banana"
+        },
+        "grapes": {
+          "label": "Grapes"
+        },
+        "strawberry": {
+          "label": "Strawberry"
+        },
+        "blueberry": {
+          "label": "Blueberry"
+        },
+        "mango": {
+          "label": "Mango"
+        },
+        "pineapple": {
+          "label": "Pineapple"
+        },
+        "avocado": {
+          "label": "Avocado"
+        },
+        "olives": {
+          "label": "Olives"
+        },
+        "herbs": {
+          "label": "Herbs"
+        },
+        "basil": {
+          "label": "Basil"
+        },
+        "mint": {
+          "label": "Mint"
+        },
+        "parsley": {
+          "label": "Parsley"
+        },
+        "rosemary": {
+          "label": "Rosemary"
+        },
+        "thyme": {
+          "label": "Thyme"
+        },
+        "oregano": {
+          "label": "Oregano"
+        },
+        "plants": {
+          "label": "Plants"
+        },
+        "honey": {
+          "label": "Honey"
+        }
+      },
+      "design": {
+        "logo": {
+          "label": "Logo"
+        },
+        "branding": {
+          "label": "Branding"
+        },
+        "website": {
+          "label": "Website"
+        },
+        "webshop": {
+          "label": "Webshop"
+        },
+        "app": {
+          "label": "App"
+        },
+        "uiux": {
+          "label": "UI/UX design"
+        },
+        "video": {
+          "label": "Video"
+        },
+        "photo": {
+          "label": "Photography"
+        },
+        "illustration": {
+          "label": "Illustration"
+        },
+        "animation": {
+          "label": "Animation"
+        },
+        "marketing": {
+          "label": "Marketing"
+        },
+        "seo": {
+          "label": "SEO"
+        }
+      },
+      "artistic": {
+        "tattoo": {
+          "label": "Tattoo"
+        },
+        "nails": {
+          "label": "Nails"
+        },
+        "makeup": {
+          "label": "Makeup"
+        },
+        "bodypaint": {
+          "label": "Bodypaint"
+        },
+        "airbrush": {
+          "label": "Airbrush"
+        },
+        "mural": {
+          "label": "Mural painting"
+        },
+        "painting": {
+          "label": "Painting"
+        },
+        "portrait": {
+          "label": "Portrait"
+        },
+        "music": {
+          "label": "Music"
+        },
+        "voice": {
+          "label": "Voice"
+        }
+      },
+      "practical": {
+        "gardenwork": {
+          "label": "Garden work"
+        },
+        "cleaning": {
+          "label": "Cleaning"
+        },
+        "movinghelp": {
+          "label": "Moving help"
+        },
+        "computerhelp": {
+          "label": "Computer help"
+        },
+        "repair": {
+          "label": "Repair"
+        },
+        "handyman": {
+          "label": "Handyman"
+        },
+        "assembly": {
+          "label": "Assembly"
+        }
+      },
+      "knowledge": {
+        "workshop": {
+          "label": "Workshop"
+        },
+        "cookingclass": {
+          "label": "Cooking class"
+        },
+        "musicclass": {
+          "label": "Music lesson"
+        },
+        "tutoring": {
+          "label": "Tutoring"
+        },
+        "language": {
+          "label": "Language lessons"
+        },
+        "coaching": {
+          "label": "Coaching"
+        }
+      }
+    },
+    "blocklist": {
+      "dropshipping": {
+        "label": "Dropshipping",
+        "reason": "HomeCheff is for self-made and locally grown products, not resale of anonymous mass products."
+      },
+      "resale": {
+        "label": "Resale",
+        "reason": "Only products you make, grow or offer yourself are allowed — no resale of existing goods."
+      },
+      "rental": {
+        "label": "Rental",
+        "reason": "Renting goods is outside HomeCheff's offer model."
+      },
+      "medical_treatment": {
+        "label": "Medical treatment",
+        "reason": "Medical treatments and care services are not allowed on HomeCheff."
+      },
+      "botox_fillers": {
+        "label": "Botox & fillers",
+        "reason": "Injectables and cosmetic medical procedures are not allowed on HomeCheff."
+      },
+      "health_claims": {
+        "label": "Health claims",
+        "reason": "Offers with medical or health claims are not allowed on HomeCheff."
+      },
+      "financial_advice": {
+        "label": "Financial advice",
+        "reason": "Financial advice and investment services are not allowed on HomeCheff."
+      },
+      "legal_representation": {
+        "label": "Legal representation",
+        "reason": "Legal services and representation are not allowed on HomeCheff."
+      }
+    },
+    "badges": {
+      "offeredHeading": "Offered",
+      "acceptsAlsoHeading": "Also accepts:",
+      "acceptsOnlyHeading": "Accepts:",
+      "overflow": "+{{count}}"
+    },
+    "regulation": {
+      "alcoholDisclaimer": "Alcohol-related offers are not available yet.",
+      "tattooAgeDisclaimer": "Tattoos may require age and hygiene rules."
     }
   },
   "productOrder": {
@@ -7387,12 +7625,6 @@
       "setupError": "Could not set up payments. Please try again later.",
       "readyTitle": "Payments set up",
       "readySubtitle": "Payouts via HomeCheff"
-    }
-  },
-  "checkout": {
-    "errors": {
-      "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
-      "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff."
     }
   },
   "productCategory": {

@@ -5,6 +5,10 @@
 
 import { parseProductOrderMethod } from '@/lib/product/order-method';
 import { isMarketplaceSaleItem } from '@/lib/feed/marketplace-sale';
+import {
+  isOfferListing,
+  isRequestListing,
+} from '@/lib/marketplace/product-visibility';
 
 export type FeedDirection = 'OFFER' | 'REQUEST';
 
@@ -54,18 +58,38 @@ export type FeedTaxonomyInput = {
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
   category?: string | null;
+  listingIntent?: string | null;
+  priceModel?: string | null;
+  feedSource?: string | null;
   /** Explicit overrides when REQUEST items exist (future). */
   direction?: FeedDirection | null;
   kind?: FeedKind | null;
   exchange?: FeedExchange | null;
 };
 
-/** Verkoopbaar: strikt priceCents > 0 (null/0/NaN = geen verkoopprijs). */
+/** Numeric checkout price (excludes ON_REQUEST / VOLUNTARY display-only models). */
 export function hasValidSalePrice(item: {
   priceCents?: number | null;
+  priceModel?: string | null;
 }): boolean {
+  const model = String(item.priceModel ?? 'FIXED')
+    .trim()
+    .toUpperCase();
+  if (model === 'ON_REQUEST' || model === 'VOLUNTARY') return false;
   const p = item.priceCents;
   return p != null && Number.isFinite(Number(p)) && Number(p) > 0;
+}
+
+function isMarketplaceOfferProduct(input: FeedTaxonomyInput): boolean {
+  if (!isOfferListing(input)) return false;
+  const source = String(input.feedSource ?? input.type ?? '')
+    .trim()
+    .toUpperCase();
+  if (source === 'PRODUCT' || source === 'LISTING') return true;
+  const model = String(input.priceModel ?? '')
+    .trim()
+    .toUpperCase();
+  return model === 'ON_REQUEST' || model === 'VOLUNTARY';
 }
 
 const LEGACY_CATEGORY_TO_FEED: Record<string, FeedCategory> = {
@@ -139,10 +163,21 @@ export function deriveFeedTaxonomy(input: FeedTaxonomyInput): FeedTaxonomy {
   }
 
   const category = mapLegacyCategoryToFeedCategory(input.category);
+
+  if (isRequestListing(input)) {
+    return {
+      direction: 'REQUEST',
+      kind: 'PRODUCT',
+      category,
+      exchange: 'CONTACT',
+    };
+  }
+
   const salePrice = hasValidSalePrice(input);
   const contactSale = parseProductOrderMethod(input.orderMethod) === 'CONTACT';
+  const marketplaceOffer = isMarketplaceOfferProduct(input);
 
-  if (salePrice || contactSale) {
+  if (marketplaceOffer || salePrice || contactSale) {
     return {
       direction: 'OFFER',
       kind: 'PRODUCT',

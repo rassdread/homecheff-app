@@ -42,6 +42,9 @@ function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
     type: item.type as string | null | undefined,
     isRecipe: item.isRecipe as boolean | null | undefined,
     isInspiration: item.isInspiration as boolean | null | undefined,
+    listingIntent: item.listingIntent as string | null | undefined,
+    priceModel: item.priceModel as string | null | undefined,
+    feedSource: item.feedSource as string | null | undefined,
   });
 }
 
@@ -189,6 +192,8 @@ export async function GET(req: NextRequest) {
         description: true,
         priceCents: true,
         orderMethod: true,
+        listingIntent: true,
+        priceModel: true,
         delivery: true,
         category: true,
         createdAt: true,
@@ -436,6 +441,8 @@ export async function GET(req: NextRequest) {
     description: product.description || "",
     priceCents: product.priceCents || 0,
     orderMethod: product.orderMethod ?? 'HOMECHEFF_PAYMENT',
+    listingIntent: product.listingIntent ?? 'OFFER',
+    priceModel: product.priceModel ?? 'FIXED',
     category: product.category || "HOMECHEFF",
     status: "ACTIVE" as const,
     place: productPlace,

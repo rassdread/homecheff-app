@@ -8,6 +8,9 @@ export type FeedClassifiable = {
   id: string;
   priceCents: number | null;
   orderMethod?: string | null;
+  listingIntent?: string | null;
+  priceModel?: string | null;
+  feedSource?: string | null;
   type?: string | null;
   isRecipe?: boolean | null;
   isInspiration?: boolean | null;
