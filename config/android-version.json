@@ -1,8 +1,8 @@
 {
-  "versionName": "1.0.17",
-  "versionCode": 23,
+  "versionName": "1.0.18",
+  "versionCode": 24,
   "forceUpdate": false,
-  "minRequiredVersion": "1.0.15",
+  "minRequiredVersion": "1.0.18",
   "enabled": false,
   "apkUrl": "https://homecheff.eu/downloads/homecheff-beta.apk",
   "updateTitle": "Nieuwe HomeCheff beta beschikbaar",
