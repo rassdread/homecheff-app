@@ -513,7 +513,7 @@ export default function CompactDesignerForm({
       if (res.ok) {
         console.log('✅ [CompactDesignerForm] Product created/updated successfully');
         if (data.publishBlocked && data.publishBlockReason === 'PAYMENTS_REQUIRED') {
-          setMessage(t('productOrder.publish.paymentsRequired'));
+          setMessage(t('marketplace.stripeRecommendation.message'));
         }
         await hcpRewardUi?.refetchGamification();
         if (onSave) {

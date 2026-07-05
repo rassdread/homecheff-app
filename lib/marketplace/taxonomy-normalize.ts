@@ -10,6 +10,7 @@ import {
 import {
   getMarketplaceTaxonomyItem,
   getMarketplaceTaxonomyRegistryMap,
+  isMarketplaceTaxonomyItemAllowedAsAcceptedValue,
 } from './taxonomy-resolve';
 
 function parseRawSpecializationList(raw: unknown): string[] {
@@ -73,4 +74,10 @@ export function primarySpecialization(specializations: string[]): string | null 
 export function normalizeSpecializationSlug(slug: string): string {
   const canonical = toCanonicalTaxonomyId(slug);
   return canonical ?? slug.trim().toLowerCase();
+}
+
+/** Normalize accepted-value taxonomy ids (allowedAsAcceptedValue only). */
+export function normalizeAcceptedTaxonomyIds(raw: unknown): string[] {
+  const ids = normalizeTaxonomyIds(raw, null);
+  return ids.filter((id) => isMarketplaceTaxonomyItemAllowedAsAcceptedValue(id));
 }

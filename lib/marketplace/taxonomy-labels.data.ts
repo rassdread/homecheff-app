@@ -198,6 +198,32 @@ export const TAXONOMY_UI_LABELS = {
     acceptsOnlyHeading: { nl: 'Accepteert:', en: 'Accepts:' },
     overflow: { nl: '+{{count}}', en: '+{{count}}' },
   },
+  acceptedValues: {
+    heading: {
+      nl: 'Wat accepteer je eventueel ook als waarde?',
+      en: 'What would you also accept as value?',
+    },
+    description: {
+      nl: 'Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.',
+      en: 'Optional — indicate which other products or services you would also accept as trade or alternative value.',
+    },
+    searchPlaceholder: { nl: 'Zoek in taxonomy…', en: 'Search taxonomy…' },
+    filterAll: { nl: 'Alles', en: 'All' },
+    emptySearch: {
+      nl: 'Geen resultaten voor deze zoekopdracht.',
+      en: 'No results for this search.',
+    },
+  },
+  stripeRecommendation: {
+    message: {
+      nl: 'Koppel Stripe om veilig via HomeCheff betalingen te ontvangen.',
+      en: 'Connect Stripe to receive secure HomeCheff payments.',
+    },
+    connectCta: { nl: 'Stripe koppelen', en: 'Connect Stripe' },
+  },
+  priceDisplay: {
+    alternativeValue: { nl: 'Andere waarde', en: 'Alternative value' },
+  },
   regulation: {
     alcoholDisclaimer: {
       nl: 'Alcoholgerelateerde aanbiedingen zijn nog niet beschikbaar.',

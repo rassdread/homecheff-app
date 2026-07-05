@@ -5,6 +5,7 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { Search, MapPin, Filter, Star, Clock, ChefHat, Sprout, Palette, MoreHorizontal, Truck, Package, Euro, Bell, Grid3X3, List, Menu, X, Eye, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import MarketplaceAcceptedBadgesRow from "@/components/marketplace/MarketplaceAcceptedBadgesRow";
 import type { MarketplaceCategory } from "@prisma/client";
 import SafeImage from "@/components/ui/SafeImage";
 import FavoriteButton from "@/components/favorite/FavoriteButton";
@@ -63,6 +64,7 @@ type HomeItem = {
   description?: string | null;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  priceModel?: string | null;
   image?: string | null;
   images?: string[]; // Array of all images for slider
   video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null } | null;
@@ -70,6 +72,7 @@ type HomeItem = {
   category?: string;
   marketplaceCategory?: string | null;
   specializations?: string[];
+  acceptedSpecializations?: string[];
   subcategory?: string;
   delivery?: string;
   tags?: string[];
@@ -1652,6 +1655,13 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                           unknownDistanceLabel: t('feed.unknownDistance'),
                         })}
                       </p>
+                      <MarketplaceAcceptedBadgesRow
+                        acceptedSpecializations={item.acceptedSpecializations}
+                        priceCents={item.priceCents}
+                        priceModel={item.priceModel}
+                        maxVisible={2}
+                        className="mb-2"
+                      />
                       
                       <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
                       

@@ -30,6 +30,7 @@ import {
 } from "@/lib/userStatsClientCache";
 import type { UserBadgeChipItem } from "@/components/gamification/UserBadgeChips";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import MarketplaceAcceptedBadgesRow from "@/components/marketplace/MarketplaceAcceptedBadgesRow";
 import type { MarketplaceCategory } from "@prisma/client";
 
 /** Desktop homepage feed: one-line seller stats instead of UserStatsTile grid. */
@@ -147,6 +148,7 @@ export type GeoFeedCardItem = {
   taxonomy?: FeedTaxonomy;
   marketplaceCategory?: string | null;
   specializations?: string[];
+  acceptedSpecializations?: string[];
 };
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -201,6 +203,7 @@ export function FeedSaleCard({
       priceCents: it.priceCents,
       orderMethod: it.orderMethod,
       priceModel: it.priceModel,
+      acceptedSpecializations: it.acceptedSpecializations,
     },
     t,
   );
@@ -286,6 +289,12 @@ export function FeedSaleCard({
             </p>
           ) : null}
         </div>
+        <MarketplaceAcceptedBadgesRow
+          acceptedSpecializations={it.acceptedSpecializations}
+          priceCents={it.priceCents}
+          priceModel={it.priceModel}
+          maxVisible={2}
+        />
         {it.sellerUserId ? (
           <>
             <div className="feed-card-stats-wrap mt-1 min-h-[4.5rem] lg:hidden">

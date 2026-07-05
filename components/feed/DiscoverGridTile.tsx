@@ -5,6 +5,7 @@ import { Eye, MapPin } from "lucide-react";
 import { FeedCardPrimaryMedia } from "@/components/feed/feedMedia";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import MarketplaceAcceptedBadgesRow from "@/components/marketplace/MarketplaceAcceptedBadgesRow";
 import type { MarketplaceCategory } from "@prisma/client";
 import { formatProductPriceLabel } from "@/lib/product/order-method";
 import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard";
@@ -80,6 +81,7 @@ export default function DiscoverGridTile({
             priceCents: it.priceCents,
             orderMethod: it.orderMethod,
             priceModel: it.priceModel,
+            acceptedSpecializations: it.acceptedSpecializations,
           },
           t,
         )
@@ -153,6 +155,14 @@ export default function DiscoverGridTile({
           <MapPin className="h-3 w-3 shrink-0 text-[#0067B1]/80" aria-hidden />
           <span>{placeLine}</span>
         </p>
+        {kind === "sale" ? (
+          <MarketplaceAcceptedBadgesRow
+            acceptedSpecializations={it.acceptedSpecializations}
+            priceCents={it.priceCents}
+            priceModel={it.priceModel}
+            maxVisible={2}
+          />
+        ) : null}
         <div className="mt-auto flex items-end justify-between gap-1 pt-0.5">
           {priceLabel ? (
             <span className="text-sm font-bold tabular-nums text-[#006D52]">

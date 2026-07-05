@@ -9,6 +9,7 @@ export type MarketplacePriceDisplayInput = {
   priceCents?: number | null;
   priceModel?: PriceModel | string | null;
   orderMethod?: string | null;
+  acceptedSpecializations?: string[] | null;
 };
 
 type TranslateFn = (
@@ -38,12 +39,25 @@ function formatEuroAmount(cents: number): string {
   return `€${(cents / 100).toFixed(2)}`;
 }
 
+function isAlternativeValueOnlyListing(
+  product: MarketplacePriceDisplayInput,
+): boolean {
+  if ((product.priceCents ?? 0) > 0) return false;
+  const model = resolvePriceModel(product.priceModel);
+  if (model === 'ON_REQUEST' || model === 'VOLUNTARY') return false;
+  return (product.acceptedSpecializations?.length ?? 0) > 0;
+}
+
 export function getMarketplacePriceDisplay(
   product: MarketplacePriceDisplayInput,
   t: TranslateFn,
 ): string {
   const model = resolvePriceModel(product.priceModel);
   const cents = product.priceCents ?? 0;
+
+  if (isAlternativeValueOnlyListing(product)) {
+    return t('marketplace.priceDisplay.alternativeValue');
+  }
 
   switch (model) {
     case 'ON_REQUEST':

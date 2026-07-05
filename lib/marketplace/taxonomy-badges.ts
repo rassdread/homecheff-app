@@ -1,7 +1,9 @@
 import type { MarketplaceCategory } from '@prisma/client';
 import { MARKETPLACE_ENTRY_CATEGORY_KEY } from './i18n-keys';
-import { normalizeTaxonomyIds } from './taxonomy-normalize';
-import { getMarketplaceTaxonomyItem } from './taxonomy-resolve';
+import { normalizeAcceptedTaxonomyIds, normalizeTaxonomyIds } from './taxonomy-normalize';
+import {
+  getMarketplaceTaxonomyItem,
+} from './taxonomy-resolve';
 import type { TaxonomyTone } from './taxonomy-types';
 
 export type ResolvedOfferBadge = {
@@ -115,4 +117,12 @@ export function resolveOfferBadgeByTaxonomyId(
     icon: item.icon,
     tone: item.tone,
   };
+}
+
+/** Resolve accepted-value taxonomy badges (no category fallback). */
+export function resolveAcceptedBadges(raw: unknown): ResolvedOfferBadge[] {
+  const ids = normalizeAcceptedTaxonomyIds(raw);
+  return ids
+    .map((id) => resolveOfferBadgeByTaxonomyId(id))
+    .filter((badge): badge is ResolvedOfferBadge => badge != null);
 }

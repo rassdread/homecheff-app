@@ -552,7 +552,7 @@ export default function CompactGardenForm({
       if (res.ok) {
         console.log('✅ [CompactGardenForm] Product created/updated successfully');
         if (data.publishBlocked && data.publishBlockReason === 'PAYMENTS_REQUIRED') {
-          setMessage(t('productOrder.publish.paymentsRequired'));
+          setMessage(t('marketplace.stripeRecommendation.message'));
         }
         await hcpRewardUi?.refetchGamification();
         if (onSave) {

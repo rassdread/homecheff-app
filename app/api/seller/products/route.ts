@@ -116,6 +116,7 @@ export async function GET(request: NextRequest) {
       category: product.category,
       marketplaceCategory: product.marketplaceCategory ?? null,
       specializations: product.specializations ?? [],
+      acceptedSpecializations: product.acceptedSpecializations ?? [],
       subcategory: product.subcategory,
       delivery: product.delivery,
       stock: product.stock,

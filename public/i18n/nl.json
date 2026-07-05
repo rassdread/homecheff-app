@@ -7186,9 +7186,21 @@
     "priceDisplay": {
       "onRequest": "Prijs op aanvraag",
       "voluntary": "Vrijwillige bijdrage",
+      "alternativeValue": "Andere waarde",
       "from": "Vanaf {{price}}",
       "hourly": "{{price}} / uur",
       "daily": "{{price}} / dag"
+    },
+    "acceptedValues": {
+      "heading": "Wat accepteer je eventueel ook als waarde?",
+      "description": "Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.",
+      "searchPlaceholder": "Zoek in taxonomy…",
+      "filterAll": "Alles",
+      "emptySearch": "Geen resultaten voor deze zoekopdracht."
+    },
+    "stripeRecommendation": {
+      "message": "Koppel Stripe om veilig via HomeCheff betalingen te ontvangen.",
+      "connectCta": "Stripe koppelen"
     },
     "fulfillment": {
       "heading": "Hoe wordt dit geleverd?",

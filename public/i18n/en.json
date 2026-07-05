@@ -7186,9 +7186,21 @@
     "priceDisplay": {
       "onRequest": "Price on request",
       "voluntary": "Voluntary contribution",
+      "alternativeValue": "Alternative value",
       "from": "From {{price}}",
       "hourly": "{{price}} / hour",
       "daily": "{{price}} / day"
+    },
+    "acceptedValues": {
+      "heading": "What would you also accept as value?",
+      "description": "Optional — indicate which other products or services you would also accept as trade or alternative value.",
+      "searchPlaceholder": "Search taxonomy…",
+      "filterAll": "All",
+      "emptySearch": "No results for this search."
+    },
+    "stripeRecommendation": {
+      "message": "Connect Stripe to receive secure HomeCheff payments.",
+      "connectCta": "Connect Stripe"
     },
     "fulfillment": {
       "heading": "How is this delivered?",

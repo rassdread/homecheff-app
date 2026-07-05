@@ -17,13 +17,14 @@ import {
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
-import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
+import { buildMarketplaceV2PatchFields } from '@/lib/marketplace/patch-v2-fields';
 import { auth } from '@/lib/auth';
 import {
   getInspiratieDetailHref,
   type InspirationCategory,
 } from '@/lib/inspiratie/instruction-content';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
+import type { MarketplaceCategory } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -523,6 +524,11 @@ export async function PATCH(
             ...(body.orderMethod !== undefined
               ? { orderMethod: parseProductOrderMethod(body.orderMethod) }
               : {}),
+            ...buildMarketplaceV2PatchFields(body, {
+              priceCents: (product as { priceCents: number }).priceCents,
+              marketplaceCategory: (product as { marketplaceCategory?: MarketplaceCategory | null })
+                .marketplaceCategory,
+            }),
           };
 
           // Update images if provided

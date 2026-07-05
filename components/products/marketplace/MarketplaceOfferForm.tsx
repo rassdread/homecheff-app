@@ -24,7 +24,10 @@ import {
   PRICE_MODEL_KEY,
   specializationI18nKey,
 } from '@/lib/marketplace/i18n-keys';
+import AcceptedValuesPicker from '@/components/products/marketplace/AcceptedValuesPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
+import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString } from '@/lib/marketplace/fulfillment';
 import {
@@ -85,6 +88,9 @@ export default function MarketplaceOfferForm({
     useState<MarketplaceCategory>(resolvedCategory);
   const [specializations, setSpecializations] = useState<string[]>(
     initialSpecializations,
+  );
+  const [acceptedSpecializations, setAcceptedSpecializations] = useState<string[]>(
+    [],
   );
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -167,6 +173,9 @@ export default function MarketplaceOfferForm({
       (existingProduct.marketplaceCategory as MarketplaceCategory) ?? marketplaceCategory,
     );
     setSpecializations(specs);
+    setAcceptedSpecializations(
+      normalizeAcceptedTaxonomyIds(existingProduct.acceptedSpecializations ?? []),
+    );
     if (existingProduct.listingIntent) {
       setListingIntent(existingProduct.listingIntent as ListingIntentValue);
     }
@@ -287,6 +296,7 @@ export default function MarketplaceOfferForm({
       listingIntent,
       marketplaceCategory,
       specializations,
+      acceptedSpecializations,
       subcategory: primarySpecialization(specializations),
       acceptHomeCheffPayment,
       acceptDirectContact,
@@ -337,6 +347,9 @@ export default function MarketplaceOfferForm({
         return;
       }
       if (data.hcpReward) showHcpRewardToast(data.hcpReward);
+      if (data.publishBlocked && data.publishBlockReason === 'PAYMENTS_REQUIRED') {
+        setMessage(t('marketplace.stripeRecommendation.message'));
+      }
       onSave?.(data.product ?? data);
       if (!editMode && data.product?.id) {
         window.location.href = getProfileHrefAfterProductSave(data.product.id);
@@ -429,6 +442,10 @@ export default function MarketplaceOfferForm({
         }}
       />
 
+      {acceptHomeCheffPayment && priceModel !== 'ON_REQUEST' && priceModel !== 'VOLUNTARY' ? (
+        <StripeConnectPaymentsBanner />
+      ) : null}
+
       <div>
         <label className="block text-sm font-semibold text-gray-900 mb-2">
           {t('marketplace.priceModel.heading')}
@@ -494,6 +511,11 @@ export default function MarketplaceOfferForm({
       </div>
 
       <FulfillmentCheckboxes value={fulfillment} onChange={setFulfillment} />
+
+      <AcceptedValuesPicker
+        value={acceptedSpecializations}
+        onChange={setAcceptedSpecializations}
+      />
 
       {fulfillment.delivery ? (
         <div className="rounded-lg border border-gray-200 p-4 space-y-3">

@@ -2,7 +2,7 @@
 
 import type { MarketplaceCategory } from '@prisma/client';
 import { useTranslation } from '@/hooks/useTranslation';
-import { resolveOfferBadges } from '@/lib/marketplace/taxonomy-badges';
+import { resolveAcceptedBadges, resolveOfferBadges } from '@/lib/marketplace/taxonomy-badges';
 import {
   TAXONOMY_BADGE_SIZE_CLASSES,
   type TaxonomyBadgeSize,
@@ -20,6 +20,8 @@ type Props = {
   size?: TaxonomyBadgeSize;
   showIcon?: boolean;
   className?: string;
+  /** offer = offered specializations (with legacy fallback); accepted = accepted values only */
+  variant?: 'offer' | 'accepted';
 };
 
 export default function MarketplaceBadgeList({
@@ -31,13 +33,17 @@ export default function MarketplaceBadgeList({
   size = 'sm',
   showIcon = true,
   className,
+  variant = 'offer',
 }: Props) {
   const { t } = useTranslation();
-  const resolved = resolveOfferBadges({
-    specializations: specializations ?? ids,
-    marketplaceCategory,
-    legacyCategory,
-  });
+  const resolved =
+    variant === 'accepted'
+      ? resolveAcceptedBadges(specializations ?? ids)
+      : resolveOfferBadges({
+          specializations: specializations ?? ids,
+          marketplaceCategory,
+          legacyCategory,
+        });
 
   if (resolved.length === 0) return null;
 

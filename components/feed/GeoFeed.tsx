@@ -210,6 +210,7 @@ type FeedItem = {
   taxonomy?: FeedTaxonomy;
   marketplaceCategory?: string | null;
   specializations?: string[];
+  acceptedSpecializations?: string[];
   feedSource?: string | null;
 };
 
@@ -376,6 +377,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
     specializations: Array.isArray(raw.specializations)
       ? raw.specializations.filter((v): v is string => typeof v === 'string')
+      : undefined,
+    acceptedSpecializations: Array.isArray(raw.acceptedSpecializations)
+      ? raw.acceptedSpecializations.filter((v): v is string => typeof v === 'string')
       : undefined,
     sellerUserId,
     sellerName,
@@ -655,6 +659,7 @@ function toCardItem(
     taxonomy: it.taxonomy,
     marketplaceCategory: it.marketplaceCategory,
     specializations: it.specializations,
+    acceptedSpecializations: it.acceptedSpecializations,
   };
 }
 

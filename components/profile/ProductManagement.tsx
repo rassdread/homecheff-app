@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Edit3, Trash2, Package, AlertCircle, Clock, Users, Plus, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatProductPriceLabel } from '@/lib/product/order-method';
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 
@@ -12,6 +13,9 @@ type Product = {
   title: string;
   description: string;
   priceCents: number;
+  priceModel?: string | null;
+  orderMethod?: string | null;
+  acceptedSpecializations?: string[];
   stock: number;
   maxStock?: number | null;
   unit?: string | null;
@@ -277,7 +281,7 @@ export default function ProductManagement({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-semibold text-emerald-600">
-                        € {(product.priceCents / 100).toFixed(2)}
+                        {formatProductPriceLabel(product, t)}
                       </span>
                       <span className="text-sm text-gray-500">
                         {product.unit?.toLowerCase() || 'stuk'}

@@ -426,6 +426,8 @@ model Product {
   useProfileLocation     Boolean                @default(true)
   /// Marketplace Entry V3 — multi-select skill tags for search/matching
   specializations        String[]               @default([])
+  /// Accepted alternative value tags (barter/proposals — Slice 4 foundation)
+  acceptedSpecializations String[]              @default([])
   conversations     Conversation[]
   proposals         Proposal[]
   deliveryOrders    DeliveryOrder[]
@@ -451,6 +453,7 @@ model Product {
   @@index([marketplaceCategory])
   @@index([priceModel])
   @@index([specializations], type: Gin)
+  @@index([acceptedSpecializations], type: Gin)
 }
 
 enum ListingIntent {

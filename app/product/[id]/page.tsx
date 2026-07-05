@@ -26,6 +26,7 @@ import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTru
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
 import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
+import ProductAcceptedBadgesSection from '@/components/product/detail/ProductAcceptedBadgesSection';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
@@ -46,6 +47,9 @@ type Product = {
   subcategory?: string;
   marketplaceCategory?: string | null;
   specializations?: string[];
+  acceptedSpecializations?: string[];
+  acceptedSpecializations?: string[];
+  priceModel?: string | null;
   displayNameType?: string;
   delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
   tags?: string[];
@@ -304,6 +308,10 @@ export default function ProductPage() {
           specializations: Array.isArray(data.product.specializations)
             ? data.product.specializations
             : [],
+          acceptedSpecializations: Array.isArray(data.product.acceptedSpecializations)
+            ? data.product.acceptedSpecializations
+            : [],
+          priceModel: data.product.priceModel ?? 'FIXED',
           tags: Array.isArray(data.product.tags) ? data.product.tags : [],
           pickupAddress: data.product.pickupAddress ?? null,
           pickupLat: data.product.pickupLat ?? null,
@@ -766,6 +774,12 @@ export default function ProductPage() {
                   (product.marketplaceCategory as MarketplaceCategory | null) ?? null
                 }
                 legacyCategory={product.category}
+              />
+
+              <ProductAcceptedBadgesSection
+                acceptedSpecializations={product.acceptedSpecializations}
+                priceCents={product.priceCents}
+                priceModel={product.priceModel}
               />
 
               <ProductSaleAboutSection

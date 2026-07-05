@@ -20,12 +20,14 @@ import {
 } from './fulfillment';
 import { allowsZeroPrice, priceRequiredForModel } from './form-config';
 import { MARKETPLACE_ERROR_KEYS } from './i18n-keys';
+import { normalizeAcceptedTaxonomyIds } from './taxonomy-normalize';
 
 export type MarketplaceV2Payload = {
   listingIntent: ListingIntent;
   marketplaceCategory: MarketplaceCategory;
   subcategory: string | null;
   specializations: string[];
+  acceptedSpecializations: string[];
   priceModel: PriceModel;
   acceptHomeCheffPayment: boolean;
   acceptDirectContact: boolean;
@@ -87,6 +89,10 @@ export function parseMarketplaceV2FromBody(
     marketplaceCategory,
   );
 
+  const acceptedSpecializations = normalizeAcceptedTaxonomyIds(
+    body.acceptedSpecializations,
+  );
+
   const subcategory =
     primarySpecialization(specializations) ?? subcategoryRaw;
 
@@ -100,6 +106,7 @@ export function parseMarketplaceV2FromBody(
     marketplaceCategory,
     subcategory,
     specializations,
+    acceptedSpecializations,
     priceModel,
     acceptHomeCheffPayment: acceptHomeCheffPayment || (!acceptDirectContact),
     acceptDirectContact,

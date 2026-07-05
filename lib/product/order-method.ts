@@ -91,7 +91,7 @@ export type PublishGateResult = {
   publishBlockReason?: 'PAYMENTS_REQUIRED';
 };
 
-/** Bepaal of product live mag — blokkeer betaald HomeCheff-aanbod zonder betalingen. */
+/** Bepaal of product live mag — Stripe blokkeert nooit publicatie, alleen checkout. */
 export function resolveProductPublishState(params: {
   requestedActive: boolean;
   orderMethod: ProductOrderMethodValue;
@@ -101,17 +101,14 @@ export function resolveProductPublishState(params: {
   if (!params.requestedActive) {
     return { isActive: false, publishBlocked: false };
   }
-  if (
+  const paymentsRequired =
     requiresStripeForHomecheffCheckout(params) &&
-    !sellerPaymentsReady(params.sellerUser)
-  ) {
-    return {
-      isActive: false,
-      publishBlocked: true,
-      publishBlockReason: 'PAYMENTS_REQUIRED',
-    };
-  }
-  return { isActive: true, publishBlocked: false };
+    !sellerPaymentsReady(params.sellerUser);
+  return {
+    isActive: true,
+    publishBlocked: paymentsRequired,
+    publishBlockReason: paymentsRequired ? 'PAYMENTS_REQUIRED' : undefined,
+  };
 }
 
 /** Publish-gate voor product PATCH/create body + bestaand product. */
