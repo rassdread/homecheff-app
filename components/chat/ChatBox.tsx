@@ -41,7 +41,10 @@ import ChatThreadMessageRow from './ChatThreadMessageRow';
 import CreateProposalSheet from './proposals/CreateProposalSheet';
 import ReportContentButton from '@/components/reporting/ReportContentButton';
 import type { ChatThreadMessage } from './chatThreadTypes';
-import type { ProposalDTO } from '@/lib/proposals/proposal-types';
+import type {
+  CommunityOrderDTO,
+  ProposalDTO,
+} from '@/lib/proposals/proposal-types';
 
 export interface ChatBoxProps {
   conversationId: string;
@@ -94,6 +97,9 @@ export default function ChatBox({
   const [pusherConnected, setPusherConnected] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [proposalsById, setProposalsById] = useState<Record<string, ProposalDTO>>({});
+  const [communityOrdersByProposalId, setCommunityOrdersByProposalId] = useState<
+    Record<string, CommunityOrderDTO>
+  >({});
   const [showCreateProposal, setShowCreateProposal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -124,20 +130,40 @@ export default function ChatBox({
     try {
       const res = await fetch(`/api/conversations/${conversationId}/proposals`);
       if (!res.ok) return;
-      const data = (await res.json()) as { proposals?: ProposalDTO[] };
+      const data = (await res.json()) as {
+        proposals?: ProposalDTO[];
+        communityOrders?: CommunityOrderDTO[];
+      };
       const map: Record<string, ProposalDTO> = {};
       for (const p of data.proposals ?? []) {
         map[p.id] = p;
       }
+      const orderMap: Record<string, CommunityOrderDTO> = {};
+      for (const o of data.communityOrders ?? []) {
+        orderMap[o.proposalId] = o;
+      }
       setProposalsById(map);
+      setCommunityOrdersByProposalId(orderMap);
     } catch {
       /* non-fatal */
     }
   }, [conversationId]);
 
-  const handleProposalUpdated = useCallback((proposal: ProposalDTO) => {
-    setProposalsById((prev) => ({ ...prev, [proposal.id]: proposal }));
-  }, []);
+  const handleProposalUpdated = useCallback(
+    (
+      proposal: ProposalDTO,
+      extra?: { communityOrder?: CommunityOrderDTO },
+    ) => {
+      setProposalsById((prev) => ({ ...prev, [proposal.id]: proposal }));
+      if (extra?.communityOrder) {
+        setCommunityOrdersByProposalId((prev) => ({
+          ...prev,
+          [proposal.id]: extra.communityOrder!,
+        }));
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void loadProposals();
@@ -1222,6 +1248,11 @@ export default function ChatBox({
                 proposal={
                   msg.proposalId ? proposalsById[msg.proposalId] ?? null : null
                 }
+                communityOrder={
+                  msg.proposalId
+                    ? communityOrdersByProposalId[msg.proposalId] ?? null
+                    : null
+                }
                 onProposalUpdated={handleProposalUpdated}
               />
             ))}
@@ -1244,8 +1275,8 @@ export default function ChatBox({
             type="button"
             onClick={() => setShowCreateProposal(true)}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-            title="Voorstel maken"
-            aria-label="Voorstel maken"
+            title={t('proposal.create.title')}
+            aria-label={t('proposal.create.title')}
           >
             <ClipboardList className="h-5 w-5" />
           </button>

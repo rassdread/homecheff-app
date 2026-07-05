@@ -1144,7 +1144,10 @@ export class NotificationService {
       | 'PROPOSAL_RECEIVED'
       | 'PROPOSAL_ACCEPTED'
       | 'PROPOSAL_REJECTED'
-      | 'PROPOSAL_COUNTERED',
+      | 'PROPOSAL_COUNTERED'
+      | 'PROPOSAL_ALTERNATIVE_VALUE'
+      | 'PROPOSAL_MIXED_ACCEPTED'
+      | 'COMMUNITY_ORDER_CREATED',
     title: string,
     body: string,
     proposal: {
@@ -1152,6 +1155,9 @@ export class NotificationService {
       conversationId: string;
       title: string;
       amountCents?: number | null;
+      titleKey?: string;
+      bodyKey?: string;
+      communityOrderId?: string;
     },
   ): Promise<void> {
     if (recipientId === senderId) return;
@@ -1172,6 +1178,11 @@ export class NotificationService {
         actionUrl: `/messages/${proposal.conversationId}/`,
         route: `/messages/${proposal.conversationId}/`,
         proposalTitle: proposal.title,
+        ...(proposal.titleKey ? { titleKey: proposal.titleKey } : {}),
+        ...(proposal.bodyKey ? { bodyKey: proposal.bodyKey } : {}),
+        ...(proposal.communityOrderId
+          ? { communityOrderId: proposal.communityOrderId }
+          : {}),
         ...(proposal.amountCents != null
           ? { amountCents: String(proposal.amountCents) }
           : {}),

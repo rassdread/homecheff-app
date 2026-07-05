@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, Loader2, ClipboardList } from "lucide-react";
+import type { SettlementMode } from "@prisma/client";
+import AcceptedValuesPicker from "@/components/products/marketplace/AcceptedValuesPicker";
+import { useTranslation } from "@/hooks/useTranslation";
+import { deriveSettlementModeFromProduct } from "@/lib/proposals/proposal-settlement";
+import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import type { ResolvedConversationHeader } from "@/lib/communication/resolveConversationHeader";
 
 export type CreateProposalFormValues = {
@@ -12,6 +17,9 @@ export type CreateProposalFormValues = {
   requestedDate: string;
   requestedTimeWindow: string;
   fulfillmentType: "" | "PICKUP" | "DELIVERY";
+  settlementMode: SettlementMode;
+  acceptedValueTaxonomyIds: string[];
+  requestedValueTaxonomyIds: string[];
 };
 
 type Props = {
@@ -21,6 +29,14 @@ type Props = {
   conversationId: string;
   contextHeader?: ResolvedConversationHeader | null;
 };
+
+const SETTLEMENT_MODES: SettlementMode[] = [
+  "MONEY",
+  "MONEY_AND_VALUE",
+  "VALUE_ONLY",
+  "FREE",
+  "VOLUNTARY",
+];
 
 function initialFromHeader(
   contextHeader?: ResolvedConversationHeader | null,
@@ -33,15 +49,16 @@ function initialFromHeader(
     requestedDate: "",
     requestedTimeWindow: "",
     fulfillmentType: "",
+    settlementMode: "MONEY",
+    acceptedValueTaxonomyIds: [],
+    requestedValueTaxonomyIds: [],
   };
   if (contextHeader?.kind === "PRODUCT") {
     const product = contextHeader.product;
     return {
       ...base,
       title: product.title,
-      amountEuros: product.priceCents
-        ? String(product.priceCents / 100)
-        : "",
+      amountEuros: product.priceCents ? String(product.priceCents / 100) : "",
       quantity: "1",
       fulfillmentType:
         product.delivery === "DELIVERY"
@@ -49,6 +66,13 @@ function initialFromHeader(
           : product.delivery === "PICKUP"
             ? "PICKUP"
             : "",
+      settlementMode: deriveSettlementModeFromProduct({
+        priceCents: product.priceCents,
+        priceModel: product.priceModel,
+        acceptedSpecializations: product.acceptedSpecializations,
+        barterOpenness: product.barterOpenness as import("@prisma/client").BarterOpenness | null,
+      }),
+      acceptedValueTaxonomyIds: [...product.acceptedSpecializations],
     };
   }
   return base;
@@ -61,17 +85,42 @@ export default function CreateProposalSheet({
   conversationId,
   contextHeader,
 }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<CreateProposalFormValues>(() =>
     initialFromHeader(contextHeader),
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setForm(initialFromHeader(contextHeader));
+      setError(null);
+    }
+  }, [open, contextHeader]);
+
+  const showMoneyField = useMemo(
+    () =>
+      form.settlementMode === "MONEY" ||
+      form.settlementMode === "MONEY_AND_VALUE",
+    [form.settlementMode],
+  );
+  const showValuePicker = useMemo(
+    () =>
+      form.settlementMode === "VALUE_ONLY" ||
+      form.settlementMode === "MONEY_AND_VALUE",
+    [form.settlementMode],
+  );
+
   if (!open) return null;
 
   const set =
     (key: keyof CreateProposalFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
     };
 
@@ -80,7 +129,7 @@ export default function CreateProposalSheet({
     setError(null);
     const title = form.title.trim();
     if (!title) {
-      setError("Titel is verplicht");
+      setError(t("marketplace.errors.titleDescriptionRequired"));
       return;
     }
 
@@ -91,9 +140,9 @@ export default function CreateProposalSheet({
       ? parseFloat(form.amountEuros.replace(",", "."))
       : undefined;
     const amountCents =
-      euros != null && Number.isFinite(euros)
+      showMoneyField && euros != null && Number.isFinite(euros)
         ? Math.round(euros * 100)
-        : undefined;
+        : null;
 
     const productId =
       contextHeader?.kind === "PRODUCT"
@@ -111,24 +160,31 @@ export default function CreateProposalSheet({
             title,
             description: form.description.trim() || null,
             quantity: Number.isFinite(quantity!) ? quantity : null,
-            amountCents: amountCents ?? null,
+            amountCents,
             requestedDate: form.requestedDate || null,
             requestedTimeWindow: form.requestedTimeWindow.trim() || null,
             fulfillmentType: form.fulfillmentType || null,
             productId: productId ?? null,
+            settlementMode: form.settlementMode,
+            acceptedValueTaxonomyIds: form.acceptedValueTaxonomyIds,
+            requestedValueTaxonomyIds: form.requestedValueTaxonomyIds,
           }),
         },
       );
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Voorstel kon niet worden aangemaakt");
+        const errKey =
+          typeof data.error === "string" && data.error.startsWith("proposal.")
+            ? data.error
+            : null;
+        setError(errKey ? t(errKey) : data.error || t("common.error"));
         return;
       }
       onCreated();
       onClose();
       setForm(initialFromHeader(contextHeader));
     } catch {
-      setError("Voorstel kon niet worden aangemaakt");
+      setError(t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -145,15 +201,18 @@ export default function CreateProposalSheet({
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-indigo-600" aria-hidden />
-            <h2 id="create-proposal-title" className="text-base font-semibold text-gray-900">
-              Voorstel maken
+            <h2
+              id="create-proposal-title"
+              className="text-base font-semibold text-gray-900"
+            >
+              {t("proposal.create.title")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full p-2 hover:bg-gray-100"
-            aria-label="Sluiten"
+            aria-label={t("common.close")}
           >
             <X className="h-5 w-5 text-gray-500" />
           </button>
@@ -161,21 +220,53 @@ export default function CreateProposalSheet({
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 px-4 py-4">
           <div>
+            <p className="text-xs font-semibold text-gray-900 mb-2">
+              {t("proposal.settlement.heading")}
+            </p>
+            <p className="text-[11px] text-gray-500 mb-2">
+              {t("proposal.create.settlementHint")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SETTLEMENT_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, settlementMode: mode }))
+                  }
+                  className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                    form.settlementMode === mode
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-900"
+                      : "border-gray-200 text-gray-700"
+                  }`}
+                >
+                  {t(PROPOSAL_I18N.settlement[mode])}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {form.acceptedValueTaxonomyIds.length > 0 ? (
+            <p className="text-[11px] text-emerald-700">
+              {t("proposal.create.prefilledAccepted")}
+            </p>
+          ) : null}
+
+          <div>
             <label className="mb-1 block text-xs font-medium text-gray-700">
-              Titel
+              {t("marketplace.form.titleLabel")}
             </label>
             <input
               required
               value={form.title}
               onChange={set("title")}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              placeholder="Bijv. 3x Lasagna"
             />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-700">
-              Omschrijving (optioneel)
+              {t("marketplace.form.descriptionLabel")}
             </label>
             <textarea
               value={form.description}
@@ -188,7 +279,7 @@ export default function CreateProposalSheet({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                Aantal
+                {t("productOrder.quantityLabel")}
               </label>
               <input
                 type="number"
@@ -198,24 +289,34 @@ export default function CreateProposalSheet({
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                Bedrag (€)
-              </label>
-              <input
-                inputMode="decimal"
-                value={form.amountEuros}
-                onChange={set("amountEuros")}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                placeholder="36"
-              />
-            </div>
+            {showMoneyField ? (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700">
+                  {t("marketplace.form.priceLabel")}
+                </label>
+                <input
+                  inputMode="decimal"
+                  value={form.amountEuros}
+                  onChange={set("amountEuros")}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+            ) : null}
           </div>
+
+          {showValuePicker ? (
+            <AcceptedValuesPicker
+              value={form.requestedValueTaxonomyIds}
+              onChange={(ids) =>
+                setForm((prev) => ({ ...prev, requestedValueTaxonomyIds: ids }))
+              }
+            />
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                Datum
+                {t("marketplace.form.dateLabel", { defaultValue: "Datum" })}
               </label>
               <input
                 type="date"
@@ -226,7 +327,7 @@ export default function CreateProposalSheet({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-700">
-                Tijd
+                {t("marketplace.form.timeLabel", { defaultValue: "Tijd" })}
               </label>
               <input
                 value={form.requestedTimeWindow}
@@ -239,7 +340,7 @@ export default function CreateProposalSheet({
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-700">
-              Afhandeling
+              {t("marketplace.fulfillment.heading")}
             </label>
             <select
               value={form.fulfillmentType}
@@ -247,8 +348,8 @@ export default function CreateProposalSheet({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
             >
               <option value="">—</option>
-              <option value="PICKUP">Afhalen</option>
-              <option value="DELIVERY">Bezorging</option>
+              <option value="PICKUP">{t("marketplace.fulfillment.pickup")}</option>
+              <option value="DELIVERY">{t("marketplace.fulfillment.delivery")}</option>
             </select>
           </div>
 
@@ -266,10 +367,10 @@ export default function CreateProposalSheet({
             {busy ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Bezig…
+                …
               </>
             ) : (
-              "Voorstel versturen"
+              t("proposal.actions.send")
             )}
           </button>
         </form>

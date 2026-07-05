@@ -6,11 +6,14 @@ export type ConversationHeaderProduct = {
   id: string;
   title: string;
   priceCents: number;
+  priceModel: string | null;
   category: string | null;
   delivery: string | null;
   imageUrl: string | null;
   href: string;
   canCheckout: boolean;
+  acceptedSpecializations: string[];
+  barterOpenness: string | null;
 };
 
 export type ConversationHeaderOrder = {
@@ -70,10 +73,13 @@ export async function resolveConversationHeader(
           id: true,
           title: true,
           priceCents: true,
+          priceModel: true,
           category: true,
           delivery: true,
           orderMethod: true,
           isActive: true,
+          acceptedSpecializations: true,
+          barterOpenness: true,
           Image: {
             select: { fileUrl: true },
             orderBy: { sortOrder: 'asc' },
@@ -107,10 +113,13 @@ export async function resolveConversationHeader(
               id: true,
               title: true,
               priceCents: true,
+              priceModel: true,
               category: true,
               delivery: true,
               orderMethod: true,
               isActive: true,
+              acceptedSpecializations: true,
+              barterOpenness: true,
               Image: {
                 select: { fileUrl: true },
                 orderBy: { sortOrder: 'asc' },
@@ -132,11 +141,14 @@ export async function resolveConversationHeader(
           id: product.id,
           title: product.title,
           priceCents: product.priceCents,
+          priceModel: product.priceModel,
           category: product.category,
           delivery: product.delivery,
           imageUrl: product.Image[0]?.fileUrl ?? null,
           href: `/product/${product.id}`,
           canCheckout,
+          acceptedSpecializations: product.acceptedSpecializations ?? [],
+          barterOpenness: product.barterOpenness,
         },
       };
     }

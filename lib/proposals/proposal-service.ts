@@ -1,7 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { syncConversationStatusAfterMessage } from '@/lib/communication/sync-conversation-status';
 import type { MessageType } from '@prisma/client';
-import { notifyProposalEvent } from './notify-proposal-event';
+import { notifyProposalAccepted, notifyProposalEvent, notifyProposalReceived } from './notify-proposal-event';
+import {
+  buildProposalSummary,
+  deriveSettlementModeFromProduct,
+  normalizeProposalTaxonomyIds,
+  parseSettlementMode,
+  resolveCommunityOrderFulfillment,
+  validateProposalSettlement,
+  type AgreementSummarySnapshot,
+} from './proposal-settlement';
+import { PROPOSAL_SYSTEM_MESSAGE_KEYS } from './proposal-i18n-keys';
 import { emitNewMessage, emitProposalUpdated } from './proposal-realtime';
 import {
   serializeAgreement,
@@ -9,6 +19,7 @@ import {
   serializeProposal,
 } from './serialize-proposal';
 import type {
+  CommunityOrderDTO,
   CounterProposalInput,
   CreateProposalInput,
   ProposalActionResult,
@@ -100,6 +111,67 @@ async function resolveSellerBuyer(
   return { sellerId, buyerId };
 }
 
+async function loadProductProposalContext(productId: string | null | undefined) {
+  if (!productId) return null;
+  return prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      acceptedSpecializations: true,
+      priceCents: true,
+      priceModel: true,
+      barterOpenness: true,
+    },
+  });
+}
+
+async function resolveProposalFields(
+  input: CreateProposalInput,
+  title: string,
+) {
+  const productCtx = await loadProductProposalContext(input.productId);
+  const acceptedValueTaxonomyIds = normalizeProposalTaxonomyIds(
+    input.acceptedValueTaxonomyIds ??
+      (productCtx?.acceptedSpecializations?.length
+        ? productCtx.acceptedSpecializations
+        : []),
+  );
+  const requestedValueTaxonomyIds = normalizeProposalTaxonomyIds(
+    input.requestedValueTaxonomyIds,
+  );
+  const settlementMode = input.settlementMode
+    ? parseSettlementMode(input.settlementMode)
+    : productCtx
+      ? deriveSettlementModeFromProduct(productCtx)
+      : parseSettlementMode('MONEY');
+
+  const validation = validateProposalSettlement({
+    settlementMode,
+    amountCents: input.amountCents,
+    requestedValueTaxonomyIds,
+  });
+  if (!validation.ok) {
+    throw new ProposalServiceError(validation.errorKey, 400);
+  }
+
+  const proposalSummary = buildProposalSummary({
+    settlementMode,
+    amountCents: input.amountCents,
+    currency: input.currency,
+    acceptedValueTaxonomyIds,
+    requestedValueTaxonomyIds,
+    title,
+    quantity: input.quantity,
+    fulfillmentType: input.fulfillmentType ?? null,
+  });
+
+  return {
+    settlementMode,
+    acceptedValueTaxonomyIds,
+    requestedValueTaxonomyIds,
+    proposalSummary,
+  };
+}
+
 function parseOptionalDate(value: string | null | undefined): Date | null {
   if (!value) return null;
   const d = new Date(value);
@@ -184,6 +256,8 @@ export class ProposalService {
 
     const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
 
+    const fields = await resolveProposalFields(input, title);
+
     const proposal = await prisma.proposal.create({
       data: {
         conversationId,
@@ -201,6 +275,10 @@ export class ProposalService {
         requestedTimeWindow: input.requestedTimeWindow?.trim() || null,
         fulfillmentType: input.fulfillmentType ?? null,
         category: input.category ?? 'PRODUCT',
+        settlementMode: fields.settlementMode,
+        acceptedValueTaxonomyIds: fields.acceptedValueTaxonomyIds,
+        requestedValueTaxonomyIds: fields.requestedValueTaxonomyIds,
+        proposalSummary: fields.proposalSummary as object,
         expiresAt: parseOptionalDate(input.expiresAt),
         status: 'PENDING',
       },
@@ -220,7 +298,7 @@ export class ProposalService {
     );
 
     await broadcastProposal(dto, userId, message as unknown as Record<string, unknown>);
-    await notifyProposalEvent(recipientId, userId, 'PROPOSAL_RECEIVED', dto);
+    await notifyProposalReceived(recipientId, userId, dto);
 
     return { proposal: dto, message: message as unknown as Record<string, unknown> };
   }
@@ -258,12 +336,31 @@ export class ProposalService {
         where: { id: proposalId },
       });
 
+      const agreementSnapshot: AgreementSummarySnapshot = {
+        ...buildProposalSummary({
+          settlementMode: proposal.settlementMode,
+          amountCents: proposal.amountCents,
+          currency: proposal.currency,
+          acceptedValueTaxonomyIds: proposal.acceptedValueTaxonomyIds,
+          requestedValueTaxonomyIds: proposal.requestedValueTaxonomyIds,
+          title: proposal.title,
+          quantity: proposal.quantity,
+          fulfillmentType: proposal.fulfillmentType,
+        }),
+        acceptedById: userId,
+        acceptedAt: new Date().toISOString(),
+        proposalId: proposal.id,
+      };
+
       const agreement = await tx.agreement.create({
         data: {
           proposalId: proposal.id,
           acceptedById: userId,
+          agreementSummary: agreementSnapshot as object,
         },
       });
+
+      const fulfillment = resolveCommunityOrderFulfillment(proposal.fulfillmentType);
 
       const communityOrder = await tx.communityOrder.create({
         data: {
@@ -273,6 +370,9 @@ export class ProposalService {
           buyerId: proposal.buyerId,
           sellerId: proposal.sellerId,
           status: 'OPEN',
+          fulfillmentMode: fulfillment.fulfillmentMode,
+          deliveryRequested: fulfillment.deliveryRequested,
+          deliveryAssigned: false,
         },
       });
 
@@ -281,7 +381,7 @@ export class ProposalService {
           conversationId: proposal.conversationId,
           senderId: userId,
           messageType: 'PROPOSAL_SYSTEM',
-          text: 'Voorstel geaccepteerd. Afspraak aangemaakt.',
+          text: PROPOSAL_SYSTEM_MESSAGE_KEYS.communityOrderCreated,
           isEncrypted: false,
         },
         include: { User: { select: MESSAGE_USER_SELECT } },
@@ -305,11 +405,11 @@ export class ProposalService {
       userId,
       result.systemMessage as unknown as Record<string, unknown>,
     );
-    await notifyProposalEvent(
+    await notifyProposalAccepted(
       result.proposal.createdById,
       userId,
-      'PROPOSAL_ACCEPTED',
       dto,
+      result.communityOrder.id,
     );
 
     return {
@@ -357,7 +457,7 @@ export class ProposalService {
       userId,
       proposal.id,
       'PROPOSAL_SYSTEM',
-      'Voorstel afgewezen.',
+      PROPOSAL_SYSTEM_MESSAGE_KEYS.rejected,
     );
 
     const dto = serializeProposal(proposal);
@@ -411,6 +511,39 @@ export class ProposalService {
       productId: input.productId ?? parent.productId,
     });
 
+    const counterInput: CreateProposalInput = {
+      title,
+      description:
+        input.description !== undefined
+          ? input.description
+          : parent.description,
+      quantity: input.quantity ?? parent.quantity,
+      amountCents: input.amountCents ?? parent.amountCents,
+      currency: input.currency ?? parent.currency,
+      requestedDate:
+        input.requestedDate !== undefined
+          ? input.requestedDate
+          : parent.requestedDate?.toISOString() ?? null,
+      requestedTimeWindow:
+        input.requestedTimeWindow !== undefined
+          ? input.requestedTimeWindow
+          : parent.requestedTimeWindow,
+      fulfillmentType: input.fulfillmentType ?? parent.fulfillmentType,
+      category: input.category ?? parent.category,
+      expiresAt:
+        input.expiresAt !== undefined
+          ? input.expiresAt
+          : parent.expiresAt?.toISOString() ?? null,
+      productId: input.productId ?? parent.productId,
+      listingId: input.listingId ?? parent.listingId,
+      settlementMode: input.settlementMode ?? parent.settlementMode,
+      acceptedValueTaxonomyIds:
+        input.acceptedValueTaxonomyIds ?? parent.acceptedValueTaxonomyIds,
+      requestedValueTaxonomyIds:
+        input.requestedValueTaxonomyIds ?? parent.requestedValueTaxonomyIds,
+    };
+    const fields = await resolveProposalFields(counterInput, title);
+
     const result = await prisma.$transaction(async (tx) => {
       const parentUpdate = await tx.proposal.updateMany({
         where: { id: proposalId, status: 'PENDING' },
@@ -446,6 +579,10 @@ export class ProposalService {
               : parent.requestedTimeWindow,
           fulfillmentType: input.fulfillmentType ?? parent.fulfillmentType,
           category: input.category ?? parent.category,
+          settlementMode: fields.settlementMode,
+          acceptedValueTaxonomyIds: fields.acceptedValueTaxonomyIds,
+          requestedValueTaxonomyIds: fields.requestedValueTaxonomyIds,
+          proposalSummary: fields.proposalSummary as object,
           expiresAt:
             input.expiresAt !== undefined
               ? parseOptionalDate(input.expiresAt)
@@ -545,7 +682,7 @@ export class ProposalService {
       userId,
       proposal.id,
       'PROPOSAL_SYSTEM',
-      'Voorstel geannuleerd.',
+      PROPOSAL_SYSTEM_MESSAGE_KEYS.cancelled,
     );
 
     const dto = serializeProposal(proposal);
@@ -582,5 +719,17 @@ export class ProposalService {
       orderBy: { createdAt: 'asc' },
     });
     return rows.map(serializeProposal);
+  }
+
+  static async listCommunityOrdersForConversation(
+    userId: string,
+    conversationId: string,
+  ): Promise<CommunityOrderDTO[]> {
+    await assertParticipant(conversationId, userId);
+    const rows = await prisma.communityOrder.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map(serializeCommunityOrder);
   }
 }

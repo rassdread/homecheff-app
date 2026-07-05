@@ -7629,6 +7629,86 @@
       "tattooAgeDisclaimer": "Tattoo's kunnen leeftijds- en hygiëneregels vereisen."
     }
   },
+  "proposal": {
+    "card": {
+      "heading": "Voorstel",
+      "acceptsLabel": "Accepteert:",
+      "seeksLabel": "Zoekt:"
+    },
+    "status": {
+      "pending": "In afwachting",
+      "accepted": "Geaccepteerd",
+      "rejected": "Afgewezen",
+      "countered": "Tegenvoorstel gedaan",
+      "expired": "Verlopen",
+      "cancelled": "Geannuleerd"
+    },
+    "settlement": {
+      "heading": "Waarde",
+      "money": "Geld",
+      "moneyAndValue": "Geld + waarde",
+      "valueOnly": "Andere waarde",
+      "free": "Gratis",
+      "voluntary": "Vrijwillige bijdrage"
+    },
+    "create": {
+      "title": "Voorstel maken",
+      "settlementHint": "Kies hoe waarde wordt afgesproken — geen betaling via dit scherm.",
+      "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod."
+    },
+    "system": {
+      "accepted": "Voorstel geaccepteerd.",
+      "rejected": "Voorstel afgewezen.",
+      "cancelled": "Voorstel geannuleerd.",
+      "communityOrderCreated": "Community order aangemaakt — afspraak vastgelegd."
+    },
+    "errors": {
+      "moneyAmountRequired": "Voer een bedrag in voor een geldvoorstel.",
+      "valueRequired": "Selecteer minstens één waarde."
+    },
+    "notifications": {
+      "received": { "title": "Nieuw voorstel", "body": "{{title}}" },
+      "accepted": { "title": "Voorstel geaccepteerd", "body": "\"{{title}}\" is geaccepteerd." },
+      "rejected": { "title": "Voorstel afgewezen", "body": "\"{{title}}\" is afgewezen." },
+      "countered": { "title": "Tegenvoorstel ontvangen", "body": "Nieuw tegenvoorstel: {{title}}" },
+      "alternativeValue": { "title": "Voorstel bevat alternatieve waarde", "body": "\"{{title}}\" bevat alternatieve waarde." },
+      "mixedAccepted": { "title": "Gemengde overeenkomst geaccepteerd", "body": "\"{{title}}\" — gemengde overeenkomst geaccepteerd." },
+      "communityOrderCreated": { "title": "Community order aangemaakt", "body": "Community order voor \"{{title}}\" is aangemaakt." }
+    },
+    "actions": {
+      "accept": "Accepteren",
+      "reject": "Afwijzen",
+      "counter": "Tegenvoorstel",
+      "cancel": "Voorstel annuleren",
+      "sendCounter": "Verstuur tegenvoorstel",
+      "send": "Voorstel versturen"
+    }
+  },
+  "communityOrder": {
+    "summary": {
+      "heading": "Community order",
+      "deliveryRequested": "Bezorging gevraagd",
+      "deliveryAssigned": "Bezorger toegewezen",
+      "parties": "Partijen"
+    },
+    "status": {
+      "open": "Open",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd"
+    },
+    "fulfillment": {
+      "pickup": "Afhalen",
+      "delivery": "Bezorging",
+      "digital": "Digitaal",
+      "onSiteProvider": "Op locatie aanbieder",
+      "onSiteClient": "Op locatie klant"
+    }
+  },
+  "agreement": {
+    "snapshot": {
+      "heading": "Overeenkomst"
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Prijs op aanvraag",
     "priceLabel": "Prijs",

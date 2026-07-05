@@ -7629,6 +7629,86 @@
       "tattooAgeDisclaimer": "Tattoos may require age and hygiene rules."
     }
   },
+  "proposal": {
+    "card": {
+      "heading": "Proposal",
+      "acceptsLabel": "Accepts:",
+      "seeksLabel": "Seeks:"
+    },
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "countered": "Counter offer sent",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "settlement": {
+      "heading": "Value",
+      "money": "Money",
+      "moneyAndValue": "Money + value",
+      "valueOnly": "Alternative value",
+      "free": "Free",
+      "voluntary": "Voluntary contribution"
+    },
+    "create": {
+      "title": "Create proposal",
+      "settlementHint": "Choose how value is agreed — no payment processing in this screen.",
+      "prefilledAccepted": "Prefilled from the listing."
+    },
+    "system": {
+      "accepted": "Proposal accepted.",
+      "rejected": "Proposal rejected.",
+      "cancelled": "Proposal cancelled.",
+      "communityOrderCreated": "Community order created — agreement recorded."
+    },
+    "errors": {
+      "moneyAmountRequired": "Enter an amount for a money proposal.",
+      "valueRequired": "Select at least one value."
+    },
+    "notifications": {
+      "received": { "title": "New proposal", "body": "{{title}}" },
+      "accepted": { "title": "Proposal accepted", "body": "\"{{title}}\" was accepted." },
+      "rejected": { "title": "Proposal rejected", "body": "\"{{title}}\" was rejected." },
+      "countered": { "title": "Counter offer received", "body": "New counter offer: {{title}}" },
+      "alternativeValue": { "title": "Proposal includes alternative value", "body": "\"{{title}}\" includes alternative value." },
+      "mixedAccepted": { "title": "Mixed agreement accepted", "body": "\"{{title}}\" — mixed agreement accepted." },
+      "communityOrderCreated": { "title": "Community order created", "body": "Community order for \"{{title}}\" was created." }
+    },
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "counter": "Counter offer",
+      "cancel": "Cancel proposal",
+      "sendCounter": "Send counter offer",
+      "send": "Send proposal"
+    }
+  },
+  "communityOrder": {
+    "summary": {
+      "heading": "Community order",
+      "deliveryRequested": "Delivery requested",
+      "deliveryAssigned": "Courier assigned",
+      "parties": "Parties"
+    },
+    "status": {
+      "open": "Open",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "fulfillment": {
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "digital": "Digital",
+      "onSiteProvider": "On provider site",
+      "onSiteClient": "On client site"
+    }
+  },
+  "agreement": {
+    "snapshot": {
+      "heading": "Agreement"
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Price on request",
     "priceLabel": "Price",

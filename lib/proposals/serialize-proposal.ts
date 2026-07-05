@@ -1,5 +1,16 @@
 import type { Agreement, CommunityOrder, Proposal } from '@prisma/client';
+import type { AgreementSummarySnapshot, ProposalSummarySnapshot } from './proposal-settlement';
 import type { AgreementDTO, CommunityOrderDTO, ProposalDTO } from './proposal-types';
+
+function parseProposalSummary(raw: unknown): ProposalSummarySnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  return raw as ProposalSummarySnapshot;
+}
+
+function parseAgreementSummary(raw: unknown): AgreementSummarySnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  return raw as AgreementSummarySnapshot;
+}
 
 export function serializeProposal(row: Proposal): ProposalDTO {
   return {
@@ -20,6 +31,9 @@ export function serializeProposal(row: Proposal): ProposalDTO {
     fulfillmentType: row.fulfillmentType,
     category: row.category,
     settlementMode: row.settlementMode,
+    acceptedValueTaxonomyIds: row.acceptedValueTaxonomyIds ?? [],
+    requestedValueTaxonomyIds: row.requestedValueTaxonomyIds ?? [],
+    proposalSummary: parseProposalSummary(row.proposalSummary),
     status: row.status,
     parentProposalId: row.parentProposalId,
     expiresAt: row.expiresAt?.toISOString() ?? null,
@@ -34,6 +48,7 @@ export function serializeAgreement(row: Agreement): AgreementDTO {
     proposalId: row.proposalId,
     acceptedById: row.acceptedById,
     acceptedAt: row.acceptedAt.toISOString(),
+    agreementSummary: parseAgreementSummary(row.agreementSummary),
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -47,6 +62,9 @@ export function serializeCommunityOrder(row: CommunityOrder): CommunityOrderDTO 
     buyerId: row.buyerId,
     sellerId: row.sellerId,
     status: row.status,
+    fulfillmentMode: row.fulfillmentMode,
+    deliveryRequested: row.deliveryRequested,
+    deliveryAssigned: row.deliveryAssigned,
     checkoutOrderId: row.checkoutOrderId,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

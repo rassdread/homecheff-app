@@ -16,12 +16,18 @@ export async function GET(
     const authResult = await resolveProposalApiUser();
     if ('error' in authResult) return authResult.error;
 
-    const proposals = await ProposalService.listProposalsForConversation(
-      authResult.userId,
-      params.conversationId,
-    );
+    const [proposals, communityOrders] = await Promise.all([
+      ProposalService.listProposalsForConversation(
+        authResult.userId,
+        params.conversationId,
+      ),
+      ProposalService.listCommunityOrdersForConversation(
+        authResult.userId,
+        params.conversationId,
+      ),
+    ]);
 
-    return NextResponse.json({ proposals });
+    return NextResponse.json({ proposals, communityOrders });
   } catch (error) {
     return handleProposalServiceError(error);
   }

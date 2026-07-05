@@ -19,7 +19,12 @@ import type {
 } from "./chatThreadTypes";
 import { isChatSystemOrOrderMessage } from "./chatThreadTypes";
 import { stripReferralNoise } from "@/lib/chat/stripReferralNoise";
-import type { ProposalDTO } from "@/lib/proposals/proposal-types";
+import { useTranslation } from "@/hooks/useTranslation";
+import { isProposalI18nKey } from "@/lib/proposals/proposal-i18n-keys";
+import type {
+  CommunityOrderDTO,
+  ProposalDTO,
+} from "@/lib/proposals/proposal-types";
 import ProposalCard from "./proposals/ProposalCard";
 
 function PeerAvatarLink({ user }: { user: ChatThreadUser }) {
@@ -107,7 +112,11 @@ type Props = {
   currentUserId: string;
   formatTime: (iso: string) => string;
   proposal?: ProposalDTO | null;
-  onProposalUpdated?: (proposal: ProposalDTO) => void;
+  communityOrder?: CommunityOrderDTO | null;
+  onProposalUpdated?: (
+    proposal: ProposalDTO,
+    extra?: { communityOrder?: CommunityOrderDTO },
+  ) => void;
 };
 
 export default function ChatThreadMessageRow({
@@ -115,8 +124,10 @@ export default function ChatThreadMessageRow({
   currentUserId,
   formatTime,
   proposal,
+  communityOrder,
   onProposalUpdated,
 }: Props) {
+  const { t } = useTranslation();
   const mt: ChatThreadMessageType = msg.messageType ?? "TEXT";
   const isOwn = msg.senderId === currentUserId;
 
@@ -127,12 +138,16 @@ export default function ChatThreadMessageRow({
         currentUserId={currentUserId}
         formatTime={formatTime}
         messageCreatedAt={msg.createdAt}
+        communityOrder={communityOrder}
         onUpdated={onProposalUpdated}
       />
     );
   }
 
   if (isChatSystemOrOrderMessage(mt)) {
+    const rawText = msg.text ? stripReferralNoise(msg.text) : "";
+    const displayText =
+      rawText && isProposalI18nKey(rawText) ? t(rawText) : rawText;
     return (
       <div className="flex justify-center px-1">
         <div
@@ -150,7 +165,7 @@ export default function ChatThreadMessageRow({
             ) : null}
           </div>
           <p className="text-xs leading-snug whitespace-pre-wrap max-h-36 overflow-y-auto">
-            {msg.text ? stripReferralNoise(msg.text) : ""}
+            {displayText}
           </p>
           <p className="mt-1.5 text-[10px] opacity-60">{formatTime(msg.createdAt)}</p>
         </div>

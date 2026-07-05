@@ -4,7 +4,12 @@ import type {
   ProposalStatus,
   SettlementMode,
   CommunityOrderStatus,
+  CommunityOrderFulfillmentMode,
 } from '@prisma/client';
+import type {
+  AgreementSummarySnapshot,
+  ProposalSummarySnapshot,
+} from './proposal-settlement';
 
 export type ProposalDTO = {
   id: string;
@@ -24,6 +29,9 @@ export type ProposalDTO = {
   fulfillmentType: ProposalFulfillmentType | null;
   category: ProposalCategory;
   settlementMode: SettlementMode;
+  acceptedValueTaxonomyIds: string[];
+  requestedValueTaxonomyIds: string[];
+  proposalSummary: ProposalSummarySnapshot | null;
   status: ProposalStatus;
   parentProposalId: string | null;
   expiresAt: string | null;
@@ -36,6 +44,7 @@ export type AgreementDTO = {
   proposalId: string;
   acceptedById: string;
   acceptedAt: string;
+  agreementSummary: AgreementSummarySnapshot | null;
   createdAt: string;
 };
 
@@ -47,6 +56,9 @@ export type CommunityOrderDTO = {
   buyerId: string;
   sellerId: string;
   status: CommunityOrderStatus;
+  fulfillmentMode: CommunityOrderFulfillmentMode | null;
+  deliveryRequested: boolean;
+  deliveryAssigned: boolean;
   checkoutOrderId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -67,6 +79,9 @@ export type CreateProposalInput = {
   buyerId?: string;
   category?: ProposalCategory;
   expiresAt?: string | null;
+  settlementMode?: SettlementMode;
+  acceptedValueTaxonomyIds?: string[];
+  requestedValueTaxonomyIds?: string[];
 };
 
 export type CounterProposalInput = Omit<

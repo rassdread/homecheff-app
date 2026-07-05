@@ -2,48 +2,28 @@
 
 import { useState } from "react";
 import { Loader2, ClipboardList } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
-import type { ProposalDTO } from "@/lib/proposals/proposal-types";
+import { useTranslation } from "@/hooks/useTranslation";
+import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import { getMarketplacePriceDisplay } from "@/lib/marketplace/price-display";
+import type {
+  CommunityOrderDTO,
+  ProposalDTO,
+} from "@/lib/proposals/proposal-types";
+import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
+import type { SettlementMode } from "@prisma/client";
+import CommunityOrderSummaryCard from "./CommunityOrderSummaryCard";
 
 type Props = {
   proposal: ProposalDTO;
   currentUserId: string;
   formatTime: (iso: string) => string;
   messageCreatedAt?: string;
-  onUpdated?: (proposal: ProposalDTO) => void;
+  communityOrder?: CommunityOrderDTO | null;
+  onUpdated?: (
+    proposal: ProposalDTO,
+    extra?: { communityOrder?: CommunityOrderDTO },
+  ) => void;
 };
-
-function formatRequestedDate(iso: string | null): string | null {
-  if (!iso) return null;
-  try {
-    return new Date(iso).toLocaleDateString("nl-NL", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    });
-  } catch {
-    return null;
-  }
-}
-
-function statusLabel(status: ProposalDTO["status"]): string {
-  switch (status) {
-    case "PENDING":
-      return "In afwachting";
-    case "ACCEPTED":
-      return "Geaccepteerd";
-    case "REJECTED":
-      return "Afgewezen";
-    case "COUNTERED":
-      return "Tegenvoorstel gedaan";
-    case "EXPIRED":
-      return "Verlopen";
-    case "CANCELLED":
-      return "Geannuleerd";
-    default:
-      return status;
-  }
-}
 
 function statusBadgeClass(status: ProposalDTO["status"]): string {
   switch (status) {
@@ -62,13 +42,28 @@ function statusBadgeClass(status: ProposalDTO["status"]): string {
   }
 }
 
+function formatRequestedDate(iso: string | null): string | null {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString("nl-NL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  } catch {
+    return null;
+  }
+}
+
 export default function ProposalCard({
   proposal,
   currentUserId,
   formatTime,
   messageCreatedAt,
+  communityOrder,
   onUpdated,
 }: Props) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState<"accept" | "reject" | "counter" | null>(
     null,
   );
@@ -82,6 +77,30 @@ export default function ProposalCard({
   const isCreator = proposal.createdById === currentUserId;
   const canAct = proposal.status === "PENDING" && !isCreator;
   const canCancel = proposal.status === "PENDING" && isCreator;
+
+  const priceLabel = getMarketplacePriceDisplay(
+    {
+      priceCents: proposal.amountCents,
+      priceModel:
+        proposal.settlementMode === "VOLUNTARY"
+          ? "VOLUNTARY"
+          : proposal.settlementMode === "VALUE_ONLY" ||
+              proposal.settlementMode === "FREE"
+            ? "ON_REQUEST"
+            : "FIXED",
+      acceptedSpecializations: proposal.requestedValueTaxonomyIds,
+    },
+    t,
+  );
+
+  const showMoney =
+    proposal.settlementMode === "MONEY" ||
+    proposal.settlementMode === "MONEY_AND_VALUE";
+  const showValue =
+    proposal.settlementMode === "VALUE_ONLY" ||
+    proposal.settlementMode === "MONEY_AND_VALUE" ||
+    proposal.settlementMode === "FREE" ||
+    proposal.settlementMode === "VOLUNTARY";
 
   const runAction = async (
     action: "accept" | "reject" | "counter" | "cancel",
@@ -97,13 +116,21 @@ export default function ProposalCard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Actie mislukt");
+        const errKey =
+          typeof data.error === "string" && data.error.startsWith("proposal.")
+            ? data.error
+            : null;
+        setError(errKey ? t(errKey) : data.error || t("common.error"));
         return;
       }
-      if (data.proposal) onUpdated?.(data.proposal);
+      if (data.proposal) {
+        onUpdated?.(data.proposal, {
+          communityOrder: data.communityOrder ?? undefined,
+        });
+      }
       setShowCounter(false);
     } catch {
-      setError("Actie mislukt");
+      setError(t("common.error"));
     } finally {
       setBusy(null);
     }
@@ -117,16 +144,23 @@ export default function ProposalCard({
     void runAction("counter", {
       title: counterTitle.trim() || proposal.title,
       amountCents,
+      settlementMode: proposal.settlementMode,
+      requestedValueTaxonomyIds: proposal.requestedValueTaxonomyIds,
+      acceptedValueTaxonomyIds: proposal.acceptedValueTaxonomyIds,
     });
   };
 
   const dateLabel = formatRequestedDate(proposal.requestedDate);
   const fulfillmentLabel =
     proposal.fulfillmentType === "DELIVERY"
-      ? "Bezorging"
+      ? t("communityOrder.fulfillment.delivery")
       : proposal.fulfillmentType === "PICKUP"
-        ? "Afhalen"
+        ? t("communityOrder.fulfillment.pickup")
         : null;
+
+  const settlementLabel = t(
+    PROPOSAL_I18N.settlement[proposal.settlementMode as SettlementMode],
+  );
 
   return (
     <div className="flex justify-center px-1">
@@ -134,12 +168,15 @@ export default function ProposalCard({
         <div className="flex items-center gap-2 border-b border-indigo-100 bg-indigo-50 px-3 py-2">
           <ClipboardList className="h-4 w-4 text-indigo-600 shrink-0" aria-hidden />
           <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-900">
-            Voorstel
+            {t(PROPOSAL_I18N.cardHeading)}
+          </span>
+          <span className="text-[10px] font-medium text-indigo-700">
+            {settlementLabel}
           </span>
           <span
             className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(proposal.status)}`}
           >
-            {statusLabel(proposal.status)}
+            {t(PROPOSAL_I18N.status[proposal.status])}
           </span>
         </div>
 
@@ -155,12 +192,42 @@ export default function ProposalCard({
             {proposal.quantity != null ? (
               <span>{proposal.quantity}x</span>
             ) : null}
-            {proposal.amountCents != null ? (
-              <span className="font-semibold text-indigo-700">
-                {formatPrice(proposal.amountCents)}
-              </span>
+            {showMoney && proposal.amountCents != null && proposal.amountCents > 0 ? (
+              <span className="font-semibold text-indigo-700">{priceLabel}</span>
+            ) : showMoney ? (
+              <span className="font-semibold text-indigo-700">{priceLabel}</span>
+            ) : showValue ? (
+              <span className="font-semibold text-indigo-700">{priceLabel}</span>
             ) : null}
           </div>
+
+          {proposal.acceptedValueTaxonomyIds.length > 0 ? (
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-gray-600">
+                {t(PROPOSAL_I18N.acceptsLabel)}
+              </p>
+              <MarketplaceBadgeList
+                specializations={proposal.acceptedValueTaxonomyIds}
+                variant="accepted"
+                maxVisible={4}
+                size="sm"
+              />
+            </div>
+          ) : null}
+
+          {proposal.requestedValueTaxonomyIds.length > 0 ? (
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-gray-600">
+                {t(PROPOSAL_I18N.seeksLabel)}
+              </p>
+              <MarketplaceBadgeList
+                specializations={proposal.requestedValueTaxonomyIds}
+                variant="accepted"
+                maxVisible={4}
+                size="sm"
+              />
+            </div>
+          ) : null}
 
           {dateLabel ? (
             <p className="text-xs text-gray-600 capitalize">{dateLabel}</p>
@@ -170,6 +237,13 @@ export default function ProposalCard({
           ) : null}
           {fulfillmentLabel ? (
             <p className="text-xs font-medium text-gray-700">{fulfillmentLabel}</p>
+          ) : null}
+
+          {proposal.status === "ACCEPTED" && communityOrder ? (
+            <CommunityOrderSummaryCard
+              communityOrder={communityOrder}
+              proposal={proposal}
+            />
           ) : null}
 
           {error ? (
@@ -185,16 +259,19 @@ export default function ProposalCard({
                 value={counterTitle}
                 onChange={(e) => setCounterTitle(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-                placeholder="Titel"
+                placeholder={t("marketplace.form.titleLabel")}
               />
-              <input
-                type="text"
-                inputMode="decimal"
-                value={counterAmount}
-                onChange={(e) => setCounterAmount(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-                placeholder="Bedrag (€)"
-              />
+              {(proposal.settlementMode === "MONEY" ||
+                proposal.settlementMode === "MONEY_AND_VALUE") && (
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={counterAmount}
+                  onChange={(e) => setCounterAmount(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                  placeholder="€"
+                />
+              )}
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -205,7 +282,7 @@ export default function ProposalCard({
                   {busy === "counter" ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    "Verstuur tegenvoorstel"
+                    t("proposal.actions.sendCounter")
                   )}
                 </button>
                 <button
@@ -213,7 +290,7 @@ export default function ProposalCard({
                   onClick={() => setShowCounter(false)}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700"
                 >
-                  Annuleer
+                  {t("common.cancel")}
                 </button>
               </div>
             </div>
@@ -230,7 +307,7 @@ export default function ProposalCard({
                 {busy === "accept" ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                 ) : (
-                  "Accepteren"
+                  t("proposal.actions.accept")
                 )}
               </button>
               <button
@@ -239,7 +316,7 @@ export default function ProposalCard({
                 onClick={() => setShowCounter(true)}
                 className="flex-1 min-w-[5rem] rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
               >
-                Tegenvoorstel
+                {t("proposal.actions.counter")}
               </button>
               <button
                 type="button"
@@ -250,7 +327,7 @@ export default function ProposalCard({
                 {busy === "reject" ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                 ) : (
-                  "Afwijzen"
+                  t("proposal.actions.reject")
                 )}
               </button>
             </div>
@@ -263,7 +340,7 @@ export default function ProposalCard({
               onClick={() => void runAction("cancel")}
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             >
-              Voorstel annuleren
+              {t("proposal.actions.cancel")}
             </button>
           ) : null}
         </div>

@@ -751,7 +751,13 @@ model Proposal {
   requestedTimeWindow String?
   fulfillmentType     ProposalFulfillmentType?
   category            ProposalCategory         @default(PRODUCT)
-  settlementMode      SettlementMode           @default(MONEY)
+  settlementMode              SettlementMode           @default(MONEY)
+  /// Taxonomy ids the proposer accepts as alternative value (Slice V2)
+  acceptedValueTaxonomyIds    String[]                 @default([])
+  /// Taxonomy ids requested as value in this proposal (Slice V2)
+  requestedValueTaxonomyIds   String[]                 @default([])
+  /// Denormalized display snapshot (settlement, amounts, value ids)
+  proposalSummary             Json?
   status              ProposalStatus           @default(PENDING)
   parentProposalId    String?
   expiresAt           DateTime?
@@ -773,6 +779,8 @@ model Proposal {
   @@index([sellerId, status])
   @@index([buyerId, status])
   @@index([parentProposalId])
+  @@index([acceptedValueTaxonomyIds], type: Gin)
+  @@index([requestedValueTaxonomyIds], type: Gin)
 }
 
 /// Created when a proposal is accepted.
@@ -781,6 +789,8 @@ model Agreement {
   proposalId   String   @unique
   acceptedById String
   acceptedAt   DateTime @default(now())
+  /// Frozen terms at acceptance — survives listing edits
+  agreementSummary Json?
   createdAt    DateTime @default(now())
   Proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   AcceptedBy   User     @relation("AgreementAcceptedBy", fields: [acceptedById], references: [id], onDelete: Cascade)
@@ -796,6 +806,9 @@ model CommunityOrder {
   buyerId         String
   sellerId        String
   status          CommunityOrderStatus @default(OPEN)
+  fulfillmentMode CommunityOrderFulfillmentMode?
+  deliveryRequested Boolean            @default(false)
+  deliveryAssigned  Boolean            @default(false)
   checkoutOrderId String?
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
@@ -2073,6 +2086,14 @@ enum CommunityOrderStatus {
   CANCELLED
 }
 
+enum CommunityOrderFulfillmentMode {
+  PICKUP
+  DELIVERY
+  DIGITAL
+  ON_SITE_PROVIDER
+  ON_SITE_CLIENT
+}
+
 enum MessageType {
   TEXT
   IMAGE
@@ -2105,6 +2126,9 @@ enum NotificationType {
   PROPOSAL_ACCEPTED
   PROPOSAL_REJECTED
   PROPOSAL_COUNTERED
+  PROPOSAL_ALTERNATIVE_VALUE
+  PROPOSAL_MIXED_ACCEPTED
+  COMMUNITY_ORDER_CREATED
 }
 
 enum ProductCategory {
