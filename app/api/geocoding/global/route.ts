@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { geocodeAddress, getCountryConfig, getAddressFormat } from '@/lib/global-geocoding';
+import {
+  geocodeAddress,
+  geocodePlaceQuery,
+  getCountryConfig,
+  getAddressFormat,
+} from '@/lib/global-geocoding';
 import { getCorsHeaders } from '@/lib/apiCors';
 
 export async function POST(request: NextRequest) {
@@ -7,9 +12,9 @@ export async function POST(request: NextRequest) {
   try {
     const { address, city, countryCode, googleMapsApiKey } = await request.json();
 
-    if (!address || !city || !countryCode) {
+    if (!address?.trim() || !countryCode) {
       return NextResponse.json(
-        { error: 'Address, city, and country code are required' },
+        { error: 'Address (or place/postcode) and country code are required' },
         { status: 400, headers: cors }
       );
     }
@@ -23,8 +28,10 @@ export async function POST(request: NextRequest) {
     // Use Google Maps API key from environment if not provided
     const apiKey = googleMapsApiKey || process.env.GOOGLE_MAPS_API_KEY;
     
-    // Geocode the address (works for all countries via Google Maps)
-    const result = await geocodeAddress(address, city, countryCode, apiKey);
+    const cityVal = city?.trim() || '';
+    const result = cityVal
+      ? await geocodeAddress(address, cityVal, countryCode, apiKey)
+      : await geocodePlaceQuery(address.trim(), countryCode, apiKey);
     
     // Log errors only
     if (result.error) {
@@ -56,9 +63,9 @@ export async function GET(request: NextRequest) {
     const countryCode = searchParams.get('countryCode');
     const googleMapsApiKey = searchParams.get('googleMapsApiKey');
 
-    if (!address || !city || !countryCode) {
+    if (!address?.trim() || !countryCode) {
       return NextResponse.json(
-        { error: 'Address, city, and country code are required' },
+        { error: 'Address (or place/postcode) and country code are required' },
         { status: 400, headers: cors }
       );
     }
@@ -72,8 +79,10 @@ export async function GET(request: NextRequest) {
     // Use Google Maps API key from environment if not provided
     const apiKey = googleMapsApiKey || process.env.GOOGLE_MAPS_API_KEY;
     
-    // Geocode the address (works for all countries via Google Maps)
-    const result = await geocodeAddress(address, city, countryCode, apiKey);
+    const cityVal = city?.trim() || '';
+    const result = cityVal
+      ? await geocodeAddress(address, cityVal, countryCode, apiKey)
+      : await geocodePlaceQuery(address.trim(), countryCode, apiKey);
 
     return NextResponse.json({
       ...result,

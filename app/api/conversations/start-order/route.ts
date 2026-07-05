@@ -6,6 +6,8 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { tryAwardConversationStartedHcp } from '@/lib/gamification/interaction-hcp';
+import { conversationContextFromOrder } from '@/lib/communication/resolveConversationContext';
+import { notifyConversationMessageRecipients } from '@/lib/communication/notify-conversation-message';
 
 export async function POST(req: NextRequest) {
   try {
@@ -171,10 +173,12 @@ export async function POST(req: NextRequest) {
     // Create new conversation if it doesn't exist
     if (!conversation) {
       createdNewConversation = true;
+      const ctxWrite = conversationContextFromOrder(orderId);
       const newConversation = await prisma.conversation.create({
         data: {
           id: crypto.randomUUID(),
           orderId,
+          ...ctxWrite,
           title: `Bestelling ${orderNumber}`,
           isActive: true,
           lastMessageAt: new Date()
@@ -241,6 +245,12 @@ export async function POST(req: NextRequest) {
         where: { id: conversation.id },
         data: { lastMessageAt: new Date() }
       });
+
+      void notifyConversationMessageRecipients({
+        conversationId: conversation.id,
+        senderId: user.id,
+        text: initialMessage,
+      }).catch((e) => console.error('[start-order] notify', e));
     }
 
     if (!conversation) {

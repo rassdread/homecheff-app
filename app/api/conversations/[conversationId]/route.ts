@@ -5,6 +5,8 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { resolveConversationContext } from '@/lib/communication/resolveConversationContext';
+import { resolveConversationHeader } from '@/lib/communication/resolveConversationHeader';
 
 export async function GET(
   req: NextRequest,
@@ -74,7 +76,15 @@ export async function GET(
               orderBy: { sortOrder: 'asc' }
             }
           }
-        }
+        },
+        Order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+            totalAmount: true,
+          },
+        },
       }
     });
 
@@ -152,10 +162,21 @@ export async function GET(
         ? messageCount
         : 0;
 
+    const context = resolveConversationContext(conversation);
+
+    const contextHeader = await resolveConversationHeader({
+      conversationId,
+      currentUserId: user.id,
+      peer: otherParticipant,
+    });
+
     // Transform to match the expected format
     const conversationData = {
       id: conversation.id,
       title: conversation.title,
+      contextType: context.contextType,
+      contextId: context.contextId,
+      status: conversation.status,
       product: conversation.Product
         ? {
             id: conversation.Product.id,
@@ -177,6 +198,7 @@ export async function GET(
         productTitle: conversation.Product?.title?.trim() || null,
         productCategory: conversation.Product?.category ?? null,
       },
+      contextHeader,
     };
 
     return NextResponse.json({ conversation: conversationData }, { headers: cors });

@@ -36,7 +36,7 @@ function normalizeHomeFeedVertical(raw: string | undefined): string | undefined 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: { chip?: string; vertical?: string; place?: string };
+  searchParams?: { chip?: string; vertical?: string; place?: string; stickyTest?: string };
 }) {
   let items: Awaited<ReturnType<typeof getInspiratieItems>>['items'] = [];
   try {
@@ -50,6 +50,7 @@ export default async function HomePage({
   const initialFeedChip = normalizeHomeFeedChip(raw);
   const initialFeedCategory = normalizeHomeFeedVertical(searchParams?.vertical);
   const initialFeedPlace = searchParams?.place?.trim().slice(0, 200) || undefined;
+  const stickyTestMode = searchParams?.stickyTest != null && searchParams.stickyTest !== '0';
 
   return (
     <HomePageClient
@@ -57,6 +58,7 @@ export default async function HomePage({
       initialFeedChip={initialFeedChip}
       initialFeedCategory={initialFeedCategory}
       initialFeedPlace={initialFeedPlace}
+      stickyTestMode={stickyTestMode}
     />
   );
 }

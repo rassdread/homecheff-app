@@ -13,7 +13,7 @@ import {
   BarChart3,
   Activity,
 } from 'lucide-react';
-import AppBackBar from '@/components/navigation/AppBackBar';
+import OperationsShell from '@/components/operations/OperationsShell';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AnalyticsData {
@@ -64,38 +64,38 @@ export default function SellerAnalyticsPageClient() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('seller.analyticsTitle')}
+        pageSubtitle={t('seller.analyticsSubtitle')}
+        breadcrumbLabel={t('operations.tabs.analytics')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand"></div>
-      </div>
+      </OperationsShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 pt-3 sm:px-6 lg:px-8">
-        <AppBackBar
-          fallbackUrl="/verkoper/dashboard"
-          label={t('seller.back')}
-          title={t('seller.analyticsTitle')}
-          endSlot={
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="min-h-[44px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-brand"
-              aria-label={t('seller.analyticsTitle')}
-            >
-              <option value="7d">{t('common.last7Days')}</option>
-              <option value="30d">{t('common.last30Days')}</option>
-              <option value="90d">{t('common.last90Days')}</option>
-              <option value="1y">{t('common.lastYear')}</option>
-            </select>
-          }
-          className="rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
-        />
-        <p className="pb-4 pt-1 text-sm text-gray-600">{t('seller.analyticsSubtitle')}</p>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <OperationsShell
+      pageTitle={t('seller.analyticsTitle')}
+      pageSubtitle={t('seller.analyticsSubtitle')}
+      breadcrumbLabel={t('operations.tabs.analytics')}
+      headerEnd={
+        <select
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
+          className="min-h-[44px] rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-brand"
+          aria-label={t('seller.analyticsTitle')}
+        >
+          <option value="7d">{t('common.last7Days')}</option>
+          <option value="30d">{t('common.last30Days')}</option>
+          <option value="90d">{t('common.last90Days')}</option>
+          <option value="1y">{t('common.lastYear')}</option>
+        </select>
+      }
+      contentClassName="py-0"
+    >
+      <div className="pb-8">
         {data && (
           <>
             {/* Key Metrics */}
@@ -218,7 +218,7 @@ export default function SellerAnalyticsPageClient() {
           </>
         )}
       </div>
-    </div>
+    </OperationsShell>
   );
 }
 

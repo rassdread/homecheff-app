@@ -5,10 +5,11 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
-import { geocodeAddress } from '@/lib/global-geocoding';
+import { geocodePlaceQuery } from '@/lib/global-geocoding';
 import { needsDefinitiveUsername } from '@/lib/account-requirements';
 import { validateUsernameCandidate } from '@/lib/username-validation';
 import { tryAwardProfileCompleted } from '@/lib/gamification/profile-hcp';
+import { syncSellerProfileCoordsForUserId } from '@/lib/seller/sync-seller-profile-coords';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -84,22 +85,35 @@ export async function PUT(request: NextRequest) {
     let finalLat: number | null = lat ?? null;
     let finalLng: number | null = lng ?? null;
     
-    // Only geocode if lat/lng not provided and address info is available
-    if ((!finalLat || !finalLng) && address && city) {
-      const countryCode = country || (await prisma.user.findUnique({
-        where: { email: session.user.email },
-        select: { country: true }
-      }))?.country || 'NL';
-      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
+    // Geocode when lat/lng not provided but place/postcode/address is available
+    if (!finalLat || !finalLng) {
+      const countryCode =
+        country ||
+        (
+          await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { country: true },
+          })
+        )?.country ||
+        "NL";
+      const geocodeParts = [address, postalCode, place, city]
+        .map((part) => (typeof part === "string" ? part.trim() : ""))
+        .filter(Boolean);
+      const geocodeQuery = geocodeParts.join(", ");
 
-      const geocodeResult = await geocodeAddress(address, city, countryCode, googleMapsApiKey);
-      
-      if (geocodeResult.error) {
-        console.warn('Geocoding failed:', geocodeResult.error);
-        // Continue without coordinates - user can still save profile
-      } else {
-        finalLat = geocodeResult.lat;
-        finalLng = geocodeResult.lng;
+      if (geocodeQuery) {
+        const geocodeResult = await geocodePlaceQuery(
+          geocodeQuery,
+          countryCode,
+          process.env.GOOGLE_MAPS_API_KEY
+        );
+
+        if (geocodeResult.error) {
+          console.warn("Geocoding failed:", geocodeResult.error);
+        } else {
+          finalLat = geocodeResult.lat;
+          finalLng = geocodeResult.lng;
+        }
       }
     }
 
@@ -166,6 +180,13 @@ export async function PUT(request: NextRequest) {
         displayName: name,
         bio: bio ?? null,
       });
+    }
+
+    if (finalLat != null && finalLng != null) {
+      await syncSellerProfileCoordsForUserId(updatedUser.id, {
+        lat: finalLat,
+        lng: finalLng,
+      }).catch((e) => console.warn('[profile/update] seller coords sync', e));
     }
 
     void tryAwardProfileCompleted(updatedUser.id, {

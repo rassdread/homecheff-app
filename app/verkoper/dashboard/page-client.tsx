@@ -34,7 +34,7 @@ import {
   Plus
 } from 'lucide-react';
 import Link from 'next/link';
-import AppBackBar from '@/components/navigation/AppBackBar';
+import OperationsShell from '@/components/operations/OperationsShell';
 import SellerActionCenter from '@/components/seller/SellerActionCenter';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
@@ -376,20 +376,14 @@ export default function SellerDashboardClient() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-          <AppBackBar
-            fallbackUrl="/profile"
-            label={t('navigation.backToProfile')}
-            title={t('seller.dashboard')}
-          />
-        </div>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <OperationsShell
+        pageTitle={t('seller.dashboard')}
+        pageSubtitle={t('seller.dashboardDescription')}
+        breadcrumbLabel={t('operations.tabs.today')}
+        contentClassName="py-0"
+      >
+        <div className="py-8">
           <div className="mb-6 sm:mb-8">
-            <div className="mb-4 block w-full min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
-            </div>
             <SellerActionCenter variant="dashboard" />
           </div>
           <div className="animate-pulse">
@@ -404,28 +398,19 @@ export default function SellerDashboardClient() {
             </div>
           </div>
         </div>
-      </main>
+      </OperationsShell>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-        <AppBackBar
-          fallbackUrl="/profile"
-          label={t('navigation.backToProfile')}
-          title={t('seller.dashboard')}
-        />
-      </div>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header: titel + beschrijving altijd boven de periode/instellingen, geen overlap */}
+    <OperationsShell
+      pageTitle={t('seller.dashboard')}
+      pageSubtitle={t('seller.dashboardDescription')}
+      breadcrumbLabel={t('operations.tabs.today')}
+      contentClassName="py-0"
+    >
+      <div className="py-8">
         <div className="mb-6 sm:mb-8">
-          {/* Regel 1: Titel en beschrijving volle breedte, eigen blok - nooit bedekt door periode */}
-          <div className="mb-4 block w-full min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('seller.dashboard')}</h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base max-w-full">{t('seller.dashboardDescription')}</p>
-          </div>
-
           <SellerActionCenter variant="dashboard" />
           <BusinessUpgradeCallout />
 
@@ -1118,7 +1103,6 @@ export default function SellerDashboardClient() {
             )}
           </>
         )}
-      </div>
 
       {/* Export Modal */}
       {showExportModal && (
@@ -1168,6 +1152,7 @@ export default function SellerDashboardClient() {
           </div>
         </div>
       )}
-    </main>
+      </div>
+    </OperationsShell>
   );
 }

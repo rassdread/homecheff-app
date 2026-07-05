@@ -504,7 +504,7 @@ export default async function PublicProfilePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
       />
-      <div className="min-h-screen bg-gray-50 w-full min-w-0 max-w-[100vw] overflow-x-auto overflow-y-visible">
+      <div className="min-h-screen w-full min-w-0 max-w-[100vw] overflow-x-hidden bg-gray-50">
         <PublicProfileClient
           user={user as any}
           openNewProducts={false}

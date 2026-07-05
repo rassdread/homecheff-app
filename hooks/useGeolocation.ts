@@ -36,7 +36,6 @@ export function useGeolocation(options: GeolocationOptions = {}) {
   } = options;
 
   const [retryCount, setRetryCount] = useState(0);
-  const [hasAttempted, setHasAttempted] = useState(false);
 
   // Check if geolocation is supported and get permission status
   const checkSupportAndPermission = useCallback(async () => {
@@ -76,7 +75,6 @@ export function useGeolocation(options: GeolocationOptions = {}) {
   const getCurrentPosition = useCallback(() => {
 
     if (!navigator.geolocation) {
-
       setState(prev => ({ ...prev, error: 'Geolocation not supported' }));
       if (fallbackToManual && onFallback) {
         onFallback('GPS niet ondersteund');
@@ -84,15 +82,8 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       return;
     }
 
-    // Don't retry if we already attempted and failed
-    if (hasAttempted) {
-
-      return;
-    }
-
     // Reset retry count for new request
     setRetryCount(0);
-    setHasAttempted(true);
 
     // Detect browser (desktop and mobile)
     const userAgent = navigator.userAgent.toLowerCase();
@@ -266,21 +257,15 @@ export function useGeolocation(options: GeolocationOptions = {}) {
             errorCode = 'UNKNOWN';
         }
 
-        // Don't show error in state - just silently fail and use fallback
         setState(prev => ({
           ...prev,
           loading: false,
-          error: null // Don't store error to avoid showing it to user
+          error: fallbackToManual ? null : errorMessage,
         }));
 
-        // Always trigger fallback silently - no more annoying error messages!
         if (fallbackToManual && onFallback) {
-
-          onFallback(errorCode); // Just send error code, not full message
+          onFallback(errorCode);
         }
-
-        // NO RETRIES - they just cause more delays and errors
-        // Let the fallback handle it immediately
       },
       options
     );

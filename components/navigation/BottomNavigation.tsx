@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -23,7 +23,12 @@ import {
   type CreateFlowVertical,
 } from '@/lib/createFlowIntent';
 import { createFlowDebug } from '@/lib/create-flow-debug';
+import {
+  normalizeCreatePlacementRoles,
+} from '@/lib/create/create-placement-roles';
+import { showCreateRolesGate } from '@/lib/create/create-roles-gate-bus';
 import { resetCreateFlowUiState } from '@/lib/reset-create-flow-ui';
+import { inspiratieLocationIdToProfileSlug } from '@/lib/create/offering-vertical';
 import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
@@ -31,6 +36,12 @@ import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
+import {
+  isPrimaryDashboardPath,
+  resolvePrimaryDashboardHrefFromUser,
+  userHasOperationsDashboard,
+} from '@/lib/navigation/primary-dashboard';
+import { useCommsUnread } from '@/hooks/useCommsUnread';
 
 type QuickAddStep = 'platform' | 'photoSource' | 'category' | 'location';
 type Platform = 'dorpsplein' | 'inspiratie';
@@ -39,15 +50,7 @@ type Location = 'keuken' | 'tuin' | 'atelier' | 'recepten' | 'kweken' | 'designs
 
 /** Sessie/API gebruikt soms varianten (grower, CHEFF); quick-add verwacht chef | garden | designer. */
 function normalizeSellerRolesForQuickAdd(raw: unknown): string[] {
-  const arr = Array.isArray(raw) ? raw : [];
-  const out = new Set<string>();
-  for (const x of arr) {
-    const r = String(x).toLowerCase().trim();
-    if (r === 'chef' || r === 'cheff') out.add('chef');
-    else if (r === 'garden' || r === 'grower' || r === 'grown') out.add('garden');
-    else if (r === 'designer' || r === 'design') out.add('designer');
-  }
-  return [...out];
+  return normalizeCreatePlacementRoles(raw);
 }
 
 /** Bottom tabs: soft pill active state, calm hover — aligns with HomeCheff emerald/teal. */
@@ -96,6 +99,7 @@ export default function BottomNavigation() {
 
   const isNativeShell = useIsNativeAppMounted();
   const appUpdateStatus = useAppUpdateStatus();
+  const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
   const shouldHide = isBottomNavigationHidden(pathname);
   /** Geen flow-spacer onder berichten: layout reserveert zelf (voorkomt dubbele “witte band”). */
   const suppressFlowSpacer = Boolean(pathname?.startsWith('/messages')) && !shouldHide;
@@ -196,17 +200,25 @@ export default function BottomNavigation() {
     }
   }, [session?.user, bootstrapProfile?.sellerRoles]);
 
-  const loadUserRolesIfNeeded = useCallback(async () => {
-    if (!session?.user || userRoles.length > 0) return;
+  const loadUserRolesIfNeeded = useCallback(async (): Promise<string[]> => {
+    if (!session?.user) return [];
+    if (userRoles.length > 0) return userRoles;
     try {
       const profile = await ensureProfile();
       const roles = profile?.sellerRoles || [];
-      if (Array.isArray(roles)) {
-        setUserRoles(normalizeSellerRolesForQuickAdd(roles));
+      if (Array.isArray(roles) && roles.length > 0) {
+        const normalized = normalizeSellerRolesForQuickAdd(roles);
+        setUserRoles(normalized);
+        return normalized;
       }
     } catch {
       // fallback blijft sessie-data
     }
+    const sessionRoles = normalizeSellerRolesForQuickAdd(
+      (session.user as { sellerRoles?: unknown })?.sellerRoles
+    );
+    if (sessionRoles.length > 0) setUserRoles(sessionRoles);
+    return sessionRoles;
   }, [session?.user, userRoles.length, ensureProfile]);
 
   // Restore selectedPlatform from sessionStorage when component mounts or menu opens
@@ -323,6 +335,25 @@ export default function BottomNavigation() {
   const isFeedDiscoverActive = pathname === '/';
   const isHcpRouteActive = pathname === '/mijn-hcp';
 
+  const navUser = useMemo(
+    () =>
+      session?.user
+        ? ({
+            ...(session.user as Record<string, unknown>),
+            ...(bootstrapProfile ?? {}),
+          } as Record<string, unknown>)
+        : null,
+    [session?.user, bootstrapProfile]
+  );
+
+  const primaryDashboardHref = useMemo(
+    () => resolvePrimaryDashboardHrefFromUser(navUser),
+    [navUser]
+  );
+
+  const showDashboardTab = !session?.user || userHasOperationsDashboard(navUser);
+  const isDashboardTabActive = isPrimaryDashboardPath(pathname, primaryDashboardHref);
+
   /** Alleen echte `<Link>` als er een user is — tijdens `loading` geen links naar /verkoper e.d. (voorkomt verkeerde eerste tap voor gast). */
   const useDirectTabLinks = Boolean(session?.user);
 
@@ -337,7 +368,7 @@ export default function BottomNavigation() {
     return allowed.includes(v);
   }, []);
 
-  const openQuickAddFlow = useCallback(() => {
+  const openQuickAddFlow = useCallback(async () => {
     const intent = consumeCreateFlowIntent();
     pendingAutoCategoryRef.current = null;
     pendingAutoLocationRef.current = null;
@@ -438,8 +469,16 @@ export default function BottomNavigation() {
       openGuestPanelForCreate();
       return;
     }
+
+    const roles = await loadUserRolesIfNeeded();
+    if (roles.length === 0) {
+      createFlowDebug('roles-gate-block', { source: 'openQuickAddFlow' });
+      showCreateRolesGate();
+      return;
+    }
+
     bootstrapQuickAddUiFromIntent();
-  }, [session?.user, sessionStatus, shouldHide, router, openGuestBottomNavPanel]);
+  }, [session?.user, sessionStatus, shouldHide, router, openGuestBottomNavPanel, loadUserRolesIfNeeded]);
 
   const handleQuickAddClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
@@ -450,8 +489,7 @@ export default function BottomNavigation() {
       });
       return;
     }
-    void loadUserRolesIfNeeded();
-    openQuickAddFlow();
+    void openQuickAddFlow();
   };
 
   useEffect(() => {
@@ -493,13 +531,13 @@ export default function BottomNavigation() {
 
   const handleDashboardClick = () => {
     if (!session?.user && sessionStatus === 'unauthenticated') {
-      const p = sanitizePostAuthRelativeUrl('/verkoper/dashboard') || '/verkoper/dashboard';
+      const p = sanitizePostAuthRelativeUrl('/operations/vandaag') || '/operations/vandaag';
       openGuestBottomNavPanel('earn', p, () => {
         savePendingIntent({ type: 'complete_profile', returnPath: p });
       });
       return;
     }
-    router.push('/verkoper/dashboard');
+    router.push(primaryDashboardHref);
   };
 
   const handleMessagesClick = () => {
@@ -929,23 +967,20 @@ export default function BottomNavigation() {
       }
     }
 
-    // Map inspiratie locations to internal location names
+    // Map inspiratie locations to internal location names + Profile V2 vertical
     let internalLocation = location;
-    let tab = 'dishes-chef';
+    const profileSlug = inspiratieLocationIdToProfileSlug(location) ?? 'chef';
 
     if (location === 'recepten') {
       internalLocation = 'keuken';
-      tab = 'dishes-chef';
     } else if (location === 'kweken') {
       internalLocation = 'tuin';
-      tab = 'dishes-garden';
     } else if (location === 'designs') {
       internalLocation = 'atelier';
-      tab = 'dishes-designer';
     } else if (location === 'tuin') {
-      tab = 'dishes-garden';
+      internalLocation = 'tuin';
     } else if (location === 'atelier') {
-      tab = 'dishes-designer';
+      internalLocation = 'atelier';
     }
 
     sessionStorage.setItem('inspiratieLocation', internalLocation);
@@ -976,8 +1011,8 @@ export default function BottomNavigation() {
     }
 
     const targetUrl = finalPhotoUrl
-      ? `/profile?tab=${tab}&addInspiratie=true&openForm=true`
-      : `/profile?tab=${tab}&openForm=true`;
+      ? `/profile?tab=inspiratie&vertical=${profileSlug}&addInspiratie=true&openForm=true`
+      : `/profile?tab=inspiratie&vertical=${profileSlug}&openForm=true`;
 
     quickAddDebug('handleLocationSelect navigating', {
       targetUrl,
@@ -1644,46 +1679,52 @@ export default function BottomNavigation() {
             </Link>
           </div>
 
-          {/* Dashboard */}
-          <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
-            {useDirectTabLinks ? (
-              <Link
-                href="/verkoper/dashboard"
-                prefetch={false}
-                className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
-                onClick={() =>
-                  navDebug('bottom-nav:tap', { tab: 'dashboard', href: '/verkoper/dashboard', path: pathname })
-                }
-              >
-                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
-                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                  {session?.user ? t('bottomNav.dashboard') : t('bottomNav.earn')}
-                </span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleDashboardClick}
-                className={navTabClasses(Boolean(pathname?.startsWith('/verkoper')), isNativeShell)}
-              >
-                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
-                <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
-                  {t('bottomNav.earn')}
-                </span>
-              </button>
-            )}
-            {!session?.user && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
-                <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                  <div className="font-semibold mb-1">💰 {t('bottomNav.earn')}</div>
-                  <div className="text-gray-300">{t('bottomNav.earnDesc')}</div>
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                    <div className="border-4 border-transparent border-t-gray-900"></div>
+          {/* Dashboard — role-aware; hidden for buyer-only (no ops dashboard) */}
+          {showDashboardTab ? (
+            <div className="relative group flex flex-1 min-w-0 justify-center md:flex-none md:basis-[4.25rem] md:max-w-[5rem]">
+              {useDirectTabLinks ? (
+                <Link
+                  href={primaryDashboardHref}
+                  prefetch={false}
+                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
+                  onClick={() =>
+                    navDebug('bottom-nav:tap', {
+                      tab: 'dashboard',
+                      href: primaryDashboardHref,
+                      path: pathname,
+                    })
+                  }
+                >
+                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                    {t('bottomNav.dashboard')}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDashboardClick}
+                  className={navTabClasses(isDashboardTabActive, isNativeShell)}
+                >
+                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
+                    {t('bottomNav.earn')}
+                  </span>
+                </button>
+              )}
+              {!session?.user && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
+                  <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                    <div className="font-semibold mb-1">💰 {t('bottomNav.earn')}</div>
+                    <div className="text-gray-300">{t('bottomNav.earnDesc')}</div>
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                      <div className="border-4 border-transparent border-t-gray-900"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : null}
 
           {/* ADD Button (FAB) — blijft dominant met zachte emerald-glow */}
           <div className="relative group flex-shrink-0 flex justify-center px-0.5 sm:px-1.5">
@@ -1738,7 +1779,14 @@ export default function BottomNavigation() {
                   navDebug('bottom-nav:tap', { tab: 'messages', href: '/messages', path: pathname })
                 }
               >
-                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
+                <div className="relative text-[1.35rem] sm:text-2xl leading-none mb-1">
+                  💬
+                  {messagesUnreadCount > 0 ? (
+                    <span className="absolute -right-2 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                      {messagesUnreadCount > 99 ? '99+' : messagesUnreadCount}
+                    </span>
+                  ) : null}
+                </div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
                   {t('bottomNav.messages')}
                 </span>
@@ -1749,7 +1797,14 @@ export default function BottomNavigation() {
                 onClick={handleMessagesClick}
                 className={navTabClasses(isActive('/messages'), isNativeShell)}
               >
-                <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💬</div>
+                <div className="relative text-[1.35rem] sm:text-2xl leading-none mb-1">
+                  💬
+                  {messagesUnreadCount > 0 ? (
+                    <span className="absolute -right-2 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                      {messagesUnreadCount > 99 ? '99+' : messagesUnreadCount}
+                    </span>
+                  ) : null}
+                </div>
                 <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
                   {t('bottomNav.messages')}
                 </span>

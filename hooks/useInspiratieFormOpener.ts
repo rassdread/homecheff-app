@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createFlowDebug } from '@/lib/create-flow-debug';
+import {
+  inspiratieWorkspaceToProfileSlug,
+  parseProfileVerticalParam,
+} from '@/lib/create/offering-vertical';
 
 interface UseInspiratieFormOpenerOptions {
   isActive: boolean;
@@ -33,16 +37,26 @@ export function useInspiratieFormOpener({
     const openForm = urlParams.get('openForm') === 'true';
     const urlTab = urlParams.get('tab');
     const forceOpenForm = sessionStorage.getItem('forceOpenForm') === 'true';
-    
-    // Determine if this is the right tab based on expectedLocation
-    const isCorrectTab = 
+    const verticalParam =
+      parseProfileVerticalParam(urlParams.get('vertical') ?? undefined) ??
+      parseProfileVerticalParam(urlParams.get('filter') ?? undefined);
+
+    const expectedSlug = inspiratieWorkspaceToProfileSlug(expectedLocation);
+
+    // Profile V2: tab=inspiratie&vertical=chef|garden|designer
+    const isV2InspiratieTab =
+      urlTab === 'inspiratie' && verticalParam !== null && verticalParam === expectedSlug;
+
+    // Legacy: dishes-chef|garden|designer
+    const isLegacyTab = 
       (urlTab === 'dishes-chef' && expectedLocation === 'keuken') ||
       (urlTab === 'dishes-garden' && expectedLocation === 'tuin') ||
-      (urlTab === 'dishes-designer' && expectedLocation === 'atelier');
+      (urlTab === 'dishes-designer' && expectedLocation === 'atelier') ||
+      (urlTab === 'recipes' && expectedLocation === 'keuken') ||
+      (urlTab === 'garden' && expectedLocation === 'tuin') ||
+      (urlTab === 'designs' && expectedLocation === 'atelier');
     
-    // Check if we should open form: either via URL params OR via forceOpenForm flag
-    // When forceOpenForm is set, we're being called from InspiratieFormHandler
-    const shouldOpenForm = forceOpenForm || (openForm && isCorrectTab);
+    const shouldOpenForm = forceOpenForm || (openForm && (isV2InspiratieTab || isLegacyTab));
     
     if (!shouldOpenForm) {
       processedOpenFingerprint.current = null;

@@ -278,6 +278,95 @@ export function hasFreeGeocoding(countryCode: string): boolean {
 }
 
 // Google Maps Geocoding API
+export function buildGeocodeQueryString(
+  address: string,
+  city: string,
+  countryCode: string
+): string {
+  return [address?.trim(), city?.trim(), countryCode?.trim()]
+    .filter(Boolean)
+    .join(', ');
+}
+
+/** Free-text place/postcode/city — Google when key present, else Nominatim. */
+export async function geocodePlaceQuery(
+  placeQuery: string,
+  countryCode = 'NL',
+  googleMapsApiKey?: string
+): Promise<GeocodeResult> {
+  const q = placeQuery.trim();
+  if (!q) {
+    return {
+      lat: 0,
+      lng: 0,
+      formatted_address: '',
+      country: countryCode,
+      city: '',
+      source: 'Manual',
+      error: 'Empty place query',
+    };
+  }
+
+  const apiKey = googleMapsApiKey || process.env.GOOGLE_MAPS_API_KEY;
+  if (apiKey) {
+    const googleResult = await geocodeWithGoogleMaps(q, '', countryCode, apiKey);
+    if (
+      !googleResult.error &&
+      Number.isFinite(googleResult.lat) &&
+      Number.isFinite(googleResult.lng) &&
+      googleResult.lat !== 0 &&
+      googleResult.lng !== 0
+    ) {
+      return googleResult;
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[geocodePlaceQuery] Google failed, trying Nominatim:', googleResult.error);
+    }
+  } else if (process.env.NODE_ENV === 'development') {
+    console.warn('[geocodePlaceQuery] GOOGLE_MAPS_API_KEY missing — using Nominatim fallback');
+  }
+
+  try {
+    const cc = countryCode.toLowerCase();
+    const nominatimResponse = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=${cc}&limit=1&addressdetails=1`,
+      { headers: { 'User-Agent': 'HomeCheff-App/1.0' }, next: { revalidate: 0 } }
+    );
+    if (nominatimResponse.ok) {
+      const nominatimData = (await nominatimResponse.json()) as Array<{
+        lat: string;
+        lon: string;
+        display_name?: string;
+      }>;
+      if (nominatimData?.length > 0) {
+        const hit = nominatimData[0];
+        return {
+          lat: parseFloat(hit.lat),
+          lng: parseFloat(hit.lon),
+          formatted_address: hit.display_name ?? q,
+          country: countryCode,
+          city: q,
+          source: 'Manual',
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('[geocodePlaceQuery] Nominatim error:', e);
+  }
+
+  return {
+    lat: 0,
+    lng: 0,
+    formatted_address: '',
+    country: countryCode,
+    city: q,
+    source: 'Manual',
+    error: apiKey
+      ? 'Plaats niet gevonden. Probeer een andere plaats of postcode.'
+      : 'Geocoding mislukt. Configureer GOOGLE_MAPS_API_KEY of probeer een andere plaats.',
+  };
+}
+
 export async function geocodeWithGoogleMaps(
   address: string,
   city: string,
@@ -285,9 +374,8 @@ export async function geocodeWithGoogleMaps(
   apiKey: string
 ): Promise<GeocodeResult> {
   try {
-    // Build query: address, city, country
-    // Google Maps Geocoding API can handle various address formats
-    const query = `${address}, ${city}, ${countryCode}`.trim();
+    // Build query: address, city, country (city optional for place/postcode-only lookups)
+    const query = buildGeocodeQueryString(address, city, countryCode);
     
     // Use region biasing for better results (e.g., 'nl' for Netherlands)
     const region = countryCode.toLowerCase();

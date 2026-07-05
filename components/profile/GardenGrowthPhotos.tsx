@@ -170,11 +170,11 @@ export default function GardenGrowthPhotos({
                     key={photo.id}
                     className="relative group bg-white rounded-lg overflow-hidden border-2 border-green-300 shadow-sm"
                   >
-                    <div className="aspect-square relative">
+                    <div className="aspect-square relative bg-neutral-50">
                       <img
                         src={photo.url}
                         alt={photo.description || `${phase.name} foto`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full hc-inspiration-media-contain"
                       />
                       
                       {/* Action Buttons */}

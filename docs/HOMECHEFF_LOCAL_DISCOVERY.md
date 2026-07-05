@@ -38,6 +38,15 @@ Client-opties (filter UI): `0, 5, 10, 25, 50, 100` km.
 
 `normalizeFeedRadiusKm(0)` → onbeperkt. Ontbrekende param → `FEED_RADIUS_DEFAULT_KM` (25).
 
+### Radius-modi (GeoFeed + `/api/feed`)
+
+| Modus | Query param | Gedrag |
+|-------|-------------|--------|
+| **Lokaal eerst** | `radiusMode=local_first` (default) | Items binnen radius eerst; nationale tail vult aan |
+| **Alleen in mijn buurt** | `radiusMode=strict_local` | Harde filter: alleen items met geldige `distanceKm ≤ radius`; geen nationale tail; items zonder coords verborgen |
+
+Zonder viewer-locatie valt `strict_local` terug op `local_first` (landelijke discovery).
+
 ---
 
 ## Feed gedrag
@@ -49,7 +58,7 @@ Client-opties (filter UI): `0, 5, 10, 25, 50, 100` km.
 - Landelijke ontdekking (recente items nationwide)
 - Edge cache voor anonieme default feed (ongewijzigd)
 
-### Met viewer-locatie + radius > 0
+### Met viewer-locatie + radius > 0 — LOCAL_FIRST
 
 1. **DB prefilter:** producten met seller in bbox **of** zonder seller-coords
 2. **Partition:** items binnen radius = **lokaal**; rest = **nationaal**
@@ -57,6 +66,38 @@ Client-opties (filter UI): `0, 5, 10, 25, 50, 100` km.
 4. **Afstand:** `distanceKm` alleen bij geldige coords; UI toont nooit `0 km`
 
 Contact-only producten, inspiratie (prijs 0) en items zonder coords blijven in **nationale tail** zichtbaar.
+
+### Met viewer-locatie + radius > 0 — STRICT_LOCAL
+
+1. **DB prefilter:** bbox op `SellerProfile` **of** `User`-fallback; **geen** null-coord bypass
+2. **Filter:** alleen items met geldige `distanceKm ≤ radius`
+3. **Sort:** score binnen de straal; **geen** nationale tail
+4. **GeoFeed client:** respecteert server-volgorde (geen smart re-ranking)
+
+### Dorpsplein (`/api/products`)
+
+Dorpsplein gebruikt een **eigen productpad** (`DorpspleinPageContent` → `/api/products`), niet `/api/feed`.
+Default radius daar = **0 (wereldwijd)**; client-side afstandsfilter alleen bij `radius > 0`.
+Items zonder locatie blijven zichtbaar (LOCAL_FIRST-gedrag). `radiusMode` geldt nog niet op Dorpsplein.
+
+### Sorteren & client-filters (GeoFeed)
+
+| Filter / sort | API (`/api/feed`) | Client (GeoFeed) |
+|---------------|-------------------|------------------|
+| `radius`, `radiusMode`, `lat`/`lng`/`place`, `vertical`, `q` | ✅ server | state → `buildGeoFeedApiParams()` |
+| `feedChip` (all/sale/inspiration) | — | client partition |
+| `searchQuery` (refine) | — | client text match |
+| `priceMin` / `priceMax` | — | `matchesFeedClientPriceRange()` |
+| `sortBy` / `sortOrder` | — | `sortFeedSaleItems()` |
+
+Gedrag:
+
+- **LOCAL_FIRST + sort = nieuwste (default):** smart score ranking (`rankSalesByScore`) binnen geladen set.
+- **STRICT_LOCAL + sort = nieuwste:** server score-volgorde; geen smart re-ranking.
+- **sort = afstand / prijs / views:** altijd client `sortFeedSaleItems`; afstand-option alleen zichtbaar met locatie.
+- **Prijs op aanvraag** (`CONTACT`, geen `priceCents`): onderaan bij prijssortering; uitgesloten bij numerieke min-prijsfilter.
+
+Helpers: `lib/feed/feed-client-sort.ts`, `lib/feed/feed-query-params.ts`.
 
 ### Response cap
 
@@ -136,6 +177,8 @@ Niet gepland in 5B: PostGIS, pickupLat migratie, premium geo.
 | Bestand | Rol |
 |---------|-----|
 | `lib/geo/local-discovery.ts` | Radius config, feed sort, bbox helper |
+| `lib/feed/feed-client-sort.ts` | Client sort & price filter |
+| `lib/feed/feed-query-params.ts` | GeoFeed → API param mapping |
 | `lib/geocoding.ts` | `safeDistanceKm` |
 | `app/api/feed/route.ts` | Product bbox, local-first sort |
 | `components/feed/feedSaleRanking.ts` | Sterkere distance boost |

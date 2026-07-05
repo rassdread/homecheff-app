@@ -3,126 +3,47 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getCurrentDomain } from '@/lib/seo/metadata';
 import InspiratieDetail from '@/components/inspiratie/InspiratieDetail';
+import InspiratiePrintView from '@/components/inspiratie/InspiratiePrintView';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
-
-const CATEGORY_VALUES = ['CHEFF', 'GROWN', 'DESIGNER'] as const;
-type InspirationCategory = (typeof CATEGORY_VALUES)[number];
+import { loadInspiratieDetail } from '@/lib/items/load-inspiratie-detail';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 type PageProps = {
   params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-async function getInspiratieItem(id: string) {
-  const item = await prisma.dish.findUnique({
-    where: { id },
-    include: {
-      photos: {
-        orderBy: { idx: 'asc' }
-      },
-      stepPhotos: {
-        orderBy: [
-          { stepNumber: 'asc' },
-          { idx: 'asc' }
-        ]
-      },
-      growthPhotos: {
-        orderBy: [
-          { phaseNumber: 'asc' },
-          { idx: 'asc' }
-        ]
-      },
-      user: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          profileImage: true,
-          image: true,
-          displayFullName: true,
-          displayNameOption: true,
-        }
-      }
-    }
-  });
-
-  if (!item || item.status !== 'PUBLISHED') {
-    return null;
-  }
-
-  const category = CATEGORY_VALUES.includes(item.category as InspirationCategory)
-    ? (item.category as InspirationCategory)
-    : 'CHEFF';
-
-  return {
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    status: item.status,
-    category,
-    subcategory: item.subcategory,
-    tags: item.tags ?? [],
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-    difficulty: item.difficulty,
-    prepTime: item.prepTime,
-    servings: item.servings,
-    ingredients: item.ingredients ?? [],
-    instructions: item.instructions ?? [],
-    materials: item.materials ?? [],
-    dimensions: item.dimensions,
-    notes: item.notes,
-    growthDuration: item.growthDuration,
-    harvestDate: item.harvestDate,
-    location: item.location,
-    plantDate: item.plantDate,
-    plantDistance: item.plantDistance,
-    plantType: item.plantType,
-    soilType: item.soilType,
-    sunlight: item.sunlight,
-    waterNeeds: item.waterNeeds,
-    user: {
-      id: item.user.id,
-      name: item.user.name,
-      username: item.user.username,
-      profileImage: item.user.profileImage ?? item.user.image ?? null,
-      displayFullName: item.user.displayFullName,
-      displayNameOption: item.user.displayNameOption,
-    },
-    photos: item.photos.map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      idx: photo.idx,
-      isMain: photo.isMain,
-    })),
-    stepPhotos: item.stepPhotos.map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      idx: photo.idx,
-      stepNumber: photo.stepNumber,
-      description: photo.description,
-    })),
-    growthPhotos: item.growthPhotos.map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      idx: photo.idx,
-      phaseNumber: photo.phaseNumber,
-      description: photo.description,
-    })),
-    videos: [] as Array<{ id: string; url: string; thumbnail?: string | null }>,
-  };
+function isPrintMode(searchParams?: PageProps['searchParams']): boolean {
+  return searchParams?.view === 'print' || searchParams?.print === 'true';
 }
 
-export default async function InspiratieItemPage({ params }: PageProps) {
-  const item = await getInspiratieItem(params.id);
+export default async function InspiratieItemPage({ params, searchParams }: PageProps) {
+  const session = await getServerSession(authOptions);
+  const viewerUserId = (session?.user as { id?: string } | undefined)?.id;
+  const result = await loadInspiratieDetail(params.id, viewerUserId);
 
-  if (!item) {
+  if (!result) {
     notFound();
   }
 
-  const publicContactChannels = await loadPublicContactChannelsForUser(item.user.id);
+  if (isPrintMode(searchParams)) {
+    return (
+      <InspiratiePrintView
+        item={result.item}
+        canonicalUrl={`/inspiratie/${params.id}`}
+      />
+    );
+  }
+
+  const publicContactChannels = await loadPublicContactChannelsForUser(result.item.user.id);
 
   return (
-    <InspiratieDetail item={item} publicContactChannels={publicContactChannels} />
+    <InspiratieDetail
+      item={result.item}
+      isOwner={result.isOwner}
+      publicContactChannels={publicContactChannels}
+    />
   );
 }
 
@@ -158,4 +79,3 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   };
 }
-

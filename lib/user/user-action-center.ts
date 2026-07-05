@@ -309,10 +309,10 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
       severity: 'green',
       title:
         count === 1
-          ? 'Nieuwe sub-affiliate aangesloten.'
-          : `${count} nieuwe sub-affiliates aangesloten.`,
-      description: 'Bekijk je netwerk en commissies.',
-      actionLabel: 'Open dashboard',
+          ? 'Nieuwe partner in je netwerk.'
+          : `${count} nieuwe partners in je netwerk.`,
+      description: 'Bekijk je partnernetwerk en verdiensten.',
+      actionLabel: 'Open partners',
       actionHref: AFFILIATE_HREF,
     });
   }

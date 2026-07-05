@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Plus, Edit3, Trash2, Grid, List, Palette, ShoppingCart, Camera } from "lucide-react";
+import dynamic from "next/dynamic";
 import DesignPhotoUpload from "./DesignPhotoUpload";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
+import { useInspiratieEditDeepLink } from "@/hooks/useInspiratieEditDeepLink";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
+import SmartFitMediaImage from '@/components/inspiratie/SmartFitMediaImage';
 import {
   clearDraft,
   hasDraft as hasSessionCreateDraft,
@@ -20,6 +23,23 @@ import {
 import { createFlowDebug } from "@/lib/create-flow-debug";
 import { resetCreateFlowUiState } from "@/lib/reset-create-flow-ui";
 import { pushAndroidBackHandler } from "@/lib/native/androidCreateFlowBack";
+
+const RecipeStepPhotos = dynamic(() => import("@/components/profile/RecipeStepPhotos"), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+      Laden…
+    </div>
+  ),
+});
+
+type StepPhoto = {
+  id: string;
+  url: string;
+  stepNumber: number;
+  description?: string;
+  idx?: number;
+};
 
 type DesignPhoto = {
   id: string;
@@ -45,6 +65,7 @@ type Design = {
     duration?: number | null;
   } | null;
   notes?: string;
+  instructions?: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -58,6 +79,7 @@ type DesignFormData = {
   subcategory: string;
   tags: string[];
   notes: string;
+  instructions: string[];
   photos: DesignPhoto[];
   video?: {
     url: string;
@@ -152,9 +174,11 @@ export default function DesignManager({
     subcategory: "",
     tags: [],
     notes: "",
+    instructions: [""],
     photos: [],
     video: null,
   });
+  const [stepPhotos, setStepPhotos] = useState<StepPhoto[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -210,6 +234,42 @@ export default function DesignManager({
     setShowForm,
     setFormData
   });
+
+  const openDesignForEdit = useCallback(async (designId: string) => {
+    try {
+      const response = await fetch(`/api/profile/dishes/${designId}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      const design = data.item as Design & { instructions?: string[] };
+      const mainPhotos = (design.photos || []).filter(
+        (photo) => !('stepNumber' in photo) || photo.stepNumber == null,
+      );
+      const stepPhotosData = (design.photos || []).filter(
+        (photo): photo is StepPhoto & DesignPhoto =>
+          'stepNumber' in photo && typeof photo.stepNumber === 'number',
+      );
+      setEditingDesign(design);
+      setFormData({
+        title: design.title,
+        description: design.description || '',
+        materials: design.materials?.length ? design.materials : [''],
+        dimensions: design.dimensions || '',
+        category: design.category || '',
+        subcategory: design.subcategory || '',
+        tags: design.tags || [],
+        notes: design.notes || '',
+        instructions: design.instructions?.length ? design.instructions : [''],
+        photos: mainPhotos,
+        video: design.video || null,
+      });
+      setStepPhotos(stepPhotosData);
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error loading design for edit:', error);
+    }
+  }, []);
+
+  useInspiratieEditDeepLink(isActive, openDesignForEdit);
 
   useEffect(() => {
     if (!showForm || editingDesign) return;
@@ -427,6 +487,7 @@ export default function DesignManager({
             })) || [],
             video: item.video || null,
             notes: item.notes || '',
+            instructions: Array.isArray(item.instructions) ? item.instructions : [],
             createdAt: item.createdAt,
             updatedAt: item.updatedAt
           }));
@@ -482,6 +543,13 @@ export default function DesignManager({
         dimensions: formData.dimensions || null,
         tags: formData.tags,
         notes: formData.notes,
+        instructions: formData.instructions.filter((step) => step.trim() !== ''),
+        stepPhotos: stepPhotos.map((photo) => ({
+          url: photo.url,
+          stepNumber: photo.stepNumber,
+          idx: photo.idx || 0,
+          description: photo.description || '',
+        })),
         priceCents: null,
         deliveryMode: null,
         place: null,
@@ -523,10 +591,12 @@ export default function DesignManager({
           subcategory: '',
           tags: [],
           notes: '',
+          instructions: [''],
           photos: [],
           video: null
         };
         setFormData(emptyForm);
+        setStepPhotos([]);
         setShowForm(false);
         setEditingDesign(null);
         setMessage({
@@ -553,16 +623,32 @@ export default function DesignManager({
   };
 
   const handleSellDesign = (design: Design) => {
+    const mainPhotos = design.photos.filter(
+      (photo) => !('stepNumber' in photo) || (photo as { stepNumber?: number }).stepNumber == null,
+    );
+    const stepPhotosFromDesign = (design.photos || [])
+      .filter(
+        (photo): photo is StepPhoto & DesignPhoto =>
+          'stepNumber' in photo && typeof photo.stepNumber === 'number',
+      )
+      .map((photo) => ({
+        url: photo.url,
+        stepNumber: photo.stepNumber,
+        description: photo.description || '',
+        idx: photo.idx,
+      }));
     const designData = {
       title: design.title,
       description: design.description || '',
-      photos: design.photos,
+      photos: mainPhotos,
       materials: design.materials,
       dimensions: design.dimensions,
       category: design.category,
       subcategory: design.subcategory,
       tags: design.tags,
-      notes: design.notes
+      notes: design.notes,
+      instructions: design.instructions || [],
+      stepPhotos: stepPhotosFromDesign,
     };
     
     sessionStorage.setItem('designToProductData', JSON.stringify(designData));
@@ -625,6 +711,24 @@ export default function DesignManager({
     }));
   };
 
+  const addInstruction = () => {
+    setFormData(prev => ({ ...prev, instructions: [...prev.instructions, ''] }));
+  };
+
+  const updateInstruction = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      instructions: prev.instructions.map((step, i) => (i === index ? value : step)),
+    }));
+  };
+
+  const removeInstruction = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      instructions: prev.instructions.filter((_, i) => i !== index),
+    }));
+  };
+
   const filteredDesigns = designs.filter(design => {
     const matchesSearch = design.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          design.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -645,9 +749,11 @@ export default function DesignManager({
       subcategory: '',
       tags: [],
       notes: '',
+      instructions: [''],
       photos: [],
       video: null
     });
+    setStepPhotos([]);
   };
 
   const isDesignFormDirty = () => {
@@ -662,7 +768,9 @@ export default function DesignManager({
       formData.category ||
       formData.subcategory ||
       formData.tags.length > 0 ||
-      formData.notes.trim()
+      formData.notes.trim() ||
+      formData.instructions.some((step) => step.trim()) ||
+      stepPhotos.length > 0
     );
   };
 
@@ -1019,6 +1127,58 @@ export default function DesignManager({
                 </div>
               </div>
 
+              {/* Work guide steps */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('design.workGuideLabel')}
+                </label>
+                <div className="space-y-3">
+                  {formData.instructions.map((instruction, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 text-yellow-800 rounded-full flex items-center justify-center text-sm font-medium">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 flex gap-2">
+                        <textarea
+                          value={instruction}
+                          onChange={(e) => updateInstruction(index, e.target.value)}
+                          rows={2}
+                          className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-base touch-manipulation resize-none"
+                          placeholder={t('common.describeStep')}
+                        />
+                        {formData.instructions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeInstruction(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addInstruction}
+                    className="flex items-center gap-2 px-3 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('design.addStep')}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <RecipeStepPhotos
+                  steps={formData.instructions.filter((step) => step.trim() !== '')}
+                  photos={stepPhotos}
+                  onPhotosChange={setStepPhotos}
+                  maxPhotosPerStep={5}
+                  maxTotalPhotos={30}
+                />
+              </div>
+
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1103,24 +1263,25 @@ export default function DesignManager({
         </div>
       ) : (
         <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch" 
           : "space-y-4"
         }>
           {filteredDesigns.map(design => (
             <div
               key={design.id}
-              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group ${
-                viewMode === 'list' ? 'flex' : ''
+              className={`bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer group flex h-full min-h-0 ${
+                viewMode === 'list' ? 'flex-row' : 'flex-col'
               }`}
               onClick={() => window.location.href = `/design/${design.id}`}
             >
               {/* Design Image */}
-              <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gradient-to-br from-yellow-100 to-amber-100 flex items-center justify-center relative group-hover:opacity-95 transition-opacity`}>
+              <div className={`${viewMode === 'list' ? 'w-48 h-32 shrink-0' : 'h-48 shrink-0'} bg-neutral-50 flex items-center justify-center relative overflow-hidden rounded-t-xl group-hover:opacity-95 transition-opacity ${viewMode === 'list' ? 'rounded-l-xl rounded-tr-none' : ''}`}>
                 {design.photos.length > 0 ? (
-                  <img
+                  <SmartFitMediaImage
                     src={design.photos[0].url}
                     alt={design.title}
-                    className="w-full h-full object-cover"
+                    mode="preview"
+                    fill
                   />
                 ) : (
                   <Palette className="w-12 h-12 text-yellow-400" />
@@ -1129,7 +1290,7 @@ export default function DesignManager({
               </div>
 
               {/* Design Content */}
-              <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+              <div className="p-4 flex flex-col flex-1 min-w-0 min-h-0">
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-semibold text-gray-900 line-clamp-1">{design.title}</h4>
                 </div>
@@ -1171,14 +1332,14 @@ export default function DesignManager({
                   </div>
                 )}
 
-                {!isPublic && (
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">
-                      {new Date(design.createdAt).toLocaleDateString(
-                        language === 'nl' ? 'nl-NL' : 'en-US'
-                      )}
-                    </span>
-                    <div className="flex items-center gap-2">
+                <div className={`flex items-center justify-between gap-2 ${!isPublic ? 'mt-auto shrink-0 pt-3 border-t border-gray-100' : 'mt-2'}`}>
+                  <span className="text-xs text-gray-500">
+                    {new Date(design.createdAt).toLocaleDateString(
+                      language === 'nl' ? 'nl-NL' : 'en-US'
+                    )}
+                  </span>
+                  {!isPublic ? (
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1299,8 +1460,8 @@ export default function DesignManager({
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-                )}
+                  ) : null}
+                </div>
               </div>
             </div>
           ))}

@@ -1,12 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { MessageCircle, Plus, Users, Sparkles } from 'lucide-react';
+import { Plus, Users, Sparkles } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
+import { useCommsUnread } from '@/hooks/useCommsUnread';
+import MessagesQuickActionLink from '@/components/communication/MessagesQuickActionLink';
+import MessagesUrgentSidebarCard from '@/components/communication/MessagesUrgentSidebarCard';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
 import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
@@ -14,13 +17,12 @@ import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
 import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
 import UserActionCenter from '@/components/home/UserActionCenter';
+import RoleQuickLinksSection from '@/components/navigation/RoleQuickLinksSection';
+import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
 
 type Props = {
   welcomeLine?: string | null;
 };
-
-const quickActionClass =
-  'flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-800 hover:border-secondary-brand/30 hover:bg-secondary-50/40 transition-colors text-left w-full';
 
 export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { t } = useTranslation();
@@ -35,6 +37,8 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   } = useGuestBottomNavPanel();
 
   const messagesTabUseLink = sessionStatus !== 'unauthenticated';
+  const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
+  const promoteMessages = messagesUnreadCount > 0;
 
   return (
     <>
@@ -47,6 +51,19 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
         ) : null}
 
         {session?.user ? <UserActionCenter variant="sidebar" /> : null}
+
+        {session?.user && promoteMessages ? <MessagesUrgentSidebarCard /> : null}
+
+        {session?.user ? (
+          <RoleQuickLinksSection
+            ctx={primaryDashboardContextFromUser(
+              session.user as Record<string, unknown>,
+            )}
+            surface="home"
+            max={4}
+            compact
+          />
+        ) : null}
 
         <HomeReputationCompactCard
           variant="sidebar"
@@ -81,21 +98,13 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
                 {t('homePhase1.ctaShare')}
               </button>
             )}
-            {messagesTabUseLink ? (
-              <Link href="/messages" className={quickActionClass}>
-                <MessageCircle className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />
-                {t('bottomNav.messages')}
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleGuestMessagesClick}
-                className={quickActionClass}
-              >
-                <MessageCircle className="h-4 w-4 shrink-0 text-secondary-brand" aria-hidden />
-                {t('bottomNav.messages')}
-              </button>
-            )}
+            {!promoteMessages ? (
+              messagesTabUseLink ? (
+                <MessagesQuickActionLink />
+              ) : (
+                <MessagesQuickActionLink onGuestClick={handleGuestMessagesClick} />
+              )
+            ) : null}
             <Link
               href="/?chip=sale#homecheff-feed"
               className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-800 hover:border-primary-brand/30 hover:bg-primary-50/50 transition-colors"

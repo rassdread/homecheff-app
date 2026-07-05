@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Plus, Edit3, Trash2, Calendar, Droplet, Sun, Grid, List, Sprout, ShoppingCart } from "lucide-react";
@@ -8,9 +8,11 @@ import GardenPhotoUpload from "./GardenPhotoUpload";
 import GardenGrowthPhotos from "./GardenGrowthPhotos";
 import VideoUploader from "@/components/ui/VideoUploader";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
+import { useInspiratieEditDeepLink } from "@/hooks/useInspiratieEditDeepLink";
 import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
+import SmartFitMediaImage from '@/components/inspiratie/SmartFitMediaImage';
 import {
   clearDraft,
   loadDraft,
@@ -243,6 +245,40 @@ export default function GardenManager({
     setShowForm,
     setFormData
   });
+
+  const openGardenForEdit = useCallback(async (projectId: string) => {
+    try {
+      const response = await fetch(`/api/profile/dishes/${projectId}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      const project = data.item as GardenProject;
+      setEditingProject(project);
+      setFormData({
+        title: project.title,
+        description: project.description || '',
+        plantType: project.plantType || '',
+        plantDate: project.plantDate || '',
+        harvestDate: project.harvestDate || '',
+        growthDuration: project.growthDuration ? project.growthDuration.toString() : '',
+        sunlight: project.sunlight || 'PARTIAL',
+        waterNeeds: project.waterNeeds || 'MEDIUM',
+        location: project.location || 'OUTDOOR',
+        soilType: project.soilType || '',
+        plantDistance: project.plantDistance || '',
+        difficulty: project.difficulty || 'EASY',
+        tags: project.tags || [],
+        notes: project.notes || '',
+        photos: project.photos || [],
+        video: project.video || null,
+      });
+      setGrowthPhotos((project.growthPhotos || []) as GrowthPhoto[]);
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error loading garden project for edit:', error);
+    }
+  }, []);
+
+  useInspiratieEditDeepLink(isActive, openGardenForEdit);
 
   useEffect(() => {
     if (!showForm || editingProject) return;
@@ -1362,24 +1398,25 @@ export default function GardenManager({
         </div>
       ) : (
         <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch" 
           : "space-y-4"
         }>
           {filteredProjects.map(project => (
             <div
               key={project.id}
-              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group ${
-                viewMode === 'list' ? 'flex' : ''
+              className={`bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer group flex h-full min-h-0 ${
+                viewMode === 'list' ? 'flex-row' : 'flex-col'
               }`}
               onClick={() => window.location.href = `/garden/${project.id}`}
             >
               {/* Project Image */}
-              <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center relative group-hover:opacity-95 transition-opacity`}>
+              <div className={`${viewMode === 'list' ? 'w-48 h-32 shrink-0' : 'h-48 shrink-0'} bg-neutral-50 flex items-center justify-center relative overflow-hidden rounded-t-xl group-hover:opacity-95 transition-opacity ${viewMode === 'list' ? 'rounded-l-xl rounded-tr-none' : ''}`}>
                 {project.photos.length > 0 ? (
-                  <img
+                  <SmartFitMediaImage
                     src={project.photos[0].url}
                     alt={project.title}
-                    className="w-full h-full object-cover"
+                    mode="preview"
+                    fill
                   />
                 ) : (
                   <Sprout className="w-12 h-12 text-emerald-400" />
@@ -1388,7 +1425,7 @@ export default function GardenManager({
               </div>
 
               {/* Project Content */}
-              <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+              <div className="p-4 flex flex-col flex-1 min-w-0 min-h-0">
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-semibold text-gray-900 line-clamp-1">{project.title}</h4>
                 </div>
@@ -1437,12 +1474,12 @@ export default function GardenManager({
                   </div>
                 )}
 
-                {!isPublic && (
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">
-                      {new Date(project.createdAt).toLocaleDateString('nl-NL')}
-                    </span>
-                    <div className="flex items-center gap-2">
+                <div className={`flex items-center justify-between gap-2 ${!isPublic ? 'mt-auto shrink-0 pt-3 border-t border-gray-100' : 'mt-2'}`}>
+                  <span className="text-xs text-gray-500">
+                    {new Date(project.createdAt).toLocaleDateString('nl-NL')}
+                  </span>
+                  {!isPublic ? (
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1575,8 +1612,8 @@ export default function GardenManager({
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-                )}
+                  ) : null}
+                </div>
               </div>
             </div>
           ))}

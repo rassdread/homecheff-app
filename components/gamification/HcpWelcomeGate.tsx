@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import HcpWelcomeSheet from '@/components/gamification/HcpWelcomeSheet';
 import { useGamificationMe } from '@/hooks/useGamificationMe';
+import { usePathname } from 'next/navigation';
 
-/** Eénmalige HCP-welkom — data komt uit `/api/gamification/me` (`hcpWelcomePending`). Alleen ingelogde gebruikers; na dismiss schrijft de API `hcpWelcomeSeenAt`. */
+/** Eénmalige welkom — alleen op /mijn-hcp en pas na eerste activiteit (niet op eerste homepage-bezoek). */
 export default function HcpWelcomeGate() {
   const { status } = useSession();
+  const pathname = usePathname();
   const { data, refetch } = useGamificationMe();
   const [open, setOpen] = useState(false);
 
@@ -16,8 +18,20 @@ export default function HcpWelcomeGate() {
       setOpen(false);
       return;
     }
-    if (data?.hcpWelcomePending) setOpen(true);
-  }, [status, data?.hcpWelcomePending]);
+    if (!pathname?.startsWith('/mijn-hcp')) {
+      setOpen(false);
+      return;
+    }
+    if (!data?.hcpWelcomePending) {
+      setOpen(false);
+      return;
+    }
+    const hasActivity =
+      (data.totalHcp ?? 0) > 0 ||
+      (data.recentEvents?.length ?? 0) > 0 ||
+      (data.badges?.length ?? 0) > 0;
+    setOpen(hasActivity);
+  }, [status, pathname, data?.hcpWelcomePending, data?.totalHcp, data?.recentEvents, data?.badges]);
 
   if (!open) return null;
 

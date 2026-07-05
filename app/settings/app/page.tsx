@@ -23,7 +23,6 @@ type PushPrefsSlice = {
   pushDeliveryUpdates: boolean;
   pushHcpRewards: boolean;
   pushPromotionalUpdates: boolean;
-  betaFeaturesEnabled: boolean;
 };
 
 export default function AppSettingsPage() {
@@ -97,7 +96,6 @@ export default function AppSettingsPage() {
             pushDeliveryUpdates: Boolean(p.pushDeliveryUpdates ?? true),
             pushHcpRewards: Boolean(p.pushHcpRewards ?? true),
             pushPromotionalUpdates: Boolean(p.pushPromotionalUpdates ?? false),
-            betaFeaturesEnabled: Boolean(p.betaFeaturesEnabled ?? true),
           });
         }
       } catch {
@@ -321,12 +319,6 @@ export default function AppSettingsPage() {
                   description={t('settingsNotifications.pushMarketingHint')}
                   checked={prefs.pushPromotionalUpdates}
                   onChange={(v) => void updatePrefs({ pushPromotionalUpdates: v })}
-                />
-                <ToggleRow
-                  label={t('appSettingsPage.betaFeatures')}
-                  description={t('appSettingsPage.betaFeaturesHint')}
-                  checked={prefs.betaFeaturesEnabled}
-                  onChange={(v) => void updatePrefs({ betaFeaturesEnabled: v })}
                 />
               </div>
             )}

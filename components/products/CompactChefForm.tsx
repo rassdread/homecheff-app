@@ -13,6 +13,9 @@ import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
 import ProductOrderMethodSelector from '@/components/products/ProductOrderMethodSelector';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import ProductEditInspirationLink from '@/components/products/ProductEditInspirationLink';
+import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
+import { productHasUsableLocation } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
@@ -95,6 +98,12 @@ export default function CompactChefForm({
     servings?: number | null;
     difficulty?: string | null;
   } | null>(null);
+  const [importedInstructions, setImportedInstructions] = React.useState<string[]>([]);
+  const [importedStepPhotos, setImportedStepPhotos] = React.useState<
+    { url: string; stepNumber: number; description?: string; idx?: number }[]
+  >([]);
+  const [linkedInspirationCategory, setLinkedInspirationCategory] =
+    React.useState<InspirationCategory | null>(null);
   
   // Pickup location state
   const [useMyAddress, setUseMyAddress] = React.useState(true);
@@ -201,6 +210,42 @@ export default function CompactChefForm({
           duration: existingProduct.Video.duration || null
         });
       }
+
+      void (async () => {
+        try {
+          const res = await fetch(`/api/products/${existingProduct.id}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          const dish = data.dish;
+          if (data.isDish && data.dishCategory) {
+            setLinkedInspirationCategory(data.dishCategory as InspirationCategory);
+          }
+          if (!dish) return;
+          if (Array.isArray(dish.ingredients) && dish.ingredients.length > 0) {
+            setIngredients(dish.ingredients.filter((ing: string) => ing.trim() !== ''));
+          }
+          if (dish.ingredients?.length || dish.prepTime || dish.servings || dish.difficulty) {
+            setRecipeMetadata({
+              prepTime: dish.prepTime ?? null,
+              servings: dish.servings ?? null,
+              difficulty: dish.difficulty ?? null,
+            });
+          }
+          if (Array.isArray(dish.instructions) && dish.instructions.length > 0) {
+            setImportedInstructions(dish.instructions.filter((ins: string) => ins.trim() !== ''));
+          }
+          if (Array.isArray(dish.stepPhotos) && dish.stepPhotos.length > 0) {
+            setImportedStepPhotos(dish.stepPhotos);
+          }
+          if (Array.isArray(dish.tags) && dish.tags.length > 0) {
+            setTags(dish.tags);
+          } else if (Array.isArray(data.product?.tags) && data.product.tags.length > 0) {
+            setTags(data.product.tags);
+          }
+        } catch {
+          /* optional linked dish */
+        }
+      })();
     }
   }, [editMode, existingProduct]);
 
@@ -269,6 +314,12 @@ export default function CompactChefForm({
       }
       if (fromRecipe && data.ingredients && Array.isArray(data.ingredients) && data.ingredients.length > 0) {
         setIngredients(data.ingredients.filter((ing: string) => ing.trim() !== ''));
+      }
+      if (fromRecipe && data.instructions && Array.isArray(data.instructions)) {
+        setImportedInstructions(data.instructions.filter((ins: string) => ins.trim() !== ''));
+      }
+      if (fromRecipe && data.stepPhotos && Array.isArray(data.stepPhotos)) {
+        setImportedStepPhotos(data.stepPhotos);
       }
       if (data.tags && Array.isArray(data.tags)) setTags(data.tags);
       
@@ -363,12 +414,11 @@ export default function CompactChefForm({
       return;
     }
 
-    setSubmitting(true);
     let finalPickupAddress: string | null = null;
     let finalPickupLat: number | null = null;
     let finalPickupLng: number | null = null;
-    
-    // Pickup address is needed when PICKUP option is selected
+
+    // Pickup address when PICKUP is selected
     if (hasDeliveryOption('PICKUP')) {
       if (useMyAddress) {
         // User address is already loaded in state via useEffect
@@ -407,6 +457,20 @@ export default function CompactChefForm({
       }
     }
 
+    const isSaleListing =
+      isActive && (priceCents > 0 || orderMethod === 'CONTACT');
+    if (
+      isSaleListing &&
+      !productHasUsableLocation({
+        pickupAddress: finalPickupAddress,
+        pickupLat: finalPickupLat,
+        pickupLng: finalPickupLng,
+      })
+    ) {
+      setMessage(t('productForm.locationRequired'));
+      return;
+    }
+
     setSubmitting(true);
     try {
       const imageUrls = imageUrlsReady;
@@ -423,6 +487,16 @@ export default function CompactChefForm({
         stock,
         maxStock
       });
+
+      const chefDishFields = {
+        ingredients: ingredients.filter((ing) => ing.trim().length > 0),
+        instructions: importedInstructions,
+        stepPhotos: importedStepPhotos,
+        prepTime: recipeMetadata?.prepTime ?? null,
+        servings: recipeMetadata?.servings ?? null,
+        difficulty: recipeMetadata?.difficulty ?? null,
+        mealType: mealType || null,
+      };
 
       let res, data;
       
@@ -450,6 +524,7 @@ export default function CompactChefForm({
             sellerCanDeliver: hasDeliveryOption('DELIVERY') ? sellerCanDeliver : false,
             deliveryRadiusKm: hasDeliveryOption('DELIVERY') && sellerCanDeliver && deliveryRadiusKm ? parseFloat(deliveryRadiusKm) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
+            ...chefDishFields,
             ...(video && {
               video: {
                 url: video.url,
@@ -484,6 +559,7 @@ export default function CompactChefForm({
             stock: stock ? parseInt(stock) : 0,
             maxStock: maxStock ? parseInt(maxStock) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
+            ...chefDishFields,
             ...(video && {
               video: {
                 url: video.url,
@@ -509,7 +585,9 @@ export default function CompactChefForm({
         if (onSave) {
           onSave(data.product || data);
         } else {
-          window.location.href = editMode ? `/product/${data.product?.id || data.id}` : getProfileHrefAfterProductSave('CHEFF');
+          window.location.href = editMode
+            ? `/product/${data.product?.id || data.id}`
+            : getProfileHrefAfterProductSave('CHEFF', { added: true });
         }
       } else {
         console.error('❌ [CompactChefForm] API error:', {
@@ -554,6 +632,13 @@ export default function CompactChefForm({
           <span>{t('productForm.dishesAndMeals')}</span>
         </div>
       </div>
+
+      {editMode && linkedInspirationCategory && existingProduct?.id ? (
+        <ProductEditInspirationLink
+          productId={existingProduct.id}
+          category={linkedInspirationCategory}
+        />
+      ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Video Upload */}

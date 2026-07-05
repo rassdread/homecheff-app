@@ -16,6 +16,8 @@ import { registerFcmTokenWithServer } from "@/lib/native/pushTokenServer";
 import { getCapacitorAppInfo } from "@/lib/native/getCapacitorAppInfo";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 import { isNativeApp } from "@/lib/native/capacitor";
+import { maskPushTokenForDisplay, nativePushDevLog } from "@/lib/native/push";
+import { refreshCommsAfterNativePush } from "@/lib/native/pushCommsRefresh";
 
 /**
  * Stille FCM-sync (native): geen OS-permissieprompt.
@@ -36,7 +38,7 @@ export default function NativePushTokenSync() {
 
     const pushToServer = async (opts: {
       force: boolean;
-      diagReason: "mount" | "resume" | "post_update";
+      diagReason: "mount" | "resume" | "post_update" | "token_refresh";
     }) => {
       try {
         await waitUntilNativePushSyncHoldReleased();
@@ -86,6 +88,7 @@ export default function NativePushTokenSync() {
 
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
+      refreshCommsAfterNativePush("resume");
       void pushToServer({ force: true, diagReason: "resume" });
     };
 
@@ -98,6 +101,41 @@ export default function NativePushTokenSync() {
       window.addEventListener("hc-apk-install-success-for-push", onPostUpdate);
     }
 
+    let regListener: { remove: () => Promise<void> } | null = null;
+    let appStateListener: { remove: () => Promise<void> } | null = null;
+
+    void (async () => {
+      if (!isNativeApp() || cancelled) return;
+      try {
+        const { PushNotifications } = await import("@capacitor/push-notifications");
+        regListener = await PushNotifications.addListener(
+          "registration",
+          ({ value }) => {
+            if (cancelled || !value) return;
+            nativePushDevLog(
+              "FCM token refresh",
+              maskPushTokenForDisplay(value),
+            );
+            reportAppDiagnostic("push_token_refresh", {});
+            void pushToServer({ force: true, diagReason: "token_refresh" });
+          },
+        );
+      } catch {
+        /* ignore */
+      }
+
+      try {
+        const { App } = await import("@capacitor/app");
+        appStateListener = await App.addListener("appStateChange", ({ isActive }) => {
+          if (cancelled || !isActive) return;
+          refreshCommsAfterNativePush("resume");
+          void pushToServer({ force: true, diagReason: "resume" });
+        });
+      } catch {
+        /* ignore */
+      }
+    })();
+
     return () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisible);
@@ -107,6 +145,8 @@ export default function NativePushTokenSync() {
           onPostUpdate
         );
       }
+      void regListener?.remove();
+      void appStateListener?.remove();
     };
   }, [nativeMounted, status, userId]);
 

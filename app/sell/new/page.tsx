@@ -265,7 +265,7 @@ function HomeCheffProductNieuwPageContent() {
   if (status === "loading") {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-        <div className="text-center text-gray-600">Laden...</div>
+        <div className="text-center text-gray-600">{t("sellNew.loading")}</div>
       </main>
     );
   }
@@ -273,17 +273,13 @@ function HomeCheffProductNieuwPageContent() {
   if (status === "unauthenticated") {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-        <div className="text-center text-gray-600">Doorsturen naar inloggen…</div>
+        <div className="text-center text-gray-600">{t("sellNew.redirectingToLogin")}</div>
       </main>
     );
   }
 
   const handleSave = (product: { id?: string } | null) => {
-    if (product?.id) {
-      window.location.href = `/product/${product.id}`;
-    } else {
-      window.location.href = getProfileHrefAfterProductSave(category);
-    }
+    window.location.href = getProfileHrefAfterProductSave(category, { added: Boolean(product?.id) });
   };
 
   const handleCancel = () => {
@@ -353,11 +349,11 @@ function HomeCheffProductNieuwPageContent() {
       if (e instanceof Error && e.message.includes("quota")) {
         alert(
           isVideo
-            ? "Video is te groot voor opslag. Probeer een kortere video."
-            : "Foto is te groot. Kies een kleinere afbeelding."
+            ? t("sellNew.videoTooLargeStorage")
+            : t("sellNew.photoTooLargeStorage")
         );
       } else {
-        alert("Kon media niet opslaan. Probeer opnieuw.");
+        alert(t("sellNew.mediaSaveFailed"));
       }
       return;
     }
@@ -371,7 +367,7 @@ function HomeCheffProductNieuwPageContent() {
     const isVideo = file.type.startsWith("video/");
     const isImage = file.type.startsWith("image/");
     if (!isVideo && !isImage) {
-      alert("Alleen foto's en video's zijn toegestaan");
+      alert(t("sellNew.mediaTypeNotAllowed"));
       return;
     }
     const reader = new FileReader();
@@ -449,20 +445,20 @@ function HomeCheffProductNieuwPageContent() {
             {noSellerRoles ? (
               <div className="text-center py-6 rounded-xl border bg-white p-6">
                 <p className="text-gray-600 mb-4">
-                  Je hebt nog geen verkoper rollen.
+                  {t("sellNew.noSellerRoles")}
                 </p>
                 <Link
                   href="/profile?tab=overview"
                   className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
                 >
-                  Mijn HomeCheff instellen
+                  {t("sellNew.setupHomeCheff")}
                 </Link>
               </div>
             ) : (
               <>
                 {!rolesLoaded && session?.user && (
                   <p className="text-sm text-gray-500 text-center py-6">
-                    Laden…
+                    {t("sellNew.loading")}
                   </p>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
@@ -638,26 +634,26 @@ function HomeCheffProductNieuwPageContent() {
                   onClick={() => setPhase("wizard-photo")}
                   className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
                 >
-                  ← Terug
+                  ← {t("buttons.back")}
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900 mt-2">
-                  Kies je rol
+                  {t("sellNew.sellRoleTitle")}
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Welk type product is dit?
+                  {t("sellNew.sellRoleSubtitle")}
                 </p>
               </div>
             </div>
             {noSellerRoles ? (
               <div className="text-center py-6 rounded-xl border bg-white p-6">
                 <p className="text-gray-600 mb-4">
-                  Je hebt nog geen verkoper rollen.
+                  {t("sellNew.noSellerRoles")}
                 </p>
                 <Link
                   href="/profile?tab=overview"
                   className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
                 >
-                  Mijn HomeCheff instellen
+                  {t("sellNew.setupHomeCheff")}
                 </Link>
               </div>
             ) : (
@@ -672,9 +668,9 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">🍳</div>
-                    <div className="text-lg font-bold">Chef</div>
+                    <div className="text-lg font-bold">{t("sellNew.chefRoleTitle")}</div>
                     <div className="text-sm opacity-90">
-                      Gerechten & ingrediënten
+                      {t("sellNew.chefRoleHint")}
                     </div>
                   </button>
                 )}
@@ -688,8 +684,8 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">🌱</div>
-                    <div className="text-lg font-bold">Garden</div>
-                    <div className="text-sm opacity-90">Groenten & planten</div>
+                    <div className="text-lg font-bold">{t("sellNew.gardenRoleTitle")}</div>
+                    <div className="text-sm opacity-90">{t("sellNew.gardenRoleHint")}</div>
                   </button>
                 )}
                 {showDesigner && (
@@ -702,13 +698,13 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">🎨</div>
-                    <div className="text-lg font-bold">Designer</div>
-                    <div className="text-sm opacity-90">Handgemaakte items</div>
+                    <div className="text-lg font-bold">{t("sellNew.designerRoleTitle")}</div>
+                    <div className="text-sm opacity-90">{t("sellNew.designerRoleHint")}</div>
                   </button>
                 )}
                 {!rolesLoaded && session?.user && (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Laden…
+                    {t("sellNew.loading")}
                   </p>
                 )}
               </div>
@@ -724,25 +720,25 @@ function HomeCheffProductNieuwPageContent() {
                 onClick={() => setPhase("wizard-photo")}
                 className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
               >
-                ← Terug
+                ← {t("buttons.back")}
               </button>
               <h1 className="text-2xl font-bold text-gray-900 mt-2">
-                Kies inspiratie type
+                {t("sellNew.inspiratieTypeTitle")}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                Welke inspiratie wil je delen?
+                {t("sellNew.inspiratieTypeSubtitle")}
               </p>
             </div>
             {noSellerRoles ? (
               <div className="text-center py-6 rounded-xl border bg-white p-6">
                 <p className="text-gray-600 mb-4">
-                  Je hebt nog geen verkoper rollen.
+                  {t("sellNew.noSellerRoles")}
                 </p>
                 <Link
                   href="/profile?tab=overview"
                   className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
                 >
-                  Mijn HomeCheff instellen
+                  {t("sellNew.setupHomeCheff")}
                 </Link>
               </div>
             ) : (
@@ -757,9 +753,9 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">📝</div>
-                    <div className="text-lg font-bold">Recepten</div>
+                    <div className="text-lg font-bold">{t("sellNew.recipesTitle")}</div>
                     <div className="text-sm opacity-90">
-                      Deel je recepten en kooktips
+                      {t("sellNew.recipesHint")}
                     </div>
                   </button>
                 )}
@@ -773,9 +769,9 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">🌱</div>
-                    <div className="text-lg font-bold">Kweken</div>
+                    <div className="text-lg font-bold">{t("sellNew.growingTitle")}</div>
                     <div className="text-sm opacity-90">
-                      Deel je kweekprojecten
+                      {t("sellNew.growingHint")}
                     </div>
                   </button>
                 )}
@@ -789,15 +785,15 @@ function HomeCheffProductNieuwPageContent() {
                     }}
                   >
                     <div className="text-2xl mb-1">🎨</div>
-                    <div className="text-lg font-bold">Designs</div>
+                    <div className="text-lg font-bold">{t("sellNew.designsTitle")}</div>
                     <div className="text-sm opacity-90">
-                      Deel je creatieve werken
+                      {t("sellNew.designsHint")}
                     </div>
                   </button>
                 )}
                 {!rolesLoaded && session?.user && (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Laden…
+                    {t("sellNew.loading")}
                   </p>
                 )}
               </div>
@@ -825,28 +821,28 @@ function HomeCheffProductNieuwPageContent() {
                 >
                   ←{" "}
                   {hubSelectionComplete
-                    ? "Andere start"
-                    : "Andere categorie"}
+                    ? t("sellNew.otherStart")
+                    : t("sellNew.otherCategory")}
                 </button>
               </div>
             )}
             {skipWizard && (
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Start met verkopen
+                  {t("sellNew.sellFormTitle")}
                 </h1>
                 <p className="mt-2 text-gray-600">
-                  Verdien geld met wat je al kunt — gewoon in jouw buurt.
+                  {t("sellNew.sellFormSubtitleSkip")}
                 </p>
               </div>
             )}
             {!skipWizard && (
               <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Start met verkopen
+                  {t("sellNew.sellFormTitle")}
                 </h1>
                 <p className="mt-2 text-gray-600">
-                  Vul het formulier in om je aanbod op het Dorpsplein te zetten.
+                  {t("sellNew.sellFormSubtitle")}
                 </p>
               </div>
             )}
@@ -887,17 +883,17 @@ function HomeCheffProductNieuwPageContent() {
               >
                 ←{" "}
                 {skipWizard
-                  ? "Terug"
+                  ? t("buttons.back")
                   : hubSelectionComplete
-                    ? "Andere start"
-                    : "Andere inspiratie-categorie"}
+                    ? t("sellNew.otherStart")
+                    : t("sellNew.otherInspiratieCategory")}
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Deel inspiratie
+                  {t("sellNew.inspiratieFormTitle")}
                 </h1>
                 <p className="mt-2 text-gray-600">
-                  Deel een recept, idee of voorbeeld en inspireer anderen.
+                  {t("sellNew.inspiratieFormSubtitle")}
                 </p>
               </div>
             </div>
@@ -926,7 +922,7 @@ function HomeCheffProductNieuwPageContent() {
                   }}
                 />
               ) : (
-                <div className="text-center py-10 text-gray-600">Laden…</div>
+                <div className="text-center py-10 text-gray-600">{t("sellNew.loading")}</div>
               )}
             </div>
           </>
@@ -936,17 +932,20 @@ function HomeCheffProductNieuwPageContent() {
   );
 }
 
+function SellNewSuspenseFallback() {
+  const { t } = useTranslation();
+  return (
+    <main className="min-h-screen bg-neutral-50">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">{t("sellNew.loading")}</div>
+      </div>
+    </main>
+  );
+}
+
 export default function HomeCheffProductNieuwPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-neutral-50">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center">Laden...</div>
-          </div>
-        </main>
-      }
-    >
+    <Suspense fallback={<SellNewSuspenseFallback />}>
       <HomeCheffProductNieuwPageContent />
     </Suspense>
   );

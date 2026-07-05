@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { computeSellerResponseTimeStats } from '@/lib/communication/response-time';
 
 export async function GET(
   req: NextRequest,
@@ -83,6 +84,8 @@ export async function GET(
       Promise.resolve(4.5)
     ]);
 
+    const responseStats = await computeSellerResponseTimeStats(userId);
+
     return NextResponse.json({
       totalProducts,
       activeProducts,
@@ -90,7 +93,8 @@ export async function GET(
       totalFollowing,
       totalOrders,
       averageRating,
-      responseTime: 'Binnen 2 uur' // Placeholder
+      responseTime: responseStats.label,
+      responseTimeSampleCount: responseStats.sampleCount,
     });
 
   } catch (error) {

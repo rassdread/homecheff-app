@@ -21,7 +21,7 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
-import AppBackBar from '@/components/navigation/AppBackBar';
+import OperationsShell from '@/components/operations/OperationsShell';
 import {
   orderMatchesSellerTab,
   orderStatusToSellerLabel,
@@ -312,20 +312,13 @@ export default function SellerOrdersPageClient() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <AppBackBar
-          fallbackUrl="/verkoper/dashboard"
-          label={t('seller.backToDashboard')}
-          title={t('seller.salesOrders')}
-          className="mb-2 rounded-xl border border-neutral-200 bg-white shadow-sm"
-        />
-        <p className="mb-6 text-sm text-neutral-600 sm:text-base">
-          {t('seller.salesOrdersDescription')}
-        </p>
-      </div>
-
-      <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+    <OperationsShell
+      pageTitle={t('seller.salesOrders')}
+      pageSubtitle={t('seller.salesOrdersDescription')}
+      breadcrumbLabel={t('operations.tabs.orders')}
+      contentClassName="py-0"
+    >
+      <div className="pb-8">
         {/* Filters */}
         <div className="mb-6 bg-white rounded-2xl p-4 shadow-sm border border-neutral-200">
           <div className="flex flex-col md:flex-row gap-4">
@@ -630,6 +623,6 @@ export default function SellerOrdersPageClient() {
           </div>
         )}
       </div>
-    </main>
+    </OperationsShell>
   );
 }

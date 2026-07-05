@@ -267,7 +267,7 @@ export default function AdminProfileClient({ user, adminStats, searchParams }: A
               Admin Dashboard
             </Link>
             <Link 
-              href="/admin/users" 
+              href="/admin?tab=users" 
               className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2"
             >
               <Users className="w-4 h-4" />

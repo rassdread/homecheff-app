@@ -34,7 +34,10 @@ import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { saveLastConversationId } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
+import ConversationContextHeader from './ConversationContextHeader';
+import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
+import ReportContentButton from '@/components/reporting/ReportContentButton';
 import type { ChatThreadMessage } from './chatThreadTypes';
 
 export interface ChatBoxProps {
@@ -62,6 +65,8 @@ export interface ChatBoxProps {
     productTitle?: string | null;
     productCategory?: string | null;
   } | null;
+  /** Context-first header (product/order/general). */
+  contextHeader?: ResolvedConversationHeader | null;
 }
 
 export default function ChatBox({
@@ -71,6 +76,7 @@ export default function ChatBox({
   showConversationTools = false,
   showBackOnDesktop = false,
   relationshipContext = null,
+  contextHeader = null,
 }: ChatBoxProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
@@ -582,13 +588,14 @@ export default function ChatBox({
     });
     
     // Typing indicator
-    channel.bind('user-typing', (data: { userId: string; typing: boolean }) => {
+    channel.bind('user-typing', (data: { userId: string; isTyping?: boolean; typing?: boolean }) => {
       if (boundGen !== pusherUiGenRef.current) return;
       if (data.userId !== currentUserId) {
         const epochSnap = conversationEpochRef.current;
-        setOtherUserTyping(data.typing);
+        const active = data.isTyping ?? data.typing ?? false;
+        setOtherUserTyping(active);
 
-        if (data.typing) {
+        if (active) {
           if (pusherTypingClearRef.current) {
             clearTimeout(pusherTypingClearRef.current);
             pusherTypingClearRef.current = null;
@@ -710,7 +717,7 @@ export default function ChatBox({
       fetch(`/api/conversations/${conversationId}/typing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ typing: true })
+        body: JSON.stringify({ isTyping: true })
       }).catch(console.error);
     }
     
@@ -725,7 +732,7 @@ export default function ChatBox({
       fetch(`/api/conversations/${conversationId}/typing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ typing: false })
+        body: JSON.stringify({ isTyping: false })
       }).catch(console.error);
     }, 2000);
   };
@@ -1095,6 +1102,15 @@ export default function ChatBox({
 
           {showConversationTools ? (
             <div className="ml-auto flex shrink-0 items-center gap-1 self-start lg:self-center">
+              {peerId ? (
+                <ReportContentButton
+                  entityId={peerId}
+                  entityType="USER"
+                  entityTitle={displayName}
+                  size="sm"
+                  className="!px-2 !py-2"
+                />
+              ) : null}
               <button
                 type="button"
                 onClick={() => handleManualReload()}
@@ -1115,6 +1131,8 @@ export default function ChatBox({
           ) : null}
         </div>
       </div>
+
+      <ConversationContextHeader header={contextHeader} />
 
       {/* Messages — enige scrollzone */}
       <div

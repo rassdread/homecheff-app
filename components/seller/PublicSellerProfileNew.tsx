@@ -222,7 +222,7 @@ export default function PublicSellerProfile({
     totalFollowers: 0,
     totalProducts: 0,
     averageRating: 0,
-    responseTime: 'Binnen 2 uur'
+    responseTime: null as string | null,
   });
 
   // Load workspace content and stats on mount
@@ -497,10 +497,12 @@ export default function PublicSellerProfile({
                   <span className="font-semibold">{stats.averageRating.toFixed(1)}</span>
                   <span className="text-emerald-100">Rating</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  <span className="text-emerald-100">Reactietijd: {stats.responseTime}</span>
-                </div>
+                {stats.responseTime ? (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-emerald-100">Reactietijd: {stats.responseTime}</span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

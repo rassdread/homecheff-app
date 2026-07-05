@@ -22,6 +22,27 @@ export async function POST(req: NextRequest) {
     const { isOnline } = await req.json();
     const now = new Date();
 
+    const privacyUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, showOnlineStatus: true },
+    });
+
+    if (!privacyUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
+    }
+
+    if (!privacyUser.showOnlineStatus) {
+      return NextResponse.json(
+        {
+          success: true,
+          isOnline: false,
+          lastSeenAt: null,
+          privacyEnabled: false,
+        },
+        { headers: cors }
+      );
+    }
+
     // Update user's last seen timestamp
     const user = await prisma.user.update({
       where: { email: session.user.email },

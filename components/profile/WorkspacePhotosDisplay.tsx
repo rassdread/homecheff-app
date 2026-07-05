@@ -15,6 +15,10 @@ interface WorkspacePhotosDisplayProps {
   userId: string;
   userRoles: string[];
   className?: string;
+  /** Hide the outer "Werkruimte" group heading (Profile V2 per-section cards). */
+  hideGroupTitle?: boolean;
+  /** Hide per-role sub-headings when the parent section already has a title. */
+  compactSection?: boolean;
 }
 
 const ROLE_ICONS = {
@@ -41,7 +45,9 @@ const ROLE_DESCRIPTIONS = {
 export default function WorkspacePhotosDisplay({ 
   userId, 
   userRoles, 
-  className = '' 
+  className = '',
+  hideGroupTitle = false,
+  compactSection = false,
 }: WorkspacePhotosDisplayProps) {
   const [photos, setPhotos] = useState<Record<string, WorkspacePhoto[]>>({});
   const [loading, setLoading] = useState(true);
@@ -76,10 +82,12 @@ export default function WorkspacePhotosDisplay({
   if (loading) {
     return (
       <div className={`space-y-6 ${className}`}>
-        <div className="flex items-center gap-3">
-          <Grid className="w-6 h-6 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
-        </div>
+        {!hideGroupTitle ? (
+          <div className="flex items-center gap-3">
+            <Grid className="w-6 h-6 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse" />
@@ -92,10 +100,12 @@ export default function WorkspacePhotosDisplay({
   if (error) {
     return (
       <div className={`space-y-6 ${className}`}>
-        <div className="flex items-center gap-3">
-          <Grid className="w-6 h-6 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
-        </div>
+        {!hideGroupTitle ? (
+          <div className="flex items-center gap-3">
+            <Grid className="w-6 h-6 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
+          </div>
+        ) : null}
         <div className="text-center py-8 text-gray-500">
           <Camera className="w-12 h-12 mx-auto mb-3 text-gray-300" />
           <p>{error}</p>
@@ -109,10 +119,12 @@ export default function WorkspacePhotosDisplay({
   if (!hasPhotos) {
     return (
       <div className={`space-y-6 ${className}`}>
-        <div className="flex items-center gap-3">
-          <Grid className="w-6 h-6 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
-        </div>
+        {!hideGroupTitle ? (
+          <div className="flex items-center gap-3">
+            <Grid className="w-6 h-6 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
+          </div>
+        ) : null}
         <div className="text-center py-8 text-gray-500">
           <Camera className="w-12 h-12 mx-auto mb-3 text-gray-300" />
           <p>Nog geen werkruimte foto's gedeeld</p>
@@ -124,10 +136,12 @@ export default function WorkspacePhotosDisplay({
   return (
     <>
       <div className={`space-y-8 ${className}`}>
-        <div className="flex items-center gap-3">
-          <Grid className="w-6 h-6 text-primary-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
-        </div>
+        {!hideGroupTitle ? (
+          <div className="flex items-center gap-3">
+            <Grid className="w-6 h-6 text-primary-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Werkruimte</h3>
+          </div>
+        ) : null}
 
         {userRoles.map(role => {
           const rolePhotos = photos[role] || [];
@@ -146,16 +160,17 @@ export default function WorkspacePhotosDisplay({
 
           return (
             <div key={role} className="space-y-6">
-              {/* Role Header */}
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                  <IconComponent className="w-5 h-5 text-primary-600" />
+              {!compactSection ? (
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                    <IconComponent className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 text-lg">{label}</h4>
+                    <p className="text-sm text-gray-600">{description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 text-lg">{label}</h4>
-                  <p className="text-sm text-gray-600">{description}</p>
-                </div>
-              </div>
+              ) : null}
               
               {/* Desktop: Carousel + Grid hybrid */}
               <div className="space-y-6">

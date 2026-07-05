@@ -13,6 +13,9 @@ import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
 import ProductOrderMethodSelector from '@/components/products/ProductOrderMethodSelector';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import ProductEditInspirationLink from '@/components/products/ProductEditInspirationLink';
+import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
+import { productHasUsableLocation } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
@@ -198,6 +201,19 @@ export default function CompactDesignerForm({
       if (existingProduct.tags && Array.isArray(existingProduct.tags)) {
         setTags(existingProduct.tags);
       }
+
+      void (async () => {
+        try {
+          const res = await fetch(`/api/products/${existingProduct.id}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.isDish && data.dishCategory) {
+            setLinkedInspirationCategory(data.dishCategory as InspirationCategory);
+          }
+        } catch {
+          /* optional linked dish */
+        }
+      })();
     }
   }, [editMode, existingProduct]);
 
@@ -243,6 +259,15 @@ export default function CompactDesignerForm({
 
   // Track if design data has been loaded
   const [designDataLoaded, setDesignDataLoaded] = React.useState(false);
+  const [linkedInspirationCategory, setLinkedInspirationCategory] =
+    React.useState<InspirationCategory | null>(null);
+  const [designImport, setDesignImport] = React.useState<{
+    materials: string[];
+    dimensions: string;
+    notes: string;
+    instructions: string[];
+    stepPhotos: { url: string; stepNumber: number; description?: string; idx?: number }[];
+  }>({ materials: [], dimensions: '', notes: '', instructions: [], stepPhotos: [] });
 
   // Load design data from sessionStorage when fromDesign=true
   React.useEffect(() => {
@@ -262,6 +287,17 @@ export default function CompactDesignerForm({
       if (designData.description) setDescription(designData.description);
       if (designData.category) setSubcategory(designData.category);
       if (designData.tags && Array.isArray(designData.tags)) setTags(designData.tags);
+      setDesignImport({
+        materials: Array.isArray(designData.materials)
+          ? designData.materials.filter((m: string) => m.trim() !== '')
+          : [],
+        dimensions: designData.dimensions || '',
+        notes: designData.notes || '',
+        instructions: Array.isArray(designData.instructions)
+          ? designData.instructions.filter((ins: string) => ins.trim() !== '')
+          : [],
+        stepPhotos: Array.isArray(designData.stepPhotos) ? designData.stepPhotos : [],
+      });
       
       // Load photos (only main photos, max 5)
       if (designData.photos && Array.isArray(designData.photos)) {
@@ -375,6 +411,20 @@ export default function CompactDesignerForm({
       }
     }
 
+    const isSaleListing =
+      isActive && (priceCents > 0 || orderMethod === 'CONTACT');
+    if (
+      isSaleListing &&
+      !productHasUsableLocation({
+        pickupAddress: finalPickupAddress,
+        pickupLat: finalPickupLat,
+        pickupLng: finalPickupLng,
+      })
+    ) {
+      setMessage(t('productForm.locationRequired'));
+      return;
+    }
+
     setSubmitting(true);
     try {
       const imageUrls = imageUrlsReady;
@@ -439,6 +489,11 @@ export default function CompactDesignerForm({
             stock: stock ? parseInt(stock) : 0,
             maxStock: maxStock ? parseInt(maxStock) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
+            materials: designImport.materials,
+            dimensions: designImport.dimensions || undefined,
+            notes: designImport.notes || undefined,
+            instructions: designImport.instructions,
+            stepPhotos: designImport.stepPhotos.length > 0 ? designImport.stepPhotos : undefined,
             ...(video && {
               video: {
                 url: video.url,
@@ -464,7 +519,9 @@ export default function CompactDesignerForm({
         if (onSave) {
           onSave(data.product || data);
         } else {
-          window.location.href = editMode ? `/product/${data.product?.id || data.id}` : getProfileHrefAfterProductSave('DESIGNER');
+          window.location.href = editMode
+            ? `/product/${data.product?.id || data.id}`
+            : getProfileHrefAfterProductSave('DESIGNER', { added: true });
         }
       } else {
         console.error('❌ [CompactDesignerForm] API error:', {
@@ -509,6 +566,13 @@ export default function CompactDesignerForm({
           <span>{t('compactForms.designer.badge')}</span>
         </div>
       </div>
+
+      {editMode && linkedInspirationCategory && existingProduct?.id ? (
+        <ProductEditInspirationLink
+          productId={existingProduct.id}
+          category={linkedInspirationCategory}
+        />
+      ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Video Upload */}

@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { clearUserCache } from '@/lib/api-auth';
 import { matchesCurrentMode } from '@/lib/stripe';
@@ -187,7 +188,8 @@ export default async function AdminPage() {
   }
 
   return (
-    <AdminDashboard
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="animate-pulse text-gray-500">Loading…</div></div>}>
+      <AdminDashboard
       user={{
         id: user.id,
         role: user.role,
@@ -215,5 +217,6 @@ export default async function AdminPage() {
         systemMetrics: []
       }}
     />
+    </Suspense>
   );
 }

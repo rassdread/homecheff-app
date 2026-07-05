@@ -7,6 +7,7 @@ import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
+import { getProfileHrefAfterProductEdit } from '@/lib/profileProductTab';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
 export default function EditProductPage() {
@@ -27,7 +28,7 @@ export default function EditProductPage() {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('API Error:', errorData);
-          setError(errorData.error || 'Product niet gevonden');
+          setError(errorData.error || t('profileV2.forms.productNotFound'));
           router.push('/verkoper');
           return;
         }
@@ -87,7 +88,7 @@ export default function EditProductPage() {
   };
   
   const handleCancel = () => {
-    router.push('/verkoper');
+    router.push(getProfileHrefAfterProductEdit(product?.category));
   };
 
   const handleDelete = async () => {
@@ -106,8 +107,8 @@ export default function EditProductPage() {
         throw new Error(errorData.error || 'Failed to delete product');
       }
 
-      // Redirect to verkoper dashboard after successful deletion
-      router.push('/verkoper');
+      // Terug naar Profile V2 Aanbod-tab na verwijderen
+      router.push(getProfileHrefAfterProductEdit(product?.category));
     } catch (error) {
       console.error('Error deleting product:', error);
       setError(error instanceof Error ? error.message : 'Failed to delete product');

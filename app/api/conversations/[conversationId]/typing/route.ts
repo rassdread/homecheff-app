@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import { pusherServer } from '@/lib/pusher';
 
 export const dynamic = 'force-dynamic';
@@ -8,16 +9,36 @@ export async function POST(
   { params }: { params: { conversationId: string } }
 ) {
   try {
-    const { conversationId } = params;
-    const { userId, isTyping } = await req.json();
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Trigger Pusher event for typing indicator
+    const { prisma } = await import('@/lib/prisma');
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { conversationId } = params;
+    const body = await req.json();
+    const isTyping =
+      typeof body.isTyping === 'boolean'
+        ? body.isTyping
+        : typeof body.typing === 'boolean'
+          ? body.typing
+          : false;
+
     await pusherServer.trigger(
       `conversation-${conversationId}`,
       'user-typing',
       {
-        userId,
-        isTyping
+        userId: user.id,
+        isTyping,
+        typing: isTyping,
       }
     );
 

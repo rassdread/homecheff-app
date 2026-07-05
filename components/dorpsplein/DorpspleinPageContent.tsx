@@ -27,6 +27,11 @@ import ClickableName from "@/components/ui/ClickableName";
 import UserStatsTile from "@/components/ui/UserStatsTile";
 import UserBadgeChips from "@/components/gamification/UserBadgeChips";
 import { safeDistanceKm } from "@/lib/geocoding";
+import { formatItemPlaceDistanceLine } from "@/lib/geo/item-location";
+import {
+  matchesFeedClientPriceRange,
+  sortDorpspleinProducts,
+} from "@/lib/feed/feed-client-sort";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
 import { getDisplayName } from "@/lib/displayName";
@@ -642,6 +647,8 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       const productsStartTime = performance.now();
 
       const userId = (session?.user as any)?.id || session?.user?.email; // Get user ID to fetch favorite status
+      // Dorpsplein uses /api/products (not /api/feed). radiusMode strict/local-first
+      // is GeoFeed-only; client radius filter here defaults to worldwide (radius=0).
       const productsUrl = `/api/products?take=50${userId ? `&userId=${userId}` : ''}&mobile=${isMobile}&debug=true`;
       
       console.log('🔍 [DORPSPLEIN] Fetching products from:', productsUrl);
@@ -835,7 +842,13 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
           return false;
         }
       }
-      if (it.priceCents < priceRange.min * 100 || it.priceCents > priceRange.max * 100) {
+      if (
+        !matchesFeedClientPriceRange(
+          it,
+          String(priceRange.min),
+          String(priceRange.max)
+        )
+      ) {
         return false;
       }
       if (deliveryMode !== "all") {
@@ -903,48 +916,13 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       return true;
     });
     
-    // Sorteer op basis van geselecteerde optie
-    return list.sort((a, b) => {
-      switch (sortBy) {
-        case "price-asc":
-        case "price-low":
-          return a.priceCents - b.priceCents;
-        case "price-desc":
-        case "price-high":
-          return b.priceCents - a.priceCents;
-        case "distance": 
-          // If no user location is set, show items without distance first, then by newest
-          if (!userLocation) {
-            if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) {
-              if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) {
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // newest first
-              }
-              return -1;
-            }
-            if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return 1;
-          }
-          // Normal distance sorting when location is available
-          if (a.location?.distanceKm === null || a.location?.distanceKm === undefined) return 1;
-          if (b.location?.distanceKm === null || b.location?.distanceKm === undefined) return -1;
-          return a.location.distanceKm - b.location.distanceKm;
-        case "popular":
-          // Sort by popularity: combine viewCount, favoriteCount, and recency
-          const aPopularity = (a.viewCount || 0) + (a.favoriteCount || 0) * 2;
-          const bPopularity = (b.viewCount || 0) + (b.favoriteCount || 0) * 2;
-          if (aPopularity !== bPopularity) {
-            return bPopularity - aPopularity;
-          }
-          // If same popularity, sort by newest
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "oldest":
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case "newest":
-        default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-    });
-
-    return list;
+    return sortDorpspleinProducts(
+      list.map((it) => ({
+        ...it,
+        distanceKm: it.location?.distanceKm ?? undefined,
+      })),
+      sortBy
+    );
   }, [items, q, category, subcategory, selectedRegion, priceRange, sortBy, location, radius, userLocation, searchType, startLocationCoords, locationMode, postcodeLocation, userCountry]);
 
   const filteredUsers = useMemo(() => {
@@ -1649,16 +1627,16 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             </span>
                           ) : null}
                         </div>
-                        {item.location?.distanceKm != null && item.location.distanceKm > 0 && (
-                          <p className="text-sm font-medium text-emerald-700">{item.location.distanceKm.toFixed(1)} km</p>
-                        )}
                       </div>
-                      {item.location?.place && (
-                        <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          {item.location.place}
-                        </p>
-                      )}
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+                        {formatItemPlaceDistanceLine({
+                          place: item.location?.place,
+                          distanceKm: item.location?.distanceKm,
+                          unknownPlaceLabel: t('feed.unknownPlace'),
+                          unknownDistanceLabel: t('feed.unknownDistance'),
+                        })}
+                      </p>
                       
                       <p className="text-neutral-600 text-sm line-clamp-2 mb-4">{item.description}</p>
                       
@@ -1708,16 +1686,17 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             <span>{item.favoriteCount}</span>
                           </div>
                         )}
-                        {item.location?.place && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            <span>{item.location.place}</span>
-                          </div>
-                        )}
-                        {item.location?.distanceKm != null && item.location.distanceKm > 0 && (
-                          <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full" data-tour={index === 0 ? "location-info" : undefined}>
-                            <span>📍</span>
-                            <span>{item.location.distanceKm.toFixed(1)} km</span>
+                        {item.location && (
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span>
+                              {formatItemPlaceDistanceLine({
+                                place: item.location.place,
+                                distanceKm: item.location.distanceKm,
+                                unknownPlaceLabel: t('feed.unknownPlace'),
+                                unknownDistanceLabel: t('feed.unknownDistance'),
+                              })}
+                            </span>
                           </div>
                         )}
                         {item.delivery && (

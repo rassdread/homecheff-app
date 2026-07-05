@@ -204,7 +204,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
       </head>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-hidden max-w-[100vw] w-full">
+      <body className="min-h-screen bg-gray-50 font-sans antialiased overflow-x-clip max-w-[100vw] w-full">
         <Providers>
           <SkipLink />
           <PerformanceMonitor />

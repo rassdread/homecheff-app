@@ -18,6 +18,8 @@ import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser, isSamsungBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { Pause, PlayCircle, Volume2, VolumeX } from 'lucide-react';
+import { inspirationMediaClass } from '@/lib/inspiratie/media-fit';
+import { useSmartMediaFit } from '@/hooks/useSmartMediaFit';
 
 export type InspirationItemMedia = {
   id: string;
@@ -29,18 +31,49 @@ export type InspirationItemMedia = {
 type Props = {
   item: InspirationItemMedia;
   priority?: boolean;
-  objectFit?: 'cover' | 'contain';
+  objectFit?: 'cover' | 'contain' | 'smart';
   alt?: string;
   /** Desktop: bij hover op de kaart wordt video afgespeeld + unmute */
   isCardHovered?: boolean;
 };
+
+function InspirationCardPhoto({
+  url,
+  alt,
+  priority,
+  objectFit,
+}: {
+  url: string;
+  alt: string;
+  priority: boolean;
+  objectFit: 'cover' | 'contain' | 'smart';
+}) {
+  const smartFit = useSmartMediaFit(url, {
+    mode: 'card',
+    forceFit: objectFit === 'smart' ? undefined : objectFit,
+  });
+  const fitClass = inspirationMediaClass(objectFit === 'smart' ? smartFit : objectFit);
+
+  return (
+    <SafeImage
+      src={url}
+      alt={alt}
+      fill
+      className={fitClass}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      priority={priority}
+      quality={priority ? 70 : 60}
+      loading={priority ? undefined : 'lazy'}
+    />
+  );
+}
 
 const MUTE_DEBOUNCE_MS = 300;
 
 const PLAY_THRESHOLD = 0.5;
 const PAUSE_THRESHOLD = 0.2;
 
-export default function InspirationCardMedia({ item, priority = false, objectFit = 'cover', alt = 'Inspiration', isCardHovered }: Props) {
+export default function InspirationCardMedia({ item, priority = false, objectFit = 'smart', alt = 'Inspiration', isCardHovered }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastMuteTapRef = useRef(0);
@@ -267,19 +300,23 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
     };
   }, []);
 
+  const posterFit = useSmartMediaFit(posterUrl ?? null, {
+    mode: 'card',
+    forceFit: objectFit === 'smart' ? undefined : objectFit,
+  });
+  const posterFitClass = inspirationMediaClass(
+    objectFit === 'smart' ? posterFit : objectFit,
+  );
+
   // Alleen foto's, geen video
   if (!primaryVideo?.url && firstPhoto?.url) {
     return (
-      <div className="absolute inset-0 w-full h-full">
-        <SafeImage
-          src={firstPhoto.url}
+      <div className="absolute inset-0 w-full h-full bg-neutral-50">
+        <InspirationCardPhoto
+          url={firstPhoto.url}
           alt={alt}
-          fill
-          className={objectFit === 'contain' ? 'object-contain' : 'object-cover'}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={priority}
-          quality={priority ? 70 : 60}
-          loading={priority ? undefined : 'lazy'}
+          objectFit={objectFit}
         />
       </div>
     );
@@ -296,11 +333,11 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
 
   if (videoError && posterUrl) {
     return (
-      <div className="absolute inset-0 w-full h-full bg-gray-200" data-inspiration-card-media>
+      <div className="absolute inset-0 w-full h-full bg-neutral-50" data-inspiration-card-media>
         <img
           src={posterUrl}
           alt={alt}
-          className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
+          className={`h-full w-full ${posterFitClass}`}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 p-3">
           <span className="text-white text-sm font-medium rounded bg-black/60 px-3 py-2 text-center">
@@ -328,7 +365,7 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
         src={videoSrc}
         fallbackSrc={fallbackSrc}
         poster={posterUrl || undefined}
-        className={`w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} bg-black`}
+        className={`w-full h-full ${objectFit === 'smart' ? posterFitClass : inspirationMediaClass(objectFit === 'contain' ? 'contain' : 'cover')} bg-black`}
         playsInline
         preload="auto"
         loop

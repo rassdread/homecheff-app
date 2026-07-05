@@ -234,12 +234,12 @@ export default function GardenPhotoUpload({
             {photos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
+                className="relative group aspect-square bg-neutral-50 rounded-lg overflow-hidden border border-gray-200"
               >
                 <img
                   src={photo.url}
                   alt={`Kweek foto ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  className="w-full h-full hc-inspiration-media-contain"
                   onError={(e) => {
                     console.error('Garden photo failed to load:', photo.url);
                     e.currentTarget.style.backgroundColor = '#f3f4f6';

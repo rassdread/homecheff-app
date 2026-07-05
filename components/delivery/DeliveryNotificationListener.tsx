@@ -167,7 +167,7 @@ export default function DeliveryNotificationListener() {
   if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-[60] space-y-3 max-w-sm">
+    <div className="hc-toast-dock space-y-3">
       {notifications.map((notification) => (
         <div
           key={notification.id}

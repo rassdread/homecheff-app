@@ -13,7 +13,7 @@ interface Toast {
 
 export default function ToastNotification() {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const { notifications, unreadCount } = useNotifications();
+  const { notifications } = useNotifications();
 
   // Show toast for new notifications
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function ToastNotification() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="hc-toast-dock">
       {toasts.map((toast) => (
         <div
           key={toast.id}

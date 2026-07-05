@@ -12,6 +12,9 @@ import {
   pathFromPushNotificationData,
   storePendingNativeRoute,
 } from "@/lib/native/pushDeepLink";
+import { nativePushDevLog } from "@/lib/native/push";
+import { refreshCommsAfterNativePush } from "@/lib/native/pushCommsRefresh";
+import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
 import { touchNativePrefsUser } from "@/lib/native/appPreferences";
 
 const WARM_ROUTES = [
@@ -157,29 +160,66 @@ function NativePushDeepLinkListener() {
         const { PushNotifications } = await import(
           "@capacitor/push-notifications"
         );
-        const handle = await PushNotifications.addListener(
-          "pushNotificationActionPerformed",
-          (event) => {
-            const data = event.notification?.data as
-              | Record<string, unknown>
-              | undefined;
-            const path = pathFromPushNotificationData(data);
-            if (!path) return;
+
+        const navigateFromPushData = (
+          data: Record<string, unknown> | undefined,
+          source: "opened" | "received",
+        ) => {
+          const path = pathFromPushNotificationData(data);
+          if (!path) {
+            if (source === "opened") {
+              nativePushDevLog("push tap: no resolvable path", data?.type);
+            }
+            return;
+          }
+          reportAppDiagnostic("push_deep_link_resolved", {
+            source,
+            hasConversation: Boolean(data?.conversationId),
+          });
+          nativePushDevLog("push deep link", source, path);
+          if (source === "opened") {
             storePendingNativeRoute(path);
+            refreshCommsAfterNativePush("opened");
             try {
               router.replace(path);
             } catch {
               window.location.assign(path);
             }
+          } else {
+            refreshCommsAfterNativePush("received");
           }
+        };
+
+        const openedHandle = await PushNotifications.addListener(
+          "pushNotificationActionPerformed",
+          (event) => {
+            const data = event.notification?.data as
+              | Record<string, unknown>
+              | undefined;
+            navigateFromPushData(data, "opened");
+          },
         );
+
+        const receivedHandle = await PushNotifications.addListener(
+          "pushNotificationReceived",
+          (notification) => {
+            nativePushDevLog("push received foreground", notification?.id);
+            const data = notification?.data as
+              | Record<string, unknown>
+              | undefined;
+            navigateFromPushData(data, "received");
+          },
+        );
+
         if (cancelled) {
-          await handle.remove();
+          await openedHandle.remove();
+          await receivedHandle.remove();
           return;
         }
         cleanupRef.current = async () => {
           try {
-            await handle.remove();
+            await openedHandle.remove();
+            await receivedHandle.remove();
           } catch {
             /* ignore */
           }

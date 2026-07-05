@@ -8,6 +8,7 @@ import {
   awardDishInspirationContentHcp,
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
+import { syncLinkedProductFromDishPatch } from "@/lib/items/sync-linked-product-dish";
 
 export async function GET(
   req: NextRequest,
@@ -262,6 +263,41 @@ export async function PATCH(
       gardenMetrics.imageLikeCount,
       gardenMetrics.hasVideo,
     ).catch((e) => console.warn("[gamification] garden inspiration PATCH", e));
+
+    const completeProject = await prisma.dish.findFirst({
+      where: { id },
+      include: {
+        photos: { orderBy: { idx: 'asc' } },
+        videos: true,
+      },
+    });
+
+    if (completeProject) {
+      await syncLinkedProductFromDishPatch(id, {
+        title: completeProject.title,
+        description: completeProject.description,
+        tags: completeProject.tags,
+        subcategory: completeProject.subcategory ?? completeProject.plantType,
+        priceCents: completeProject.priceCents,
+        stock: completeProject.stock,
+        maxStock: completeProject.maxStock,
+        ...(photos !== undefined
+          ? { mainPhotoUrls: completeProject.photos.map((p) => p.url) }
+          : {}),
+        ...(video !== undefined
+          ? {
+              video:
+                completeProject.videos.length > 0
+                  ? {
+                      url: completeProject.videos[0].url,
+                      thumbnail: completeProject.videos[0].thumbnail,
+                      duration: completeProject.videos[0].duration,
+                    }
+                  : null,
+            }
+          : {}),
+      }).catch((e) => console.warn("[garden PATCH] linked product sync", e));
+    }
 
     return NextResponse.json({ item: updatedProject });
   } catch (error) {

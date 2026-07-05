@@ -562,6 +562,16 @@
     "reloadMessages": "Reload messages",
     "typing": "Typeing...",
     "isTyping": "Is typeing...",
+    "context": {
+      "aboutOffer": "What is this conversation about?",
+      "viewOffer": "View offer",
+      "checkout": "Checkout",
+      "aboutOrder": "Order conversation",
+      "order": "Order",
+      "viewOrder": "View order",
+      "general": "Conversation",
+      "viewProfile": "Profile"
+    },
     "presenceOnline": "Online",
     "presenceLive": "Live",
     "presenceOffline": "Offline",
@@ -1754,6 +1764,9 @@
     "addMaterial": "Add material",
     "tagsLabel": "Tags",
     "studioNotesLabel": "Notes",
+    "workGuideLabel": "Making guide",
+    "addStep": "Add step",
+    "addStepPhoto": "Add step photo",
     "validationTitleRequired": "Please enter a title.",
     "validationPhotoRequired": "Add at least one photo.",
     "cannotSaveIntro": "Cannot save:",
@@ -2005,6 +2018,7 @@
       "soilType": "Soil type",
       "growth": "Growth",
       "harvest": "Harvest",
+      "growLocation": "Growing location",
       "sowing": "Sowing",
       "plantDistance": "Plant distance",
       "days": "days",
@@ -2012,6 +2026,46 @@
       "maker": "Maker",
       "stepPhoto": "Step {stepNumber} photo",
       "phasePhoto": "Phase {phaseNumber}"
+    },
+    "instructions": {
+      "recipe": "Recipe",
+      "growingGuide": "Growing guide",
+      "designWork": "Making guide",
+      "sectionTitle": "Instructions",
+      "ingredients": "Ingredients",
+      "materials": "Materials",
+      "supplies": "Supplies",
+      "steps": "Step-by-step",
+      "growthPhases": "Growth phases",
+      "makingSteps": "Making steps",
+      "carePlan": "Care plan",
+      "careSection": "Care",
+      "workDescription": "Work description",
+      "prepTime": "Prep time",
+      "servings": "Servings",
+      "category": "Category",
+      "materialItems": "items",
+      "chefTip": "Chef's tip",
+      "atGlance": "At a glance",
+      "openPrintView": "Open print view",
+      "printOrSavePdf": "Print or save as PDF",
+      "printRecipe": "Print recipe",
+      "printGrowing": "Print growing guide",
+      "printWork": "Print making guide",
+      "downloadRecipe": "Download recipe (PDF)",
+      "downloadInstruction": "Download instructions (PDF)",
+      "downloadViaPrint": "Save via print view",
+      "printDownloadHint": "Open the print view and choose “Save as PDF” in your browser.",
+      "printNow": "Print now",
+      "extraPhotosCheff": "Extra photos",
+      "extraPhotosGrown": "Extra growth photos",
+      "extraPhotosDesigner": "Extra images",
+      "viewAllFromMaker": "View all from this maker",
+      "imageCounter": "Image {current} of {total}",
+      "hours": "hr",
+      "madeVia": "Made with ❤️ by {maker} via HomeCheff",
+      "printDisclaimer": "This document is for personal use. Recipes and instructions remain the property of the creator.",
+      "untitled": "Untitled item"
     },
     "promoModal": {
       "title": "Get the most out of HomeCheff",
@@ -2041,11 +2095,13 @@
     "orders": "My Orders",
     "privacy": "Privacy Settings",
     "adminDashboard": "Admin Dashboard",
+    "admin": "Admin",
     "sellerDashboard": "Seller Dashboard",
     "sellerOrders": "Sales Orders",
     "deliveryDashboard": "Delivery Dashboard",
     "affiliateDashboard": "Affiliate Dashboard",
     "dashboard": "Dashboard",
+    "combinedEarnings": "My earnings",
     "multiRole": "Multi-role user",
     "logout": "Logout",
     "cart": "Shopping Cart",
@@ -3048,7 +3104,16 @@
     "askMaker": "Ask the maker a question",
     "contactNotConfigured": "This maker has not set up contact options yet.",
     "viewLinkedStory": "View the story behind this product",
-    "aboutProduct": "About this product"
+    "aboutProduct": "About this product",
+    "moreBehindOffer": "More behind this listing",
+    "viewFullRecipe": "View full recipe",
+    "viewFullRecipeDesc": "Read the ingredients, steps and tips from the maker.",
+    "viewFullGrowingGuide": "View full growing guide",
+    "viewFullGrowingGuideDesc": "See growth phases, care tips and guidance.",
+    "viewFullMakingGuide": "View full making guide",
+    "viewFullMakingGuideDesc": "See materials, steps and the making process.",
+    "editFullInspiration": "Edit full inspiration",
+    "productFormScopeHint": "This form is for sale info. Edit the recipe, growing or making guide via inspiration."
   },
   "dish": {
     "noItemsShared": "No items shared yet",
@@ -4357,7 +4422,46 @@
     "takePhotoSubtitle": "Opens the camera in photo mode",
     "takeVideoTitle": "Record video",
     "takeVideoSubtitle": "Opens the camera in video mode",
-    "continueWithoutMedia": "Continue without a photo"
+    "continueWithoutMedia": "Continue without a photo",
+    "loading": "Loading…",
+    "redirectingToLogin": "Redirecting to sign in…",
+    "noSellerRoles": "You don't have any seller roles yet.",
+    "setupHomeCheff": "Set up My HomeCheff",
+    "sellRoleTitle": "Choose your role",
+    "sellRoleSubtitle": "What type of product is this?",
+    "chefRoleTitle": "Chef",
+    "chefRoleHint": "Dishes & ingredients",
+    "gardenRoleTitle": "Garden",
+    "gardenRoleHint": "Vegetables & plants",
+    "designerRoleTitle": "Designer",
+    "designerRoleHint": "Handmade items",
+    "inspiratieTypeTitle": "Choose inspiration type",
+    "inspiratieTypeSubtitle": "What inspiration do you want to share?",
+    "recipesTitle": "Recipes",
+    "recipesHint": "Share your recipes and cooking tips",
+    "growingTitle": "Growing",
+    "growingHint": "Share your grow projects and garden updates",
+    "designsTitle": "Designs",
+    "designsHint": "Share your creations and making process",
+    "otherStart": "Different start",
+    "otherCategory": "Different category",
+    "sellFormTitle": "Start selling",
+    "sellFormSubtitleSkip": "Earn money with what you already do — right in your neighborhood.",
+    "sellFormSubtitle": "Fill in the form to list your offering on the village square.",
+    "otherInspiratieCategory": "Different inspiration category",
+    "inspiratieFormTitle": "Share inspiration",
+    "inspiratieFormSubtitle": "Share a recipe, idea or example and inspire others.",
+    "videoTooLargeStorage": "Video is too large to store. Try a shorter video.",
+    "photoTooLargeStorage": "Photo is too large. Choose a smaller image.",
+    "mediaSaveFailed": "Could not save media. Please try again.",
+    "mediaTypeNotAllowed": "Only photos and videos are allowed"
+  },
+  "publicItemDetail": {
+    "ownerActions": "Your actions",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "publish": "Publish",
+    "unpublish": "Make private",
+    "privateDraftHint": "This item is private — only you can see it until you publish."
   },
   "werkenBij": {
     "title": "Work at HomeCheff",
@@ -4879,6 +4983,48 @@
     "openMediaFullscreen": "Open media fullscreen",
     "closeMediaViewer": "Close"
   },
+  "privacySettingsPage": {
+    "backToHome": "Back to Home",
+    "title": "Privacy settings",
+    "subtitle": "Control who can see your profile and message you",
+    "loadError": "Could not load privacy settings",
+    "saveSuccess": "Privacy settings saved!",
+    "saveError": "Could not save settings",
+    "messagePrivacy": {
+      "heading": "Message privacy",
+      "description": "Who can send you messages?",
+      "everyone": {
+        "label": "Everyone",
+        "desc": "Any user can send you messages"
+      },
+      "fansOnly": {
+        "label": "Followers only",
+        "desc": "Only people who follow you can send you messages"
+      },
+      "nobody": {
+        "label": "Nobody",
+        "desc": "Only admins and delivery messages are allowed"
+      }
+    },
+    "fansSection": {
+      "heading": "Fans",
+      "showFansList": {
+        "label": "Show fan list",
+        "desc": "Show who you follow and who follows you on your profile. Fan counts may still appear elsewhere."
+      }
+    },
+    "profileVisibility": {
+      "heading": "Profile visibility",
+      "showProfileToEveryone": {
+        "label": "Public profile page",
+        "desc": "Your profile page (/user/username) is reachable for others. When off, that page is hidden; public items may still appear on the village square."
+      },
+      "showOnlineStatus": {
+        "label": "Online status in chat",
+        "desc": "Show in conversations whether you are online. Does not affect your profile or feed."
+      }
+    }
+  },
   "profileSettings": {
     "title": "Profile Settings",
     "subtitle": "Manage your personal information",
@@ -4926,8 +5072,8 @@
     "stripeConnect": "Payouts via Stripe",
     "stripeConnectText": "Payouts are securely handled via Stripe. Connect with Stripe to add your bank details.",
     "connectWithStripe": "Connect with Stripe",
-    "encryption": "End-to-End Encrypted Messages",
-    "encryptionDescription": "Enable automatic message encryption for maximum privacy. No one, not even HomeCheff admins, can read your messages.",
+    "encryption": "Encrypted chat messages",
+    "encryptionDescription": "Encrypt your in-app chat messages. Applies to chat only — not your profile, inspiration, or village square items.",
     "encryptionActive": "🔐 Encryption Active",
     "encryptionInactive": "🔓 No Encryption",
     "encryptionEnabledText": "All your messages are automatically encrypted",
@@ -4946,10 +5092,6 @@
     "usernameDisplayDescription": "Show only your username on your profile (e.g. \"@johndoe\")",
     "noNameDisplay": "No name",
     "noNameDisplayDescription": "Show no name on your profile, only username",
-    "privacySettings": "Privacy Settings",
-    "privacySettingsDescription": "Determine which information is visible on your public profile",
-    "showFansList": "Show fan list",
-    "showFansListDescription": "Show your fan list and who you follow on your public profile",
     "encryptionModalTitle": "Activate Encrypted Messages",
     "encryptionModalSubtitle": "Read and accept the guidelines",
     "importantPrivacyResponsibility": "Important: Privacy & Responsibility",
@@ -5457,7 +5599,7 @@
     "payoutsLink": "Payouts & revenue",
     "deliveryIntro": "Manage availability, radius, GPS and scheduling for delivery.",
     "openDeliverySettings": "Open delivery settings",
-    "affiliateIntro": "Manage referral link, commissions and payouts in the affiliate dashboard.",
+    "affiliateIntro": "Manage partner link, sign-ups, commissions and payouts in the partner dashboard.",
     "validUntil": "Valid until",
     "noSubscription": "No active subscription. Premium adds visibility and contact options.",
     "viewPlans": "View plans"
@@ -5481,6 +5623,354 @@
     "interestCreative": "Creative",
     "interestHelp": "Help & chores",
     "interestDelivery": "Delivery"
+  },
+  "profileV2": {
+    "tabs": {
+      "navLabel": "Profile navigation",
+      "overview": "Overview",
+      "aanbod": "Offerings",
+      "inspiratie": "Inspiration",
+      "community": "Community",
+      "vertrouwen": "Trust"
+    },
+    "header": {
+      "makerOnMarketplace": "Maker on the marketplace",
+      "hcp": "{count} HCP",
+      "fans": "{count} fans",
+      "profileViews": "{count} profile views",
+      "memberSince": "Member since {date}"
+    },
+    "actions": {
+      "editProfile": "Edit profile",
+      "settings": "Settings",
+      "changePhoto": "Change photo",
+      "message": "Message",
+      "viewAanbod": "View offerings"
+    },
+    "forms": {
+      "productNotFound": "Product not found",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock",
+      "editAction": "Edit",
+      "deleteAction": "Delete",
+      "viewOnMarketplace": "Marketplace",
+      "chef": {
+        "add": "Add meal",
+        "edit": "Edit meal",
+        "publish": "Publish meal"
+      },
+      "garden": {
+        "add": "Add garden product",
+        "edit": "Edit garden product",
+        "publish": "Publish garden product"
+      },
+      "designer": {
+        "add": "Add creation",
+        "edit": "Edit creation",
+        "publish": "Publish creation"
+      },
+      "inspiratie": {
+        "share": "Share inspiration",
+        "edit": "Edit inspiration",
+        "addToOffer": "Add to offerings",
+        "putForSale": "Put up for sale"
+      },
+      "aanbod": {
+        "add": "Add new offering",
+        "edit": "Edit offering",
+        "publish": "Publish offering"
+      },
+      "future": {
+        "swap": {
+          "add": "Post swap request",
+          "swapValue": "Swap value",
+          "offer": "I offer",
+          "seek": "I'm looking for"
+        },
+        "service": {
+          "add": "Offer a service",
+          "rate": "Rate",
+          "availability": "Availability",
+          "workArea": "Service area"
+        },
+        "request": {
+          "add": "Post help request",
+          "needHelp": "What do you need help with?",
+          "reward": "Reward or swap possible"
+        },
+        "task": {
+          "add": "Post a task",
+          "budget": "Budget",
+          "whenNeeded": "When needed?",
+          "location": "Location"
+        }
+      }
+    },
+    "overview": {
+      "aboutTitle": "About me",
+      "aboutSubtitle": "The story behind the maker",
+      "aboutEmpty": "Add an introduction in your profile settings.",
+      "visitorIntro": "Discover who this maker is, what they share, and why the community trusts them.",
+      "socialProof": "At a glance",
+      "itemsLabel": "Offerings",
+      "exploreTitle": "Explore the profile",
+      "exploreSubtitle": "Discover what this maker shares on HomeCheff",
+      "ownerTools": "Manage & settings",
+      "previewAanbod": "My offerings",
+      "previewAanbodDesc": "Everything you share on the marketplace",
+      "previewInspiratie": "Inspiration",
+      "previewInspiratieDesc": "Creations, projects and stories",
+      "previewCommunity": "Community",
+      "previewCommunityDesc": "Fans, reviews and reputation",
+      "previewTrust": "Trust",
+      "previewTrustDesc": "Workspace and verification",
+      "viewSection": "View section"
+    },
+    "roles": {
+      "title": "My roles",
+      "titlePublic": "Roles",
+      "subtitle": "Where you're active on HomeCheff",
+      "subtitlePublic": "What this maker shares and cares about",
+      "buyerSection": "Buyer roles",
+      "sellerSection": "Seller roles",
+      "interestsSection": "Interests",
+      "active": "Active",
+      "verified": "Verified",
+      "emailVerified": "Email verified",
+      "productsCount": "{count} products",
+      "productCount": "{count} product",
+      "purchasesCount": "{count} purchases",
+      "purchaseCount": "{count} purchase",
+      "buyer": {
+        "explorer": "Explorer",
+        "collector": "Collector",
+        "enthusiast": "Enthusiast",
+        "adventurer": "Adventurer",
+        "connoisseur": "Connoisseur",
+        "connoisseurArt": "Art connoisseur",
+        "enjoyer": "Enjoyer",
+        "foodLover": "Food lover",
+        "unknown": "Enthusiast"
+      },
+      "seller": {
+        "chef": "Chef",
+        "garden": "Gardener",
+        "designer": "Designer"
+      },
+      "interests": {
+        "chef": "Cooking",
+        "garden": "Gardening",
+        "designer": "Creative",
+        "enthusiast": "Enthusiast",
+        "delivery": "Delivery",
+        "help": "Help & chores"
+      }
+    },
+    "aanbod": {
+      "title": "Offerings",
+      "subtitle": "All your kitchen, garden and studio items in one place",
+      "visitorHint": "Browse what this maker shares on the marketplace — order or get in touch from each item.",
+      "addCta": "Add new offering",
+      "noMakerTitle": "No maker profile yet",
+      "noMakerDesc": "Add Kitchen, Garden or Studio first to list offerings on the marketplace.",
+      "setupProfile": "Set up profile",
+      "manageTitle": "Manage products",
+      "manageSubtitle": "Adjust prices, stock and status",
+      "productCount": "{count} products",
+      "addLegacy": "List on marketplace",
+      "emptyLegacy": "Add your first product to start selling!",
+      "loadError": "Failed to load products",
+      "deleteSuccess": "Product deleted successfully!",
+      "filters": {
+        "all": "All",
+        "chef": "Chef",
+        "garden": "Garden",
+        "designer": "Designer",
+        "services": "Services",
+        "trade": "Trade",
+        "help": "Help requests",
+        "tasks": "Tasks"
+      }
+    },
+    "inspiratie": {
+      "title": "Inspiration",
+      "subtitle": "Photos, projects and updates",
+      "visitorHint": "Browse creations, recipes and projects from this maker.",
+      "addCta": "Add inspiration",
+      "noMakerTitle": "No maker profile yet",
+      "noMakerDesc": "Add Kitchen, Garden or Studio first to post inspiration.",
+      "setupProfile": "Set up profile",
+      "filters": {
+        "all": "All",
+        "chef": "Kitchen",
+        "garden": "Garden",
+        "designer": "Studio"
+      },
+      "sections": {
+        "chef": "Kitchen",
+        "garden": "Garden",
+        "designer": "Studio"
+      }
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Fans, reviews and reputation on the marketplace",
+      "fansLabel": "Fans",
+      "reviewsLabel": "Reviews",
+      "reviewsTitle": "Reviews",
+      "fansTitle": "Fans & followers",
+      "deliveryStats": "{count} deliveries completed",
+      "viewTrust": "View trust",
+      "hcpLink": "View your HCP progress"
+    },
+    "sidepanel": {
+      "quickActions": {
+        "title": "Quick actions",
+        "addAanbod": "Add new offering",
+        "addAanbodDesc": "Share something on the marketplace",
+        "addInspiratie": "Add inspiration",
+        "addInspiratieDesc": "Show what you make",
+        "trust": "Build trust",
+        "trustDesc": "Workspace photos and verification",
+        "editProfile": "Edit profile",
+        "editProfileDesc": "Bio, photo and settings"
+      },
+      "completeness": {
+        "title": "Strengthen your profile",
+        "hint": "Complete your profile for more trust",
+        "completeHint": "Your profile is complete — nice work!",
+        "profilePhoto": "Profile photo",
+        "bio": "Bio / story",
+        "roles": "Roles or interests",
+        "workspacePhotos": "Workspace photos",
+        "stripe": "Payment setup",
+        "aanbod": "At least one offering",
+        "inspiratie": "At least one inspiration item"
+      },
+      "nextStep": {
+        "sectionTitle": "Your next step",
+        "setupRoles": {
+          "title": "Choose your maker roles",
+          "description": "Add Kitchen, Garden or Studio to get started.",
+          "cta": "Set up profile →"
+        },
+        "firstAanbod": {
+          "title": "List your first offering",
+          "description": "Show the neighbourhood what you share on the marketplace.",
+          "cta": "Add offering →"
+        },
+        "firstInspiratie": {
+          "title": "Share your first inspiration",
+          "description": "Photos and stories help people get to know you.",
+          "cta": "Add inspiration →"
+        },
+        "workspacePhotos": {
+          "title": "Add workspace photos",
+          "description": "Show where you create — it builds trust.",
+          "cta": "Go to Trust →"
+        },
+        "stripe": {
+          "title": "Set up payments",
+          "description": "Connect Stripe to receive payments.",
+          "cta": "Set up Stripe →"
+        },
+        "viewPublic": {
+          "title": "View your public profile",
+          "description": "See how others see you on HomeCheff.",
+          "cta": "View public profile →"
+        }
+      },
+      "trust": {
+        "title": "Build trust",
+        "kitchen": "Add kitchen photo",
+        "garden": "Add garden photo",
+        "studio": "Add studio photo",
+        "vehicle": "Add vehicle photo",
+        "add": "Not added yet",
+        "done": "Added"
+      },
+      "community": {
+        "title": "Community",
+        "fans": "View fans",
+        "fansDesc": "{count} fans follow you",
+        "reviews": "View reviews",
+        "reviewsDesc": "See what others say",
+        "publicProfile": "Public profile",
+        "publicProfileDesc": "See how others see you",
+        "setUsername": "Choose a username",
+        "setUsernameDesc": "Required for your public profile URL"
+      },
+      "hcpLabel": "HomeCheff Points",
+      "assistantLabel": "Maker assistant"
+    },
+    "empty": {
+      "aboutTitle": "No story yet",
+      "aboutOwner": "Write a short intro about who you are and what you make — people follow makers, not dashboards.",
+      "aboutPublic": "This maker hasn't shared an introduction yet.",
+      "aanbodOwner": "Show the neighbourhood what you make, sell or offer.",
+      "aanbodPublic": "This maker hasn't listed anything on the marketplace yet.",
+      "inspiratieOwner": "Share photos, ideas and projects so people can get to know you.",
+      "inspiratiePublic": "No inspiration yet — check back later for creations and projects.",
+      "communityPublic": "No reviews or fans yet — be the first to discover this maker.",
+      "trustOwner": "Add photos of your workspace so others can trust you.",
+      "trustPublic": "This maker hasn't shared trust information yet."
+    },
+    "vertrouwen": {
+      "title": "Trust",
+      "subtitle": "Where and how you work — for peace of mind",
+      "visitorIntro": "See where and how this maker works — like an Airbnb host profile.",
+      "emptyOwner": "Add photos of your kitchen, garden or studio so others can trust you.",
+      "emptyPublic": "This maker hasn't shared workspace or verification yet — feel free to send a message if you have questions.",
+      "empty": "No trust information to show yet.",
+      "roles": {
+        "chef": "Kitchen",
+        "garden": "Garden",
+        "designer": "Studio"
+      },
+      "sections": {
+        "workspaceGroup": {
+          "title": "Behind the scenes",
+          "description": "Share your workspace — so others know where and how you work"
+        },
+        "kitchen": {
+          "title": "Kitchen"
+        },
+        "garden": {
+          "title": "Garden"
+        },
+        "studio": {
+          "title": "Studio"
+        },
+        "delivery": {
+          "title": "Delivery & availability",
+          "description": "How and when you're available as an ambassador",
+          "defaultBio": "Reliable delivery ambassador on the marketplace.",
+          "transport": "Transport",
+          "availability": "Availability",
+          "days": "Days",
+          "times": "Times",
+          "maxDistance": "Up to {km} km",
+          "deliveries": "{count} deliveries",
+          "verified": "Verified"
+        },
+        "vehicle": {
+          "title": "Vehicle",
+          "description": "Photos of your vehicle for trust and verification",
+          "count": "{current}/{max} photos",
+          "addPhotos": "Add photos",
+          "uploading": "Uploading…",
+          "uploadFailed": "{count} photo(s) could not be uploaded",
+          "deletePhoto": "Delete photo",
+          "photoAlt": "Vehicle photo",
+          "allPhotos": "All vehicle photos ({count})",
+          "emptyOwner": "No vehicle photos yet — add at least 2 for verification.",
+          "emptyPublic": "No vehicle photos shared yet.",
+          "verificationHint": "Upload at least 2 vehicle photos to complete verification."
+        }
+      }
+    }
   },
   "profilePage": {
     "tabs": {
@@ -5743,8 +6233,8 @@
     "mustAcceptPrivacy": "You must accept the privacy policy to continue.",
     "mustAcceptTerms": "You must accept the terms and conditions to continue.",
     "mustAcceptAffiliate": "You must accept the affiliate program agreement to continue.",
-    "subAffiliateNotAllowed": "Made affiliates cannot become main affiliates",
-    "subAffiliateNotAllowedDesc": "You are already linked as a made affiliate. Use your affiliate dashboard for links, performance, and payouts.",
+    "subAffiliateNotAllowed": "Network partners cannot become main partners",
+    "subAffiliateNotAllowedDesc": "You are already linked as a partner in a network. Use your partner dashboard for links, performance, and payouts.",
     "acceptPrivacy": "I accept the privacy policy",
     "acceptTerms": "I accept the terms and conditions",
     "acceptAffiliate": "I accept the affiliate program agreement",
@@ -5822,22 +6312,22 @@
       "welcomeDesc": "Your account is active. Start sharing your referral link!",
       "overview": "Overview",
       "earnings": "Earnings",
-      "referrals": "Referrals",
-      "subAffiliates": "Made affiliates",
+      "referrals": "Sign-ups via link",
+      "subAffiliates": "Direct partners",
       "pending": "Pending",
       "available": "Available",
       "paid": "Paid",
-      "totalReferrals": "Total Referrals",
+      "totalReferrals": "Sign-ups via link",
       "totalEarned": "Total earned",
       "shareYourLink": "Share your personal invitation link:",
       "shareHint": "Share via WhatsApp, email, social media or scan the QR code below",
-      "yourReferralLink": "Your Referral Link",
+      "yourReferralLink": "Your partner link",
       "copy": "Copy",
       "copyLink": "Copy link",
       "copied": "Copied!",
-      "referralLinkTitle": "Your Referral Link & QR Code",
+      "referralLinkTitle": "Your partner link & QR code",
       "qrCodeTitle": "QR Code",
-      "qrCodeDesc": "Share this QR code to refer new users. They can scan the code to go directly to HomeCheff with your referral link.",
+      "qrCodeDesc": "Share this QR code to refer new users. They can scan the code to go directly to HomeCheff with your partner link.",
       "downloadQR": "Download QR Code",
       "printQR": "Print QR Code",
       "downloading": "Downloading...",
@@ -5858,35 +6348,35 @@
       "copyEmbedCode": "Copy Embed Code",
       "copyEmbedCodeDesc": "HTML code for direct integration",
       "recentPayouts": "Recent Payouts",
-      "referralsList": "Your referrals",
-      "referralsCount": "{count} referrals",
+      "referralsList": "Sign-ups via your link",
+      "referralsCount": "{count} sign-ups via link",
       "referralBusiness": "Business",
       "referralUser": "User",
       "viewProfile": "View profile",
       "profile": "Profile",
-      "noReferrals": "No referrals yet",
-      "noReferralsHint": "Share your referral link to grow your community.",
-      "deleteSubAffiliateTitle": "Delete made affiliate",
+      "noReferrals": "No sign-ups via your link yet",
+      "noReferralsHint": "Share your partner link — each sign-up counts, but does not become a direct partner in your network.",
+      "deleteSubAffiliateTitle": "Remove partner from network",
       "delete": "Delete",
       "noPayouts": "No payouts yet",
-      "referralStats": "Referral Stats",
-      "businessReferrals": "Business Referrals",
-      "subAffiliatesTitle": "Made affiliates",
-      "subAffiliatesDesc": "Manage your made affiliates. You receive 10% commission on their subscriptions and 5-10% on their transactions.",
-      "downlineDesc": "Community partners you added",
-      "yourDownline": "Your community partners",
-      "newSubAffiliate": "+ New made affiliate",
+      "referralStats": "Sign-ups via link",
+      "businessReferrals": "Business sign-ups",
+      "subAffiliatesTitle": "Direct partners",
+      "subAffiliatesDesc": "Direct partners in your network. They can generate sign-ups themselves; you receive override commission.",
+      "downlineDesc": "Direct partners you invited as partners",
+      "yourDownline": "Direct partners",
+      "newSubAffiliate": "+ Invite partner",
       "cancel": "Cancel",
       "subEmail": "Email address",
       "subName": "Name",
       "emailPlaceholder": "email@example.com",
-      "subAffiliateCreated": "Made affiliate successfully created!",
-      "createSubAffiliate": "Create made affiliate",
+      "subAffiliateCreated": "Partner successfully added to your network!",
+      "createSubAffiliate": "Invite partner",
       "creating": "Creating...",
-      "noSubAffiliates": "You don't have any made affiliates yet. Click \"New made affiliate\" to create one.",
-      "parentCommissions": "Commissions from made affiliates",
-      "parentCommissionsDesc": "This is the total of all commissions you've received from your made affiliates:",
-      "parentCommissionsList1": "10% of all subscriptions your made affiliates bring",
+      "noSubAffiliates": "You don't have any partners in your network yet. Click \"Invite partner\" to get started.",
+      "parentCommissions": "Earnings from partner network",
+      "parentCommissionsDesc": "This is the total commission from your partner network:",
+      "parentCommissionsList1": "10% of subscriptions brought in by partners in your network",
       "parentCommissionsList2": "5% per transaction (buyer or seller), up to 10% if both are referred",
       "edit": "Edit",
       "subTransactionCommission": "Sub Transaction Commission (%)",
@@ -5907,8 +6397,8 @@
       "deleteSubAffiliateConfirm": "Are you sure you want to delete {name} ({email}) as a made affiliate? This action cannot be undone.",
       "deleteSubAffiliateError": "Error deleting made affiliate",
       "subAffiliateSignup": {
-        "title": "Made affiliate invitation",
-        "description": "You've been invited to become a made affiliate. Log in or create an account to continue.",
+        "title": "Partner invitation",
+        "description": "You've been invited to become a partner. Log in or create an account to continue.",
         "noToken": "No invite token provided",
         "invalidToken": "Invalid or expired invite token",
         "error": "Error validating invite token",
@@ -6404,6 +6894,10 @@
   "homeDorpsplein": {
     "sidebarTagline": "The digital village square in your neighborhood.",
     "quickActionsTitle": "Quick actions",
+    "messagesUrgentOne": "You have 1 unread message",
+    "messagesUrgentMany": "You have {{count}} unread messages",
+    "messagesUrgentHint": "Reply when it suits you — your conversation is waiting.",
+    "messagesUrgentCta": "Open messages",
     "browseMakers": "Makers nearby",
     "communityCardTitle": "Growing locally together",
     "communityCardBody": "HomeCheff connects makers, neighbors, and lovers of local offerings in one warm community.",
@@ -6707,6 +7201,202 @@
         "heading": "Want to know more?",
         "intro": "Ask the maker your question."
       }
+    }
+  },
+  "operations": {
+    "workspaceLabel": "Operations",
+    "sectionNavLabel": "Operations sections",
+    "tabs": {
+      "today": "Today",
+      "orders": "Orders",
+      "delivery": "Delivery",
+      "partners": "Partners",
+      "finance": "Finance",
+      "analytics": "Analytics"
+    },
+    "tryAgain": "Try again",
+    "today": {
+      "greeting": {
+        "morning": "Good morning",
+        "afternoon": "Good afternoon",
+        "evening": "Good evening"
+      },
+      "finance": {
+        "available": "available"
+      },
+      "roleChips": {
+        "title": "Attention by role"
+      },
+      "roleCards": "By role",
+      "seller": {
+        "cta": "Open orders",
+        "pending": "Pending",
+        "revenue7d": "Revenue 7 days",
+        "blocked": "Blocked products"
+      },
+      "delivery": {
+        "cta": "Go to delivery",
+        "active": "Active delivery",
+        "available": "Available orders",
+        "todayEarnings": "Earnings today",
+        "status": "Status"
+      },
+      "partner": {
+        "cta": "Partner dashboard",
+        "link": "Partner link",
+        "available": "Available earnings",
+        "signups": "Sign-ups via link"
+      },
+      "footer": {
+        "analytics": "Statistics →"
+      }
+    },
+    "sidepanel": {
+      "overview": "Overview",
+      "profileLink": "View profile",
+      "tasks": {
+        "title": "Tasks",
+        "healthy": "Everything looks good",
+        "viewMore": "View more",
+        "showLess": "Show less"
+      },
+      "comms": {
+        "unansweredOne": "1 conversation waiting for your reply",
+        "unansweredMany": "{{count}} conversations waiting for your reply",
+        "customerWaitingOne": "1 customer waiting for a reply",
+        "customerWaitingMany": "{{count}} customers waiting for a reply",
+        "customerWaitingHint": "Reply quickly to build trust.",
+        "openChat": "Open chat",
+        "openMessages": "Open messages",
+        "respondNow": "Respond now"
+      },
+      "finance": {
+        "title": "Finance",
+        "available": "Available",
+        "pending": "In processing",
+        "totalEarned": "Total earned",
+        "empty": "No earnings yet",
+        "payoutCta": "Request payout"
+      },
+      "status": {
+        "title": "Status"
+      },
+      "actions": {
+        "title": "Quick actions"
+      },
+      "context": {
+        "today": {
+          "title": "Today",
+          "hint": "Everything that needs your attention today.",
+          "continueTask": "Continue your most important task",
+          "viewAllTasks": "View all tasks"
+        },
+        "orders": {
+          "title": "Orders",
+          "pending": "open orders",
+          "noPending": "No open orders.",
+          "openOrders": "Open orders"
+        },
+        "delivery": {
+          "title": "Delivery",
+          "status": "Status:",
+          "online": "Online",
+          "offline": "Offline",
+          "activeRide": "Active delivery in progress",
+          "available": "available jobs",
+          "fallback": "Open your delivery dashboard for current jobs.",
+          "dashboard": "Go to delivery",
+          "settings": "Delivery settings"
+        },
+        "partners": {
+          "title": "Partners",
+          "commission": "available partner earnings",
+          "hint": "Share your partner link and grow your partner network.",
+          "dashboard": "Partner dashboard",
+          "promoCodes": "Promo codes"
+        },
+        "finance": {
+          "title": "Finance",
+          "stripeAttention": "Stripe attention needed",
+          "viewFinance": "View finance"
+        },
+        "analytics": {
+          "title": "Analytics",
+          "hint": "View your performance and trends.",
+          "cta": "View your performance"
+        }
+      }
+    },
+    "widgets": {
+      "zoneLabel": "Opportunities"
+    },
+    "status": {
+      "sellerActive": "Active",
+      "deliveryActive": "Active delivery",
+      "deliveryAvailable": "Job available",
+      "deliveryIdle": "No active delivery",
+      "deliveryOnline": "Online",
+      "deliveryOffline": "Offline",
+      "affiliateActive": "Active",
+      "affiliateSuspended": "Suspended",
+      "affiliateCommission": "€{amount} partner commission"
+    },
+    "quickActions": {
+      "deliver": "Deliver",
+      "partnerLink": "Partner link",
+      "profile": "Profile"
+    }
+  },
+  "roleQuickLinks": {
+    "title": "Quick actions",
+    "profileTitle": "Quick links",
+    "showQr": "Show my QR",
+    "showQrDesc": "Open your partner QR and link",
+    "sharePartnerLink": "Share partner link",
+    "sharePartnerLinkDesc": "Copy or share your partner link for new sign-ups",
+    "promoCodes": "Promo codes",
+    "newOffer": "New offer",
+    "orders": "Orders",
+    "addInspiration": "Add inspiration",
+    "delivery": "Go to delivery",
+    "deliveryTrust": "Complete trust profile",
+    "finance": "Finance",
+    "requestPayout": "Request payout",
+    "modalTitle": "Partner link & QR",
+    "modalHint": "Scan or share your partner link for new sign-ups — not a direct partner in your network.",
+    "modalUnavailable": "Partner link is not available right now.",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "downloadQr": "Download QR",
+    "printQr": "Print QR"
+  },
+  "partners": {
+    "growth": {
+      "title": "Grow HomeCheff",
+      "description": "Earn from new sign-ups via your link.",
+      "emptyHint": "Share your partner link to generate sign-ups.",
+      "statsSignups": "sign-ups via link",
+      "statsEarnings": "available earnings"
+    },
+    "network": {
+      "title": "Partner network",
+      "description": "Build a network of direct partners.",
+      "statsDirect": "direct partners",
+      "statsActive": "active partners",
+      "statsEarnings": "network earnings (paid out)"
+    },
+    "helpers": {
+      "partnerLink": "Share this link to sign up new users, sellers, delivery partners, or partners. These are not direct partners in your network.",
+      "invitePartner": "Invite someone as a direct partner in your network. They get their own partner account and partner link.",
+      "directPartners": "Direct partners can generate sign-ups themselves. You receive override commission according to the existing model."
+    },
+    "actions": {
+      "invitePartner": "Invite partner",
+      "viewDirectPartners": "View direct partners",
+      "shareLink": "Share partner link",
+      "showQr": "Show QR code",
+      "promoCodes": "Promo codes",
+      "networkEarnings": "Network earnings"
     }
   }
 }

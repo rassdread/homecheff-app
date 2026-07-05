@@ -167,12 +167,12 @@ export default function RecipeStepPhotos({
                   {stepPhotos.map((photo) => (
                     <div
                       key={photo.id}
-                      className="relative group w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200"
+                      className="relative group w-16 h-16 bg-neutral-50 rounded-lg overflow-hidden border border-gray-200"
                     >
                       <img
                         src={photo.url}
                         alt={`Stap ${stepNumber} foto`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full hc-inspiration-media-contain"
                       />
                       
                       {/* Action Buttons */}

@@ -28,6 +28,10 @@ import {
   isSettingsTabId,
   type SettingsTabId,
 } from '@/lib/settings/settings-hub';
+import {
+  countEarningRoles,
+  userHasEarningsHub,
+} from '@/lib/navigation/primary-dashboard';
 
 export type SettingsHubUser = {
   id: string;
@@ -91,9 +95,14 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
+  const sectionParam = searchParams.get('section');
   const accountTabParam = searchParams.get('accountTab');
   const visibleIds = useMemo(
     () => getVisibleSettingsTabs(hubContext),
+    [hubContext]
+  );
+  const showCombinedEarningsLink = useMemo(
+    () => userHasEarningsHub(hubContext) && countEarningRoles(hubContext) >= 2,
     [hubContext]
   );
   const initialTab = isSettingsTabId(tabParam) && visibleIds.includes(tabParam)
@@ -149,7 +158,7 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
   const noopAsync = async () => {};
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <div className="min-h-screen hc-dorpsplein-page pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         <Link
           href="/profile"
@@ -159,11 +168,11 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
           {t('settingsHub.backToProfile') || 'Terug naar profiel'}
         </Link>
 
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+        <header className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
             {t('navigation.settings') || 'Instellingen'}
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-base text-gray-600 mt-2 max-w-xl leading-relaxed">
             {t('settingsHub.intro') ||
               'Beheer profiel, bereikbaarheid, privacy en account op één plek.'}
           </p>
@@ -184,8 +193,8 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
                   onClick={() => setTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
                     active
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                      ? 'hc-settings-nav-active'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-primary-50/50 hover:border-primary-brand/20'
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -196,11 +205,12 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
           </nav>
 
           <main className="flex-1 min-w-0">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
+            <div className="hc-dorpsplein-card bg-white p-5 sm:p-8 shadow-sm">
               {activeTab === 'profile' && (
                 <ProfileSettings
                   user={user as Parameters<typeof ProfileSettings>[0]['user']}
                   onSave={handleProfileSave}
+                  scrollToSection={sectionParam}
                 />
               )}
 
@@ -260,6 +270,15 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
                     {t('settingsHub.payoutsLink') || 'Uitbetalingen & omzet'}
                     <ExternalLink className="w-4 h-4" />
                   </Link>
+                  {showCombinedEarningsLink ? (
+                    <Link
+                      href="/verdiensten"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-emerald-700 hover:underline"
+                    >
+                      {t('navbar.combinedEarnings')}
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
+                  ) : null}
                 </div>
               )}
 

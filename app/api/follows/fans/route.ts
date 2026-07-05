@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { canViewerSeeFanList } from "@/lib/privacy/fan-list-access";
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,6 +26,14 @@ export async function GET(req: NextRequest) {
 
     if (!targetUserId) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const mayViewList = await canViewerSeeFanList(
+      targetUserId,
+      session?.user?.email ?? null
+    );
+    if (!mayViewList) {
+      return NextResponse.json({ fans: [] });
     }
 
     // Get all followers (fans) of the user

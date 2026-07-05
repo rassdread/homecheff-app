@@ -2,10 +2,8 @@
 
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import ImageSlider from '@/components/ui/ImageSlider';
 import Link from 'next/link';
 import {
-  Download,
   Share2,
   Maximize2,
   PlayCircle,
@@ -17,21 +15,35 @@ import {
   Sprout,
   Palette,
   MapPin,
-  Sun,
-  Droplet,
-  Leaf,
   Sparkles,
   X,
+  Eye,
+  Printer,
 } from 'lucide-react';
 import clsx from 'clsx';
+import InspirationFitImage from '@/components/inspiratie/InspirationFitImage';
+import {
+  getMediaFitMode,
+  inspirationMediaClass,
+  loadImageAspectRatio,
+} from '@/lib/inspiratie/media-fit';
 import DishReviewSection from './DishReviewSection';
 import ShareButton from '@/components/ui/ShareButton';
+import PropsButton from '@/components/props/PropsButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getDisplayName } from '@/lib/displayName';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import MakerContactSection from '@/components/profile/MakerContactSection';
+import PublicItemOwnerActions from '@/components/items/PublicItemOwnerActions';
+import InstructionDetailSection from '@/components/inspiratie/InstructionDetailSection';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
+import {
+  buildHeroMediaItems,
+  buildFullLightboxItems,
+  buildInstructionContent,
+} from '@/lib/inspiratie/instruction-content';
+import { buildInstructionDownloadState } from '@/lib/inspiratie/instruction-download';
 
 type InspirationCategory = 'CHEFF' | 'GROWN' | 'DESIGNER';
 
@@ -89,6 +101,7 @@ export type InspiratieDetailProps = {
     soilType?: string | null;
     sunlight?: string | null;
     waterNeeds?: string | null;
+    priceCents?: number | null;
     user: {
       id: string;
       name: string | null;
@@ -111,47 +124,41 @@ export type InspiratieDetailProps = {
       thumbnail?: string | null;
       title?: string | null;
     }>;
+    viewCount?: number;
+    propsCount?: number;
   };
   publicContactChannels?: PublicContactChannel[];
+  isOwner?: boolean;
 };
 
-const CATEGORY_META: Record<
-  InspirationCategory,
-  {
-    label: string;
-    icon: typeof ChefHat;
-    badge: string;
-    gradient: string;
-    accent: string;
-  }
-> = {
-  CHEFF: {
-    label: 'Recept',
-    icon: ChefHat,
-    badge: 'bg-orange-100 text-orange-700 border border-orange-200',
-    gradient: 'from-orange-50 via-rose-50 to-amber-50',
-    accent: 'text-orange-700',
-  },
-  GROWN: {
-    label: 'Kweek',
-    icon: Sprout,
-    badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-    gradient: 'from-emerald-50 via-green-50 to-lime-50',
-    accent: 'text-emerald-700',
-  },
-  DESIGNER: {
-    label: 'Design',
-    icon: Palette,
-    badge: 'bg-purple-100 text-purple-700 border border-purple-200',
-    gradient: 'from-purple-50 via-pink-50 to-amber-50',
-    accent: 'text-purple-700',
-  },
+const CATEGORY_LABEL_KEY: Record<InspirationCategory, string> = {
+  CHEFF: 'inspiratie.instructions.recipe',
+  GROWN: 'inspiratie.instructions.growingGuide',
+  DESIGNER: 'inspiratie.instructions.designWork',
 };
 
-const PRINTABLE_URLS: Record<InspirationCategory, (id: string) => string> = {
-  CHEFF: (id: string) => `/recipe/${id}`,
-  GROWN: (id: string) => `/garden/${id}`,
-  DESIGNER: (id: string) => `/design/${id}`,
+const CATEGORY_BADGE: Record<InspirationCategory, string> = {
+  CHEFF: 'bg-orange-100 text-orange-700 border border-orange-200',
+  GROWN: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+  DESIGNER: 'bg-purple-100 text-purple-700 border border-purple-200',
+};
+
+const CATEGORY_ICON: Record<InspirationCategory, typeof ChefHat> = {
+  CHEFF: ChefHat,
+  GROWN: Sprout,
+  DESIGNER: Palette,
+};
+
+const CATEGORY_GRADIENT: Record<InspirationCategory, string> = {
+  CHEFF: 'from-orange-50 via-rose-50 to-amber-50',
+  GROWN: 'from-emerald-50 via-green-50 to-lime-50',
+  DESIGNER: 'from-purple-50 via-pink-50 to-amber-50',
+};
+
+const CATEGORY_ACCENT: Record<InspirationCategory, string> = {
+  CHEFF: 'text-orange-700',
+  GROWN: 'text-emerald-700',
+  DESIGNER: 'text-purple-700',
 };
 
 const formatDate = (value: string) => {
@@ -178,7 +185,11 @@ const formatTime = (minutes?: number | null) => {
   return mins ? `${hrs} uur ${mins} min` : `${hrs} uur`;
 };
 
-export default function InspiratieDetail({ item, publicContactChannels = [] }: InspiratieDetailProps) {
+export default function InspiratieDetail({
+  item,
+  publicContactChannels = [],
+  isOwner = false,
+}: InspiratieDetailProps) {
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -187,70 +198,67 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
   const lightboxIsSwipe = useRef(false);
   const autoSlideIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isAutoSliding, setIsAutoSliding] = useState(true);
+  const [heroFit, setHeroFit] = useState<'cover' | 'contain'>('contain');
 
-  const categoryMeta = CATEGORY_META[item.category];
+  const categoryIcon = CATEGORY_ICON[item.category];
 
-  const mediaItems = useMemo<MediaItem[]>(() => {
-    const sortedPhotos = [...(item.photos ?? [])].sort((a, b) => {
-      const aIdx = typeof a.idx === 'number' ? a.idx : 0;
-      const bIdx = typeof b.idx === 'number' ? b.idx : 0;
-      return aIdx - bIdx;
-    });
+  const instructionContent = useMemo(
+    () =>
+      buildInstructionContent({
+        category: item.category,
+        instructions: item.instructions,
+        ingredients: item.ingredients,
+        materials: item.materials,
+        stepPhotos: item.stepPhotos,
+        growthPhotos: item.growthPhotos,
+        notes: item.notes,
+        meta: {
+          prepTime: item.prepTime,
+          servings: item.servings,
+          difficulty: item.difficulty,
+          subcategory: item.subcategory,
+          location: item.location,
+          plantType: item.plantType,
+          sunlight: item.sunlight,
+          waterNeeds: item.waterNeeds,
+          soilType: item.soilType,
+          growthDuration: item.growthDuration,
+          harvestDate: item.harvestDate,
+          plantDate: item.plantDate,
+          plantDistance: item.plantDistance,
+          dimensions: item.dimensions,
+        },
+      }),
+    [item],
+  );
 
-    if (sortedPhotos.length > 0) {
-      const mainIndex = sortedPhotos.findIndex(photo => photo.isMain);
-      if (mainIndex > 0) {
-        const [mainPhoto] = sortedPhotos.splice(mainIndex, 1);
-        sortedPhotos.unshift(mainPhoto);
-      }
-    }
+  const notesUsedAsSteps =
+    item.category === 'DESIGNER' &&
+    item.instructions.filter((s) => s.trim()).length === 0 &&
+    instructionContent.steps.length > 0 &&
+    Boolean(item.notes?.trim());
 
-    const photosAsMedia = sortedPhotos.map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      kind: 'image' as const,
-      thumbnail: photo.url,
-      isMain: photo.isMain,
-      idx: typeof photo.idx === 'number' ? photo.idx : undefined,
-    }));
+  const heroMediaItems = useMemo(
+    () => buildHeroMediaItems(item.photos, item.videos),
+    [item.photos, item.videos],
+  );
 
-    const videosAsMedia = (item.videos ?? []).map(video => ({
-      ...video,
-      kind: 'video' as const,
-    }));
+  const lightboxItems = useMemo(
+    () =>
+      buildFullLightboxItems(
+        heroMediaItems,
+        instructionContent.steps,
+        instructionContent.extraMedia,
+      ),
+    [heroMediaItems, instructionContent.steps, instructionContent.extraMedia],
+  );
 
-    const stepPhotosAsMedia = (item.stepPhotos ?? []).map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      kind: 'image' as const,
-      thumbnail: photo.url,
-      idx: photo.idx,
-    }));
+  const downloadState = useMemo(
+    () => buildInstructionDownloadState(item.category, item.id, { isOwner }),
+    [item.category, item.id, isOwner],
+  );
 
-    const growthPhotosAsMedia = (item.growthPhotos ?? []).map(photo => ({
-      id: photo.id,
-      url: photo.url,
-      kind: 'image' as const,
-      thumbnail: photo.url,
-      idx: photo.idx,
-    }));
-
-    const combined = [
-      ...photosAsMedia,
-      ...videosAsMedia,
-      ...stepPhotosAsMedia,
-      ...growthPhotosAsMedia,
-    ];
-
-    const seen = new Set<string>();
-    return combined.filter(media => {
-      if (seen.has(media.id)) {
-        return false;
-      }
-      seen.add(media.id);
-      return true;
-    });
-  }, [item.photos, item.videos, item.stepPhotos, item.growthPhotos]);
+  const mediaItems = heroMediaItems;
 
   useEffect(() => {
     if (mediaItems.length > 0) {
@@ -260,23 +268,72 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
 
   const currentMedia = mediaItems[activeIndex];
 
+  useEffect(() => {
+    if (currentMedia?.kind !== 'image') {
+      setHeroFit('contain');
+      return;
+    }
+    let cancelled = false;
+    void loadImageAspectRatio(currentMedia.url).then((ratio) => {
+      if (!cancelled) setHeroFit(getMediaFitMode(ratio, 'hero'));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentMedia?.url, currentMedia?.kind]);
+
   // Share functionality is now handled by ShareButton component
 
   const handleDownload = useCallback(() => {
-    const urlBuilder = PRINTABLE_URLS[item.category] || PRINTABLE_URLS.CHEFF;
-    const printableUrl = urlBuilder(item.id);
-    window.open(printableUrl, '_blank', 'noopener,noreferrer');
-  }, [item.category, item.id]);
+    window.open(downloadState.printUrl, '_blank', 'noopener,noreferrer');
+  }, [downloadState.printUrl]);
 
   const handleLightboxOpen = (index: number) => {
-    if (index >= 0 && index < mediaItems.length) {
+    if (index >= 0 && index < lightboxItems.length) {
       setLightboxIndex(index);
     }
   };
 
+  const handlePhotoClickById = useCallback(
+    (mediaId: string) => {
+      const idx = lightboxItems.findIndex((m) => m.id === mediaId);
+      if (idx >= 0) handleLightboxOpen(idx);
+    },
+    [lightboxItems],
+  );
+
   const handleLightboxClose = () => {
     setLightboxIndex(null);
   };
+
+  const handleLightboxPrev = useCallback(() => {
+    setLightboxIndex(prev => {
+      if (prev === null || lightboxItems.length < 2) {
+        return prev;
+      }
+      return prev === 0 ? lightboxItems.length - 1 : prev - 1;
+    });
+  }, [lightboxItems.length]);
+
+  const handleLightboxNext = useCallback(() => {
+    setLightboxIndex(prev => {
+      if (prev === null || lightboxItems.length < 2) {
+        return prev;
+      }
+      return prev === lightboxItems.length - 1 ? 0 : prev + 1;
+    });
+  }, [lightboxItems.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleLightboxClose();
+      if (e.key === 'ArrowLeft') handleLightboxPrev();
+      if (e.key === 'ArrowRight') handleLightboxNext();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxIndex, handleLightboxPrev, handleLightboxNext]);
 
   const handlePrev = () => {
     if (mediaItems.length < 2) return;
@@ -292,24 +349,6 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
     setActiveIndex(prev => (prev === mediaItems.length - 1 ? 0 : prev + 1));
     // Resume auto-slide after 10 seconds
     setTimeout(() => setIsAutoSliding(true), 10000);
-  };
-
-  const handleLightboxPrev = () => {
-    setLightboxIndex(prev => {
-      if (prev === null || mediaItems.length < 2) {
-        return prev;
-      }
-      return prev === 0 ? mediaItems.length - 1 : prev - 1;
-    });
-  };
-
-  const handleLightboxNext = () => {
-    setLightboxIndex(prev => {
-      if (prev === null || mediaItems.length < 2) {
-        return prev;
-      }
-      return prev === mediaItems.length - 1 ? 0 : prev + 1;
-    });
   };
 
   // Swipe handlers for lightbox
@@ -339,7 +378,7 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
     const diff = lightboxTouchStartX.current - touchEndX;
     const minSwipeDistance = 50;
 
-    if (lightboxIsSwipe.current && Math.abs(diff) > minSwipeDistance && mediaItems.length > 1) {
+    if (lightboxIsSwipe.current && Math.abs(diff) > minSwipeDistance && lightboxItems.length > 1) {
       if (diff > 0) {
         // Swipe left - next
         handleLightboxNext();
@@ -355,13 +394,22 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
   };
 
   return (
-    <main className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12" data-inspiratie-page>
+    <main className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] md:pb-12" data-inspiratie-page>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
+        {isOwner ? (
+          <PublicItemOwnerActions
+            item={{
+              ...item,
+              priceCents: item.priceCents ?? null,
+            }}
+            isOwner={isOwner}
+          />
+        ) : null}
         <div
           className={clsx(
             'relative overflow-hidden rounded-3xl border border-gray-100 bg-white/80 shadow-xl backdrop-blur',
             'p-6 sm:p-10',
-            `bg-gradient-to-br ${categoryMeta.gradient}`
+            `bg-gradient-to-br ${CATEGORY_GRADIENT[item.category]}`
           )}
         >
           <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
@@ -376,14 +424,13 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                           src={currentMedia.url}
                           alt={item.title || 'Inspiratiefoto'}
                           fill
-                          className={item.category === 'GROWN' ? 'object-contain transition-transform duration-300 group-hover:scale-[1.02]' : 'object-cover transition-transform duration-300 group-hover:scale-[1.02]'}
+                          className={clsx(
+                            inspirationMediaClass(heroFit),
+                            'transition-transform duration-300 group-hover:scale-[1.02]',
+                          )}
                           sizes="(max-width: 1024px) 100vw, 720px"
                           priority={currentMedia.isMain}
                         />
-                        {/* Gradient overlay for garden items in portrait mode to prevent text overlap */}
-                        {item.category === 'GROWN' && (
-                          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/20 pointer-events-none" />
-                        )}
                       </>
                     ) : (
                       <div className="relative h-full w-full">
@@ -484,7 +531,7 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                           src={media.thumbnail || media.url}
                           alt="thumbnail"
                           fill
-                          className="object-cover"
+                          className="hc-inspiration-media-cover"
                           sizes="120px"
                         />
                       ) : (
@@ -507,11 +554,14 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                 <span
                   className={clsx(
                     'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium',
-                    categoryMeta.badge
+                    CATEGORY_BADGE[item.category],
                   )}
                 >
-                  <categoryMeta.icon className="h-4 w-4" />
-                  {categoryMeta.label}
+                  {(() => {
+                    const Icon = categoryIcon;
+                    return <Icon className="h-4 w-4" />;
+                  })()}
+                  {t(CATEGORY_LABEL_KEY[item.category])}
                 </span>
                 {item.subcategory && (
                   <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-600">
@@ -540,8 +590,8 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                   onClick={handleDownload}
                   className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700"
                 >
-                  <Download className="h-4 w-4" />
-                  {t('common.download')}
+                  <Printer className="h-4 w-4" />
+                  {t('inspiratie.instructions.printOrSavePdf')}
                 </button>
                 <ShareButton
                   url={typeof window !== 'undefined' ? window.location.href : ''}
@@ -549,15 +599,20 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                   description={item.description || 'Bekijk dit inspiratie-item op HomeCheff'}
                   className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
                 />
-                <Link
-                  href={PRINTABLE_URLS[item.category](item.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {t('inspiratie.detail.openPrintView')}
-                </Link>
+                <div className="ml-auto flex items-center gap-3">
+                  {(item.viewCount ?? 0) > 0 ? (
+                    <span className="inline-flex items-center gap-1 text-sm text-gray-500">
+                      <Eye className="h-4 w-4" aria-hidden />
+                      {item.viewCount}
+                    </span>
+                  ) : null}
+                  <PropsButton
+                    dishId={item.id}
+                    productTitle={item.title || t('common.dish')}
+                    size="sm"
+                    variant="thumbs"
+                  />
+                </div>
               </div>
 
               <div className="space-y-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
@@ -643,246 +698,98 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
           </div>
         </div>
 
-        <section className="grid gap-8 md:grid-cols-2">
-          {item.ingredients && item.ingredients.length > 0 && (
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm relative z-10">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <ChefHat className="h-5 w-5 text-orange-500" />
-                {t('inspiratie.detail.ingredients')}
-              </h2>
-              <ul className="mt-4 space-y-2 text-sm text-gray-700">
-                {item.ingredients.map((ingredient, index) => (
-                  <li key={`${ingredient}-${index}`} className="flex gap-3">
-                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-orange-400" />
-                    <span>{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {item.instructions && item.instructions.length > 0 && (
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm relative z-10">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Sparkles className="h-5 w-5 text-emerald-500" />
-                {t('inspiratie.detail.instructions')}
-              </h2>
-              <ol className="mt-4 space-y-4 text-sm text-gray-700">
-                {item.instructions.map((step, index) => (
-                  <li key={`${step}-${index}`}>
-                    <span className="font-semibold text-emerald-600">
-                      {t('inspiratie.detail.step')} {index + 1}
-                    </span>
-                    <p className="mt-1 leading-relaxed text-gray-700">{step}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-
-          {item.materials && item.materials.length > 0 && (
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm relative z-10">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Palette className="h-5 w-5 text-purple-500" />
-                {t('inspiratie.detail.materials')}
-              </h2>
-              <ul className="mt-4 space-y-2 text-sm text-gray-700">
-                {item.materials.map((material, index) => (
-                  <li key={`${material}-${index}`} className="flex gap-3">
-                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-400" />
-                    <span>{material}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {item.dimensions && (
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm relative z-10">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Leaf className="h-5 w-5 text-purple-500" />
-                {t('inspiratie.detail.specifications')}
-              </h2>
-              <p className="mt-3 text-sm text-gray-700">{t('inspiratie.detail.dimensions')}: {item.dimensions}</p>
-              {item.notes && (
-                <p className="mt-2 text-sm text-gray-600">{t('inspiratie.detail.notes')}: {item.notes}</p>
-              )}
-            </div>
-          )}
-
-          {(item.plantType ||
-            item.sunlight ||
-            item.waterNeeds ||
-            item.soilType ||
-            item.growthDuration ||
-            item.harvestDate) && (
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm relative z-10">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Sprout className="h-5 w-5 text-emerald-500" />
-                {t('inspiratie.detail.growingInfo')}
-              </h2>
-              <div className="mt-4 space-y-3 text-sm text-gray-700">
-                {item.plantType && (
-                  <p className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-emerald-500" />
-                    {t('inspiratie.detail.plantType')}: {item.plantType}
-                  </p>
-                )}
-                {item.sunlight && (
-                  <p className="flex items-center gap-2">
-                    <Sun className="h-4 w-4 text-amber-500" />
-                    {t('inspiratie.detail.sunlight')}: {item.sunlight}
-                  </p>
-                )}
-                {item.waterNeeds && (
-                  <p className="flex items-center gap-2">
-                    <Droplet className="h-4 w-4 text-sky-500" />
-                    {t('inspiratie.detail.waterNeeds')}: {item.waterNeeds}
-                  </p>
-                )}
-                {item.soilType && (
-                  <p className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-emerald-500" />
-                    {t('inspiratie.detail.soilType')}: {item.soilType}
-                  </p>
-                )}
-                {item.growthDuration && (
-                  <p className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    {t('inspiratie.detail.growth')}: {item.growthDuration} {t('inspiratie.detail.days')}
-                  </p>
-                )}
-                {item.harvestDate && (
-                  <p className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-emerald-500" />
-                    {t('inspiratie.detail.harvest')}: {item.harvestDate}
-                  </p>
-                )}
-                {item.plantDate && (
-                  <p className="flex items-center gap-2">
-                    <CalendarIcon />
-                    {t('inspiratie.detail.sowing')}: {item.plantDate}
-                  </p>
-                )}
-                {item.plantDistance && (
-                  <p className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-emerald-500" />
-                    {t('inspiratie.detail.plantDistance')}: {item.plantDistance}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {(item.stepPhotos.length > 0 || item.growthPhotos.length > 0) && (
-          <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-              <Sparkles className="h-5 w-5 text-emerald-500" />
-              {t('inspiratie.detail.extraMedia')}
-            </h2>
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {item.stepPhotos.map(photo => (
-                <button
-                  key={`step-${photo.id}`}
-                  type="button"
-                  className="group relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                  onClick={() =>
-                    handleLightboxOpen(
-                      mediaItems.findIndex(media => media.id === photo.id)
-                    )
-                  }
-                >
-                  <div className="relative aspect-[3/4] sm:aspect-square">
-                    <Image
-                      src={photo.url}
-                      alt={photo.description || t('inspiratie.detail.stepPhoto', { stepNumber: photo.stepNumber })}
-                      fill
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, 33vw"
-                    />
-                  </div>
-                  {photo.description && (
-                    <div className="flex flex-col gap-1 p-3 text-left">
-                      <p className="text-sm text-gray-600">{photo.description}</p>
-                    </div>
-                  )}
-                </button>
-              ))}
-
-              {item.growthPhotos.map(photo => (
-                <button
-                  key={`growth-${photo.id}`}
-                  type="button"
-                  className="group relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                  onClick={() =>
-                    handleLightboxOpen(
-                      mediaItems.findIndex(media => media.id === photo.id)
-                    )
-                  }
-                >
-                  <div className="relative aspect-square">
-                    <Image
-                      src={photo.url}
-                      alt={photo.description || t('inspiratie.detail.phasePhoto', { phaseNumber: photo.phaseNumber })}
-                      fill
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1 p-3 text-left">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-emerald-500">
-                      {t('inspiratie.detail.growthPhase')} {photo.phaseNumber}
-                    </span>
-                    {photo.description && (
-                      <p className="text-sm text-gray-600">{photo.description}</p>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        {instructionContent.hasInstructionContent ? (
+          <InstructionDetailSection
+            category={item.category}
+            steps={instructionContent.steps}
+            supplies={instructionContent.supplies}
+            extraMedia={instructionContent.extraMedia}
+            meta={{
+              prepTime: item.prepTime,
+              servings: item.servings,
+              difficulty: item.difficulty,
+              subcategory: item.subcategory,
+              location: item.location,
+              plantType: item.plantType,
+              sunlight: item.sunlight,
+              waterNeeds: item.waterNeeds,
+              soilType: item.soilType,
+              growthDuration: item.growthDuration,
+              harvestDate: item.harvestDate,
+              plantDate: item.plantDate,
+              plantDistance: item.plantDistance,
+              dimensions: item.dimensions,
+            }}
+            notes={item.notes}
+            tags={item.tags}
+            downloadState={downloadState}
+            onPhotoClick={handlePhotoClickById}
+            makerUsername={item.user.username}
+            hideNotes={notesUsedAsSteps}
+          />
+        ) : null}
 
         {/* Reviews Section */}
         <DishReviewSection dishId={item.id} />
       </div>
 
-      {lightboxIndex !== null && mediaItems[lightboxIndex] && (
-        <div 
+      {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
+        <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur"
           data-lightbox
           onTouchStart={handleLightboxTouchStart}
           onTouchMove={handleLightboxTouchMove}
           onTouchEnd={handleLightboxTouchEnd}
+          onClick={handleLightboxClose}
+          role="dialog"
+          aria-modal="true"
         >
           <button
             type="button"
-            className="absolute right-6 top-6 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30"
-            onClick={handleLightboxClose}
+            className="absolute right-6 top-6 z-10 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLightboxClose();
+            }}
+            aria-label={t('buttons.close')}
           >
             <X className="h-6 w-6" />
           </button>
-          <button
-            type="button"
-            className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
-            onClick={handleLightboxPrev}
+          {lightboxItems.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30 sm:left-6 touch-manipulation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLightboxPrev();
+                }}
+                aria-label={t('common.previous')}
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30 sm:right-6 touch-manipulation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLightboxNext();
+                }}
+                aria-label={t('common.next')}
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          ) : null}
+          <div
+            className="relative flex max-h-[90vh] max-w-[90vw] flex-col items-center overflow-hidden rounded-3xl bg-black/50 p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            type="button"
-            className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30"
-            onClick={handleLightboxNext}
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-3xl bg-black/50 p-4 shadow-2xl">
-            {mediaItems[lightboxIndex].kind === 'image' ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={mediaItems[lightboxIndex].url}
-                alt="Lightbox media"
-                className="max-h-[80vh] max-w-[80vw] rounded-2xl object-contain"
+            {lightboxItems[lightboxIndex].kind === 'image' ? (
+              <InspirationFitImage
+                src={lightboxItems[lightboxIndex].url}
+                context="lightbox"
+                className="max-h-[75vh] max-w-[85vw] rounded-2xl"
               />
             ) : (
               <EdgeAwareVideo
@@ -893,39 +800,33 @@ export default function InspiratieDetail({ item, publicContactChannels = [] }: I
                     el.setAttribute('webkit-playsinline', '');
                   }
                 }}
-                src={getVideoUrlWithCors(mediaItems[lightboxIndex].url)}
-                fallbackSrc={mediaItems[lightboxIndex].url}
-                poster={mediaItems[lightboxIndex].thumbnail || undefined}
-                className="max-h-[80vh] max-w-[80vw] rounded-2xl"
+                src={getVideoUrlWithCors(lightboxItems[lightboxIndex].url)}
+                fallbackSrc={lightboxItems[lightboxIndex].url}
+                poster={lightboxItems[lightboxIndex].thumbnail || undefined}
+                className="max-h-[75vh] max-w-[85vw] rounded-2xl"
                 controls
                 playsInline
                 preload="metadata"
               />
             )}
+            <div className="mt-3 flex w-full flex-col items-center gap-1 px-2 text-center text-white">
+              {lightboxItems.length > 1 ? (
+                <p className="text-sm text-white/80">
+                  {t('inspiratie.instructions.imageCounter', {
+                    current: lightboxIndex + 1,
+                    total: lightboxItems.length,
+                  })}
+                </p>
+              ) : null}
+              {lightboxItems[lightboxIndex].caption ? (
+                <p className="max-w-lg text-sm leading-relaxed text-white/90">
+                  {lightboxItems[lightboxIndex].caption}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
       )}
     </main>
   );
 }
-
-function CalendarIcon() {
-  return (
-    <svg
-      className="h-4 w-4 text-emerald-500"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-

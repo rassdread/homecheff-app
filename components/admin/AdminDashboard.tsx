@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -209,6 +210,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ user, stats, permissions }: AdminDashboardProps) {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [filters, setFilters] = useState({
     search: '',
@@ -306,6 +308,14 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
 
   // Filter tabs based on allowedTabs
   const tabs = allTabs.filter(tab => allowedTabs.includes(tab.id));
+
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab');
+    if (!tabParam) return;
+    if (allowedTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, allowedTabs.join(',')]);
 
   return (
     <div className="min-h-screen bg-gray-50">

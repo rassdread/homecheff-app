@@ -3,23 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { 
-  Shield, Eye, EyeOff, MessageCircle, Users, UserPlus, 
-  Bell, Activity, Save, AlertCircle, Check, Home, ArrowLeft, Trash2
+import {
+  Shield, Eye, EyeOff, MessageCircle, Users,
+  Save, AlertCircle, Check, ArrowLeft, Trash2
 } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface PrivacySettings {
   messagePrivacy: 'NOBODY' | 'FANS_ONLY' | 'EVERYONE';
-  fanRequestEnabled: boolean;
   showFansList: boolean;
   showProfileToEveryone: boolean;
   showOnlineStatus: boolean;
-  allowProfileViews: boolean;
-  showActivityStatus: boolean;
-  downloadPermission: 'EVERYONE' | 'FANS_ONLY' | 'FAN_OF_ONLY' | 'ASK_PERMISSION' | 'NOBODY';
-  printPermission: 'EVERYONE' | 'FANS_ONLY' | 'FAN_OF_ONLY' | 'ASK_PERMISSION' | 'NOBODY';
 }
 
 interface PrivacySettingsProps {
@@ -28,53 +23,59 @@ interface PrivacySettingsProps {
   embedded?: boolean;
 }
 
+function pickVisibleSettings(raw: Record<string, unknown>): PrivacySettings {
+  return {
+    messagePrivacy:
+      raw.messagePrivacy === 'NOBODY' || raw.messagePrivacy === 'FANS_ONLY'
+        ? raw.messagePrivacy
+        : 'EVERYONE',
+    showFansList: raw.showFansList !== false,
+    showProfileToEveryone: raw.showProfileToEveryone !== false,
+    showOnlineStatus: raw.showOnlineStatus !== false,
+  };
+}
+
 export default function PrivacySettings({ onClose, embedded = false }: PrivacySettingsProps) {
   const { t } = useTranslation();
   const { data: session } = useSession();
   const [settings, setSettings] = useState<PrivacySettings>({
     messagePrivacy: 'EVERYONE',
-    fanRequestEnabled: true,
     showFansList: true,
     showProfileToEveryone: true,
     showOnlineStatus: true,
-    allowProfileViews: true,
-    showActivityStatus: true,
-    downloadPermission: 'EVERYONE',
-    printPermission: 'EVERYONE',
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Load current privacy settings
   useEffect(() => {
     const loadSettings = async () => {
-      if (!(session as any)?.user?.id) return;
-      
+      if (!(session as { user?: { id?: string } })?.user?.id) return;
+
       setLoading(true);
       try {
         const response = await fetch('/api/profile/privacy');
         if (response.ok) {
           const data = await response.json();
-          setSettings(data.settings);
+          setSettings(pickVisibleSettings(data.settings ?? {}));
         }
       } catch (error) {
         console.error('Error loading privacy settings:', error);
-        setMessage({ type: 'error', text: 'Kon privacy instellingen niet laden' });
+        setMessage({ type: 'error', text: t('privacySettingsPage.loadError') });
       } finally {
         setLoading(false);
       }
     };
 
     loadSettings();
-  }, [session]);
+  }, [session, t]);
 
   const handleSave = async () => {
-    if (!(session as any)?.user?.id) return;
+    if (!(session as { user?: { id?: string } })?.user?.id) return;
 
     setSaving(true);
     setMessage(null);
-    
+
     try {
       const response = await fetch('/api/profile/privacy', {
         method: 'PUT',
@@ -85,22 +86,40 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
       });
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Privacy instellingen opgeslagen!' });
+        setMessage({ type: 'success', text: t('privacySettingsPage.saveSuccess') });
         setTimeout(() => setMessage(null), 3000);
       } else {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving privacy settings:', error);
-      setMessage({ type: 'error', text: 'Kon instellingen niet opslaan' });
+      setMessage({ type: 'error', text: t('privacySettingsPage.saveError') });
     } finally {
       setSaving(false);
     }
   };
 
-  const updateSetting = (key: keyof PrivacySettings, value: any) => {
+  const updateSetting = <K extends keyof PrivacySettings>(key: K, value: PrivacySettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
+
+  const messagePrivacyOptions = [
+    {
+      value: 'EVERYONE' as const,
+      label: t('privacySettingsPage.messagePrivacy.everyone.label'),
+      desc: t('privacySettingsPage.messagePrivacy.everyone.desc'),
+    },
+    {
+      value: 'FANS_ONLY' as const,
+      label: t('privacySettingsPage.messagePrivacy.fansOnly.label'),
+      desc: t('privacySettingsPage.messagePrivacy.fansOnly.desc'),
+    },
+    {
+      value: 'NOBODY' as const,
+      label: t('privacySettingsPage.messagePrivacy.nobody.label'),
+      desc: t('privacySettingsPage.messagePrivacy.nobody.desc'),
+    },
+  ];
 
   if (loading) {
     return (
@@ -126,7 +145,7 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
             className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Terug naar Home</span>
+            <span>{t('privacySettingsPage.backToHome')}</span>
           </Link>
         </div>
       )}
@@ -138,8 +157,8 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Privacy Instellingen</h2>
-              <p className="text-sm text-gray-600">Beheer wie je profiel en berichten kan zien</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('privacySettingsPage.title')}</h2>
+              <p className="text-sm text-gray-600">{t('privacySettingsPage.subtitle')}</p>
             </div>
           </div>
           {onClose && (
@@ -164,22 +183,18 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-gray-600" />
-            <h3 className="font-medium text-gray-900">Berichten Privacy</h3>
+            <h3 className="font-medium text-gray-900">{t('privacySettingsPage.messagePrivacy.heading')}</h3>
           </div>
-          <p className="text-sm text-gray-600">Wie mag je berichten sturen?</p>
+          <p className="text-sm text-gray-600">{t('privacySettingsPage.messagePrivacy.description')}</p>
           <div className="space-y-2">
-            {[
-              { value: 'EVERYONE', label: 'Iedereen', desc: 'Alle gebruikers kunnen je berichten sturen' },
-              { value: 'FANS_ONLY', label: 'Alleen Fans', desc: 'Alleen goedgekeurde fans kunnen je berichten sturen' },
-              { value: 'NOBODY', label: 'Niemand', desc: 'Alleen admins en leveringsberichten zijn toegestaan' }
-            ].map(option => (
+            {messagePrivacyOptions.map(option => (
               <label key={option.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 <input
                   type="radio"
                   name="messagePrivacy"
                   value={option.value}
                   checked={settings.messagePrivacy === option.value}
-                  onChange={(e) => updateSetting('messagePrivacy', e.target.value)}
+                  onChange={(e) => updateSetting('messagePrivacy', e.target.value as PrivacySettings['messagePrivacy'])}
                   className="mt-1"
                 />
                 <div className="flex-1">
@@ -191,178 +206,67 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
           </div>
         </div>
 
-        {/* Fan Settings */}
+        {/* Fan list visibility */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-gray-600" />
-            <h3 className="font-medium text-gray-900">Fan Instellingen</h3>
+            <h3 className="font-medium text-gray-900">{t('privacySettingsPage.fansSection.heading')}</h3>
           </div>
-          
-          <div className="space-y-4">
-            <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Fan verzoeken toestaan</div>
-                <div className="text-sm text-gray-600">Anderen kunnen verzoeken om je fan te worden</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.fanRequestEnabled}
-                onChange={(e) => updateSetting('fanRequestEnabled', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </label>
 
-            <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Fans lijst tonen</div>
-                <div className="text-sm text-gray-600">Toon de lijst van je fans op je profiel (aantal blijft altijd zichtbaar)</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.showFansList}
-                onChange={(e) => updateSetting('showFansList', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </label>
-          </div>
+          <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <div className="flex-1 pr-4">
+              <div className="font-medium text-gray-900">{t('privacySettingsPage.fansSection.showFansList.label')}</div>
+              <div className="text-sm text-gray-600">{t('privacySettingsPage.fansSection.showFansList.desc')}</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.showFansList}
+              onChange={(e) => updateSetting('showFansList', e.target.checked)}
+              className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0"
+            />
+          </label>
         </div>
 
         {/* Profile Visibility */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5 text-gray-600" />
-            <h3 className="font-medium text-gray-900">Profiel Zichtbaarheid</h3>
+            <h3 className="font-medium text-gray-900">{t('privacySettingsPage.profileVisibility.heading')}</h3>
           </div>
-          
+
           <div className="space-y-4">
             <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Profiel publiek zichtbaar</div>
-                <div className="text-sm text-gray-600">Je profiel is zichtbaar voor anderen via directe links</div>
+              <div className="flex-1 pr-4">
+                <div className="font-medium text-gray-900">{t('privacySettingsPage.profileVisibility.showProfileToEveryone.label')}</div>
+                <div className="text-sm text-gray-600">{t('privacySettingsPage.profileVisibility.showProfileToEveryone.desc')}</div>
               </div>
               <input
                 type="checkbox"
                 checked={settings.showProfileToEveryone}
                 onChange={(e) => updateSetting('showProfileToEveryone', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0"
               />
             </label>
 
             <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Online status tonen</div>
-                <div className="text-sm text-gray-600">Toon wanneer je online bent</div>
+              <div className="flex-1 pr-4">
+                <div className="font-medium text-gray-900">{t('privacySettingsPage.profileVisibility.showOnlineStatus.label')}</div>
+                <div className="text-sm text-gray-600">{t('privacySettingsPage.profileVisibility.showOnlineStatus.desc')}</div>
               </div>
               <input
                 type="checkbox"
                 checked={settings.showOnlineStatus}
                 onChange={(e) => updateSetting('showOnlineStatus', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Profiel views toestaan</div>
-                <div className="text-sm text-gray-600">Anderen kunnen zien dat ze je profiel hebben bekeken</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.allowProfileViews}
-                onChange={(e) => updateSetting('allowProfileViews', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">Activiteit status tonen</div>
-                <div className="text-sm text-gray-600">Toon je recente activiteiten (posts, reviews, etc.)</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.showActivityStatus}
-                onChange={(e) => updateSetting('showActivityStatus', e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0"
               />
             </label>
           </div>
         </div>
 
-        {/* Content Download & Print Permissions */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-gray-600" />
-            <h3 className="font-medium text-gray-900">Content Rechten</h3>
-          </div>
-          <p className="text-sm text-gray-600">Bepaal wie je recepten, designs en kweek projecten mag downloaden of printen</p>
-          
-          <div className="space-y-4">
-            {/* Download Permission */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-amber-50">
-              <label className="block font-medium text-gray-900 mb-3">Download Toestemming</label>
-              <div className="space-y-2">
-                {[
-                  { value: 'EVERYONE', label: 'Iedereen', desc: 'Alle gebruikers mogen je content downloaden' },
-                  { value: 'FANS_ONLY', label: 'Alleen je Fans', desc: 'Alleen goedgekeurde fans mogen downloaden' },
-                  { value: 'FAN_OF_ONLY', label: 'Alleen Fan Van jou', desc: 'Alleen als zij jouw fan zijn' },
-                  { value: 'ASK_PERMISSION', label: 'Toestemming Vragen', desc: 'Gebruikers moeten eerst toestemming vragen' },
-                  { value: 'NOBODY', label: 'Niemand', desc: 'Download niet toegestaan' }
-                ].map(option => (
-                  <label key={option.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-white cursor-pointer transition-colors">
-                    <input
-                      type="radio"
-                      name="downloadPermission"
-                      value={option.value}
-                      checked={settings.downloadPermission === option.value}
-                      onChange={(e) => updateSetting('downloadPermission', e.target.value)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600">{option.desc}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Print Permission */}
-            <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
-              <label className="block font-medium text-gray-900 mb-3">Print Toestemming</label>
-              <div className="space-y-2">
-                {[
-                  { value: 'EVERYONE', label: 'Iedereen', desc: 'Alle gebruikers mogen je content printen' },
-                  { value: 'FANS_ONLY', label: 'Alleen je Fans', desc: 'Alleen goedgekeurde fans mogen printen' },
-                  { value: 'FAN_OF_ONLY', label: 'Alleen Fan Van jou', desc: 'Alleen als zij jouw fan zijn' },
-                  { value: 'ASK_PERMISSION', label: 'Toestemming Vragen', desc: 'Gebruikers moeten eerst toestemming vragen' },
-                  { value: 'NOBODY', label: 'Niemand', desc: 'Printen niet toegestaan' }
-                ].map(option => (
-                  <label key={option.value} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-white cursor-pointer transition-colors">
-                    <input
-                      type="radio"
-                      name="printPermission"
-                      value={option.value}
-                      checked={settings.printPermission === option.value}
-                      onChange={(e) => updateSetting('printPermission', e.target.value)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{option.label}</div>
-                      <div className="text-sm text-gray-600">{option.desc}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Message */}
         {message && (
           <div className={`p-4 rounded-lg flex items-center gap-3 ${
-            message.type === 'success' 
-              ? 'bg-green-50 border border-green-200 text-green-800' 
+            message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
               : 'bg-red-50 border border-red-200 text-red-800'
           }`}>
             {message.type === 'success' ? (
@@ -374,7 +278,6 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
           </div>
         )}
 
-        {/* Save Button */}
         <div className="flex justify-end pt-4 border-t border-gray-200">
           <button
             onClick={handleSave}

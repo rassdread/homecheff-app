@@ -8,6 +8,7 @@ import {
   awardDishInspirationContentHcp,
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
+import { syncLinkedProductFromDishPatch } from "@/lib/items/sync-linked-product-dish";
 
 export async function GET(
   req: NextRequest,
@@ -292,6 +293,31 @@ export async function PATCH(
       dishMetrics.imageLikeCount,
       dishMetrics.hasVideo,
     ).catch((e) => console.warn("[gamification] dish inspiration PATCH", e));
+
+    await syncLinkedProductFromDishPatch(completeDish.id, {
+      title: completeDish.title,
+      description: completeDish.description,
+      tags: completeDish.tags,
+      subcategory: completeDish.subcategory,
+      priceCents: completeDish.priceCents,
+      stock: completeDish.stock,
+      maxStock: completeDish.maxStock,
+      ...(photos !== undefined
+        ? { mainPhotoUrls: completeDish.photos.map((p) => p.url) }
+        : {}),
+      ...(video !== undefined
+        ? {
+            video:
+              completeDish.videos.length > 0
+                ? {
+                    url: completeDish.videos[0].url,
+                    thumbnail: completeDish.videos[0].thumbnail,
+                    duration: completeDish.videos[0].duration,
+                  }
+                : null,
+          }
+        : {}),
+    }).catch((e) => console.warn("[dish PATCH] linked product sync", e));
 
     // Transform to match expected format (same as GET endpoint)
     const transformedDish = {

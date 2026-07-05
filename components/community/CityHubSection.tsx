@@ -103,7 +103,7 @@ export default function CityHubSection({ initial }: { initial: EcosystemHubPaylo
                 </Link>
                 <span className="text-slate-500">
                   {' '}
-                  · {t('ecosystemHub.spotlight.hcpPoints', { count: initial.localHcpLeaderTotal })}
+                  · {t('ecosystemHub.spotlight.hcpPoints')}
                 </span>
               </p>
             ) : null}

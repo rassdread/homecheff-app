@@ -5,6 +5,12 @@ import { sanitizeInput } from "@/lib/security";
 import { sanitizeProductForPublic } from "@/lib/data-isolation";
 import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 import { isContactOnlyProduct } from "@/lib/product/order-method";
+import {
+  resolveProductCoords,
+  resolveProductPlaceLabel,
+  resolveDisplayPlace,
+} from "@/lib/geo/item-location";
+import { DISTANCE_UNKNOWN_LABEL } from "@/lib/geo/local-discovery";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -55,6 +61,9 @@ export async function GET(req: Request) {
           isActive: true,
           stock: true,
           maxStock: true,
+          pickupAddress: true,
+          pickupLat: true,
+          pickupLng: true,
           seller: {
             select: {
               id: true,
@@ -69,6 +78,9 @@ export async function GET(req: Request) {
                   name: true,
                   profileImage: true,
                   place: true,
+                  city: true,
+                  lat: true,
+                  lng: true,
                   buyerRoles: true,
                   displayFullName: true,
                   displayNameOption: true,
@@ -374,6 +386,9 @@ export async function GET(req: Request) {
       // Get video if available - Video is a one-to-one relation, not an array
       const video = p.Video || null;
       
+      const coords = resolveProductCoords(p);
+      const placeLabel = resolveProductPlaceLabel(p);
+
       return {
         id: p.id,
         title: p.title,
@@ -393,13 +408,13 @@ export async function GET(req: Request) {
         subcategory: null,
         delivery: p.delivery,
         tags: (p as any).tags || [],
+        pickupAddress: p.pickupAddress ?? null,
+        pickupLat: p.pickupLat ?? null,
+        pickupLng: p.pickupLng ?? null,
         location: {
-          place: p.seller?.User?.place || 'Locatie onbekend',
-          city: 'Nederland',
-          // Use product pickup location if available, otherwise use seller location
-          // Note: pickupLat/pickupLng columns don't exist in database yet
-          lat: (p as any).pickupLat ?? p.seller?.lat ?? null,
-          lng: (p as any).pickupLng ?? p.seller?.lng ?? null,
+          place: resolveDisplayPlace(placeLabel, DISTANCE_UNKNOWN_LABEL),
+          lat: coords?.lat ?? null,
+          lng: coords?.lng ?? null,
         },
         seller: {
           id: p.seller?.User?.id ?? null,

@@ -5,7 +5,7 @@ import UserStatsTile from '@/components/ui/UserStatsTile';
 import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { InspirationItem } from './InspiratieContent';
-import ShareButton from '@/components/ui/ShareButton';
+import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
 import PropsButton from '@/components/props/PropsButton';
 import { Eye } from 'lucide-react';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
@@ -139,7 +139,6 @@ export default function InspirationCard({
         <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
           <InspirationCardMedia
             item={item}
-            objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
             alt={item.title || 'Inspiratie'}
             isCardHovered={isCardHovered}
           />
@@ -173,7 +172,6 @@ export default function InspirationCard({
         <InspirationCardMedia
           item={item}
           priority={priority}
-          objectFit={item.category === 'GROWN' ? 'contain' : 'cover'}
           alt={item.title || 'Inspiratie'}
           isCardHovered={isCardHovered}
         />
@@ -211,10 +209,12 @@ export default function InspirationCard({
           {categoryLabel}
         </p>
         <p className="text-xs text-gray-600">
-          {item.location?.place ?? t('feed.unknownPlace')}
-          {item.location?.distanceKm != null && item.location.distanceKm !== Infinity
-            ? ` · ${item.location.distanceKm.toFixed(1)} km`
-            : ''}
+          {formatItemPlaceDistanceLine({
+            place: item.location?.place,
+            distanceKm: item.location?.distanceKm,
+            unknownPlaceLabel: t('feed.unknownPlace'),
+            unknownDistanceLabel: t('feed.unknownDistance'),
+          })}
         </p>
         <p className="text-xs text-gray-500">&nbsp;</p>
         {authorRow}

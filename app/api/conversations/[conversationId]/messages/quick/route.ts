@@ -5,6 +5,7 @@ import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
+import { syncConversationStatusAfterMessage } from '@/lib/communication/sync-conversation-status';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,10 @@ export async function POST(
         isActive: true
       }
     });
+
+    void syncConversationStatusAfterMessage(conversationId).catch((e) =>
+      console.warn('[messages/quick] status sync', e),
+    );
 
     // Unhide conversation for all participants
     await prisma.conversationParticipant.updateMany({

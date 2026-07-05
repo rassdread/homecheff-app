@@ -3,11 +3,8 @@
  * Fase 5D: taxonomy + href in lib/feed/.
  */
 
-import {
-  deriveFeedTaxonomy,
-  hasValidSalePrice,
-  taxonomyToLegacyFeedKind,
-} from '@/lib/feed/feed-taxonomy';
+import { hasValidSalePrice } from '@/lib/feed/feed-taxonomy';
+import { isMarketplaceSaleItem } from '@/lib/feed/marketplace-sale';
 import {
   getFeedItemHref,
   getInspirationFeedItemHref,
@@ -22,12 +19,11 @@ export { hasValidSalePrice, resolveFeedItemHref };
 
 export type FeedItemKind = 'sale' | 'inspiration';
 
-/** Legacy chip classificatie — derived from taxonomy, not authoritative. */
+/** Legacy chip classificatie — uses central marketplace sale helper. */
 export function classifyFeedItem(
   item: import('@/lib/feed/feed-types').FeedClassifiable
 ): FeedItemKind {
-  const tax = item.taxonomy ?? deriveFeedTaxonomy(item);
-  return taxonomyToLegacyFeedKind(tax);
+  return isMarketplaceSaleItem(item) ? 'sale' : 'inspiration';
 }
 
 export { getSaleItemHref, getInspirationFeedItemHref, getFeedItemHref };

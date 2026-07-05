@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dynamic from 'next/dynamic';
 import { Plus, Edit3, Trash2, Clock, Users, ChefHat, Camera, Save, Grid, List, ShoppingCart, PlayCircle } from "lucide-react";
 import { useInspiratieFormOpener } from "@/hooks/useInspiratieFormOpener";
+import { useInspiratieEditDeepLink } from "@/hooks/useInspiratieEditDeepLink";
 import { InspiratieDraftCloseDialog } from "@/components/profile/InspiratieDraftCloseDialog";
 import { useTranslation } from '@/hooks/useTranslation';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
+import SmartFitMediaImage from '@/components/inspiratie/SmartFitMediaImage';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import {
   clearDraft,
@@ -224,6 +226,58 @@ export default function RecipeManager({
     setShowForm,
     setFormData
   });
+
+  const openRecipeForEdit = useCallback(async (recipeId: string) => {
+    try {
+      let response = await fetch(`/api/recipes/${recipeId}`);
+      let fullRecipe: Recipe & { stepPhotos?: StepPhoto[]; video?: Recipe['video'] };
+      if (response.ok) {
+        const data = await response.json();
+        fullRecipe = data.recipe;
+      } else {
+        response = await fetch(`/api/profile/dishes/${recipeId}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        fullRecipe = data.item;
+      }
+      setEditingRecipe(fullRecipe);
+      const mainPhotos = (fullRecipe.photos || []).filter((photo) => !photo.stepNumber);
+      const stepPhotosData =
+        fullRecipe.stepPhotos?.length
+          ? fullRecipe.stepPhotos
+          : (fullRecipe.photos || []).filter((photo) => photo.stepNumber);
+      const recipeCategory = fullRecipe.subcategory || '';
+      setFormData({
+        title: fullRecipe.title,
+        description: fullRecipe.description || '',
+        ingredients: fullRecipe.ingredients?.length ? fullRecipe.ingredients : [''],
+        instructions: fullRecipe.instructions?.length ? fullRecipe.instructions : [''],
+        prepTime: fullRecipe.prepTime ? fullRecipe.prepTime.toString() : '',
+        servings: fullRecipe.servings ? fullRecipe.servings.toString() : '',
+        difficulty: fullRecipe.difficulty || 'EASY',
+        category: recipeCategory,
+        tags: fullRecipe.tags || [],
+        allowDownload: true,
+        allowPrint: true,
+        photos: mainPhotos,
+        video: fullRecipe.video || null,
+      });
+      if (recipeCategory && !RECIPE_CATEGORIES.includes(recipeCategory)) {
+        setCustomCategory(recipeCategory);
+        setShowCustomCategoryInput(true);
+      } else {
+        setCustomCategory('');
+        setShowCustomCategoryInput(false);
+      }
+      setStepPhotos(stepPhotosData as StepPhoto[]);
+      setIsPrivate(fullRecipe.status === 'PRIVATE');
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error loading recipe for edit:', error);
+    }
+  }, [RECIPE_CATEGORIES]);
+
+  useInspiratieEditDeepLink(isActive, openRecipeForEdit);
 
   useEffect(() => {
     if (!showForm || editingRecipe) return;
@@ -812,12 +866,19 @@ export default function RecipeManager({
       title: recipe.title,
       description: recipe.description || '',
       ingredients: recipe.ingredients,
+      instructions: recipe.instructions,
+      stepPhotos: (recipe.stepPhotos || []).map((photo) => ({
+        url: photo.url,
+        stepNumber: photo.stepNumber,
+        description: photo.description || '',
+        idx: photo.idx,
+      })),
       photos: mainPhotos,
       prepTime: recipe.prepTime,
       servings: recipe.servings,
       difficulty: recipe.difficulty,
-      category: recipe.category,
-      tags: recipe.tags
+      category: recipe.subcategory || recipe.category,
+      tags: recipe.tags,
     };
 
     const jsonData = JSON.stringify(recipeData);
@@ -1570,14 +1631,14 @@ export default function RecipeManager({
         </div>
       ) : (
         <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch" 
           : "space-y-4"
         }>
           {filteredRecipes.map(recipe => (
             <div
               key={recipe.id}
-              className={`bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
-                viewMode === 'list' ? 'flex' : ''
+              className={`bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer flex h-full min-h-0 ${
+                viewMode === 'list' ? 'flex-row' : 'flex-col'
               }`}
               onClick={(e) => {
                 // Don't navigate if clicking on video controls
@@ -1589,7 +1650,7 @@ export default function RecipeManager({
               }}
             >
               {/* Recipe Image/Video */}
-              <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gray-100 flex items-center justify-center relative overflow-hidden`}>
+              <div className={`${viewMode === 'list' ? 'w-48 h-32 shrink-0' : 'h-48 shrink-0'} bg-neutral-50 flex items-center justify-center relative overflow-hidden rounded-t-xl ${viewMode === 'list' ? 'rounded-l-xl rounded-tr-none' : ''}`}>
                 {recipe.photos.length > 0 || recipe.video ? (
                   <>
                     {recipe.video ? (
@@ -1611,10 +1672,11 @@ export default function RecipeManager({
                         />
                       </div>
                     ) : recipe.photos.length > 0 ? (
-                      <img
+                      <SmartFitMediaImage
                         src={recipe.photos[0].url}
                         alt={recipe.title}
-                        className="w-full h-full object-cover"
+                        mode="preview"
+                        fill
                       />
                     ) : null}
                   </>
@@ -1624,7 +1686,7 @@ export default function RecipeManager({
               </div>
 
               {/* Recipe Content */}
-              <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+              <div className={`p-4 flex flex-col flex-1 min-w-0 min-h-0 ${viewMode === 'list' ? '' : ''}`}>
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 line-clamp-1">{recipe.title}</h4>
@@ -1678,11 +1740,12 @@ export default function RecipeManager({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
+                <div className={`flex items-center justify-between gap-2 ${!isPublic ? 'mt-auto shrink-0 pt-3 border-t border-gray-100' : 'mt-2'}`}>
                   <span className="text-xs text-gray-500">
                     {new Date(recipe.createdAt).toLocaleDateString('nl-NL')}
                   </span>
-                  <div className="flex items-center gap-2">
+                  {!isPublic ? (
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={async (e) => {
                         e.stopPropagation(); // Prevent card click
@@ -1712,7 +1775,7 @@ export default function RecipeManager({
                           const mainPhotos = (fullRecipe.photos || []).filter((photo: any) => !photo.stepNumber);
                           const stepPhotos = (fullRecipe.photos || []).filter((photo: any) => photo.stepNumber);
                           
-                          const recipeCategory = fullRecipe.category || '';
+                          const recipeCategory = fullRecipe.subcategory || fullRecipe.category || '';
                           setFormData({
                             title: fullRecipe.title,
                             description: fullRecipe.description || '',
@@ -1785,7 +1848,7 @@ export default function RecipeManager({
                           const mainPhotos = (recipe.photos || []).filter(photo => !photo.stepNumber);
                           const stepPhotos = (recipe.photos || []).filter(photo => photo.stepNumber);
                           
-                          const recipeCategory = recipe.category || '';
+                          const recipeCategory = recipe.subcategory || recipe.category || '';
                           setFormData({
                             title: recipe.title,
                             description: recipe.description || '',
@@ -1941,6 +2004,7 @@ export default function RecipeManager({
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                  ) : null}
                 </div>
               </div>
             </div>

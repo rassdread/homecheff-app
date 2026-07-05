@@ -13,6 +13,8 @@ import Link from "next/link";
 import { PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
+import { inspirationMediaClass } from "@/lib/inspiratie/media-fit";
+import { useSmartMediaFit } from "@/hooks/useSmartMediaFit";
 import { FeedMediaLightbox } from "@/components/feed/FeedMediaLightbox";
 import type { FeedMediaLightboxPayload } from "@/components/feed/FeedMediaLightbox";
 import { HomeCheffVideoPlayer } from "@/components/media/HomeCheffVideoPlayer";
@@ -198,7 +200,7 @@ export type FeedCardPrimaryMediaProps = {
   videoUrl?: string | null;
   videoPoster?: string | null;
   imageUrl?: string | null;
-  objectFit?: "cover" | "contain";
+  objectFit?: "cover" | "contain" | "smart";
   /** Extra classes op de inner media-wrapper (niet op aspect-box). */
   className?: string;
   badgeOverlay?: ReactNode;
@@ -271,7 +273,7 @@ export function FeedCardPrimaryMedia({
   videoUrl,
   videoPoster,
   imageUrl,
-  objectFit = "cover",
+  objectFit = "smart",
   className = "",
   badgeOverlay,
 }: FeedCardPrimaryMediaProps) {
@@ -280,6 +282,13 @@ export function FeedCardPrimaryMedia({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wantPlayRef = useRef(false);
+  const smartFit = useSmartMediaFit(imageUrl ?? null, {
+    mode: "card",
+    forceFit: objectFit === "smart" ? undefined : objectFit,
+  });
+  const fitClass = inspirationMediaClass(
+    objectFit === "smart" ? smartFit : objectFit,
+  );
   const interactionMode = useFeedVideoInteractionMode();
   const useHoverPlayback = interactionMode === "hover";
   const { t } = useTranslation();
@@ -327,7 +336,6 @@ export function FeedCardPrimaryMedia({
     ? proxyFallback!
     : rawVideo;
 
-  const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
   const showVideo = Boolean(corsSrc);
   /** Viewport/touch: mount <video> pas nabij viewport; desktop-hover: meteen (play op hover). */
   const shouldDeferVideoMount = showVideo && !useHoverPlayback;

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { TrendingUp, Bell, Bookmark } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { cn } from '@/lib/utils';
 
 type Visibility = {
   profileViews: number;
@@ -15,7 +16,7 @@ type Visibility = {
   hasSellerProfile: boolean;
 };
 
-export default function CreatorMomentumCard() {
+export default function CreatorMomentumCard({ className }: { className?: string }) {
   const { status } = useSession();
   const { t } = useTranslation();
   const [v, setV] = useState<Visibility | null>(null);
@@ -87,7 +88,7 @@ export default function CreatorMomentumCard() {
   if (!hasSignal) return null;
 
   return (
-    <div className="mb-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/90 to-white px-4 py-3 shadow-sm">
+    <div className={cn('mb-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/90 to-white px-4 py-3 shadow-sm hc-dorpsplein-card', className)}>
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-800">
           <TrendingUp className="h-5 w-5" aria-hidden />

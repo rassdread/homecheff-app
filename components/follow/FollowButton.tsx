@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { UserPlus, UserCheck } from 'lucide-react';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface FollowButtonProps {
   sellerId: string;
@@ -21,6 +22,7 @@ export default function FollowButton({
   size = 'md',
   isOwnProfile = false
 }: FollowButtonProps) {
+  const { t } = useTranslation();
   const { data: session } = useSession();
   const pathname = usePathname();
   const [following, setFollowing] = useState(false);
@@ -99,15 +101,8 @@ export default function FollowButton({
     }
   };
 
-  if (checkingStatus) {
-    return (
-      <button
-        disabled
-        className={`px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed ${className}`}
-      >
-        <UserPlus className="w-4 h-4" />
-      </button>
-    );
+  if (checkingStatus || isOwnProfile) {
+    return null;
   }
 
   const sizeClasses = {
@@ -142,12 +137,12 @@ export default function FollowButton({
       {following ? (
         <>
           <UserCheck className={`${iconSize[size]} ${following ? 'animate-bounce' : ''}`} />
-          <span>Fan</span>
+          <span>{t('follow.followingButton')}</span>
         </>
       ) : (
         <>
           <UserPlus className={iconSize[size]} />
-          <span>Fan worden</span>
+          <span>{t('follow.followButton')}</span>
         </>
       )}
     </button>

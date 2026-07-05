@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
-  Star, Package, Edit3, Trash2, Eye, ShoppingBag, AlertCircle, Printer,
+  Star, Package, Edit3, Trash2, Eye, ShoppingBag, AlertCircle,
   ChefHat, Sprout, Palette,
 } from "lucide-react";
 import ReviewList from "@/components/reviews/ReviewList";
@@ -19,6 +19,7 @@ import {
 } from '@/lib/seo/productSlug';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
+import type { ProductInspirationLink } from '@/components/product/detail/ProductInspirationLinkCard';
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
 import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTrustNote';
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
@@ -199,20 +200,10 @@ export default function ProductPage() {
     lat?: number | null;
     lng?: number | null;
   } | null>(null);
-  const [dishInfo, setDishInfo] = useState<{ 
-    isDish: boolean; 
-    category: string | null;
-    ingredients?: string[];
-    instructions?: string[];
-    stepPhotos?: Array<{ id: string; url: string; stepNumber: number; description?: string | null }>;
-    growthPhotos?: Array<{ id: string; url: string; phaseNumber: number; description?: string | null }>;
-    materials?: string[];
-    plantType?: string | null;
-    notes?: string | null;
-    video?: { id: string; url: string; thumbnail?: string | null; duration?: number | null } | null;
-  }>({
+  const [linkedInspiration, setLinkedInspiration] = useState<ProductInspirationLink | null>(null);
+  const [dishInfo, setDishInfo] = useState<import('@/components/product/detail/ProductSaleDomainStory').ProductSaleDishInfo>({
     isDish: false,
-    category: null
+    category: null,
   });
 
   useEffect(() => {
@@ -247,25 +238,44 @@ export default function ProductPage() {
           category: data.dishCategory || null,
           ingredients: data.dish?.ingredients || [],
           instructions: data.dish?.instructions || [],
-          stepPhotos: (data.dish?.stepPhotos || []).map((p: any) => ({
+          stepPhotos: (data.dish?.stepPhotos || []).map((p: { id: string; url: string; stepNumber: number; description?: string | null }) => ({
             id: p.id,
             url: p.url,
             stepNumber: p.stepNumber,
-            description: p.description
+            description: p.description,
           })),
-          growthPhotos: (data.dish?.growthPhotos || []).map((p: any) => ({
+          growthPhotos: (data.dish?.growthPhotos || []).map((p: { id: string; url: string; phaseNumber: number; description?: string | null }) => ({
             id: p.id,
             url: p.url,
             phaseNumber: p.phaseNumber,
-            description: p.description
+            description: p.description,
           })),
           materials: data.dish?.materials || [],
           plantType: data.dish?.plantType || null,
+          sunlight: data.dish?.sunlight || null,
+          waterNeeds: data.dish?.waterNeeds || null,
+          harvestDate: data.dish?.harvestDate || null,
+          location: data.dish?.location || null,
+          soilType: data.dish?.soilType || null,
+          growthDuration: data.dish?.growthDuration ?? null,
+          dimensions: data.dish?.dimensions || null,
           notes: data.dish?.notes || null,
-          video: data.dish?.video || null
+          difficulty: data.dish?.difficulty || null,
+          prepTime: data.dish?.prepTime ?? null,
+          servings: data.dish?.servings ?? null,
+          tags: data.dish?.tags || [],
         };
         
         setDishInfo(dishData);
+
+        if (data.linkedInspiration?.href && data.linkedInspiration?.category) {
+          setLinkedInspiration({
+            href: data.linkedInspiration.href,
+            category: data.linkedInspiration.category,
+          });
+        } else {
+          setLinkedInspiration(null);
+        }
         
         const transformedProduct: Product = {
           id: data.product.id,
@@ -595,12 +605,6 @@ export default function ProductPage() {
     carouselMedia.find((m) => m.type === 'image')?.fileUrl ?? product.image ?? null;
   const productShareUrl = `${baseUrl}/product/${buildProductSlugPath(product.title, product.seller?.User?.place, product.id)}`;
 
-  const openLinkedDishView = () => {
-    if (dishInfo.category === 'CHEFF') router.push(`/recipe/${product.id}`);
-    else if (dishInfo.category === 'GROWN') router.push(`/garden/${product.id}`);
-    else if (dishInfo.category === 'DESIGNER') router.push(`/design/${product.id}`);
-  };
-
   return (
     <main className={`min-h-screen bg-gradient-to-br ${theme.bg} via-white to-gray-50 pb-[calc(env(safe-area-inset-bottom,0px)+10rem)] lg:pb-8`}>
       <div className="no-print sticky top-0 z-10 border-b bg-white shadow-sm">
@@ -782,18 +786,10 @@ export default function ProductPage() {
                 </div>
               ) : null}
 
-              {dishInfo.isDish && dishInfo.category ? (
-                <button
-                  type="button"
-                  onClick={openLinkedDishView}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:px-4"
-                >
-                  <Printer className="h-4 w-4" aria-hidden />
-                  {t('productDetail.viewLinkedStory') || 'Bekijk het verhaal achter dit product'}
-                </button>
-              ) : null}
-
-              <ProductSaleDomainStory dishInfo={dishInfo} />
+              <ProductSaleDomainStory
+                dishInfo={dishInfo}
+                inspirationLink={linkedInspiration}
+              />
 
               <ProductDetailTrustNote
                 orderMethod={product.orderMethod}

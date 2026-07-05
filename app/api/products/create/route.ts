@@ -13,6 +13,11 @@ import {
   resolveProductPublishState,
 } from '@/lib/product/order-method';
 import { awardProductLifecycleHcp } from '@/lib/gamification/product-hcp';
+import {
+  saleProductRequiresLocation,
+  validateProductLocationForPublish,
+} from '@/lib/geo/product-location-requirements';
+import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -74,6 +79,25 @@ export async function POST(req: Request) {
       maxStock,
       tags = [],
       growthPhotos = [],
+      stepPhotos = [],
+      ingredients = [],
+      instructions = [],
+      prepTime,
+      servings,
+      difficulty,
+      mealType,
+      plantType,
+      sunlight,
+      waterNeeds,
+      harvestDate,
+      location,
+      growthDuration,
+      plantDate,
+      soilType,
+      plantDistance,
+      notes,
+      materials = [],
+      dimensions,
       orderMethod: orderMethodRaw,
     } = body || {};
     
@@ -184,6 +208,49 @@ export async function POST(req: Request) {
       sellerUser: user,
     });
 
+    const pickupLatNum =
+      pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null;
+    const pickupLngNum =
+      pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null;
+    const pickupAddressStr =
+      typeof pickupAddress === 'string' ? pickupAddress.trim() : '';
+
+    if (
+      publishState.isActive &&
+      saleProductRequiresLocation(orderMethod, priceCentsNum)
+    ) {
+      const locCheck = validateProductLocationForPublish({
+        pickupAddress: pickupAddressStr || null,
+        pickupLat: pickupLatNum,
+        pickupLng: pickupLngNum,
+        seller: user.SellerProfile
+          ? {
+              lat: user.SellerProfile.lat,
+              lng: user.SellerProfile.lng,
+              User: {
+                place: user.place,
+                city: user.city,
+                lat: user.lat,
+                lng: user.lng,
+              },
+            }
+          : {
+              User: {
+                place: user.place,
+                city: user.city,
+                lat: user.lat,
+                lng: user.lng,
+              },
+            },
+      });
+      if (!locCheck.ok) {
+        return NextResponse.json(
+          { error: locCheck.message, code: locCheck.errorCode },
+          { status: 400 }
+        );
+      }
+    }
+
     const cat = CATEGORY_MAP[category as string] ?? 'CHEFF';
     const delivery = normalizeDeliveryModeInput(
       typeof deliveryMode === 'string' ? deliveryMode : 'PICKUP'
@@ -264,11 +331,20 @@ export async function POST(req: Request) {
       },
     });
 
-    // If growth photos are provided, create a Dish record with same ID as product for easy linking
-    if (Array.isArray(growthPhotos) && growthPhotos.length > 0 && cat === 'GROWN') {
-      // Use the same ID as the product so they're automatically linked
-      await prisma.dish.create({
-        data: {
+    // Linked Dish records share the product ID for inspiration ↔ sale parity.
+    const tagList = Array.isArray(tags)
+      ? tags.filter((tag: string) => tag && tag.trim().length > 0)
+      : [];
+    const growthPhotoList = Array.isArray(growthPhotos) ? growthPhotos : [];
+    const stepPhotoList = Array.isArray(stepPhotos) ? stepPhotos : [];
+    const materialList = Array.isArray(materials)
+      ? materials.filter((m: unknown) => typeof m === 'string' && m.trim().length > 0)
+      : [];
+
+    if (cat === 'GROWN') {
+      await prisma.dish.upsert({
+        where: { id: productId },
+        create: {
           id: productId,
           userId: user.id,
           title: titleStr,
@@ -276,8 +352,7 @@ export async function POST(req: Request) {
           status: 'PUBLISHED',
           category: 'GROWN',
           subcategory: subcategory || null,
-          tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
-          // Set other fields to null/empty for garden projects
+          tags: tagList,
           priceCents: priceCentsNum,
           deliveryMode: delivery as any,
           place: pickupAddress || null,
@@ -287,28 +362,39 @@ export async function POST(req: Request) {
           maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
           ingredients: [],
           instructions: [],
-          prepTime: null,
-          servings: null,
-          // Create main photos
+          plantType: typeof plantType === 'string' ? plantType : null,
+          sunlight: typeof sunlight === 'string' ? sunlight : null,
+          waterNeeds: typeof waterNeeds === 'string' ? waterNeeds : null,
+          harvestDate: typeof harvestDate === 'string' ? harvestDate : null,
+          location: typeof location === 'string' ? location : null,
+          growthDuration:
+            growthDuration !== undefined && growthDuration !== null && growthDuration !== ''
+              ? Number(growthDuration)
+              : null,
+          plantDate: typeof plantDate === 'string' ? plantDate : null,
+          soilType: typeof soilType === 'string' ? soilType : null,
+          plantDistance: typeof plantDistance === 'string' ? plantDistance : null,
+          difficulty: typeof difficulty === 'string' ? difficulty : null,
+          notes: typeof notes === 'string' ? notes : null,
           photos: {
             create: validImageUrls.map((url: string, i: number) => ({
               id: randomUUID(),
-              url: url,
+              url,
               idx: i,
-              isMain: i === 0
-            }))
+              isMain: i === 0,
+            })),
           },
-          // Create growth photos with descriptions
-          growthPhotos: {
-            create: growthPhotos.map((photo: any, index: number) => ({
-              id: randomUUID(),
-              url: photo.url,
-              phaseNumber: photo.phaseNumber || index + 1,
-              idx: index,
-              description: photo.description || null
-            }))
-          },
-          // Create video if provided
+          ...(growthPhotoList.length > 0 && {
+            growthPhotos: {
+              create: growthPhotoList.map((photo: any, index: number) => ({
+                id: randomUUID(),
+                url: photo.url,
+                phaseNumber: photo.phaseNumber || index + 1,
+                idx: index,
+                description: photo.description || null,
+              })),
+            },
+          }),
           ...(video && video.url && {
             videos: {
               create: {
@@ -316,11 +402,187 @@ export async function POST(req: Request) {
                 url: video.url,
                 thumbnail: video.thumbnail || null,
                 duration: video.duration ? Math.round(video.duration) : null,
-                fileSize: null
-              }
-            }
-          })
-        }
+                fileSize: null,
+              },
+            },
+          }),
+        },
+        update: {
+          title: titleStr,
+          description: descStr || null,
+          subcategory: subcategory || null,
+          tags: tagList,
+          priceCents: priceCentsNum,
+          plantType: typeof plantType === 'string' ? plantType : null,
+          sunlight: typeof sunlight === 'string' ? sunlight : null,
+          waterNeeds: typeof waterNeeds === 'string' ? waterNeeds : null,
+          harvestDate: typeof harvestDate === 'string' ? harvestDate : null,
+          location: typeof location === 'string' ? location : null,
+          growthDuration:
+            growthDuration !== undefined && growthDuration !== null && growthDuration !== ''
+              ? Number(growthDuration)
+              : null,
+          plantDate: typeof plantDate === 'string' ? plantDate : null,
+          soilType: typeof soilType === 'string' ? soilType : null,
+          plantDistance: typeof plantDistance === 'string' ? plantDistance : null,
+          difficulty: typeof difficulty === 'string' ? difficulty : null,
+          notes: typeof notes === 'string' ? notes : null,
+        },
+      });
+    }
+
+    if (cat === 'CHEFF') {
+      const ingredientList = Array.isArray(ingredients)
+        ? ingredients.filter((ing: unknown) => typeof ing === 'string' && ing.trim().length > 0)
+        : [];
+      const instructionList = Array.isArray(instructions)
+        ? instructions.filter((ins: unknown) => typeof ins === 'string' && ins.trim().length > 0)
+        : [];
+      const mealSubcategory =
+        (typeof subcategory === 'string' && subcategory.trim()) ||
+        (typeof mealType === 'string' && mealType.trim()) ||
+        null;
+
+      await prisma.dish.upsert({
+        where: { id: productId },
+        create: {
+          id: productId,
+          userId: user.id,
+          title: titleStr,
+          description: descStr || null,
+          status: 'PUBLISHED',
+          category: 'CHEFF',
+          subcategory: mealSubcategory,
+          tags: tagList,
+          priceCents: priceCentsNum,
+          deliveryMode: delivery as any,
+          place: pickupAddress || null,
+          lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
+          lng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
+          stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+          maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
+          ingredients: ingredientList,
+          instructions: instructionList,
+          prepTime:
+            prepTime !== undefined && prepTime !== null && prepTime !== ''
+              ? Number(prepTime)
+              : null,
+          servings:
+            servings !== undefined && servings !== null && servings !== ''
+              ? Number(servings)
+              : null,
+          difficulty: typeof difficulty === 'string' ? difficulty : null,
+          photos: {
+            create: validImageUrls.map((url: string, i: number) => ({
+              id: randomUUID(),
+              url,
+              idx: i,
+              isMain: i === 0,
+            })),
+          },
+          ...(stepPhotoList.length > 0 && {
+            stepPhotos: {
+              create: stepPhotoList.map((photo: any, index: number) => ({
+                id: randomUUID(),
+                url: photo.url,
+                stepNumber: photo.stepNumber ?? index + 1,
+                idx: photo.idx ?? index,
+                description: photo.description || null,
+              })),
+            },
+          }),
+          ...(video && video.url && {
+            videos: {
+              create: {
+                id: randomUUID(),
+                url: video.url,
+                thumbnail: video.thumbnail || null,
+                duration: video.duration ? Math.round(video.duration) : null,
+                fileSize: null,
+              },
+            },
+          }),
+        },
+        update: {
+          title: titleStr,
+          description: descStr || null,
+          subcategory: mealSubcategory,
+          tags: tagList,
+          priceCents: priceCentsNum,
+          ingredients: ingredientList,
+          instructions: instructionList,
+          prepTime:
+            prepTime !== undefined && prepTime !== null && prepTime !== ''
+              ? Number(prepTime)
+              : null,
+          servings:
+            servings !== undefined && servings !== null && servings !== ''
+              ? Number(servings)
+              : null,
+          difficulty: typeof difficulty === 'string' ? difficulty : null,
+        },
+      });
+    }
+
+    if (cat === 'DESIGNER') {
+      await prisma.dish.upsert({
+        where: { id: productId },
+        create: {
+          id: productId,
+          userId: user.id,
+          title: titleStr,
+          description: descStr || null,
+          status: 'PUBLISHED',
+          category: 'DESIGNER',
+          subcategory: subcategory || null,
+          tags: tagList,
+          priceCents: priceCentsNum,
+          deliveryMode: delivery as any,
+          place: pickupAddress || null,
+          lat: pickupLat !== undefined && pickupLat !== null ? Number(pickupLat) : null,
+          lng: pickupLng !== undefined && pickupLng !== null ? Number(pickupLng) : null,
+          stock: stock !== undefined && stock !== null ? Number(stock) : 0,
+          maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
+          materials: materialList,
+          instructions: Array.isArray(instructions)
+            ? instructions.filter((ins: unknown) => typeof ins === 'string' && ins.trim().length > 0)
+            : [],
+          dimensions: typeof dimensions === 'string' ? dimensions : null,
+          notes: typeof notes === 'string' ? notes : null,
+          ingredients: [],
+          photos: {
+            create: validImageUrls.map((url: string, i: number) => ({
+              id: randomUUID(),
+              url,
+              idx: i,
+              isMain: i === 0,
+            })),
+          },
+          ...(video && video.url && {
+            videos: {
+              create: {
+                id: randomUUID(),
+                url: video.url,
+                thumbnail: video.thumbnail || null,
+                duration: video.duration ? Math.round(video.duration) : null,
+                fileSize: null,
+              },
+            },
+          }),
+        },
+        update: {
+          title: titleStr,
+          description: descStr || null,
+          subcategory: subcategory || null,
+          tags: tagList,
+          priceCents: priceCentsNum,
+          materials: materialList,
+          instructions: Array.isArray(instructions)
+            ? instructions.filter((ins: unknown) => typeof ins === 'string' && ins.trim().length > 0)
+            : [],
+          dimensions: typeof dimensions === 'string' ? dimensions : null,
+          notes: typeof notes === 'string' ? notes : null,
+        },
       });
     }
 
@@ -351,6 +613,18 @@ export async function POST(req: Request) {
       }
     } else {
       console.error('[Products Create API] ❌ ERROR: Product not found in database after creation!');
+    }
+
+    if (sellerProfileId && pickupLatNum != null && pickupLngNum != null) {
+      await syncSellerProfileCoordsIfEmpty(sellerProfileId, {
+        lat: pickupLatNum,
+        lng: pickupLngNum,
+      }).catch((e) => console.warn('[Products Create] seller coords sync', e));
+    } else if (sellerProfileId && user.lat != null && user.lng != null) {
+      await syncSellerProfileCoordsIfEmpty(sellerProfileId, {
+        lat: user.lat,
+        lng: user.lng,
+      }).catch((e) => console.warn('[Products Create] seller coords sync from user', e));
     }
 
     // Send notifications to followers

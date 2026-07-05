@@ -30,6 +30,7 @@ export default async function ProfilePage({
       username: true,
       passwordHash: true,
       email: true,
+      emailVerified: true,
       accountDeletedAt: true,
       bio: true,
       quote: true,

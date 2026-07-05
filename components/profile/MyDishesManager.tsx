@@ -9,6 +9,7 @@ import RecipeManager from "./RecipeManager";
 import RecipeViewer from "./RecipeViewer";
 import GardenManager from "./GardenManager";
 import DesignManager from "../designs/DesignManager";
+import SmartFitMediaImage from "@/components/inspiratie/SmartFitMediaImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
 
@@ -162,6 +163,9 @@ interface MyDishesManagerProps {
   userSellerRoles?: string[];
   /** Profiel met brede CTA onder Dorpsplein/Inspiratie: verberg dubbele “toevoegen”-knoppen in managers. */
   hideCreateActions?: boolean;
+  /** Profile V2: owner user voor empty-state CTA in ProductManagement. */
+  ownerUser?: import('@/lib/profile/profile-v2/types').ProfileV2User;
+  aanbodFilter?: import('@/lib/profile/profile-v2/types').ProfileV2AanbodFilter;
 }
 
 export default function MyDishesManager({
@@ -174,6 +178,8 @@ export default function MyDishesManager({
   contentSubTab = 'dorpsplein',
   userSellerRoles = [],
   hideCreateActions = false,
+  ownerUser,
+  aanbodFilter = 'all',
 }: MyDishesManagerProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -313,7 +319,9 @@ export default function MyDishesManager({
             createdAt: product.createdAt,
             priceCents: product.priceCents,
             deliveryMode: product.delivery === "PICKUP" ? "PICKUP" : product.delivery === "DELIVERY" ? "DELIVERY" : "BOTH",
-            place: "Nederland",
+            place:
+              product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
+              null,
             category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
             subcategory: product.subcategory,
             stock: product.stock,
@@ -393,7 +401,9 @@ export default function MyDishesManager({
             createdAt: product.createdAt,
             priceCents: product.priceCents,
             deliveryMode: product.delivery === "PICKUP" ? "PICKUP" : product.delivery === "DELIVERY" ? "DELIVERY" : "BOTH",
-            place: "Nederland",
+            place:
+              product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
+              null,
             category: product.category === "CHEFF" ? "CHEFF" : product.category === "GROWN" ? "GROWN" : "DESIGNER",
             subcategory: product.subcategory,
             stock: product.stock,
@@ -642,6 +652,8 @@ export default function MyDishesManager({
                 null
               }
               hideCreateActions={hideCreateActions}
+              ownerUser={ownerUser}
+              aanbodFilter={aanbodFilter}
             />
           ) : (
             // Inspiratie: show managers or items based on activeRole
@@ -675,14 +687,75 @@ export default function MyDishesManager({
                   />
                 );
               } else if (role === 'overview') {
-                // For overview tab with inspiratie sub-tab, show ALL inspiratie items (not just one manager)
-                // This shows all items: recepten, kweken, designs
+                // Owner: volledige managers (bewerken, te koop, verwijderen) — geen samenvattingsgrid
+                if (!isPublic) {
+                  const roles = userSellerRoles;
+                  if (roles.length === 0) {
+                    return (
+                      <div className="hc-profile-v2-empty rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/30 px-5 py-10 text-center sm:px-8">
+                        <Sparkles className="mx-auto mb-4 h-12 w-12 text-emerald-400" aria-hidden />
+                        <h3 className="text-base font-semibold text-gray-900">
+                          {t('profileV2.inspiratie.title')}
+                        </h3>
+                        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
+                          {t('profileV2.empty.inspiratieOwner')}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-10">
+                      {roles.includes('chef') ? (
+                        <section>
+                          <h3 className="mb-4 text-base font-bold text-gray-900">
+                            {t('profileV2.inspiratie.sections.chef')}
+                          </h3>
+                          <RecipeManager
+                            isActive
+                            userId={userId}
+                            isPublic={isPublic}
+                            hideCreateActions={hideCreateActions}
+                          />
+                        </section>
+                      ) : null}
+                      {roles.includes('garden') ? (
+                        <section>
+                          <h3 className="mb-4 text-base font-bold text-gray-900">
+                            {t('profileV2.inspiratie.sections.garden')}
+                          </h3>
+                          <GardenManager
+                            isActive
+                            userId={userId}
+                            isPublic={isPublic}
+                            hideCreateActions={hideCreateActions}
+                          />
+                        </section>
+                      ) : null}
+                      {roles.includes('designer') ? (
+                        <section>
+                          <h3 className="mb-4 text-base font-bold text-gray-900">
+                            {t('profileV2.inspiratie.sections.designer')}
+                          </h3>
+                          <DesignManager
+                            isActive
+                            userId={userId}
+                            isPublic={isPublic}
+                            hideCreateActions={hideCreateActions}
+                          />
+                        </section>
+                      ) : null}
+                    </div>
+                  );
+                }
+                // Publiek: samenvattingsgrid (alleen bekijken)
                 return items.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <Sparkles className="mx-auto mb-4 h-12 w-12 text-gray-300" aria-hidden />
-                    <h3 className="text-lg font-medium text-gray-900">Nog geen inspiratie</h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Plaats inspiratie via de knop “Inspiratie plaatsen” hierboven.
+                  <div className="hc-profile-v2-empty rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/30 px-5 py-10 text-center sm:px-8">
+                    <Sparkles className="mx-auto mb-4 h-12 w-12 text-emerald-400" aria-hidden />
+                    <h3 className="text-base font-semibold text-gray-900">{t('profileV2.inspiratie.title')}</h3>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
+                      {isPublic
+                        ? t('profileV2.empty.inspiratiePublic')
+                        : t('profileV2.empty.inspiratieOwner')}
                     </p>
                   </div>
                 ) : (
@@ -705,12 +778,13 @@ export default function MyDishesManager({
                         }}
                       >
                         {/* Item card content */}
-                        <div className="relative aspect-video bg-gray-100">
+                        <div className="relative aspect-video bg-neutral-50">
                           {item.photos && item.photos.length > 0 ? (
-                            <img 
-                              src={item.photos[0].url} 
+                            <SmartFitMediaImage
+                              src={item.photos[0].url}
                               alt={item.title || 'Item'}
-                              className="w-full h-full object-cover"
+                              mode="preview"
+                              fill
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -732,11 +806,13 @@ export default function MyDishesManager({
               
               // Fallback: show items without price (status PUBLISHED)
               return items.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <Sparkles className="mx-auto mb-4 h-12 w-12 text-gray-300" aria-hidden />
-                  <h3 className="text-lg font-medium text-gray-900">Nog geen inspiratie</h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Gebruik de actieknoppen bovenaan dit tabblad om te beginnen.
+                <div className="hc-profile-v2-empty rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/30 px-5 py-10 text-center sm:px-8">
+                  <Sparkles className="mx-auto mb-4 h-12 w-12 text-emerald-400" aria-hidden />
+                  <h3 className="text-base font-semibold text-gray-900">{t('profileV2.inspiratie.title')}</h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
+                    {isPublic
+                      ? t('profileV2.empty.inspiratiePublic')
+                      : t('profileV2.empty.inspiratieOwner')}
                   </p>
                 </div>
               ) : (
@@ -750,16 +826,21 @@ export default function MyDishesManager({
                         if (!item.priceCents && (item as any).ingredients && (item as any).instructions) {
                           handleRecipeClick(item.id);
                         } else {
-                          window.location.href = `/dish/${item.id}`;
+                          const itemType = item.category === 'CHEFF' ? 'recipe' : 
+                                         item.category === 'GROWN' ? 'garden' : 
+                                         item.category === 'DESIGNER' ? 'design' : 'product';
+                          router.push(`/${itemType}/${item.id}`);
                         }
                       }}
                     >
                       {item.photos && item.photos.length > 0 && (
-                        <div className="relative h-48">
-                          <img
+                        <div className="relative h-48 bg-neutral-50">
+                          <SmartFitMediaImage
                             src={item.photos[0].url}
                             alt={item.title || 'Item'}
-                            className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                            mode="preview"
+                            fill
+                            className="hover:opacity-90 transition-opacity"
                           />
                           {/* Recipe indicator */}
                           {!item.priceCents && (item as any).ingredients && (
@@ -819,11 +900,18 @@ export default function MyDishesManager({
               : filteredItems;
             
             return roleFilteredItems.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <div className="w-12 h-12 mx-auto mb-4 text-gray-300">
-                  <Plus className="w-full h-full" />
-                </div>
-                <p>Nog geen items gedeeld</p>
+              <div className="hc-profile-v2-empty rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/30 px-5 py-10 text-center sm:px-8">
+                <Plus className="mx-auto mb-4 h-12 w-12 text-emerald-400" aria-hidden />
+                <h3 className="text-base font-semibold text-gray-900">
+                  {contentSubTab === 'inspiratie'
+                    ? t('profileV2.inspiratie.title')
+                    : t('profileV2.aanbod.title')}
+                </h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
+                  {contentSubTab === 'inspiratie'
+                    ? t('profileV2.empty.inspiratiePublic')
+                    : t('profileV2.empty.aanbodPublic')}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -840,7 +928,7 @@ export default function MyDishesManager({
                 >
                   {item.photos && item.photos.length > 0 && (
                     <div 
-                      className="relative h-48 cursor-pointer"
+                      className="relative h-48 cursor-pointer bg-neutral-50"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Open image in modal
@@ -850,10 +938,12 @@ export default function MyDishesManager({
                         window.dispatchEvent(event);
                       }}
                     >
-                      <img
+                      <SmartFitMediaImage
                         src={item.photos[0].url}
                         alt={item.title || 'Item'}
-                        className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                        mode="preview"
+                        fill
+                        className="hover:opacity-90 transition-opacity"
                       />
                       {/* Recipe indicator - show for all users if it's a recipe */}
                       {!item.priceCents && (item as any).ingredients && (

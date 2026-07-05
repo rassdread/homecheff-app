@@ -15,6 +15,7 @@ import {
   type UserActionCenterVariant,
 } from '@/lib/user/user-action-center';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { cn } from '@/lib/utils';
 
 type ActionCenterResponse = {
@@ -74,7 +75,7 @@ const severityStyles = {
   },
 } as const;
 
-function ActionRow({
+export function ActionCenterRow({
   item,
   compact,
   showDescription,
@@ -203,6 +204,10 @@ export default function UserActionCenter({
   const compact = variant !== 'dashboard';
   const showDescription = variant !== 'mobileCompact';
   const maxVisible = VARIANT_MAX[variant];
+  const { count: commsUnreadCount } = useCommsUnread();
+  /** Sidebar promotes Berichten in quick actions — avoid duplicate messages-unread row */
+  const suppressMessagesInActionCenter =
+    variant === 'sidebar' && commsUnreadCount > 0;
 
   const lastFetchRef = useRef(0);
   const FOCUS_REFETCH_MS = 30_000;
@@ -328,7 +333,20 @@ export default function UserActionCenter({
     return null;
   }
 
-  const items = data?.items ?? [];
+  const rawItems = data?.items ?? [];
+  const items = suppressMessagesInActionCenter
+    ? rawItems.filter((item) => item.id !== 'messages-unread')
+    : rawItems;
+
+  /** Urgency lives in sidebar quick actions — skip empty action center shell */
+  if (
+    items.length === 0 &&
+    suppressMessagesInActionCenter &&
+    rawItems.some((item) => item.id === 'messages-unread')
+  ) {
+    return null;
+  }
+
   const { visible, hidden, hasMore } = partitionUserActionItems(items, maxVisible);
   const showHidden = expanded ? hidden : [];
   const allActionsHref = resolveViewAllHref(data, viewAllHref);
@@ -407,7 +425,7 @@ export default function UserActionCenter({
 
       <div className={compact ? 'space-y-1.5' : 'space-y-2'}>
         {[...visible, ...showHidden].map((item) => (
-          <ActionRow
+          <ActionCenterRow
             key={item.id}
             item={item}
             compact={compact}

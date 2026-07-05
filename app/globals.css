@@ -17,9 +17,9 @@ a:focus-visible,
   outline-offset: 2px;
 }
 
-/* Voorkom horizontaal scrollen / content buiten scherm */
+/* Voorkom horizontaal scrollen — clip i.p.v. hidden (hidden breekt position:sticky in Safari/Chrome) */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
@@ -268,7 +268,7 @@ body {
   /* Use min-height instead so body can grow naturally */
   min-height: 100vh; /* Mobile: allows body to grow, enables scroll */
   min-height: 100dvh; /* Use dynamic viewport height for mobile Chrome */
-  overflow-x: hidden; /* Prevent horizontal scroll on body only */
+  overflow-x: clip; /* clip avoids sticky breakage from overflow-x: hidden on ancestors */
   /* Don't set overflow-y - let it flow naturally for vertical scroll */
   width: 100%;
   max-width: 100vw; /* Prevent overflow */
@@ -297,11 +297,19 @@ img, picture, video, canvas, svg {
 * {
   box-sizing: border-box;
 }
-/* Ensure containers don't overflow - but don't block vertical scroll */
-.container, [class*="max-w"], [class*="container"] {
+/* Ensure containers don't overflow — clip on mobile only; visible on desktop so sticky sidebars work */
+.container, [class*="container"] {
   max-width: 100%;
-  overflow-x: hidden; /* Only block horizontal overflow */
-  /* Don't set overflow-y - let it flow naturally for vertical scroll */
+}
+@media (max-width: 1023px) {
+  .container, [class*="max-w"], [class*="container"] {
+    overflow-x: clip;
+  }
+}
+@media (min-width: 1024px) {
+  .container, [class*="max-w"], [class*="container"] {
+    overflow-x: visible;
+  }
 }
 
 /* Chrome mobile scroll fix specifically for inspiratie pages */
@@ -876,6 +884,27 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
   }
 }
 
+/* —— Dorpsplein visual design refresh —— */
+.hc-dorpsplein-page {
+  background: linear-gradient(180deg, #faf8f4 0%, #f6f8fa 28%, #f6f8fa 100%);
+}
+
+.hc-dorpsplein-card {
+  @apply rounded-2xl border border-gray-200/80 bg-white shadow-sm;
+}
+
+.hc-dorpsplein-card-warm {
+  @apply border-amber-200/50 bg-gradient-to-br from-[#faf8f4] via-white to-primary-50/30;
+}
+
+.hc-dorpsplein-card-community {
+  @apply border-gray-200/80 bg-gradient-to-br from-primary-50/40 to-white;
+}
+
+.hc-feed-card {
+  @apply rounded-2xl;
+}
+
 .hc-hero-dorpsplein {
   @apply ring-1 ring-white/10;
 }
@@ -986,4 +1015,522 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
 .hc-hero-platform-strip {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(0, 0, 0, 0.14);
+}
+
+.hc-profile-cover {
+  @apply bg-gradient-to-br from-primary-brand/90 via-[#007a5c] to-secondary-brand/80;
+}
+
+/* Profile V2 hero — avatar slot + overlap tokens (single source for header layout) */
+.hc-profile-v2-hero {
+  overflow: visible;
+  --hc-profile-v2-avatar-size: 7.5rem;
+  --hc-profile-v2-avatar-overlap: 4.5rem;
+  --hc-profile-v2-avatar-slot: 7.5rem;
+  --hc-profile-v2-hero-gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .hc-profile-v2-hero {
+    --hc-profile-v2-avatar-size: 8rem;
+    --hc-profile-v2-avatar-overlap: 5rem;
+    --hc-profile-v2-avatar-slot: 8rem;
+  }
+}
+
+.hc-profile-v2-hero-cover {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.hc-profile-v2-hero-body {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  isolation: isolate;
+}
+
+/** Avatar lane — fixed width; avatar overlaps cover only inside this column */
+.hc-profile-v2-avatar-column {
+  width: min(100%, var(--hc-profile-v2-avatar-slot));
+  max-width: var(--hc-profile-v2-avatar-slot);
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .hc-profile-v2-avatar-column {
+    margin-inline: 0;
+  }
+}
+
+.hc-profile-v2-avatar-overlap {
+  margin-top: calc(-1 * var(--hc-profile-v2-avatar-overlap));
+  width: var(--hc-profile-v2-avatar-size);
+  max-width: 100%;
+}
+
+.hc-profile-v2-avatar-circle {
+  width: var(--hc-profile-v2-avatar-size);
+  height: var(--hc-profile-v2-avatar-size);
+}
+
+/**
+ * Actions + contact — on desktop start past avatar lane so CTAs never sit under avatar.
+ */
+.hc-profile-v2-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+@media (min-width: 1024px) {
+  .hc-profile-v2-hero-actions {
+    margin-top: 0.75rem;
+    padding-inline-start: calc(var(--hc-profile-v2-avatar-slot) + var(--hc-profile-v2-hero-gap));
+  }
+}
+
+/* Profile V2 panels — parity met homepage cards & chips */
+.hc-profile-v2-section {
+  border-radius: 1rem;
+}
+
+.hc-profile-v2-filter-chip {
+  min-height: 2rem;
+}
+
+.hc-profile-v2-filter-chip:active {
+  transform: scale(0.97);
+}
+
+.hc-profile-v2-preview:focus-visible {
+  outline: 2px solid var(--primary-brand, #00875a);
+  outline-offset: 2px;
+}
+
+.hc-profile-v2-empty {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.hc-profile-v2-content-well {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.hc-profile-v2-tab-pill {
+  min-height: 2.5rem;
+}
+
+/** Reserve scroll space above fixed bottom nav (Profile V2 + sidepanel). */
+.hc-profile-v2-bottom-inset {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+}
+
+/**
+ * Toast / notification dock — below global NavBar (4rem) + safe-area.
+ * z-index above sticky NavBar (100), below modals (~200+).
+ */
+:root {
+  --hc-navbar-height: 4rem;
+  --hc-toast-gap: 0.5rem;
+}
+
+.hc-toast-dock {
+  position: fixed;
+  inset-inline-end: max(0.75rem, env(safe-area-inset-right, 0px));
+  top: calc(
+    var(--hc-navbar-height) + env(safe-area-inset-top, 0px) + var(--hc-toast-gap)
+  );
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  max-width: min(24rem, calc(100vw - 1.5rem));
+  pointer-events: none;
+}
+
+.hc-toast-dock > * {
+  pointer-events: auto;
+}
+
+@media (min-width: 640px) {
+  .hc-toast-dock {
+    inset-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/**
+ * Sticky owner sidepanel — starts below navbar (4rem) + profile tabnav (~3.5rem).
+ * Scrolls independently; max-height clears bottom nav.
+ */
+.hc-profile-v2-sidepanel-sticky {
+  position: sticky;
+  top: calc(4rem + 3.5rem + env(safe-area-inset-top, 0px));
+  max-height: calc(
+    100dvh - 4rem - 3.5rem - 7rem - env(safe-area-inset-top, 0px) -
+      env(safe-area-inset-bottom, 0px)
+  );
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  z-index: 1;
+}
+
+.hc-profile-v2-sidepanel-sticky-inner {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+.hc-settings-nav-active {
+  @apply bg-primary-brand text-white shadow-sm;
+}
+
+.hc-guest-panel-hero {
+  @apply bg-gradient-to-br from-primary-brand to-secondary-brand text-white px-5 py-8 sm:py-10;
+}
+
+/* Phase 2 — warmth, depth, micro-interactions */
+.hc-card-lift {
+  @apply transition-all duration-300 ease-out;
+}
+.hc-card-lift:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* —— Operations workspace shell (Phase A) —— */
+.hc-operations-page {
+  background: linear-gradient(180deg, #faf8f4 0%, #f6f8fa 28%, #f6f8fa 100%);
+}
+
+.hc-operations-shell {
+  @apply w-full;
+}
+
+.hc-operations-shell-header {
+  @apply shadow-sm;
+}
+
+.hc-operations-section-nav {
+  @apply rounded-2xl border border-emerald-200/40 bg-white/90 p-1.5 shadow-sm;
+}
+
+.hc-operations-card {
+  @apply rounded-2xl border border-gray-200/80 bg-white shadow-sm;
+}
+
+.hc-operations-sidepanel-sticky {
+  position: sticky;
+  top: calc(4rem + 3.5rem + env(safe-area-inset-top, 0px));
+  max-height: calc(
+    100dvh - 4rem - 3.5rem - 7rem - env(safe-area-inset-top, 0px) -
+      env(safe-area-inset-bottom, 0px)
+  );
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  z-index: 1;
+}
+
+.hc-operations-sidepanel-sticky-inner {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+.hc-section-title {
+  @apply text-lg sm:text-xl font-bold tracking-tight text-gray-900;
+}
+
+.hc-meta-text {
+  @apply text-xs text-gray-500 leading-relaxed;
+}
+
+.hc-btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-primary-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-[0.98];
+}
+
+.hc-glass-warm {
+  @apply bg-white/80 backdrop-blur-md border border-white/60;
+}
+
+.hc-pulse-dot {
+  animation: hcPulseDot 2.4s ease-in-out infinite;
+}
+
+@keyframes hcPulseDot {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.hc-float-slow {
+  animation: hcFloatSlow 6s ease-in-out infinite;
+}
+
+@keyframes hcFloatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.hc-feed-media-tall .feed-card-primary-media,
+.hc-feed-media-tall.feed-card-primary-media {
+  min-height: 12.5rem;
+}
+
+/* Sticky homepage grid: ancestors must not create a scrollport */
+@media (min-width: 1024px) {
+  #main-content,
+  #main-content .hc-dorpsplein-page,
+  #main-content .hc-home-page-shell,
+  .hc-home-sticky-grid {
+    overflow: visible;
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  /* Desktop app shell: fixed viewport height, per-column scroll */
+  .hc-home-desktop-shell {
+    height: calc(100dvh - 5rem);
+    max-height: calc(100dvh - 5rem);
+  }
+
+  @supports not (height: 100dvh) {
+    .hc-home-desktop-shell {
+      height: calc(100vh - 5rem);
+      max-height: calc(100vh - 5rem);
+    }
+  }
+}
+
+/* Sticky sidebars: max-w page shell must not create a scrollport (legacy override) */
+.hc-dorpsplein-page > .max-w-\[1320px\],
+.hc-dorpsplein-page > .hc-home-page-shell {
+  overflow-x: visible;
+}
+
+/* Homepage desktop feed — dominant media, compact info block */
+@media (min-width: 1024px) {
+  .hc-home-feed-grid .feed-card-geo {
+    max-height: none;
+  }
+
+  .hc-home-feed-grid .feed-card-primary-media {
+    aspect-ratio: 4 / 3;
+    min-height: 11rem;
+  }
+
+  .hc-home-feed-grid .feed-card-body {
+    padding: 0.5rem 0.75rem 0.625rem;
+    gap: 0.25rem;
+  }
+
+  .hc-home-feed-grid .feed-card-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .hc-home-feed-grid .feed-card-body > .text-xl,
+  .hc-home-feed-grid .feed-card-body > .text-2xl {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .hc-home-feed-grid .feed-card-meta-cluster {
+    gap: 0.125rem;
+  }
+
+  .hc-home-feed-grid .feed-card-meta-cluster p {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+  }
+
+  .hc-home-feed-grid .feed-card-cta-row .hc-btn-primary {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .hc-feed-media-tall .feed-card-primary-media,
+  .hc-feed-media-tall.feed-card-primary-media {
+    min-height: 14rem;
+  }
+}
+
+.hc-avatar-ring {
+  @apply ring-2 ring-white shadow-md;
+}
+
+.hc-reputation-progress {
+  @apply h-1.5 rounded-full bg-primary-100 overflow-hidden;
+}
+
+.hc-reputation-progress > span {
+  @apply block h-full rounded-full bg-gradient-to-r from-primary-brand to-secondary-brand transition-all duration-500;
+}
+
+/* Inspiration detail — media fit (contain vs cover) */
+.hc-inspiration-media-contain {
+  object-fit: contain;
+  object-position: center;
+}
+
+.hc-inspiration-media-cover {
+  object-fit: cover;
+  object-position: center;
+}
+
+.hc-instruction-step-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 8.75rem;
+  max-height: 20rem;
+  padding: 0.375rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background-color: rgb(249 250 251);
+}
+
+.hc-instruction-step-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 19rem;
+  width: auto;
+  height: auto;
+}
+
+@media (min-width: 1024px) {
+  .hc-instruction-step-media {
+    width: min(40%, 280px);
+    flex-shrink: 0;
+  }
+}
+
+.hc-inspiration-extra-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  padding: 0.375rem;
+  overflow: hidden;
+  background-color: rgb(249 250 251);
+}
+
+.hc-inspiration-extra-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.hc-print-hero-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-height: 14rem;
+  margin-block: 1.5rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background-color: rgb(249 250 251);
+}
+
+.hc-print-hero-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 14rem;
+  width: auto;
+  height: auto;
+}
+
+.hc-print-step-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38%;
+  max-width: 38%;
+  min-height: 6rem;
+  max-height: 10rem;
+  padding: 0.25rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  background-color: rgb(249 250 251);
+}
+
+.hc-print-step-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 9.5rem;
+  width: auto;
+  height: auto;
+}
+
+@media print {
+  .hc-print-hero-media img,
+  .hc-print-step-media img,
+  .hc-inspiration-media-contain {
+    object-fit: contain !important;
+  }
+
+  .hc-print-step-media {
+    width: 38% !important;
+    max-width: 38% !important;
+    max-height: 10rem !important;
+  }
+}
+
+.hc-product-story-step-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  max-height: 12rem;
+  width: 100%;
+  padding: 0.25rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: rgb(249 250 251);
+}
+
+.hc-product-story-step-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 11rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+
+.hc-profile-inspiration-preview-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background-color: rgb(250 250 249);
+}
+
+.hc-profile-inspiration-preview-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+
+.hc-inspiration-media-smart {
+  object-position: center;
 }

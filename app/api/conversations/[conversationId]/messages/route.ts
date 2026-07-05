@@ -10,6 +10,10 @@ import { pusherServer } from '@/lib/pusher';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
 import { markChatNotificationsReadForConversation } from '@/lib/notifications/markChatNotificationsRead';
+import {
+  syncConversationStatusAfterMessage,
+  syncConversationStatusAfterRead,
+} from '@/lib/communication/sync-conversation-status';
 import { logNotificationDiag } from '@/lib/notifications/fetch-diagnostics';
 
 // System encryption key (stored securely in env)
@@ -174,6 +178,9 @@ export async function GET(
         count: synced,
       });
     }
+    void syncConversationStatusAfterRead(conversationId, user.id).catch((e) =>
+      console.warn('[messages GET] status sync after read', e),
+    );
     const finalMessages = decryptedMessages.reverse();
     return NextResponse.json({ messages: finalMessages });
 
@@ -321,6 +328,10 @@ export async function POST(
         isActive: true // Reactivate conversation when new message is sent
       }
     });
+
+    void syncConversationStatusAfterMessage(conversationId).catch((e) =>
+      console.warn('[messages POST] status sync', e),
+    );
     
     // Unhide conversation for ALL participants when a new message is sent
     await prisma.conversationParticipant.updateMany({

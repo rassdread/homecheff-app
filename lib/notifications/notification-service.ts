@@ -464,7 +464,23 @@ export class NotificationService {
             </div>
             <div class="content">
               ${formattedBody}
-              ${message.data?.link ? `<a href="${getPublicAppUrl()}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
+              ${(() => {
+                const link =
+                  message.data?.actionUrl ||
+                  message.data?.route ||
+                  message.data?.link;
+                if (typeof link !== 'string' || !link.trim()) return '';
+                const href = link.startsWith('http')
+                  ? link
+                  : `${getPublicAppUrl()}${link.startsWith('/') ? link : `/${link}`}`;
+                const label =
+                  message.data?.type === 'NEW_MESSAGE' ||
+                  message.data?.type === 'MESSAGE_RECEIVED'
+                    ? 'Bekijk bericht'
+                    : 'Bekijk in HomeCheff';
+                return `<a href="${href}" class="button">${label}</a>`;
+              })()}
+              ${message.data?.link && !message.data?.actionUrl && !message.data?.route ? `<a href="${getPublicAppUrl()}${message.data.link}" class="button">Bekijk Bestelling</a>` : ''}
             </div>
             <div class="footer">
               <p>Met vriendelijke groet,<br>Het HomeCheff Team</p>
@@ -858,6 +874,7 @@ export class NotificationService {
         type: 'chat',
         conversationId: String(conversationId),
         route: `/messages/${conversationId}/`,
+        actionUrl: `/messages/${conversationId}/`,
       };
       const senderId = message.data?.senderId;
       if (senderId && typeof senderId === 'string') {

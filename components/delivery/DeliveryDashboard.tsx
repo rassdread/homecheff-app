@@ -29,8 +29,7 @@ import {
   Download,
   Wallet
 } from 'lucide-react';
-import Link from 'next/link';
-import { useTranslation } from '@/hooks/useTranslation';
+import OperationsShell from '@/components/operations/OperationsShell';
 
 interface DeliveryStats {
   todayEarnings: number;
@@ -497,94 +496,95 @@ export default function DeliveryDashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Notification Listener */}
-      <DeliveryNotificationListener />
-      
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 py-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('delivery.dashboardTitle')}</h1>
-              <p className="text-sm sm:text-base text-gray-600">{t('delivery.dashboardSubtitle')}</p>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <a
-                  href="/profile"
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('delivery.myProfile')}</span>
-                  <span className="sm:hidden">{t('delivery.profile')}</span>
-                </a>
-                <Link
-                  href="/verdiensten?uitbetaling=1"
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
-                >
-                  <Wallet className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('delivery.myEarnings')}</span>
-                  <span className="sm:hidden">{t('delivery.earningsShort')}</span>
-                </Link>
-                <a
-                  href="/delivery/settings"
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('delivery.settings')}</span>
-                  <span className="sm:hidden">{t('delivery.settingsShort')}</span>
-                </a>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm ${
-                  isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                    isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                  }`} />
-                  <span>{isOnline ? t('delivery.online') : t('delivery.offline')}</span>
-                </div>
-                {gpsEnabled && currentLocation && (
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg bg-blue-100 text-blue-800 text-sm">
-                    <Navigation className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('delivery.gpsActive')}</span>
-                    <span className="sm:hidden">GPS</span>
-                  </div>
-                )}
-              </div>
-              {/* Only show online/offline toggle for ambassadors, not sellers */}
-              {!isSeller && (
-                <button
-                  onClick={toggleOnlineStatus}
-                  className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap ${
-                    isOnline 
-                      ? 'bg-red-600 text-white hover:bg-red-700' 
-                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
-                >
-                  {isOnline ? (
-                    <>
-                      <Pause className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t('delivery.goOffline')}</span>
-                      <span className="sm:hidden">{t('delivery.offline')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t('delivery.goOnline')}</span>
-                      <span className="sm:hidden">{t('delivery.online')}</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+  const deliveryQuickActions = (
+    <>
+      <div className="flex items-center gap-2 flex-wrap">
+        <a
+          href="/profile"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+        >
+          <User className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('delivery.myProfile')}</span>
+          <span className="sm:hidden">{t('delivery.profile')}</span>
+        </a>
+        <Link
+          href="/verdiensten?uitbetaling=1"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+        >
+          <Wallet className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('delivery.myEarnings')}</span>
+          <span className="sm:hidden">{t('delivery.earningsShort')}</span>
+        </Link>
+        <a
+          href="/delivery/settings"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+        >
+          <Settings className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('delivery.settings')}</span>
+          <span className="sm:hidden">{t('delivery.settingsShort')}</span>
+        </a>
       </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <div
+          className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm ${
+            isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+          }`}
+        >
+          <div
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${
+              isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+            }`}
+          />
+          <span>{isOnline ? t('delivery.online') : t('delivery.offline')}</span>
+        </div>
+        {gpsEnabled && currentLocation && (
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg bg-blue-100 text-blue-800 text-sm">
+            <Navigation className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('delivery.gpsActive')}</span>
+            <span className="sm:hidden">GPS</span>
+          </div>
+        )}
+      </div>
+      {!isSeller && (
+        <button
+          type="button"
+          onClick={toggleOnlineStatus}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium whitespace-nowrap ${
+            isOnline
+              ? 'bg-red-600 text-white hover:bg-red-700'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+          }`}
+        >
+          {isOnline ? (
+            <>
+              <Pause className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('delivery.goOffline')}</span>
+              <span className="sm:hidden">{t('delivery.offline')}</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('delivery.goOnline')}</span>
+              <span className="sm:hidden">{t('delivery.online')}</span>
+            </>
+          )}
+        </button>
+      )}
+    </>
+  );
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  return (
+    <OperationsShell
+      pageTitle={t('delivery.dashboardTitle')}
+      pageSubtitle={t('delivery.dashboardSubtitle')}
+      breadcrumbLabel={t('operations.tabs.delivery')}
+      quickActions={deliveryQuickActions}
+      fullBleed
+      contentClassName="py-0"
+    >
+      <DeliveryNotificationListener />
+
+      <div className="py-4 sm:py-6">
         {/* Stats Cards */}
         <div className={`grid ${isSeller ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-2 lg:grid-cols-4'} gap-3 sm:gap-6 mb-6 sm:mb-8`}>
           <div className="bg-white rounded-xl shadow-sm border p-3 sm:p-6">
@@ -1388,6 +1388,6 @@ export default function DeliveryDashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </OperationsShell>
   );
 }

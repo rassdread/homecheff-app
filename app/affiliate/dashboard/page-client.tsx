@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
-import AppBackBar from '@/components/navigation/AppBackBar';
+import OperationsShell from '@/components/operations/OperationsShell';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { 
@@ -101,6 +101,7 @@ export default function AffiliateDashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [openNetworkInvite, setOpenNetworkInvite] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
   const [referralLink, setReferralLink] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -119,6 +120,22 @@ export default function AffiliateDashboardClient() {
       router.replace('/affiliate/dashboard');
       // Hide welcome after 5 seconds
       setTimeout(() => setShowWelcome(false), 5000);
+      return;
+    }
+
+    const tabParam = searchParams?.get('tab');
+    const tabAlias: Record<string, string> = {
+      network: 'sub-affiliates',
+      overview: 'overview',
+      earnings: 'earnings',
+      referrals: 'referrals',
+      'sub-affiliates': 'sub-affiliates',
+    };
+    if (tabParam && tabAlias[tabParam]) {
+      setActiveTab(tabAlias[tabParam]);
+    }
+    if (searchParams?.get('invite') === '1') {
+      setOpenNetworkInvite(true);
     }
   }, [searchParams, router]);
 
@@ -394,73 +411,71 @@ export default function AffiliateDashboardClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('affiliate.dashboard.title')}
+        pageSubtitle={t('affiliate.dashboard.manageAccount')}
+        breadcrumbLabel={t('operations.tabs.partners')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <p className="text-gray-600">{t('affiliate.dashboard.loading')}</p>
         </div>
-      </div>
+      </OperationsShell>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('affiliate.dashboard.title')}
+        breadcrumbLabel={t('operations.tabs.partners')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <p className="text-red-600">{t('affiliate.dashboard.failedToLoad')}</p>
-      </div>
+      </OperationsShell>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 max-w-full">
-      <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6 lg:px-8">
-        <AppBackBar
-          fallbackUrl="/profile"
-          label={t('navigation.backToProfile')}
-          title={t('affiliate.dashboard.title')}
-          className="mb-2 rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
-        />
-      </div>
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('affiliate.dashboard.title')}</h1>
-              <p className="text-sm sm:text-base text-gray-600">{t('affiliate.dashboard.manageAccount')}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <Link
-                href="/verdiensten?uitbetaling=1"
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm sm:text-base whitespace-nowrap"
-              >
-                <Wallet className="w-4 h-4" />
-                <span className="hidden sm:inline">Mijn Verdiensten</span>
-                <span className="sm:hidden">Verdiensten</span>
-              </Link>
-              <Link
-                href="/affiliate/promo-codes"
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"
-              >
-                <Gift className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('affiliate.dashboard.promoCodes')}</span>
-                <span className="sm:hidden">Promo's</span>
-              </Link>
-              {!data.affiliate.stripeConnectOnboardingCompleted && (
-                <Link
-                  href="/affiliate/stripe-connect"
-                  className="px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm sm:text-base whitespace-nowrap"
-                >
-                  <span className="hidden sm:inline">{t('affiliate.dashboard.stripeConnectSetup')}</span>
-                  <span className="sm:hidden">Stripe</span>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+  const affiliateQuickActions = (
+    <>
+      <Link
+        href="/verdiensten?uitbetaling=1"
+        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+      >
+        <Wallet className="w-4 h-4" />
+        <span className="hidden sm:inline">{t('navbar.combinedEarnings')}</span>
+        <span className="sm:hidden">{t('operations.tabs.finance')}</span>
+      </Link>
+      <Link
+        href="/affiliate/promo-codes"
+        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base whitespace-nowrap"
+      >
+        <Gift className="w-4 h-4" />
+        <span className="hidden sm:inline">{t('affiliate.dashboard.promoCodes')}</span>
+        <span className="sm:hidden">{t('affiliate.dashboard.promoCodes')}</span>
+      </Link>
+      {!data.affiliate.stripeConnectOnboardingCompleted && (
+        <Link
+          href="/affiliate/stripe-connect"
+          className="px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm sm:text-base whitespace-nowrap"
+        >
+          <span className="hidden sm:inline">{t('affiliate.dashboard.stripeConnectSetup')}</span>
+          <span className="sm:hidden">{t('affiliate.dashboard.stripeConnectSetup')}</span>
+        </Link>
+      )}
+    </>
+  );
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <OperationsShell
+      pageTitle={t('affiliate.dashboard.title')}
+      pageSubtitle={t('affiliate.dashboard.manageAccount')}
+      breadcrumbLabel={t('operations.tabs.partners')}
+      quickActions={affiliateQuickActions}
+      contentClassName="py-0"
+    >
+      <div className="max-w-full py-8">
         {/* Welcome Message */}
         {showWelcome && (
           <div className="mb-6 p-6 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl shadow-lg animate-fade-in">
@@ -621,8 +636,11 @@ export default function AffiliateDashboardClient() {
                 {/* Link Section */}
                 <div className="mb-6">
                   <div className="bg-white rounded-xl p-5 border-2 border-emerald-200 shadow-md">
-                    <p className="text-sm font-medium text-gray-700 mb-3 text-center">
+                    <p className="text-sm font-medium text-gray-700 mb-1 text-center">
                       {t('affiliate.dashboard.shareYourLink')}
+                    </p>
+                    <p className="text-xs text-gray-600 mb-3 text-center leading-relaxed">
+                      {t('partners.helpers.partnerLink')}
                     </p>
                     {/* Easy sharing hint */}
                     <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
@@ -772,12 +790,15 @@ export default function AffiliateDashboardClient() {
               </div>
             )}
 
-            {/* Downline Count */}
+            {/* Direct partners — main partners only */}
+            {!data?.affiliate?.isSubAffiliate ? (
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.yourDownline')}</h3>
               <p className="text-3xl font-bold text-gray-900">{data.stats.downlineCount}</p>
               <p className="text-sm text-gray-600 mt-2">{t('affiliate.dashboard.downlineDesc')}</p>
+              <p className="text-xs text-gray-500 mt-2">{t('partners.helpers.directPartners')}</p>
             </div>
+            ) : null}
 
             {/* Belasting Informatie */}
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
@@ -845,6 +866,9 @@ export default function AffiliateDashboardClient() {
         {/* Referrals Tab */}
         {activeTab === 'referrals' && (
           <div className="space-y-6">
+            <p className="text-sm text-gray-600">
+              {t('partners.helpers.partnerLink')}
+            </p>
             {/* Stats Summary */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.referralStats')}</h3>
@@ -948,10 +972,13 @@ export default function AffiliateDashboardClient() {
 
         {/* Sub-Affiliates Tab */}
         {activeTab === 'sub-affiliates' && !data?.affiliate?.isSubAffiliate && (
-          <SubAffiliatesTab data={data} />
+          <SubAffiliatesTab
+            data={data}
+            initialShowCreateForm={openNetworkInvite}
+          />
         )}
-        </div>
       </div>
+    </OperationsShell>
   );
 }
 
@@ -1201,9 +1228,19 @@ function SubAffiliateCard({ sub, onDelete }: { sub: SubAffiliate; onDelete: (id:
 }
 
 // Sub-Affiliates Management Component
-function SubAffiliatesTab({ data }: { data: DashboardData }) {
+function SubAffiliatesTab({
+  data,
+  initialShowCreateForm = false,
+}: {
+  data: DashboardData;
+  initialShowCreateForm?: boolean;
+}) {
   const { t } = useTranslation();
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(initialShowCreateForm);
+
+  useEffect(() => {
+    if (initialShowCreateForm) setShowCreateForm(true);
+  }, [initialShowCreateForm]);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1271,6 +1308,9 @@ function SubAffiliatesTab({ data }: { data: DashboardData }) {
             <p className="text-sm text-gray-600 mt-1">
               {t('affiliate.dashboard.subAffiliatesDesc')}
             </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {t('partners.helpers.directPartners')}
+            </p>
           </div>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
@@ -1282,6 +1322,9 @@ function SubAffiliatesTab({ data }: { data: DashboardData }) {
 
         {showCreateForm && (
           <form onSubmit={handleCreateSubAffiliate} className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <p className="mb-4 text-sm text-gray-600">
+              {t('partners.helpers.invitePartner')}
+            </p>
             <div className="space-y-4">
               <div>
                 <label htmlFor="sub-email" className="block text-sm font-medium text-gray-700 mb-1">

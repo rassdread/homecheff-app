@@ -22,10 +22,16 @@ import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 import AppUpdateGate from '@/components/app/AppUpdateGate';
 import { AppUpdateStatusProvider } from '@/components/app/AppUpdateStatusProvider';
 import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
+import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
+import dynamic from 'next/dynamic';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 
+const CommsRealtimeListener = dynamic(
+  () => import('@/components/communication/CommsRealtimeListener'),
+  { ssr: false },
+);
+
 function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
-  // This hook ensures session isolation
   useSessionIsolation();
   return <>{children}</>;
 }
@@ -33,9 +39,7 @@ function SessionIsolationWrapper({ children }: { children: React.ReactNode }) {
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider
-      // Refresh session every 5 minutes while tab is active
       refetchInterval={5 * 60}
-      // Uit: refetch bij tab-focus kan op Safari falen (CORS/cookie) en dan status 'unauthenticated' geven – blijf ingelogd.
       refetchOnWindowFocus={false}
     >
       <AppShellHtmlClasses />
@@ -82,9 +86,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         </Suspense>
         <SessionIsolationWrapper>
           <UserBootstrapProvider>
-            <HcpRewardProvider>
-              <CreateFlowProvider>{children}</CreateFlowProvider>
-            </HcpRewardProvider>
+            <CommsUnreadProvider>
+              <CommsRealtimeListener />
+              <HcpRewardProvider>
+                <CreateFlowProvider>{children}</CreateFlowProvider>
+              </HcpRewardProvider>
+            </CommsUnreadProvider>
           </UserBootstrapProvider>
         </SessionIsolationWrapper>
       </AppUpdateStatusProvider>

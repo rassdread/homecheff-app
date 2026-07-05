@@ -40,7 +40,11 @@ export type AppDiagCode =
   | 'push_token_sync_success'
   | 'push_token_sync_skipped'
   | 'push_token_sync_failed'
-  | 'push_register_api_failed';
+  | 'push_register_api_failed'
+  | 'push_token_refresh'
+  | 'push_received'
+  | 'push_opened'
+  | 'push_deep_link_resolved';
 
 export function reportAppDiagnostic(
   code: AppDiagCode,

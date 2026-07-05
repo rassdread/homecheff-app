@@ -102,7 +102,6 @@ interface UserProfile {
   buyerRoles?: string[];
   displayFullName?: boolean;
   displayNameOption?: 'full' | 'first' | 'last' | 'username' | 'none';
-  showFansList?: boolean;
   encryptionEnabled?: boolean;
   messageGuidelinesAccepted?: boolean;
   messageGuidelinesAcceptedAt?: Date | null;
@@ -113,10 +112,12 @@ interface ProfileSettingsProps {
   user: UserProfile;
   onSave: (data: Partial<UserProfile>) => Promise<void>;
   onEditStateChange?: (isEditing: boolean) => void;
+  /** Scroll to a subsection when opened from create-flow roles gate. */
+  scrollToSection?: string | null;
 }
 
 const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
-  ({ user, onSave, onEditStateChange }, ref) => {
+  ({ user, onSave, onEditStateChange, scrollToSection }, ref) => {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -124,6 +125,15 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   useEffect(() => {
     onEditStateChange?.(isEditing);
   }, [isEditing, onEditStateChange]);
+
+  useEffect(() => {
+    if (scrollToSection !== 'roles') return;
+    const el = document.getElementById('settings-seller-roles');
+    if (!el) return;
+    window.requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [scrollToSection]);
   interface AddressLookupState {
     isLookingUp: boolean;
     error: string | null;
@@ -164,7 +174,6 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
     buyerRoles: user?.buyerRoles || [],
     displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
     displayNameOption: user?.displayNameOption || 'full',
-    showFansList: user?.showFansList !== undefined ? user.showFansList : true,
     encryptionEnabled: user?.encryptionEnabled || false,
     messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
     // Bank details now handled via Stripe
@@ -386,7 +395,6 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
       buyerRoles: user?.buyerRoles || [],
       displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
       displayNameOption: user?.displayNameOption || 'full',
-      showFansList: user?.showFansList !== undefined ? user.showFansList : true,
       encryptionEnabled: user?.encryptionEnabled || false,
       messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
       // Bank details now handled via Stripe
@@ -720,7 +728,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
         </div>
 
         {/* Seller Roles Section */}
-        <div className="border-t border-gray-200 pt-6">
+        <div id="settings-seller-roles" className="border-t border-gray-200 pt-6 scroll-mt-24">
           <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.sellerRoles')}</h3>
           <p className="text-sm text-gray-600 mb-4">
             {t('profileSettings.sellerRolesDescription')}
@@ -982,32 +990,6 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.noNameDisplay')}</div>
                 <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.noNameDisplayDescription')}</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Privacy Settings */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('profileSettings.privacySettings')}</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            {t('profileSettings.privacySettingsDescription')}
-          </p>
-          
-          <div className="space-y-4">
-            <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={formData.showFansList}
-                onChange={(e) => setFormData(prev => ({ ...prev, showFansList: e.target.checked }))}
-                disabled={!isEditing}
-                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-gray-900">{t('profileSettings.showFansList')}</div>
-                <div className="text-xs text-gray-600">
-                  {t('profileSettings.showFansListDescription')}
-                </div>
               </div>
             </label>
           </div>

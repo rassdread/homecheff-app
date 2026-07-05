@@ -26,7 +26,13 @@ import {
   hasPendingOpenQuickAddAfterLogin,
   setPendingOpenQuickAddAfterLogin,
 } from "@/lib/afterLoginCreateIntent";
+import {
+  normalizeCreatePlacementRoles,
+} from "@/lib/create/create-placement-roles";
+import { registerCreateRolesGate } from "@/lib/create/create-roles-gate-bus";
+import { useUserBootstrap } from "@/components/user/UserBootstrapProvider";
 import CreateGuestAuthModal from "./CreateGuestAuthModal";
+import CreateRolesGateModal from "./CreateRolesGateModal";
 
 type CreateFlowContextValue = {
   /** Zelfde ingang als +-knop / Verdienen: quick-add of auth-modal. */
@@ -63,7 +69,9 @@ function persistCreatePendingIntent() {
 
 export function CreateFlowProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
+  const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [guestOpen, setGuestOpen] = useState(false);
+  const [rolesGateOpen, setRolesGateOpen] = useState(false);
   const [authUrls, setAuthUrls] = useState({
     login: "/login",
     register: "/register",
@@ -71,6 +79,26 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   const lastOpenAt = useRef(0);
   /** Eerste tap tijdens NextAuth `loading`: intent staat al in sessionStorage; dispatch zodra sessie bekend is. */
   const pendingQuickAddAfterSessionRef = useRef(false);
+  const pendingOpenReasonRef = useRef<string>("session-ready");
+
+  const resolvePlacementRoles = useCallback(async (): Promise<string[]> => {
+    const sessionRoles = normalizeCreatePlacementRoles(
+      (session?.user as { sellerRoles?: unknown } | undefined)?.sellerRoles
+    );
+    if (sessionRoles.length > 0) return sessionRoles;
+
+    const bootstrapRoles = normalizeCreatePlacementRoles(
+      bootstrapProfile?.sellerRoles
+    );
+    if (bootstrapRoles.length > 0) return bootstrapRoles;
+
+    try {
+      const p = await ensureProfile();
+      return normalizeCreatePlacementRoles(p?.sellerRoles);
+    } catch {
+      return [];
+    }
+  }, [session?.user, bootstrapProfile?.sellerRoles, ensureProfile]);
 
   const dispatchQuickAddNow = useCallback((reason: string) => {
     const now = Date.now();
@@ -83,9 +111,23 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     dispatchOpenQuickAdd();
   }, []);
 
+  const openAuthenticatedCreate = useCallback(
+    async (reason: string) => {
+      const roles = await resolvePlacementRoles();
+      if (roles.length === 0) {
+        clickDebug("CreateFlowProvider", "roles-gate", "block", reason);
+        setRolesGateOpen(true);
+        return;
+      }
+      dispatchQuickAddNow(reason);
+    },
+    [resolvePlacementRoles, dispatchQuickAddNow]
+  );
+
   const openCreateFlow = useCallback(() => {
     if (status === "loading") {
       pendingQuickAddAfterSessionRef.current = true;
+      pendingOpenReasonRef.current = "openCreateFlow-authenticated";
       clickDebug("CreateFlowProvider", "openCreateFlow", "defer-until-session", "loading");
       return;
     }
@@ -99,14 +141,15 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       setGuestOpen(true);
       return;
     }
-    dispatchQuickAddNow("openCreateFlow-authenticated");
-  }, [session?.user, status, dispatchQuickAddNow]);
+    void openAuthenticatedCreate("openCreateFlow-authenticated");
+  }, [session?.user, status, openAuthenticatedCreate]);
 
   const openCreateFlowWithIntent = useCallback(
     (intent: CreateFlowIntent) => {
       setCreateFlowIntent(intent);
       if (status === "loading") {
         pendingQuickAddAfterSessionRef.current = true;
+        pendingOpenReasonRef.current = "openCreateFlowWithIntent-authenticated";
         clickDebug(
           "CreateFlowProvider",
           "openCreateFlowWithIntent",
@@ -126,9 +169,9 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
         setGuestOpen(true);
         return;
       }
-      dispatchQuickAddNow("openCreateFlowWithIntent-authenticated");
+      void openAuthenticatedCreate("openCreateFlowWithIntent-authenticated");
     },
-    [session?.user, status, dispatchQuickAddNow]
+    [session?.user, status, openAuthenticatedCreate]
   );
 
   const handleAbandonGuestModal = useCallback(() => {
@@ -151,8 +194,9 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     if (status !== "authenticated" || !session?.user) return;
     if (!pendingQuickAddAfterSessionRef.current) return;
     pendingQuickAddAfterSessionRef.current = false;
-    dispatchQuickAddNow("session-ready-after-loading-tap");
-  }, [status, session?.user, dispatchQuickAddNow]);
+    const reason = pendingOpenReasonRef.current;
+    void openAuthenticatedCreate(reason);
+  }, [status, session?.user, openAuthenticatedCreate]);
 
   /** Na succesvolle login: één keer quick-add openen als er create-intent was. */
   const quickAddIntentScheduledRef = useRef(false);
@@ -166,13 +210,18 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     if (quickAddIntentScheduledRef.current) return;
     quickAddIntentScheduledRef.current = true;
 
-    const t = window.setTimeout(() => {
+    const t = window.setTimeout(async () => {
       quickAddIntentScheduledRef.current = false;
       if (!hasPendingOpenQuickAddAfterLogin()) return;
       try {
         sessionStorage.removeItem(AFTER_LOGIN_CREATE_ACTION_KEY);
       } catch {
         /* ignore */
+      }
+      const roles = await resolvePlacementRoles();
+      if (roles.length === 0) {
+        setRolesGateOpen(true);
+        return;
       }
       dispatchOpenQuickAdd();
     }, 200);
@@ -181,7 +230,11 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(t);
       quickAddIntentScheduledRef.current = false;
     };
-  }, [status, session?.user]);
+  }, [status, session?.user, resolvePlacementRoles]);
+
+  useEffect(() => {
+    return registerCreateRolesGate(() => setRolesGateOpen(true));
+  }, []);
 
   return (
     <CreateFlowContext.Provider value={{ openCreateFlow, openCreateFlowWithIntent }}>
@@ -192,6 +245,10 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
         onAuthNavigate={handleAuthNavigateFromModal}
         loginHref={authUrls.login}
         registerHref={authUrls.register}
+      />
+      <CreateRolesGateModal
+        open={rolesGateOpen}
+        onClose={() => setRolesGateOpen(false)}
       />
     </CreateFlowContext.Provider>
   );

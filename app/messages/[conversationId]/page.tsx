@@ -14,6 +14,7 @@ import {
   type NormalizedConversationListItem,
 } from '@/lib/chat/normalizeConversation';
 import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
+import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 
 type Conversation = NormalizedConversationListItem;
 
@@ -60,6 +61,7 @@ export default function ConversationPage() {
   const nativeMounted = useIsNativeAppMounted();
   const { data: session, status: sessionStatus } = useSession();
   const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [contextHeader, setContextHeader] = useState<ResolvedConversationHeader | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const conversationIdRaw = params?.conversationId;
@@ -93,6 +95,7 @@ export default function ConversationPage() {
     const load = async () => {
       setIsLoading(true);
       setConversation(null);
+      setContextHeader(null);
       try {
         const response = await fetch(
           `/api/conversations/${encodeURIComponent(conversationId)}`,
@@ -119,6 +122,9 @@ export default function ConversationPage() {
             return;
           }
           setConversation(n);
+          setContextHeader(
+            (data.conversation.contextHeader as ResolvedConversationHeader | null) ?? null,
+          );
         } else {
           router.push('/messages');
         }
@@ -176,6 +182,7 @@ export default function ConversationPage() {
               };
             })()}
             relationshipContext={conversation.relationshipContext ?? null}
+            contextHeader={contextHeader}
             onBack={handleBackToList}
             showBackOnDesktop
           />

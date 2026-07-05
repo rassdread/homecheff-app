@@ -325,7 +325,6 @@ type NormalizedInspirationCard = {
   videoUrl: string | null;
   videoPoster: string | null;
   imageUrl: string | null;
-  objectFit?: "cover" | "contain";
   alt: string;
   viewCount?: number;
   user: {
@@ -386,7 +385,6 @@ function fromInspirationApiItem(item: InspirationItem, t: TFn): NormalizedInspir
         : resolved.type === "image"
           ? resolved.src
           : null,
-    objectFit: item.category === "GROWN" ? "contain" : "cover",
     alt: item.title || t("feed.altInspiration"),
     viewCount: item.viewCount,
     user: item.user?.id
@@ -424,7 +422,6 @@ function FeedInspirationCard({
         videoUrl={data.videoUrl}
         videoPoster={data.videoPoster}
         imageUrl={data.imageUrl}
-        objectFit={data.objectFit}
         className="hc-feed-media-tall feed-card-primary-media"
         badgeOverlay={
           <>

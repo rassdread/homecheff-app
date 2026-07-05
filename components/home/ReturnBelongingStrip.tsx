@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
+import { cn } from '@/lib/utils';
+
 type ReturnSignal = {
   key: 'followedCreatorsPosted' | 'yourAudienceGrowing' | 'communitySavesActive';
   meta?: { savesWeek?: number };
 };
 
-export default function ReturnBelongingStrip() {
+export default function ReturnBelongingStrip({ className }: { className?: string }) {
   const { t } = useTranslation();
   const [signals, setSignals] = useState<ReturnSignal[]>([]);
   const tracked = useRef(false);
@@ -45,7 +47,7 @@ export default function ReturnBelongingStrip() {
   if (signals.length === 0) return null;
 
   return (
-    <div className="mb-4 rounded-2xl border border-slate-200/90 bg-slate-50/85 px-4 py-3 text-sm text-slate-700 shadow-sm">
+    <div className={cn('mb-4 rounded-2xl border border-slate-200/90 bg-slate-50/85 px-4 py-3 text-sm text-slate-700 shadow-sm hc-dorpsplein-card', className)}>
       <p className="text-sm font-semibold text-slate-700">
         {t('returnBelonging.title')}
       </p>

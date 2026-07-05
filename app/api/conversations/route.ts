@@ -7,6 +7,8 @@ import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { loadConversationsForSessionUser } from '@/lib/chat/loadConversationsForSessionUser';
+import { conversationContextFromProduct } from '@/lib/communication/resolveConversationContext';
+import { notifyConversationMessageRecipients } from '@/lib/communication/notify-conversation-message';
 
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: getCorsHeaders(req) });
@@ -84,10 +86,12 @@ export async function POST(req: NextRequest) {
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
+      const ctxWrite = conversationContextFromProduct(productId);
       const newConversation = await prisma.conversation.create({
         data: {
           id: crypto.randomUUID(),
           productId,
+          ...ctxWrite,
           title: null,
           isActive: true
         }
@@ -137,6 +141,12 @@ export async function POST(req: NextRequest) {
         where: { id: conversation.id },
         data: { lastMessageAt: new Date() }
       });
+
+      void notifyConversationMessageRecipients({
+        conversationId: conversation.id,
+        senderId: user.id,
+        text: message,
+      }).catch((e) => console.error('[conversations POST] notify', e));
     }
 
     if (!conversation) {

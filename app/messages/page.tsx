@@ -26,6 +26,7 @@ import {
 } from '@/lib/chat/normalizeConversation';
 import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
 import { MessagesLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
+import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 
 type Conversation = NormalizedConversationListItem;
 
@@ -37,6 +38,7 @@ function MessagesPageContent() {
   const nativeMounted = useIsNativeAppMounted();
   const isLargeDisplay = useMediaQuery('(min-width: 1024px)');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [contextHeader, setContextHeader] = useState<ResolvedConversationHeader | null>(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -67,7 +69,36 @@ function MessagesPageContent() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
+    setContextHeader(null);
   };
+
+  useEffect(() => {
+    const id = selectedConversation?.id;
+    if (!id) {
+      setContextHeader(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/conversations/${encodeURIComponent(id)}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setContextHeader(
+            (data.conversation?.contextHeader as ResolvedConversationHeader | null) ?? null,
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedConversation?.id]);
 
   const handleBackToList = useCallback(() => {
     setSelectedConversation(null);
@@ -250,6 +281,7 @@ function MessagesPageContent() {
                   };
                 })()}
                 relationshipContext={selectedConversation.relationshipContext ?? null}
+                contextHeader={contextHeader}
                 onBack={handleBackToList}
               />
             </ChatShell>

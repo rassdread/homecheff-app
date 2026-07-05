@@ -13,6 +13,9 @@ import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
 import { deliveryModeFromOptions } from '@/lib/productDeliveryMode';
 import ProductOrderMethodSelector from '@/components/products/ProductOrderMethodSelector';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import ProductEditInspirationLink from '@/components/products/ProductEditInspirationLink';
+import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
+import { productHasUsableLocation } from '@/lib/geo/product-location-requirements';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 
@@ -198,6 +201,19 @@ export default function CompactGardenForm({
       if (existingProduct.tags && Array.isArray(existingProduct.tags)) {
         setTags(existingProduct.tags);
       }
+
+      void (async () => {
+        try {
+          const res = await fetch(`/api/products/${existingProduct.id}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.isDish && data.dishCategory) {
+            setLinkedInspirationCategory(data.dishCategory as InspirationCategory);
+          }
+        } catch {
+          /* optional linked dish */
+        }
+      })();
     }
   }, [editMode, existingProduct]);
 
@@ -243,6 +259,21 @@ export default function CompactGardenForm({
 
   // Track if garden data has been loaded
   const [gardenDataLoaded, setGardenDataLoaded] = React.useState(false);
+  const [linkedInspirationCategory, setLinkedInspirationCategory] =
+    React.useState<InspirationCategory | null>(null);
+  const [gardenMeta, setGardenMeta] = React.useState<{
+    plantType?: string;
+    sunlight?: string;
+    waterNeeds?: string;
+    harvestDate?: string;
+    location?: string;
+    growthDuration?: number | null;
+    plantDate?: string;
+    soilType?: string;
+    plantDistance?: string;
+    notes?: string;
+    difficulty?: string;
+  } | null>(null);
 
   // Load garden data from sessionStorage when fromGarden=true
   React.useEffect(() => {
@@ -262,6 +293,19 @@ export default function CompactGardenForm({
       if (gardenData.description) setDescription(gardenData.description);
       if (gardenData.plantType) setSubcategory(gardenData.plantType);
       if (gardenData.tags && Array.isArray(gardenData.tags)) setTags(gardenData.tags);
+      setGardenMeta({
+        plantType: gardenData.plantType,
+        sunlight: gardenData.sunlight,
+        waterNeeds: gardenData.waterNeeds,
+        harvestDate: gardenData.harvestDate,
+        location: gardenData.location,
+        growthDuration: gardenData.growthDuration ?? null,
+        plantDate: gardenData.plantDate,
+        soilType: gardenData.soilType,
+        plantDistance: gardenData.plantDistance,
+        notes: gardenData.notes,
+        difficulty: gardenData.difficulty,
+      });
       
       // Load photos (only main photos, max 5)
       if (gardenData.photos && Array.isArray(gardenData.photos)) {
@@ -383,6 +427,20 @@ export default function CompactGardenForm({
       }
     }
 
+    const isSaleListing =
+      isActive && (priceCents > 0 || orderMethod === 'CONTACT');
+    if (
+      isSaleListing &&
+      !productHasUsableLocation({
+        pickupAddress: finalPickupAddress,
+        pickupLat: finalPickupLat,
+        pickupLng: finalPickupLng,
+      })
+    ) {
+      setMessage(t('productForm.locationRequired'));
+      return;
+    }
+
     setSubmitting(true);
     try {
       const imageUrls = imageUrlsReady;
@@ -462,6 +520,19 @@ export default function CompactGardenForm({
             maxStock: maxStock ? parseInt(maxStock) : null,
             tags: tags.filter(tag => tag.trim().length > 0),
             growthPhotos: growthPhotos.length > 0 ? growthPhotos : undefined,
+            ...(gardenMeta && {
+              plantType: gardenMeta.plantType,
+              sunlight: gardenMeta.sunlight,
+              waterNeeds: gardenMeta.waterNeeds,
+              harvestDate: gardenMeta.harvestDate,
+              location: gardenMeta.location,
+              growthDuration: gardenMeta.growthDuration,
+              plantDate: gardenMeta.plantDate,
+              soilType: gardenMeta.soilType,
+              plantDistance: gardenMeta.plantDistance,
+              notes: gardenMeta.notes,
+              difficulty: gardenMeta.difficulty,
+            }),
             ...(video && {
               video: {
                 url: video.url,
@@ -487,7 +558,9 @@ export default function CompactGardenForm({
         if (onSave) {
           onSave(data.product || data);
         } else {
-          window.location.href = editMode ? `/product/${data.product?.id || data.id}` : getProfileHrefAfterProductSave('GARDEN');
+          window.location.href = editMode
+            ? `/product/${data.product?.id || data.id}`
+            : getProfileHrefAfterProductSave('GARDEN', { added: true });
         }
       } else {
         console.error('❌ [CompactGardenForm] API error:', {
@@ -532,6 +605,13 @@ export default function CompactGardenForm({
           <span>{t('compactForms.garden.badge')}</span>
         </div>
       </div>
+
+      {editMode && linkedInspirationCategory && existingProduct?.id ? (
+        <ProductEditInspirationLink
+          productId={existingProduct.id}
+          category={linkedInspirationCategory}
+        />
+      ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Video Upload */}

@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit3, Trash2, Package, Euro, AlertCircle, Clock, Users, Plus, ShoppingCart } from 'lucide-react';
+import { Edit3, Trash2, Package, AlertCircle, Clock, Users, Plus, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/hooks/useTranslation';
+import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
+import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 
 type Product = {
   id: string;
@@ -31,14 +34,20 @@ interface ProductManagementProps {
   categoryFilter?: 'CHEFF' | 'GROWN' | 'DESIGNER' | null;
   /** Profiel-subtabs: geen tweede “product toevoegen”-knop naast de brede CTA boven de lijst. */
   hideCreateActions?: boolean;
+  /** Voor warme empty state CTA in Profile V2 (alleen owner). */
+  ownerUser?: ProfileV2User | null;
+  aanbodFilter?: ProfileV2AanbodFilter;
 }
 
 export default function ProductManagement({
   onUpdate,
   categoryFilter = null,
   hideCreateActions = false,
+  ownerUser = null,
+  aanbodFilter = 'all',
 }: ProductManagementProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +80,7 @@ export default function ProductManagement({
       }
     } catch (error) {
       console.error('Failed to load products:', error);
-      setMessage({type: 'error', text: 'Fout bij het laden van producten'});
+      setMessage({type: 'error', text: t('profileV2.aanbod.loadError')});
     } finally {
       setLoading(false);
     }
@@ -99,7 +108,7 @@ export default function ProductManagement({
       });
 
       if (response.ok) {
-        setMessage({type: 'success', text: 'Product succesvol verwijderd!'});
+        setMessage({type: 'success', text: t('profileV2.aanbod.deleteSuccess')});
         setShowDeleteModal(false);
         setProductToDelete(null);
         await loadProducts();
@@ -147,41 +156,54 @@ export default function ProductManagement({
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Producten beheren</h3>
-          <p className="text-sm text-gray-500">Pas prijzen, voorraad en status aan</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {categoryFilter && !hideCreateActions && (
-            <a
-              href={`/sell/new?category=${categoryFilter}`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Product op Dorpsplein zetten</span>
-              <span className="sm:hidden">+</span>
-            </a>
-          )}
-          <div className="text-sm text-gray-500">
-            {products.length} product{products.length !== 1 ? 'en' : ''}
+      {/* Header — compact in Profile V2 (CTA staat boven de lijst) */}
+      {!hideCreateActions ? (
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{t('profileV2.aanbod.manageTitle')}</h3>
+            <p className="text-sm text-gray-500">{t('profileV2.aanbod.manageSubtitle')}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {categoryFilter ? (
+              <a
+                href={`/sell/new?category=${categoryFilter}`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm hover:shadow-md text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('profileV2.aanbod.addLegacy')}</span>
+                <span className="sm:hidden">+</span>
+              </a>
+            ) : null}
+            <div className="text-sm text-gray-500">
+              {t('profileV2.aanbod.productCount', { count: products.length })}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <p className="text-xs font-medium text-gray-500">
+          {t('profileV2.aanbod.productCount', { count: products.length })}
+        </p>
+      )}
 
       {/* Products Grid */}
       {products.length === 0 ? (
-        <div className="rounded-xl border bg-white p-8 text-center">
-          <div className="text-gray-400 mb-4">
-            <Package className="mx-auto h-12 w-12" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen producten</h3>
-          <p className="text-sm text-gray-500">
+        <div className="hc-profile-v2-empty rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/30 px-5 py-10 text-center sm:px-8">
+          <Package className="mx-auto mb-4 h-12 w-12 text-emerald-400" aria-hidden />
+          <h3 className="text-base font-semibold text-gray-900">{t('profileV2.aanbod.title')}</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
             {hideCreateActions
-              ? 'Gebruik de knop hierboven om je eerste Dorpsplein-item toe te voegen.'
-              : 'Voeg je eerste product toe om te beginnen met verkopen!'}
+              ? t('profileV2.empty.aanbodOwner')
+              : t('profileV2.aanbod.emptyLegacy')}
           </p>
+          {hideCreateActions && ownerUser ? (
+            <div className="mt-5 flex justify-center">
+              <ProfileV2AanbodActions
+                user={ownerUser}
+                filter={aanbodFilter}
+                variant="ctaOnly"
+              />
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -218,7 +240,9 @@ export default function ProductManagement({
                         ? "bg-green-100 text-green-800" 
                         : "bg-gray-100 text-gray-800"
                     }`}>
-                      {product.isActive ? "Actief" : "Inactief"}
+                      {product.isActive
+                        ? t('profileV2.forms.statusActive')
+                        : t('profileV2.forms.statusInactive')}
                     </span>
                   </div>
                   {/* Stock Warning */}
@@ -226,7 +250,7 @@ export default function ProductManagement({
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 flex items-center">
                         <AlertCircle className="w-3 h-3 mr-1" />
-                        Laag voorraad
+                        {t('profileV2.forms.lowStock')}
                       </span>
                     </div>
                   )}
@@ -234,7 +258,7 @@ export default function ProductManagement({
                   {product.stock === 0 && (
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        Uitverkocht
+                        {t('profileV2.forms.outOfStock')}
                       </span>
                     </div>
                   )}
@@ -320,10 +344,10 @@ export default function ProductManagement({
                           handleEdit(product);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-                        title="Bewerken (inclusief voorraad)"
+                        title={t('profileV2.forms.editAction')}
                       >
                         <Edit3 className="w-3 h-3" />
-                        <span className="hidden sm:inline">Bewerken</span>
+                        <span className="hidden sm:inline">{t('profileV2.forms.editAction')}</span>
                       </button>
                       
                       <button 
@@ -332,10 +356,10 @@ export default function ProductManagement({
                           router.push(`/product/${product.id}`);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
-                        title="Bekijk op Dorpsplein"
+                        title={t('profileV2.forms.viewOnMarketplace')}
                       >
                         <ShoppingCart className="w-3 h-3" />
-                        <span className="hidden sm:inline">Dorpsplein</span>
+                        <span className="hidden sm:inline">{t('profileV2.forms.viewOnMarketplace')}</span>
                       </button>
                       
                       <button 
@@ -344,10 +368,10 @@ export default function ProductManagement({
                           confirmDelete(product);
                         }}
                         className="flex items-center space-x-1 text-sm px-3 py-1 rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-                        title="Verwijderen"
+                        title={t('profileV2.forms.deleteAction')}
                       >
                         <Trash2 className="w-3 h-3" />
-                        <span className="hidden sm:inline">Verwijderen</span>
+                        <span className="hidden sm:inline">{t('profileV2.forms.deleteAction')}</span>
                       </button>
                     </div>
                     

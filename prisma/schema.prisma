@@ -482,6 +482,11 @@ model Conversation {
   title                   String?
   updatedAt               DateTime                  @updatedAt
   orderId                 String?
+  /// Context-first layer (Phase 1 comm). Legacy productId/orderId kept for compatibility.
+  contextType             ConversationContextType   @default(GENERAL)
+  contextId               String?
+  status                  ConversationStatus        @default(ACTIVE)
+  metadata                Json?
   Order                   Order?                    @relation(fields: [orderId], references: [id])
   Product                 Product?                  @relation(fields: [productId], references: [id])
   Reservation             Reservation?              @relation(fields: [reservationId], references: [id])
@@ -493,6 +498,8 @@ model Conversation {
   @@index([orderId])
   @@index([lastMessageAt])
   @@index([lastMessageAt], map: "idx_conversation_last_message")
+  @@index([contextType, contextId])
+  @@index([status])
 }
 
 model ConversationParticipant {
@@ -1811,6 +1818,26 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+}
+
+enum ConversationContextType {
+  PRODUCT
+  ORDER
+  DELIVERY
+  SERVICE
+  TASK
+  REQUEST
+  BARTER
+  GENERAL
+  PARTNER
+}
+
+enum ConversationStatus {
+  ACTIVE
+  AWAITING_RESPONSE
+  RESOLVED
+  CLOSED
+  DISPUTED
 }
 
 enum UserRole {

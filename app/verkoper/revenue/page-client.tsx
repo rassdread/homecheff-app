@@ -13,7 +13,7 @@ import {
   Activity
 } from 'lucide-react';
 import SellerFinancialManagement from '@/components/seller/SellerFinancialManagement';
-import AppBackBar from '@/components/navigation/AppBackBar';
+import OperationsShell from '@/components/operations/OperationsShell';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface RevenueData {
@@ -67,25 +67,25 @@ export default function SellerRevenuePageClient() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('seller.revenuePageTitle')}
+        pageSubtitle={t('seller.revenuePageDescription')}
+        breadcrumbLabel={t('operations.tabs.finance')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brand"></div>
-      </div>
+      </OperationsShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 pt-4 sm:px-6 lg:px-8">
-        <AppBackBar
-          fallbackUrl="/verkoper/dashboard"
-          label={t('seller.back')}
-          title={t('seller.revenuePageTitle')}
-          className="rounded-xl border border-gray-200/90 bg-white/95 px-1.5 shadow-sm"
-        />
-        <p className="pb-4 pt-1 text-sm text-gray-600">{t('seller.revenuePageDescription')}</p>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <OperationsShell
+      pageTitle={t('seller.revenuePageTitle')}
+      pageSubtitle={t('seller.revenuePageDescription')}
+      breadcrumbLabel={t('operations.tabs.finance')}
+      contentClassName="py-0"
+    >
+      <div className="pb-8">
         {/* Duidelijke CTA: uitbetaling naar bankrekening via Stripe */}
         <a
           href="#uitbetaling-aanvragen"
@@ -106,7 +106,7 @@ export default function SellerRevenuePageClient() {
         </a>
         <SellerFinancialManagement />
       </div>
-    </div>
+    </OperationsShell>
   );
 }
 

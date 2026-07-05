@@ -235,12 +235,12 @@ export default function DesignPhotoUpload({
             {photos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
+                className="relative group aspect-square bg-neutral-50 rounded-lg overflow-hidden border border-gray-200"
               >
                 <img
                   src={photo.url}
                   alt={`Design foto ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  className="w-full h-full hc-inspiration-media-contain"
                 />
                 
                 {/* Main photo indicator */}

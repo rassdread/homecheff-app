@@ -3,7 +3,7 @@
  * Small payloads only — server/API remains source of truth; no full item blobs.
  */
 
-const STORAGE_KEY = 'hc_feed_surfaces_v1';
+const STORAGE_KEY = 'hc_feed_surfaces_v2';
 const MAX_AGE_MS = 25 * 60 * 1000;
 const MAX_JSON_CHARS = 12_000;
 
@@ -15,6 +15,7 @@ export type FeedSurfaceId =
   | 'inspiratie_hub'
   | 'inspiratie_page'
   | 'profile_main'
+  | 'profile_v2'
   | 'hcp_mijn';
 
 type SurfaceEnvelope = {

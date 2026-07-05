@@ -22,7 +22,7 @@ const SECONDARY_HREF: Record<string, { href: string; labelKey: string }> = {
   designer: { href: '/#homecheff-feed', labelKey: 'personaBanner.suggested.discover' },
   grower: { href: '/#homecheff-feed', labelKey: 'personaBanner.suggested.discover' },
   affiliate: { href: '/profile', labelKey: 'personaBanner.suggested.profile' },
-  explorer: { href: '/mijn-hcp', labelKey: 'personaBanner.suggested.hcp' },
+  explorer: { href: '/#homecheff-feed', labelKey: 'personaBanner.suggested.discover' },
   business: { href: '/profile', labelKey: 'personaBanner.suggested.profile' },
   inspiration: { href: '/#homecheff-feed', labelKey: 'personaBanner.suggested.feed' },
 };

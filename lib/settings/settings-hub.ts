@@ -36,15 +36,38 @@ export function isSettingsTabId(raw: string | null | undefined): raw is Settings
   return SETTINGS_TAB_ORDER.includes(raw as SettingsTabId);
 }
 
-export function resolvePrimaryDashboardHref(ctx: SettingsHubContext): string {
+/** Platform admin (separate workspace — not Operations dashboard). */
+export function userIsPlatformAdmin(ctx: SettingsHubContext): boolean {
   const role = (ctx.role || '').toUpperCase();
-  if (role === 'ADMIN' || role === 'SUPERADMIN') return '/admin';
-  if ((ctx.sellerRoles?.length ?? 0) > 0 || role === 'SELLER') {
-    return '/verkoper/dashboard';
+  return role === 'ADMIN' || role === 'SUPERADMIN';
+}
+
+export function userHasEarningRole(ctx: SettingsHubContext): boolean {
+  const role = (ctx.role || '').toUpperCase();
+  return (
+    (ctx.sellerRoles?.length ?? 0) > 0 ||
+    role === 'SELLER' ||
+    Boolean(ctx.hasDeliveryProfile) ||
+    role === 'DELIVERY' ||
+    Boolean(ctx.hasAffiliate)
+  );
+}
+
+/**
+ * Operations entry — unified today hub for all earning roles.
+ * Admin is excluded; use `/admin` via dedicated Admin nav item.
+ * Role dashboards (/verkoper/*, etc.) remain as deep links.
+ */
+export function resolvePrimaryOperationsHref(ctx: SettingsHubContext): string {
+  if (userHasEarningRole(ctx)) {
+    return '/operations/vandaag';
   }
-  if (ctx.hasDeliveryProfile || role === 'DELIVERY') return '/delivery/dashboard';
-  if (ctx.hasAffiliate) return '/affiliate/dashboard';
   return '/profile';
+}
+
+/** Dashboard tab = Operations (alias for resolvePrimaryOperationsHref). */
+export function resolvePrimaryDashboardHref(ctx: SettingsHubContext): string {
+  return resolvePrimaryOperationsHref(ctx);
 }
 
 export function getVisibleSettingsTabs(ctx: SettingsHubContext): SettingsTabId[] {

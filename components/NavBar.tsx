@@ -23,12 +23,20 @@ import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
-import { resolvePrimaryDashboardHref } from '@/lib/settings/settings-hub';
+import { resolvePrimaryOperationsHref } from '@/lib/settings/settings-hub';
+import {
+  ADMIN_WORKSPACE_HREF,
+  countEarningRoles,
+  primaryDashboardContextFromUser,
+  userHasAdminWorkspace,
+  userHasEarningsHub,
+} from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
+import { useCommsUnread } from '@/hooks/useCommsUnread';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
   if (!user) return null;
-  const href = resolvePrimaryDashboardHref({
+  const href = resolvePrimaryOperationsHref({
     role: user.role as string | undefined,
     sellerRoles: (user.sellerRoles as string[] | undefined) ?? [],
     hasDeliveryProfile: Boolean(user.hasDeliveryProfile),
@@ -45,7 +53,7 @@ export default function NavBar() {
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { count: unreadCount } = useCommsUnread(status === 'authenticated');
   const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
@@ -98,6 +106,12 @@ export default function NavBar() {
     ? ({ ...(user as Record<string, unknown>), ...(bootstrapProfile ?? {}) } as Record<string, unknown>)
     : null;
   const dashboardHref = resolveNavDashboardHref(navMenuUser);
+  const showAdminLink = userHasAdminWorkspace(navMenuUser);
+  const earningsHubCtx = primaryDashboardContextFromUser(navMenuUser);
+  const showCombinedEarningsLink =
+    earningsHubCtx != null &&
+    userHasEarningsHub(earningsHubCtx) &&
+    countEarningRoles(earningsHubCtx) >= 2;
 
   // Bereken dropdown-positie binnen viewport (niet buiten beeld)
   const updateDropdownPosition = () => {
@@ -180,29 +194,9 @@ export default function NavBar() {
     }
   }, [ensureProfile]);
 
-  // Berichten-unread + verkoper order-meldingen (orange badge bij verkoper-dashboardlink)
-  const fetchUnreadCount = useCallback(async (source: string = 'unknown') => {
+  // Verkoper order-meldingen (orange badge bij verkoper-dashboardlink)
+  const fetchSellerOrdersUnread = useCallback(async (source: string = 'unknown') => {
     if (!session?.user?.email) return;
-
-    let messagesUnread = 0;
-    let sellerUnread = 0;
-
-    try {
-      const response = await fetch('/api/messages/unread-count', {
-        cache: 'no-store',
-        credentials: 'same-origin',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        messagesUnread = typeof data.count === 'number' ? data.count : 0;
-        setUnreadCount(messagesUnread);
-      }
-    } catch (error) {
-      console.warn('[NavBar] /api/messages/unread-count failed', {
-        source,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
 
     const u = user as Record<string, unknown> | undefined;
     const roles = u?.sellerRoles as unknown[] | undefined;
@@ -214,27 +208,11 @@ export default function NavBar() {
         roles.length > 0);
     if (!isSeller) {
       setSellerOrdersUnread(0);
-      let notifUnreadBuyer: number | undefined;
-      if (process.env.NODE_ENV === 'development') {
-        try {
-          const nr = await fetch('/api/notifications?limit=1', {
-            cache: 'no-store',
-            credentials: 'same-origin',
-          });
-          if (nr.ok) {
-            const nd = await nr.json();
-            if (typeof nd.unreadCount === 'number') notifUnreadBuyer = nd.unreadCount;
-          }
-        } catch {
-          /* ignore */
-        }
-      }
       devBadgeLog({
-        messagesUnreadCount: messagesUnread,
-        notificationsUnreadCount: notifUnreadBuyer,
+        messagesUnreadCount: unreadCount,
+        notificationsUnreadCount: undefined,
         sellerOrderBadgeCount: 0,
-        source:
-          `${source}:messages:/api/messages/unread-count | notifications:/api/notifications | seller:—`,
+        source: `${source}:seller:—`,
       });
       return;
     }
@@ -245,38 +223,20 @@ export default function NavBar() {
       });
       if (res.ok) {
         const data = await res.json();
-        sellerUnread =
+        const sellerUnread =
           typeof data.sellerUnreadCount === 'number' ? data.sellerUnreadCount : 0;
         setSellerOrdersUnread(sellerUnread);
+        devBadgeLog({
+          messagesUnreadCount: unreadCount,
+          notificationsUnreadCount: undefined,
+          sellerOrderBadgeCount: sellerUnread,
+          source: `${source}:seller:/api/notifications/orders`,
+        });
       }
     } catch {
       /* silent */
     }
-
-    let notifUnread: number | undefined;
-    if (process.env.NODE_ENV === 'development') {
-      try {
-        const nr = await fetch('/api/notifications?limit=1', {
-          cache: 'no-store',
-          credentials: 'same-origin',
-        });
-        if (nr.ok) {
-          const nd = await nr.json();
-          if (typeof nd.unreadCount === 'number') notifUnread = nd.unreadCount;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-
-    devBadgeLog({
-      messagesUnreadCount: messagesUnread,
-      notificationsUnreadCount: notifUnread,
-      sellerOrderBadgeCount: sellerUnread,
-      source:
-        `${source}:messages:/api/messages/unread-count | notifications:/api/notifications | seller:/api/notifications/orders`,
-    });
-  }, [session?.user?.email, user]);
+  }, [session?.user?.email, user, unreadCount]);
 
   // Sync cart with user ID for isolation and validate session
   useEffect(() => {
@@ -289,21 +249,15 @@ export default function NavBar() {
     validateAndCleanSession();
 
     if (session?.user?.email) {
-      // Use email as user identifier for cart isolation
       setCartUserId(session.user.email);
-      // Fetch unread count
-      void fetchUnreadCount('session-change');
+      void fetchSellerOrdersUnread('session-change');
     } else {
-      // No session: clear only UI state. Do NOT call clearNextAuthData() here –
-      // on Safari a failed session refetch (CORS/cookie) can briefly set status to unauthenticated;
-      // wiping cookies would log the user out. clearNextAuthData() is only for explicit logout (handleLogout).
       setCartUserId(null);
-      setUnreadCount(0);
       setSellerOrdersUnread(0);
       setUserProfile(null);
       hasFetchedProfileRef.current = false;
     }
-  }, [session, status, user, fetchUnreadCount]);
+  }, [session, status, user, fetchSellerOrdersUnread]);
 
   useEffect(() => {
     if (bootstrapProfile) {
@@ -329,26 +283,22 @@ export default function NavBar() {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    const onNotif = () => void fetchUnreadCount('notificationsUpdated');
-    const onFocus = () => void fetchUnreadCount('focus');
-    const onMessagesRead = () => void fetchUnreadCount('messagesRead');
-    const onUnreadUpdate = () => void fetchUnreadCount('unreadCountUpdate');
+    const onNotif = () => void fetchSellerOrdersUnread('notificationsUpdated');
+    const onFocus = () => void fetchSellerOrdersUnread('focus');
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void fetchUnreadCount('visibilitychange');
+        void fetchSellerOrdersUnread('visibilitychange');
       }
     };
     const onPageShow = (event: PageTransitionEvent) =>
-      void fetchUnreadCount(event.persisted ? 'pageshow:bfcache' : 'pageshow');
+      void fetchSellerOrdersUnread(event.persisted ? 'pageshow:bfcache' : 'pageshow');
     try {
       window.addEventListener('notificationsUpdated', onNotif);
       window.addEventListener('focus', onFocus);
-      window.addEventListener('messagesRead', onMessagesRead);
-      window.addEventListener('unreadCountUpdate', onUnreadUpdate);
       window.addEventListener('pageshow', onPageShow);
       document.addEventListener('visibilitychange', onVisibility);
     } catch (e) {
-      console.warn('[NavBar] badge listeners attach failed', {
+      console.warn('[NavBar] seller badge listeners attach failed', {
         error: e instanceof Error ? e.message : String(e),
       });
     }
@@ -356,39 +306,13 @@ export default function NavBar() {
       try {
         window.removeEventListener('notificationsUpdated', onNotif);
         window.removeEventListener('focus', onFocus);
-        window.removeEventListener('messagesRead', onMessagesRead);
-        window.removeEventListener('unreadCountUpdate', onUnreadUpdate);
         window.removeEventListener('pageshow', onPageShow);
         document.removeEventListener('visibilitychange', onVisibility);
       } catch {
         /* ignore */
       }
     };
-  }, [fetchUnreadCount]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onMessagesUnread = (e: Event) => {
-      const d = (e as CustomEvent<{ unreadCount?: number }>).detail;
-      if (typeof d?.unreadCount === 'number') {
-        setUnreadCount(d.unreadCount);
-      }
-    };
-    try {
-      window.addEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
-    } catch (e) {
-      console.warn('[NavBar] unreadCountUpdate listener attach failed', {
-        error: e instanceof Error ? e.message : String(e),
-      });
-    }
-    return () => {
-      try {
-        window.removeEventListener('unreadCountUpdate', onMessagesUnread as EventListener);
-      } catch {
-        /* ignore */
-      }
-    };
-  }, []);
+  }, [fetchSellerOrdersUnread]);
 
   return (
     <header
@@ -555,6 +479,30 @@ export default function NavBar() {
                         >
                           <LayoutGrid className="w-4 h-4" />
                           <span>{t('navbar.dashboard') || 'Dashboard'}</span>
+                        </Link>
+                      ) : null}
+
+                      {showCombinedEarningsLink ? (
+                        <Link
+                          href="/verdiensten"
+                          prefetch={false}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <TrendingUp className="w-4 h-4" />
+                          <span>{t('navbar.combinedEarnings')}</span>
+                        </Link>
+                      ) : null}
+
+                      {showAdminLink ? (
+                        <Link
+                          href={ADMIN_WORKSPACE_HREF}
+                          prefetch={false}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-violet-700 hover:bg-violet-50 transition-colors"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <Shield className="w-4 h-4" />
+                          <span>{t('navbar.admin')}</span>
                         </Link>
                       ) : null}
 
@@ -818,6 +766,36 @@ export default function NavBar() {
                     >
                       <LayoutGrid className="w-4 h-4 shrink-0" />
                       <span>{t('navbar.dashboard') || 'Dashboard'}</span>
+                    </Link>
+                  ) : null}
+
+                  {showCombinedEarningsLink ? (
+                    <Link
+                      href="/verdiensten"
+                      prefetch={false}
+                      className={mobileNavRowClass}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: '/verdiensten' });
+                      }}
+                    >
+                      <TrendingUp className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.combinedEarnings')}</span>
+                    </Link>
+                  ) : null}
+
+                  {showAdminLink ? (
+                    <Link
+                      href={ADMIN_WORKSPACE_HREF}
+                      prefetch={false}
+                      className={cn(mobileNavRowClass, 'text-violet-700 hover:bg-violet-50')}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        navDebug('navbar:mobile', { href: ADMIN_WORKSPACE_HREF });
+                      }}
+                    >
+                      <Shield className="w-4 h-4 shrink-0" />
+                      <span>{t('navbar.admin')}</span>
                     </Link>
                   ) : null}
 

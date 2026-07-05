@@ -532,6 +532,9 @@
     "addMaterial": "Materiaal toevoegen",
     "tagsLabel": "Tags",
     "studioNotesLabel": "Notities",
+    "workGuideLabel": "Werkbeschrijving",
+    "addStep": "Stap toevoegen",
+    "addStepPhoto": "Stapfoto toevoegen",
     "validationTitleRequired": "Vul een titel in.",
     "validationPhotoRequired": "Voeg minimaal één foto toe.",
     "cannotSaveIntro": "Kan niet opslaan:",
@@ -829,6 +832,7 @@
       "soilType": "Bodem",
       "growth": "Groei",
       "harvest": "Oogst",
+      "growLocation": "Kweeklocatie",
       "sowing": "Zaaien",
       "plantDistance": "Plantafstand",
       "days": "dagen",
@@ -836,6 +840,46 @@
       "maker": "Maker",
       "stepPhoto": "Stap {stepNumber} foto",
       "phasePhoto": "Fase {phaseNumber}"
+    },
+    "instructions": {
+      "recipe": "Recept",
+      "growingGuide": "Kweekhandleiding",
+      "designWork": "Maakhandleiding",
+      "sectionTitle": "Handleiding",
+      "ingredients": "Ingrediënten",
+      "materials": "Materialen",
+      "supplies": "Benodigdheden",
+      "steps": "Stappenplan",
+      "growthPhases": "Groeifases",
+      "makingSteps": "Maakstappen",
+      "carePlan": "Verzorgingsplan",
+      "careSection": "Verzorging",
+      "workDescription": "Werkbeschrijving",
+      "prepTime": "Bereidingstijd",
+      "servings": "Porties",
+      "category": "Categorie",
+      "materialItems": "items",
+      "chefTip": "Tip van de chef",
+      "atGlance": "In één oogopslag",
+      "openPrintView": "Open printweergave",
+      "printOrSavePdf": "Print of sla op als PDF",
+      "printRecipe": "Print recept",
+      "printGrowing": "Print kweekhandleiding",
+      "printWork": "Print maakhandleiding",
+      "downloadRecipe": "Download recept (PDF)",
+      "downloadInstruction": "Download instructie (PDF)",
+      "downloadViaPrint": "Opslaan via printweergave",
+      "printDownloadHint": "Open de printweergave en kies in je browser “Opslaan als PDF”.",
+      "printNow": "Nu printen",
+      "extraPhotosCheff": "Extra foto's",
+      "extraPhotosGrown": "Extra groeifoto's",
+      "extraPhotosDesigner": "Extra beelden",
+      "viewAllFromMaker": "Bekijk alles van deze maker",
+      "imageCounter": "Afbeelding {current} van {total}",
+      "hours": "uur",
+      "madeVia": "Gemaakt met ❤️ door {maker} via HomeCheff",
+      "printDisclaimer": "Dit document is bedoeld voor persoonlijk gebruik. Recepten en instructies blijven eigendom van de maker.",
+      "untitled": "Naamloos item"
     },
     "promoModal": {
       "title": "Haal het beste uit HomeCheff",
@@ -865,6 +909,7 @@
     "orders": "Mijn Aankopen",
     "privacy": "Privacy Instellingen",
     "adminDashboard": "Admin Dashboard",
+    "admin": "Admin",
     "sellerDashboard": "Verkoper Dashboard",
     "sellerOrders": "Verkooporders",
     "deliveryDashboard": "Bezorger Dashboard",
@@ -875,6 +920,7 @@
     "werkenBij": "Werken bij",
     "affiliateDashboard": "Affiliate Dashboard",
     "dashboard": "Dashboard",
+    "combinedEarnings": "Mijn verdiensten",
     "verdienenGuestTitle": "Log in om iets te plaatsen",
     "verdienenGuestBody": "Iets plaatsen kan alleen als je bent ingelogd.",
     "androidBeta": "Android beta",
@@ -2423,7 +2469,16 @@
     "askMaker": "Vraag iets aan maker",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
     "viewLinkedStory": "Bekijk het verhaal achter dit product",
-    "aboutProduct": "Over dit product"
+    "aboutProduct": "Over dit product",
+    "moreBehindOffer": "Meer achter dit aanbod",
+    "viewFullRecipe": "Bekijk het volledige recept",
+    "viewFullRecipeDesc": "Lees de ingrediënten, stappen en tips van de maker.",
+    "viewFullGrowingGuide": "Bekijk de volledige kweekinstructie",
+    "viewFullGrowingGuideDesc": "Bekijk groeifases, verzorging en tips.",
+    "viewFullMakingGuide": "Bekijk de volledige werkbeschrijving",
+    "viewFullMakingGuideDesc": "Bekijk materialen, stappen en maakproces.",
+    "editFullInspiration": "Volledige inspiratie bewerken",
+    "productFormScopeHint": "Dit formulier is voor verkoopinfo. Recept, kweek- of werkbeschrijving bewerk je via inspiratie."
   },
   "dish": {
     "noItemsShared": "Nog geen items gedeeld",
@@ -3624,7 +3679,46 @@
     "takePhotoSubtitle": "Camera opent in fotomodus",
     "takeVideoTitle": "Video opnemen",
     "takeVideoSubtitle": "Camera opent in videomodus",
-    "continueWithoutMedia": "Doorgaan zonder foto"
+    "continueWithoutMedia": "Doorgaan zonder foto",
+    "loading": "Laden…",
+    "redirectingToLogin": "Doorsturen naar inloggen…",
+    "noSellerRoles": "Je hebt nog geen verkoper rollen.",
+    "setupHomeCheff": "Mijn HomeCheff instellen",
+    "sellRoleTitle": "Kies je rol",
+    "sellRoleSubtitle": "Welk type product is dit?",
+    "chefRoleTitle": "Chef",
+    "chefRoleHint": "Gerechten & ingrediënten",
+    "gardenRoleTitle": "Garden",
+    "gardenRoleHint": "Groenten & planten",
+    "designerRoleTitle": "Designer",
+    "designerRoleHint": "Handgemaakte items",
+    "inspiratieTypeTitle": "Kies inspiratie type",
+    "inspiratieTypeSubtitle": "Welke inspiratie wil je delen?",
+    "recipesTitle": "Recepten",
+    "recipesHint": "Deel je recepten en kooktips",
+    "growingTitle": "Kweken",
+    "growingHint": "Deel je kweekprojecten en tuinupdates",
+    "designsTitle": "Designs",
+    "designsHint": "Deel je creaties en maakproces",
+    "otherStart": "Andere start",
+    "otherCategory": "Andere categorie",
+    "sellFormTitle": "Start met verkopen",
+    "sellFormSubtitleSkip": "Verdien geld met wat je al kunt — gewoon in jouw buurt.",
+    "sellFormSubtitle": "Vul het formulier in om je aanbod op het Dorpsplein te zetten.",
+    "otherInspiratieCategory": "Andere inspiratie-categorie",
+    "inspiratieFormTitle": "Deel inspiratie",
+    "inspiratieFormSubtitle": "Deel een recept, idee of voorbeeld en inspireer anderen.",
+    "videoTooLargeStorage": "Video is te groot voor opslag. Probeer een kortere video.",
+    "photoTooLargeStorage": "Foto is te groot. Kies een kleinere afbeelding.",
+    "mediaSaveFailed": "Kon media niet opslaan. Probeer opnieuw.",
+    "mediaTypeNotAllowed": "Alleen foto's en video's zijn toegestaan"
+  },
+  "publicItemDetail": {
+    "ownerActions": "Jouw acties",
+    "confirmDelete": "Weet je zeker dat je dit item wilt verwijderen?",
+    "publish": "Publiceren",
+    "unpublish": "Privé maken",
+    "privateDraftHint": "Dit item is privé — alleen jij ziet het tot je publiceert."
   },
   "werkenBij": {
     "title": "Werken bij HomeCheff",
@@ -3652,6 +3746,48 @@
     "readyToStartDesc": "Kies een optie hierboven om te starten",
     "signUpNow": "Meld Je Aan als Bezorger",
     "legalInfo": "Vanaf 15 jaar • Wettelijk toegestaan • Veilig en betrouwbaar"
+  },
+  "privacySettingsPage": {
+    "backToHome": "Terug naar Home",
+    "title": "Privacy-instellingen",
+    "subtitle": "Beheer wie je profiel en berichten kan zien",
+    "loadError": "Kon privacy-instellingen niet laden",
+    "saveSuccess": "Privacy-instellingen opgeslagen!",
+    "saveError": "Kon instellingen niet opslaan",
+    "messagePrivacy": {
+      "heading": "Berichtenprivacy",
+      "description": "Wie mag je berichten sturen?",
+      "everyone": {
+        "label": "Iedereen",
+        "desc": "Alle gebruikers kunnen je berichten sturen"
+      },
+      "fansOnly": {
+        "label": "Alleen volgers",
+        "desc": "Alleen mensen die je volgen kunnen je berichten sturen"
+      },
+      "nobody": {
+        "label": "Niemand",
+        "desc": "Alleen admins en leveringsberichten zijn toegestaan"
+      }
+    },
+    "fansSection": {
+      "heading": "Fans",
+      "showFansList": {
+        "label": "Fanlijst tonen",
+        "desc": "Toon wie je volgt en wie jou volgt op je profiel. Het aantal fans kan op andere plekken zichtbaar blijven."
+      }
+    },
+    "profileVisibility": {
+      "heading": "Profielzichtbaarheid",
+      "showProfileToEveryone": {
+        "label": "Publiek profiel",
+        "desc": "Je profielpagina (/user/gebruikersnaam) is bereikbaar voor anderen. Uitgeschakeld verbergt die pagina; publieke items kunnen nog op het dorpsplein verschijnen."
+      },
+      "showOnlineStatus": {
+        "label": "Online-status in chat",
+        "desc": "Toon in gesprekken of je online bent. Heeft geen effect op je profiel of feed."
+      }
+    }
   },
   "profileSettings": {
     "title": "Profielinstellingen",
@@ -3700,8 +3836,8 @@
     "stripeConnect": "Uitbetalingen via Stripe",
     "stripeConnectText": "Uitbetalingen worden veilig afgehandeld via Stripe. Connect met Stripe om je bankgegevens toe te voegen.",
     "connectWithStripe": "Connect met Stripe",
-    "encryption": "End-to-End Versleutelde Berichten",
-    "encryptionDescription": "Schakel automatische berichtversleuteling in voor maximale privacy. Niemand, zelfs niet HomeCheff admins, kan je berichten lezen.",
+    "encryption": "Versleutelde chatberichten",
+    "encryptionDescription": "Versleutel je chatberichten in de app. Geldt alleen voor berichten — niet voor je profiel, inspiratie of dorpsplein-items.",
     "encryptionActive": "🔐 Versleuteling Actief",
     "encryptionInactive": "🔓 Geen Versleuteling",
     "encryptionEnabledText": "Al je berichten worden automatisch versleuteld",
@@ -3720,10 +3856,6 @@
     "usernameDisplayDescription": "Toon alleen je gebruikersnaam op je profiel (bijv. \"@jandevries\")",
     "noNameDisplay": "Geen naam",
     "noNameDisplayDescription": "Toon geen naam op je profiel, alleen gebruikersnaam",
-    "privacySettings": "Privacy instellingen",
-    "privacySettingsDescription": "Bepaal welke informatie zichtbaar is op je publieke profiel",
-    "showFansList": "Fan lijst tonen",
-    "showFansListDescription": "Toon je fan lijst en wie je volgt op je publieke profiel",
     "encryptionModalTitle": "Versleutelde Berichten Activeren",
     "encryptionModalSubtitle": "Lees en accepteer de richtlijnen",
     "importantPrivacyResponsibility": "Belangrijk: Privacy & Verantwoordelijkheid",
@@ -3979,7 +4111,7 @@
     "payoutsLink": "Uitbetalingen & omzet",
     "deliveryIntro": "Beheer beschikbaarheid, radius, GPS en planning voor bezorgen.",
     "openDeliverySettings": "Bezorginstellingen openen",
-    "affiliateIntro": "Referral-link, commissies en uitbetalingen beheer je in het affiliate-dashboard.",
+    "affiliateIntro": "Partnerlink, aanmeldingen, commissies en uitbetalingen beheer je in het partnerdashboard.",
     "validUntil": "Geldig tot",
     "noSubscription": "Geen actief abonnement. Premium geeft extra zichtbaarheid en contactopties.",
     "viewPlans": "Abonnementen bekijken"
@@ -4003,6 +4135,354 @@
     "interestCreative": "Creatief",
     "interestHelp": "Hulp & Klusjes",
     "interestDelivery": "Bezorging"
+  },
+  "profileV2": {
+    "tabs": {
+      "navLabel": "Profielnavigatie",
+      "overview": "Overzicht",
+      "aanbod": "Aanbod",
+      "inspiratie": "Inspiratie",
+      "community": "Community",
+      "vertrouwen": "Vertrouwen"
+    },
+    "header": {
+      "makerOnMarketplace": "Maker op het dorpsplein",
+      "hcp": "{count} HCP",
+      "fans": "{count} fans",
+      "profileViews": "{count} profielbezoeken",
+      "memberSince": "Lid sinds {date}"
+    },
+    "actions": {
+      "editProfile": "Profiel bewerken",
+      "settings": "Instellingen",
+      "changePhoto": "Foto wijzigen",
+      "message": "Bericht",
+      "viewAanbod": "Aanbod bekijken"
+    },
+    "forms": {
+      "productNotFound": "Product niet gevonden",
+      "statusActive": "Actief",
+      "statusInactive": "Inactief",
+      "lowStock": "Laag voorraad",
+      "outOfStock": "Uitverkocht",
+      "editAction": "Bewerken",
+      "deleteAction": "Verwijderen",
+      "viewOnMarketplace": "Dorpsplein",
+      "chef": {
+        "add": "Maaltijd toevoegen",
+        "edit": "Maaltijd bewerken",
+        "publish": "Maaltijd publiceren"
+      },
+      "garden": {
+        "add": "Tuinproduct toevoegen",
+        "edit": "Tuinproduct bewerken",
+        "publish": "Tuinproduct publiceren"
+      },
+      "designer": {
+        "add": "Creatie toevoegen",
+        "edit": "Creatie bewerken",
+        "publish": "Creatie publiceren"
+      },
+      "inspiratie": {
+        "share": "Inspiratie delen",
+        "edit": "Inspiratie bewerken",
+        "addToOffer": "Toevoegen aan aanbod",
+        "putForSale": "Te koop zetten"
+      },
+      "aanbod": {
+        "add": "Nieuw aanbod plaatsen",
+        "edit": "Aanbod bewerken",
+        "publish": "Aanbod publiceren"
+      },
+      "future": {
+        "swap": {
+          "add": "Ruilverzoek plaatsen",
+          "swapValue": "Ruilwaarde",
+          "offer": "Ik bied",
+          "seek": "Ik zoek"
+        },
+        "service": {
+          "add": "Dienst aanbieden",
+          "rate": "Tarief",
+          "availability": "Beschikbaarheid",
+          "workArea": "Werkgebied"
+        },
+        "request": {
+          "add": "Hulpvraag plaatsen",
+          "needHelp": "Waar heb je hulp bij nodig?",
+          "reward": "Beloning of ruil mogelijk"
+        },
+        "task": {
+          "add": "Klus plaatsen",
+          "budget": "Budget",
+          "whenNeeded": "Wanneer nodig?",
+          "location": "Locatie"
+        }
+      }
+    },
+    "overview": {
+      "aboutTitle": "Over mij",
+      "aboutSubtitle": "Het verhaal achter de maker",
+      "aboutEmpty": "Voeg een introductie toe in je profielinstellingen.",
+      "visitorIntro": "Ontdek wie deze maker is, wat ze delen en waarom de buurt ze vertrouwt.",
+      "socialProof": "In één oogopslag",
+      "itemsLabel": "Aanbod",
+      "exploreTitle": "Verken het profiel",
+      "exploreSubtitle": "Ontdek wat deze maker deelt op HomeCheff",
+      "ownerTools": "Beheer & instellingen",
+      "previewAanbod": "Mijn aanbod",
+      "previewAanbodDesc": "Alles wat je deelt op het dorpsplein",
+      "previewInspiratie": "Inspiratie",
+      "previewInspiratieDesc": "Creaties, projecten en verhalen",
+      "previewCommunity": "Community",
+      "previewCommunityDesc": "Fans, reviews en reputatie",
+      "previewTrust": "Vertrouwen",
+      "previewTrustDesc": "Werkruimte en verificatie",
+      "viewSection": "Bekijk sectie"
+    },
+    "roles": {
+      "title": "Mijn rollen",
+      "titlePublic": "Rollen",
+      "subtitle": "Waar je actief bent op HomeCheff",
+      "subtitlePublic": "Wat deze maker deelt en waar ze van houden",
+      "buyerSection": "Kopersrollen",
+      "sellerSection": "Verkopersrollen",
+      "interestsSection": "Interesses",
+      "active": "Actief",
+      "verified": "Geverifieerd",
+      "emailVerified": "E-mail geverifieerd",
+      "productsCount": "{count} producten",
+      "productCount": "{count} product",
+      "purchasesCount": "{count} aankopen",
+      "purchaseCount": "{count} aankoop",
+      "buyer": {
+        "explorer": "Ontdekker",
+        "collector": "Verzamelaar",
+        "enthusiast": "Liefhebber",
+        "adventurer": "Avonturier",
+        "connoisseur": "Fijnproever",
+        "connoisseurArt": "Connaisseur",
+        "enjoyer": "Genieter",
+        "foodLover": "Food Lover",
+        "unknown": "Liefhebber"
+      },
+      "seller": {
+        "chef": "Chef",
+        "garden": "Tuinier",
+        "designer": "Designer"
+      },
+      "interests": {
+        "chef": "Koken",
+        "garden": "Tuinieren",
+        "designer": "Creatief",
+        "enthusiast": "Liefhebber",
+        "delivery": "Bezorging",
+        "help": "Hulp & klusjes"
+      }
+    },
+    "aanbod": {
+      "title": "Aanbod",
+      "subtitle": "Al je keuken-, tuin- en studio-items op één plek",
+      "visitorHint": "Bekijk wat deze maker deelt op het dorpsplein — bestellen of contact opnemen kan direct vanaf het item.",
+      "addCta": "Nieuw aanbod plaatsen",
+      "noMakerTitle": "Nog geen maker-profiel",
+      "noMakerDesc": "Voeg eerst Keuken, Tuin of Studio toe om aanbod op het dorpsplein te plaatsen.",
+      "setupProfile": "Profiel instellen",
+      "manageTitle": "Producten beheren",
+      "manageSubtitle": "Pas prijzen, voorraad en status aan",
+      "productCount": "{count} producten",
+      "addLegacy": "Product op Dorpsplein zetten",
+      "emptyLegacy": "Voeg je eerste product toe om te beginnen met verkopen!",
+      "loadError": "Fout bij het laden van producten",
+      "deleteSuccess": "Product succesvol verwijderd!",
+      "filters": {
+        "all": "Alles",
+        "chef": "Chef",
+        "garden": "Garden",
+        "designer": "Designer",
+        "services": "Diensten",
+        "trade": "Ruilen",
+        "help": "Hulpvragen",
+        "tasks": "Klusjes"
+      }
+    },
+    "inspiratie": {
+      "title": "Inspiratie",
+      "subtitle": "Foto's, projecten en updates",
+      "visitorHint": "Bekijk creaties, recepten en projecten van deze maker.",
+      "addCta": "Inspiratie toevoegen",
+      "noMakerTitle": "Nog geen maker-profiel",
+      "noMakerDesc": "Voeg eerst Keuken, Tuin of Studio toe om inspiratie te plaatsen.",
+      "setupProfile": "Profiel instellen",
+      "filters": {
+        "all": "Alles",
+        "chef": "Keuken",
+        "garden": "Tuin",
+        "designer": "Studio"
+      },
+      "sections": {
+        "chef": "Keuken",
+        "garden": "Tuin",
+        "designer": "Studio"
+      }
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Fans, reviews en reputatie op het dorpsplein",
+      "fansLabel": "Fans",
+      "reviewsLabel": "Reviews",
+      "reviewsTitle": "Reviews",
+      "fansTitle": "Fans & volgers",
+      "deliveryStats": "{count} bezorgingen voltooid",
+      "viewTrust": "Bekijk vertrouwen",
+      "hcpLink": "Bekijk je HCP-voortgang"
+    },
+    "sidepanel": {
+      "quickActions": {
+        "title": "Snelle acties",
+        "addAanbod": "Nieuw aanbod plaatsen",
+        "addAanbodDesc": "Deel iets op het dorpsplein",
+        "addInspiratie": "Inspiratie toevoegen",
+        "addInspiratieDesc": "Laat zien wat je maakt",
+        "trust": "Vertrouwen aanvullen",
+        "trustDesc": "Werkplekfoto's en verificatie",
+        "editProfile": "Profiel bewerken",
+        "editProfileDesc": "Bio, foto en instellingen"
+      },
+      "completeness": {
+        "title": "Maak je profiel sterker",
+        "hint": "Vul je profiel aan voor meer vertrouwen",
+        "completeHint": "Je profiel is compleet — mooi zo!",
+        "profilePhoto": "Profielfoto",
+        "bio": "Bio / verhaal",
+        "roles": "Rollen of interesses",
+        "workspacePhotos": "Werkplekfoto's",
+        "stripe": "Betaalinstellingen",
+        "aanbod": "Minimaal één aanbod",
+        "inspiratie": "Minimaal één inspiratie-item"
+      },
+      "nextStep": {
+        "sectionTitle": "Je volgende stap",
+        "setupRoles": {
+          "title": "Kies je maker-rollen",
+          "description": "Voeg Keuken, Tuin of Studio toe om te beginnen.",
+          "cta": "Profiel instellen →"
+        },
+        "firstAanbod": {
+          "title": "Plaats je eerste aanbod",
+          "description": "Laat de buurt zien wat je deelt op het dorpsplein.",
+          "cta": "Aanbod plaatsen →"
+        },
+        "firstInspiratie": {
+          "title": "Deel je eerste inspiratie",
+          "description": "Foto's en verhalen helpen mensen je te leren kennen.",
+          "cta": "Inspiratie toevoegen →"
+        },
+        "workspacePhotos": {
+          "title": "Voeg werkplekfoto's toe",
+          "description": "Laat zien waar je maakt — dat bouwt vertrouwen.",
+          "cta": "Naar Vertrouwen →"
+        },
+        "stripe": {
+          "title": "Betalingen instellen",
+          "description": "Koppel Stripe om betalingen te ontvangen.",
+          "cta": "Stripe instellen →"
+        },
+        "viewPublic": {
+          "title": "Bekijk je openbare profiel",
+          "description": "Zo zien anderen jou op HomeCheff.",
+          "cta": "Openbaar profiel bekijken →"
+        }
+      },
+      "trust": {
+        "title": "Voeg vertrouwen toe",
+        "kitchen": "Keukenfoto toevoegen",
+        "garden": "Tuinfoto toevoegen",
+        "studio": "Atelierfoto toevoegen",
+        "vehicle": "Voertuigfoto toevoegen",
+        "add": "Nog niet toegevoegd",
+        "done": "Toegevoegd"
+      },
+      "community": {
+        "title": "Community",
+        "fans": "Bekijk fans",
+        "fansDesc": "{count} fans volgen je",
+        "reviews": "Bekijk reviews",
+        "reviewsDesc": "Zie wat anderen zeggen",
+        "publicProfile": "Openbaar profiel",
+        "publicProfileDesc": "Bekijk hoe anderen jou zien",
+        "setUsername": "Kies een gebruikersnaam",
+        "setUsernameDesc": "Nodig voor je openbare profiel-URL"
+      },
+      "hcpLabel": "HomeCheff Points",
+      "assistantLabel": "Maker assistent"
+    },
+    "empty": {
+      "aboutTitle": "Nog geen verhaal",
+      "aboutOwner": "Schrijf een korte intro over wie je bent en wat je maakt — mensen volgen makers, geen dashboards.",
+      "aboutPublic": "Deze maker heeft nog geen introductie gedeeld.",
+      "aanbodOwner": "Laat de buurt zien wat je maakt, verkoopt of aanbiedt.",
+      "aanbodPublic": "Deze maker heeft nog niets op het dorpsplein gezet.",
+      "inspiratieOwner": "Deel foto's, ideeën en projecten zodat mensen je leren kennen.",
+      "inspiratiePublic": "Nog geen inspiratie — kom later terug om creaties en projecten te bekijken.",
+      "communityPublic": "Nog geen reviews of fans — wees de eerste die deze maker ontdekt.",
+      "trustOwner": "Voeg foto's van je werkplek toe zodat anderen je kunnen vertrouwen.",
+      "trustPublic": "Deze maker deelt nog geen vertrouwensinformatie."
+    },
+    "vertrouwen": {
+      "title": "Vertrouwen",
+      "subtitle": "Waar en hoe je werkt — voor een veilig gevoel",
+      "visitorIntro": "Zie waar en hoe deze maker werkt — net als bij een Airbnb-host profiel.",
+      "emptyOwner": "Voeg foto's van je keuken, tuin of atelier toe zodat anderen je kunnen vertrouwen.",
+      "emptyPublic": "Deze maker deelt nog geen werkplek of verificatie — stuur gerust een bericht als je vragen hebt.",
+      "empty": "Nog geen vertrouwensinformatie om te tonen.",
+      "roles": {
+        "chef": "Keuken",
+        "garden": "Tuin",
+        "designer": "Atelier"
+      },
+      "sections": {
+        "workspaceGroup": {
+          "title": "Achter de schermen",
+          "description": "Deel je werkplek — zo weten anderen waar en hoe je werkt"
+        },
+        "kitchen": {
+          "title": "Keuken"
+        },
+        "garden": {
+          "title": "Tuin"
+        },
+        "studio": {
+          "title": "Atelier"
+        },
+        "delivery": {
+          "title": "Bezorging & beschikbaarheid",
+          "description": "Hoe en wanneer je beschikbaar bent als ambassadeur",
+          "defaultBio": "Betrouwbare bezorger op het dorpsplein.",
+          "transport": "Vervoer",
+          "availability": "Beschikbaarheid",
+          "days": "Dagen",
+          "times": "Tijden",
+          "maxDistance": "Tot {km} km",
+          "deliveries": "{count} bezorgingen",
+          "verified": "Geverifieerd"
+        },
+        "vehicle": {
+          "title": "Voertuig",
+          "description": "Foto's van je voertuig voor vertrouwen en verificatie",
+          "count": "{current}/{max} foto's",
+          "addPhotos": "Foto's toevoegen",
+          "uploading": "Uploaden…",
+          "uploadFailed": "{count} foto('s) konden niet worden geüpload",
+          "deletePhoto": "Foto verwijderen",
+          "photoAlt": "Voertuigfoto",
+          "allPhotos": "Alle voertuigfoto's ({count})",
+          "emptyOwner": "Nog geen voertuigfoto's — voeg minimaal 2 toe voor verificatie.",
+          "emptyPublic": "Nog geen voertuigfoto's gedeeld.",
+          "verificationHint": "Upload minimaal 2 voertuigfoto's om verificatie te voltooien."
+        }
+      }
+    }
   },
   "profilePage": {
     "tabs": {
@@ -4807,6 +5287,16 @@
     "reloadMessages": "Herlaad berichten",
     "typing": "typt...",
     "isTyping": "aan het typen...",
+    "context": {
+      "aboutOffer": "Waar gaat dit gesprek over?",
+      "viewOffer": "Bekijk aanbod",
+      "checkout": "Afrekenen",
+      "aboutOrder": "Ordergesprek",
+      "order": "Bestelling",
+      "viewOrder": "Order bekijken",
+      "general": "Gesprek",
+      "viewProfile": "Profiel"
+    },
     "presenceOnline": "Online",
     "presenceLive": "Live",
     "presenceOffline": "Offline",
@@ -5814,15 +6304,15 @@
       "welcome": "Welkom bij het Affiliate Programma! 🎉",
       "welcomeTitle": "Welkom bij HomeCheff!",
       "welcomeMessage": "Nodig vrienden uit en verdien samen",
-      "welcomeDesc": "Je account is actief. Begin met het delen van je referral link!",
+      "welcomeDesc": "Je account is actief. Deel je partnerlink om nieuwe aanmeldingen te genereren.",
       "overview": "Overview",
       "earnings": "Earnings",
-      "referrals": "Referrals",
-      "subAffiliates": "Made affiliates",
+      "referrals": "Aanmeldingen via link",
+      "subAffiliates": "Directe partners",
       "pending": "Pending",
       "available": "Available",
       "paid": "Paid",
-      "totalReferrals": "Total Referrals",
+      "totalReferrals": "Aanmeldingen via link",
       "totalEarned": "Totaal verdiend",
       "shareYourLink": "Deel jouw persoonlijke uitnodigingslink:",
       "shareHint": "Deel via WhatsApp, email, social media of scan de QR-code hieronder",
@@ -5830,9 +6320,9 @@
       "copy": "Copy",
       "copyLink": "Kopieer link",
       "copied": "Gekopieerd!",
-      "referralLinkTitle": "Jouw Referral Link & QR Code",
+      "referralLinkTitle": "Jouw partnerlink & QR-code",
       "qrCodeTitle": "QR Code",
-      "qrCodeDesc": "Deel deze QR code om nieuwe gebruikers aan te brengen. Ze kunnen de code scannen om direct naar HomeCheff te gaan met jouw referral link.",
+      "qrCodeDesc": "Deel deze QR-code om nieuwe gebruikers aan te brengen. Ze kunnen de code scannen om direct naar HomeCheff te gaan met jouw partnerlink.",
       "downloadQR": "Download QR Code",
       "printQR": "Print QR Code",
       "downloading": "Downloaden...",
@@ -5852,35 +6342,35 @@
       "copyEmbedCode": "Kopieer Embed Code",
       "copyEmbedCodeDesc": "HTML code voor directe integratie",
       "recentPayouts": "Recent Payouts",
-      "referralsList": "Jouw referrals",
-      "referralsCount": "{count} referrals",
+      "referralsList": "Aanmeldingen via jouw link",
+      "referralsCount": "{count} aanmeldingen via link",
       "referralBusiness": "Bedrijf",
       "referralUser": "Gebruiker",
       "viewProfile": "Bekijk profiel",
       "profile": "Profiel",
-      "noReferrals": "Nog geen referrals",
-      "noReferralsHint": "Deel je referral-link om je community te laten groeien.",
-      "deleteSubAffiliateTitle": "Verwijder made affiliate",
+      "noReferrals": "Nog geen aanmeldingen via jouw link",
+      "noReferralsHint": "Deel je partnerlink — elke aanmelding telt, maar wordt geen directe partner in je netwerk.",
+      "deleteSubAffiliateTitle": "Partner uit netwerk verwijderen",
       "delete": "Verwijder",
       "noPayouts": "No payouts yet",
-      "referralStats": "Referral Stats",
-      "businessReferrals": "Business Referrals",
-      "subAffiliatesTitle": "Made affiliates",
-      "subAffiliatesDesc": "Beheer je made affiliates. Je ontvangt 10% commissie op hun abonnementen en 5-10% op hun transacties.",
-      "downlineDesc": "Community-partners die je hebt toegevoegd",
-      "yourDownline": "Jouw community-partners",
-      "newSubAffiliate": "+ Nieuwe made affiliate",
+      "referralStats": "Aanmeldingen via link",
+      "businessReferrals": "Zakelijke aanmeldingen",
+      "subAffiliatesTitle": "Directe partners",
+      "subAffiliatesDesc": "Directe partners in jouw netwerk. Zij kunnen zelf aanmeldingen genereren; jij ontvangt override-commissie.",
+      "downlineDesc": "Directe partners die jij hebt uitgenodigd als partner",
+      "yourDownline": "Directe partners",
+      "newSubAffiliate": "+ Partner uitnodigen",
       "cancel": "Annuleren",
       "subEmail": "Email adres",
       "subName": "Naam",
       "emailPlaceholder": "email@voorbeeld.nl",
-      "subAffiliateCreated": "Made affiliate succesvol aangemaakt!",
-      "createSubAffiliate": "Made affiliate aanmaken",
+      "subAffiliateCreated": "Partner succesvol toegevoegd aan je netwerk!",
+      "createSubAffiliate": "Partner uitnodigen",
       "creating": "Aanmaken...",
-      "noSubAffiliates": "Je hebt nog geen made affiliates. Klik op \"Nieuwe made affiliate\" om er een aan te maken.",
-      "parentCommissions": "Commissies van made affiliates",
-      "parentCommissionsDesc": "Dit is het totaal van alle commissies die je hebt ontvangen van je made affiliates:",
-      "parentCommissionsList1": "10% van alle abonnementen die je made affiliates aanbrengen",
+      "noSubAffiliates": "Je hebt nog geen directe partners. Klik op \"Partner uitnodigen\" om te beginnen.",
+      "parentCommissions": "Verdiensten uit partnernetwerk",
+      "parentCommissionsDesc": "Dit is het totaal van commissies uit je partnernetwerk:",
+      "parentCommissionsList1": "10% van abonnementen die partners in je netwerk aanbrengen",
       "parentCommissionsList2": "5% per transactie (koper of verkoper), oplopend tot 10% als beide zijn aangebracht",
       "edit": "Aanpassen",
       "subTransactionCommission": "Sub Transactie Commissie (%)",
@@ -5897,12 +6387,12 @@
       "fullName": "Volledige naam",
       "perSide": "per kant",
       "commissionUpdateError": "Er is een fout opgetreden bij het bijwerken van de commissie percentages",
-      "subAffiliateCreateError": "Er is een fout opgetreden bij het aanmaken van de made affiliate",
-      "deleteSubAffiliateConfirm": "Weet je zeker dat je {name} ({email}) als made affiliate wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
-      "deleteSubAffiliateError": "Fout bij het verwijderen van made affiliate",
+      "subAffiliateCreateError": "Er is een fout opgetreden bij het uitnodigen van de partner",
+      "deleteSubAffiliateConfirm": "Weet je zeker dat je {name} ({email}) uit je partnernetwerk wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "deleteSubAffiliateError": "Fout bij het verwijderen van partner uit netwerk",
       "subAffiliateSignup": {
-        "title": "Sub-Affiliate Uitnodiging",
-        "description": "Je bent uitgenodigd om made affiliate te worden. Log in of maak een account aan om verder te gaan.",
+        "title": "Partneruitnodiging",
+        "description": "Je bent uitgenodigd om partner te worden. Log in of maak een account aan om verder te gaan.",
         "noToken": "Geen uitnodigingstoken opgegeven",
         "invalidToken": "Ongeldig of verlopen uitnodigingstoken",
         "error": "Fout bij valideren van uitnodigingstoken",
@@ -6159,8 +6649,8 @@
     "mustAcceptPrivacy": "Je moet het privacybeleid accepteren om door te gaan.",
     "mustAcceptTerms": "Je moet de algemene voorwaarden accepteren om door te gaan.",
     "mustAcceptAffiliate": "Je moet de affiliate programma overeenkomst accepteren om door te gaan.",
-    "subAffiliateNotAllowed": "Made affiliates kunnen geen hoofd-affiliate worden",
-    "subAffiliateNotAllowedDesc": "Je bent al gekoppeld als made affiliate. Gebruik je affiliate-dashboard voor links, prestaties en uitbetalingen.",
+    "subAffiliateNotAllowed": "Partners in een netwerk kunnen geen hoofd-partner worden",
+    "subAffiliateNotAllowedDesc": "Je bent al gekoppeld als partner in een netwerk. Gebruik je partnerdashboard voor links, prestaties en uitbetalingen.",
     "growth": {
       "heroEyebrow": "HomeCheff Growth",
       "heroTitle": "Verdien mee met makers in jouw netwerk",
@@ -6404,6 +6894,10 @@
   "homeDorpsplein": {
     "sidebarTagline": "Het digitale dorpsplein van jouw buurt.",
     "quickActionsTitle": "Snelle acties",
+    "messagesUrgentOne": "Je hebt 1 ongelezen bericht",
+    "messagesUrgentMany": "Je hebt {{count}} ongelezen berichten",
+    "messagesUrgentHint": "Reageer wanneer het jou uitkomt — je gesprek wacht op je.",
+    "messagesUrgentCta": "Berichten openen",
     "browseMakers": "Makers in de buurt",
     "communityCardTitle": "Samen groeien we lokaal",
     "communityCardBody": "HomeCheff verbindt makers, buren en liefhebbers van lokaal aanbod in één warme community.",
@@ -6707,6 +7201,202 @@
         "heading": "Meer weten?",
         "intro": "Stel je vraag aan de maker."
       }
+    }
+  },
+  "operations": {
+    "workspaceLabel": "Operations",
+    "sectionNavLabel": "Operations secties",
+    "tabs": {
+      "today": "Vandaag",
+      "orders": "Bestellingen",
+      "delivery": "Bezorgen",
+      "partners": "Partners",
+      "finance": "Financiën",
+      "analytics": "Statistieken"
+    },
+    "tryAgain": "Opnieuw proberen",
+    "today": {
+      "greeting": {
+        "morning": "Goedemorgen",
+        "afternoon": "Goedemiddag",
+        "evening": "Goedenavond"
+      },
+      "finance": {
+        "available": "beschikbaar"
+      },
+      "roleChips": {
+        "title": "Aandacht per rol"
+      },
+      "roleCards": "Per rol",
+      "seller": {
+        "cta": "Bestellingen openen",
+        "pending": "Wachtend",
+        "revenue7d": "Omzet 7 dagen",
+        "blocked": "Geblokkeerde producten"
+      },
+      "delivery": {
+        "cta": "Ga naar bezorgen",
+        "active": "Actieve bezorging",
+        "available": "Beschikbare opdrachten",
+        "todayEarnings": "Verdiensten vandaag",
+        "status": "Status"
+      },
+      "partner": {
+        "cta": "Partnerdashboard",
+        "link": "Partnerlink",
+        "available": "Beschikbare verdiensten",
+        "signups": "Aanmeldingen via link"
+      },
+      "footer": {
+        "analytics": "Statistieken →"
+      }
+    },
+    "sidepanel": {
+      "overview": "Overzicht",
+      "profileLink": "Bekijk profiel",
+      "tasks": {
+        "title": "Taken",
+        "healthy": "Alles ziet er goed uit",
+        "viewMore": "Bekijk meer",
+        "showLess": "Minder tonen"
+      },
+      "comms": {
+        "unansweredOne": "1 gesprek wacht op antwoord",
+        "unansweredMany": "{{count}} gesprekken wachten op antwoord",
+        "customerWaitingOne": "1 klant wacht op reactie",
+        "customerWaitingMany": "{{count}} klanten wachten op reactie",
+        "customerWaitingHint": "Reageer snel om vertrouwen op te bouwen.",
+        "openChat": "Gesprek openen",
+        "openMessages": "Berichten openen",
+        "respondNow": "Nu reageren"
+      },
+      "finance": {
+        "title": "Financiën",
+        "available": "Beschikbaar",
+        "pending": "In behandeling",
+        "totalEarned": "Totaal verdiend",
+        "empty": "Nog geen inkomsten",
+        "payoutCta": "Uitbetaling aanvragen"
+      },
+      "status": {
+        "title": "Status"
+      },
+      "actions": {
+        "title": "Snelle acties"
+      },
+      "context": {
+        "today": {
+          "title": "Vandaag",
+          "hint": "Je ziet hier alles wat vandaag aandacht vraagt.",
+          "continueTask": "Ga verder met je belangrijkste taak",
+          "viewAllTasks": "Bekijk alle taken"
+        },
+        "orders": {
+          "title": "Bestellingen",
+          "pending": "openstaande bestellingen",
+          "noPending": "Geen openstaande bestellingen.",
+          "openOrders": "Bestellingen openen"
+        },
+        "delivery": {
+          "title": "Bezorgen",
+          "status": "Status:",
+          "online": "Online",
+          "offline": "Offline",
+          "activeRide": "Actieve rit bezig",
+          "available": "beschikbare opdrachten",
+          "fallback": "Open je bezorgdashboard voor actuele opdrachten.",
+          "dashboard": "Ga naar bezorgen",
+          "settings": "Bezorginstellingen"
+        },
+        "partners": {
+          "title": "Partners",
+          "commission": "beschikbare partnerverdiensten",
+          "hint": "Deel je partnerlink en groei je partnernetwerk.",
+          "dashboard": "Partnerdashboard",
+          "promoCodes": "Promo codes"
+        },
+        "finance": {
+          "title": "Financiën",
+          "stripeAttention": "Stripe-aandacht nodig",
+          "viewFinance": "Bekijk financiën"
+        },
+        "analytics": {
+          "title": "Statistieken",
+          "hint": "Bekijk je prestaties en trends.",
+          "cta": "Bekijk je prestaties"
+        }
+      }
+    },
+    "widgets": {
+      "zoneLabel": "Kansen"
+    },
+    "status": {
+      "sellerActive": "Actief",
+      "deliveryActive": "Actieve rit",
+      "deliveryAvailable": "Opdracht beschikbaar",
+      "deliveryIdle": "Geen actieve rit",
+      "deliveryOnline": "Online",
+      "deliveryOffline": "Offline",
+      "affiliateActive": "Actief",
+      "affiliateSuspended": "Opgeschort",
+      "affiliateCommission": "€{amount} partnercommissie"
+    },
+    "quickActions": {
+      "deliver": "Bezorgen",
+      "partnerLink": "Partnerlink",
+      "profile": "Profiel"
+    }
+  },
+  "roleQuickLinks": {
+    "title": "Snelle acties",
+    "profileTitle": "Snel naar",
+    "showQr": "Toon mijn QR",
+    "showQrDesc": "Open je partner-QR en link",
+    "sharePartnerLink": "Partnerlink delen",
+    "sharePartnerLinkDesc": "Kopieer of deel je partnerlink voor nieuwe aanmeldingen",
+    "promoCodes": "Promo codes",
+    "newOffer": "Nieuw aanbod",
+    "orders": "Bestellingen",
+    "addInspiration": "Inspiratie toevoegen",
+    "delivery": "Ga naar bezorgen",
+    "deliveryTrust": "Vertrouwen aanvullen",
+    "finance": "Financiën",
+    "requestPayout": "Uitbetaling aanvragen",
+    "modalTitle": "Partnerlink & QR",
+    "modalHint": "Scan of deel je partnerlink voor nieuwe aanmeldingen — geen directe partner in je netwerk.",
+    "modalUnavailable": "Partnerlink is nu niet beschikbaar.",
+    "copyLink": "Kopieer link",
+    "copied": "Gekopieerd",
+    "downloadQr": "QR downloaden",
+    "printQr": "QR printen"
+  },
+  "partners": {
+    "growth": {
+      "title": "Groei HomeCheff",
+      "description": "Verdien aan nieuwe aanmeldingen via jouw link.",
+      "emptyHint": "Deel je partnerlink om aanmeldingen te genereren.",
+      "statsSignups": "aanmeldingen via link",
+      "statsEarnings": "beschikbare verdiensten"
+    },
+    "network": {
+      "title": "Partnernetwerk",
+      "description": "Bouw een netwerk van directe partners op.",
+      "statsDirect": "directe partners",
+      "statsActive": "actieve partners",
+      "statsEarnings": "verdiensten uit netwerk (uitbetaald)"
+    },
+    "helpers": {
+      "partnerLink": "Deel deze link om nieuwe gebruikers, verkopers, bezorgers of partners aan te melden. Dit zijn geen directe partners in je netwerk.",
+      "invitePartner": "Nodig iemand uit als directe partner in jouw netwerk. Zij krijgen een eigen partneraccount en partnerlink.",
+      "directPartners": "Directe partners kunnen zelf aanmeldingen genereren. Je ontvangt een override-commissie volgens het bestaande model."
+    },
+    "actions": {
+      "invitePartner": "Partner uitnodigen",
+      "viewDirectPartners": "Bekijk directe partners",
+      "shareLink": "Deel partnerlink",
+      "showQr": "Toon QR-code",
+      "promoCodes": "Promo codes",
+      "networkEarnings": "Verdiensten uit netwerk"
     }
   }
 }

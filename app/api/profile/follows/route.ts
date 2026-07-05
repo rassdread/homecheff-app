@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { canViewerSeeFanList } from "@/lib/privacy/fan-list-access";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (!targetUserId) {
+      return NextResponse.json({ items: [] });
+    }
+
+    const mayViewList = await canViewerSeeFanList(
+      targetUserId,
+      session?.user?.email ?? null
+    );
+    if (!mayViewList) {
       return NextResponse.json({ items: [] });
     }
 

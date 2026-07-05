@@ -17,6 +17,12 @@ import {
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
+import { syncLinkedDishFromProductPatch } from '@/lib/items/sync-linked-product-dish';
+import { auth } from '@/lib/auth';
+import {
+  getInspiratieDetailHref,
+  type InspirationCategory,
+} from '@/lib/inspiratie/instruction-content';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 
 export const dynamic = 'force-dynamic';
@@ -206,8 +212,11 @@ export async function GET(
                       (dish.ingredients.length > 0 || dish.instructions.length > 0);
       const isGarden = dish.category === 'GROWN' && 
                       (dish.plantType || (dish.growthPhotos && dish.growthPhotos.length > 0));
-      const isDesign = dish.category === 'DESIGNER' && 
-                      (dish.materials && dish.materials.length > 0);
+      const isDesign = dish.category === 'DESIGNER' &&
+                      ((dish.materials && dish.materials.length > 0) ||
+                       dish.dimensions ||
+                       dish.notes ||
+                       (dish.instructions && dish.instructions.length > 0));
       
       if (isRecipe || isGarden || isDesign) {
         isDish = true;
@@ -274,7 +283,36 @@ export async function GET(
       : false;
     const checkoutBlockedReason = paymentStatus.reason;
 
-    return NextResponse.json({ 
+    let linkedInspiration: {
+      href: string;
+      category: InspirationCategory;
+      status: string;
+      isOwner: boolean;
+    } | null = null;
+
+    if (isDish && dish && dishCategory) {
+      const session = await auth();
+      let viewerId: string | null = null;
+      if (session?.user?.email) {
+        const viewer = await prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: { id: true },
+        });
+        viewerId = viewer?.id ?? null;
+      }
+      const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
+      const canViewLinked = dish.status === 'PUBLISHED' || isOwner;
+      if (canViewLinked) {
+        linkedInspiration = {
+          href: getInspiratieDetailHref(dishCategory as InspirationCategory, id),
+          category: dishCategory as InspirationCategory,
+          status: dish.status,
+          isOwner,
+        };
+      }
+    }
+
+    return NextResponse.json({
       product: {
         ...product,
         Video: sortedVideo
@@ -288,6 +326,7 @@ export async function GET(
       companyName: product.seller?.companyName ?? null,
       isDish: isDish || false,
       dishCategory: dishCategory || null,
+      linkedInspiration,
       dish: dish ? {
         ingredients: dish.ingredients || [],
         instructions: dish.instructions || [],
@@ -295,6 +334,18 @@ export async function GET(
         growthPhotos: dish.growthPhotos || [],
         materials: dish.materials || [],
         plantType: dish.plantType,
+        prepTime: dish.prepTime,
+        servings: dish.servings,
+        difficulty: dish.difficulty,
+        tags: dish.tags || [],
+        subcategory: dish.subcategory,
+        sunlight: dish.sunlight,
+        waterNeeds: dish.waterNeeds,
+        harvestDate: dish.harvestDate,
+        location: dish.location,
+        soilType: dish.soilType,
+        growthDuration: dish.growthDuration,
+        dimensions: dish.dimensions,
         notes: dish.notes,
         video: dish.videos?.[0] || null
       } : null,
@@ -458,6 +509,10 @@ export async function PATCH(
             displayNameType: body.displayNameType,
             isFutureProduct: body.isFutureProduct !== undefined ? body.isFutureProduct : false,
             availabilityDate: body.availabilityDate ? new Date(body.availabilityDate) : null,
+            subcategory: body.subcategory !== undefined ? body.subcategory : undefined,
+            tags: Array.isArray(body.tags)
+              ? body.tags.filter((tag: string) => tag && tag.trim().length > 0)
+              : undefined,
             // Pickup location fields
             pickupAddress: body.pickupAddress !== undefined ? body.pickupAddress : null,
             pickupLat: body.pickupLat !== undefined && body.pickupLat !== null ? Number(body.pickupLat) : null,
@@ -536,6 +591,27 @@ export async function PATCH(
               lng: patchPickupLng,
             }).catch((e) => console.warn('[product PATCH] seller coords sync', e));
           }
+
+          await syncLinkedDishFromProductPatch(
+            {
+              id: updatedProduct.id,
+              title: updatedProduct.title,
+              description: updatedProduct.description,
+              priceCents: updatedProduct.priceCents,
+              category: updatedProduct.category,
+              subcategory: updatedProduct.subcategory,
+              tags: updatedProduct.tags,
+              stock: updatedProduct.stock,
+              maxStock: updatedProduct.maxStock,
+              pickupAddress: updatedProduct.pickupAddress,
+              pickupLat: updatedProduct.pickupLat,
+              pickupLng: updatedProduct.pickupLng,
+              delivery: updatedProduct.delivery,
+            },
+            body,
+            (product as { seller?: { User?: { id?: string } } }).seller?.User?.id ?? user.id,
+          ).catch((e) => console.warn('[product PATCH] linked dish sync', e));
+
           return NextResponse.json({
             product: updatedProduct,
             publishBlocked: publishState.publishBlocked,
@@ -638,6 +714,10 @@ export async function PATCH(
             displayNameType: body.displayNameType,
             isFutureProduct: body.isFutureProduct !== undefined ? body.isFutureProduct : false,
             availabilityDate: body.availabilityDate ? new Date(body.availabilityDate) : null,
+            subcategory: body.subcategory !== undefined ? body.subcategory : undefined,
+            tags: Array.isArray(body.tags)
+              ? body.tags.filter((tag: string) => tag && tag.trim().length > 0)
+              : undefined,
             // Pickup location fields
             pickupAddress: body.pickupAddress !== undefined ? body.pickupAddress : null,
             pickupLat: body.pickupLat !== undefined && body.pickupLat !== null ? Number(body.pickupLat) : null,
@@ -703,6 +783,25 @@ export async function PATCH(
               updatedProduct.Image?.length ?? 0,
             ).catch((e) => console.warn('[gamification] product PATCH', e));
           }
+          await syncLinkedDishFromProductPatch(
+            {
+              id: updatedProduct.id,
+              title: updatedProduct.title,
+              description: updatedProduct.description,
+              priceCents: updatedProduct.priceCents,
+              category: updatedProduct.category,
+              subcategory: updatedProduct.subcategory,
+              tags: updatedProduct.tags,
+              stock: updatedProduct.stock,
+              maxStock: updatedProduct.maxStock,
+              pickupAddress: updatedProduct.pickupAddress,
+              pickupLat: updatedProduct.pickupLat,
+              pickupLng: updatedProduct.pickupLng,
+              delivery: updatedProduct.delivery,
+            },
+            body,
+            (product as { seller?: { User?: { id?: string } } }).seller?.User?.id ?? user.id,
+          ).catch((e) => console.warn('[product PATCH v4] linked dish sync', e));
           return NextResponse.json({ product: updatedProduct });
         } else {
           const updatedListing = await prisma.listing.update({

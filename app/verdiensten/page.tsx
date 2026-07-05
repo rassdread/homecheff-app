@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import OperationsShell from '@/components/operations/OperationsShell';
 
 interface CombinedEarnings {
   seller?: {
@@ -138,38 +139,75 @@ function VerdienstenContent() {
     }
   };
 
+  const financeQuickActions = (
+    <>
+      <button
+        type="button"
+        onClick={() => handleExport('csv')}
+        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+      >
+        <Download className="w-4 h-4" />
+        <span className="hidden sm:inline">{t('earningsPage.exportCsv')}</span>
+        <span className="sm:hidden">CSV</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => handleExport('pdf')}
+        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+      >
+        <FileText className="w-4 h-4" />
+        <span className="hidden sm:inline">{t('earningsPage.exportPdf')}</span>
+        <span className="sm:hidden">PDF</span>
+      </button>
+    </>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('operations.tabs.finance')}
+        pageSubtitle={t('earningsPage.subtitle')}
+        breadcrumbLabel={t('operations.tabs.finance')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verdiensten laden...</p>
+          <p className="text-gray-600">{t('earningsPage.loading')}</p>
         </div>
-      </div>
+      </OperationsShell>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('operations.tabs.finance')}
+        breadcrumbLabel={t('operations.tabs.finance')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
+            type="button"
             onClick={fetchCombinedEarnings}
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
           >
-            Opnieuw proberen
+            {t('operations.tryAgain')}
           </button>
         </div>
-      </div>
+      </OperationsShell>
     );
   }
 
   if (!earnings || !totals || !roles) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <OperationsShell
+        pageTitle={t('operations.tabs.finance')}
+        breadcrumbLabel={t('operations.tabs.finance')}
+        contentClassName="flex min-h-[50vh] items-center justify-center py-0"
+      >
         <p className="text-gray-600">{t('earningsPage.noEarningsFound')}</p>
-      </div>
+      </OperationsShell>
     );
   }
 
@@ -177,9 +215,14 @@ function VerdienstenContent() {
 
   if (!hasAnyRole) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+      <OperationsShell
+        pageTitle={t('operations.tabs.finance')}
+        pageSubtitle={t('earningsPage.noRolesDescription')}
+        breadcrumbLabel={t('operations.tabs.finance')}
+        contentClassName="py-0"
+      >
+        <div className="py-12">
+          <div className="hc-operations-card p-8 text-center">
             <Wallet className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {t('earningsPage.noActiveRoles')}
@@ -209,47 +252,19 @@ function VerdienstenContent() {
             </div>
           </div>
         </div>
-      </div>
+      </OperationsShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {t('earningsPage.title')}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                {t('earningsPage.subtitle')}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handleExport('csv')}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('earningsPage.exportCsv')}</span>
-                <span className="sm:hidden">CSV</span>
-              </button>
-              <button
-                onClick={() => handleExport('pdf')}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('earningsPage.exportPdf')}</span>
-                <span className="sm:hidden">PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <OperationsShell
+      pageTitle={t('operations.tabs.finance')}
+      pageSubtitle={t('earningsPage.subtitle')}
+      breadcrumbLabel={t('operations.tabs.finance')}
+      quickActions={financeQuickActions}
+      contentClassName="py-0"
+    >
+      <div className="py-8">
         {/* Intro: deze pagina = keuze wat en hoeveel uitbetalen */}
         <div className="mb-8 p-4 sm:p-6 bg-white rounded-xl border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('earningsPage.requestPayoutSection')}</h2>
@@ -500,7 +515,7 @@ function VerdienstenContent() {
           </div>
         )}
       </div>
-    </div>
+    </OperationsShell>
   );
 }
 

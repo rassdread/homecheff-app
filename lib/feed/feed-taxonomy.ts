@@ -4,6 +4,7 @@
  */
 
 import { parseProductOrderMethod } from '@/lib/product/order-method';
+import { isMarketplaceSaleItem } from '@/lib/feed/marketplace-sale';
 
 export type FeedDirection = 'OFFER' | 'REQUEST';
 
@@ -139,13 +140,14 @@ export function deriveFeedTaxonomy(input: FeedTaxonomyInput): FeedTaxonomy {
 
   const category = mapLegacyCategoryToFeedCategory(input.category);
   const salePrice = hasValidSalePrice(input);
+  const contactSale = parseProductOrderMethod(input.orderMethod) === 'CONTACT';
 
-  if (salePrice) {
+  if (salePrice || contactSale) {
     return {
       direction: 'OFFER',
       kind: 'PRODUCT',
       category,
-      exchange: resolveExchange(input.orderMethod, true),
+      exchange: resolveExchange(input.orderMethod, salePrice),
     };
   }
 
@@ -173,10 +175,8 @@ export function matchesFeedViewFilter(
   filter: FeedViewFilterId
 ): boolean {
   if (filter === 'all') return true;
+  if (filter === 'sale') return isMarketplaceSaleItem(item);
   const tax = deriveFeedTaxonomy(item);
-  if (filter === 'sale') {
-    return tax.direction === 'OFFER' && tax.kind === 'PRODUCT';
-  }
   if (filter === 'inspiration') {
     return tax.direction === 'OFFER' && tax.kind === 'INSPIRATION';
   }

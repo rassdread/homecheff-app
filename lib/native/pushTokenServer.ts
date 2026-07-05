@@ -20,7 +20,7 @@ export type RegisterFcmTokenOptions = {
   /** Capacitor App.getInfo().version — throttle bypass na app-update. */
   appVersion?: string | null;
   /** Alleen voor diagnosen (geen gevoelige data). */
-  diagReason?: "mount" | "resume" | "manual" | "post_permission" | "post_update";
+  diagReason?: "mount" | "resume" | "manual" | "post_permission" | "post_update" | "token_refresh";
 };
 
 /**
