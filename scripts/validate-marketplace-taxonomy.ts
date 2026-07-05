@@ -137,6 +137,10 @@ function validateRegistry(): void {
     Object.keys(TAXONOMY_ITEM_LABELS).length >= 88,
     'Label data should cover all non-blocked taxonomy items',
   );
+  assert(
+    Object.keys(TAXONOMY_GROUP_LABELS).length >= 13,
+    'Label data should cover all taxonomy groups',
+  );
 }
 
 function validateI18nParity(): void {

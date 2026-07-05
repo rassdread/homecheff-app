@@ -52,8 +52,58 @@ export function getMarketplaceTaxonomyItemsByParent(
   options?: TaxonomyResolveOptions,
 ): MarketplaceTaxonomyItem[] {
   return getMarketplaceTaxonomyItems(options).filter(
-    (entry) => entry.parentId === parentId,
+    (entry) => entry.parentId === parentId && entry.level === 'item',
   );
+}
+
+export function getMarketplaceTaxonomyGroupsByCategory(
+  category: MarketplaceCategory,
+  options?: TaxonomyResolveOptions,
+): MarketplaceTaxonomyItem[] {
+  return getMarketplaceTaxonomyItems(options).filter(
+    (entry) => entry.level === 'group' && entry.category === category,
+  );
+}
+
+export type TaxonomyEntryRole = 'offer' | 'request';
+
+function itemAllowedForRole(
+  entry: MarketplaceTaxonomyItem,
+  role: TaxonomyEntryRole,
+): boolean {
+  if (entry.level !== 'item' || entry.blocked) return false;
+  return role === 'request' ? entry.allowedAsRequest : entry.allowedAsOffer;
+}
+
+/** Selectable items under a group for entry flow (excludes futureOnly/blocked by default). */
+export function getEntryFlowItemsForGroup(
+  groupId: string,
+  role: TaxonomyEntryRole,
+  options?: TaxonomyResolveOptions,
+): MarketplaceTaxonomyItem[] {
+  return getMarketplaceTaxonomyItemsByParent(groupId, options).filter((entry) =>
+    itemAllowedForRole(entry, role),
+  );
+}
+
+/** Items in a category with no group (fallback when taxonomy has no groups). */
+export function getEntryFlowFlatItemsForCategory(
+  category: MarketplaceCategory,
+  role: TaxonomyEntryRole,
+  options?: TaxonomyResolveOptions,
+): MarketplaceTaxonomyItem[] {
+  return getMarketplaceTaxonomyItems(options).filter(
+    (entry) =>
+      entry.category === category &&
+      entry.level === 'item' &&
+      !entry.parentId &&
+      itemAllowedForRole(entry, role),
+  );
+}
+
+export function getTaxonomyItemSearchTerms(id: string): string[] {
+  const entry = TAXONOMY_BY_ID.get(id);
+  return entry?.searchTerms ?? [];
 }
 
 function roleFilter(

@@ -7045,7 +7045,11 @@
     "entry": {
       "intentHeading": "Wat wil je doen?",
       "categoryHeading": "Wat past het beste?",
-      "categoryHint": "Kies de hoofdactiviteit — je kunt daarna meerdere specialisaties selecteren.",
+      "categoryHint": "Kies de hoofdactiviteit — daarna kies je een groep en specifieke items.",
+      "groupHeading": "Kies een groep",
+      "groupHint": "Selecteer waar je aanbod het beste past. Je kunt daarna meerdere items kiezen.",
+      "itemsHeading": "Wat past hier het beste?",
+      "pickAnotherGroup": "Nog een groep kiezen",
       "specializationsHeading": "Specialisaties",
       "specializationsHint": "Selecteer alles wat van toepassing is. Meerdere keuzes zijn mogelijk.",
       "continueToSummary": "Verder naar samenvatting",
@@ -7259,6 +7263,35 @@
           },
           "herbs": {
             "label": "Kruiden"
+          },
+          "other": {
+            "label": "Planten & overig"
+          }
+        },
+        "design": {
+          "web": {
+            "label": "Websites & apps"
+          },
+          "brand": {
+            "label": "Branding & marketing"
+          },
+          "media": {
+            "label": "Media & design"
+          }
+        },
+        "artistic": {
+          "all": {
+            "label": "Artistieke diensten"
+          }
+        },
+        "practical": {
+          "all": {
+            "label": "Praktische diensten"
+          }
+        },
+        "knowledge": {
+          "all": {
+            "label": "Kennis & workshops"
           }
         }
       },

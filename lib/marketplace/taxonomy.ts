@@ -97,6 +97,13 @@ const G_INTL = 'grp.create.international';
 const G_VEG = 'grp.grow.vegetables';
 const G_FRUIT = 'grp.grow.fruit';
 const G_HERBS = 'grp.grow.herbs';
+const G_GROW_OTHER = 'grp.grow.other';
+const G_DESIGN_WEB = 'grp.design.web';
+const G_DESIGN_BRAND = 'grp.design.brand';
+const G_DESIGN_MEDIA = 'grp.design.media';
+const G_ARTISTIC = 'grp.artistic.all';
+const G_PRACTICAL = 'grp.practical.all';
+const G_KNOWLEDGE = 'grp.knowledge.all';
 
 export const MARKETPLACE_TAXONOMY_GROUP_IDS = [
   G_MEALS,
@@ -105,6 +112,13 @@ export const MARKETPLACE_TAXONOMY_GROUP_IDS = [
   G_VEG,
   G_FRUIT,
   G_HERBS,
+  G_GROW_OTHER,
+  G_DESIGN_WEB,
+  G_DESIGN_BRAND,
+  G_DESIGN_MEDIA,
+  G_ARTISTIC,
+  G_PRACTICAL,
+  G_KNOWLEDGE,
 ] as const;
 
 export const MARKETPLACE_BLOCKLIST_SLUGS = [
@@ -127,6 +141,13 @@ export const MARKETPLACE_TAXONOMY: readonly MarketplaceTaxonomyItem[] = [
   group(G_VEG, 'GROW', 'Carrot', 'garden'),
   group(G_FRUIT, 'GROW', 'Apple', 'garden'),
   group(G_HERBS, 'GROW', 'Leaf', 'garden'),
+  group(G_GROW_OTHER, 'GROW', 'Flower2', 'garden'),
+  group(G_DESIGN_WEB, 'DESIGN', 'Globe', 'creative'),
+  group(G_DESIGN_BRAND, 'DESIGN', 'Sparkles', 'creative'),
+  group(G_DESIGN_MEDIA, 'DESIGN', 'Video', 'creative'),
+  group(G_ARTISTIC, 'ARTISTIC_SERVICE', 'Palette', 'artistic'),
+  group(G_PRACTICAL, 'PRACTICAL_SERVICE', 'Wrench', 'service'),
+  group(G_KNOWLEDGE, 'KNOWLEDGE', 'BookOpen', 'knowledge'),
 
   item('create.meal', 'CREATE', { icon: 'UtensilsCrossed', tone: 'food', parentId: G_MEALS, searchTerms: ['meals', 'maaltijden', 'food', 'eten'] }),
   item('create.baking', 'CREATE', { icon: 'Cake', tone: 'food', parentId: G_MEALS, searchTerms: ['bakken', 'baking', 'gebak'] }),
@@ -180,47 +201,47 @@ export const MARKETPLACE_TAXONOMY: readonly MarketplaceTaxonomyItem[] = [
   item('grow.rosemary', 'GROW', { icon: 'Leaf', tone: 'garden', parentId: G_HERBS, searchTerms: ['rozemarijn', 'rosemary'] }),
   item('grow.thyme', 'GROW', { icon: 'Leaf', tone: 'garden', parentId: G_HERBS, searchTerms: ['tijm', 'thyme'] }),
   item('grow.oregano', 'GROW', { icon: 'Leaf', tone: 'garden', parentId: G_HERBS, searchTerms: ['oregano'] }),
-  item('grow.plants', 'GROW', { icon: 'Flower2', tone: 'garden', searchTerms: ['planten', 'plants'] }),
-  item('grow.honey', 'GROW', { icon: 'Hexagon', tone: 'garden', searchTerms: ['honing', 'honey'] }),
+  item('grow.plants', 'GROW', { icon: 'Flower2', tone: 'garden', parentId: G_GROW_OTHER, searchTerms: ['planten', 'plants'] }),
+  item('grow.honey', 'GROW', { icon: 'Hexagon', tone: 'garden', parentId: G_GROW_OTHER, searchTerms: ['honing', 'honey'] }),
 
-  item('design.logo', 'DESIGN', { icon: 'PenTool', tone: 'creative', searchTerms: ['logo'] }),
-  item('design.branding', 'DESIGN', { icon: 'Sparkles', tone: 'creative', searchTerms: ['branding', 'huisstijl'] }),
-  item('design.website', 'DESIGN', { icon: 'Globe', tone: 'creative', searchTerms: ['website', 'web'] }),
-  item('design.webshop', 'DESIGN', { icon: 'ShoppingBag', tone: 'creative', searchTerms: ['webshop', 'webwinkel'] }),
-  item('design.app', 'DESIGN', { icon: 'Smartphone', tone: 'creative', searchTerms: ['app', 'applicatie'] }),
-  item('design.uiux', 'DESIGN', { icon: 'Layout', tone: 'creative', searchTerms: ['ui', 'ux', 'uiux', 'design'] }),
-  item('design.video', 'DESIGN', { icon: 'Video', tone: 'creative', searchTerms: ['video'] }),
-  item('design.photo', 'DESIGN', { icon: 'Camera', tone: 'creative', searchTerms: ['foto', 'photo', 'photography'] }),
-  item('design.illustration', 'DESIGN', { icon: 'Pen', tone: 'creative', searchTerms: ['illustratie', 'illustration'] }),
-  item('design.animation', 'DESIGN', { icon: 'Film', tone: 'creative', searchTerms: ['animatie', 'animation'] }),
-  item('design.marketing', 'DESIGN', { icon: 'Megaphone', tone: 'creative', searchTerms: ['marketing'] }),
-  item('design.seo', 'DESIGN', { icon: 'Search', tone: 'creative', searchTerms: ['seo'] }),
+  item('design.logo', 'DESIGN', { icon: 'PenTool', tone: 'creative', parentId: G_DESIGN_BRAND, searchTerms: ['logo'] }),
+  item('design.branding', 'DESIGN', { icon: 'Sparkles', tone: 'creative', parentId: G_DESIGN_BRAND, searchTerms: ['branding', 'huisstijl'] }),
+  item('design.website', 'DESIGN', { icon: 'Globe', tone: 'creative', parentId: G_DESIGN_WEB, searchTerms: ['website', 'web'] }),
+  item('design.webshop', 'DESIGN', { icon: 'ShoppingBag', tone: 'creative', parentId: G_DESIGN_WEB, searchTerms: ['webshop', 'webwinkel'] }),
+  item('design.app', 'DESIGN', { icon: 'Smartphone', tone: 'creative', parentId: G_DESIGN_WEB, searchTerms: ['app', 'applicatie'] }),
+  item('design.uiux', 'DESIGN', { icon: 'Layout', tone: 'creative', parentId: G_DESIGN_WEB, searchTerms: ['ui', 'ux', 'uiux', 'design'] }),
+  item('design.video', 'DESIGN', { icon: 'Video', tone: 'creative', parentId: G_DESIGN_MEDIA, searchTerms: ['video'] }),
+  item('design.photo', 'DESIGN', { icon: 'Camera', tone: 'creative', parentId: G_DESIGN_MEDIA, searchTerms: ['foto', 'photo', 'photography'] }),
+  item('design.illustration', 'DESIGN', { icon: 'Pen', tone: 'creative', parentId: G_DESIGN_MEDIA, searchTerms: ['illustratie', 'illustration'] }),
+  item('design.animation', 'DESIGN', { icon: 'Film', tone: 'creative', parentId: G_DESIGN_MEDIA, searchTerms: ['animatie', 'animation'] }),
+  item('design.marketing', 'DESIGN', { icon: 'Megaphone', tone: 'creative', parentId: G_DESIGN_BRAND, searchTerms: ['marketing'] }),
+  item('design.seo', 'DESIGN', { icon: 'Search', tone: 'creative', parentId: G_DESIGN_BRAND, searchTerms: ['seo'] }),
 
-  item('artistic.tattoo', 'ARTISTIC_SERVICE', { icon: 'Pen', tone: 'artistic', searchTerms: ['tattoo'], regulated: ['age_restricted'] }),
-  item('artistic.nails', 'ARTISTIC_SERVICE', { icon: 'Sparkles', tone: 'artistic', searchTerms: ['nagels', 'nails', 'manicure'] }),
-  item('artistic.makeup', 'ARTISTIC_SERVICE', { icon: 'Brush', tone: 'artistic', searchTerms: ['make-up', 'makeup'] }),
-  item('artistic.bodypaint', 'ARTISTIC_SERVICE', { icon: 'Paintbrush', tone: 'artistic', searchTerms: ['bodypaint', 'body paint'] }),
-  item('artistic.airbrush', 'ARTISTIC_SERVICE', { icon: 'SprayCan', tone: 'artistic', searchTerms: ['airbrush'] }),
-  item('artistic.mural', 'ARTISTIC_SERVICE', { icon: 'Building2', tone: 'artistic', searchTerms: ['muurschildering', 'mural'] }),
-  item('artistic.painting', 'ARTISTIC_SERVICE', { icon: 'Palette', tone: 'artistic', searchTerms: ['schilderen', 'painting'] }),
-  item('artistic.portrait', 'ARTISTIC_SERVICE', { icon: 'User', tone: 'artistic', searchTerms: ['portret', 'portrait'] }),
-  item('artistic.music', 'ARTISTIC_SERVICE', { icon: 'Music', tone: 'artistic', searchTerms: ['muziek', 'music'] }),
-  item('artistic.voice', 'ARTISTIC_SERVICE', { icon: 'Mic', tone: 'artistic', searchTerms: ['zang', 'voice', 'vocals'] }),
+  item('artistic.tattoo', 'ARTISTIC_SERVICE', { icon: 'Pen', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['tattoo'], regulated: ['age_restricted'] }),
+  item('artistic.nails', 'ARTISTIC_SERVICE', { icon: 'Sparkles', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['nagels', 'nails', 'manicure'] }),
+  item('artistic.makeup', 'ARTISTIC_SERVICE', { icon: 'Brush', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['make-up', 'makeup'] }),
+  item('artistic.bodypaint', 'ARTISTIC_SERVICE', { icon: 'Paintbrush', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['bodypaint', 'body paint'] }),
+  item('artistic.airbrush', 'ARTISTIC_SERVICE', { icon: 'SprayCan', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['airbrush'] }),
+  item('artistic.mural', 'ARTISTIC_SERVICE', { icon: 'Building2', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['muurschildering', 'mural'] }),
+  item('artistic.painting', 'ARTISTIC_SERVICE', { icon: 'Palette', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['schilderen', 'painting'] }),
+  item('artistic.portrait', 'ARTISTIC_SERVICE', { icon: 'User', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['portret', 'portrait'] }),
+  item('artistic.music', 'ARTISTIC_SERVICE', { icon: 'Music', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['muziek', 'music'] }),
+  item('artistic.voice', 'ARTISTIC_SERVICE', { icon: 'Mic', tone: 'artistic', parentId: G_ARTISTIC, searchTerms: ['zang', 'voice', 'vocals'] }),
 
-  item('practical.gardenwork', 'PRACTICAL_SERVICE', { icon: 'Shovel', tone: 'service', searchTerms: ['tuinwerk', 'garden work'] }),
-  item('practical.cleaning', 'PRACTICAL_SERVICE', { icon: 'Sparkles', tone: 'service', searchTerms: ['schoonmaak', 'cleaning'] }),
-  item('practical.movinghelp', 'PRACTICAL_SERVICE', { icon: 'Truck', tone: 'service', searchTerms: ['verhuishulp', 'moving help'] }),
-  item('practical.computerhelp', 'PRACTICAL_SERVICE', { icon: 'Monitor', tone: 'service', searchTerms: ['computerhulp', 'computer help', 'it support'] }),
-  item('practical.repair', 'PRACTICAL_SERVICE', { icon: 'Wrench', tone: 'service', searchTerms: ['reparatie', 'repair'] }),
-  item('practical.handyman', 'PRACTICAL_SERVICE', { icon: 'Hammer', tone: 'service', searchTerms: ['klushulp', 'handyman'] }),
-  item('practical.assembly', 'PRACTICAL_SERVICE', { icon: 'Package', tone: 'service', searchTerms: ['montage', 'assembly'] }),
+  item('practical.gardenwork', 'PRACTICAL_SERVICE', { icon: 'Shovel', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['tuinwerk', 'garden work'] }),
+  item('practical.cleaning', 'PRACTICAL_SERVICE', { icon: 'Sparkles', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['schoonmaak', 'cleaning'] }),
+  item('practical.movinghelp', 'PRACTICAL_SERVICE', { icon: 'Truck', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['verhuishulp', 'moving help'] }),
+  item('practical.computerhelp', 'PRACTICAL_SERVICE', { icon: 'Monitor', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['computerhulp', 'computer help', 'it support'] }),
+  item('practical.repair', 'PRACTICAL_SERVICE', { icon: 'Wrench', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['reparatie', 'repair'] }),
+  item('practical.handyman', 'PRACTICAL_SERVICE', { icon: 'Hammer', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['klushulp', 'handyman'] }),
+  item('practical.assembly', 'PRACTICAL_SERVICE', { icon: 'Package', tone: 'service', parentId: G_PRACTICAL, searchTerms: ['montage', 'assembly'] }),
 
-  item('knowledge.workshop', 'KNOWLEDGE', { icon: 'Users', tone: 'knowledge', searchTerms: ['workshop'] }),
-  item('knowledge.cookingclass', 'KNOWLEDGE', { icon: 'ChefHat', tone: 'knowledge', searchTerms: ['kookles', 'cooking class'] }),
-  item('knowledge.musicclass', 'KNOWLEDGE', { icon: 'Music', tone: 'knowledge', searchTerms: ['muziekles', 'music class'] }),
-  item('knowledge.tutoring', 'KNOWLEDGE', { icon: 'BookOpen', tone: 'knowledge', searchTerms: ['bijles', 'tutoring'] }),
-  item('knowledge.language', 'KNOWLEDGE', { icon: 'Languages', tone: 'knowledge', searchTerms: ['taalles', 'language'] }),
-  item('knowledge.coaching', 'KNOWLEDGE', { icon: 'HeartHandshake', tone: 'knowledge', searchTerms: ['coaching'] }),
+  item('knowledge.workshop', 'KNOWLEDGE', { icon: 'Users', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['workshop'] }),
+  item('knowledge.cookingclass', 'KNOWLEDGE', { icon: 'ChefHat', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['kookles', 'cooking class'] }),
+  item('knowledge.musicclass', 'KNOWLEDGE', { icon: 'Music', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['muziekles', 'music class'] }),
+  item('knowledge.tutoring', 'KNOWLEDGE', { icon: 'BookOpen', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['bijles', 'tutoring'] }),
+  item('knowledge.language', 'KNOWLEDGE', { icon: 'Languages', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['taalles', 'language'] }),
+  item('knowledge.coaching', 'KNOWLEDGE', { icon: 'HeartHandshake', tone: 'knowledge', parentId: G_KNOWLEDGE, searchTerms: ['coaching'] }),
 
   blockedItem('dropshipping'),
   blockedItem('resale'),

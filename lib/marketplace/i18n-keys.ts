@@ -1,5 +1,7 @@
 import type { MarketplaceCategory, PriceModel } from '@prisma/client';
 import type { FulfillmentOptionKey } from './listing-taxonomy';
+import { taxonomyLabelKey } from './taxonomy-i18n';
+import { legacySpecializationToTaxonomyId } from './taxonomy-migrate';
 
 /** V3 entry flow — human-friendly category labels */
 export const MARKETPLACE_ENTRY_CATEGORY_KEY: Record<MarketplaceCategory, string> = {
@@ -30,11 +32,19 @@ const SPECIALIZATION_NS: Record<MarketplaceCategory, string> = {
   KNOWLEDGE: 'knowledge',
 };
 
+/** Resolve label key for canonical taxonomy id or legacy flat slug */
 export function specializationI18nKey(
   category: MarketplaceCategory,
-  slug: string,
+  slugOrId: string,
 ): string {
-  return `marketplace.specializations.${SPECIALIZATION_NS[category]}.${slug}`;
+  if (slugOrId.includes('.')) {
+    return taxonomyLabelKey(slugOrId);
+  }
+  const canonical = legacySpecializationToTaxonomyId(slugOrId);
+  if (canonical) {
+    return taxonomyLabelKey(canonical);
+  }
+  return `marketplace.specializations.${SPECIALIZATION_NS[category]}.${slugOrId}`;
 }
 
 /** @deprecated Use specializationI18nKey */

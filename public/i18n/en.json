@@ -7045,7 +7045,11 @@
     "entry": {
       "intentHeading": "What would you like to do?",
       "categoryHeading": "What fits best?",
-      "categoryHint": "Choose your main activity — you can select multiple specializations next.",
+      "categoryHint": "Choose your main activity — then pick a group and specific items.",
+      "groupHeading": "Choose a group",
+      "groupHint": "Select where your offering fits best. You can pick multiple items next.",
+      "itemsHeading": "What fits here best?",
+      "pickAnotherGroup": "Pick another group",
       "specializationsHeading": "Specializations",
       "specializationsHint": "Select everything that applies. Multiple choices are allowed.",
       "continueToSummary": "Continue to summary",
@@ -7259,6 +7263,35 @@
           },
           "herbs": {
             "label": "Herbs"
+          },
+          "other": {
+            "label": "Plants & other"
+          }
+        },
+        "design": {
+          "web": {
+            "label": "Websites & apps"
+          },
+          "brand": {
+            "label": "Branding & marketing"
+          },
+          "media": {
+            "label": "Media & design"
+          }
+        },
+        "artistic": {
+          "all": {
+            "label": "Artistic services"
+          }
+        },
+        "practical": {
+          "all": {
+            "label": "Practical services"
+          }
+        },
+        "knowledge": {
+          "all": {
+            "label": "Knowledge & workshops"
           }
         }
       },

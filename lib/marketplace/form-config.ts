@@ -1,5 +1,6 @@
-import type { MarketplaceCategory, PriceModel } from '@prisma/client';
-import { normalizeSpecializationSlug } from './listing-taxonomy';
+import type { MarketplaceCategory } from '@prisma/client';
+import { getMarketplaceTaxonomyItem } from './taxonomy-resolve';
+import { toCanonicalTaxonomyId } from './taxonomy-normalize';
 
 export type MarketplaceFormFieldConfig = {
   showStock: boolean;
@@ -9,37 +10,65 @@ export type MarketplaceFormFieldConfig = {
   stockLabelKey: string;
 };
 
-const WORKSHOP_SPECIALIZATIONS = new Set(['workshop', 'cookingclass', 'musicclass']);
-
-const PHYSICAL_CREATE_SPECIALIZATIONS = new Set([
-  'meal',
-  'baking',
-  'catering',
-  'clothing',
-  'jewelry',
-  'decoration',
-  'art',
+const WORKSHOP_TAXONOMY_IDS = new Set([
+  'knowledge.workshop',
+  'knowledge.cookingclass',
+  'knowledge.musicclass',
 ]);
+
+const PHYSICAL_CREATE_TAXONOMY_IDS = new Set([
+  'create.meal',
+  'create.baking',
+  'create.bread',
+  'create.cake',
+  'create.cupcakes',
+  'create.cookies',
+  'create.soup',
+  'create.pasta',
+  'create.rice',
+  'create.catering',
+  'create.clothing',
+  'create.jewelry',
+  'create.decoration',
+  'create.art',
+]);
+
+function resolveSpecIds(
+  specializations?: string[] | null,
+  legacySubcategory?: string | null,
+): string[] {
+  if (specializations && specializations.length > 0) {
+    return specializations;
+  }
+  if (legacySubcategory?.trim()) {
+    const canonical = toCanonicalTaxonomyId(legacySubcategory);
+    return canonical ? [canonical] : [];
+  }
+  return [];
+}
+
+export function isWorkshopTaxonomyId(id: string): boolean {
+  return WORKSHOP_TAXONOMY_IDS.has(id);
+}
+
+export function isPhysicalCreateTaxonomyId(id: string): boolean {
+  return PHYSICAL_CREATE_TAXONOMY_IDS.has(id);
+}
 
 export function formFieldsForCategory(
   category: MarketplaceCategory,
   specializations?: string[] | null,
   legacySubcategory?: string | null,
 ): MarketplaceFormFieldConfig {
-  const specs =
-    specializations && specializations.length > 0
-      ? specializations.map(normalizeSpecializationSlug)
-      : legacySubcategory
-        ? [normalizeSpecializationSlug(legacySubcategory)]
-        : [];
+  const specs = resolveSpecIds(specializations, legacySubcategory).filter((id) =>
+    getMarketplaceTaxonomyItem(id),
+  );
 
   const isWorkshop =
-    category === 'KNOWLEDGE' &&
-    specs.some((s) => WORKSHOP_SPECIALIZATIONS.has(s));
+    category === 'KNOWLEDGE' && specs.some((id) => isWorkshopTaxonomyId(id));
 
   const isPhysicalProduct =
-    category === 'CREATE' &&
-    specs.some((s) => PHYSICAL_CREATE_SPECIALIZATIONS.has(s));
+    category === 'CREATE' && specs.some((id) => isPhysicalCreateTaxonomyId(id));
 
   const isService =
     category === 'ARTISTIC_SERVICE' ||
@@ -86,11 +115,11 @@ export function formFieldsForCategory(
   };
 }
 
-export function priceRequiredForModel(model: PriceModel): boolean {
+export function priceRequiredForModel(model: import('@prisma/client').PriceModel): boolean {
   return model === 'FIXED' || model === 'FROM_PRICE' || model === 'HOURLY' || model === 'DAILY';
 }
 
-export function allowsZeroPrice(model: PriceModel): boolean {
+export function allowsZeroPrice(model: import('@prisma/client').PriceModel): boolean {
   return (
     model === 'ON_REQUEST' ||
     model === 'VOLUNTARY' ||

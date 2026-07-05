@@ -18,6 +18,13 @@ export const TAXONOMY_GROUP_LABELS: Record<string, TaxonomyLabelPair> = {
   'grow.vegetables': { nl: 'Groente', en: 'Vegetables' },
   'grow.fruit': { nl: 'Fruit', en: 'Fruit' },
   'grow.herbs': { nl: 'Kruiden', en: 'Herbs' },
+  'grow.other': { nl: 'Planten & overig', en: 'Plants & other' },
+  'design.web': { nl: 'Websites & apps', en: 'Websites & apps' },
+  'design.brand': { nl: 'Branding & marketing', en: 'Branding & marketing' },
+  'design.media': { nl: 'Media & design', en: 'Media & design' },
+  'artistic.all': { nl: 'Artistieke diensten', en: 'Artistic services' },
+  'practical.all': { nl: 'Praktische diensten', en: 'Practical services' },
+  'knowledge.all': { nl: 'Kennis & workshops', en: 'Knowledge & workshops' },
 };
 
 export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {

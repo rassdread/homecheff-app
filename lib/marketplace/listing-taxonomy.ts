@@ -35,86 +35,26 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
   'KNOWLEDGE',
 ];
 
-/** V3 specialization slugs — labels via i18n (`marketplace.specializations.*`). */
-export const SPECIALIZATIONS: Record<MarketplaceCategory, string[]> = {
-  CREATE: ['meal', 'baking', 'catering', 'clothing', 'jewelry', 'decoration', 'art'],
-  GROW: ['vegetables', 'fruit', 'herbs', 'plants', 'honey'],
-  DESIGN: [
-    'logo',
-    'website',
-    'app',
-    'video',
-    'photo',
-    'illustration',
-    'branding',
-    'marketing',
-  ],
-  ARTISTIC_SERVICE: [
-    'tattoo',
-    'airbrush',
-    'bodypaint',
-    'mural',
-    'portrait',
-    'music',
-  ],
-  PRACTICAL_SERVICE: [
-    'gardenwork',
-    'cleaning',
-    'movinghelp',
-    'computerhelp',
-    'repair',
-    'handyman',
-  ],
-  KNOWLEDGE: ['workshop', 'cookingclass', 'musicclass', 'tutoring', 'coaching'],
-};
+/** @deprecated Use taxonomy registry — kept for imports only */
+export const SPECIALIZATIONS = {} as Record<MarketplaceCategory, string[]>;
 
-/** @deprecated Use SPECIALIZATIONS — alias for backwards compat in imports */
+/** @deprecated Use taxonomy registry */
 export const SUBCATEGORIES = SPECIALIZATIONS;
 
-/** Map legacy V2 slugs → V3 specialization slugs */
-const LEGACY_SPECIALIZATION_SLUG: Record<string, string> = {
-  meals: 'meal',
-  gardening: 'gardenwork',
-  movingHelp: 'movinghelp',
-  computerHelp: 'computerhelp',
-  cookingClass: 'cookingclass',
-  musicLesson: 'musicclass',
-  other: '',
-};
+export {
+  normalizeSpecializations,
+  normalizeSpecializationSlug,
+  normalizeTaxonomyIds,
+  primarySpecialization,
+} from './taxonomy-normalize';
 
-export function normalizeSpecializationSlug(slug: string): string {
-  const trimmed = slug.trim();
-  if (!trimmed) return '';
-  const legacy = LEGACY_SPECIALIZATION_SLUG[trimmed];
-  if (legacy !== undefined) return legacy;
-  return trimmed.toLowerCase();
-}
+export {
+  getMarketplaceTaxonomyGroupsByCategory,
+  getEntryFlowItemsForGroup,
+  getMarketplaceTaxonomyItem,
+} from './taxonomy-resolve';
 
-export function normalizeSpecializations(
-  raw: unknown,
-  category?: MarketplaceCategory | null,
-): string[] {
-  let list: string[] = [];
-  if (Array.isArray(raw)) {
-    list = raw
-      .filter((v): v is string => typeof v === 'string')
-      .map(normalizeSpecializationSlug)
-      .filter(Boolean);
-  } else if (typeof raw === 'string' && raw.trim()) {
-    list = raw
-      .split(',')
-      .map(normalizeSpecializationSlug)
-      .filter(Boolean);
-  }
-  const unique = [...new Set(list)];
-  if (!category) return unique;
-  const allowed = new Set(SPECIALIZATIONS[category]);
-  return unique.filter((s) => allowed.has(s));
-}
-
-export function primarySpecialization(specializations: string[]): string | null {
-  return specializations[0] ?? null;
-}
+export { legacySpecializationsToTaxonomyIds } from './taxonomy-migrate';
 
 /** Map legacy sell URL category to V2 marketplace category */
 export function legacyUrlCategoryToMarketplace(

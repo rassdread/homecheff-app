@@ -24,6 +24,8 @@ import {
   PRICE_MODEL_KEY,
   specializationI18nKey,
 } from '@/lib/marketplace/i18n-keys';
+import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
+import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString } from '@/lib/marketplace/fulfillment';
 import {
   formFieldsForCategory,
@@ -360,13 +362,23 @@ export default function MarketplaceOfferForm({
             {t(MARKETPLACE_ENTRY_CATEGORY_KEY[marketplaceCategory])}
           </span>
           {specializations.length > 0 ? (
-            <span className="ml-1">
+            <span className="ml-1 inline-flex flex-wrap items-center gap-1">
               {' · '}
-              {specializations
-                .map((slug) =>
-                  t(specializationI18nKey(marketplaceCategory, slug)),
-                )
-                .join(' · ')}
+              {specializations.map((id) => {
+                const item = getMarketplaceTaxonomyItem(id);
+                return (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-0.5"
+                  >
+                    <TaxonomyLucideIcon
+                      name={item?.icon ?? 'Tag'}
+                      className="h-3.5 w-3.5"
+                    />
+                    {t(specializationI18nKey(marketplaceCategory, id))}
+                  </span>
+                );
+              })}
             </span>
           ) : null}
           {onRestartEntry ? (
