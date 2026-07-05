@@ -20,6 +20,7 @@ import AndroidCreateFlowBackBridge from '@/components/native/AndroidCreateFlowBa
 import { UserBootstrapProvider } from '@/components/user/UserBootstrapProvider';
 import AppResumeCoordinator from '@/components/app/AppResumeCoordinator';
 import AppUpdateGate from '@/components/app/AppUpdateGate';
+import PlayStoreMigrationGate from '@/components/app/PlayStoreMigrationGate';
 import { AppUpdateStatusProvider } from '@/components/app/AppUpdateStatusProvider';
 import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
@@ -56,6 +57,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <AppUpdateStatusProvider>
         <Suspense fallback={null}>
           <AppUpdateGate />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PlayStoreMigrationGate />
         </Suspense>
         <NativeLifecycleDiagnostics />
         <NativePushTokenSync />

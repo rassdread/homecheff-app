@@ -28,6 +28,10 @@ export async function GET(): Promise<NextResponse<AppVersionApiResponse>> {
         changelog: [],
         forceUpdate: false,
         enabled: false,
+        distributionMode: 'play',
+        playStoreUrl: '',
+        apkUpdateEnabled: false,
+        playMigrationEnabled: false,
       },
       { status: 200 }
     );

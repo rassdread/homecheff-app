@@ -6,29 +6,23 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
-import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { isNativeAndroid } from '@/lib/native/capacitor';
 import { getCapacitorAppInfo } from '@/lib/native/getCapacitorAppInfo';
 import { openExternalUrl } from '@/lib/native/openExternalUrl';
-import { downloadApkAndOpenInstaller } from '@/lib/native/androidApkUpdateInstall';
 import type { AppVersionApiResponse } from '@/lib/app-version-config';
 import {
-  deriveAndroidBetaUpdate,
-  readOptionalDismissedSession,
-  HC_APP_UPDATE_OPTIONAL_DISMISSED_EVENT,
-} from '@/lib/android-beta-update-derived';
-import { applyAndroidBetaInstallFlowAdjustments } from '@/lib/android-beta-install-flow-adjust';
+  getGooglePlayOpenTestingUrl,
+  isPlayOpenTestingUrlConfigured,
+  readPlayMigrationDismissed,
+  writePlayMigrationDismissed,
+} from '@/lib/app-distribution';
 import {
-  readAndroidBetaInstallPersist,
-  clearAndroidBetaInstallTracking,
-  writeAndroidBetaLastInstalledSeen,
-  type AndroidBetaInstallPersist,
-} from '@/lib/native/android-beta-install-state';
-import { isNativeApp } from '@/lib/native/capacitor';
+  getAndroidInstallSource,
+  type AndroidInstallSource,
+} from '@/lib/native/getAndroidInstallSource';
 import { shouldLogAppUpdateDebug } from '@/lib/app-update-debug';
 
 export type AppUpdateStatusLine =
@@ -36,27 +30,33 @@ export type AppUpdateStatusLine =
   | 'loading'
   | 'disabled'
   | 'up_to_date'
-  | 'force'
-  | 'optional_modal'
-  | 'optional_reminder';
+  | 'play_managed'
+  | 'play_migration';
 
 type Ctx = {
-  /** Native Android shell + bridge mounted. */
   scopeActive: boolean;
   loading: boolean;
   payload: AppVersionApiResponse | null;
   currentVersion: string | null;
   latestApkVersion: string;
-  minRequiredApkVersion: string;
-  derived: ReturnType<typeof deriveAndroidBetaUpdate> | null;
+  installSource: AndroidInstallSource | null;
+  installSourceLoading: boolean;
+  playStoreUrl: string;
+  playMigrationEnabled: boolean;
+  apkUpdateEnabled: boolean;
   statusLine: AppUpdateStatusLine;
+  showPlayMigration: boolean;
+  showPlayMigrationStrip: boolean;
+  /** @deprecated Legacy sideload APK flow — disabled for Play distribution. */
   showOptionalReminder: boolean;
   showForceModal: boolean;
   showOptionalModal: boolean;
   refresh: () => void;
-  syncInstallPersist: () => void;
-  /** Same flow as AppUpdateGate primary CTA (HTTPS APK → installer; else open URL). */
+  openPlayStore: () => Promise<void>;
+  dismissPlayMigration: () => void;
+  /** @deprecated Legacy sideload APK flow. Disabled for Play distribution. */
   triggerApkDownload: () => Promise<void>;
+  syncInstallPersist: () => void;
 };
 
 const defaultCtx: Ctx = {
@@ -65,56 +65,55 @@ const defaultCtx: Ctx = {
   payload: null,
   currentVersion: null,
   latestApkVersion: '',
-  minRequiredApkVersion: '',
-  derived: null,
+  installSource: null,
+  installSourceLoading: false,
+  playStoreUrl: '',
+  playMigrationEnabled: false,
+  apkUpdateEnabled: false,
   statusLine: 'inactive',
+  showPlayMigration: false,
+  showPlayMigrationStrip: false,
   showOptionalReminder: false,
   showForceModal: false,
   showOptionalModal: false,
   refresh: () => {},
-  syncInstallPersist: () => {},
+  openPlayStore: async () => {},
+  dismissPlayMigration: () => {},
   triggerApkDownload: async () => {},
+  syncInstallPersist: () => {},
 };
 
 const AppUpdateStatusContext = createContext<Ctx>(defaultCtx);
 
-function resolveApkAbsoluteUrl(payload: AppVersionApiResponse | null): { resolvedApk: string; browserTarget: string } {
-  if (typeof window === 'undefined') return { resolvedApk: '', browserTarget: '/app' };
-  const origin = window.location.origin;
-  const raw = (payload?.apkUrl ?? '').trim();
-  const resolvedApk = raw.startsWith('/') ? `${origin}${raw}` : raw;
-  let apk = payload?.apkUrl?.trim() ?? '';
-  if (apk.startsWith('/')) apk = `${origin}${apk}`;
-  const browserTarget = apk && /^https?:\/\//i.test(apk) ? apk : `${origin}/app`;
-  return { resolvedApk, browserTarget };
-}
-
-const emptyPersist: AndroidBetaInstallPersist = {
-  lastAttemptedVersion: '',
-  lastInstalledVersionSeen: '',
-  installStartedAt: 0,
-  installerOpenedAt: 0,
-  suppressModalUntil: 0,
-};
+export const HC_PLAY_MIGRATION_DISMISSED_EVENT = 'hc-play-migration-dismissed';
 
 export function AppUpdateStatusProvider({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
   const nativeMounted = useIsNativeAppMounted();
   const scopeActive = nativeMounted && isNativeAndroid();
 
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState<AppVersionApiResponse | null>(null);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
-  const [dismissTick, setDismissTick] = useState(0);
-  const [installPersist, setInstallPersist] = useState<AndroidBetaInstallPersist>(emptyPersist);
-  const [showApkSuccessToast, setShowApkSuccessToast] = useState(false);
+  const [installSource, setInstallSource] = useState<AndroidInstallSource | null>(null);
+  const [installSourceLoading, setInstallSourceLoading] = useState(false);
+  const [migrationDismissed, setMigrationDismissed] = useState(false);
 
-  const dismissedOptional = scopeActive ? readOptionalDismissedSession() : false;
+  const playStoreUrlClient = getGooglePlayOpenTestingUrl();
+  const playStoreUrl = (payload?.playStoreUrl ?? '').trim() || playStoreUrlClient;
+  const playMigrationEnabled = Boolean(
+    payload?.playMigrationEnabled ??
+      (isPlayOpenTestingUrlConfigured(playStoreUrlClient) &&
+        (process.env.NEXT_PUBLIC_APP_DISTRIBUTION ?? 'play') === 'play'),
+  );
+  const apkUpdateEnabled = Boolean(payload?.apkUpdateEnabled);
 
-  const syncInstallPersist = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    setInstallPersist(readAndroidBetaInstallPersist());
-  }, []);
+  useEffect(() => {
+    if (!scopeActive || typeof window === 'undefined') return;
+    setMigrationDismissed(readPlayMigrationDismissed());
+    const onDismissed = () => setMigrationDismissed(readPlayMigrationDismissed());
+    window.addEventListener(HC_PLAY_MIGRATION_DISMISSED_EVENT, onDismissed);
+    return () => window.removeEventListener(HC_PLAY_MIGRATION_DISMISSED_EVENT, onDismissed);
+  }, [scopeActive]);
 
   const runFetch = useCallback(async () => {
     if (!scopeActive) {
@@ -141,31 +140,33 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
       setPayload(null);
     } finally {
       setLoading(false);
-      syncInstallPersist();
     }
-  }, [scopeActive, syncInstallPersist]);
-
-  useEffect(() => {
-    if (!scopeActive || typeof window === 'undefined') return;
-    setInstallPersist(readAndroidBetaInstallPersist());
-    const onCh = () => setInstallPersist(readAndroidBetaInstallPersist());
-    window.addEventListener('hc-apk-install-persist-changed', onCh);
-    return () => window.removeEventListener('hc-apk-install-persist-changed', onCh);
   }, [scopeActive]);
 
   useEffect(() => {
     if (!scopeActive) return;
-    const t = window.setTimeout(() => {
+    const tmr = window.setTimeout(() => {
       void runFetch();
     }, 650);
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(tmr);
   }, [scopeActive, runFetch]);
 
   useEffect(() => {
-    if (!scopeActive || typeof window === 'undefined') return;
-    const onDismissed = () => setDismissTick((n) => n + 1);
-    window.addEventListener(HC_APP_UPDATE_OPTIONAL_DISMISSED_EVENT, onDismissed);
-    return () => window.removeEventListener(HC_APP_UPDATE_OPTIONAL_DISMISSED_EVENT, onDismissed);
+    if (!scopeActive) {
+      setInstallSource(null);
+      return;
+    }
+    let cancelled = false;
+    setInstallSourceLoading(true);
+    void getAndroidInstallSource().then((src) => {
+      if (!cancelled) {
+        setInstallSource(src);
+        setInstallSourceLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [scopeActive]);
 
   useEffect(() => {
@@ -180,150 +181,82 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [scopeActive, runFetch]);
 
-  const derivedRaw = useMemo(() => {
-    if (!payload || !scopeActive) return null;
-    return deriveAndroidBetaUpdate(payload, currentVersion, readOptionalDismissedSession());
-  }, [payload, scopeActive, currentVersion, dismissTick]);
+  const isPlayInstall = Boolean(installSource?.isPlayStoreInstall);
+  const needsPlayMigration =
+    scopeActive &&
+    playMigrationEnabled &&
+    !migrationDismissed &&
+    isPlayOpenTestingUrlConfigured(playStoreUrl) &&
+    !installSourceLoading &&
+    installSource != null &&
+    !isPlayInstall &&
+    Boolean(installSource.isSideloadInstall || installSource.unknown);
 
-  const derived = useMemo(() => {
-    if (!derivedRaw || !scopeActive) return null;
-    const now = Date.now();
-    return applyAndroidBetaInstallFlowAdjustments(derivedRaw, {
-      now,
-      suppressModalUntil: installPersist.suppressModalUntil,
-      installerOpenedAt: installPersist.installerOpenedAt,
-      lastAttemptedVersion: installPersist.lastAttemptedVersion,
-      currentVersion,
-      latestApkVersion: (payload?.latestApkVersion ?? '').trim(),
-    });
-  }, [derivedRaw, scopeActive, installPersist, currentVersion, payload?.latestApkVersion]);
+  const openPlayStore = useCallback(async () => {
+    const url = playStoreUrl.trim();
+    if (!url || !isPlayOpenTestingUrlConfigured(url)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[app-update] NEXT_PUBLIC_GOOGLE_PLAY_OPEN_TESTING_URL is not configured');
+      }
+      return;
+    }
+    await openExternalUrl(url);
+  }, [playStoreUrl]);
+
+  const dismissPlayMigration = useCallback(() => {
+    writePlayMigrationDismissed();
+    setMigrationDismissed(true);
+  }, []);
+
+  /** Legacy sideload APK OTA — disabled for Play distribution. */
+  const triggerApkDownload = useCallback(async () => {
+    if (!apkUpdateEnabled) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[app-update] triggerApkDownload ignored — APK updates disabled (Play distribution)');
+      }
+      await openPlayStore();
+      return;
+    }
+  }, [apkUpdateEnabled, openPlayStore]);
+
+  const refresh = useCallback(() => {
+    void runFetch();
+    void getAndroidInstallSource().then(setInstallSource);
+  }, [runFetch]);
 
   const latestApkVersion = (payload?.latestApkVersion ?? '').trim();
-  const minRequiredApkVersion = (payload?.minRequiredApkVersion ?? '').trim();
-
-  const showForceModal = Boolean(scopeActive && payload?.enabled && derived?.forceUi);
-  const showOptionalModal = Boolean(scopeActive && payload?.enabled && derived?.optionalModal);
-  const showOptionalReminder = Boolean(scopeActive && payload?.enabled && derived?.optionalReminder);
 
   let statusLine: AppUpdateStatusLine = 'inactive';
   if (!scopeActive) statusLine = 'inactive';
   else if (loading && !payload) statusLine = 'loading';
+  else if (isPlayInstall) statusLine = 'play_managed';
+  else if (needsPlayMigration) statusLine = 'play_migration';
   else if (!payload) statusLine = 'disabled';
-  else if (!payload.enabled) statusLine = 'disabled';
-  else if (!derived) statusLine = 'loading';
-  else if (derived.forceUi) statusLine = 'force';
-  else if (derived.optionalModal) statusLine = 'optional_modal';
-  else if (derived.optionalReminder) statusLine = 'optional_reminder';
   else statusLine = 'up_to_date';
 
-  const prevBelowLatestRef = useRef<boolean | null>(null);
   useEffect(() => {
-    if (!scopeActive || loading || !derived) return;
-    const below = derived.belowLatest;
-    if (prevBelowLatestRef.current === true && below === false) {
-      setShowApkSuccessToast(true);
-      clearAndroidBetaInstallTracking();
-      if (currentVersion?.trim()) {
-        writeAndroidBetaLastInstalledSeen(currentVersion.trim());
-      }
-      syncInstallPersist();
-      try {
-        window.dispatchEvent(new CustomEvent('hc-apk-install-success-for-push'));
-      } catch {
-        /* ignore */
-      }
-      const tmr = window.setTimeout(() => setShowApkSuccessToast(false), 5200);
-      return () => window.clearTimeout(tmr);
-    }
-    prevBelowLatestRef.current = below;
-  }, [scopeActive, loading, derived, currentVersion, syncInstallPersist]);
-
-  const triggerApkDownload = useCallback(async () => {
-    if (!scopeActive || typeof window === 'undefined') return;
-    const p = payload;
-    if (!p) return;
-    const origin = window.location.origin;
-    const raw = (p.apkUrl ?? '').trim();
-    const resolvedApk = raw.startsWith('/') ? `${origin}${raw}` : raw;
-    const { browserTarget } = resolveApkAbsoluteUrl(p);
-    const useNativeInstall = isNativeAndroid() && /^https:\/\//i.test(resolvedApk);
-    const targetVer = (p.latestApkVersion ?? '').trim();
-
-    if (useNativeInstall) {
-      const result = await downloadApkAndOpenInstaller(resolvedApk, targetVer, () => {});
-      syncInstallPersist();
-      if (!result.ok) {
-        console.warn('[apk-update-flow] settings-trigger native install failed', {
-          fallbackReason: result.fallbackReason,
-          kind: result.kind,
-        });
-      }
-      return;
-    }
-    await openExternalUrl(browserTarget);
-  }, [scopeActive, payload, syncInstallPersist]);
-
-  const refresh = useCallback(() => {
-    setDismissTick((n) => n + 1);
-  }, []);
-
-  useEffect(() => {
-    if (!shouldLogAppUpdateDebug() || typeof window === 'undefined') return;
-    const now = Date.now();
-    void (async () => {
-      let capVersion: string | null = null;
-      try {
-        const info = await getCapacitorAppInfo();
-        capVersion = info.version;
-      } catch {
-        capVersion = null;
-      }
-      console.info('[app-update-debug]', {
-        nativeMounted,
-        isNativeApp: isNativeApp(),
-        isNativeAndroid: isNativeAndroid(),
-        capAppGetInfoVersion: capVersion,
-        dismissedOptional: readOptionalDismissedSession(),
-        scopeActive,
-        currentVersion,
-        latestApkVersion,
-        minRequiredApkVersion,
-        forceUpdate: payload?.forceUpdate,
-        enabled: payload?.enabled,
-        belowMin: derived?.belowMin,
-        belowLatest: derived?.belowLatest,
-        hasValidCurrent: derived?.hasValidCurrent,
-        derivedRawForceUi: derivedRaw?.forceUi,
-        derivedForceUi: derived?.forceUi,
-        showForceModal: Boolean(scopeActive && payload?.enabled && derived?.forceUi),
-        showOptionalModal: Boolean(scopeActive && payload?.enabled && derived?.optionalModal),
-        showOptionalReminder: Boolean(scopeActive && payload?.enabled && derived?.optionalReminder),
-        suppressModalUntil: installPersist.suppressModalUntil,
-        suppressModalActive: now < installPersist.suppressModalUntil,
-        installStartedAt: installPersist.installStartedAt,
-        installerOpenedAt: installPersist.installerOpenedAt,
-        loading,
-        hasPayload: Boolean(payload),
-      });
-    })();
+    if (!shouldLogAppUpdateDebug() || typeof window === 'undefined' || !scopeActive) return;
+    console.info('[app-update-debug]', {
+      scopeActive,
+      currentVersion,
+      latestApkVersion,
+      apkUpdateEnabled,
+      playMigrationEnabled,
+      playStoreUrl: playStoreUrl ? '(set)' : '(missing)',
+      installSource,
+      needsPlayMigration,
+      migrationDismissed,
+    });
   }, [
-    nativeMounted,
     scopeActive,
     currentVersion,
     latestApkVersion,
-    minRequiredApkVersion,
-    payload?.enabled,
-    payload?.forceUpdate,
-    derived,
-    derivedRaw,
-    showForceModal,
-    showOptionalModal,
-    showOptionalReminder,
-    installPersist.suppressModalUntil,
-    installPersist.installStartedAt,
-    installPersist.installerOpenedAt,
-    loading,
-    dismissTick,
+    apkUpdateEnabled,
+    playMigrationEnabled,
+    playStoreUrl,
+    installSource,
+    needsPlayMigration,
+    migrationDismissed,
   ]);
 
   const value = useMemo<Ctx>(
@@ -333,15 +266,22 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
       payload,
       currentVersion,
       latestApkVersion,
-      minRequiredApkVersion,
-      derived,
+      installSource,
+      installSourceLoading,
+      playStoreUrl,
+      playMigrationEnabled,
+      apkUpdateEnabled,
       statusLine,
-      showOptionalReminder,
-      showForceModal,
-      showOptionalModal,
+      showPlayMigration: needsPlayMigration,
+      showPlayMigrationStrip: needsPlayMigration,
+      showOptionalReminder: false,
+      showForceModal: false,
+      showOptionalModal: false,
       refresh,
-      syncInstallPersist,
+      openPlayStore,
+      dismissPlayMigration,
       triggerApkDownload,
+      syncInstallPersist: () => {},
     }),
     [
       scopeActive,
@@ -349,36 +289,22 @@ export function AppUpdateStatusProvider({ children }: { children: React.ReactNod
       payload,
       currentVersion,
       latestApkVersion,
-      minRequiredApkVersion,
-      derived,
+      installSource,
+      installSourceLoading,
+      playStoreUrl,
+      playMigrationEnabled,
+      apkUpdateEnabled,
       statusLine,
-      showOptionalReminder,
-      showForceModal,
-      showOptionalModal,
+      needsPlayMigration,
       refresh,
-      syncInstallPersist,
+      openPlayStore,
+      dismissPlayMigration,
       triggerApkDownload,
-    ]
+    ],
   );
 
   return (
-    <AppUpdateStatusContext.Provider value={value}>
-      {scopeActive && showApkSuccessToast ? (
-        <div
-          className="pointer-events-none fixed bottom-28 left-1/2 z-[230] max-w-[min(92vw,22rem)] -translate-x-1/2 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-center shadow-xl"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-sm font-semibold text-emerald-900">
-            {t('appUpdateGate.updateSuccessTitle')}
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-emerald-800/90">
-            {t('appUpdateGate.updateSuccessBody')}
-          </p>
-        </div>
-      ) : null}
-      {children}
-    </AppUpdateStatusContext.Provider>
+    <AppUpdateStatusContext.Provider value={value}>{children}</AppUpdateStatusContext.Provider>
   );
 }
 

@@ -573,7 +573,7 @@ export default function NavBar() {
                 <span>{t('navbar.home')}</span>
               </Link>
 
-              {appUpdateStatus.showOptionalReminder ? (
+              {appUpdateStatus.showPlayMigrationStrip ? (
                 <button
                   type="button"
                   className={cn(
@@ -582,15 +582,15 @@ export default function NavBar() {
                   )}
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    void appUpdateStatus.triggerApkDownload();
-                    navDebug('navbar:mobile', { action: 'android-beta-update-reminder' });
+                    void appUpdateStatus.openPlayStore();
+                    navDebug('navbar:mobile', { action: 'play-migration-reminder' });
                   }}
                 >
                   <Download className="w-4 h-4 shrink-0" aria-hidden />
                   <span className="flex min-w-0 flex-col text-left">
-                    <span>{t('appUpdateGate.updateAvailableShort')}</span>
+                    <span>{t('playMigration.stripTitle')}</span>
                     <span className="text-xs font-normal text-emerald-900/85 line-clamp-2">
-                      {t('appUpdateGate.reminderFinishInstall')}
+                      {t('playMigration.stripHint')}
                     </span>
                   </span>
                 </button>

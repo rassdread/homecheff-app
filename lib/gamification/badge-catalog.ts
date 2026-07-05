@@ -96,7 +96,7 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
     name: 'Beta Tester',
     description: 'Je neemt deel aan de Android-beta en helpt HomeCheff verbeteren.',
     iconKey: 'rocket',
-    unlockHint: 'Download de beta via homecheff.eu/app en voltooi de beta-startflow (of registreer via die pagina).',
+    unlockHint: 'Word tester via homecheff.eu/app (Google Play Open Testing) en voltooi de beta-startflow.',
   },
 ];
 

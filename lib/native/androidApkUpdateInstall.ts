@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Legacy sideload APK download + in-app installer flow.
+ * Disabled for Play distribution — use PlayStoreMigrationGate / openPlayStore instead.
+ */
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   HomecheffApkInstaller,

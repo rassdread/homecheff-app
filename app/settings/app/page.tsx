@@ -177,12 +177,12 @@ export default function AppSettingsPage() {
           <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>
         ) : null}
 
-        {appUpdate.scopeActive && (appUpdate.loading || Boolean(appUpdate.payload?.enabled)) ? (
+        {appUpdate.scopeActive ? (
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
             <h2 className="font-semibold text-gray-900">{t('appUpdateGate.settingsBetaTitle')}</h2>
             {appUpdate.loading && !appUpdate.payload ? (
               <p className="text-sm text-gray-500">{t('appSettingsPage.loading')}</p>
-            ) : appUpdate.payload ? (
+            ) : (
               <>
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
                   <div>
@@ -193,38 +193,51 @@ export default function AppSettingsPage() {
                       {appUpdate.currentVersion?.trim() || '—'}
                     </dd>
                   </div>
-                  <div>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                      {t('appUpdateGate.latestVersionLabel')}
-                    </dt>
-                    <dd className="mt-0.5 font-medium text-gray-900">
-                      {appUpdate.latestApkVersion || '—'}
-                    </dd>
-                  </div>
+                  {appUpdate.latestApkVersion ? (
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        {t('appUpdateGate.latestVersionLabel')}
+                      </dt>
+                      <dd className="mt-0.5 font-medium text-gray-900">
+                        {appUpdate.latestApkVersion}
+                      </dd>
+                    </div>
+                  ) : null}
                 </dl>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                     {t('appUpdateGate.statusLabel')}
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900">
-                    {appUpdate.statusLine === 'up_to_date'
-                      ? t('appUpdateGate.upToDateStatus')
-                      : appUpdate.statusLine === 'force'
-                        ? t('appUpdateGate.forcedTitle')
-                        : t('appUpdateGate.updateAvailableShort')}
+                    {appUpdate.statusLine === 'play_managed'
+                      ? t('playMigration.settingsPlayManaged')
+                      : appUpdate.statusLine === 'play_migration'
+                        ? t('playMigration.settingsMigrationHint')
+                        : t('appUpdateGate.upToDateStatus')}
                   </p>
                 </div>
-                {appUpdate.statusLine !== 'up_to_date' ? (
-                  <button
-                    type="button"
-                    onClick={() => void appUpdate.triggerApkDownload()}
-                    className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.99] touch-manipulation sm:w-auto"
-                  >
-                    {t('appUpdateGate.ctaDownload')}
-                  </button>
+                {appUpdate.installSource?.isPlayStoreInstall ? (
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {t('playMigration.settingsPlayManagedBody')}
+                  </p>
+                ) : appUpdate.showPlayMigration || appUpdate.playMigrationEnabled ? (
+                  <>
+                    <p className="text-sm text-gray-600 leading-relaxed">{t('playMigration.body')}</p>
+                    {appUpdate.playStoreUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => void appUpdate.openPlayStore()}
+                        className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.99] touch-manipulation sm:w-auto"
+                      >
+                        {t('playMigration.ctaOpenPlay')}
+                      </button>
+                    ) : (
+                      <p className="text-xs text-amber-800">{t('playMigration.playUrlMissing')}</p>
+                    )}
+                  </>
                 ) : null}
               </>
-            ) : null}
+            )}
           </section>
         ) : null}
 

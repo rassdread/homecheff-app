@@ -1637,17 +1637,17 @@ export default function BottomNavigation() {
             : 'py-2.5 px-2 sm:px-4 md:px-3 md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]'
         )}
       >
-        {appUpdateStatus.showOptionalReminder ? (
+        {appUpdateStatus.showPlayMigrationStrip ? (
           <div className="max-w-4xl mx-auto w-full px-1 pb-1.5 pt-0.5">
             <button
               type="button"
-              onClick={() => void appUpdateStatus.triggerApkDownload()}
+              onClick={() => void appUpdateStatus.openPlayStore()}
               className="flex w-full touch-pan-y items-center justify-center gap-2 rounded-lg border border-emerald-200/90 bg-emerald-50/95 py-1.5 text-xs font-semibold text-emerald-950 active:bg-emerald-100/90"
             >
               <Download className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span>{t('appUpdateGate.updateAvailableShort')}</span>
+              <span>{t('playMigration.stripTitle')}</span>
               <span className="text-emerald-800/80">·</span>
-              <span className="line-clamp-2 text-left">{t('appUpdateGate.reminderFinishInstall')}</span>
+              <span className="line-clamp-2 text-left">{t('playMigration.stripHint')}</span>
             </button>
           </div>
         ) : null}

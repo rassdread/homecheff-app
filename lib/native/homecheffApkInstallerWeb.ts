@@ -24,4 +24,16 @@ export class HomecheffApkInstallerWeb extends WebPlugin {
   async openSystemDownloads(): Promise<void> {
     throw new Error('HomecheffApkInstaller is only available on Android native');
   }
+
+  async getInstallSource(): Promise<{
+    installerPackageName: string;
+    isPlayStoreInstall: boolean;
+    isSideloadInstall: boolean;
+  }> {
+    return {
+      installerPackageName: '',
+      isPlayStoreInstall: false,
+      isSideloadInstall: false,
+    };
+  }
 }

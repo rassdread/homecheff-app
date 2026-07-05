@@ -11,6 +11,12 @@ export type CopyCachedApkToDownloadsResult =
   | { success: true; displayPath: string; uri: string; method: string }
   | { success: false; reason: string };
 
+export type AndroidInstallSourceResult = {
+  installerPackageName: string;
+  isPlayStoreInstall: boolean;
+  isSideloadInstall: boolean;
+};
+
 export interface HomecheffApkInstallerPlugin {
   openPackageInstaller(options: OpenPackageInstallerOptions): Promise<void>;
   /** Expliciete cache → installer (zelfde als openPackageInstaller met cacheRelativePath). */
@@ -21,6 +27,8 @@ export interface HomecheffApkInstallerPlugin {
   }): Promise<Record<string, unknown>>;
   openManageUnknownAppSources(): Promise<void>;
   openSystemDownloads(): Promise<void>;
+  /** Play Store vs sideload install detection (Android native only). */
+  getInstallSource(): Promise<AndroidInstallSourceResult>;
 }
 
 /** Alleen Android native; Web bundelt stub (no-op). */

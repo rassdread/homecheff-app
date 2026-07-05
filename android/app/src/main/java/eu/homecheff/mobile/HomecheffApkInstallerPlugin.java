@@ -460,4 +460,39 @@ public class HomecheffApkInstallerPlugin extends Plugin {
             call.reject("open_downloads_failed", e.getMessage(), e);
         }
     }
+
+    /**
+     * Returns how this app package was installed (Play Store vs sideload).
+     * Used for Play migration UI — legacy APK OTA is disabled for Play installs.
+     */
+    @PluginMethod
+    public void getInstallSource(PluginCall call) {
+        try {
+            String packageName = getContext().getPackageName();
+            String installer = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    installer = getContext().getPackageManager().getInstallSourceInfo(packageName).getInstallingPackageName();
+                } catch (Exception e) {
+                    logLine("get_install_source", "install_source_info_failed=" + e.getMessage());
+                }
+            }
+            if (installer == null) {
+                installer = getContext().getPackageManager().getInstallerPackageName(packageName);
+            }
+            boolean isPlay = "com.android.vending".equals(installer);
+            boolean isSideload = installer == null || installer.isEmpty() || !isPlay;
+            logLine(
+                    "get_install_source",
+                    "installer=" + (installer != null ? installer : "null") + " isPlay=" + isPlay);
+            JSObject ret = new JSObject();
+            ret.put("installerPackageName", installer != null ? installer : "");
+            ret.put("isPlayStoreInstall", isPlay);
+            ret.put("isSideloadInstall", isSideload);
+            call.resolve(ret);
+        } catch (Exception e) {
+            Log.e(TAG, "[apk-installer] get_install_source stack", e);
+            call.reject("get_install_source_failed", e.getMessage() != null ? e.getMessage() : "failed", e);
+        }
+    }
 }

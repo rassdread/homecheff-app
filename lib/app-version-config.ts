@@ -14,6 +14,14 @@
  */
 
 import { readAndroidBetaVersionFile } from '@/lib/read-android-beta-version-config';
+import {
+  getGooglePlayOpenTestingUrl,
+  isPlayOpenTestingUrlConfigured,
+  resolveAppDistribution,
+  type AppDistributionMode,
+} from '@/lib/app-distribution';
+
+export type { AppDistributionMode };
 
 export type AppVersionApiResponse = {
   latestWebVersion: string;
@@ -31,6 +39,14 @@ export type AppVersionApiResponse = {
   changelog: string[];
   forceUpdate: boolean;
   enabled: boolean;
+  /** Primary distribution channel for native Android. */
+  distributionMode: AppDistributionMode;
+  /** Google Play Open Testing URL when configured. */
+  playStoreUrl: string;
+  /** Legacy sideload APK OTA — off when distributionMode is play or APP_UPDATE_ENABLED=false. */
+  apkUpdateEnabled: boolean;
+  /** Show Play migration UI for sideload installs. */
+  playMigrationEnabled: boolean;
 };
 
 export const DEFAULT_UPDATE_TITLE = 'Nieuwe HomeCheff beta beschikbaar';
@@ -87,11 +103,11 @@ export function buildAppVersionResponseFromEnv(): AppVersionApiResponse {
   const enabledFromEnv = envEnabledRaw !== '' ? envEnabledRaw.toLowerCase() === 'true' : null;
   const enabledBase =
     enabledFromEnv !== null ? enabledFromEnv : Boolean(file?.enabled ?? false);
-  const enabled = enabledBase && hasApkChannel;
+  const rawEnabled = enabledBase && hasApkChannel;
 
   const envForceRaw = trimEnv('APP_UPDATE_FORCE');
   const forceFromEnv = envForceRaw !== '' ? envForceRaw.toLowerCase() === 'true' : null;
-  const forceUpdate =
+  const forceUpdateRaw =
     forceFromEnv !== null ? forceFromEnv : Boolean(file?.forceUpdate ?? false);
 
   const latestWebVersion = resolveLatestWebVersion();
@@ -114,6 +130,12 @@ export function buildAppVersionResponseFromEnv(): AppVersionApiResponse {
 
   const changelog = resolveChangelog(file);
 
+  const distributionMode = resolveAppDistribution();
+  const playStoreUrl = getGooglePlayOpenTestingUrl();
+  const apkUpdateEnabled = rawEnabled && distributionMode !== 'play';
+  const playMigrationEnabled =
+    distributionMode === 'play' && isPlayOpenTestingUrlConfigured(playStoreUrl);
+
   return {
     latestWebVersion,
     latestApkVersion,
@@ -124,7 +146,11 @@ export function buildAppVersionResponseFromEnv(): AppVersionApiResponse {
     updateTitleForced,
     updateMessageForced,
     changelog,
-    forceUpdate,
-    enabled,
+    forceUpdate: apkUpdateEnabled ? forceUpdateRaw : false,
+    enabled: apkUpdateEnabled,
+    distributionMode,
+    playStoreUrl,
+    apkUpdateEnabled,
+    playMigrationEnabled,
   };
 }
