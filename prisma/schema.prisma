@@ -114,6 +114,8 @@ model User {
   AgreementsAccepted                     Agreement[]               @relation("AgreementAcceptedBy")
   CommunityOrdersAsBuyer                 CommunityOrder[]          @relation("CommunityOrderBuyer")
   CommunityOrdersAsSeller                CommunityOrder[]          @relation("CommunityOrderSeller")
+  CourierAvailabilities                  CourierAvailability[]
+  CourierAssignmentsAsCourier            CourierAssignment[]       @relation("CourierAssignmentCourier")
   DeliveryProfile                        DeliveryProfile?
   deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   DeviceToken                            DeviceToken[]
@@ -818,12 +820,71 @@ model CommunityOrder {
   Buyer           User                 @relation("CommunityOrderBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   Seller          User                 @relation("CommunityOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   CheckoutOrder   Order?               @relation(fields: [checkoutOrderId], references: [id], onDelete: SetNull)
+  DeliveryRequests DeliveryRequest[]
 
   @@index([conversationId])
   @@index([proposalId])
   @@index([buyerId, status])
   @@index([sellerId, status])
   @@index([checkoutOrderId])
+}
+
+/// Community-order delivery job — separate from checkout DeliveryOrder.
+model DeliveryRequest {
+  id                 String                 @id @default(uuid())
+  communityOrderId   String
+  status             DeliveryRequestStatus  @default(OPEN)
+  pickupAddress      String?
+  deliveryAddress    String?
+  pickupDate         DateTime?
+  pickupTimeWindow   String?
+  deliveryDate       DateTime?
+  deliveryTimeWindow String?
+  notes              String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  CommunityOrder     CommunityOrder         @relation(fields: [communityOrderId], references: [id], onDelete: Cascade)
+  Assignments        CourierAssignment[]
+
+  @@index([communityOrderId])
+  @@index([status])
+}
+
+/// Structured courier availability windows (Delivery Marketplace V1).
+model CourierAvailability {
+  id             String              @id @default(uuid())
+  userId         String
+  weekday        CourierWeekday
+  startTime      String
+  endTime        String
+  radiusKm       Float               @default(5.0)
+  preferredAreas String[]            @default([])
+  vehicleType    CourierVehicleType  @default(BIKE)
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  User           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([weekday])
+}
+
+/// Manual courier assignment to a delivery request.
+model CourierAssignment {
+  id                String                   @id @default(uuid())
+  deliveryRequestId String
+  courierId         String
+  status            CourierAssignmentStatus  @default(PENDING)
+  assignedAt        DateTime                 @default(now())
+  acceptedAt        DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  DeliveryRequest   DeliveryRequest          @relation(fields: [deliveryRequestId], references: [id], onDelete: Cascade)
+  Courier           User                     @relation("CourierAssignmentCourier", fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryRequestId, status])
+  @@index([courierId, status])
 }
 
 model Notification {
@@ -2094,6 +2155,38 @@ enum CommunityOrderFulfillmentMode {
   ON_SITE_CLIENT
 }
 
+enum DeliveryRequestStatus {
+  OPEN
+  CLAIMED
+  ASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum CourierWeekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum CourierVehicleType {
+  CAR
+  BIKE
+  SCOOTER
+  WALK
+}
+
+enum CourierAssignmentStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
 enum MessageType {
   TEXT
   IMAGE
@@ -2129,6 +2222,10 @@ enum NotificationType {
   PROPOSAL_ALTERNATIVE_VALUE
   PROPOSAL_MIXED_ACCEPTED
   COMMUNITY_ORDER_CREATED
+  DELIVERY_REQUEST_CREATED
+  DELIVERY_REQUEST_ASSIGNED
+  DELIVERY_REQUEST_ACCEPTED
+  DELIVERY_REQUEST_COMPLETED
 }
 
 enum ProductCategory {

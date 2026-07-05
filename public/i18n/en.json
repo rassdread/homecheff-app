@@ -7709,6 +7709,95 @@
       "heading": "Agreement"
     }
   },
+  "delivery": {
+    "request": {
+      "heading": "Delivery request",
+      "status": {
+        "open": "Open",
+        "claimed": "Claimed",
+        "assigned": "Assigned",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "assignment": {
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "errors": {
+      "accessDenied": "You do not have access to this delivery request.",
+      "communityOrderNotFound": "Community order not found.",
+      "deliveryNotRequested": "Delivery was not requested for this order.",
+      "activeRequestExists": "An active delivery request already exists.",
+      "requestNotFound": "Delivery request not found.",
+      "requestNotActive": "This delivery request is no longer active.",
+      "courierRequired": "Select a courier.",
+      "courierNotActive": "This courier is not active.",
+      "activeAssignmentExists": "An active assignment already exists.",
+      "noPendingAssignment": "No pending assignment.",
+      "courierOnly": "Only the assigned courier can accept.",
+      "noAcceptedAssignment": "No accepted assignment."
+    }
+  },
+  "courier": {
+    "profile": {
+      "heading": "Courier profile",
+      "vehicle": "Vehicle",
+      "radius": "Radius",
+      "preferredAreas": "Preferred areas",
+      "availability": "Availability"
+    },
+    "vehicle": {
+      "car": "Car",
+      "bike": "Bike",
+      "scooter": "Scooter",
+      "walk": "On foot"
+    },
+    "weekday": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "errors": {
+      "timeRequired": "Start and end time are required."
+    }
+  },
+  "schedule": {
+    "heading": "Schedule",
+    "slot": {
+      "availability": "Available",
+      "assignedDelivery": "Delivery job",
+      "reserved": "Reserved"
+    }
+  },
+  "notification": {
+    "deliveryRequest": {
+      "created": {
+        "title": "Delivery request created",
+        "body": "A delivery request was created for your community order."
+      },
+      "assigned": {
+        "title": "Delivery job assigned",
+        "body": "You have been invited for a delivery job."
+      },
+      "accepted": {
+        "title": "Courier accepted",
+        "body": "The courier has accepted the job."
+      },
+      "completed": {
+        "title": "Delivery completed",
+        "body": "The delivery job has been completed."
+      }
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Price on request",
     "priceLabel": "Price",

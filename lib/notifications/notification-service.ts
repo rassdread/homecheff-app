@@ -60,6 +60,10 @@ function mapDataTypeToPrismaNotificationType(dataType: string | undefined): Noti
     PROPOSAL_REJECTED: 'PROPOSAL_REJECTED',
     PROPOSAL_COUNTERED: 'PROPOSAL_COUNTERED',
     SHIFT_REMINDER: 'ADMIN_NOTICE',
+    DELIVERY_REQUEST_CREATED: 'DELIVERY_REQUEST_CREATED',
+    DELIVERY_REQUEST_ASSIGNED: 'DELIVERY_REQUEST_ASSIGNED',
+    DELIVERY_REQUEST_ACCEPTED: 'DELIVERY_REQUEST_ACCEPTED',
+    DELIVERY_REQUEST_COMPLETED: 'DELIVERY_REQUEST_COMPLETED',
   };
   return map[dataType] ?? 'ADMIN_NOTICE';
 }
@@ -1186,6 +1190,64 @@ export class NotificationService {
         ...(proposal.amountCents != null
           ? { amountCents: String(proposal.amountCents) }
           : {}),
+        senderId,
+      },
+    };
+
+    const channels: Array<'push' | 'email' | 'sms'> = [];
+    if (preferences?.pushNewMessages !== false) {
+      channels.push('push');
+    }
+
+    await this.send({
+      userId: recipientId,
+      message,
+      channels,
+      saveToDatabase: true,
+    });
+  }
+
+  /**
+   * Delivery Marketplace V1 — community-order delivery requests.
+   */
+  static async sendDeliveryRequestNotification(
+    recipientId: string,
+    senderId: string,
+    kind:
+      | 'DELIVERY_REQUEST_CREATED'
+      | 'DELIVERY_REQUEST_ASSIGNED'
+      | 'DELIVERY_REQUEST_ACCEPTED'
+      | 'DELIVERY_REQUEST_COMPLETED',
+    title: string,
+    body: string,
+    deliveryRequest: {
+      id: string;
+      communityOrderId: string;
+      conversationId: string;
+      titleKey?: string;
+      bodyKey?: string;
+    },
+  ): Promise<void> {
+    if (recipientId === senderId) return;
+
+    const preferences = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "NotificationPreferences"
+      WHERE "userId" = ${recipientId}
+      LIMIT 1
+    `.then(rows => rows[0]).catch(() => null);
+
+    const message: NotificationMessage = {
+      title,
+      body,
+      data: {
+        type: kind,
+        deliveryRequestId: deliveryRequest.id,
+        communityOrderId: deliveryRequest.communityOrderId,
+        conversationId: deliveryRequest.conversationId,
+        actionUrl: `/messages/${deliveryRequest.conversationId}/`,
+        route: `/messages/${deliveryRequest.conversationId}/`,
+        ...(deliveryRequest.titleKey ? { titleKey: deliveryRequest.titleKey } : {}),
+        ...(deliveryRequest.bodyKey ? { bodyKey: deliveryRequest.bodyKey } : {}),
         senderId,
       },
     };

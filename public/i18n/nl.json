@@ -7709,6 +7709,95 @@
       "heading": "Overeenkomst"
     }
   },
+  "delivery": {
+    "request": {
+      "heading": "Bezorgverzoek",
+      "status": {
+        "open": "Open",
+        "claimed": "Geclaimd",
+        "assigned": "Toegewezen",
+        "completed": "Afgerond",
+        "cancelled": "Geannuleerd"
+      }
+    },
+    "assignment": {
+      "status": {
+        "pending": "In afwachting",
+        "accepted": "Geaccepteerd",
+        "completed": "Afgerond",
+        "cancelled": "Geannuleerd"
+      }
+    },
+    "errors": {
+      "accessDenied": "Geen toegang tot dit bezorgverzoek.",
+      "communityOrderNotFound": "Community order niet gevonden.",
+      "deliveryNotRequested": "Voor deze order is geen bezorging gevraagd.",
+      "activeRequestExists": "Er is al een actief bezorgverzoek.",
+      "requestNotFound": "Bezorgverzoek niet gevonden.",
+      "requestNotActive": "Dit bezorgverzoek is niet meer actief.",
+      "courierRequired": "Selecteer een bezorger.",
+      "courierNotActive": "Deze bezorger is niet actief.",
+      "activeAssignmentExists": "Er is al een actieve toewijzing.",
+      "noPendingAssignment": "Geen openstaande toewijzing.",
+      "courierOnly": "Alleen de toegewezen bezorger kan accepteren.",
+      "noAcceptedAssignment": "Geen geaccepteerde toewijzing."
+    }
+  },
+  "courier": {
+    "profile": {
+      "heading": "Bezorgerprofiel",
+      "vehicle": "Voertuig",
+      "radius": "Straal",
+      "preferredAreas": "Voorkeursgebieden",
+      "availability": "Beschikbaarheid"
+    },
+    "vehicle": {
+      "car": "Auto",
+      "bike": "Fiets",
+      "scooter": "Scooter",
+      "walk": "Te voet"
+    },
+    "weekday": {
+      "monday": "Maandag",
+      "tuesday": "Dinsdag",
+      "wednesday": "Woensdag",
+      "thursday": "Donderdag",
+      "friday": "Vrijdag",
+      "saturday": "Zaterdag",
+      "sunday": "Zondag"
+    },
+    "errors": {
+      "timeRequired": "Start- en eindtijd zijn verplicht."
+    }
+  },
+  "schedule": {
+    "heading": "Agenda",
+    "slot": {
+      "availability": "Beschikbaar",
+      "assignedDelivery": "Bezorgopdracht",
+      "reserved": "Gereserveerd"
+    }
+  },
+  "notification": {
+    "deliveryRequest": {
+      "created": {
+        "title": "Bezorgverzoek aangemaakt",
+        "body": "Er is een bezorgverzoek aangemaakt voor jullie community order."
+      },
+      "assigned": {
+        "title": "Bezorgopdracht toegewezen",
+        "body": "Je bent uitgenodigd voor een bezorgopdracht."
+      },
+      "accepted": {
+        "title": "Bezorger geaccepteerd",
+        "body": "De bezorger heeft de opdracht geaccepteerd."
+      },
+      "completed": {
+        "title": "Bezorging afgerond",
+        "body": "De bezorgopdracht is afgerond."
+      }
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Prijs op aanvraag",
     "priceLabel": "Prijs",
