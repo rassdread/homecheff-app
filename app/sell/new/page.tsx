@@ -41,7 +41,7 @@ const INSPIRATIE_IMPORT_KEY = "inspiratieToProductData";
 
 function sellsNewSkipWizard(sp: URLSearchParams | null): boolean {
   if (!sp) return true;
-  if (sp.get("wizard") === "1") return false;
+  if (sp.get("wizard") === "1" || sp.get("sellLegacy") === "1") return false;
   if (sp.get("fromInspiratie") === "true") return true;
   const cat = sp.get("category");
   if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") return true;

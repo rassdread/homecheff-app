@@ -4280,7 +4280,11 @@
     "dashboard": "Dashboard",
     "earnDesc": "Start selling today. List products in less than 2 minutes.",
     "quickAdd": {
-      "platformTitle": "What do you want to add?",
+      "platformTitle": "What would you like to add?",
+      "marketplaceOfferTitle": "Post an offer or request",
+      "marketplaceOfferSubtitle": "Share something you make, offer or are looking for",
+      "inspirationShareTitle": "Share inspiration",
+      "inspirationShareSubtitle": "Share ideas, recipes and projects",
       "photoTitle": "Add media",
       "photoSubtitle": "Gallery, or camera for photo-only or video-only capture",
       "galleryTitle": "Gallery",

@@ -494,9 +494,14 @@ export default function BottomNavigation() {
     }
 
     const roles = await loadUserRolesIfNeeded();
-    if (roles.length === 0) {
+    if (roles.length === 0 && intent?.mode === 'inspiratie') {
       createFlowDebug('roles-gate-block', { source: 'openQuickAddFlow' });
       showCreateRolesGate();
+      return;
+    }
+
+    if (intent?.mode === 'dorpsplein') {
+      router.push(sellNewPath);
       return;
     }
 
@@ -587,9 +592,12 @@ export default function BottomNavigation() {
 
   // Quick Add Handlers
   const handlePlatformSelect = (platform: Platform) => {
+    if (platform === 'dorpsplein') {
+      navigateToMarketplaceCreate(false);
+      return;
+    }
     setSelectedPlatform(platform);
     sessionStorage.setItem('quickAddPlatform', platform);
-    // Go to photo source selection (camera or gallery) - consistent for all browsers
     setQuickAddStep('photoSource');
     sessionStorage.setItem('quickAddStep', 'photoSource');
   };
@@ -1321,8 +1329,8 @@ export default function BottomNavigation() {
                     className="w-full p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
                     <div className="text-2xl mb-1">🏪</div>
-                    <div className="text-lg font-bold">{t('bottomNav.dorpsplein')}</div>
-                    <div className="text-sm opacity-90">{t('bottomNav.sellProducts')}</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.marketplaceOfferTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.marketplaceOfferSubtitle')}</div>
                   </button>
                   
                   <button
@@ -1331,8 +1339,8 @@ export default function BottomNavigation() {
                     className="w-full p-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all active:scale-95 text-left"
                   >
                     <div className="text-2xl mb-1">✨</div>
-                    <div className="text-lg font-bold">{t('bottomNav.inspiratie')}</div>
-                    <div className="text-sm opacity-90">{t('bottomNav.shareIdeas')}</div>
+                    <div className="text-lg font-bold">{t('bottomNav.quickAdd.inspirationShareTitle')}</div>
+                    <div className="text-sm opacity-90">{t('bottomNav.quickAdd.inspirationShareSubtitle')}</div>
                   </button>
                 </div>
               </div>
@@ -1348,7 +1356,7 @@ export default function BottomNavigation() {
                       onClick={goBackInQuickAdd}
                       className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors min-h-[44px]"
                     >
-                      Terug
+                      {t('buttons.back')}
                     </button>
                     <div className="min-w-0">
                       <h3 className="text-xl font-bold text-gray-900">{t('bottomNav.quickAdd.photoTitle')}</h3>
@@ -1360,7 +1368,7 @@ export default function BottomNavigation() {
                     onClick={softDismissQuickAddMenu}
                     className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    Sluiten
+                    {t('buttons.close')}
                   </button>
                 </div>
                 
@@ -1411,7 +1419,7 @@ export default function BottomNavigation() {
                     onClick={softDismissQuickAddMenu}
                     className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    Sluiten
+                    {t('buttons.close')}
                   </button>
                 </div>
                 
@@ -1533,7 +1541,7 @@ export default function BottomNavigation() {
                     onClick={softDismissQuickAddMenu}
                     className="shrink-0 px-3 py-2 text-sm font-medium text-gray-800 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                   >
-                    Sluiten
+                    {t('buttons.close')}
                   </button>
                 </div>
                 

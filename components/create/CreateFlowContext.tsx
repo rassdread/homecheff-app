@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { dispatchOpenQuickAdd } from "@/lib/quickAddOpen";
 import {
@@ -17,6 +18,10 @@ import {
   setCreateFlowIntent,
   type CreateFlowIntent,
 } from "@/lib/createFlowIntent";
+import {
+  marketplaceEntryHref,
+  MARKETPLACE_ENTRY_PATH,
+} from "@/lib/create/marketplace-entry-nav";
 import { clickDebug } from "@/lib/click-debug";
 import { getCreateAuthReturnUrls } from "@/lib/createAuthReturnUrls";
 import { savePendingIntent, personaFromVertical } from "@/lib/onboarding/pending-intent";
@@ -35,9 +40,9 @@ import CreateGuestAuthModal from "./CreateGuestAuthModal";
 import CreateRolesGateModal from "./CreateRolesGateModal";
 
 type CreateFlowContextValue = {
-  /** Zelfde ingang als +-knop / Verdienen: quick-add of auth-modal. */
+  /** Marketplace Entry Flow V3 — /sell/new */
   openCreateFlow: () => void;
-  /** Zelfde flow met Dorpsplein/Inspiratie (+ optioneel Chef/Garden/Designer) als preselectie. */
+  /** Dorpsplein → /sell/new; Inspiratie → quick-add inspiratie flow */
   openCreateFlowWithIntent: (intent: CreateFlowIntent) => void;
 };
 
@@ -51,9 +56,9 @@ export function useCreateFlow(): CreateFlowContextValue {
   return ctx;
 }
 
-function persistCreatePendingIntent() {
+function persistCreatePendingIntent(returnPath: string, intent?: CreateFlowIntent | null) {
   if (typeof window === "undefined") return;
-  const ci = peekCreateFlowIntent();
+  const ci = intent ?? peekCreateFlowIntent();
   const mode = ci?.mode ?? "dorpsplein";
   savePendingIntent({
     type: mode === "inspiratie" ? "create_inspiration" : "create_item",
@@ -63,11 +68,12 @@ function persistCreatePendingIntent() {
       mode === "inspiratie"
         ? "inspiration"
         : personaFromVertical(ci?.vertical),
-    returnPath: `${window.location.pathname}${window.location.search}`,
+    returnPath,
   });
 }
 
 export function CreateFlowProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [guestOpen, setGuestOpen] = useState(false);
@@ -77,9 +83,10 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     register: "/register",
   });
   const lastOpenAt = useRef(0);
-  /** Eerste tap tijdens NextAuth `loading`: intent staat al in sessionStorage; dispatch zodra sessie bekend is. */
   const pendingQuickAddAfterSessionRef = useRef(false);
   const pendingOpenReasonRef = useRef<string>("session-ready");
+  /** Dorpsplein vs inspiratie when session resolves after loading */
+  const pendingMarketplaceIntentRef = useRef<CreateFlowIntent | null>(null);
 
   const resolvePlacementRoles = useCallback(async (): Promise<string[]> => {
     const sessionRoles = normalizeCreatePlacementRoles(
@@ -100,6 +107,22 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     }
   }, [session?.user, bootstrapProfile?.sellerRoles, ensureProfile]);
 
+  const navigateToMarketplaceEntry = useCallback(
+    (intent?: CreateFlowIntent | null) => {
+      const now = Date.now();
+      if (now - lastOpenAt.current < 400) {
+        clickDebug("CreateFlowProvider", "marketplace-entry", "debounced-skip");
+        return;
+      }
+      lastOpenAt.current = now;
+      const href = marketplaceEntryHref(intent ?? null);
+      clickDebug("CreateFlowProvider", "marketplace-entry", "navigate", href);
+      clearCreateFlowIntent();
+      router.push(href);
+    },
+    [router],
+  );
+
   const dispatchQuickAddNow = useCallback((reason: string) => {
     const now = Date.now();
     if (now - lastOpenAt.current < 400) {
@@ -111,7 +134,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     dispatchOpenQuickAdd();
   }, []);
 
-  const openAuthenticatedCreate = useCallback(
+  const openInspirationQuickAdd = useCallback(
     async (reason: string) => {
       const roles = await resolvePlacementRoles();
       if (roles.length === 0) {
@@ -121,13 +144,14 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       }
       dispatchQuickAddNow(reason);
     },
-    [resolvePlacementRoles, dispatchQuickAddNow]
+    [resolvePlacementRoles, dispatchQuickAddNow],
   );
 
   const openCreateFlow = useCallback(() => {
     if (status === "loading") {
       pendingQuickAddAfterSessionRef.current = true;
-      pendingOpenReasonRef.current = "openCreateFlow-authenticated";
+      pendingMarketplaceIntentRef.current = null;
+      pendingOpenReasonRef.current = "openCreateFlow-marketplace";
       clickDebug("CreateFlowProvider", "openCreateFlow", "defer-until-session", "loading");
       return;
     }
@@ -136,26 +160,43 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       if (now - lastOpenAt.current < 400) return;
       lastOpenAt.current = now;
       setPendingOpenQuickAddAfterLogin();
-      persistCreatePendingIntent();
-      setAuthUrls(getCreateAuthReturnUrls());
+      persistCreatePendingIntent(MARKETPLACE_ENTRY_PATH);
+      setAuthUrls(getCreateAuthReturnUrls(MARKETPLACE_ENTRY_PATH));
       setGuestOpen(true);
       return;
     }
-    void openAuthenticatedCreate("openCreateFlow-authenticated");
-  }, [session?.user, status, openAuthenticatedCreate]);
+    navigateToMarketplaceEntry();
+  }, [session?.user, status, navigateToMarketplaceEntry]);
 
   const openCreateFlowWithIntent = useCallback(
     (intent: CreateFlowIntent) => {
       setCreateFlowIntent(intent);
+
+      if (intent.mode === "dorpsplein") {
+        if (status === "loading") {
+          pendingQuickAddAfterSessionRef.current = true;
+          pendingMarketplaceIntentRef.current = intent;
+          pendingOpenReasonRef.current = "openCreateFlowWithIntent-marketplace";
+          return;
+        }
+        if (status !== "authenticated" || !session?.user) {
+          const now = Date.now();
+          if (now - lastOpenAt.current < 400) return;
+          lastOpenAt.current = now;
+          setPendingOpenQuickAddAfterLogin();
+          persistCreatePendingIntent(marketplaceEntryHref(intent), intent);
+          setAuthUrls(getCreateAuthReturnUrls(marketplaceEntryHref(intent)));
+          setGuestOpen(true);
+          return;
+        }
+        navigateToMarketplaceEntry(intent);
+        return;
+      }
+
       if (status === "loading") {
         pendingQuickAddAfterSessionRef.current = true;
-        pendingOpenReasonRef.current = "openCreateFlowWithIntent-authenticated";
-        clickDebug(
-          "CreateFlowProvider",
-          "openCreateFlowWithIntent",
-          "defer-until-session",
-          JSON.stringify({ mode: intent.mode, hasVertical: !!intent.vertical })
-        );
+        pendingMarketplaceIntentRef.current = null;
+        pendingOpenReasonRef.current = "openCreateFlowWithIntent-inspiration";
         return;
       }
 
@@ -164,14 +205,14 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
         if (now - lastOpenAt.current < 400) return;
         lastOpenAt.current = now;
         setPendingOpenQuickAddAfterLogin();
-        persistCreatePendingIntent();
+        persistCreatePendingIntent(`${window.location.pathname}${window.location.search}`, intent);
         setAuthUrls(getCreateAuthReturnUrls());
         setGuestOpen(true);
         return;
       }
-      void openAuthenticatedCreate("openCreateFlowWithIntent-authenticated");
+      void openInspirationQuickAdd("openCreateFlowWithIntent-inspiration");
     },
-    [session?.user, status, openAuthenticatedCreate]
+    [session?.user, status, navigateToMarketplaceEntry, openInspirationQuickAdd],
   );
 
   const handleAbandonGuestModal = useCallback(() => {
@@ -187,6 +228,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === "unauthenticated") {
       pendingQuickAddAfterSessionRef.current = false;
+      pendingMarketplaceIntentRef.current = null;
     }
   }, [status]);
 
@@ -195,10 +237,19 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
     if (!pendingQuickAddAfterSessionRef.current) return;
     pendingQuickAddAfterSessionRef.current = false;
     const reason = pendingOpenReasonRef.current;
-    void openAuthenticatedCreate(reason);
-  }, [status, session?.user, openAuthenticatedCreate]);
+    const pendingIntent = pendingMarketplaceIntentRef.current;
+    pendingMarketplaceIntentRef.current = null;
 
-  /** Na succesvolle login: één keer quick-add openen als er create-intent was. */
+    if (
+      reason.includes("marketplace") ||
+      reason === "openCreateFlow-marketplace"
+    ) {
+      navigateToMarketplaceEntry(pendingIntent);
+      return;
+    }
+    void openInspirationQuickAdd(reason);
+  }, [status, session?.user, navigateToMarketplaceEntry, openInspirationQuickAdd]);
+
   const quickAddIntentScheduledRef = useRef(false);
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) {
@@ -218,6 +269,13 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       } catch {
         /* ignore */
       }
+
+      const ci = peekCreateFlowIntent();
+      if (!ci || ci.mode === "dorpsplein") {
+        navigateToMarketplaceEntry(ci);
+        return;
+      }
+
       const roles = await resolvePlacementRoles();
       if (roles.length === 0) {
         setRolesGateOpen(true);
@@ -230,7 +288,7 @@ export function CreateFlowProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(t);
       quickAddIntentScheduledRef.current = false;
     };
-  }, [status, session?.user, resolvePlacementRoles]);
+  }, [status, session?.user, resolvePlacementRoles, navigateToMarketplaceEntry]);
 
   useEffect(() => {
     return registerCreateRolesGate(() => setRolesGateOpen(true));
