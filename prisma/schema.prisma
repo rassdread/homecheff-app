@@ -414,6 +414,16 @@ model Product {
   deliveryRadiusKm  Float?
   tags              String[]           @default([])
   orderMethod       ProductOrderMethod @default(HOMECHEFF_PAYMENT)
+  /// Marketplace Foundation V2
+  listingIntent         ListingIntent          @default(OFFER)
+  marketplaceCategory   MarketplaceCategory?
+  priceModel            PriceModel             @default(FIXED)
+  acceptHomeCheffPayment Boolean               @default(true)
+  acceptDirectContact    Boolean               @default(false)
+  fulfillmentOptions     Json?
+  barterOpenness         BarterOpenness?
+  placeName              String?
+  useProfileLocation     Boolean                @default(true)
   conversations     Conversation[]
   proposals         Proposal[]
   deliveryOrders    DeliveryOrder[]
@@ -435,6 +445,39 @@ model Product {
   @@index([priceCents])
   @@index([category], map: "idx_product_category")
   @@index([sellerId], map: "idx_product_seller")
+  @@index([listingIntent])
+  @@index([marketplaceCategory])
+  @@index([priceModel])
+}
+
+enum ListingIntent {
+  OFFER
+  REQUEST
+}
+
+enum MarketplaceCategory {
+  CREATE
+  GROW
+  DESIGN
+  ARTISTIC_SERVICE
+  PRACTICAL_SERVICE
+  KNOWLEDGE
+}
+
+enum PriceModel {
+  FIXED
+  ON_REQUEST
+  FROM_PRICE
+  HOURLY
+  DAILY
+  VOLUNTARY
+}
+
+/// Future barter — schema only in V2 Phase 1
+enum BarterOpenness {
+  MONEY
+  MONEY_AND_BARTER
+  BARTER_ONLY
 }
 
 model Account {

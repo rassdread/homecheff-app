@@ -3,6 +3,7 @@ import * as React from 'react';
 import CompactChefForm from './CompactChefForm';
 import CompactGardenForm from './CompactGardenForm';
 import CompactDesignerForm from './CompactDesignerForm';
+import MarketplaceOfferForm from './marketplace/MarketplaceOfferForm';
 
 interface CategoryFormSelectorProps {
   category: 'CHEFF' | 'GARDEN' | 'DESIGNER';
@@ -12,6 +13,8 @@ interface CategoryFormSelectorProps {
   onCancel?: () => void;
   initialPhoto?: string;
   platform?: 'dorpsplein' | 'inspiratie';
+  /** Marketplace Foundation V2 — unified offer form for new listings */
+  useMarketplaceV2?: boolean;
 }
 
 export default function CategoryFormSelector({
@@ -21,10 +24,24 @@ export default function CategoryFormSelector({
   onSave,
   onCancel,
   initialPhoto,
-  platform = 'dorpsplein'
+  platform = 'dorpsplein',
+  useMarketplaceV2 = true,
 }: CategoryFormSelectorProps) {
+
+  if (platform === 'dorpsplein' && useMarketplaceV2 && !editMode) {
+    return (
+      <MarketplaceOfferForm
+        editMode={false}
+        existingProduct={existingProduct}
+        onSave={onSave}
+        onCancel={onCancel}
+        initialPhoto={initialPhoto}
+        initialLegacyCategory={category}
+      />
+    );
+  }
   
-  // Map category to correct form component
+  // Map category to correct form component (legacy + edit mode)
   const getFormComponent = () => {
     switch (category) {
       case 'CHEFF':

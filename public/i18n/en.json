@@ -7119,6 +7119,155 @@
       "views": "views"
     }
   },
+  "marketplace": {
+    "offerIntent": {
+      "heading": "What would you like to do?",
+      "hint": "Choose whether you are offering something or looking for something (prepared for future barter).",
+      "offer": "I'm offering something",
+      "request": "I'm looking for something"
+    },
+    "categoryHeading": {
+      "offer": "What are you offering?",
+      "request": "What are you looking for?"
+    },
+    "subcategoryHeading": "Choose a subcategory",
+    "back": "← Back",
+    "summary": {
+      "offer": "Offer",
+      "request": "Wanted",
+      "edit": "Change"
+    },
+    "categories": {
+      "create": "Making",
+      "grow": "Growing",
+      "design": "Designing",
+      "artisticService": "Artistic service",
+      "practicalService": "Practical service",
+      "knowledge": "Knowledge sharing"
+    },
+    "subcategories": {
+      "create": {
+        "meals": "Meals",
+        "baking": "Baking",
+        "clothing": "Clothing",
+        "jewelry": "Jewelry",
+        "decoration": "Decoration",
+        "art": "Art",
+        "other": "Other"
+      },
+      "grow": {
+        "vegetables": "Vegetables",
+        "fruit": "Fruit",
+        "herbs": "Herbs",
+        "plants": "Plants",
+        "honey": "Honey",
+        "other": "Other"
+      },
+      "design": {
+        "logo": "Logo",
+        "website": "Website",
+        "app": "App",
+        "video": "Video",
+        "photo": "Photo",
+        "illustration": "Illustration",
+        "marketing": "Marketing",
+        "other": "Other"
+      },
+      "artisticService": {
+        "tattoo": "Tattoo",
+        "airbrush": "Airbrush",
+        "bodypaint": "Bodypaint",
+        "mural": "Mural painting",
+        "illustration": "Illustration",
+        "portrait": "Portrait",
+        "music": "Music",
+        "other": "Other"
+      },
+      "practicalService": {
+        "gardening": "Gardening",
+        "cleaning": "Cleaning",
+        "movingHelp": "Moving help",
+        "computerHelp": "Computer help",
+        "handyman": "Handyman",
+        "other": "Other"
+      },
+      "knowledge": {
+        "workshop": "Workshop",
+        "cookingClass": "Cooking class",
+        "musicLesson": "Music lesson",
+        "tutoring": "Tutoring",
+        "coaching": "Coaching",
+        "other": "Other"
+      }
+    },
+    "payment": {
+      "heading": "How can payment be arranged?",
+      "hint": "You may choose one or both options — useful for chat proposals and CommunityOrders.",
+      "homecheffTitle": "Pay via HomeCheff",
+      "homecheffDescription": "Secure online checkout via HomeCheff (Stripe).",
+      "directContactTitle": "Pay via direct contact",
+      "directContactDescription": "Agree on price and payment in conversation (proposals & agreements)."
+    },
+    "priceModel": {
+      "heading": "Pricing model",
+      "fixed": "Fixed price",
+      "onRequest": "Price on request",
+      "fromPrice": "From price",
+      "hourly": "Hourly rate",
+      "daily": "Daily rate",
+      "voluntary": "Voluntary contribution"
+    },
+    "fulfillment": {
+      "heading": "How is this delivered?",
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "shipping": "Shipping",
+      "digital": "Digital delivery",
+      "onSiteClient": "On-site at customer",
+      "onSiteProvider": "On-site at provider",
+      "sellerCanDeliver": "I can deliver myself",
+      "deliveryRadiusKm": "Delivery radius (km)"
+    },
+    "form": {
+      "videoLabel": "Video (optional)",
+      "videoHint": "Showcase for HomeCheff Studio — promotion, portfolio or explanation.",
+      "photosLabel": "Photos",
+      "titleLabel": "Title",
+      "priceLabel": "Price (€)",
+      "pricePlaceholderOptional": "Optional",
+      "pricePlaceholderExample": "E.g. 12.50",
+      "descriptionLabel": "Description",
+      "locationHeading": "Location",
+      "placeNameLabel": "Place name",
+      "placeNameRequired": "*",
+      "placeNamePlaceholder": "E.g. Utrecht",
+      "useProfileAddress": "Use my profile address",
+      "useCustomAddress": "Enter a different address",
+      "profileAddressLoaded": "Address: {{address}}",
+      "profileAddressLoading": "Loading profile address… Set your address in your profile if this is empty.",
+      "locationOptionalDigital": "Location is optional for digital delivery.",
+      "stock": "Stock",
+      "maxStock": "Max. stock",
+      "seatsAvailable": "Number of seats",
+      "publishLive": "Visible on the marketplace immediately",
+      "cancel": "Cancel",
+      "save": "Save",
+      "submit": "Publish offer"
+    },
+    "errors": {
+      "paymentMethodRequired": "Choose at least one payment method.",
+      "titleDescriptionRequired": "Enter a title and description.",
+      "photosRequired": "Add at least one photo.",
+      "invalidPrice": "Enter a valid price.",
+      "placeNameRequired": "Enter a place name so people nearby can find you.",
+      "locationRequired": "Add a place or address so people nearby can find your listing.",
+      "saveFailed": "Could not save",
+      "invalidFields": "Missing or invalid fields",
+      "validPhotoUrlRequired": "At least one valid photo URL is required.",
+      "priceInvalidContact": "Price is invalid (leave empty for price on request).",
+      "priceMissingOrInvalid": "Price is missing or invalid."
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Price on request",
     "priceLabel": "Price",

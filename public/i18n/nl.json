@@ -7119,6 +7119,155 @@
       "views": "weergaven"
     }
   },
+  "marketplace": {
+    "offerIntent": {
+      "heading": "Wat wil je doen?",
+      "hint": "Kies of je iets aanbiedt of iets zoekt (voorbereid op toekomstige ruilhandel).",
+      "offer": "Ik bied iets aan",
+      "request": "Ik zoek iets"
+    },
+    "categoryHeading": {
+      "offer": "Wat bied je aan?",
+      "request": "Wat zoek je?"
+    },
+    "subcategoryHeading": "Kies een subcategorie",
+    "back": "← Terug",
+    "summary": {
+      "offer": "Aanbod",
+      "request": "Gezocht",
+      "edit": "Wijzig"
+    },
+    "categories": {
+      "create": "Maken",
+      "grow": "Kweken",
+      "design": "Ontwerpen",
+      "artisticService": "Artistieke dienst",
+      "practicalService": "Praktische dienst",
+      "knowledge": "Kennisdeling"
+    },
+    "subcategories": {
+      "create": {
+        "meals": "Maaltijden",
+        "baking": "Bakken",
+        "clothing": "Kleding",
+        "jewelry": "Sieraden",
+        "decoration": "Decoratie",
+        "art": "Kunst",
+        "other": "Overig"
+      },
+      "grow": {
+        "vegetables": "Groente",
+        "fruit": "Fruit",
+        "herbs": "Kruiden",
+        "plants": "Planten",
+        "honey": "Honing",
+        "other": "Overig"
+      },
+      "design": {
+        "logo": "Logo",
+        "website": "Website",
+        "app": "App",
+        "video": "Video",
+        "photo": "Foto",
+        "illustration": "Illustratie",
+        "marketing": "Marketing",
+        "other": "Overig"
+      },
+      "artisticService": {
+        "tattoo": "Tattoo",
+        "airbrush": "Airbrush",
+        "bodypaint": "Bodypaint",
+        "mural": "Muurschildering",
+        "illustration": "Illustratie",
+        "portrait": "Portret",
+        "music": "Muziek",
+        "other": "Overig"
+      },
+      "practicalService": {
+        "gardening": "Tuinwerk",
+        "cleaning": "Schoonmaak",
+        "movingHelp": "Verhuishulp",
+        "computerHelp": "Computerhulp",
+        "handyman": "Klushulp",
+        "other": "Overig"
+      },
+      "knowledge": {
+        "workshop": "Workshop",
+        "cookingClass": "Kookles",
+        "musicLesson": "Muziekles",
+        "tutoring": "Bijles",
+        "coaching": "Coaching",
+        "other": "Overig"
+      }
+    },
+    "payment": {
+      "heading": "Hoe kan er worden afgerekend?",
+      "hint": "Je mag één of beide opties kiezen — handig voor chat-voorstellen en CommunityOrders.",
+      "homecheffTitle": "Via HomeCheff betalen",
+      "homecheffDescription": "Veilig online afrekenen via HomeCheff (Stripe).",
+      "directContactTitle": "Via direct contact afrekenen",
+      "directContactDescription": "Prijs en betaling regel je in gesprek (voorstellen & afspraken)."
+    },
+    "priceModel": {
+      "heading": "Prijsmodel",
+      "fixed": "Vaste prijs",
+      "onRequest": "Prijs op aanvraag",
+      "fromPrice": "Vanaf prijs",
+      "hourly": "Uurtarief",
+      "daily": "Dagtarief",
+      "voluntary": "Vrijwillige bijdrage"
+    },
+    "fulfillment": {
+      "heading": "Hoe wordt dit geleverd?",
+      "pickup": "Afhalen",
+      "delivery": "Bezorgen",
+      "shipping": "Verzenden",
+      "digital": "Digitaal leveren",
+      "onSiteClient": "Op locatie bij klant",
+      "onSiteProvider": "Op locatie bij aanbieder",
+      "sellerCanDeliver": "Ik kan zelf bezorgen",
+      "deliveryRadiusKm": "Bezorgradius (km)"
+    },
+    "form": {
+      "videoLabel": "Video (optioneel)",
+      "videoHint": "Showcase voor HomeCheff Studio — promotie, portfolio of uitleg.",
+      "photosLabel": "Foto's",
+      "titleLabel": "Titel",
+      "priceLabel": "Prijs (€)",
+      "pricePlaceholderOptional": "Optioneel",
+      "pricePlaceholderExample": "Bijv. 12,50",
+      "descriptionLabel": "Omschrijving",
+      "locationHeading": "Locatie",
+      "placeNameLabel": "Plaatsnaam",
+      "placeNameRequired": "*",
+      "placeNamePlaceholder": "Bijv. Utrecht",
+      "useProfileAddress": "Mijn profieladres gebruiken",
+      "useCustomAddress": "Ander adres opgeven",
+      "profileAddressLoaded": "Adres: {{address}}",
+      "profileAddressLoading": "Laad profieladres… Stel je adres in via je profiel als dit leeg is.",
+      "locationOptionalDigital": "Locatie is optioneel bij digitale levering.",
+      "stock": "Voorraad",
+      "maxStock": "Max. voorraad",
+      "seatsAvailable": "Aantal plaatsen",
+      "publishLive": "Direct zichtbaar op het dorpsplein",
+      "cancel": "Annuleren",
+      "save": "Opslaan",
+      "submit": "Aanbod plaatsen"
+    },
+    "errors": {
+      "paymentMethodRequired": "Kies minimaal één betaalmethode.",
+      "titleDescriptionRequired": "Vul titel en omschrijving in.",
+      "photosRequired": "Voeg minstens één foto toe.",
+      "invalidPrice": "Voer een geldige prijs in.",
+      "placeNameRequired": "Vul een plaatsnaam in zodat mensen uit je buurt je kunnen vinden.",
+      "locationRequired": "Voeg een plaats of adres toe zodat mensen uit je buurt je aanbod kunnen vinden.",
+      "saveFailed": "Opslaan mislukt",
+      "invalidFields": "Ontbrekende of ongeldige velden",
+      "validPhotoUrlRequired": "Minstens één geldige foto-URL is verplicht.",
+      "priceInvalidContact": "Prijs is ongeldig (laat leeg voor prijs op aanvraag).",
+      "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig."
+    }
+  },
   "productOrder": {
     "priceOnRequest": "Prijs op aanvraag",
     "priceLabel": "Prijs",

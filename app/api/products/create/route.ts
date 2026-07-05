@@ -18,6 +18,12 @@ import {
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
+import {
+  parseMarketplaceV2FromBody,
+  validateMarketplacePrice,
+} from '@/lib/marketplace/parse-v2-payload';
+import { MARKETPLACE_ERROR_KEYS } from '@/lib/marketplace/i18n-keys';
+import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -99,10 +105,26 @@ export async function POST(req: Request) {
       materials = [],
       dimensions,
       orderMethod: orderMethodRaw,
+      listingIntent: listingIntentRaw,
+      marketplaceCategory: marketplaceCategoryRaw,
+      priceModel: priceModelRaw,
+      acceptHomeCheffPayment: acceptHomeCheffPaymentRaw,
+      acceptDirectContact: acceptDirectContactRaw,
+      fulfillmentOptions: fulfillmentOptionsRaw,
+      barterOpenness: barterOpennessRaw,
+      placeName: placeNameRaw,
+      useProfileLocation: useProfileLocationRaw,
     } = body || {};
     
-    const orderMethod = parseProductOrderMethod(orderMethodRaw);
-    const isContactOrder = orderMethod === 'CONTACT';
+    const v2Preview = parseMarketplaceV2FromBody(body as Record<string, unknown>, Number(priceCents) || 0);
+    let orderMethod = parseProductOrderMethod(
+      orderMethodRaw ?? v2Preview.orderMethod,
+    );
+    if (acceptHomeCheffPaymentRaw === false && acceptDirectContactRaw === true) {
+      orderMethod = 'CONTACT';
+    }
+    const isContactOrder =
+      orderMethod === 'CONTACT' || v2Preview.priceModel === 'ON_REQUEST';
     
     // Use isActive if provided, otherwise use isPublic, otherwise default to true
     const finalIsPublic = isActive !== undefined ? isActive : (isPublic !== undefined ? isPublic : true);
@@ -119,22 +141,35 @@ export async function POST(req: Request) {
     const priceValid =
       Number.isFinite(priceCentsNum) &&
       priceCentsNum >= 0 &&
-      (isContactOrder || priceCentsNum > 0);
+      (isContactOrder ||
+        v2Preview.priceModel === 'ON_REQUEST' ||
+        v2Preview.priceModel === 'VOLUNTARY' ||
+        priceCentsNum > 0);
 
-    if (!titleStr || !descStr || !priceValid || validImageUrls.length === 0) {
+    const priceCheck = validateMarketplacePrice(
+      v2Preview.priceModel,
+      priceCentsNum,
+      v2Preview.acceptHomeCheffPayment,
+      v2Preview.acceptDirectContact,
+    );
+
+    if (!titleStr || !descStr || !priceValid || validImageUrls.length === 0 || !priceCheck.ok) {
+      let errorKey: string = MARKETPLACE_ERROR_KEYS.invalidFields;
+      let detailsKey: string | undefined;
+
+      if (!priceCheck.ok) {
+        errorKey = priceCheck.errorKey;
+      } else if (validImageUrls.length === 0) {
+        detailsKey = MARKETPLACE_ERROR_KEYS.validPhotoUrlRequired;
+      } else if (!priceValid) {
+        detailsKey = isContactOrder
+          ? MARKETPLACE_ERROR_KEYS.priceInvalidContact
+          : MARKETPLACE_ERROR_KEYS.priceMissingOrInvalid;
+      }
+
       return NextResponse.json(
-        {
-          error: 'Ontbrekende of ongeldige velden',
-          details:
-            validImageUrls.length === 0
-              ? 'Minstens één geldige foto-URL is verplicht.'
-              : !priceValid
-                ? isContactOrder
-                  ? 'Prijs is ongeldig (laat leeg voor prijs op aanvraag).'
-                  : 'Prijs ontbreekt of is ongeldig.'
-                : undefined,
-        },
-        { status: 400 }
+        { errorKey, detailsKey },
+        { status: 400 },
       );
     }
 
@@ -215,12 +250,21 @@ export async function POST(req: Request) {
     const pickupAddressStr =
       typeof pickupAddress === 'string' ? pickupAddress.trim() : '';
 
+    const v2Resolved = parseMarketplaceV2FromBody(
+      body as Record<string, unknown>,
+      priceCentsNum,
+    );
+    const digitalOnly = fulfillmentIsDigitalOnly(v2Resolved.fulfillmentOptions);
+    const placeNameStr =
+      typeof placeNameRaw === 'string' ? placeNameRaw.trim() : v2Resolved.placeName;
+
     if (
       publishState.isActive &&
-      saleProductRequiresLocation(orderMethod, priceCentsNum)
+      !digitalOnly &&
+      saleProductRequiresLocation(orderMethod, priceCentsNum, v2Resolved.priceModel)
     ) {
       const locCheck = validateProductLocationForPublish({
-        pickupAddress: pickupAddressStr || null,
+        pickupAddress: pickupAddressStr || placeNameStr || null,
         pickupLat: pickupLatNum,
         pickupLng: pickupLngNum,
         seller: user.SellerProfile
@@ -228,16 +272,16 @@ export async function POST(req: Request) {
               lat: user.SellerProfile.lat,
               lng: user.SellerProfile.lng,
               User: {
-                place: user.place,
-                city: user.city,
+                place: placeNameStr || user.place,
+                city: placeNameStr || user.city,
                 lat: user.lat,
                 lng: user.lng,
               },
             }
           : {
               User: {
-                place: user.place,
-                city: user.city,
+                place: placeNameStr || user.place,
+                city: placeNameStr || user.city,
                 lat: user.lat,
                 lng: user.lng,
               },
@@ -251,9 +295,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const cat = CATEGORY_MAP[category as string] ?? 'CHEFF';
+    const cat = v2Resolved.productCategory;
     const delivery = normalizeDeliveryModeInput(
-      typeof deliveryMode === 'string' ? deliveryMode : 'PICKUP'
+      typeof deliveryMode === 'string' ? deliveryMode : v2Resolved.deliveryMode
     );
 
     // Create Product (not Listing)
@@ -294,6 +338,16 @@ export async function POST(req: Request) {
         maxStock: maxStock !== undefined && maxStock !== null ? Number(maxStock) : null,
         tags: Array.isArray(tags) ? tags.filter((tag: string) => tag && tag.trim().length > 0) : [],
         orderMethod,
+        listingIntent: v2Resolved.listingIntent,
+        marketplaceCategory: v2Resolved.marketplaceCategory,
+        priceModel: v2Resolved.priceModel,
+        acceptHomeCheffPayment: v2Resolved.acceptHomeCheffPayment,
+        acceptDirectContact: v2Resolved.acceptDirectContact,
+        fulfillmentOptions: v2Resolved.fulfillmentOptions as object,
+        barterOpenness: v2Resolved.barterOpenness,
+        placeName: placeNameStr || null,
+        useProfileLocation:
+          useProfileLocationRaw !== false && useProfileLocationRaw !== 'false',
         sellerId: sellerProfileId!,
         Image: {
           create: validImageUrls.map((url: string, i: number) => ({

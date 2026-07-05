@@ -46,8 +46,12 @@ export function validateProductLocationForPublish(
 /** @returns true if this product type requires location when active on dorpsplein */
 export function saleProductRequiresLocation(
   orderMethod: string | null | undefined,
-  priceCents: number | null | undefined
+  priceCents: number | null | undefined,
+  priceModel?: string | null,
 ): boolean {
+  if (priceModel === 'ON_REQUEST' || priceModel === 'VOLUNTARY') {
+    return orderMethod === 'CONTACT' || (priceCents ?? 0) === 0;
+  }
   const price = priceCents ?? 0;
   if (price > 0) return true;
   if (orderMethod === 'CONTACT') return true;
