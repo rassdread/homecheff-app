@@ -586,8 +586,10 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       return '📷 Foto';
     } else if (lastMessage.messageType === 'FILE') {
       return '📎 Bestand';
-    } else if (lastMessage.messageType === 'SYSTEM') {
+    } else if (lastMessage.messageType === 'SYSTEM' || lastMessage.messageType === 'PROPOSAL_SYSTEM') {
       return lastMessage.text || 'Systeembericht';
+    } else if (lastMessage.messageType === 'PROPOSAL') {
+      return '📋 Voorstel';
     }
     
     return lastMessage.text || 'Bericht';

@@ -108,6 +108,12 @@ model User {
   AuditLog                               AuditLog[]
   Business                               Business?
   ConversationParticipant                ConversationParticipant[]
+  ProposalsCreated                       Proposal[]                @relation("ProposalCreatedBy")
+  ProposalsAsSeller                      Proposal[]                @relation("ProposalSeller")
+  ProposalsAsBuyer                       Proposal[]                @relation("ProposalBuyer")
+  AgreementsAccepted                     Agreement[]               @relation("AgreementAcceptedBy")
+  CommunityOrdersAsBuyer                 CommunityOrder[]          @relation("CommunityOrderBuyer")
+  CommunityOrdersAsSeller                CommunityOrder[]          @relation("CommunityOrderSeller")
   DeliveryProfile                        DeliveryProfile?
   deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   DeviceToken                            DeviceToken[]
@@ -409,6 +415,7 @@ model Product {
   tags              String[]           @default([])
   orderMethod       ProductOrderMethod @default(HOMECHEFF_PAYMENT)
   conversations     Conversation[]
+  proposals         Proposal[]
   deliveryOrders    DeliveryOrder[]
   favorites         Favorite[]
   Image             Image[]
@@ -493,6 +500,8 @@ model Conversation {
   ConversationKey         ConversationKey?
   ConversationParticipant ConversationParticipant[]
   Message                 Message[]
+  Proposals               Proposal[]
+  CommunityOrders         CommunityOrder[]
 
   @@index([productId])
   @@index([orderId])
@@ -610,6 +619,7 @@ model Listing {
   ListingTag       ListingTag[]
   Report           Report[]
   Reservation      Reservation[]
+  Proposals        Proposal[]
 
   @@index([lat, lng])
   @@index([status, category, createdAt])
@@ -658,10 +668,13 @@ model Message {
   encryptionKey  String?
   isEncrypted    Boolean      @default(false)
   deliveredAt    DateTime?
+  proposalId     String?
   Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   User           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  Proposal       Proposal?    @relation(fields: [proposalId], references: [id], onDelete: SetNull)
 
   @@index([conversationId, createdAt(sort: Desc)])
+  @@index([proposalId])
   @@index([senderId])
   @@index([orderNumber])
   @@index([isEncrypted])
@@ -669,6 +682,86 @@ model Message {
   @@index([deliveredAt])
   @@index([deletedAt])
   @@index([senderId], map: "idx_message_sender")
+}
+
+/// Structured offer inside a conversation (Proposal Foundation V1).
+model Proposal {
+  id                  String                   @id @default(uuid())
+  conversationId      String
+  createdById         String
+  sellerId            String
+  buyerId             String
+  productId           String?
+  listingId           String?
+  title               String
+  description         String?
+  quantity            Int?
+  amountCents         Int?
+  currency            String                   @default("EUR")
+  requestedDate       DateTime?
+  requestedTimeWindow String?
+  fulfillmentType     ProposalFulfillmentType?
+  category            ProposalCategory         @default(PRODUCT)
+  settlementMode      SettlementMode           @default(MONEY)
+  status              ProposalStatus           @default(PENDING)
+  parentProposalId    String?
+  expiresAt           DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  Conversation        Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  CreatedBy           User                     @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  Seller              User                     @relation("ProposalSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  Buyer               User                     @relation("ProposalBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  Product             Product?                 @relation(fields: [productId], references: [id], onDelete: SetNull)
+  Listing             Listing?                 @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  ParentProposal      Proposal?                @relation("ProposalChain", fields: [parentProposalId], references: [id], onDelete: SetNull)
+  CounterProposals    Proposal[]               @relation("ProposalChain")
+  Agreement           Agreement?
+  CommunityOrders     CommunityOrder[]
+  Messages            Message[]
+
+  @@index([conversationId, status, createdAt])
+  @@index([sellerId, status])
+  @@index([buyerId, status])
+  @@index([parentProposalId])
+}
+
+/// Created when a proposal is accepted.
+model Agreement {
+  id           String   @id @default(uuid())
+  proposalId   String   @unique
+  acceptedById String
+  acceptedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  Proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  AcceptedBy   User     @relation("AgreementAcceptedBy", fields: [acceptedById], references: [id], onDelete: Cascade)
+  CommunityOrder CommunityOrder?
+}
+
+/// Agreement-derived order — not the Stripe checkout Order.
+model CommunityOrder {
+  id              String               @id @default(uuid())
+  agreementId     String               @unique
+  proposalId      String
+  conversationId  String
+  buyerId         String
+  sellerId        String
+  status          CommunityOrderStatus @default(OPEN)
+  checkoutOrderId String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  Agreement       Agreement            @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  Proposal        Proposal             @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  Conversation    Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  Buyer           User                 @relation("CommunityOrderBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  Seller          User                 @relation("CommunityOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  CheckoutOrder   Order?               @relation(fields: [checkoutOrderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId])
+  @@index([proposalId])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+  @@index([checkoutOrderId])
 }
 
 model Notification {
@@ -933,6 +1026,7 @@ model Order {
   dishReviews            DishReview[]     @relation("DishReviewOrder")
   paymentEscrow          PaymentEscrow[]
   shippingLabels         ShippingLabel[]
+  communityOrdersLinked  CommunityOrder[]
 }
 
 model StockReservation {
@@ -1895,6 +1989,41 @@ enum ListingStatus {
   MODERATED
 }
 
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  EXPIRED
+  CANCELLED
+}
+
+enum ProposalFulfillmentType {
+  PICKUP
+  DELIVERY
+}
+
+enum ProposalCategory {
+  PRODUCT
+  SERVICE
+  TASK
+  REQUEST
+}
+
+enum SettlementMode {
+  MONEY
+  MONEY_AND_VALUE
+  VALUE_ONLY
+  FREE
+  VOLUNTARY
+}
+
+enum CommunityOrderStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
 enum MessageType {
   TEXT
   IMAGE
@@ -1905,6 +2034,8 @@ enum MessageType {
   ORDER_PICKUP_INFO
   ORDER_DELIVERY_INFO
   ORDER_ADDRESS_UPDATE
+  PROPOSAL
+  PROPOSAL_SYSTEM
 }
 
 enum NotificationType {
@@ -1921,6 +2052,10 @@ enum NotificationType {
   REVIEW_RECEIVED
   ORDER_RECEIVED
   ORDER_UPDATE
+  PROPOSAL_RECEIVED
+  PROPOSAL_ACCEPTED
+  PROPOSAL_REJECTED
+  PROPOSAL_COUNTERED
 }
 
 enum ProductCategory {

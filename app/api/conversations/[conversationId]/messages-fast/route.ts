@@ -69,6 +69,7 @@ export async function GET(
         attachmentUrl: true,
         attachmentName: true,
         orderNumber: true,
+        proposalId: true,
         senderId: true,
         User: {
           select: {

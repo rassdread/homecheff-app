@@ -1,0 +1,586 @@
+import { prisma } from '@/lib/prisma';
+import { syncConversationStatusAfterMessage } from '@/lib/communication/sync-conversation-status';
+import type { MessageType } from '@prisma/client';
+import { notifyProposalEvent } from './notify-proposal-event';
+import { emitNewMessage, emitProposalUpdated } from './proposal-realtime';
+import {
+  serializeAgreement,
+  serializeCommunityOrder,
+  serializeProposal,
+} from './serialize-proposal';
+import type {
+  CounterProposalInput,
+  CreateProposalInput,
+  ProposalActionResult,
+  ProposalDTO,
+} from './proposal-types';
+
+const MESSAGE_USER_SELECT = {
+  id: true,
+  name: true,
+  username: true,
+  profileImage: true,
+  displayFullName: true,
+  displayNameOption: true,
+} as const;
+
+export class ProposalServiceError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ProposalServiceError';
+  }
+}
+
+async function assertParticipant(conversationId: string, userId: string) {
+  const participant = await prisma.conversationParticipant.findFirst({
+    where: { conversationId, userId },
+    select: { id: true },
+  });
+  if (!participant) {
+    throw new ProposalServiceError('Access denied', 403);
+  }
+}
+
+async function getConversationParticipantIds(
+  conversationId: string,
+): Promise<string[]> {
+  const rows = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { userId: true },
+  });
+  return rows.map((r) => r.userId);
+}
+
+async function resolveSellerBuyer(
+  conversationId: string,
+  createdById: string,
+  input: { sellerId?: string; buyerId?: string; productId?: string | null },
+): Promise<{ sellerId: string; buyerId: string }> {
+  const participantIds = await getConversationParticipantIds(conversationId);
+  if (participantIds.length !== 2 || !participantIds.includes(createdById)) {
+    throw new ProposalServiceError('Invalid conversation participants', 400);
+  }
+  const otherId = participantIds.find((id) => id !== createdById)!;
+
+  if (input.productId) {
+    const product = await prisma.product.findUnique({
+      where: { id: input.productId },
+      select: { sellerId: true, seller: { select: { userId: true } } },
+    });
+    if (!product) {
+      throw new ProposalServiceError('Product not found', 404);
+    }
+    const productSellerUserId = product.seller.userId;
+    const buyerId =
+      input.buyerId ??
+      (createdById === productSellerUserId ? otherId : createdById);
+    const sellerId = input.sellerId ?? productSellerUserId;
+    if (
+      !participantIds.includes(sellerId) ||
+      !participantIds.includes(buyerId) ||
+      sellerId === buyerId
+    ) {
+      throw new ProposalServiceError('Invalid seller/buyer for conversation', 400);
+    }
+    return { sellerId, buyerId };
+  }
+
+  const sellerId = input.sellerId ?? createdById;
+  const buyerId = input.buyerId ?? otherId;
+  if (
+    !participantIds.includes(sellerId) ||
+    !participantIds.includes(buyerId) ||
+    sellerId === buyerId
+  ) {
+    throw new ProposalServiceError('sellerId and buyerId must be conversation participants', 400);
+  }
+  return { sellerId, buyerId };
+}
+
+function parseOptionalDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    throw new ProposalServiceError('Invalid date', 400);
+  }
+  return d;
+}
+
+async function touchConversation(conversationId: string) {
+  await prisma.conversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date(), isActive: true },
+  });
+  await prisma.conversationParticipant.updateMany({
+    where: { conversationId },
+    data: { isHidden: false },
+  });
+}
+
+async function createProposalMessage(
+  conversationId: string,
+  senderId: string,
+  proposalId: string,
+  messageType: MessageType = 'PROPOSAL',
+  text: string | null = null,
+) {
+  const message = await prisma.message.create({
+    data: {
+      conversationId,
+      senderId,
+      proposalId,
+      messageType,
+      text,
+      isEncrypted: false,
+    },
+    include: { User: { select: MESSAGE_USER_SELECT } },
+  });
+  await touchConversation(conversationId);
+  void syncConversationStatusAfterMessage(conversationId).catch((e) =>
+    console.warn('[proposal-service] status sync', e),
+  );
+  return message;
+}
+
+async function broadcastProposal(
+  proposal: ProposalDTO,
+  triggeredBy: string,
+  message?: Record<string, unknown>,
+) {
+  await emitProposalUpdated(proposal.conversationId, {
+    proposalId: proposal.id,
+    status: proposal.status,
+    proposal,
+    triggeredBy,
+    timestamp: new Date().toISOString(),
+  });
+  if (message) {
+    await emitNewMessage(proposal.conversationId, message);
+  }
+}
+
+function counterpartyId(proposal: { createdById: string; sellerId: string; buyerId: string }, actorId: string): string {
+  if (proposal.createdById === actorId) {
+    return proposal.sellerId === actorId ? proposal.buyerId : proposal.sellerId;
+  }
+  return proposal.createdById;
+}
+
+export class ProposalService {
+  static async createProposal(
+    userId: string,
+    conversationId: string,
+    input: CreateProposalInput,
+  ): Promise<ProposalActionResult> {
+    await assertParticipant(conversationId, userId);
+
+    const title = input.title?.trim();
+    if (!title) {
+      throw new ProposalServiceError('Title is required', 400);
+    }
+
+    const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
+
+    const proposal = await prisma.proposal.create({
+      data: {
+        conversationId,
+        createdById: userId,
+        sellerId,
+        buyerId,
+        productId: input.productId ?? null,
+        listingId: input.listingId ?? null,
+        title,
+        description: input.description?.trim() || null,
+        quantity: input.quantity ?? null,
+        amountCents: input.amountCents ?? null,
+        currency: input.currency?.trim() || 'EUR',
+        requestedDate: parseOptionalDate(input.requestedDate),
+        requestedTimeWindow: input.requestedTimeWindow?.trim() || null,
+        fulfillmentType: input.fulfillmentType ?? null,
+        category: input.category ?? 'PRODUCT',
+        expiresAt: parseOptionalDate(input.expiresAt),
+        status: 'PENDING',
+      },
+    });
+
+    const message = await createProposalMessage(
+      conversationId,
+      userId,
+      proposal.id,
+      'PROPOSAL',
+    );
+
+    const dto = serializeProposal(proposal);
+    const recipientId = counterpartyId(
+      { createdById: userId, sellerId, buyerId },
+      userId,
+    );
+
+    await broadcastProposal(dto, userId, message as unknown as Record<string, unknown>);
+    await notifyProposalEvent(recipientId, userId, 'PROPOSAL_RECEIVED', dto);
+
+    return { proposal: dto, message: message as unknown as Record<string, unknown> };
+  }
+
+  static async acceptProposal(
+    userId: string,
+    proposalId: string,
+  ): Promise<ProposalActionResult> {
+    const existing = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+    });
+    if (!existing) {
+      throw new ProposalServiceError('Proposal not found', 404);
+    }
+
+    await assertParticipant(existing.conversationId, userId);
+
+    if (existing.status !== 'PENDING') {
+      throw new ProposalServiceError(`Proposal is ${existing.status}`, 409);
+    }
+    if (existing.createdById === userId) {
+      throw new ProposalServiceError('Cannot accept your own proposal', 403);
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updated = await tx.proposal.updateMany({
+        where: { id: proposalId, status: 'PENDING' },
+        data: { status: 'ACCEPTED' },
+      });
+      if (updated.count !== 1) {
+        throw new ProposalServiceError('Proposal is no longer pending', 409);
+      }
+
+      const proposal = await tx.proposal.findUniqueOrThrow({
+        where: { id: proposalId },
+      });
+
+      const agreement = await tx.agreement.create({
+        data: {
+          proposalId: proposal.id,
+          acceptedById: userId,
+        },
+      });
+
+      const communityOrder = await tx.communityOrder.create({
+        data: {
+          agreementId: agreement.id,
+          proposalId: proposal.id,
+          conversationId: proposal.conversationId,
+          buyerId: proposal.buyerId,
+          sellerId: proposal.sellerId,
+          status: 'OPEN',
+        },
+      });
+
+      const systemMessage = await tx.message.create({
+        data: {
+          conversationId: proposal.conversationId,
+          senderId: userId,
+          messageType: 'PROPOSAL_SYSTEM',
+          text: 'Voorstel geaccepteerd. Afspraak aangemaakt.',
+          isEncrypted: false,
+        },
+        include: { User: { select: MESSAGE_USER_SELECT } },
+      });
+
+      await tx.conversation.update({
+        where: { id: proposal.conversationId },
+        data: { lastMessageAt: new Date(), isActive: true },
+      });
+
+      return { proposal, agreement, communityOrder, systemMessage };
+    });
+
+    void syncConversationStatusAfterMessage(existing.conversationId).catch((e) =>
+      console.warn('[proposal-service] status sync', e),
+    );
+
+    const dto = serializeProposal(result.proposal);
+    await broadcastProposal(
+      dto,
+      userId,
+      result.systemMessage as unknown as Record<string, unknown>,
+    );
+    await notifyProposalEvent(
+      result.proposal.createdById,
+      userId,
+      'PROPOSAL_ACCEPTED',
+      dto,
+    );
+
+    return {
+      proposal: dto,
+      agreement: serializeAgreement(result.agreement),
+      communityOrder: serializeCommunityOrder(result.communityOrder),
+      message: result.systemMessage as unknown as Record<string, unknown>,
+    };
+  }
+
+  static async rejectProposal(
+    userId: string,
+    proposalId: string,
+  ): Promise<ProposalActionResult> {
+    const existing = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+    });
+    if (!existing) {
+      throw new ProposalServiceError('Proposal not found', 404);
+    }
+
+    await assertParticipant(existing.conversationId, userId);
+
+    if (existing.status !== 'PENDING') {
+      throw new ProposalServiceError(`Proposal is ${existing.status}`, 409);
+    }
+    if (existing.createdById === userId) {
+      throw new ProposalServiceError('Cannot reject your own proposal', 403);
+    }
+
+    const updated = await prisma.proposal.updateMany({
+      where: { id: proposalId, status: 'PENDING' },
+      data: { status: 'REJECTED' },
+    });
+    if (updated.count !== 1) {
+      throw new ProposalServiceError('Proposal is no longer pending', 409);
+    }
+
+    const proposal = await prisma.proposal.findUniqueOrThrow({
+      where: { id: proposalId },
+    });
+
+    const systemMessage = await createProposalMessage(
+      proposal.conversationId,
+      userId,
+      proposal.id,
+      'PROPOSAL_SYSTEM',
+      'Voorstel afgewezen.',
+    );
+
+    const dto = serializeProposal(proposal);
+    await broadcastProposal(
+      dto,
+      userId,
+      systemMessage as unknown as Record<string, unknown>,
+    );
+    await notifyProposalEvent(
+      proposal.createdById,
+      userId,
+      'PROPOSAL_REJECTED',
+      dto,
+    );
+
+    return {
+      proposal: dto,
+      message: systemMessage as unknown as Record<string, unknown>,
+    };
+  }
+
+  static async counterProposal(
+    userId: string,
+    proposalId: string,
+    input: CounterProposalInput,
+  ): Promise<ProposalActionResult> {
+    const parent = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+    });
+    if (!parent) {
+      throw new ProposalServiceError('Proposal not found', 404);
+    }
+
+    await assertParticipant(parent.conversationId, userId);
+
+    if (parent.status !== 'PENDING') {
+      throw new ProposalServiceError(`Proposal is ${parent.status}`, 409);
+    }
+    if (parent.createdById === userId) {
+      throw new ProposalServiceError('Cannot counter your own proposal', 403);
+    }
+
+    const title = input.title?.trim() || parent.title;
+    if (!title) {
+      throw new ProposalServiceError('Title is required', 400);
+    }
+
+    const { sellerId, buyerId } = await resolveSellerBuyer(parent.conversationId, userId, {
+      sellerId: input.sellerId ?? parent.sellerId,
+      buyerId: input.buyerId ?? parent.buyerId,
+      productId: input.productId ?? parent.productId,
+    });
+
+    const result = await prisma.$transaction(async (tx) => {
+      const parentUpdate = await tx.proposal.updateMany({
+        where: { id: proposalId, status: 'PENDING' },
+        data: { status: 'COUNTERED' },
+      });
+      if (parentUpdate.count !== 1) {
+        throw new ProposalServiceError('Proposal is no longer pending', 409);
+      }
+
+      const child = await tx.proposal.create({
+        data: {
+          conversationId: parent.conversationId,
+          createdById: userId,
+          sellerId,
+          buyerId,
+          productId: input.productId ?? parent.productId,
+          listingId: input.listingId ?? parent.listingId,
+          title,
+          description:
+            input.description !== undefined
+              ? input.description?.trim() || null
+              : parent.description,
+          quantity: input.quantity ?? parent.quantity,
+          amountCents: input.amountCents ?? parent.amountCents,
+          currency: input.currency?.trim() || parent.currency,
+          requestedDate:
+            input.requestedDate !== undefined
+              ? parseOptionalDate(input.requestedDate)
+              : parent.requestedDate,
+          requestedTimeWindow:
+            input.requestedTimeWindow !== undefined
+              ? input.requestedTimeWindow?.trim() || null
+              : parent.requestedTimeWindow,
+          fulfillmentType: input.fulfillmentType ?? parent.fulfillmentType,
+          category: input.category ?? parent.category,
+          expiresAt:
+            input.expiresAt !== undefined
+              ? parseOptionalDate(input.expiresAt)
+              : parent.expiresAt,
+          parentProposalId: parent.id,
+          status: 'PENDING',
+        },
+      });
+
+      const message = await tx.message.create({
+        data: {
+          conversationId: parent.conversationId,
+          senderId: userId,
+          proposalId: child.id,
+          messageType: 'PROPOSAL',
+          isEncrypted: false,
+        },
+        include: { User: { select: MESSAGE_USER_SELECT } },
+      });
+
+      await tx.conversation.update({
+        where: { id: parent.conversationId },
+        data: { lastMessageAt: new Date(), isActive: true },
+      });
+
+      return { child, message, parentCreatorId: parent.createdById };
+    });
+
+    void syncConversationStatusAfterMessage(parent.conversationId).catch((e) =>
+      console.warn('[proposal-service] status sync', e),
+    );
+
+    const parentDto = serializeProposal(
+      await prisma.proposal.findUniqueOrThrow({ where: { id: proposalId } }),
+    );
+    const childDto = serializeProposal(result.child);
+
+    await emitProposalUpdated(parent.conversationId, {
+      proposalId: parentDto.id,
+      status: parentDto.status,
+      proposal: parentDto,
+      triggeredBy: userId,
+      timestamp: new Date().toISOString(),
+    });
+    await broadcastProposal(
+      childDto,
+      userId,
+      result.message as unknown as Record<string, unknown>,
+    );
+    await notifyProposalEvent(
+      result.parentCreatorId,
+      userId,
+      'PROPOSAL_COUNTERED',
+      childDto,
+    );
+
+    return {
+      proposal: childDto,
+      message: result.message as unknown as Record<string, unknown>,
+    };
+  }
+
+  static async cancelProposal(
+    userId: string,
+    proposalId: string,
+  ): Promise<ProposalActionResult> {
+    const existing = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+    });
+    if (!existing) {
+      throw new ProposalServiceError('Proposal not found', 404);
+    }
+
+    await assertParticipant(existing.conversationId, userId);
+
+    if (existing.createdById !== userId) {
+      throw new ProposalServiceError('Only the creator can cancel', 403);
+    }
+    if (existing.status !== 'PENDING') {
+      throw new ProposalServiceError(`Proposal is ${existing.status}`, 409);
+    }
+
+    const updated = await prisma.proposal.updateMany({
+      where: { id: proposalId, status: 'PENDING' },
+      data: { status: 'CANCELLED' },
+    });
+    if (updated.count !== 1) {
+      throw new ProposalServiceError('Proposal is no longer pending', 409);
+    }
+
+    const proposal = await prisma.proposal.findUniqueOrThrow({
+      where: { id: proposalId },
+    });
+
+    const systemMessage = await createProposalMessage(
+      proposal.conversationId,
+      userId,
+      proposal.id,
+      'PROPOSAL_SYSTEM',
+      'Voorstel geannuleerd.',
+    );
+
+    const dto = serializeProposal(proposal);
+    await broadcastProposal(
+      dto,
+      userId,
+      systemMessage as unknown as Record<string, unknown>,
+    );
+
+    return {
+      proposal: dto,
+      message: systemMessage as unknown as Record<string, unknown>,
+    };
+  }
+
+  static async getProposal(userId: string, proposalId: string): Promise<ProposalDTO> {
+    const proposal = await prisma.proposal.findUnique({
+      where: { id: proposalId },
+    });
+    if (!proposal) {
+      throw new ProposalServiceError('Proposal not found', 404);
+    }
+    await assertParticipant(proposal.conversationId, userId);
+    return serializeProposal(proposal);
+  }
+
+  static async listProposalsForConversation(
+    userId: string,
+    conversationId: string,
+  ): Promise<ProposalDTO[]> {
+    await assertParticipant(conversationId, userId);
+    const rows = await prisma.proposal.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map(serializeProposal);
+  }
+}

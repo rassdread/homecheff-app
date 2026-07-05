@@ -47,7 +47,11 @@ export function resolveNotificationTargetUrl(
 
   if (
     typeUpper === 'MESSAGE_RECEIVED' ||
-    typeUpper === 'NEW_CONVERSATION'
+    typeUpper === 'NEW_CONVERSATION' ||
+    typeUpper === 'PROPOSAL_RECEIVED' ||
+    typeUpper === 'PROPOSAL_ACCEPTED' ||
+    typeUpper === 'PROPOSAL_REJECTED' ||
+    typeUpper === 'PROPOSAL_COUNTERED'
   ) {
     return conversationId
       ? `/messages?conversation=${encodeURIComponent(conversationId)}`

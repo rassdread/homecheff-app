@@ -7,7 +7,9 @@ export type ChatThreadMessageType =
   | "ORDER_STATUS_UPDATE"
   | "ORDER_PICKUP_INFO"
   | "ORDER_DELIVERY_INFO"
-  | "ORDER_ADDRESS_UPDATE";
+  | "ORDER_ADDRESS_UPDATE"
+  | "PROPOSAL"
+  | "PROPOSAL_SYSTEM";
 
 export type ChatThreadUser = {
   id: string;
@@ -30,6 +32,7 @@ export type ChatThreadMessage = {
   attachmentUrl?: string | null;
   attachmentName?: string | null;
   orderNumber?: string | null;
+  proposalId?: string | null;
   User: ChatThreadUser;
 };
 
@@ -39,6 +42,7 @@ const SYSTEM_TYPES: ChatThreadMessageType[] = [
   "ORDER_PICKUP_INFO",
   "ORDER_DELIVERY_INFO",
   "ORDER_ADDRESS_UPDATE",
+  "PROPOSAL_SYSTEM",
 ];
 
 export function isChatSystemOrOrderMessage(

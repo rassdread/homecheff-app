@@ -369,6 +369,8 @@ const ALLOWED_MT = new Set([
   'ORDER_PICKUP_INFO',
   'ORDER_DELIVERY_INFO',
   'ORDER_ADDRESS_UPDATE',
+  'PROPOSAL',
+  'PROPOSAL_SYSTEM',
 ]);
 
 /**
@@ -408,6 +410,7 @@ export function normalizeChatThreadMessage(raw: unknown): ChatThreadMessage | nu
     attachmentUrl: str(m.attachmentUrl, 2000) ?? undefined,
     attachmentName: str(m.attachmentName, 400) ?? undefined,
     orderNumber: str(m.orderNumber, 64) ?? undefined,
+    proposalId: str(m.proposalId, 64) ?? undefined,
     User,
   };
 }

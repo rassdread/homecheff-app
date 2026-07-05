@@ -19,6 +19,8 @@ import type {
 } from "./chatThreadTypes";
 import { isChatSystemOrOrderMessage } from "./chatThreadTypes";
 import { stripReferralNoise } from "@/lib/chat/stripReferralNoise";
+import type { ProposalDTO } from "@/lib/proposals/proposal-types";
+import ProposalCard from "./proposals/ProposalCard";
 
 function PeerAvatarLink({ user }: { user: ChatThreadUser }) {
   const href = user.username?.trim()
@@ -65,6 +67,8 @@ function systemLabel(mt: ChatThreadMessageType): string {
       return "Adres";
     case "SYSTEM":
       return "Systeem";
+    case "PROPOSAL_SYSTEM":
+      return "Voorstel";
     default:
       return "Update";
   }
@@ -80,6 +84,8 @@ function systemStyles(mt: ChatThreadMessageType): string {
       return "border-violet-200 bg-violet-50 text-violet-900";
     case "ORDER_ADDRESS_UPDATE":
       return "border-amber-200 bg-amber-50 text-amber-900";
+    case "PROPOSAL_SYSTEM":
+      return "border-indigo-200 bg-indigo-50 text-indigo-900";
     default:
       return "border-gray-200 bg-gray-50 text-gray-800";
   }
@@ -100,15 +106,31 @@ type Props = {
   msg: ChatThreadMessage;
   currentUserId: string;
   formatTime: (iso: string) => string;
+  proposal?: ProposalDTO | null;
+  onProposalUpdated?: (proposal: ProposalDTO) => void;
 };
 
 export default function ChatThreadMessageRow({
   msg,
   currentUserId,
   formatTime,
+  proposal,
+  onProposalUpdated,
 }: Props) {
   const mt: ChatThreadMessageType = msg.messageType ?? "TEXT";
   const isOwn = msg.senderId === currentUserId;
+
+  if (mt === "PROPOSAL" && msg.proposalId && proposal) {
+    return (
+      <ProposalCard
+        proposal={proposal}
+        currentUserId={currentUserId}
+        formatTime={formatTime}
+        messageCreatedAt={msg.createdAt}
+        onUpdated={onProposalUpdated}
+      />
+    );
+  }
 
   if (isChatSystemOrOrderMessage(mt)) {
     return (

@@ -55,6 +55,14 @@ function getNotificationTitle(type: string, payload: Record<string, unknown>): s
       return 'Nieuw Bericht';
     case 'NEW_CONVERSATION':
       return 'Nieuw Gesprek';
+    case 'PROPOSAL_RECEIVED':
+      return 'Nieuw Voorstel';
+    case 'PROPOSAL_ACCEPTED':
+      return 'Voorstel Geaccepteerd';
+    case 'PROPOSAL_REJECTED':
+      return 'Voorstel Afgewezen';
+    case 'PROPOSAL_COUNTERED':
+      return 'Tegenvoorstel';
     default:
       return 'Notificatie';
   }

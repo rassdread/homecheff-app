@@ -4,6 +4,10 @@ import { NotificationType } from '@prisma/client';
 const CHAT_TYPES: NotificationType[] = [
   NotificationType.MESSAGE_RECEIVED,
   NotificationType.NEW_CONVERSATION,
+  NotificationType.PROPOSAL_RECEIVED,
+  NotificationType.PROPOSAL_ACCEPTED,
+  NotificationType.PROPOSAL_REJECTED,
+  NotificationType.PROPOSAL_COUNTERED,
 ];
 
 /**

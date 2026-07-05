@@ -55,6 +55,10 @@ function mapDataTypeToPrismaNotificationType(dataType: string | undefined): Noti
     DELIVERY_COUNTDOWN_WARNING: 'ORDER_UPDATE',
     NEW_MESSAGE: 'MESSAGE_RECEIVED',
     MESSAGE_RECEIVED: 'MESSAGE_RECEIVED',
+    PROPOSAL_RECEIVED: 'PROPOSAL_RECEIVED',
+    PROPOSAL_ACCEPTED: 'PROPOSAL_ACCEPTED',
+    PROPOSAL_REJECTED: 'PROPOSAL_REJECTED',
+    PROPOSAL_COUNTERED: 'PROPOSAL_COUNTERED',
     SHIFT_REMINDER: 'ADMIN_NOTICE',
   };
   return map[dataType] ?? 'ADMIN_NOTICE';
@@ -1127,6 +1131,64 @@ export class NotificationService {
       message,
       channels,
       saveToDatabase: true
+    });
+  }
+
+  /**
+   * Proposal Foundation — chat-thread structured offers.
+   */
+  static async sendProposalNotification(
+    recipientId: string,
+    senderId: string,
+    kind:
+      | 'PROPOSAL_RECEIVED'
+      | 'PROPOSAL_ACCEPTED'
+      | 'PROPOSAL_REJECTED'
+      | 'PROPOSAL_COUNTERED',
+    title: string,
+    body: string,
+    proposal: {
+      id: string;
+      conversationId: string;
+      title: string;
+      amountCents?: number | null;
+    },
+  ): Promise<void> {
+    if (recipientId === senderId) return;
+
+    const preferences = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "NotificationPreferences"
+      WHERE "userId" = ${recipientId}
+      LIMIT 1
+    `.then(rows => rows[0]).catch(() => null);
+
+    const message: NotificationMessage = {
+      title,
+      body,
+      data: {
+        type: kind,
+        proposalId: proposal.id,
+        conversationId: proposal.conversationId,
+        actionUrl: `/messages/${proposal.conversationId}/`,
+        route: `/messages/${proposal.conversationId}/`,
+        proposalTitle: proposal.title,
+        ...(proposal.amountCents != null
+          ? { amountCents: String(proposal.amountCents) }
+          : {}),
+        senderId,
+      },
+    };
+
+    const channels: Array<'push' | 'email' | 'sms'> = [];
+    if (preferences?.pushNewMessages !== false) {
+      channels.push('push');
+    }
+
+    await this.send({
+      userId: recipientId,
+      message,
+      channels,
+      saveToDatabase: true,
     });
   }
 

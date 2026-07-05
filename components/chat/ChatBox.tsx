@@ -9,6 +9,7 @@ import {
   Trash2,
   RefreshCw,
   BadgeCheck,
+  ClipboardList,
 } from 'lucide-react';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import Link from 'next/link';
@@ -37,8 +38,10 @@ import { cn } from '@/lib/utils';
 import ConversationContextHeader from './ConversationContextHeader';
 import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 import ChatThreadMessageRow from './ChatThreadMessageRow';
+import CreateProposalSheet from './proposals/CreateProposalSheet';
 import ReportContentButton from '@/components/reporting/ReportContentButton';
 import type { ChatThreadMessage } from './chatThreadTypes';
+import type { ProposalDTO } from '@/lib/proposals/proposal-types';
 
 export interface ChatBoxProps {
   conversationId: string;
@@ -90,6 +93,8 @@ export default function ChatBox({
   const [lastSeenAt, setLastSeenAt] = useState<string | null>(null);
   const [pusherConnected, setPusherConnected] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
+  const [proposalsById, setProposalsById] = useState<Record<string, ProposalDTO>>({});
+  const [showCreateProposal, setShowCreateProposal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
@@ -113,6 +118,30 @@ export default function ChatBox({
   const { data: session } = useSession();
 
   const peerId = (otherParticipant?.id ?? '').trim();
+
+  const loadProposals = useCallback(async () => {
+    if (!conversationId) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/proposals`);
+      if (!res.ok) return;
+      const data = (await res.json()) as { proposals?: ProposalDTO[] };
+      const map: Record<string, ProposalDTO> = {};
+      for (const p of data.proposals ?? []) {
+        map[p.id] = p;
+      }
+      setProposalsById(map);
+    } catch {
+      /* non-fatal */
+    }
+  }, [conversationId]);
+
+  const handleProposalUpdated = useCallback((proposal: ProposalDTO) => {
+    setProposalsById((prev) => ({ ...prev, [proposal.id]: proposal }));
+  }, []);
+
+  useEffect(() => {
+    void loadProposals();
+  }, [loadProposals]);
 
   useEffect(() => {
     return () => {
@@ -585,6 +614,19 @@ export default function ChatBox({
         scrollToBottomSoon();
       }
       notifyConversationListActivity(conversationId, normalized);
+    });
+
+    channel.bind('proposal-updated', (data: {
+      proposal?: ProposalDTO;
+    }) => {
+      if (boundGen !== pusherUiGenRef.current) return;
+      if (!data?.proposal?.id) return;
+      const epochSnap = conversationEpochRef.current;
+      setProposalsById((prev) => {
+        if (boundGen !== pusherUiGenRef.current) return prev;
+        if (epochSnap !== conversationEpochRef.current) return prev;
+        return { ...prev, [data.proposal!.id]: data.proposal! };
+      });
     });
     
     // Typing indicator
@@ -1177,6 +1219,10 @@ export default function ChatBox({
                 msg={msg}
                 currentUserId={currentUserId}
                 formatTime={formatTime}
+                proposal={
+                  msg.proposalId ? proposalsById[msg.proposalId] ?? null : null
+                }
+                onProposalUpdated={handleProposalUpdated}
               />
             ))}
             <div ref={messagesEndRef} className="h-px shrink-0" aria-hidden />
@@ -1194,6 +1240,15 @@ export default function ChatBox({
         }`}
       >
         <div className="flex gap-2 items-end">
+          <button
+            type="button"
+            onClick={() => setShowCreateProposal(true)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+            title="Voorstel maken"
+            aria-label="Voorstel maken"
+          >
+            <ClipboardList className="h-5 w-5" />
+          </button>
           <EmojiPickerButton
             onEmojiClick={(emoji) => {
               setNewMessage(prev => prev + emoji);
@@ -1230,6 +1285,17 @@ export default function ChatBox({
           </button>
         </div>
       </form>
+
+      <CreateProposalSheet
+        open={showCreateProposal}
+        onClose={() => setShowCreateProposal(false)}
+        conversationId={conversationId}
+        contextHeader={contextHeader}
+        onCreated={() => {
+          void loadProposals();
+          void handleManualReload();
+        }}
+      />
     </div>
   );
 }
