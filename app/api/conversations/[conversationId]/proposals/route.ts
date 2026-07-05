@@ -16,7 +16,8 @@ export async function GET(
     const authResult = await resolveProposalApiUser();
     if ('error' in authResult) return authResult.error;
 
-    const [proposals, communityOrders] = await Promise.all([
+    const [proposals, communityOrders, deliveryRequestsByProposalId] =
+      await Promise.all([
       ProposalService.listProposalsForConversation(
         authResult.userId,
         params.conversationId,
@@ -25,9 +26,17 @@ export async function GET(
         authResult.userId,
         params.conversationId,
       ),
+      ProposalService.listDeliveryRequestsByProposalForConversation(
+        authResult.userId,
+        params.conversationId,
+      ),
     ]);
 
-    return NextResponse.json({ proposals, communityOrders });
+    return NextResponse.json({
+      proposals,
+      communityOrders,
+      deliveryRequestsByProposalId,
+    });
   } catch (error) {
     return handleProposalServiceError(error);
   }

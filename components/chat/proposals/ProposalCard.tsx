@@ -9,9 +9,11 @@ import type {
   CommunityOrderDTO,
   ProposalDTO,
 } from "@/lib/proposals/proposal-types";
+import type { DeliveryRequestDTO } from "@/lib/delivery/delivery-marketplace-types";
+import { paymentPathFromSummary } from "@/lib/proposals/proposal-accept-routing";
 import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import type { SettlementMode } from "@prisma/client";
-import CommunityOrderSummaryCard from "./CommunityOrderSummaryCard";
+import DealCard from "./DealCard";
 
 type Props = {
   proposal: ProposalDTO;
@@ -19,9 +21,13 @@ type Props = {
   formatTime: (iso: string) => string;
   messageCreatedAt?: string;
   communityOrder?: CommunityOrderDTO | null;
+  deliveryRequest?: DeliveryRequestDTO | null;
   onUpdated?: (
     proposal: ProposalDTO,
-    extra?: { communityOrder?: CommunityOrderDTO },
+    extra?: {
+      communityOrder?: CommunityOrderDTO;
+      deliveryRequest?: DeliveryRequestDTO | null;
+    },
   ) => void;
 };
 
@@ -61,6 +67,7 @@ export default function ProposalCard({
   formatTime,
   messageCreatedAt,
   communityOrder,
+  deliveryRequest,
   onUpdated,
 }: Props) {
   const { t } = useTranslation();
@@ -126,6 +133,7 @@ export default function ProposalCard({
       if (data.proposal) {
         onUpdated?.(data.proposal, {
           communityOrder: data.communityOrder ?? undefined,
+          deliveryRequest: data.deliveryRequest ?? undefined,
         });
       }
       setShowCounter(false);
@@ -153,14 +161,24 @@ export default function ProposalCard({
   const dateLabel = formatRequestedDate(proposal.requestedDate);
   const fulfillmentLabel =
     proposal.fulfillmentType === "DELIVERY"
-      ? t("communityOrder.fulfillment.delivery")
+      ? t("deal.fulfillment.delivery")
       : proposal.fulfillmentType === "PICKUP"
-        ? t("communityOrder.fulfillment.pickup")
+        ? t("deal.fulfillment.pickup")
         : null;
 
   const settlementLabel = t(
     PROPOSAL_I18N.settlement[proposal.settlementMode as SettlementMode],
   );
+
+  const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
+  const paymentPathLabel =
+    paymentPath !== "NONE"
+      ? t(PROPOSAL_I18N.paymentPath[paymentPath])
+      : null;
+
+  const hasValueHighlight =
+    proposal.acceptedValueTaxonomyIds.length > 0 ||
+    proposal.requestedValueTaxonomyIds.length > 0;
 
   return (
     <div className="flex justify-center px-1">
@@ -169,9 +187,6 @@ export default function ProposalCard({
           <ClipboardList className="h-4 w-4 text-indigo-600 shrink-0" aria-hidden />
           <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-900">
             {t(PROPOSAL_I18N.cardHeading)}
-          </span>
-          <span className="text-[10px] font-medium text-indigo-700">
-            {settlementLabel}
           </span>
           <span
             className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(proposal.status)}`}
@@ -188,16 +203,33 @@ export default function ProposalCard({
             </p>
           ) : null}
 
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-800">
-            {proposal.quantity != null ? (
-              <span>{proposal.quantity}x</span>
+          <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-2 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
+              {t(PROPOSAL_I18N.settlementHeading)}
+            </p>
+            <p className="text-xs font-medium text-indigo-900">{settlementLabel}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {(showMoney || showValue) && (
+              <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
+                {t(PROPOSAL_I18N.highlights.price)}: {priceLabel}
+              </span>
+            )}
+            {paymentPathLabel ? (
+              <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-800">
+                {t(PROPOSAL_I18N.highlights.payment)}: {paymentPathLabel}
+              </span>
             ) : null}
-            {showMoney && proposal.amountCents != null && proposal.amountCents > 0 ? (
-              <span className="font-semibold text-indigo-700">{priceLabel}</span>
-            ) : showMoney ? (
-              <span className="font-semibold text-indigo-700">{priceLabel}</span>
-            ) : showValue ? (
-              <span className="font-semibold text-indigo-700">{priceLabel}</span>
+            {fulfillmentLabel ? (
+              <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
+                {t(PROPOSAL_I18N.highlights.delivery)}: {fulfillmentLabel}
+              </span>
+            ) : null}
+            {hasValueHighlight ? (
+              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                {t(PROPOSAL_I18N.highlights.value)}
+              </span>
             ) : null}
           </div>
 
@@ -235,14 +267,15 @@ export default function ProposalCard({
           {proposal.requestedTimeWindow ? (
             <p className="text-xs text-gray-600">{proposal.requestedTimeWindow}</p>
           ) : null}
-          {fulfillmentLabel ? (
-            <p className="text-xs font-medium text-gray-700">{fulfillmentLabel}</p>
-          ) : null}
 
           {proposal.status === "ACCEPTED" && communityOrder ? (
-            <CommunityOrderSummaryCard
+            <DealCard
               communityOrder={communityOrder}
               proposal={proposal}
+              deliveryRequest={deliveryRequest}
+              onDeliveryRequestCreated={(dr) =>
+                onUpdated?.(proposal, { deliveryRequest: dr })
+              }
             />
           ) : null}
 
@@ -282,7 +315,7 @@ export default function ProposalCard({
                   {busy === "counter" ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    t("proposal.actions.sendCounter")
+                    t(PROPOSAL_I18N.actions.sendCounter)
                   )}
                 </button>
                 <button
@@ -307,7 +340,7 @@ export default function ProposalCard({
                 {busy === "accept" ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                 ) : (
-                  t("proposal.actions.accept")
+                  t(PROPOSAL_I18N.actions.accept)
                 )}
               </button>
               <button
@@ -316,7 +349,7 @@ export default function ProposalCard({
                 onClick={() => setShowCounter(true)}
                 className="flex-1 min-w-[5rem] rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
               >
-                {t("proposal.actions.counter")}
+                {t(PROPOSAL_I18N.actions.counter)}
               </button>
               <button
                 type="button"
@@ -327,7 +360,7 @@ export default function ProposalCard({
                 {busy === "reject" ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                 ) : (
-                  t("proposal.actions.reject")
+                  t(PROPOSAL_I18N.actions.reject)
                 )}
               </button>
             </div>
@@ -340,7 +373,7 @@ export default function ProposalCard({
               onClick={() => void runAction("cancel")}
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             >
-              {t("proposal.actions.cancel")}
+              {t(PROPOSAL_I18N.actions.cancel)}
             </button>
           ) : null}
         </div>

@@ -56,7 +56,7 @@ export async function notifyDeliveryRequestCreated(
   conversationId: string,
   proposalTitle: string,
 ) {
-  const body = `Bezorgverzoek voor "${proposalTitle}" aangemaakt.`;
+  const body = `Bezorging kan worden geregeld voor "${proposalTitle}".`;
   for (const uid of [buyerId, sellerId]) {
     await notifyParty(
       uid,
@@ -64,7 +64,7 @@ export async function notifyDeliveryRequestCreated(
       'DELIVERY_REQUEST_CREATED',
       TITLE_KEYS.CREATED,
       BODY_KEYS.CREATED,
-      'Bezorgverzoek aangemaakt',
+      'Bezorging kan worden geregeld',
       body,
       deliveryRequest,
       conversationId,

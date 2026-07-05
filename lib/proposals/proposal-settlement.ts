@@ -14,6 +14,9 @@ export type ProposalSummarySnapshot = {
   title: string;
   quantity: number | null;
   fulfillmentType: string | null;
+  paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
+  priceModel?: string | null;
+  productId?: string | null;
 };
 
 export type AgreementSummarySnapshot = ProposalSummarySnapshot & {
@@ -73,6 +76,9 @@ export function buildProposalSummary(input: {
   title: string;
   quantity?: number | null;
   fulfillmentType?: string | null;
+  paymentPath?: import('./proposal-product-binding').ProposalPaymentPath;
+  priceModel?: string | null;
+  productId?: string | null;
 }): ProposalSummarySnapshot {
   return {
     settlementMode: input.settlementMode,
@@ -83,6 +89,9 @@ export function buildProposalSummary(input: {
     title: input.title,
     quantity: input.quantity ?? null,
     fulfillmentType: input.fulfillmentType ?? null,
+    paymentPath: input.paymentPath ?? 'NONE',
+    priceModel: input.priceModel ?? null,
+    productId: input.productId ?? null,
   };
 }
 

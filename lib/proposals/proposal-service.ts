@@ -11,6 +11,23 @@ import {
   validateProposalSettlement,
   type AgreementSummarySnapshot,
 } from './proposal-settlement';
+import {
+  resolveAcceptNextAction,
+  paymentPathFromSummary,
+} from './proposal-accept-routing';
+import {
+  decrementProductStockOnAccept,
+  defaultPaymentPath,
+  loadProductProposalContext,
+  parsePaymentPath,
+  resolveConversationProductId,
+  validateFulfillmentForProduct,
+  validatePaymentPath,
+  validateProposalQuantityAgainstStock,
+} from './proposal-product-binding';
+import { DeliveryRequestService } from '@/lib/delivery/delivery-request-service';
+import { serializeDeliveryRequest } from '@/lib/delivery/serialize-delivery-marketplace';
+import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
 import { PROPOSAL_SYSTEM_MESSAGE_KEYS } from './proposal-i18n-keys';
 import { emitNewMessage, emitProposalUpdated } from './proposal-realtime';
 import {
@@ -111,24 +128,15 @@ async function resolveSellerBuyer(
   return { sellerId, buyerId };
 }
 
-async function loadProductProposalContext(productId: string | null | undefined) {
-  if (!productId) return null;
-  return prisma.product.findUnique({
-    where: { id: productId },
-    select: {
-      acceptedSpecializations: true,
-      priceCents: true,
-      priceModel: true,
-      barterOpenness: true,
-    },
-  });
-}
-
 async function resolveProposalFields(
   input: CreateProposalInput,
   title: string,
+  boundProductId: string | null,
 ) {
-  const productCtx = await loadProductProposalContext(input.productId);
+  const productCtx = boundProductId
+    ? await loadProductProposalContext(boundProductId)
+    : null;
+
   const acceptedValueTaxonomyIds = normalizeProposalTaxonomyIds(
     input.acceptedValueTaxonomyIds ??
       (productCtx?.acceptedSpecializations?.length
@@ -144,6 +152,10 @@ async function resolveProposalFields(
       ? deriveSettlementModeFromProduct(productCtx)
       : parseSettlementMode('MONEY');
 
+  const paymentPath = input.paymentPath
+    ? parsePaymentPath(input.paymentPath)
+    : defaultPaymentPath({ settlementMode, productCtx });
+
   const validation = validateProposalSettlement({
     settlementMode,
     amountCents: input.amountCents,
@@ -151,6 +163,32 @@ async function resolveProposalFields(
   });
   if (!validation.ok) {
     throw new ProposalServiceError(validation.errorKey, 400);
+  }
+
+  const paymentValidation = validatePaymentPath({
+    paymentPath,
+    settlementMode,
+    productCtx,
+  });
+  if (!paymentValidation.ok) {
+    throw new ProposalServiceError(paymentValidation.errorKey, 400);
+  }
+
+  if (productCtx) {
+    const stockCheck = validateProposalQuantityAgainstStock(
+      productCtx.availableStock,
+      input.quantity,
+    );
+    if (!stockCheck.ok) {
+      throw new ProposalServiceError(stockCheck.errorKey, 400);
+    }
+    const fulfillmentCheck = validateFulfillmentForProduct(
+      productCtx,
+      input.fulfillmentType,
+    );
+    if (!fulfillmentCheck.ok) {
+      throw new ProposalServiceError(fulfillmentCheck.errorKey, 400);
+    }
   }
 
   const proposalSummary = buildProposalSummary({
@@ -162,6 +200,9 @@ async function resolveProposalFields(
     title,
     quantity: input.quantity,
     fulfillmentType: input.fulfillmentType ?? null,
+    paymentPath,
+    priceModel: productCtx?.priceModel ?? null,
+    productId: boundProductId,
   });
 
   return {
@@ -169,6 +210,7 @@ async function resolveProposalFields(
     acceptedValueTaxonomyIds,
     requestedValueTaxonomyIds,
     proposalSummary,
+    boundProductId,
   };
 }
 
@@ -256,7 +298,12 @@ export class ProposalService {
 
     const { sellerId, buyerId } = await resolveSellerBuyer(conversationId, userId, input);
 
-    const fields = await resolveProposalFields(input, title);
+    const boundProductId = await resolveConversationProductId(
+      conversationId,
+      input.productId,
+    );
+
+    const fields = await resolveProposalFields(input, title, boundProductId);
 
     const proposal = await prisma.proposal.create({
       data: {
@@ -264,7 +311,7 @@ export class ProposalService {
         createdById: userId,
         sellerId,
         buyerId,
-        productId: input.productId ?? null,
+        productId: fields.boundProductId,
         listingId: input.listingId ?? null,
         title,
         description: input.description?.trim() || null,
@@ -336,6 +383,9 @@ export class ProposalService {
         where: { id: proposalId },
       });
 
+      const summaryBase = proposal.proposalSummary as AgreementSummarySnapshot | null;
+      const paymentPath = paymentPathFromSummary(summaryBase);
+
       const agreementSnapshot: AgreementSummarySnapshot = {
         ...buildProposalSummary({
           settlementMode: proposal.settlementMode,
@@ -346,11 +396,34 @@ export class ProposalService {
           title: proposal.title,
           quantity: proposal.quantity,
           fulfillmentType: proposal.fulfillmentType,
+          paymentPath,
+          priceModel: summaryBase?.priceModel ?? null,
+          productId: proposal.productId,
         }),
         acceptedById: userId,
         acceptedAt: new Date().toISOString(),
         proposalId: proposal.id,
       };
+
+      if (
+        proposal.productId &&
+        proposal.quantity &&
+        proposal.quantity > 0 &&
+        paymentPath !== 'HOMECHEFF_CHECKOUT'
+      ) {
+        try {
+          await decrementProductStockOnAccept(
+            tx,
+            proposal.productId,
+            proposal.quantity,
+          );
+        } catch {
+          throw new ProposalServiceError(
+            'proposal.productBinding.stockUnavailableOnAccept',
+            409,
+          );
+        }
+      }
 
       const agreement = await tx.agreement.create({
         data: {
@@ -412,11 +485,44 @@ export class ProposalService {
       result.communityOrder.id,
     );
 
+    let deliveryRequest = null;
+    let deliveryRequestReady = false;
+
+    if (result.communityOrder.deliveryRequested) {
+      const auto = await DeliveryRequestService.tryAutoCreateAfterAccept(
+        userId,
+        result.communityOrder.id,
+        {
+          pickupDate: result.proposal.requestedDate?.toISOString() ?? null,
+          pickupTimeWindow: result.proposal.requestedTimeWindow,
+          deliveryDate: result.proposal.requestedDate?.toISOString() ?? null,
+          deliveryTimeWindow: result.proposal.requestedTimeWindow,
+        },
+      );
+      deliveryRequest = auto.deliveryRequest;
+      deliveryRequestReady = auto.readyWithoutCreate;
+    }
+
+    const summaryBase = result.proposal.proposalSummary as AgreementSummarySnapshot | null;
+    const routing = resolveAcceptNextAction({
+      settlementMode: result.proposal.settlementMode,
+      paymentPath: paymentPathFromSummary(summaryBase),
+      productId: result.proposal.productId,
+      quantity: result.proposal.quantity,
+      communityOrderId: result.communityOrder.id,
+      deliveryRequested: result.communityOrder.deliveryRequested,
+      deliveryRequestId: deliveryRequest?.id ?? null,
+      deliveryRequestReady,
+    });
+
     return {
       proposal: dto,
       agreement: serializeAgreement(result.agreement),
       communityOrder: serializeCommunityOrder(result.communityOrder),
       message: result.systemMessage as unknown as Record<string, unknown>,
+      nextAction: routing.nextAction,
+      checkoutUrl: routing.checkoutUrl,
+      deliveryRequest,
     };
   }
 
@@ -541,8 +647,14 @@ export class ProposalService {
         input.acceptedValueTaxonomyIds ?? parent.acceptedValueTaxonomyIds,
       requestedValueTaxonomyIds:
         input.requestedValueTaxonomyIds ?? parent.requestedValueTaxonomyIds,
+      paymentPath:
+        input.paymentPath ??
+        paymentPathFromSummary(
+          parent.proposalSummary as AgreementSummarySnapshot | null,
+        ),
     };
-    const fields = await resolveProposalFields(counterInput, title);
+    const boundProductId = input.productId ?? parent.productId;
+    const fields = await resolveProposalFields(counterInput, title, boundProductId);
 
     const result = await prisma.$transaction(async (tx) => {
       const parentUpdate = await tx.proposal.updateMany({
@@ -559,7 +671,7 @@ export class ProposalService {
           createdById: userId,
           sellerId,
           buyerId,
-          productId: input.productId ?? parent.productId,
+          productId: fields.boundProductId,
           listingId: input.listingId ?? parent.listingId,
           title,
           description:
@@ -731,5 +843,43 @@ export class ProposalService {
       orderBy: { createdAt: 'asc' },
     });
     return rows.map(serializeCommunityOrder);
+  }
+
+  static async listDeliveryRequestsByProposalForConversation(
+    userId: string,
+    conversationId: string,
+  ): Promise<Record<string, DeliveryRequestDTO>> {
+    await assertParticipant(conversationId, userId);
+    const orders = await prisma.communityOrder.findMany({
+      where: { conversationId },
+      select: { id: true, proposalId: true },
+    });
+    if (orders.length === 0) return {};
+
+    const orderIdToProposalId = new Map(
+      orders.map((o) => [o.id, o.proposalId]),
+    );
+    const requests = await prisma.deliveryRequest.findMany({
+      where: { communityOrderId: { in: orders.map((o) => o.id) } },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        Assignments: {
+          where: { status: { in: ['PENDING', 'ACCEPTED'] } },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    const byProposal: Record<string, DeliveryRequestDTO> = {};
+    for (const row of requests) {
+      const proposalId = orderIdToProposalId.get(row.communityOrderId);
+      if (!proposalId || byProposal[proposalId]) continue;
+      byProposal[proposalId] = serializeDeliveryRequest(
+        row,
+        row.Assignments[0] ?? null,
+      );
+    }
+    return byProposal;
   }
 }

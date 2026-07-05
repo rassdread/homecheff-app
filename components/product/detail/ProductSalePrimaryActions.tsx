@@ -169,7 +169,14 @@ export default function ProductSalePrimaryActions({
   }
 
   return (
-    <div id="commerce-cta" className={cn(className)}>
+    <div id="commerce-cta" className={cn('space-y-2', className)}>
+      <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-900">
+        {tOr(
+          'productDetail.commercePathCheckout',
+          'Order directly via HomeCheff — secure payment and order tracking.',
+          'Bestel direct via HomeCheff — veilig betalen en bestelling volgen.',
+        )}
+      </p>
       <AddToCartButton
         product={{
           id: product.id,

@@ -100,6 +100,9 @@ export default function ChatBox({
   const [communityOrdersByProposalId, setCommunityOrdersByProposalId] = useState<
     Record<string, CommunityOrderDTO>
   >({});
+  const [deliveryRequestsByProposalId, setDeliveryRequestsByProposalId] = useState<
+    Record<string, import('@/lib/delivery/delivery-marketplace-types').DeliveryRequestDTO>
+  >({});
   const [showCreateProposal, setShowCreateProposal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -133,6 +136,10 @@ export default function ChatBox({
       const data = (await res.json()) as {
         proposals?: ProposalDTO[];
         communityOrders?: CommunityOrderDTO[];
+        deliveryRequestsByProposalId?: Record<
+          string,
+          import('@/lib/delivery/delivery-marketplace-types').DeliveryRequestDTO
+        >;
       };
       const map: Record<string, ProposalDTO> = {};
       for (const p of data.proposals ?? []) {
@@ -144,6 +151,7 @@ export default function ChatBox({
       }
       setProposalsById(map);
       setCommunityOrdersByProposalId(orderMap);
+      setDeliveryRequestsByProposalId(data.deliveryRequestsByProposalId ?? {});
     } catch {
       /* non-fatal */
     }
@@ -152,13 +160,24 @@ export default function ChatBox({
   const handleProposalUpdated = useCallback(
     (
       proposal: ProposalDTO,
-      extra?: { communityOrder?: CommunityOrderDTO },
+      extra?: {
+        communityOrder?: CommunityOrderDTO;
+        nextAction?: import('@/lib/proposals/proposal-accept-routing').ProposalNextAction;
+        checkoutUrl?: string | null;
+        deliveryRequest?: import('@/lib/delivery/delivery-marketplace-types').DeliveryRequestDTO | null;
+      },
     ) => {
       setProposalsById((prev) => ({ ...prev, [proposal.id]: proposal }));
       if (extra?.communityOrder) {
         setCommunityOrdersByProposalId((prev) => ({
           ...prev,
           [proposal.id]: extra.communityOrder!,
+        }));
+      }
+      if (extra?.deliveryRequest) {
+        setDeliveryRequestsByProposalId((prev) => ({
+          ...prev,
+          [proposal.id]: extra.deliveryRequest!,
         }));
       }
     },
@@ -1251,6 +1270,11 @@ export default function ChatBox({
                 communityOrder={
                   msg.proposalId
                     ? communityOrdersByProposalId[msg.proposalId] ?? null
+                    : null
+                }
+                deliveryRequest={
+                  msg.proposalId
+                    ? deliveryRequestsByProposalId[msg.proposalId] ?? null
                     : null
                 }
                 onProposalUpdated={handleProposalUpdated}

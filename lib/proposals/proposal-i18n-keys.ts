@@ -18,6 +18,13 @@ export const PROPOSAL_I18N = {
   },
   acceptsLabel: 'proposal.card.acceptsLabel',
   seeksLabel: 'proposal.card.seeksLabel',
+  settlementHeading: 'proposal.card.settlementHeading',
+  highlights: {
+    price: 'proposal.card.highlightPrice',
+    delivery: 'proposal.card.highlightDelivery',
+    payment: 'proposal.card.highlightPayment',
+    value: 'proposal.card.highlightValue',
+  },
   system: {
     accepted: 'proposal.system.accepted',
     rejected: 'proposal.system.rejected',
@@ -27,6 +34,52 @@ export const PROPOSAL_I18N = {
   errors: {
     moneyAmountRequired: 'proposal.errors.moneyAmountRequired',
     valueRequired: 'proposal.errors.valueRequired',
+    quantityRequired: 'proposal.errors.quantityRequired',
+  },
+  nextAction: {
+    NONE: 'proposal.nextAction.none',
+    COMMUNITY_ORDER_CREATED: 'proposal.nextAction.communityOrderCreated',
+    CHECKOUT_REQUIRED: 'proposal.nextAction.checkoutRequired',
+    DELIVERY_REQUEST_READY: 'proposal.nextAction.deliveryRequestReady',
+    DELIVERY_REQUEST_CREATED: 'proposal.nextAction.deliveryRequestCreated',
+  },
+  paymentPath: {
+    HOMECHEFF_CHECKOUT: 'proposal.productBinding.paymentHomecheff',
+    DIRECT_CONTACT: 'proposal.productBinding.paymentDirect',
+    NONE: 'proposal.productBinding.paymentNone',
+  },
+  actions: {
+    accept: 'proposal.actions.accept',
+    reject: 'proposal.actions.reject',
+    counter: 'proposal.actions.counter',
+    cancel: 'proposal.actions.cancel',
+    sendCounter: 'proposal.actions.sendCounter',
+    send: 'proposal.actions.send',
+    sendQuote: 'proposal.actions.sendQuote',
+  },
+} as const;
+
+/** User-facing "Jullie afspraak" deal card — hides CommunityOrder terminology */
+export const DEAL_I18N = {
+  heading: 'deal.heading',
+  paymentHeading: 'deal.paymentHeading',
+  paymentPath: {
+    HOMECHEFF_CHECKOUT: 'deal.paymentPath.homecheff',
+    DIRECT_CONTACT: 'deal.paymentPath.direct',
+    NONE: 'deal.paymentPath.none',
+  },
+  fulfillment: {
+    PICKUP: 'deal.fulfillment.pickup',
+    DELIVERY: 'deal.fulfillment.delivery',
+    DIGITAL: 'deal.fulfillment.digital',
+    ON_SITE_PROVIDER: 'deal.fulfillment.onSiteProvider',
+    ON_SITE_CLIENT: 'deal.fulfillment.onSiteClient',
+  },
+  delivery: {
+    statusPending: 'deal.delivery.statusPending',
+    statusActive: 'deal.delivery.statusActive',
+    courierAssigned: 'deal.delivery.courierAssigned',
+    detailsHeading: 'deal.delivery.detailsHeading',
   },
 } as const;
 
@@ -47,6 +100,16 @@ export const COMMUNITY_ORDER_I18N = {
   deliveryRequested: 'communityOrder.summary.deliveryRequested',
   deliveryAssigned: 'communityOrder.summary.deliveryAssigned',
   parties: 'communityOrder.summary.parties',
+  paymentPath: {
+    HOMECHEFF_CHECKOUT: 'communityOrder.paymentPath.homecheff',
+    DIRECT_CONTACT: 'communityOrder.paymentPath.direct',
+    NONE: 'communityOrder.paymentPath.none',
+  },
+  delivery: {
+    requestCreated: 'communityOrder.delivery.requestCreated',
+    requestReady: 'communityOrder.delivery.requestReady',
+    checkoutRequired: 'communityOrder.delivery.checkoutRequired',
+  },
 } as const;
 
 export const AGREEMENT_I18N = {
@@ -66,6 +129,7 @@ export function isProposalI18nKey(text: string | null | undefined): boolean {
   return (
     text.startsWith('proposal.') ||
     text.startsWith('communityOrder.') ||
-    text.startsWith('agreement.')
+    text.startsWith('agreement.') ||
+    text.startsWith('deal.')
   );
 }

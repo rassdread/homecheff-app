@@ -56,13 +56,27 @@ function getNotificationTitle(type: string, payload: Record<string, unknown>): s
     case 'NEW_CONVERSATION':
       return 'Nieuw Gesprek';
     case 'PROPOSAL_RECEIVED':
-      return 'Nieuw Voorstel';
+      return 'Nieuw voorstel ontvangen';
     case 'PROPOSAL_ACCEPTED':
-      return 'Voorstel Geaccepteerd';
+      return 'Afspraak bevestigd';
     case 'PROPOSAL_REJECTED':
-      return 'Voorstel Afgewezen';
+      return 'Voorstel afgewezen';
     case 'PROPOSAL_COUNTERED':
-      return 'Tegenvoorstel';
+      return 'Tegenvoorstel ontvangen';
+    case 'PROPOSAL_ALTERNATIVE_VALUE':
+      return 'Voorstel met ruil ontvangen';
+    case 'PROPOSAL_MIXED_ACCEPTED':
+      return 'Afspraak bevestigd';
+    case 'COMMUNITY_ORDER_CREATED':
+      return 'Afspraak bevestigd';
+    case 'DELIVERY_REQUEST_CREATED':
+      return 'Bezorging kan worden geregeld';
+    case 'DELIVERY_REQUEST_ASSIGNED':
+      return 'Bezorging toegewezen';
+    case 'DELIVERY_REQUEST_ACCEPTED':
+      return 'Bezorger heeft bezorging geaccepteerd';
+    case 'DELIVERY_REQUEST_COMPLETED':
+      return 'Bezorging afgerond';
     default:
       return 'Notificatie';
   }

@@ -10,6 +10,9 @@ import type {
   AgreementSummarySnapshot,
   ProposalSummarySnapshot,
 } from './proposal-settlement';
+import type { ProposalNextAction } from './proposal-accept-routing';
+import type { ProposalPaymentPath } from './proposal-product-binding';
+import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
 
 export type ProposalDTO = {
   id: string;
@@ -82,6 +85,7 @@ export type CreateProposalInput = {
   settlementMode?: SettlementMode;
   acceptedValueTaxonomyIds?: string[];
   requestedValueTaxonomyIds?: string[];
+  paymentPath?: ProposalPaymentPath;
 };
 
 export type CounterProposalInput = Omit<
@@ -97,6 +101,9 @@ export type ProposalActionResult = {
   message?: Record<string, unknown>;
   agreement?: AgreementDTO;
   communityOrder?: CommunityOrderDTO;
+  nextAction?: ProposalNextAction;
+  checkoutUrl?: string | null;
+  deliveryRequest?: DeliveryRequestDTO | null;
 };
 
 export type ProposalUpdatedEvent = {

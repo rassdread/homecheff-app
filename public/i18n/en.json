@@ -3143,6 +3143,8 @@
     "contactMaker": "Message maker",
     "viewOffer": "View listing",
     "askMaker": "Ask the maker a question",
+    "commercePathCheckout": "Order directly via HomeCheff — secure payment and order tracking.",
+    "commercePathChat": "Make arrangements first via chat — send a proposal or quote.",
     "contactNotConfigured": "This maker has not set up contact options yet.",
     "viewLinkedStory": "View the story behind this product",
     "aboutProduct": "About this product",
@@ -7632,14 +7634,19 @@
   "proposal": {
     "card": {
       "heading": "Proposal",
-      "acceptsLabel": "Accepts:",
-      "seeksLabel": "Seeks:"
+      "acceptsLabel": "Accepts as trade",
+      "seeksLabel": "Asks in return",
+      "settlementHeading": "What are you agreeing on?",
+      "highlightPrice": "Price",
+      "highlightDelivery": "Delivery",
+      "highlightPayment": "Payment",
+      "highlightValue": "Trade"
     },
     "status": {
-      "pending": "Pending",
-      "accepted": "Accepted",
-      "rejected": "Rejected",
-      "countered": "Counter offer sent",
+      "pending": "Awaiting response",
+      "accepted": "Deal confirmed",
+      "rejected": "Declined",
+      "countered": "Counter offer",
       "expired": "Expired",
       "cancelled": "Cancelled"
     },
@@ -7660,33 +7667,114 @@
       "accepted": "Proposal accepted.",
       "rejected": "Proposal rejected.",
       "cancelled": "Proposal cancelled.",
-      "communityOrderCreated": "Community order created — agreement recorded."
+      "communityOrderCreated": "Deal confirmed — arrange the details together."
     },
     "errors": {
       "moneyAmountRequired": "Enter an amount for a money proposal.",
-      "valueRequired": "Select at least one value."
+      "valueRequired": "Select at least one value.",
+      "quantityRequired": "Enter a valid quantity."
+    },
+    "productBinding": {
+      "summaryHeading": "Linked listing",
+      "paymentHeading": "How will you pay?",
+      "paymentHomecheff": "Pay via HomeCheff",
+      "paymentDirect": "Direct contact / arrangement",
+      "paymentNone": "No money leg",
+      "prefilledAccepted": "Prefilled from listing.",
+      "stockAvailable": "{{count}} available",
+      "outOfStock": "Out of stock.",
+      "exceedsStock": "Maximum {{count}} available.",
+      "fulfillmentOffered": "Fulfillment",
+      "fulfillmentDigital": "Digital",
+      "paymentsRequired": "Seller must set up payments before HomeCheff checkout.",
+      "checkoutNotAllowed": "HomeCheff checkout not allowed for this listing.",
+      "checkoutNotApplicable": "Checkout not applicable.",
+      "directContactNotAllowed": "Direct contact not allowed for this listing.",
+      "paymentPathRequired": "Choose a payment path.",
+      "fulfillmentNotOffered": "This fulfillment option is not offered.",
+      "stockUnavailableOnAccept": "Stock no longer available on accept."
+    },
+    "nextAction": {
+      "none": "Deal confirmed.",
+      "communityOrderCreated": "Deal made. Arrange details together.",
+      "checkoutRequired": "Deal made. Pay securely via HomeCheff.",
+      "deliveryRequestReady": "Deal made. Request delivery when you are ready.",
+      "deliveryRequestCreated": "Deal made. Delivery has been requested.",
+      "checkoutCta": "Pay via HomeCheff"
     },
     "notifications": {
-      "received": { "title": "New proposal", "body": "{{title}}" },
-      "accepted": { "title": "Proposal accepted", "body": "\"{{title}}\" was accepted." },
-      "rejected": { "title": "Proposal rejected", "body": "\"{{title}}\" was rejected." },
+      "received": { "title": "New proposal received", "body": "{{title}}" },
+      "accepted": { "title": "Deal confirmed", "body": "\"{{title}}\" was confirmed as your deal." },
+      "rejected": { "title": "Proposal declined", "body": "\"{{title}}\" was declined." },
       "countered": { "title": "Counter offer received", "body": "New counter offer: {{title}}" },
-      "alternativeValue": { "title": "Proposal includes alternative value", "body": "\"{{title}}\" includes alternative value." },
-      "mixedAccepted": { "title": "Mixed agreement accepted", "body": "\"{{title}}\" — mixed agreement accepted." },
-      "communityOrderCreated": { "title": "Community order created", "body": "Community order for \"{{title}}\" was created." }
+      "alternativeValue": { "title": "Proposal with trade value", "body": "\"{{title}}\" includes trade value." },
+      "mixedAccepted": { "title": "Deal confirmed", "body": "\"{{title}}\" — deal confirmed." },
+      "communityOrderCreated": { "title": "Deal confirmed", "body": "Your deal for \"{{title}}\" is recorded." }
     },
     "actions": {
       "accept": "Accept",
-      "reject": "Reject",
+      "reject": "Decline",
       "counter": "Counter offer",
       "cancel": "Cancel proposal",
       "sendCounter": "Send counter offer",
-      "send": "Send proposal"
+      "send": "Send proposal",
+      "sendQuote": "Send quote"
+    }
+  },
+  "deal": {
+    "heading": "Your deal",
+    "paymentHeading": "How will you pay?",
+    "paymentPath": {
+      "homecheff": "Pay via HomeCheff",
+      "direct": "Direct contact / arrangement",
+      "none": "No money leg"
+    },
+    "fulfillment": {
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "digital": "Digital",
+      "onSiteProvider": "On provider site",
+      "onSiteClient": "On client site"
+    },
+    "status": {
+      "confirmed": "Deal confirmed",
+      "waitingPayment": "Awaiting payment",
+      "discussPayment": "Arrange payment",
+      "exchangePending": "Trade to complete",
+      "deliveryPending": "Delivery available",
+      "deliveryActive": "Delivery active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "nextStep": {
+      "payHomecheff": "Pay securely via HomeCheff to complete the deal.",
+      "discussPayment": "Agree with each other how and when to pay.",
+      "exchangeValue": "Complete your trade — agree when and how to exchange value.",
+      "requestDelivery": "Request delivery when you are ready.",
+      "viewDelivery": "View your delivery status.",
+      "discussDeal": "Arrange the details of your deal in chat.",
+      "complete": "This deal is complete.",
+      "cancelled": "This deal was cancelled."
+    },
+    "cta": {
+      "payHomecheff": "Pay via HomeCheff",
+      "discussPayment": "Discuss payment",
+      "discussDeal": "Discuss the deal",
+      "completeExchange": "Complete your trade",
+      "requestDelivery": "Request delivery",
+      "viewDelivery": "View delivery",
+      "complete": "Completed"
+    },
+    "delivery": {
+      "statusPending": "Delivery not yet requested",
+      "statusActive": "Delivery requested",
+      "courierAssigned": "Courier assigned",
+      "detailsHeading": "Delivery"
     }
   },
   "communityOrder": {
     "summary": {
-      "heading": "Community order",
+      "heading": "Your deal",
       "deliveryRequested": "Delivery requested",
       "deliveryAssigned": "Courier assigned",
       "parties": "Parties"
@@ -7702,11 +7790,26 @@
       "digital": "Digital",
       "onSiteProvider": "On provider site",
       "onSiteClient": "On client site"
+    },
+    "paymentPath": {
+      "homecheff": "Pay via HomeCheff",
+      "direct": "Direct contact",
+      "none": "No online payment"
+    },
+    "delivery": {
+      "requestCreated": "Delivery request created",
+      "requestReady": "Delivery can be requested",
+      "checkoutRequired": "Checkout required for delivery"
     }
   },
   "agreement": {
     "snapshot": {
-      "heading": "Agreement"
+      "heading": "Deal"
+    }
+  },
+  "profile": {
+    "deals": {
+      "navLabel": "My deals"
     }
   },
   "delivery": {
@@ -7730,7 +7833,7 @@
     },
     "errors": {
       "accessDenied": "You do not have access to this delivery request.",
-      "communityOrderNotFound": "Community order not found.",
+      "communityOrderNotFound": "Deal not found.",
       "deliveryNotRequested": "Delivery was not requested for this order.",
       "activeRequestExists": "An active delivery request already exists.",
       "requestNotFound": "Delivery request not found.",
@@ -7781,12 +7884,12 @@
   "notification": {
     "deliveryRequest": {
       "created": {
-        "title": "Delivery request created",
-        "body": "A delivery request was created for your community order."
+        "title": "Delivery can be arranged",
+        "body": "Delivery can be arranged for your deal."
       },
       "assigned": {
-        "title": "Delivery job assigned",
-        "body": "You have been invited for a delivery job."
+        "title": "Delivery assigned",
+        "body": "A courier has been assigned to your delivery."
       },
       "accepted": {
         "title": "Courier accepted",

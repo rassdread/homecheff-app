@@ -33,13 +33,13 @@ const BODY_KEYS: Record<ProposalNotificationKind, string> = {
 
 /** Default NL copy when push payload has no client-side i18n */
 const TITLE_FALLBACK: Record<ProposalNotificationKind, string> = {
-  PROPOSAL_RECEIVED: 'Nieuw voorstel',
-  PROPOSAL_ACCEPTED: 'Voorstel geaccepteerd',
+  PROPOSAL_RECEIVED: 'Nieuw voorstel ontvangen',
+  PROPOSAL_ACCEPTED: 'Afspraak bevestigd',
   PROPOSAL_REJECTED: 'Voorstel afgewezen',
   PROPOSAL_COUNTERED: 'Tegenvoorstel ontvangen',
-  PROPOSAL_ALTERNATIVE_VALUE: 'Voorstel bevat alternatieve waarde',
-  PROPOSAL_MIXED_ACCEPTED: 'Gemengde overeenkomst geaccepteerd',
-  COMMUNITY_ORDER_CREATED: 'Community order aangemaakt',
+  PROPOSAL_ALTERNATIVE_VALUE: 'Voorstel met ruil ontvangen',
+  PROPOSAL_MIXED_ACCEPTED: 'Afspraak bevestigd',
+  COMMUNITY_ORDER_CREATED: 'Afspraak bevestigd',
 };
 
 const BODY_FALLBACK: Record<ProposalNotificationKind, (p: ProposalDTO) => string> = {
@@ -48,8 +48,8 @@ const BODY_FALLBACK: Record<ProposalNotificationKind, (p: ProposalDTO) => string
   PROPOSAL_REJECTED: (p) => `"${p.title}" is afgewezen.`,
   PROPOSAL_COUNTERED: (p) => `Nieuw tegenvoorstel: ${p.title}`,
   PROPOSAL_ALTERNATIVE_VALUE: (p) => `"${p.title}" bevat alternatieve waarde.`,
-  PROPOSAL_MIXED_ACCEPTED: (p) => `"${p.title}" — gemengde overeenkomst geaccepteerd.`,
-  COMMUNITY_ORDER_CREATED: (p) => `Community order voor "${p.title}" is aangemaakt.`,
+  PROPOSAL_MIXED_ACCEPTED: (p) => `"${p.title}" — afspraak bevestigd.`,
+  COMMUNITY_ORDER_CREATED: (p) => `Jullie afspraak voor "${p.title}" is vastgelegd.`,
 };
 
 export async function notifyProposalEvent(

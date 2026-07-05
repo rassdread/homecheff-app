@@ -21,6 +21,7 @@ import { isChatSystemOrOrderMessage } from "./chatThreadTypes";
 import { stripReferralNoise } from "@/lib/chat/stripReferralNoise";
 import { useTranslation } from "@/hooks/useTranslation";
 import { isProposalI18nKey } from "@/lib/proposals/proposal-i18n-keys";
+import type { DeliveryRequestDTO } from "@/lib/delivery/delivery-marketplace-types";
 import type {
   CommunityOrderDTO,
   ProposalDTO,
@@ -113,9 +114,13 @@ type Props = {
   formatTime: (iso: string) => string;
   proposal?: ProposalDTO | null;
   communityOrder?: CommunityOrderDTO | null;
+  deliveryRequest?: DeliveryRequestDTO | null;
   onProposalUpdated?: (
     proposal: ProposalDTO,
-    extra?: { communityOrder?: CommunityOrderDTO },
+    extra?: {
+      communityOrder?: CommunityOrderDTO;
+      deliveryRequest?: DeliveryRequestDTO | null;
+    },
   ) => void;
 };
 
@@ -125,6 +130,7 @@ export default function ChatThreadMessageRow({
   formatTime,
   proposal,
   communityOrder,
+  deliveryRequest,
   onProposalUpdated,
 }: Props) {
   const { t } = useTranslation();
@@ -139,6 +145,7 @@ export default function ChatThreadMessageRow({
         formatTime={formatTime}
         messageCreatedAt={msg.createdAt}
         communityOrder={communityOrder}
+        deliveryRequest={deliveryRequest}
         onUpdated={onProposalUpdated}
       />
     );

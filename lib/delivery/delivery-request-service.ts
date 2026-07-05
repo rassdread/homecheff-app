@@ -505,4 +505,90 @@ export class DeliveryRequestService {
       assignment: serializeCourierAssignment(result.updatedAssignment),
     };
   }
+
+  /**
+   * After proposal accept — auto-create delivery request when addresses + schedule exist.
+   */
+  static async tryAutoCreateAfterAccept(
+    actorId: string,
+    communityOrderId: string,
+    schedule: {
+      pickupDate?: string | null;
+      pickupTimeWindow?: string | null;
+      deliveryDate?: string | null;
+      deliveryTimeWindow?: string | null;
+    },
+  ): Promise<{
+    deliveryRequest: DeliveryRequestDTO | null;
+    readyWithoutCreate: boolean;
+  }> {
+    const order = await loadCommunityOrderForDelivery(communityOrderId);
+    if (!order || order.fulfillmentMode !== 'DELIVERY' || !order.deliveryRequested) {
+      return { deliveryRequest: null, readyWithoutCreate: false };
+    }
+
+    const defaultPickup = formatAddress([
+      order.Seller.address,
+      order.Seller.postalCode,
+      order.Seller.city,
+      order.Seller.place,
+    ]);
+    const defaultDelivery = formatAddress([
+      order.Buyer.address,
+      order.Buyer.postalCode,
+      order.Buyer.city,
+      order.Buyer.place,
+    ]);
+
+    const hasAddresses = Boolean(defaultPickup && defaultDelivery);
+    const hasSchedule = Boolean(
+      schedule.pickupDate ||
+        schedule.deliveryDate ||
+        schedule.pickupTimeWindow ||
+        schedule.deliveryTimeWindow,
+    );
+
+    if (!hasAddresses) {
+      return { deliveryRequest: null, readyWithoutCreate: false };
+    }
+
+    if (!hasSchedule) {
+      return { deliveryRequest: null, readyWithoutCreate: true };
+    }
+
+    const existingActive = await prisma.deliveryRequest.findFirst({
+      where: {
+        communityOrderId,
+        status: { in: ACTIVE_REQUEST_STATUSES },
+      },
+    });
+    if (existingActive) {
+      return {
+        deliveryRequest: serializeDeliveryRequest(existingActive, null),
+        readyWithoutCreate: false,
+      };
+    }
+
+    try {
+      const result = await DeliveryRequestService.createFromCommunityOrder(
+        actorId,
+        communityOrderId,
+        {
+          pickupAddress: defaultPickup,
+          deliveryAddress: defaultDelivery,
+          pickupDate: schedule.pickupDate,
+          pickupTimeWindow: schedule.pickupTimeWindow,
+          deliveryDate: schedule.deliveryDate ?? schedule.pickupDate,
+          deliveryTimeWindow:
+            schedule.deliveryTimeWindow ?? schedule.pickupTimeWindow,
+        },
+      );
+      return {
+        deliveryRequest: result.deliveryRequest,
+        readyWithoutCreate: false,
+      };
+    } catch {
+      return { deliveryRequest: null, readyWithoutCreate: true };
+    }
+  }
 }

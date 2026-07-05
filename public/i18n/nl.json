@@ -2508,6 +2508,8 @@
     "contactMaker": "Bericht sturen",
     "viewOffer": "Bekijk aanbod",
     "askMaker": "Vraag iets aan maker",
+    "commercePathCheckout": "Bestel direct via HomeCheff — veilig betalen en bestelling volgen.",
+    "commercePathChat": "Maak eerst afspraken via de chat — stuur een voorstel of offerte.",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
     "viewLinkedStory": "Bekijk het verhaal achter dit product",
     "aboutProduct": "Over dit product",
@@ -7632,14 +7634,19 @@
   "proposal": {
     "card": {
       "heading": "Voorstel",
-      "acceptsLabel": "Accepteert:",
-      "seeksLabel": "Zoekt:"
+      "acceptsLabel": "Accepteert als ruil",
+      "seeksLabel": "Vraagt terug",
+      "settlementHeading": "Wat wordt afgesproken?",
+      "highlightPrice": "Prijs",
+      "highlightDelivery": "Bezorging",
+      "highlightPayment": "Betaling",
+      "highlightValue": "Ruil"
     },
     "status": {
-      "pending": "In afwachting",
-      "accepted": "Geaccepteerd",
+      "pending": "Wacht op reactie",
+      "accepted": "Afspraak vastgelegd",
       "rejected": "Afgewezen",
-      "countered": "Tegenvoorstel gedaan",
+      "countered": "Tegenvoorstel",
       "expired": "Verlopen",
       "cancelled": "Geannuleerd"
     },
@@ -7660,20 +7667,49 @@
       "accepted": "Voorstel geaccepteerd.",
       "rejected": "Voorstel afgewezen.",
       "cancelled": "Voorstel geannuleerd.",
-      "communityOrderCreated": "Community order aangemaakt — afspraak vastgelegd."
+      "communityOrderCreated": "Afspraak vastgelegd — jullie kunnen de details verder afspreken."
     },
     "errors": {
       "moneyAmountRequired": "Voer een bedrag in voor een geldvoorstel.",
-      "valueRequired": "Selecteer minstens één waarde."
+      "valueRequired": "Selecteer minstens één waarde.",
+      "quantityRequired": "Voer een geldig aantal in."
+    },
+    "productBinding": {
+      "summaryHeading": "Gekoppeld aanbod",
+      "paymentHeading": "Hoe betaal je?",
+      "paymentHomecheff": "Via HomeCheff betalen",
+      "paymentDirect": "Direct contact / regeling",
+      "paymentNone": "Geen geldleg",
+      "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod.",
+      "stockAvailable": "{{count}} beschikbaar",
+      "outOfStock": "Niet op voorraad.",
+      "exceedsStock": "Maximaal {{count}} beschikbaar.",
+      "fulfillmentOffered": "Fulfillment",
+      "fulfillmentDigital": "Digitaal",
+      "paymentsRequired": "Verkoper moet betalingen nog instellen voor HomeCheff-checkout.",
+      "checkoutNotAllowed": "HomeCheff-checkout niet toegestaan voor dit aanbod.",
+      "checkoutNotApplicable": "Checkout niet van toepassing.",
+      "directContactNotAllowed": "Direct contact niet toegestaan voor dit aanbod.",
+      "paymentPathRequired": "Kies een betaalwijze.",
+      "fulfillmentNotOffered": "Deze fulfillment-optie wordt niet aangeboden.",
+      "stockUnavailableOnAccept": "Voorraad niet meer beschikbaar bij accepteren."
+    },
+    "nextAction": {
+      "none": "Afspraak vastgelegd.",
+      "communityOrderCreated": "Afspraak gemaakt. Jullie spreken de details samen af.",
+      "checkoutRequired": "Afspraak gemaakt. Betaal veilig via HomeCheff.",
+      "deliveryRequestReady": "Afspraak gemaakt. Vraag bezorging aan wanneer jullie klaar zijn.",
+      "deliveryRequestCreated": "Afspraak gemaakt. Bezorging is aangevraagd.",
+      "checkoutCta": "Betaal via HomeCheff"
     },
     "notifications": {
-      "received": { "title": "Nieuw voorstel", "body": "{{title}}" },
-      "accepted": { "title": "Voorstel geaccepteerd", "body": "\"{{title}}\" is geaccepteerd." },
+      "received": { "title": "Nieuw voorstel ontvangen", "body": "{{title}}" },
+      "accepted": { "title": "Afspraak bevestigd", "body": "\"{{title}}\" is bevestigd als afspraak." },
       "rejected": { "title": "Voorstel afgewezen", "body": "\"{{title}}\" is afgewezen." },
       "countered": { "title": "Tegenvoorstel ontvangen", "body": "Nieuw tegenvoorstel: {{title}}" },
-      "alternativeValue": { "title": "Voorstel bevat alternatieve waarde", "body": "\"{{title}}\" bevat alternatieve waarde." },
-      "mixedAccepted": { "title": "Gemengde overeenkomst geaccepteerd", "body": "\"{{title}}\" — gemengde overeenkomst geaccepteerd." },
-      "communityOrderCreated": { "title": "Community order aangemaakt", "body": "Community order voor \"{{title}}\" is aangemaakt." }
+      "alternativeValue": { "title": "Voorstel met ruil ontvangen", "body": "\"{{title}}\" bevat ruilwaarde." },
+      "mixedAccepted": { "title": "Afspraak bevestigd", "body": "\"{{title}}\" — afspraak bevestigd." },
+      "communityOrderCreated": { "title": "Afspraak bevestigd", "body": "Jullie afspraak voor \"{{title}}\" is vastgelegd." }
     },
     "actions": {
       "accept": "Accepteren",
@@ -7681,12 +7717,64 @@
       "counter": "Tegenvoorstel",
       "cancel": "Voorstel annuleren",
       "sendCounter": "Verstuur tegenvoorstel",
-      "send": "Voorstel versturen"
+      "send": "Voorstel sturen",
+      "sendQuote": "Offerte sturen"
+    }
+  },
+  "deal": {
+    "heading": "Jullie afspraak",
+    "paymentHeading": "Hoe betaal je?",
+    "paymentPath": {
+      "homecheff": "Via HomeCheff betalen",
+      "direct": "Direct contact / regeling",
+      "none": "Geen geldleg"
+    },
+    "fulfillment": {
+      "pickup": "Afhalen",
+      "delivery": "Bezorging",
+      "digital": "Digitaal",
+      "onSiteProvider": "Op locatie aanbieder",
+      "onSiteClient": "Op locatie klant"
+    },
+    "status": {
+      "confirmed": "Afspraak vastgelegd",
+      "waitingPayment": "Wacht op betaling",
+      "discussPayment": "Betaling afspreken",
+      "exchangePending": "Ruil af te ronden",
+      "deliveryPending": "Bezorging mogelijk",
+      "deliveryActive": "Bezorging actief",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd"
+    },
+    "nextStep": {
+      "payHomecheff": "Betaal veilig via HomeCheff om de afspraak af te ronden.",
+      "discussPayment": "Spreek met elkaar af hoe en wanneer je betaalt.",
+      "exchangeValue": "Rond jullie ruil af — spreek af wanneer en hoe jullie waarde uitwisselen.",
+      "requestDelivery": "Vraag bezorging aan wanneer jullie klaar zijn.",
+      "viewDelivery": "Bekijk de status van jullie bezorging.",
+      "discussDeal": "Spreek de details van jullie afspraak af in de chat.",
+      "complete": "Deze afspraak is afgerond.",
+      "cancelled": "Deze afspraak is geannuleerd."
+    },
+    "cta": {
+      "payHomecheff": "Betaal via HomeCheff",
+      "discussPayment": "Bespreek betaling",
+      "discussDeal": "Bespreek de afspraak",
+      "completeExchange": "Rond jullie ruil af",
+      "requestDelivery": "Bezorging aanvragen",
+      "viewDelivery": "Bekijk bezorging",
+      "complete": "Afgerond"
+    },
+    "delivery": {
+      "statusPending": "Bezorging nog niet aangevraagd",
+      "statusActive": "Bezorging aangevraagd",
+      "courierAssigned": "Bezorger toegewezen",
+      "detailsHeading": "Bezorging"
     }
   },
   "communityOrder": {
     "summary": {
-      "heading": "Community order",
+      "heading": "Jullie afspraak",
       "deliveryRequested": "Bezorging gevraagd",
       "deliveryAssigned": "Bezorger toegewezen",
       "parties": "Partijen"
@@ -7702,11 +7790,26 @@
       "digital": "Digitaal",
       "onSiteProvider": "Op locatie aanbieder",
       "onSiteClient": "Op locatie klant"
+    },
+    "paymentPath": {
+      "homecheff": "Betaling via HomeCheff",
+      "direct": "Direct contact",
+      "none": "Geen online betaling"
+    },
+    "delivery": {
+      "requestCreated": "Bezorgverzoek aangemaakt",
+      "requestReady": "Bezorging kan worden aangevraagd",
+      "checkoutRequired": "Checkout vereist voor bezorging"
     }
   },
   "agreement": {
     "snapshot": {
-      "heading": "Overeenkomst"
+      "heading": "Afspraak"
+    }
+  },
+  "profile": {
+    "deals": {
+      "navLabel": "Mijn afspraken"
     }
   },
   "delivery": {
@@ -7730,7 +7833,7 @@
     },
     "errors": {
       "accessDenied": "Geen toegang tot dit bezorgverzoek.",
-      "communityOrderNotFound": "Community order niet gevonden.",
+      "communityOrderNotFound": "Afspraak niet gevonden.",
       "deliveryNotRequested": "Voor deze order is geen bezorging gevraagd.",
       "activeRequestExists": "Er is al een actief bezorgverzoek.",
       "requestNotFound": "Bezorgverzoek niet gevonden.",
@@ -7781,12 +7884,12 @@
   "notification": {
     "deliveryRequest": {
       "created": {
-        "title": "Bezorgverzoek aangemaakt",
-        "body": "Er is een bezorgverzoek aangemaakt voor jullie community order."
+        "title": "Bezorging kan worden geregeld",
+        "body": "Bezorging kan worden geregeld voor jullie afspraak."
       },
       "assigned": {
-        "title": "Bezorgopdracht toegewezen",
-        "body": "Je bent uitgenodigd voor een bezorgopdracht."
+        "title": "Bezorging toegewezen",
+        "body": "Er is een bezorger toegewezen aan jullie bezorging."
       },
       "accepted": {
         "title": "Bezorger geaccepteerd",

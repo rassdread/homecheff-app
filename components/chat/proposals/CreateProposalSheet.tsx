@@ -7,7 +7,11 @@ import AcceptedValuesPicker from "@/components/products/marketplace/AcceptedValu
 import { useTranslation } from "@/hooks/useTranslation";
 import { deriveSettlementModeFromProduct } from "@/lib/proposals/proposal-settlement";
 import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
+import { resolveProposalSendLabelKey } from "@/lib/proposals/proposal-send-label";
 import type { ResolvedConversationHeader } from "@/lib/communication/resolveConversationHeader";
+import type { ProposalPaymentPath } from "@/lib/proposals/proposal-product-binding";
+import { allowedFulfillmentTypes } from "@/lib/proposals/proposal-fulfillment-utils";
+import ProposalProductSummary from "./ProposalProductSummary";
 
 export type CreateProposalFormValues = {
   title: string;
@@ -18,6 +22,7 @@ export type CreateProposalFormValues = {
   requestedTimeWindow: string;
   fulfillmentType: "" | "PICKUP" | "DELIVERY";
   settlementMode: SettlementMode;
+  paymentPath: ProposalPaymentPath;
   acceptedValueTaxonomyIds: string[];
   requestedValueTaxonomyIds: string[];
 };
@@ -38,6 +43,12 @@ const SETTLEMENT_MODES: SettlementMode[] = [
   "VOLUNTARY",
 ];
 
+const PAYMENT_PATHS: ProposalPaymentPath[] = [
+  "HOMECHEFF_CHECKOUT",
+  "DIRECT_CONTACT",
+  "NONE",
+];
+
 function initialFromHeader(
   contextHeader?: ResolvedConversationHeader | null,
 ): CreateProposalFormValues {
@@ -50,28 +61,32 @@ function initialFromHeader(
     requestedTimeWindow: "",
     fulfillmentType: "",
     settlementMode: "MONEY",
+    paymentPath: "NONE",
     acceptedValueTaxonomyIds: [],
     requestedValueTaxonomyIds: [],
   };
   if (contextHeader?.kind === "PRODUCT") {
     const product = contextHeader.product;
+    const allowed = allowedFulfillmentTypes(product.fulfillmentOptions);
+    const defaultFulfillment =
+      product.delivery === "DELIVERY" && allowed.includes("DELIVERY")
+        ? "DELIVERY"
+        : allowed.includes("PICKUP")
+          ? "PICKUP"
+          : allowed[0] ?? "";
     return {
       ...base,
       title: product.title,
       amountEuros: product.priceCents ? String(product.priceCents / 100) : "",
       quantity: "1",
-      fulfillmentType:
-        product.delivery === "DELIVERY"
-          ? "DELIVERY"
-          : product.delivery === "PICKUP"
-            ? "PICKUP"
-            : "",
+      fulfillmentType: defaultFulfillment,
       settlementMode: deriveSettlementModeFromProduct({
         priceCents: product.priceCents,
         priceModel: product.priceModel,
         acceptedSpecializations: product.acceptedSpecializations,
         barterOpenness: product.barterOpenness as import("@prisma/client").BarterOpenness | null,
       }),
+      paymentPath: product.defaultPaymentPath,
       acceptedValueTaxonomyIds: [...product.acceptedSpecializations],
     };
   }
@@ -86,6 +101,9 @@ export default function CreateProposalSheet({
   contextHeader,
 }: Props) {
   const { t } = useTranslation();
+  const product =
+    contextHeader?.kind === "PRODUCT" ? contextHeader.product : null;
+
   const [form, setForm] = useState<CreateProposalFormValues>(() =>
     initialFromHeader(contextHeader),
   );
@@ -111,6 +129,15 @@ export default function CreateProposalSheet({
       form.settlementMode === "MONEY_AND_VALUE",
     [form.settlementMode],
   );
+  const showPaymentPath = showMoneyField && Boolean(product);
+
+  const fulfillmentOptions = useMemo(() => {
+    if (!product) return ["PICKUP", "DELIVERY"] as const;
+    return allowedFulfillmentTypes(product.fulfillmentOptions);
+  }, [product]);
+
+  const maxQuantity = product?.availableStock ?? undefined;
+  const sendLabelKey = resolveProposalSendLabelKey(product?.marketplaceCategory);
 
   if (!open) return null;
 
@@ -136,6 +163,18 @@ export default function CreateProposalSheet({
     const quantity = form.quantity.trim()
       ? parseInt(form.quantity, 10)
       : undefined;
+
+    if (maxQuantity != null && quantity != null && quantity > maxQuantity) {
+      setError(
+        t("proposal.productBinding.exceedsStock", { count: maxQuantity }),
+      );
+      return;
+    }
+    if (maxQuantity != null && maxQuantity <= 0) {
+      setError(t("proposal.productBinding.outOfStock"));
+      return;
+    }
+
     const euros = form.amountEuros.trim()
       ? parseFloat(form.amountEuros.replace(",", "."))
       : undefined;
@@ -144,10 +183,7 @@ export default function CreateProposalSheet({
         ? Math.round(euros * 100)
         : null;
 
-    const productId =
-      contextHeader?.kind === "PRODUCT"
-        ? contextHeader.product.id
-        : undefined;
+    const productId = product?.id;
 
     setBusy(true);
     try {
@@ -166,6 +202,7 @@ export default function CreateProposalSheet({
             fulfillmentType: form.fulfillmentType || null,
             productId: productId ?? null,
             settlementMode: form.settlementMode,
+            paymentPath: showPaymentPath ? form.paymentPath : "NONE",
             acceptedValueTaxonomyIds: form.acceptedValueTaxonomyIds,
             requestedValueTaxonomyIds: form.requestedValueTaxonomyIds,
           }),
@@ -176,7 +213,9 @@ export default function CreateProposalSheet({
         const errKey =
           typeof data.error === "string" && data.error.startsWith("proposal.")
             ? data.error
-            : null;
+            : typeof data.errorKey === "string"
+              ? data.errorKey
+              : null;
         setError(errKey ? t(errKey) : data.error || t("common.error"));
         return;
       }
@@ -219,9 +258,11 @@ export default function CreateProposalSheet({
         </div>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 px-4 py-4">
+          {product ? <ProposalProductSummary product={product} /> : null}
+
           <div>
             <p className="text-xs font-semibold text-gray-900 mb-2">
-              {t("proposal.settlement.heading")}
+              {t(PROPOSAL_I18N.settlementHeading)}
             </p>
             <p className="text-[11px] text-gray-500 mb-2">
               {t("proposal.create.settlementHint")}
@@ -245,6 +286,51 @@ export default function CreateProposalSheet({
               ))}
             </div>
           </div>
+
+          {showPaymentPath ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-900 mb-2">
+                {t("deal.paymentHeading")}
+              </p>
+              <div className="flex flex-col gap-2">
+                {PAYMENT_PATHS.filter((path) => {
+                  if (path === "HOMECHEFF_CHECKOUT") {
+                    return product?.acceptHomeCheffPayment;
+                  }
+                  if (path === "DIRECT_CONTACT") {
+                    return product?.acceptDirectContact;
+                  }
+                  return false;
+                }).map((path) => {
+                  const disabled =
+                    path === "HOMECHEFF_CHECKOUT" &&
+                    !product?.canHomeCheffCheckout;
+                  return (
+                    <button
+                      key={path}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, paymentPath: path }))
+                      }
+                      className={`rounded-lg border px-3 py-2 text-left text-xs ${
+                        form.paymentPath === path
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-900"
+                          : "border-gray-200 text-gray-700"
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {t(PROPOSAL_I18N.paymentPath[path])}
+                      {disabled && product?.homeCheffCheckoutBlockedReason ? (
+                        <span className="mt-0.5 block text-[10px] text-amber-700">
+                          {t(product.homeCheffCheckoutBlockedReason)}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           {form.acceptedValueTaxonomyIds.length > 0 ? (
             <p className="text-[11px] text-emerald-700">
@@ -284,6 +370,7 @@ export default function CreateProposalSheet({
               <input
                 type="number"
                 min={1}
+                max={maxQuantity}
                 value={form.quantity}
                 onChange={set("quantity")}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -348,8 +435,16 @@ export default function CreateProposalSheet({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
             >
               <option value="">—</option>
-              <option value="PICKUP">{t("marketplace.fulfillment.pickup")}</option>
-              <option value="DELIVERY">{t("marketplace.fulfillment.delivery")}</option>
+              {fulfillmentOptions.includes("PICKUP") ? (
+                <option value="PICKUP">
+                  {t("marketplace.fulfillment.pickup")}
+                </option>
+              ) : null}
+              {fulfillmentOptions.includes("DELIVERY") ? (
+                <option value="DELIVERY">
+                  {t("marketplace.fulfillment.delivery")}
+                </option>
+              ) : null}
             </select>
           </div>
 
@@ -361,7 +456,7 @@ export default function CreateProposalSheet({
 
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || (maxQuantity != null && maxQuantity <= 0)}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {busy ? (
@@ -370,7 +465,7 @@ export default function CreateProposalSheet({
                 …
               </>
             ) : (
-              t("proposal.actions.send")
+              t(sendLabelKey)
             )}
           </button>
         </form>
