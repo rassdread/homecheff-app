@@ -1,9 +1,18 @@
 'use client';
 import * as React from 'react';
+import { useMemo, useState } from 'react';
 import CompactChefForm from './CompactChefForm';
 import CompactGardenForm from './CompactGardenForm';
 import CompactDesignerForm from './CompactDesignerForm';
 import MarketplaceOfferForm from './marketplace/MarketplaceOfferForm';
+import MarketplaceEntryFlow, {
+  type MarketplaceEntryResult,
+} from './marketplace/MarketplaceEntryFlow';
+import type { MarketplaceCategory } from '@prisma/client';
+import {
+  entryPrefillIsComplete,
+  type MarketplaceEntryPrefill,
+} from '@/lib/marketplace/entry-prefill';
 
 interface CategoryFormSelectorProps {
   category: 'CHEFF' | 'GARDEN' | 'DESIGNER';
@@ -15,6 +24,9 @@ interface CategoryFormSelectorProps {
   platform?: 'dorpsplein' | 'inspiratie';
   /** Marketplace Foundation V2 — unified offer form for new listings */
   useMarketplaceV2?: boolean;
+  /** V3 entry flow prefill from URL / intent */
+  marketplaceEntryPrefill?: MarketplaceEntryPrefill;
+  allowedMarketplaceCategories?: MarketplaceCategory[];
 }
 
 export default function CategoryFormSelector({
@@ -26,9 +38,38 @@ export default function CategoryFormSelector({
   initialPhoto,
   platform = 'dorpsplein',
   useMarketplaceV2 = true,
+  marketplaceEntryPrefill,
+  allowedMarketplaceCategories,
 }: CategoryFormSelectorProps) {
+  const prefillComplete = marketplaceEntryPrefill
+    ? entryPrefillIsComplete(marketplaceEntryPrefill)
+    : false;
+
+  const [entryResult, setEntryResult] = useState<MarketplaceEntryResult | null>(
+    () =>
+      prefillComplete && marketplaceEntryPrefill
+        ? {
+            listingIntent: marketplaceEntryPrefill.listingIntent!,
+            marketplaceCategory: marketplaceEntryPrefill.marketplaceCategory!,
+            specializations: marketplaceEntryPrefill.specializations!,
+          }
+        : null,
+  );
 
   if (platform === 'dorpsplein' && useMarketplaceV2 && !editMode) {
+    if (!entryResult) {
+      return (
+        <MarketplaceEntryFlow
+          onComplete={setEntryResult}
+          onCancel={onCancel}
+          initialIntent={marketplaceEntryPrefill?.listingIntent}
+          initialCategory={marketplaceEntryPrefill?.marketplaceCategory}
+          initialSpecializations={marketplaceEntryPrefill?.specializations}
+          allowedCategories={allowedMarketplaceCategories}
+        />
+      );
+    }
+
     return (
       <MarketplaceOfferForm
         editMode={false}
@@ -36,12 +77,14 @@ export default function CategoryFormSelector({
         onSave={onSave}
         onCancel={onCancel}
         initialPhoto={initialPhoto}
-        initialLegacyCategory={category}
+        initialListingIntent={entryResult.listingIntent}
+        initialMarketplaceCategory={entryResult.marketplaceCategory}
+        initialSpecializations={entryResult.specializations}
+        onRestartEntry={() => setEntryResult(null)}
       />
     );
   }
-  
-  // Map category to correct form component (legacy + edit mode)
+
   const getFormComponent = () => {
     switch (category) {
       case 'CHEFF':
@@ -78,7 +121,6 @@ export default function CategoryFormSelector({
           />
         );
       default:
-        // Fallback to Chef form
         return (
           <CompactChefForm
             editMode={editMode}
@@ -94,34 +136,3 @@ export default function CategoryFormSelector({
 
   return getFormComponent();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

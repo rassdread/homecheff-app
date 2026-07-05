@@ -10,19 +10,19 @@ import DynamicAddressFields, { type AddressData } from '@/components/ui/DynamicA
 import PaymentMethodCheckboxes from '@/components/products/marketplace/PaymentMethodCheckboxes';
 import FulfillmentCheckboxes from '@/components/products/marketplace/FulfillmentCheckboxes';
 import {
-  SUBCATEGORIES,
-  MARKETPLACE_CATEGORIES,
   defaultFulfillmentForCategory,
   legacyUrlCategoryToMarketplace,
+  normalizeSpecializations,
+  primarySpecialization,
   PRICE_MODELS,
   type FulfillmentOptions,
   type ListingIntentValue,
 } from '@/lib/marketplace/listing-taxonomy';
 import {
-  MARKETPLACE_CATEGORY_KEY,
+  MARKETPLACE_ENTRY_CATEGORY_KEY,
   MARKETPLACE_ERROR_KEYS,
   PRICE_MODEL_KEY,
-  subcategoryI18nKey,
+  specializationI18nKey,
 } from '@/lib/marketplace/i18n-keys';
 import { fulfillmentOptionsToApiString } from '@/lib/marketplace/fulfillment';
 import {
@@ -49,9 +49,12 @@ type Props = {
   onCancel?: () => void;
   initialPhoto?: string;
   initialLegacyCategory?: 'CHEFF' | 'GARDEN' | 'DESIGNER';
+  /** V3 entry flow — pre-filled from MarketplaceEntryFlow */
+  initialListingIntent?: ListingIntentValue;
+  initialMarketplaceCategory?: MarketplaceCategory;
+  initialSpecializations?: string[];
+  onRestartEntry?: () => void;
 };
-
-type WizardStep = 'intent' | 'category' | 'subcategory' | 'details';
 
 export default function MarketplaceOfferForm({
   editMode = false,
@@ -60,19 +63,27 @@ export default function MarketplaceOfferForm({
   onCancel,
   initialPhoto,
   initialLegacyCategory = 'CHEFF',
+  initialListingIntent,
+  initialMarketplaceCategory,
+  initialSpecializations = [],
+  onRestartEntry,
 }: Props) {
   const { data: session } = useSession();
   const { showHcpRewardToast } = useHcpRewardUi();
   const { t } = useTranslation();
 
-  const [wizardStep, setWizardStep] = useState<WizardStep>(
-    editMode ? 'details' : 'intent',
+  const resolvedCategory =
+    initialMarketplaceCategory ??
+    legacyUrlCategoryToMarketplace(initialLegacyCategory);
+
+  const [listingIntent, setListingIntent] = useState<ListingIntentValue>(
+    initialListingIntent ?? 'OFFER',
   );
-  const [listingIntent, setListingIntent] = useState<ListingIntentValue>('OFFER');
-  const [marketplaceCategory, setMarketplaceCategory] = useState<MarketplaceCategory>(
-    () => legacyUrlCategoryToMarketplace(initialLegacyCategory),
+  const [marketplaceCategory, setMarketplaceCategory] =
+    useState<MarketplaceCategory>(resolvedCategory);
+  const [specializations, setSpecializations] = useState<string[]>(
+    initialSpecializations,
   );
-  const [subcategory, setSubcategory] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -80,7 +91,7 @@ export default function MarketplaceOfferForm({
   const [acceptHomeCheffPayment, setAcceptHomeCheffPayment] = useState(true);
   const [acceptDirectContact, setAcceptDirectContact] = useState(false);
   const [fulfillment, setFulfillment] = useState<FulfillmentOptions>(() =>
-    defaultFulfillmentForCategory(legacyUrlCategoryToMarketplace(initialLegacyCategory)),
+    defaultFulfillmentForCategory(resolvedCategory),
   );
   const [sellerCanDeliver, setSellerCanDeliver] = useState(false);
   const [deliveryRadiusKm, setDeliveryRadiusKm] = useState('5');
@@ -108,8 +119,13 @@ export default function MarketplaceOfferForm({
   const [message, setMessage] = useState<string | null>(null);
 
   const fieldConfig = useMemo(
-    () => formFieldsForCategory(marketplaceCategory, subcategory),
-    [marketplaceCategory, subcategory],
+    () =>
+      formFieldsForCategory(
+        marketplaceCategory,
+        specializations,
+        primarySpecialization(specializations),
+      ),
+    [marketplaceCategory, specializations],
   );
 
   const digitalOnly = fulfillmentIsDigitalOnly(fulfillment);
@@ -143,21 +159,22 @@ export default function MarketplaceOfferForm({
     if (!editMode || !existingProduct) return;
     setTitle(String(existingProduct.title ?? ''));
     setDescription(String(existingProduct.description ?? ''));
-    setSubcategory(String(existingProduct.subcategory ?? ''));
+    const specs = normalizeSpecializations(
+      existingProduct.specializations ??
+        (existingProduct.subcategory ? [existingProduct.subcategory] : []),
+      (existingProduct.marketplaceCategory as MarketplaceCategory) ?? marketplaceCategory,
+    );
+    setSpecializations(specs);
+    if (existingProduct.listingIntent) {
+      setListingIntent(existingProduct.listingIntent as ListingIntentValue);
+    }
     if (existingProduct.marketplaceCategory) {
       setMarketplaceCategory(existingProduct.marketplaceCategory as MarketplaceCategory);
     }
     if (existingProduct.priceCents != null) {
       setPrice(String(Number(existingProduct.priceCents) / 100));
     }
-  }, [editMode, existingProduct]);
-
-  const handleCategoryPick = (cat: MarketplaceCategory) => {
-    setMarketplaceCategory(cat);
-    setFulfillment(defaultFulfillmentForCategory(cat));
-    setSubcategory('');
-    setWizardStep('subcategory');
-  };
+  }, [editMode, existingProduct, marketplaceCategory]);
 
   const resolveLocationPayload = () => {
     if (digitalOnly) {
@@ -267,7 +284,8 @@ export default function MarketplaceOfferForm({
       priceModel,
       listingIntent,
       marketplaceCategory,
-      subcategory: subcategory || null,
+      specializations,
+      subcategory: primarySpecialization(specializations),
       acceptHomeCheffPayment,
       acceptDirectContact,
       fulfillmentOptions: fulfillment,
@@ -328,133 +346,38 @@ export default function MarketplaceOfferForm({
     }
   };
 
-  if (!editMode && wizardStep !== 'details') {
-    return (
-      <div className="space-y-6">
-        {wizardStep === 'intent' && (
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              {t('marketplace.offerIntent.heading')}
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              {t('marketplace.offerIntent.hint')}
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(
-                [
-                  ['OFFER', 'marketplace.offerIntent.offer'],
-                  ['REQUEST', 'marketplace.offerIntent.request'],
-                ] as const
-              ).map(([id, labelKey]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    setListingIntent(id);
-                    setWizardStep('category');
-                  }}
-                  className={`rounded-xl border-2 p-4 text-left font-medium transition-colors ${
-                    listingIntent === id
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-gray-200 hover:border-emerald-200'
-                  }`}
-                >
-                  {t(labelKey)}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {wizardStep === 'category' && (
-          <section>
-            <button
-              type="button"
-              className="text-sm text-emerald-700 mb-3"
-              onClick={() => setWizardStep('intent')}
-            >
-              {t('marketplace.back')}
-            </button>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {listingIntent === 'REQUEST'
-                ? t('marketplace.categoryHeading.request')
-                : t('marketplace.categoryHeading.offer')}
-            </h2>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {MARKETPLACE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleCategoryPick(cat)}
-                  className="rounded-xl border border-gray-200 p-3 text-left hover:border-emerald-400 hover:bg-emerald-50/50"
-                >
-                  {t(MARKETPLACE_CATEGORY_KEY[cat])}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {wizardStep === 'subcategory' && (
-          <section>
-            <button
-              type="button"
-              className="text-sm text-emerald-700 mb-3"
-              onClick={() => setWizardStep('category')}
-            >
-              {t('marketplace.back')}
-            </button>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              {t(MARKETPLACE_CATEGORY_KEY[marketplaceCategory])}
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              {t('marketplace.subcategoryHeading')}
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {SUBCATEGORIES[marketplaceCategory].map((sub) => (
-                <button
-                  key={sub}
-                  type="button"
-                  onClick={() => {
-                    setSubcategory(sub);
-                    setWizardStep('details');
-                  }}
-                  className={`rounded-lg border px-3 py-2 text-sm text-left ${
-                    subcategory === sub
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {t(subcategoryI18nKey(marketplaceCategory, sub))}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={(e) => void validateAndSubmit(e)} className="space-y-6">
       {!editMode ? (
         <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 text-sm text-emerald-900">
           <span className="font-medium">
-            {t(MARKETPLACE_CATEGORY_KEY[marketplaceCategory])}
+            {listingIntent === 'REQUEST'
+              ? t('marketplace.summary.request')
+              : t('marketplace.summary.offer')}
           </span>
-          {subcategory
-            ? ` · ${t(subcategoryI18nKey(marketplaceCategory, subcategory))}`
-            : null}
-          {listingIntent === 'REQUEST'
-            ? ` · ${t('marketplace.summary.request')}`
-            : ` · ${t('marketplace.summary.offer')}`}
-          <button
-            type="button"
-            className="ml-2 text-emerald-700 underline text-xs"
-            onClick={() => setWizardStep('intent')}
-          >
-            {t('marketplace.summary.edit')}
-          </button>
+          {' · '}
+          <span className="font-medium">
+            {t(MARKETPLACE_ENTRY_CATEGORY_KEY[marketplaceCategory])}
+          </span>
+          {specializations.length > 0 ? (
+            <span className="ml-1">
+              {' · '}
+              {specializations
+                .map((slug) =>
+                  t(specializationI18nKey(marketplaceCategory, slug)),
+                )
+                .join(' · ')}
+            </span>
+          ) : null}
+          {onRestartEntry ? (
+            <button
+              type="button"
+              className="ml-2 text-emerald-700 underline text-xs"
+              onClick={onRestartEntry}
+            >
+              {t('marketplace.summary.edit')}
+            </button>
+          ) : null}
         </div>
       ) : null}
 

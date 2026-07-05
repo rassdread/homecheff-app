@@ -9,7 +9,9 @@ import {
   deriveOrderMethodFromPaymentFlags,
   marketplaceToLegacyApiCategory,
   marketplaceToProductCategory,
+  normalizeSpecializations,
   parseFulfillmentOptions,
+  primarySpecialization,
   type FulfillmentOptions,
   type ListingIntentValue,
 } from './listing-taxonomy';
@@ -23,6 +25,7 @@ export type MarketplaceV2Payload = {
   listingIntent: ListingIntent;
   marketplaceCategory: MarketplaceCategory;
   subcategory: string | null;
+  specializations: string[];
   priceModel: PriceModel;
   acceptHomeCheffPayment: boolean;
   acceptDirectContact: boolean;
@@ -76,8 +79,16 @@ export function parseMarketplaceV2FromBody(
           acceptDirectContact,
         });
 
-  const subcategory =
+  const subcategoryRaw =
     typeof body.subcategory === 'string' ? body.subcategory.trim() || null : null;
+
+  const specializations = normalizeSpecializations(
+    body.specializations ?? (subcategoryRaw ? [subcategoryRaw] : []),
+    marketplaceCategory,
+  );
+
+  const subcategory =
+    primarySpecialization(specializations) ?? subcategoryRaw;
 
   const deliveryMode =
     typeof body.deliveryMode === 'string' && body.deliveryMode.includes(',')
@@ -88,6 +99,7 @@ export function parseMarketplaceV2FromBody(
     listingIntent,
     marketplaceCategory,
     subcategory,
+    specializations,
     priceModel,
     acceptHomeCheffPayment: acceptHomeCheffPayment || (!acceptDirectContact),
     acceptDirectContact,

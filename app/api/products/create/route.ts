@@ -326,7 +326,8 @@ export async function POST(req: Request) {
         displayNameType: displayNameType === 'firstname' ? 'first' : 
                         displayNameType === 'lastname' ? 'last' : 
                         displayNameType === 'username' ? 'username' : 'full',
-        subcategory: subcategory || null,
+        subcategory: v2Resolved.subcategory,
+        specializations: v2Resolved.specializations,
         availabilityDate: availabilityDate ? new Date(availabilityDate) : null,
         isFutureProduct: Boolean(isFutureProduct),
         pickupAddress: pickupAddress || null,

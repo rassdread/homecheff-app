@@ -20,6 +20,10 @@ import StripeConnectPaymentsBanner from "@/components/seller/StripeConnectPaymen
 import SellerActivationGate from "@/components/seller/SellerActivationGate";
 import { getProfileHrefAfterProductSave } from "@/lib/profileProductTab";
 import { parseCreateIntentSearchParams } from "@/lib/createFlowIntent";
+import {
+  parseMarketplaceEntryFromSearchParams,
+} from "@/lib/marketplace/entry-prefill";
+import { legacyVerticalToMarketplaceCategory } from "@/lib/marketplace/listing-taxonomy";
 import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 import { saveDraft, clearDraft, restoreDraft } from "@/lib/onboarding/draft-ecosphere";
 
@@ -36,7 +40,9 @@ type PlatformChoice = "dorpsplein" | "inspiratie";
 const INSPIRATIE_IMPORT_KEY = "inspiratieToProductData";
 
 function sellsNewSkipWizard(sp: URLSearchParams | null): boolean {
-  if (!sp) return false;
+  if (!sp) return true;
+  if (sp.get("wizard") === "1") return false;
+  if (sp.get("fromInspiratie") === "true") return true;
   const cat = sp.get("category");
   if (cat === "CHEFF" || cat === "GARDEN" || cat === "DESIGNER") return true;
   const deep = [
@@ -46,7 +52,11 @@ function sellsNewSkipWizard(sp: URLSearchParams | null): boolean {
     "fromInspiratie",
     "fromProduct",
   ] as const;
-  return deep.some((k) => sp.get(k) === "true");
+  if (deep.some((k) => sp.get(k) === "true")) return true;
+  // V3 marketplace entry is the default dorpsplein flow
+  const mode = (sp.get("mode") || "").toLowerCase();
+  if (mode === "inspiration" || mode === "inspiratie") return false;
+  return true;
 }
 
 /** Import-flow vanaf foto-selectie / storage (fromInspiratie=true). */
@@ -84,6 +94,19 @@ function HomeCheffProductNieuwPageContent() {
   const categoryParam = searchParams?.get("category");
   const { data: session, status } = useSession();
   const { t } = useTranslation();
+
+  const marketplaceEntryPrefill = useMemo(() => {
+    if (!searchParams) return {};
+    const fromUrl = parseMarketplaceEntryFromSearchParams(searchParams);
+    const parsed = parseCreateIntentSearchParams(searchParams);
+    if (parsed?.platform === "dorpsplein" && parsed.category && !fromUrl.marketplaceCategory) {
+      return {
+        ...fromUrl,
+        marketplaceCategory: legacyVerticalToMarketplaceCategory(parsed.category),
+      };
+    }
+    return fromUrl;
+  }, [searchParams]);
 
   const skipWizard = useMemo(
     () => sellsNewSkipWizard(searchParams),
@@ -854,6 +877,7 @@ function HomeCheffProductNieuwPageContent() {
                 onCancel={handleCancel}
                 platform="dorpsplein"
                 initialPhoto={initialPhoto}
+                marketplaceEntryPrefill={marketplaceEntryPrefill}
               />
             </div>
           </>

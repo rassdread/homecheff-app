@@ -7145,6 +7145,79 @@
       "practicalService": "Praktische dienst",
       "knowledge": "Kennisdeling"
     },
+    "entryCategories": {
+      "create": "Eten & Ambacht",
+      "grow": "Tuin & Natuur",
+      "design": "Creatief & Design",
+      "artisticService": "Artistieke diensten",
+      "practicalService": "Diensten & Klussen",
+      "knowledge": "Workshops & Kennis"
+    },
+    "entry": {
+      "intentHeading": "Wat wil je doen?",
+      "categoryHeading": "Wat past het beste?",
+      "categoryHint": "Kies de hoofdactiviteit — je kunt daarna meerdere specialisaties selecteren.",
+      "specializationsHeading": "Specialisaties",
+      "specializationsHint": "Selecteer alles wat van toepassing is. Meerdere keuzes zijn mogelijk.",
+      "continueToSummary": "Verder naar samenvatting",
+      "summaryHeading": "Klopt dit?",
+      "summaryIntentLabel": "Intentie",
+      "summaryCategoryLabel": "Categorie",
+      "summarySpecializationsLabel": "Specialisaties",
+      "editChoices": "Wijzig keuzes",
+      "continueToForm": "Verder"
+    },
+    "specializations": {
+      "create": {
+        "meal": "Maaltijden",
+        "baking": "Bakken",
+        "catering": "Catering",
+        "clothing": "Kleding",
+        "jewelry": "Sieraden",
+        "decoration": "Decoratie",
+        "art": "Kunst"
+      },
+      "grow": {
+        "vegetables": "Groente",
+        "fruit": "Fruit",
+        "herbs": "Kruiden",
+        "plants": "Planten",
+        "honey": "Honing"
+      },
+      "design": {
+        "logo": "Logo",
+        "website": "Website",
+        "app": "App",
+        "video": "Video",
+        "photo": "Foto",
+        "illustration": "Illustratie",
+        "branding": "Branding",
+        "marketing": "Marketing"
+      },
+      "artisticService": {
+        "tattoo": "Tattoo",
+        "airbrush": "Airbrush",
+        "bodypaint": "Bodypaint",
+        "mural": "Muurschildering",
+        "portrait": "Portret",
+        "music": "Muziek"
+      },
+      "practicalService": {
+        "gardenwork": "Tuinwerk",
+        "cleaning": "Schoonmaak",
+        "movinghelp": "Verhuishulp",
+        "computerhelp": "Computerhulp",
+        "repair": "Reparatie",
+        "handyman": "Klushulp"
+      },
+      "knowledge": {
+        "workshop": "Workshop",
+        "cookingclass": "Kookles",
+        "musicclass": "Muziekles",
+        "tutoring": "Bijles",
+        "coaching": "Coaching"
+      }
+    },
     "subcategories": {
       "create": {
         "meals": "Maaltijden",
@@ -7265,7 +7338,8 @@
       "invalidFields": "Ontbrekende of ongeldige velden",
       "validPhotoUrlRequired": "Minstens één geldige foto-URL is verplicht.",
       "priceInvalidContact": "Prijs is ongeldig (laat leeg voor prijs op aanvraag).",
-      "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig."
+      "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig.",
+      "specializationsRequired": "Selecteer minimaal één specialisatie."
     }
   },
   "productOrder": {

@@ -424,6 +424,8 @@ model Product {
   barterOpenness         BarterOpenness?
   placeName              String?
   useProfileLocation     Boolean                @default(true)
+  /// Marketplace Entry V3 — multi-select skill tags for search/matching
+  specializations        String[]               @default([])
   conversations     Conversation[]
   proposals         Proposal[]
   deliveryOrders    DeliveryOrder[]
@@ -448,6 +450,7 @@ model Product {
   @@index([listingIntent])
   @@index([marketplaceCategory])
   @@index([priceModel])
+  @@index([specializations], type: Gin)
 }
 
 enum ListingIntent {

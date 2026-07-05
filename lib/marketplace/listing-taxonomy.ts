@@ -35,18 +35,10 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
   'KNOWLEDGE',
 ];
 
-/** Subcategory slugs — labels via i18n (`marketplace.subcategories.*`). */
-export const SUBCATEGORIES: Record<MarketplaceCategory, string[]> = {
-  CREATE: [
-    'meals',
-    'baking',
-    'clothing',
-    'jewelry',
-    'decoration',
-    'art',
-    'other',
-  ],
-  GROW: ['vegetables', 'fruit', 'herbs', 'plants', 'honey', 'other'],
+/** V3 specialization slugs — labels via i18n (`marketplace.specializations.*`). */
+export const SPECIALIZATIONS: Record<MarketplaceCategory, string[]> = {
+  CREATE: ['meal', 'baking', 'catering', 'clothing', 'jewelry', 'decoration', 'art'],
+  GROW: ['vegetables', 'fruit', 'herbs', 'plants', 'honey'],
   DESIGN: [
     'logo',
     'website',
@@ -54,36 +46,75 @@ export const SUBCATEGORIES: Record<MarketplaceCategory, string[]> = {
     'video',
     'photo',
     'illustration',
+    'branding',
     'marketing',
-    'other',
   ],
   ARTISTIC_SERVICE: [
     'tattoo',
     'airbrush',
     'bodypaint',
     'mural',
-    'illustration',
     'portrait',
     'music',
-    'other',
   ],
   PRACTICAL_SERVICE: [
-    'gardening',
+    'gardenwork',
     'cleaning',
-    'movingHelp',
-    'computerHelp',
+    'movinghelp',
+    'computerhelp',
+    'repair',
     'handyman',
-    'other',
   ],
-  KNOWLEDGE: [
-    'workshop',
-    'cookingClass',
-    'musicLesson',
-    'tutoring',
-    'coaching',
-    'other',
-  ],
+  KNOWLEDGE: ['workshop', 'cookingclass', 'musicclass', 'tutoring', 'coaching'],
 };
+
+/** @deprecated Use SPECIALIZATIONS — alias for backwards compat in imports */
+export const SUBCATEGORIES = SPECIALIZATIONS;
+
+/** Map legacy V2 slugs → V3 specialization slugs */
+const LEGACY_SPECIALIZATION_SLUG: Record<string, string> = {
+  meals: 'meal',
+  gardening: 'gardenwork',
+  movingHelp: 'movinghelp',
+  computerHelp: 'computerhelp',
+  cookingClass: 'cookingclass',
+  musicLesson: 'musicclass',
+  other: '',
+};
+
+export function normalizeSpecializationSlug(slug: string): string {
+  const trimmed = slug.trim();
+  if (!trimmed) return '';
+  const legacy = LEGACY_SPECIALIZATION_SLUG[trimmed];
+  if (legacy !== undefined) return legacy;
+  return trimmed.toLowerCase();
+}
+
+export function normalizeSpecializations(
+  raw: unknown,
+  category?: MarketplaceCategory | null,
+): string[] {
+  let list: string[] = [];
+  if (Array.isArray(raw)) {
+    list = raw
+      .filter((v): v is string => typeof v === 'string')
+      .map(normalizeSpecializationSlug)
+      .filter(Boolean);
+  } else if (typeof raw === 'string' && raw.trim()) {
+    list = raw
+      .split(',')
+      .map(normalizeSpecializationSlug)
+      .filter(Boolean);
+  }
+  const unique = [...new Set(list)];
+  if (!category) return unique;
+  const allowed = new Set(SPECIALIZATIONS[category]);
+  return unique.filter((s) => allowed.has(s));
+}
+
+export function primarySpecialization(specializations: string[]): string | null {
+  return specializations[0] ?? null;
+}
 
 /** Map legacy sell URL category to V2 marketplace category */
 export function legacyUrlCategoryToMarketplace(
@@ -92,6 +123,13 @@ export function legacyUrlCategoryToMarketplace(
   if (cat === 'GARDEN') return 'GROW';
   if (cat === 'DESIGNER') return 'DESIGN';
   return 'CREATE';
+}
+
+/** Map legacy create-flow vertical → default marketplace category for prefill */
+export function legacyVerticalToMarketplaceCategory(
+  vertical: 'CHEFF' | 'GARDEN' | 'DESIGNER',
+): MarketplaceCategory {
+  return legacyUrlCategoryToMarketplace(vertical);
 }
 
 /** Map V2 category → legacy ProductCategory for feed/checkout compatibility */
@@ -229,4 +267,24 @@ export function fulfillmentIsDigitalOnly(opts: FulfillmentOptions): boolean {
     !opts.onSiteClient &&
     !opts.onSiteProvider
   );
+}
+
+export function parseMarketplaceCategoryParam(
+  raw: string | null | undefined,
+): MarketplaceCategory | null {
+  if (!raw) return null;
+  const s = raw.trim().toUpperCase();
+  const map: Record<string, MarketplaceCategory> = {
+    CREATE: 'CREATE',
+    CHEFF: 'CREATE',
+    GROW: 'GROW',
+    GROWN: 'GROW',
+    GARDEN: 'GROW',
+    DESIGN: 'DESIGN',
+    DESIGNER: 'DESIGN',
+    ARTISTIC_SERVICE: 'ARTISTIC_SERVICE',
+    PRACTICAL_SERVICE: 'PRACTICAL_SERVICE',
+    KNOWLEDGE: 'KNOWLEDGE',
+  };
+  return map[s] ?? null;
 }

@@ -7145,6 +7145,79 @@
       "practicalService": "Practical service",
       "knowledge": "Knowledge sharing"
     },
+    "entryCategories": {
+      "create": "Food & Craft",
+      "grow": "Garden & Nature",
+      "design": "Creative & Design",
+      "artisticService": "Artistic services",
+      "practicalService": "Services & Handyman",
+      "knowledge": "Workshops & Knowledge"
+    },
+    "entry": {
+      "intentHeading": "What would you like to do?",
+      "categoryHeading": "What fits best?",
+      "categoryHint": "Choose your main activity — you can select multiple specializations next.",
+      "specializationsHeading": "Specializations",
+      "specializationsHint": "Select everything that applies. Multiple choices are allowed.",
+      "continueToSummary": "Continue to summary",
+      "summaryHeading": "Does this look right?",
+      "summaryIntentLabel": "Intent",
+      "summaryCategoryLabel": "Category",
+      "summarySpecializationsLabel": "Specializations",
+      "editChoices": "Edit choices",
+      "continueToForm": "Continue"
+    },
+    "specializations": {
+      "create": {
+        "meal": "Meals",
+        "baking": "Baking",
+        "catering": "Catering",
+        "clothing": "Clothing",
+        "jewelry": "Jewelry",
+        "decoration": "Decoration",
+        "art": "Art"
+      },
+      "grow": {
+        "vegetables": "Vegetables",
+        "fruit": "Fruit",
+        "herbs": "Herbs",
+        "plants": "Plants",
+        "honey": "Honey"
+      },
+      "design": {
+        "logo": "Logo",
+        "website": "Website",
+        "app": "App",
+        "video": "Video",
+        "photo": "Photo",
+        "illustration": "Illustration",
+        "branding": "Branding",
+        "marketing": "Marketing"
+      },
+      "artisticService": {
+        "tattoo": "Tattoo",
+        "airbrush": "Airbrush",
+        "bodypaint": "Bodypaint",
+        "mural": "Mural painting",
+        "portrait": "Portrait",
+        "music": "Music"
+      },
+      "practicalService": {
+        "gardenwork": "Gardening",
+        "cleaning": "Cleaning",
+        "movinghelp": "Moving help",
+        "computerhelp": "Computer help",
+        "repair": "Repair",
+        "handyman": "Handyman"
+      },
+      "knowledge": {
+        "workshop": "Workshop",
+        "cookingclass": "Cooking class",
+        "musicclass": "Music lesson",
+        "tutoring": "Tutoring",
+        "coaching": "Coaching"
+      }
+    },
     "subcategories": {
       "create": {
         "meals": "Meals",
@@ -7265,7 +7338,8 @@
       "invalidFields": "Missing or invalid fields",
       "validPhotoUrlRequired": "At least one valid photo URL is required.",
       "priceInvalidContact": "Price is invalid (leave empty for price on request).",
-      "priceMissingOrInvalid": "Price is missing or invalid."
+      "priceMissingOrInvalid": "Price is missing or invalid.",
+      "specializationsRequired": "Select at least one specialization."
     }
   },
   "productOrder": {

@@ -221,6 +221,27 @@ export default function BottomNavigation() {
     return sessionRoles;
   }, [session?.user, userRoles.length, ensureProfile]);
 
+  const navigateToMarketplaceCreate = useCallback(
+    (hasPhoto: boolean) => {
+      const cat = pendingAutoCategoryRef.current;
+      pendingAutoCategoryRef.current = null;
+      const sp = new URLSearchParams();
+      if (hasPhoto) sp.set('photo', 'true');
+      sp.set('mode', 'sale');
+      if (cat === 'GARDEN') sp.set('vertical', 'garden');
+      else if (cat === 'DESIGNER') sp.set('vertical', 'designer');
+      else if (cat === 'CHEFF') sp.set('vertical', 'chef');
+      const qs = sp.toString();
+      const targetUrl = qs ? `/sell/new?${qs}` : '/sell/new';
+      createFlowDebug('form-open-marketplace-v3', { targetUrl, hasPhoto, cat });
+      setShowQuickAddMenu(false);
+      setQuickAddStep('platform');
+      setSelectedPlatform(null);
+      router.push(targetUrl);
+    },
+    [router],
+  );
+
   // Restore selectedPlatform from sessionStorage when component mounts or menu opens
   useEffect(() => {
     if (showQuickAddMenu && !selectedPlatform) {
@@ -259,13 +280,11 @@ export default function BottomNavigation() {
       if ((shouldGoToCategory || shouldGoToLocation) && storedPhoto && storedPlatform) {
         console.log('useEffect: Detected flags to go to category/location - executing!');
         if (shouldGoToCategory && storedPlatform === 'dorpsplein') {
-          console.log('Going to category step');
+          console.log('Going to marketplace entry (V3)');
           sessionStorage.removeItem('quickAddShouldGoToCategory');
           sessionStorage.removeItem('quickAddShouldGoToLocation');
-          sessionStorage.setItem('quickAddStep', 'category');
-          setQuickAddStep('category');
-          setSelectedPlatform(storedPlatform);
-          setCapturedPhoto(storedPhoto);
+          sessionStorage.removeItem('quickAddStep');
+          navigateToMarketplaceCreate(true);
           return;
         } else if (shouldGoToLocation && storedPlatform === 'inspiratie') {
           console.log('Going to location step');
@@ -282,7 +301,11 @@ export default function BottomNavigation() {
       // CRITICAL: If we have a photo and platform in storage but step is 'platform' or 'photoSource', fix it!
       if (storedPhoto && storedPlatform && (quickAddStep === 'platform' || quickAddStep === 'photoSource')) {
         console.log('useEffect: Detected photo and platform in storage but step is', quickAddStep, '- fixing!');
-        const correctStep: QuickAddStep = storedPlatform === 'dorpsplein' ? 'category' : 'location';
+        if (storedPlatform === 'dorpsplein') {
+          navigateToMarketplaceCreate(true);
+          return;
+        }
+        const correctStep: QuickAddStep = 'location';
         console.log('Correcting step to', correctStep);
         sessionStorage.setItem('quickAddStep', correctStep);
         setQuickAddStep(correctStep);
@@ -588,7 +611,6 @@ export default function BottomNavigation() {
   };
 
 
-  // Helper function to process photo and navigate to category/location selection
   const processPhotoAndNavigate = async (mediaUrl: string, isVideo: boolean = false) => {
     if (!mediaUrl) {
       console.error('processPhotoAndNavigate: No media URL provided');
@@ -681,6 +703,11 @@ export default function BottomNavigation() {
         pendingAutoLocation: pendingAutoLocationRef.current,
         allowedVerticals: intentAllowedVerticalsRef.current,
       });
+
+      if (platformToUse === 'dorpsplein') {
+        navigateToMarketplaceCreate(!!processedMediaUrl);
+        return;
+      }
       
     } catch (error) {
       console.error('Error saving photo:', error);
