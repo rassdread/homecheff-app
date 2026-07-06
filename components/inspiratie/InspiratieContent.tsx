@@ -21,6 +21,13 @@ import {
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import InspirationCard from '@/components/inspiratie/InspirationCard';
+import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
+import {
+  getDiscoveryFavoriteCount,
+  getDiscoveryProductReviewCount,
+  toSearchableListingRecord,
+} from '@/lib/discovery/consumer-accessors';
+import { matchesSearchTextQuery } from '@/lib/search';
 
 export type InspirationItem = {
   id: string;
@@ -32,10 +39,16 @@ export type InspirationItem = {
   createdAt: string;
   tags?: string[]; // Add tags for region filtering
   viewCount?: number;
+  /** @deprecated use discovery.social.favoriteCount */
   propsCount?: number;
   isFavorited?: boolean; // Add favorite status
+  /** @deprecated use discovery.trust.productReviewCount */
   reviewCount?: number;
+  /** @deprecated no blended rating in discovery */
   averageRating?: number;
+  discovery?: DiscoveryReadModel;
+  listingKind?: string | null;
+  listingIntent?: string | null;
   location?: {
     lat?: number | null;
     lng?: number | null;
@@ -464,14 +477,9 @@ export default function InspiratieContent({
     
     // Search filter
     if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      filtered = filtered.filter((item) => {
-        const titleMatch = item.title?.toLowerCase().includes(query);
-        const descriptionMatch = item.description?.toLowerCase().includes(query);
-        const userNameMatch = item.user?.name?.toLowerCase().includes(query);
-        const usernameMatch = item.user?.username?.toLowerCase().includes(query);
-        return titleMatch || descriptionMatch || userNameMatch || usernameMatch;
-      });
+      filtered = filtered.filter((item) =>
+        matchesSearchTextQuery(toSearchableListingRecord(item), searchQuery.trim()),
+      );
     }
     
     // Filter by minimum views
@@ -479,14 +487,16 @@ export default function InspiratieContent({
       filtered = filtered.filter((item) => (item.viewCount || 0) >= minViews);
     }
     
-    // Filter by minimum props
+    // Filter by minimum favorites (legacy minProps)
     if (minProps > 0) {
-      filtered = filtered.filter((item) => (item.propsCount || 0) >= minProps);
+      filtered = filtered.filter((item) => getDiscoveryFavoriteCount(item) >= minProps);
     }
     
-    // Filter by minimum rating
+    // Filter by minimum product reviews (legacy minRating — count only, no blended stars)
     if (minRating > 0) {
-      filtered = filtered.filter((item) => (item.averageRating || 0) >= minRating);
+      filtered = filtered.filter(
+        (item) => getDiscoveryProductReviewCount(item) >= minRating,
+      );
     }
     
     // Filter by region (using tags) - client-side fallback if API doesn't filter
@@ -551,25 +561,28 @@ export default function InspiratieContent({
           }
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'rating':
-          // Sort by rating
-          const aRating = a.averageRating || 0;
-          const bRating = b.averageRating || 0;
-          if (aRating !== bRating) {
-            return bRating - aRating;
+          const aReviews = getDiscoveryProductReviewCount(a);
+          const bReviews = getDiscoveryProductReviewCount(b);
+          if (aReviews !== bReviews) {
+            return bReviews - aReviews;
           }
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'props':
-          // Sort by props count
-          const aProps = a.propsCount || 0;
-          const bProps = b.propsCount || 0;
-          if (aProps !== bProps) {
-            return bProps - aProps;
+          const aFav = getDiscoveryFavoriteCount(a);
+          const bFav = getDiscoveryFavoriteCount(b);
+          if (aFav !== bFav) {
+            return bFav - aFav;
           }
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'popular':
-          // Sort by popularity: views + (props * 2) + (reviews * 3) + (rating * 10)
-          const aPopularity = (a.viewCount || 0) + (a.propsCount || 0) * 2 + (a.reviewCount || 0) * 3 + (a.averageRating || 0) * 10;
-          const bPopularity = (b.viewCount || 0) + (b.propsCount || 0) * 2 + (b.reviewCount || 0) * 3 + (b.averageRating || 0) * 10;
+          const aPopularity =
+            (a.viewCount || 0) +
+            getDiscoveryFavoriteCount(a) * 2 +
+            getDiscoveryProductReviewCount(a) * 3;
+          const bPopularity =
+            (b.viewCount || 0) +
+            getDiscoveryFavoriteCount(b) * 2 +
+            getDiscoveryProductReviewCount(b) * 3;
           if (aPopularity !== bPopularity) {
             return bPopularity - aPopularity;
           }

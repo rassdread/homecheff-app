@@ -38,3 +38,17 @@ export {
 } from './mappers/from-record';
 
 export type { DiscoveryEnrichment } from './mappers/enrichment';
+
+export {
+  marketplaceCategoryToLegacyVertical,
+  getDiscoveryLegacyVerticalCategory,
+  getDiscoveryListingKind,
+  getDiscoveryListingIntent,
+  getDiscoveryFavoriteCount,
+  getDiscoveryProductReviewCount,
+  getDiscoveryMarketplaceCategory,
+  getDiscoverySpecializations,
+  matchesDiscoveryVerticalSlug,
+  toSearchableListingRecord,
+  type WithOptionalDiscovery,
+} from './consumer-accessors';

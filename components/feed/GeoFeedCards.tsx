@@ -22,6 +22,13 @@ import {
 } from "@/lib/product/order-method";
 import type { FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
+import type { DiscoveryReadModel } from "@/lib/discovery/contracts/discovery-read-model";
+import {
+  getDiscoveryFavoriteCount,
+  getDiscoveryLegacyVerticalCategory,
+  getDiscoveryMarketplaceCategory,
+  getDiscoverySpecializations,
+} from "@/lib/discovery/consumer-accessors";
 import { formatItemPlaceDistanceLine } from "@/lib/geo/item-location";
 import { getDisplayName } from "@/lib/displayName";
 import {
@@ -149,6 +156,8 @@ export type GeoFeedCardItem = {
   taxonomy?: FeedTaxonomy;
   /** Canonical ListingKind (Phase 1). */
   listingKind?: ListingKind;
+  /** Unified discovery read model (Phase 1C). */
+  discovery?: DiscoveryReadModel;
   marketplaceCategory?: string | null;
   specializations?: string[];
   acceptedSpecializations?: string[];
@@ -244,11 +253,11 @@ export function FeedSaleCard({
       />
       <div className="feed-card-body p-3.5 sm:p-4 flex flex-col flex-1 gap-2">
         <MarketplaceBadgeList
-          specializations={it.specializations}
+          specializations={getDiscoverySpecializations(it)}
           marketplaceCategory={
-            (it.marketplaceCategory as MarketplaceCategory | null) ?? null
+            (getDiscoveryMarketplaceCategory(it) as MarketplaceCategory | null) ?? null
           }
-          legacyCategory={it.category}
+          legacyCategory={getDiscoveryLegacyVerticalCategory(it) ?? it.category}
           maxVisible={2}
           size="sm"
           className="min-h-0"
@@ -286,9 +295,9 @@ export function FeedSaleCard({
                   ? t("common.pickupOrDelivery")
                   : ""}
           </p>
-          {(it.favoriteCount ?? 0) >= 2 ? (
+          {(getDiscoveryFavoriteCount(it) ?? 0) >= 2 ? (
             <p className="text-[11px] font-medium text-secondary-brand/90 mt-0.5">
-              {t("feed.density.savedByCommunity", { count: it.favoriteCount ?? 0 })}
+              {t("feed.density.savedByCommunity", { count: getDiscoveryFavoriteCount(it) })}
             </p>
           ) : null}
         </div>

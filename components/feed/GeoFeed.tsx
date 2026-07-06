@@ -33,6 +33,15 @@ import { deriveFeedTaxonomy, type FeedTaxonomy } from "@/lib/feed/feed-taxonomy"
 import { matchesSearchTextQuery } from "@/lib/search";
 import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
 import type { DiscoveryReadModel } from "@/lib/discovery/contracts/discovery-read-model";
+import {
+  getDiscoveryFavoriteCount,
+  getDiscoveryLegacyVerticalCategory,
+  getDiscoveryListingKind,
+  getDiscoveryListingIntent,
+  getDiscoveryMarketplaceCategory,
+  getDiscoverySpecializations,
+  toSearchableListingRecord,
+} from "@/lib/discovery/consumer-accessors";
 import { attachListingKind } from "@/lib/marketplace/listing-kind/feed-attach";
 import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
 import FeedDesktopColumnToggle from "@/components/feed/FeedDesktopColumnToggle";
@@ -301,8 +310,6 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     ownerRaw != null && String(ownerRaw).trim() !== ""
       ? String(ownerRaw).trim()
       : null;
-  const category =
-    raw.category != null ? String(raw.category) : null;
 
   const user = raw.User as
     | {
@@ -348,6 +355,17 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     : undefined;
 
   const rawTaxonomy = raw.taxonomy as FeedTaxonomy | undefined;
+  const discovery = raw.discovery as DiscoveryReadModel | undefined;
+  const category =
+    discovery?.entityType === 'dish'
+      ? (raw.category != null ? String(raw.category) : null)
+      : getDiscoveryLegacyVerticalCategory({
+          discovery,
+          category: raw.category != null ? String(raw.category) : null,
+          marketplaceCategory:
+            raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
+        }) ?? (raw.category != null ? String(raw.category) : null);
+
   const taxonomyInput = {
     priceCents,
     orderMethod: raw.orderMethod != null ? String(raw.orderMethod) : null,
@@ -371,7 +389,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       : null,
     subcategory: raw.subcategory != null ? String(raw.subcategory) : null,
   };
-  const withKind = attachListingKind(taxonomyInput);
+  const withKind = discovery
+    ? { ...taxonomyInput, listingKind: discovery.listingKind }
+    : attachListingKind(taxonomyInput);
   const taxonomy =
     rawTaxonomy ??
     deriveFeedTaxonomy({
@@ -388,19 +408,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     priceCents,
     orderMethod:
       raw.orderMethod != null ? String(raw.orderMethod) : null,
-    listingIntent:
-      raw.listingIntent != null ? String(raw.listingIntent) : null,
     priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
     ownerId,
     category,
-    marketplaceCategory:
-      raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
-    specializations: Array.isArray(raw.specializations)
-      ? raw.specializations.filter((v): v is string => typeof v === 'string')
-      : undefined,
-    acceptedSpecializations: Array.isArray(raw.acceptedSpecializations)
-      ? raw.acceptedSpecializations.filter((v): v is string => typeof v === 'string')
-      : undefined,
     sellerUserId,
     sellerName,
     sellerUsername,
@@ -428,14 +438,34 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
         : undefined,
     viewCount:
       raw.viewCount != null ? Number(raw.viewCount) : undefined,
-    propsCount:
-      raw.propsCount != null ? Number(raw.propsCount) : undefined,
-    favoriteCount:
-      raw.favoriteCount != null ? Number(raw.favoriteCount) : undefined,
+    favoriteCount: discovery
+      ? discovery.social.favoriteCount
+      : raw.favoriteCount != null
+        ? Number(raw.favoriteCount)
+        : raw.propsCount != null
+          ? Number(raw.propsCount)
+          : undefined,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
     taxonomy,
-    listingKind: withKind.listingKind,
-    discovery: raw.discovery as DiscoveryReadModel | undefined,
+    listingKind: discovery?.listingKind ?? withKind.listingKind,
+    listingIntent:
+      discovery?.listingIntent ??
+      (raw.listingIntent != null ? String(raw.listingIntent) : null),
+    discovery,
+    marketplaceCategory:
+      discovery?.marketplaceCategory != null
+        ? String(discovery.marketplaceCategory)
+        : raw.marketplaceCategory != null
+          ? String(raw.marketplaceCategory)
+          : null,
+    specializations: discovery?.specializations?.length
+      ? discovery.specializations
+      : Array.isArray(raw.specializations)
+        ? raw.specializations.filter((v): v is string => typeof v === 'string')
+        : undefined,
+    acceptedSpecializations: Array.isArray(raw.acceptedSpecializations)
+      ? raw.acceptedSpecializations.filter((v): v is string => typeof v === 'string')
+      : undefined,
     feedSource:
       raw.feedSource != null
         ? String(raw.feedSource)
@@ -471,10 +501,22 @@ function isVisible(item: FeedItem) {
 }
 
 function matchesSearch(
-  item: Pick<FeedItem, 'title' | 'description' | 'listingKind' | 'listingIntent' | 'specializations' | 'marketplaceCategory' | 'category' | 'feedSource' | 'type'>,
+  item: Pick<
+    FeedItem,
+    | 'title'
+    | 'description'
+    | 'listingKind'
+    | 'listingIntent'
+    | 'specializations'
+    | 'marketplaceCategory'
+    | 'category'
+    | 'feedSource'
+    | 'type'
+    | 'discovery'
+  >,
   q: string
 ) {
-  return matchesSearchTextQuery(item, q);
+  return matchesSearchTextQuery(toSearchableListingRecord(item), q);
 }
 
 function inspSlotToSortable(slot: InspSlot) {
@@ -642,13 +684,14 @@ function toCardItem(
     it.distanceKm != null && it.distanceKm > 0
       ? it.distanceKm
       : computeViewerDistanceKm(viewer, it.lat, it.lng);
+  const fav = getDiscoveryFavoriteCount(it);
   return {
     id: it.id,
     title: it.title,
     description: it.description,
     priceCents: it.priceCents,
     orderMethod: it.orderMethod,
-    listingIntent: it.listingIntent,
+    listingIntent: getDiscoveryListingIntent(it),
     priceModel: it.priceModel,
     type: it.type,
     isRecipe: it.isRecipe,
@@ -660,10 +703,9 @@ function toCardItem(
     videoThumbnail: it.videoThumbnail,
     distanceKm,
     viewCount: it.viewCount,
-    propsCount: it.propsCount,
-    favoriteCount: it.favoriteCount,
+    favoriteCount: fav,
     ownerId: it.ownerId,
-    category: it.category,
+    category: getDiscoveryLegacyVerticalCategory(it) ?? it.category,
     sellerUserId: it.sellerUserId,
     sellerName: it.sellerName,
     sellerUsername: it.sellerUsername,
@@ -672,9 +714,10 @@ function toCardItem(
     sellerDisplayNameOption: it.sellerDisplayNameOption,
     sellerBadges: it.sellerBadges,
     taxonomy: it.taxonomy,
-    listingKind: it.listingKind,
-    marketplaceCategory: it.marketplaceCategory,
-    specializations: it.specializations,
+    listingKind: getDiscoveryListingKind(it),
+    discovery: it.discovery,
+    marketplaceCategory: getDiscoveryMarketplaceCategory(it),
+    specializations: getDiscoverySpecializations(it),
     acceptedSpecializations: it.acceptedSpecializations,
   };
 }
@@ -1691,13 +1734,17 @@ export default function GeoFeed({
     const qn = appliedSearchQuery.trim();
     return saleCandidates.filter((item) => {
       if (!matchesSearch(item, qn)) return false;
+      if (categoryEnum) {
+        const itemCat = getDiscoveryLegacyVerticalCategory(item);
+        if (itemCat !== categoryEnum) return false;
+      }
       return matchesFeedClientPriceRange(
         item,
         appliedPriceRange.min,
         appliedPriceRange.max
       );
     });
-  }, [saleCandidates, appliedSearchQuery, appliedPriceRange]);
+  }, [saleCandidates, appliedSearchQuery, appliedPriceRange, categoryEnum]);
 
   const hasViewerCoordsForSort = effectiveViewerForDistance != null;
 
@@ -1732,8 +1779,11 @@ export default function GeoFeed({
   const filteredApiInspiration = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return inspiratiePool.filter((item) => {
-      if (categoryEnum && item.category !== categoryEnum) return false;
-      return matchesSearch(item, qn);
+      if (categoryEnum) {
+        const itemCat = getDiscoveryLegacyVerticalCategory(item);
+        if (itemCat !== categoryEnum) return false;
+      }
+      return matchesSearchTextQuery(toSearchableListingRecord(item), qn);
     });
   }, [inspiratiePool, appliedSearchQuery, categoryEnum]);
 
@@ -1741,7 +1791,7 @@ export default function GeoFeed({
     const qn = appliedSearchQuery.trim();
     return feedOnlyInspiration.filter((item) => {
       if (categoryEnum) {
-        const itemCat = feedItemCategoryEnum(item.category);
+        const itemCat = getDiscoveryLegacyVerticalCategory(item);
         if (itemCat !== categoryEnum) return false;
       }
       return matchesSearch(item, qn);

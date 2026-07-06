@@ -1,5 +1,6 @@
 import type { SearchableListingRecord } from '../contracts/search-contract';
 import { inferSearchQueryIntent } from '../infer-query-intent';
+import { toSearchableListingRecord } from '@/lib/discovery/consumer-accessors';
 
 function normalizeTerm(value: string): string {
   return value.trim().toLowerCase();
@@ -12,6 +13,8 @@ function haystackForItem(item: SearchableListingRecord): string {
     item.subcategory,
     item.category,
     item.marketplaceCategory,
+    item.listingKind,
+    item.listingIntent,
     item.seller?.name,
     item.seller?.username,
     item.location?.place,
@@ -32,10 +35,11 @@ export function matchesSearchTextQuery(
   item: SearchableListingRecord,
   q: string,
 ): boolean {
+  const resolved = toSearchableListingRecord(item);
   const term = normalizeTerm(q);
   if (!term) return true;
 
-  const haystack = haystackForItem(item);
+  const haystack = haystackForItem(resolved);
   if (haystack.includes(term)) return true;
 
   const words = term.split(/\s+/).filter(Boolean);
@@ -46,7 +50,7 @@ export function matchesSearchTextQuery(
   const intent = inferSearchQueryIntent(term);
   if (
     intent.suggestsRequest &&
-    (item.listingIntent === 'REQUEST' || item.listingKind === 'REQUEST')
+    (resolved.listingIntent === 'REQUEST' || resolved.listingKind === 'REQUEST')
   ) {
     const topical = words.filter(
       (w) =>

@@ -6,8 +6,9 @@ export type RankableSaleItem = {
   photo: string | null;
   createdAt: string;
   viewCount?: number;
+  /** @deprecated use favoriteCount from discovery.social */
   propsCount?: number;
-  /** Real saves (favorites) on product — used as a light engagement signal only. */
+  /** Real saves (favorites) — primary social signal (Phase 1C). */
   favoriteCount?: number;
   distanceKm?: number;
 };
@@ -43,11 +44,9 @@ export function computeSaleScore(
   item: RankableSaleItem,
   nowMs: number
 ): number {
-  const props = item.propsCount ?? 0;
   const views = item.viewCount ?? 0;
-  const fav = item.favoriteCount ?? 0;
+  const fav = item.favoriteCount ?? item.propsCount ?? 0;
   let score =
-    props * 3 +
     views * 0.5 +
     Math.min(22, fav * 1.75) +
     computeRecencyBoost(item.createdAt, nowMs) +

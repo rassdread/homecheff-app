@@ -34,6 +34,8 @@ export type MarketplaceSaleInput = {
   status?: string | null;
   isActive?: boolean | null;
   isPublic?: boolean | null;
+  /** Phase 1C: canonical classification — preferred over heuristics. */
+  discovery?: { listingKind?: string | null; listingIntent?: string | null } | null;
 };
 
 /** Resolve price in cents from mixed API shapes. */
@@ -70,6 +72,7 @@ function isMarketplaceProductLike(item: MarketplaceSaleInput): boolean {
 }
 
 function isInspirationFeedItem(item: MarketplaceSaleInput): boolean {
+  if (item.discovery?.listingKind === 'INSPIRATION') return true;
   const source = String(item.feedSource ?? item.type ?? item.kind ?? '')
     .trim()
     .toUpperCase();
@@ -81,12 +84,14 @@ function isInspirationFeedItem(item: MarketplaceSaleInput): boolean {
 
 /**
  * True when an item belongs in the Te koop / marketplace sale feed.
- * Based on listingIntent (OFFER or legacy null), not numeric price.
- * Dishes are always inspiration — priced Dish must not leak into commerce.
+ * Uses discovery.listingKind when present; otherwise legacy listingIntent rules.
  */
 export function isMarketplaceSaleItem(item: MarketplaceSaleInput): boolean {
+  if (item.discovery?.listingKind === 'INSPIRATION') return false;
+  if (item.discovery?.listingKind === 'REQUEST') return false;
   if (isInspirationFeedItem(item)) return false;
   if (isRequestListing(item)) return false;
+  if (item.discovery?.listingIntent === 'REQUEST') return false;
   if (item.taxonomy?.direction === 'REQUEST') return false;
 
   if (item.taxonomy?.direction === 'OFFER' && item.taxonomy?.kind === 'PRODUCT') {

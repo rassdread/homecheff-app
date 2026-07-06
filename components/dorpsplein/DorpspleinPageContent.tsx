@@ -36,6 +36,15 @@ import {
   sortDorpspleinProducts,
 } from "@/lib/feed/feed-client-sort";
 import { matchesSearchTextQuery } from "@/lib/search";
+import type { DiscoveryReadModel } from "@/lib/discovery/contracts/discovery-read-model";
+import {
+  getDiscoveryFavoriteCount,
+  getDiscoveryLegacyVerticalCategory,
+  getDiscoveryMarketplaceCategory,
+  getDiscoveryProductReviewCount,
+  getDiscoverySpecializations,
+  toSearchableListingRecord,
+} from "@/lib/discovery/consumer-accessors";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
 import { getDisplayName } from "@/lib/displayName";
@@ -80,8 +89,14 @@ type HomeItem = {
   favoriteCount?: number;
   isFavorited?: boolean; // NEW: User's favorite status for this product
   viewCount?: number;
+  /** @deprecated use discovery.trust.productReviewCount */
   averageRating?: number;
+  /** @deprecated use discovery.trust.productReviewCount */
   reviewCount?: number;
+  /** Canonical discovery read model (Phase 1C). */
+  discovery?: DiscoveryReadModel;
+  listingKind?: string | null;
+  listingIntent?: string | null;
   location?: {
     place?: string;
     city?: string;
@@ -817,11 +832,14 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
         }
       };
     }).filter((it) => {
-      if (term && !matchesSearchTextQuery(it, term)) {
+      if (term && !matchesSearchTextQuery(toSearchableListingRecord(it), term)) {
         return false;
       }
-      if (category !== "all" && it.category?.toLowerCase() !== category.toLowerCase()) {
-        return false;
+      if (category !== "all") {
+        const itemVertical = getDiscoveryLegacyVerticalCategory(it);
+        if (itemVertical?.toLowerCase() !== category.toLowerCase()) {
+          return false;
+        }
       }
       if (subcategory !== "all" && it.subcategory !== subcategory) {
         return false;
@@ -1458,26 +1476,26 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
                           <div className="text-neutral-400 text-4xl">
-                            {item.category === 'CHEFF' ? <ChefHat className="w-12 h-12 mx-auto" /> :
-                             item.category === 'GROWN' ? <Sprout className="w-12 h-12 mx-auto" /> :
-                             item.category === 'DESIGNER' ? <Palette className="w-12 h-12 mx-auto" /> :
+                            {(getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'CHEFF' ? <ChefHat className="w-12 h-12 mx-auto" /> :
+                             (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'GROWN' ? <Sprout className="w-12 h-12 mx-auto" /> :
+                             (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'DESIGNER' ? <Palette className="w-12 h-12 mx-auto" /> :
                              <ChefHat className="w-12 h-12 mx-auto" />}
                           </div>
                         </div>
                       )}
                       
                       {/* Category Badge */}
-                      {item.category && (
+                      {(getDiscoveryLegacyVerticalCategory(item) ?? item.category) && (
                         <div className="absolute top-4 left-4 z-10" data-tour={index === 0 ? "category-badge" : undefined}>
                           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                            item.category === 'CHEFF' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
-                            item.category === 'GROWN' ? 'bg-primary-100 text-primary-800 border border-primary-200' :
-                            item.category === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800 border border-secondary-200' :
+                            (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'CHEFF' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
+                            (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'GROWN' ? 'bg-primary-100 text-primary-800 border border-primary-200' :
+                            (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'DESIGNER' ? 'bg-secondary-100 text-secondary-800 border border-secondary-200' :
                             'bg-neutral-100 text-neutral-800 border border-neutral-200'
                           }`}>
-                            {item.category === 'CHEFF' ? `🍳 ${t('inspiratie.dorpsplein.recipes')}` :
-                             item.category === 'GROWN' ? `🌱 ${t('inspiratie.dorpsplein.growing')}` :
-                             item.category === 'DESIGNER' ? `🎨 ${t('inspiratie.dorpsplein.designs')}` : item.category}
+                            {(getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'CHEFF' ? `🍳 ${t('inspiratie.dorpsplein.recipes')}` :
+                             (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'GROWN' ? `🌱 ${t('inspiratie.dorpsplein.growing')}` :
+                             (getDiscoveryLegacyVerticalCategory(item) ?? item.category) === 'DESIGNER' ? `🎨 ${t('inspiratie.dorpsplein.designs')}` : (getDiscoveryLegacyVerticalCategory(item) ?? item.category)}
                           </span>
                         </div>
                       )}
@@ -1525,12 +1543,12 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                     {/* Content */}
                     <div className={viewMode === 'list' ? 'p-6 flex-1' : 'p-6'}>
                       <MarketplaceBadgeList
-                        specializations={item.specializations}
+                        specializations={getDiscoverySpecializations(item)}
                         marketplaceCategory={
-                          (item.marketplaceCategory as MarketplaceCategory | null) ??
+                          (getDiscoveryMarketplaceCategory(item) as MarketplaceCategory | null) ??
                           null
                         }
-                        legacyCategory={item.category}
+                        legacyCategory={getDiscoveryLegacyVerticalCategory(item) ?? item.category}
                         maxVisible={2}
                         size="sm"
                         className="mb-2"
@@ -1677,13 +1695,15 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                           <Clock className="w-3 h-3" />
                           <span>{new Date(item.createdAt).toLocaleDateString('nl-NL')}</span>
                         </div>
-                        {item.averageRating && item.averageRating > 0 && (
+                        {getDiscoveryProductReviewCount(item) > 0 && (
                           <div className="flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded-full">
                             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium">{item.averageRating.toFixed(1)}</span>
-                            {item.reviewCount && item.reviewCount > 0 && (
-                              <span className="text-yellow-600">({item.reviewCount})</span>
-                            )}
+                            <span className="font-medium">
+                              {getDiscoveryProductReviewCount(item)}
+                            </span>
+                            <span className="text-yellow-600">
+                              {getDiscoveryProductReviewCount(item) === 1 ? 'beoordeling' : 'beoordelingen'}
+                            </span>
                           </div>
                         )}
                         {item.viewCount && item.viewCount > 0 && (
@@ -1692,10 +1712,10 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
                             <span className="font-medium">{item.viewCount}</span>
                           </div>
                         )}
-                        {item.favoriteCount && item.favoriteCount > 0 && (
+                        {getDiscoveryFavoriteCount(item) > 0 && (
                           <div className="flex items-center gap-1">
                             <span>❤️</span>
-                            <span>{item.favoriteCount}</span>
+                            <span>{getDiscoveryFavoriteCount(item)}</span>
                           </div>
                         )}
                         {item.location && (

@@ -39,6 +39,8 @@ export type SearchResultClassification = {
   entityType: SearchResultEntityType;
 };
 
+import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
+
 /** Minimum shape for filter + text matching helpers. */
 export type SearchableListingRecord = {
   title?: string | null;
@@ -53,6 +55,8 @@ export type SearchableListingRecord = {
   feedSource?: string | null;
   type?: string | null;
   entityType?: SearchResultEntityType | null;
+  /** Phase 1C: when present, search uses discovery fields without re-derivation. */
+  discovery?: DiscoveryReadModel | null;
   /** Optional seller fields for Dorpsplein text search. */
   seller?: {
     name?: string | null;

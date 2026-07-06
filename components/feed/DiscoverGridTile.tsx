@@ -12,6 +12,10 @@ import { inspirationContentLabel } from "@/components/inspiratie/InspirationCard
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
 import { feedLocationLine } from "@/components/feed/GeoFeedCards";
 import { getDisplayName } from "@/lib/displayName";
+import {
+  getDiscoveryFavoriteCount,
+  getDiscoveryLegacyVerticalCategory,
+} from "@/lib/discovery/consumer-accessors";
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -30,13 +34,14 @@ function categoryBadgeLabel(
   t: TFn
 ): string {
   if (kind === "sale") return t("feed.chipSale");
-  const cat = (it.category || "CHEFF").toUpperCase() as InspirationItem["category"];
+  const cat = (getDiscoveryLegacyVerticalCategory(it) || "CHEFF").toUpperCase() as InspirationItem["category"];
   return inspirationContentLabel({ category: cat } as InspirationItem, t);
 }
 
 export function inspirationApiToCardItem(item: InspirationItem): GeoFeedCardItem {
   const mainPhoto = item.photos.find((p) => p.isMain) ?? item.photos[0];
   const mainVideo = item.videos?.[0];
+  const fav = getDiscoveryFavoriteCount(item);
   return {
     id: item.id,
     title: item.title,
@@ -51,8 +56,11 @@ export function inspirationApiToCardItem(item: InspirationItem): GeoFeedCardItem
     videoThumbnail: mainVideo?.thumbnail ?? null,
     distanceKm: item.location?.distanceKm ?? undefined,
     viewCount: item.viewCount,
-    propsCount: item.propsCount,
-    category: item.category,
+    favoriteCount: fav,
+    category: getDiscoveryLegacyVerticalCategory(item) ?? item.category,
+    listingKind: item.discovery?.listingKind ?? 'INSPIRATION',
+    listingIntent: item.discovery?.listingIntent ?? null,
+    discovery: item.discovery,
     sellerUserId: item.user.id,
     sellerName: item.user.name,
     sellerUsername: item.user.username,
@@ -180,8 +188,8 @@ export default function DiscoverGridTile({
                 {it.viewCount}
               </span>
             ) : null}
-            {(it.propsCount ?? 0) > 0 ? (
-              <span>👏 {it.propsCount}</span>
+            {(getDiscoveryFavoriteCount(it) ?? 0) > 0 ? (
+              <span>❤️ {getDiscoveryFavoriteCount(it)}</span>
             ) : null}
           </div>
         </div>

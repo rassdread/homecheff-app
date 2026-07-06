@@ -8,6 +8,8 @@ import { formatProductPriceLabel } from '@/lib/product/order-method';
 import { matchesProfileAanbodFilter } from '@/lib/marketplace/listing-kind/profile-filter';
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
+import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
+import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
 
 type Product = {
   id: string;
@@ -29,6 +31,7 @@ type Product = {
   category?: string | null;
   isActive: boolean;
   createdAt: string;
+  discovery?: DiscoveryReadModel;
   Image: { id: string; fileUrl: string; sortOrder: number }[];
   // Recipe-specific fields
   prepTime?: number | null;
@@ -81,7 +84,9 @@ export default function ProductManagement({
         let filteredProducts = data.products || [];
 
         if (categoryFilter) {
-          filteredProducts = filteredProducts.filter((p: Product) => p.category === categoryFilter);
+          filteredProducts = filteredProducts.filter(
+            (p: Product) => getDiscoveryLegacyVerticalCategory(p) === categoryFilter,
+          );
         }
 
         if (aanbodFilter && aanbodFilter !== 'all') {
@@ -90,11 +95,17 @@ export default function ProductManagement({
               {
                 entityType: 'product',
                 category: p.category ?? null,
-                listingIntent: p.listingIntent ?? null,
-                marketplaceCategory: p.marketplaceCategory ?? null,
-                specializations: p.specializations ?? null,
+                listingIntent: p.discovery?.listingIntent ?? p.listingIntent ?? null,
+                marketplaceCategory:
+                  p.discovery?.marketplaceCategory ?? p.marketplaceCategory ?? null,
+                specializations: p.discovery?.specializations ?? p.specializations ?? null,
                 subcategory: p.subcategory ?? null,
-                barterOpenness: p.barterOpenness ?? null,
+                barterOpenness: p.discovery?.barterOpenness ?? p.barterOpenness ?? null,
+                discoveryListingKind: p.discovery?.listingKind ?? null,
+                discoveryMarketplaceCategory:
+                  p.discovery?.marketplaceCategory != null
+                    ? String(p.discovery.marketplaceCategory)
+                    : null,
               },
               aanbodFilter,
             ),
@@ -293,7 +304,9 @@ export default function ProductManagement({
                 <div className="p-4 space-y-3">
                   <div>
                     <h4 className="font-semibold text-gray-900 truncate">{product.title}</h4>
-                    <p className="text-sm text-gray-600 capitalize">{product.category?.toLowerCase() || 'Onbekend'}</p>
+                    <p className="text-sm text-gray-600 capitalize">
+                      {(getDiscoveryLegacyVerticalCategory(product) ?? product.category)?.toLowerCase() || 'Onbekend'}
+                    </p>
                   </div>
                   
                   <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>

@@ -1,10 +1,12 @@
 import type { BarterOpenness } from '@prisma/client';
+import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ProfileV2AanbodFilter } from '@/lib/profile/profile-v2/types';
 import {
   dbCategoryToFormCategory,
   profileSlugToDbCategory,
   type OfferingProfileSlug,
 } from '@/lib/create/offering-vertical';
+import { marketplaceCategoryToLegacyVertical } from '@/lib/discovery/consumer-accessors';
 import { deriveListingKind } from './derive-listing-kind';
 import type { DeriveListingKindInput } from './types';
 
@@ -12,6 +14,10 @@ export type ProfileListingFilterInput = DeriveListingKindInput & {
   barterOpenness?: BarterOpenness | string | null;
   /** Legacy Product.category for vertical filters. */
   category?: string | null;
+  /** Phase 1C: canonical kind from DiscoveryReadModel — no re-derivation when set. */
+  discoveryListingKind?: ListingKind | null;
+  /** Phase 1C: canonical marketplaceCategory from DiscoveryReadModel. */
+  discoveryMarketplaceCategory?: string | null;
 };
 
 function isTradeListing(input: ProfileListingFilterInput): boolean {
@@ -24,6 +30,10 @@ function matchesVerticalFilter(
   slug: OfferingProfileSlug,
 ): boolean {
   const dbCategory = profileSlugToDbCategory(slug);
+  if (input.discoveryMarketplaceCategory) {
+    const mapped = marketplaceCategoryToLegacyVertical(input.discoveryMarketplaceCategory);
+    if (mapped) return mapped === dbCategory;
+  }
   const productCategory = String(input.category ?? '').trim().toUpperCase();
   return productCategory === dbCategory;
 }
@@ -46,7 +56,8 @@ export function matchesProfileAanbodFilter(
     return isTradeListing(input);
   }
 
-  const { listingKind } = deriveListingKind(input);
+  const listingKind =
+    input.discoveryListingKind ?? deriveListingKind(input).listingKind;
 
   switch (filter) {
     case 'products':
