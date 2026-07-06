@@ -7668,6 +7668,41 @@
         "completedDeals": "Afgeronde afspraken"
       }
     },
+    "detail": {
+      "sections": {
+        "heroMedia": "Foto's & media",
+        "personRow": "Maker",
+        "valueExchange": "Waarde-uitwisseling",
+        "trustBlock": "Vertrouwen",
+        "description": "Beschrijving",
+        "availability": "Beschikbaarheid",
+        "reviews": "Reviews",
+        "relatedListings": "Meer van deze maker",
+        "actionBlock": "Acties"
+      },
+      "trust": {
+        "productReviews": "Productreviews",
+        "dealReviews": "Dealreviews",
+        "completedDeals": "Afgeronde afspraken",
+        "deliveries": "Bezorgingen voltooid",
+        "repeatCustomers": "Terugkerende klanten",
+        "badge": "Vertrouwensbadge",
+        "establishedMaker": "Gevestigde maker"
+      },
+      "actions": {
+        "order": "Bestellen",
+        "requestProposal": "Voorstel sturen",
+        "message": "Bericht",
+        "save": "Opslaan",
+        "share": "Delen",
+        "contact": "Contact",
+        "print": "Printen",
+        "edit": "Bewerken"
+      },
+      "valueExchange": {
+        "title": "Betaling & ruil"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Gezocht"

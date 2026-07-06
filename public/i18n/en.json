@@ -7668,6 +7668,41 @@
         "completedDeals": "Completed deals"
       }
     },
+    "detail": {
+      "sections": {
+        "heroMedia": "Photos & media",
+        "personRow": "Maker",
+        "valueExchange": "Value exchange",
+        "trustBlock": "Trust",
+        "description": "Description",
+        "availability": "Availability",
+        "reviews": "Reviews",
+        "relatedListings": "More from this maker",
+        "actionBlock": "Actions"
+      },
+      "trust": {
+        "productReviews": "Product reviews",
+        "dealReviews": "Deal reviews",
+        "completedDeals": "Completed agreements",
+        "deliveries": "Deliveries completed",
+        "repeatCustomers": "Repeat customers",
+        "badge": "Trust badge",
+        "establishedMaker": "Established maker"
+      },
+      "actions": {
+        "order": "Order",
+        "requestProposal": "Send proposal",
+        "message": "Message",
+        "save": "Save",
+        "share": "Share",
+        "contact": "Contact",
+        "print": "Print",
+        "edit": "Edit"
+      },
+      "valueExchange": {
+        "title": "Payment & exchange"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Wanted"
