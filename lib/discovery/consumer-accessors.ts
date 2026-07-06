@@ -75,8 +75,23 @@ export function getDiscoveryFavoriteCount(
 export function getDiscoveryProductReviewCount(
   item: WithOptionalDiscovery & { reviewCount?: number | null },
 ): number {
-  if (item.discovery) return item.discovery.trust.productReviewCount;
+  if (item.discovery) return item.discovery.trust.product.reviewCount;
   return item.reviewCount ?? 0;
+}
+
+export function getDiscoverySellerTier(
+  item: WithOptionalDiscovery,
+): number | undefined {
+  return item.discovery?.trust.sellerTier;
+}
+
+export function getDiscoveryTrustBadges(
+  item: WithOptionalDiscovery & {
+    sellerBadges?: { key: string; name: string; icon: string }[];
+  },
+): DiscoveryReadModel['trust']['trustBadges'] {
+  if (item.discovery) return item.discovery.trust.trustBadges;
+  return [];
 }
 
 export function getDiscoveryMarketplaceCategory(

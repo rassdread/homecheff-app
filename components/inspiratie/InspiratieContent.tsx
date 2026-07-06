@@ -42,7 +42,7 @@ export type InspirationItem = {
   /** @deprecated use discovery.social.favoriteCount */
   propsCount?: number;
   isFavorited?: boolean; // Add favorite status
-  /** @deprecated use discovery.trust.productReviewCount */
+  /** @deprecated use discovery.trust.product.reviewCount */
   reviewCount?: number;
   /** @deprecated no blended rating in discovery */
   averageRating?: number;

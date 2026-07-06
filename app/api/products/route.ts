@@ -18,6 +18,10 @@ import {
   parseSearchFilterParams,
 } from "@/lib/search";
 import { attachDiscoveryReadModel } from "@/lib/discovery";
+import {
+  discoveryEnrichmentFromBundle,
+  fetchSellerTrustBundles,
+} from "@/lib/discovery/trust/batch-enrichment";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -420,6 +424,10 @@ export async function GET(req: Request) {
       sellerUserIds.length > 0
         ? await fetchAuthorBadgeSummariesByUserIds(sellerUserIds, 2)
         : new Map<string, { key: string; name: string; icon: string }[]>();
+    const sellerTrustBundles =
+      sellerUserIds.length > 0
+        ? await fetchSellerTrustBundles(sellerUserIds, sellerBadgeMap)
+        : new Map();
 
     // COMPLETE RESPONSE - alle data terug
     const items = products.map((p: any) => {
@@ -495,15 +503,18 @@ export async function GET(req: Request) {
 
       const classified = { ...base } as Record<string, unknown>;
       attachSearchClassificationToRecord(classified, 'product');
-      attachDiscoveryReadModel(classified, {
-        productReviewCount: reviewCountMap.get(p.id) || 0,
-        favoriteCount: favoriteCountMap.get(p.id) || 0,
-        trustBadges: (() => {
-          const uid = p.seller?.User?.id as string | undefined;
-          if (!uid) return undefined;
-          return sellerBadgeMap.get(uid);
-        })(),
-      });
+      const sellerUid = p.seller?.User?.id as string | undefined;
+      const trustBundle = sellerUid ? sellerTrustBundles.get(sellerUid) : undefined;
+      attachDiscoveryReadModel(
+        classified,
+        {
+          ...discoveryEnrichmentFromBundle(trustBundle, {
+            productReviewCount: reviewCountMap.get(p.id) || 0,
+            listingIsActive: p.isActive !== false,
+          }),
+          favoriteCount: favoriteCountMap.get(p.id) || 0,
+        },
+      );
       return classified;
     });
 

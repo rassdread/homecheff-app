@@ -4,8 +4,8 @@ import type { DiscoveryReadModel } from '../contracts/discovery-read-model';
 import {
   buildCapabilityBlock,
   cityFromPlace,
+  mergeDiscoveryTrust,
   mergeSocialBlock,
-  mergeTrustBlock,
   parseTrustBadges,
   toIsoString,
   type DiscoveryEnrichment,
@@ -80,10 +80,11 @@ export function mapLegacyListingToDiscoveryReadModel(
     specializations: [],
     acceptedSpecializations: [],
     barterOpenness: null,
-    trust: mergeTrustBlock(
-      { trustBadges: parseTrustBadges(enrichment?.trustBadges) },
-      enrichment,
-    ),
+    trust: mergeDiscoveryTrust({
+      ...enrichment,
+      listingIsActive: enrichment?.listingIsActive ?? source.isPublic !== false,
+      trustBadges: parseTrustBadges(enrichment?.trustBadges),
+    }),
     social: mergeSocialBlock({}, enrichment),
     createdAt: toIsoString(source.createdAt) ?? new Date().toISOString(),
     updatedAt: toIsoString(source.updatedAt),

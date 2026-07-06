@@ -8,6 +8,8 @@
 
 import type { BarterOpenness, MarketplaceCategory } from '@prisma/client';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import type { DiscoveryTrustContract } from './discovery-trust-contract';
+import { EMPTY_DISCOVERY_TRUST_CONTRACT } from './discovery-trust-contract';
 
 export type DiscoveryEntityType = 'product' | 'dish' | 'listing' | 'workspace';
 
@@ -19,15 +21,8 @@ export type DiscoveryTrustBadge = {
   icon: string;
 };
 
-/** Per-channel trust — no blended rating (Phase 0). */
-export type DiscoveryTrustBlock = {
-  productReviewCount: number;
-  dealReviewCount: number;
-  courierReviewCount: number;
-  completedDeals: number;
-  completedDeliveries: number;
-  trustBadges: DiscoveryTrustBadge[];
-};
+/** @deprecated Use DiscoveryTrustContract — flat block removed in Phase 2B. */
+export type DiscoveryTrustBlock = DiscoveryTrustContract;
 
 /** Social signals — favorites + fans + workspace props only (Phase 0). */
 export type DiscoverySocialBlock = {
@@ -70,8 +65,8 @@ export type DiscoveryReadModel = {
   acceptedSpecializations: string[];
   barterOpenness: BarterOpenness | string | null;
 
-  /** Trust — channel counts only, no composite average */
-  trust: DiscoveryTrustBlock;
+  /** Trust — canonical DiscoveryTrustContract (Phase 2B). */
+  trust: DiscoveryTrustContract;
 
   /** Social — no item-level props */
   social: DiscoverySocialBlock;
@@ -86,14 +81,8 @@ export type DiscoveryReadModel = {
   capability: DiscoveryCapabilityBlock;
 };
 
-export const EMPTY_DISCOVERY_TRUST: DiscoveryTrustBlock = {
-  productReviewCount: 0,
-  dealReviewCount: 0,
-  courierReviewCount: 0,
-  completedDeals: 0,
-  completedDeliveries: 0,
-  trustBadges: [],
-};
+export const EMPTY_DISCOVERY_TRUST: DiscoveryTrustContract =
+  EMPTY_DISCOVERY_TRUST_CONTRACT;
 
 export const EMPTY_DISCOVERY_SOCIAL: DiscoverySocialBlock = {
   favoriteCount: 0,

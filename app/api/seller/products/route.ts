@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
-import { mapProductToDiscoveryReadModel } from "@/lib/discovery";
+import {
+  discoveryEnrichmentFromBundle,
+  fetchSellerTrustBundles,
+  mapProductToDiscoveryReadModel,
+} from "@/lib/discovery";
+import { fetchAuthorBadgeSummariesByUserIds } from "@/lib/gamification/author-badge-summaries";
 
 export async function GET(request: NextRequest) {
   try {
@@ -106,6 +111,28 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform products to match expected format
+    const productIds = products.map((p) => p.id);
+    const reviewCounts =
+      productIds.length > 0
+        ? await prisma.productReview.groupBy({
+            by: ['productId'],
+            where: {
+              productId: { in: productIds },
+              reviewSubmittedAt: { not: null },
+              rating: { gt: 0 },
+            },
+            _count: { id: true },
+          })
+        : [];
+    const reviewCountMap = new Map<string, number>();
+    for (const row of reviewCounts) {
+      reviewCountMap.set(row.productId, row._count.id);
+    }
+
+    const badgeMap = await fetchAuthorBadgeSummariesByUserIds([user.id], 2);
+    const trustBundles = await fetchSellerTrustBundles([user.id], badgeMap);
+    const trustBundle = trustBundles.get(user.id);
+
     const transformedProducts = products.map(product => {
       const row = {
       id: product.id,
@@ -129,7 +156,12 @@ export async function GET(request: NextRequest) {
     };
       return {
         ...row,
-        discovery: mapProductToDiscoveryReadModel(row),
+        discovery: mapProductToDiscoveryReadModel(row, {
+          ...discoveryEnrichmentFromBundle(trustBundle, {
+            productReviewCount: reviewCountMap.get(product.id) || 0,
+            listingIsActive: product.isActive !== false,
+          }),
+        }),
       };
     });
 

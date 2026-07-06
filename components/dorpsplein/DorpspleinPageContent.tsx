@@ -89,9 +89,9 @@ type HomeItem = {
   favoriteCount?: number;
   isFavorited?: boolean; // NEW: User's favorite status for this product
   viewCount?: number;
-  /** @deprecated use discovery.trust.productReviewCount */
+  /** @deprecated use discovery.trust.product.reviewCount */
   averageRating?: number;
-  /** @deprecated use discovery.trust.productReviewCount */
+  /** @deprecated use discovery.trust.product.reviewCount */
   reviewCount?: number;
   /** Canonical discovery read model (Phase 1C). */
   discovery?: DiscoveryReadModel;

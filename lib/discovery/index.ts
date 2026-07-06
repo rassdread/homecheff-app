@@ -69,6 +69,18 @@ export {
 } from './mappers/from-record';
 
 export type { DiscoveryEnrichment } from './mappers/enrichment';
+export { mergeDiscoveryTrust } from './mappers/enrichment';
+
+export {
+  buildDiscoveryTrust,
+  fetchSellerTrustSnapshots,
+  fetchSellerTrustBundles,
+  discoveryEnrichmentFromBundle,
+  filterTrustBadges,
+  DISCOVERY_TRUST_BADGE_SLUGS,
+  type SellerTrustSnapshot,
+  type BuildDiscoveryTrustInput,
+} from './trust';
 
 export {
   marketplaceCategoryToLegacyVertical,
@@ -77,6 +89,8 @@ export {
   getDiscoveryListingIntent,
   getDiscoveryFavoriteCount,
   getDiscoveryProductReviewCount,
+  getDiscoverySellerTier,
+  getDiscoveryTrustBadges,
   getDiscoveryMarketplaceCategory,
   getDiscoverySpecializations,
   matchesDiscoveryVerticalSlug,

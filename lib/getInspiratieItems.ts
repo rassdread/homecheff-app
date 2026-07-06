@@ -5,7 +5,11 @@
 import { prisma } from '@/lib/prisma';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 import { buildDishTextSearchWhere } from '@/lib/search';
-import { mapDishToDiscoveryReadModel } from '@/lib/discovery';
+import {
+  discoveryEnrichmentFromBundle,
+  fetchSellerTrustBundles,
+  mapDishToDiscoveryReadModel,
+} from '@/lib/discovery';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 
 export type GetInspiratieOptions = {
@@ -149,10 +153,14 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
 
   const authorIds = [...new Set(items.map((it) => it.user.id))];
   const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
+  const trustBundles = await fetchSellerTrustBundles(authorIds, badgeMap);
   items = items.map((it) => ({
     ...it,
     discovery: mapDishToDiscoveryReadModel(it, {
       favoriteCount: it.propsCount,
+      ...discoveryEnrichmentFromBundle(trustBundles.get(it.user.id), {
+        listingIsActive: it.status !== 'PRIVATE',
+      }),
     }),
     user: {
       ...it.user,

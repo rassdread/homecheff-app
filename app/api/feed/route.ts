@@ -38,6 +38,11 @@ import {
 import { attachSearchClassificationToRecord } from "@/lib/search/classify-result";
 import { attachDiscoveryReadModel } from "@/lib/discovery";
 import {
+  discoveryEnrichmentFromBundle,
+  fetchSellerTrustBundles,
+} from "@/lib/discovery/trust/batch-enrichment";
+import type { DiscoveryEnrichment } from "@/lib/discovery/mappers/enrichment";
+import {
   isMarketplaceSaleItem,
   marketplaceSaleAuditSample,
 } from "@/lib/feed/marketplace-sale";
@@ -64,9 +69,12 @@ function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   });
 }
 
-function attachFeedItemDiscovery(item: Record<string, unknown>): void {
+function attachFeedItemDiscovery(
+  item: Record<string, unknown>,
+  enrichment?: DiscoveryEnrichment,
+): void {
   attachFeedItemTaxonomy(item);
-  attachDiscoveryReadModel(item);
+  attachDiscoveryReadModel(item, enrichment);
 }
 
 function toNumber(v: string | null, fallback: number) {
@@ -634,6 +642,10 @@ export async function GET(req: NextRequest) {
     sellerIdsForBadges.length > 0
       ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
       : new Map<string, { key: string; name: string; icon: string }[]>();
+  const trustBundles =
+    sellerIdsForBadges.length > 0
+      ? await fetchSellerTrustBundles(sellerIdsForBadges, badgeMap)
+      : new Map();
   for (const item of sortedItems) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     if (!uid) continue;
@@ -665,7 +677,15 @@ export async function GET(req: NextRequest) {
   }
 
   for (const item of sortedItems) {
-    attachFeedItemDiscovery(item as Record<string, unknown>);
+    const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
+    const bundle = uid ? trustBundles.get(uid) : undefined;
+    attachFeedItemDiscovery(
+      item as Record<string, unknown>,
+      discoveryEnrichmentFromBundle(bundle, {
+        productReviewCount: Number((item as { reviewCount?: number }).reviewCount) || 0,
+        listingIsActive: (item as { isActive?: boolean }).isActive !== false,
+      }),
+    );
   }
 
   const listingKindFilter = Array.isArray(searchFilters.listingKind)

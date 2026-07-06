@@ -9,8 +9,8 @@ import type {
 import {
   buildCapabilityBlock,
   cityFromPlace,
+  mergeDiscoveryTrust,
   mergeSocialBlock,
-  mergeTrustBlock,
   parseTrustBadges,
   toIsoString,
   type DiscoveryEnrichment,
@@ -121,10 +121,12 @@ export function mapProductToDiscoveryReadModel(
     specializations: source.specializations ?? [],
     acceptedSpecializations: source.acceptedSpecializations ?? [],
     barterOpenness: source.barterOpenness ?? null,
-    trust: mergeTrustBlock(
-      { trustBadges: parseTrustBadges(enrichment?.trustBadges) },
-      enrichment,
-    ),
+    trust: mergeDiscoveryTrust({
+      ...enrichment,
+      productReviewCount: enrichment?.productReviewCount,
+      listingIsActive: enrichment?.listingIsActive ?? source.isActive !== false,
+      trustBadges: parseTrustBadges(enrichment?.trustBadges),
+    }),
     social: mergeSocialBlock({}, enrichment),
     createdAt: toIsoString(source.createdAt) ?? new Date().toISOString(),
     updatedAt: toIsoString(source.updatedAt),

@@ -40,6 +40,9 @@ export function enrichmentFromRecord(
   return {
     productReviewCount:
       record.reviewCount != null ? Number(record.reviewCount) : undefined,
+    listingIsActive:
+      record.isActive !== false &&
+      String(record.status ?? '').trim().toUpperCase() !== 'PRIVATE',
     favoriteCount:
       record.favoriteCount != null
         ? Number(record.favoriteCount)

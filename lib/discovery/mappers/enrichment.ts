@@ -2,21 +2,28 @@ import type {
   DiscoveryCapabilityBlock,
   DiscoverySocialBlock,
   DiscoveryTrustBadge,
-  DiscoveryTrustBlock,
 } from '../contracts/discovery-read-model';
+import type { DiscoveryTrustContract } from '../contracts/discovery-trust-contract';
 import {
   EMPTY_DISCOVERY_CAPABILITY,
   EMPTY_DISCOVERY_SOCIAL,
-  EMPTY_DISCOVERY_TRUST,
 } from '../contracts/discovery-read-model';
+import { buildDiscoveryTrust } from '../trust/build-discovery-trust';
+import type { SellerTrustSnapshot } from '../trust/types';
 
 /** Optional stats merged into read model — listing-level or seller-level. */
 export type DiscoveryEnrichment = {
+  /** Listing-level verified product review count. */
   productReviewCount?: number;
+  listingIsActive?: boolean;
+  /** Batch-fetched seller trust evidence (Phase 2B). */
+  sellerTrustSnapshot?: SellerTrustSnapshot | null;
+  /** Legacy flat overrides when snapshot absent. */
   dealReviewCount?: number;
   courierReviewCount?: number;
   completedDeals?: number;
   completedDeliveries?: number;
+  repeatCustomers?: number;
   trustBadges?: DiscoveryTrustBadge[];
   favoriteCount?: number;
   fansCount?: number;
@@ -28,22 +35,28 @@ export type DiscoveryEnrichment = {
   hasPublishedDishes?: boolean;
 };
 
-export function mergeTrustBlock(
-  base: Partial<DiscoveryTrustBlock> = {},
+export function mergeDiscoveryTrust(
   enrichment?: DiscoveryEnrichment,
-): DiscoveryTrustBlock {
-  return {
-    productReviewCount:
-      enrichment?.productReviewCount ?? base.productReviewCount ?? 0,
-    dealReviewCount: enrichment?.dealReviewCount ?? base.dealReviewCount ?? 0,
-    courierReviewCount:
-      enrichment?.courierReviewCount ?? base.courierReviewCount ?? 0,
-    completedDeals: enrichment?.completedDeals ?? base.completedDeals ?? 0,
-    completedDeliveries:
-      enrichment?.completedDeliveries ?? base.completedDeliveries ?? 0,
-    trustBadges:
-      enrichment?.trustBadges ?? base.trustBadges ?? EMPTY_DISCOVERY_TRUST.trustBadges,
-  };
+): DiscoveryTrustContract {
+  return buildDiscoveryTrust({
+    listingProductReviewCount: enrichment?.productReviewCount ?? 0,
+    listingIsActive: enrichment?.listingIsActive ?? true,
+    sellerSnapshot: enrichment?.sellerTrustSnapshot,
+    trustBadges: enrichment?.trustBadges,
+    dealReviewCount: enrichment?.dealReviewCount,
+    courierReviewCount: enrichment?.courierReviewCount,
+    completedDeals: enrichment?.completedDeals,
+    completedDeliveries: enrichment?.completedDeliveries,
+    repeatCustomers: enrichment?.repeatCustomers,
+  });
+}
+
+/** @deprecated Use mergeDiscoveryTrust — Phase 2B. */
+export function mergeTrustBlock(
+  _base: Partial<DiscoveryTrustContract> = {},
+  enrichment?: DiscoveryEnrichment,
+): DiscoveryTrustContract {
+  return mergeDiscoveryTrust(enrichment);
 }
 
 export function mergeSocialBlock(
