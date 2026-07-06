@@ -7632,6 +7632,42 @@
       "hourly": "{{price}} / hour",
       "daily": "{{price}} / day"
     },
+    "valueExchange": {
+      "categories": {
+        "homeCheff": "HomeCheff",
+        "homeGarden": "HomeGarden",
+        "homeDesigner": "HomeDesigner",
+        "services": "Services",
+        "workshops": "Workshops",
+        "coaching": "Coaching",
+        "delivery": "Delivery",
+        "requests": "Requests"
+      },
+      "payment": {
+        "money": "Money",
+        "barter": "Barter",
+        "moneyAndBarter": "Money + barter",
+        "voluntary": "Voluntary contribution",
+        "onRequest": "On request"
+      },
+      "barter": {
+        "accepts": "Accepts",
+        "desired": "Desired exchange"
+      },
+      "fulfillment": {
+        "pickup": "Pickup",
+        "delivery": "Delivery",
+        "shipping": "Shipping",
+        "digital": "Digital",
+        "onSiteClient": "At your location",
+        "onSiteProvider": "At provider"
+      },
+      "trust": {
+        "productReviews": "Product reviews",
+        "dealReviews": "Deal reviews",
+        "completedDeals": "Completed deals"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Wanted"

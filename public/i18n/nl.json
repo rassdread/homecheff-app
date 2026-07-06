@@ -7632,6 +7632,42 @@
       "hourly": "{{price}} / uur",
       "daily": "{{price}} / dag"
     },
+    "valueExchange": {
+      "categories": {
+        "homeCheff": "HomeCheff",
+        "homeGarden": "HomeGarden",
+        "homeDesigner": "HomeDesigner",
+        "services": "Diensten",
+        "workshops": "Workshops",
+        "coaching": "Coaching",
+        "delivery": "Bezorging",
+        "requests": "Gezocht"
+      },
+      "payment": {
+        "money": "Geld",
+        "barter": "Ruil",
+        "moneyAndBarter": "Geld + ruil",
+        "voluntary": "Vrijwillige bijdrage",
+        "onRequest": "Op aanvraag"
+      },
+      "barter": {
+        "accepts": "Accepteert",
+        "desired": "Gewenste ruil"
+      },
+      "fulfillment": {
+        "pickup": "Ophalen",
+        "delivery": "Bezorgen",
+        "shipping": "Verzenden",
+        "digital": "Digitaal",
+        "onSiteClient": "Bij jou",
+        "onSiteProvider": "Bij aanbieder"
+      },
+      "trust": {
+        "productReviews": "Productreviews",
+        "dealReviews": "Dealreviews",
+        "completedDeals": "Afgeronde afspraken"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Gezocht"
