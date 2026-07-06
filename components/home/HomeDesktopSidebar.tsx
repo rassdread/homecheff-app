@@ -12,6 +12,8 @@ import MessagesQuickActionLink from '@/components/communication/MessagesQuickAct
 import MessagesUrgentSidebarCard from '@/components/communication/MessagesUrgentSidebarCard';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
+import { DesktopRightSidebarSurfaceStack } from '@/components/discovery/surfaces';
+import { useHomeSurfacePlan } from '@/components/feed/GeoFeed';
 import CreatorMomentumCard from '@/components/home/CreatorMomentumCard';
 import ReturnBelongingStrip from '@/components/home/ReturnBelongingStrip';
 import HomeProfileProgressCard from '@/components/home/HomeProfileProgressCard';
@@ -26,6 +28,7 @@ type Props = {
 
 export default function HomeDesktopSidebar({ welcomeLine }: Props) {
   const { t } = useTranslation();
+  const surfacePlan = useHomeSurfacePlan();
   const { data: session } = useSession();
   const { openCreateFlow } = useCreateFlow();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
@@ -71,6 +74,10 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
         />
 
         <CommunityPulseBar variant="sidebar" />
+
+        {session?.user ? (
+          <DesktopRightSidebarSurfaceStack plan={surfacePlan} />
+        ) : null}
 
         <HomeRecommendedPromotions variant="sidebar" />
 

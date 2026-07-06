@@ -1905,6 +1905,154 @@
       }
     }
   },
+  "activations": {
+    "realWorld": {
+      "practical": {
+        "repairBicycleTire": { "title": "Help fix a flat tire", "description": "Someone nearby needs help with a bicycle tire — maybe you can assist.", "action": "View requests" },
+        "fixBicycleLights": { "title": "Fix bicycle lights", "description": "A neighbor needs help with bicycle lights.", "action": "View requests" },
+        "helpWithGroceries": { "title": "Help with groceries", "description": "Someone nearby could use help with groceries.", "action": "View requests" },
+        "helpElderlyNeighbors": { "title": "Help a neighbor", "description": "Elderly or vulnerable neighbors nearby are looking for practical help.", "action": "View requests" },
+        "assembleFurniture": { "title": "Assemble furniture", "description": "Someone needs help assembling furniture.", "action": "View requests" },
+        "hangShelves": { "title": "Hang shelves", "description": "A neighbor needs help with a small home project.", "action": "View requests" },
+        "wifiHelp": { "title": "Wifi help", "description": "Someone nearby needs help with wifi or internet.", "action": "View requests" },
+        "printerHelp": { "title": "Printer help", "description": "A neighbor needs help with a printer or computer.", "action": "View requests" },
+        "computerCleanup": { "title": "Computer cleanup", "description": "Someone needs help cleaning up their computer.", "action": "View requests" },
+        "gardenCleanup": { "title": "Garden cleanup", "description": "A neighbor needs help with garden work or cleanup.", "action": "View requests" },
+        "movingAssistance": { "title": "Moving assistance", "description": "Someone nearby needs help moving.", "action": "View requests" },
+        "smallRepairs": { "title": "Small repairs", "description": "A neighbor needs help with a small repair.", "action": "View requests" }
+      },
+      "discovery": {
+        "buyFromNewMaker": { "title": "Buy from a new maker", "description": "Support a new maker in your area with your first purchase.", "action": "Discover makers" },
+        "visitWorkshop": { "title": "Visit a workshop", "description": "A workshop is happening near you — discover and join in.", "action": "Browse workshops" },
+        "pickupOrderInPerson": { "title": "Pick up your order", "description": "You have an order you can pick up in person from a neighbor.", "action": "Go to orders" },
+        "visitLocalBusiness": { "title": "Visit a local business", "description": "Discover entrepreneurs and makers near you.", "action": "Discover" },
+        "meetNewCommunityMember": { "title": "Welcome a new neighbor", "description": "New members joined your area — say hello.", "action": "Explore nearby" },
+        "discoverHiddenCreator": { "title": "Discover a local creator", "description": "There is a maker nearby you may not know yet.", "action": "Discover" },
+        "visitTrustedMaker": { "title": "Visit a trusted maker", "description": "Pick up your next purchase from a maker your community trusts.", "action": "Discover" },
+        "exploreFavoriteMaker": { "title": "Message a favorite", "description": "You have favorites — start a conversation before you buy.", "action": "Go to favorites" }
+      },
+      "support": {
+        "supportSomeoneNearby": { "title": "Support someone nearby", "description": "People near you are looking for help.", "action": "View requests" },
+        "buyMealForSomeone": { "title": "Share a meal", "description": "Consider sharing a meal or buying locally for someone who could use support.", "action": "Explore listings" },
+        "donateTime": { "title": "Donate time", "description": "Offer volunteer time to a neighbor who needs help.", "action": "View requests" },
+        "offerPracticalHelp": { "title": "Offer practical help", "description": "Someone nearby needs practical help — your skills may fit.", "action": "View requests" },
+        "joinNeighborhoodInitiative": { "title": "Join a neighborhood initiative", "description": "Join a local initiative in your area.", "action": "Read more" },
+        "supportLocalEvent": { "title": "Support a local event", "description": "A workshop or event is happening near you.", "action": "View event" },
+        "supportNewSeller": { "title": "Support a new seller", "description": "Help a new maker nearby with your first purchase.", "action": "Discover" },
+        "reconnectPastSeller": { "title": "Revisit a maker you know", "description": "You bought locally before — visit that maker again.", "action": "Go to orders" }
+      }
+    }
+  },
+  "surfaces": {
+    "opportunity": {
+      "band": {
+        "label": "Opportunity nearby"
+      }
+    },
+    "sidebar": {
+      "showMore": "Show more actions",
+      "showLess": "Show less"
+    },
+    "opportunities": {
+      "becomePartner": {
+        "title": "Become a HomeCheff partner",
+        "description": "Share what you make or offer and reach neighbors in your area.",
+        "action": "Become a partner"
+      },
+      "becomeAmbassador": {
+        "title": "Become a neighborhood ambassador",
+        "description": "Help HomeCheff grow locally and earn recognition.",
+        "action": "Become ambassador"
+      },
+      "hostWorkshop": {
+        "title": "Host a workshop",
+        "description": "Share your skills through a workshop or cooking class nearby.",
+        "action": "Start workshop"
+      },
+      "inviteLocalBusiness": {
+        "title": "Invite a local business",
+        "description": "Know a baker, butcher, or shop? Invite them to the village square.",
+        "action": "Share invite"
+      },
+      "inviteSportsClub": {
+        "title": "Invite your sports club",
+        "description": "Cook together, pick up together — grow as a club on HomeCheff.",
+        "action": "Invite club"
+      },
+      "supportNearby": {
+        "title": "Support someone nearby",
+        "description": "People near you are looking for help — maybe you can make a difference.",
+        "action": "View requests"
+      }
+    },
+    "events": {
+      "workshopNearby": {
+        "title": "Workshop near you",
+        "description": "A workshop is coming up in your area — discover and join in.",
+        "action": "Browse workshops"
+      }
+    },
+    "community": {
+      "peopleNearby": {
+        "title": "Makers active near you",
+        "description": "Several makers are active in your area — see what they share.",
+        "action": "Explore nearby"
+      },
+      "newMakersNearby": {
+        "title": "New makers nearby",
+        "description": "New makers have started in your neighborhood.",
+        "action": "Discover new"
+      },
+      "newWorkshopsNearby": {
+        "title": "New workshops nearby",
+        "description": "Workshops are scheduled in your area.",
+        "action": "Browse workshops"
+      },
+      "localGrowthUpdate": {
+        "title": "Your neighborhood is growing",
+        "description": "More life is appearing on the village square near you.",
+        "action": "Read more"
+      },
+      "communityMilestone": {
+        "title": "Community milestone",
+        "description": "You are part of a growing neighborhood community on HomeCheff.",
+        "action": "Go to profile"
+      }
+    },
+    "workshops": {
+      "band": {
+        "label": "Workshop"
+      },
+      "hostWorkshop": {
+        "title": "Host a workshop",
+        "description": "Share your skills through a workshop or cooking class nearby.",
+        "action": "Start workshop"
+      },
+      "upcomingWorkshop": {
+        "title": "Upcoming workshop",
+        "description": "A workshop is scheduled soon in your area.",
+        "action": "View schedule"
+      },
+      "nearbyWorkshop": {
+        "title": "Workshop nearby",
+        "description": "Discover workshops near you and join in.",
+        "action": "Browse workshops"
+      },
+      "workshopWaitlist": {
+        "title": "Workshop waitlist",
+        "description": "A nearby workshop has a waitlist — sign up to join.",
+        "action": "View workshop"
+      }
+    },
+    "profile": {
+      "sections": {
+        "partner_opportunities": "Partner & growth",
+        "community_opportunities": "Community",
+        "activation_suggestions": "Suggestions for you",
+        "trust_growth": "Build trust"
+      }
+    }
+  },
   "filters": {
     "all": "All",
     "allDelivery": "All",

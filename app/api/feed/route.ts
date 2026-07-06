@@ -57,10 +57,19 @@ import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
 import {
   buildActivityCardsFeedSlot,
 } from "@/lib/discovery/activity-cards/build-activity-cards-feed-slot";
+import { resolveActivityCardContracts } from "@/lib/discovery/activity-cards/resolve-activity-card-contracts";
 import {
   countNearbyRequestsInPool,
   fetchActivityCardEligibilityInput,
 } from "@/lib/discovery/activity-cards/fetch-activity-card-eligibility";
+import { buildSurfacesFeedSlot } from "@/lib/discovery/surfaces/build-surfaces-feed-slot";
+import {
+  buildServerSurfaceContext,
+  countNearbyWorkshopsInPool,
+  countNewMakersInPool,
+  countActiveNeighboursInPool,
+  countUpcomingWorkshopsInPool,
+} from "@/lib/discovery/surfaces/build-server-surface-context";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   const listingKind = attachListingKindToRecord(item);
@@ -742,15 +751,48 @@ export async function GET(req: NextRequest) {
           }>,
         ),
       });
+      const activityContracts = resolveActivityCardContracts({
+        input: eligibility,
+        limit: 8,
+      });
       const activitySlot = buildActivityCardsFeedSlot({
         eligibility,
         enabled: true,
+      });
+      const userMeta = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      });
+      const poolItems = enrichTargets as Array<{
+        userId?: string;
+        discovery?: {
+          listingKind?: string;
+          listingIntent?: string;
+          trust?: { sellerTier?: number };
+          availabilityDate?: string | null;
+        } | null;
+      }>;
+      const surfacesSlot = buildSurfacesFeedSlot({
+        enabled: true,
+        activityContracts,
+        context: buildServerSurfaceContext({
+          eligibility,
+          accountCreatedAt: userMeta?.createdAt ?? null,
+          nearbyWorkshopCount: countNearbyWorkshopsInPool(poolItems),
+          upcomingWorkshopCount: countUpcomingWorkshopsInPool(poolItems),
+          newMakersNearbyCount: countNewMakersInPool(poolItems),
+          activeNeighboursCount: countActiveNeighboursInPool(poolItems),
+          completedDealCount: eligibility.completedDealWithoutReview ? 1 : 0,
+        }),
       });
       discoveryFeed = {
         ...discoveryFeed,
         futureSlots: [
           activitySlot,
-          ...discoveryFeed.futureSlots.filter((s) => s.kind !== "activity_cards"),
+          surfacesSlot,
+          ...discoveryFeed.futureSlots.filter(
+            (s) => s.kind !== "activity_cards" && s.kind !== "surfaces",
+          ),
         ],
       };
     } catch (e) {

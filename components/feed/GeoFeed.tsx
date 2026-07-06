@@ -73,12 +73,12 @@ import {
   interleaveDiscoverySectionsWithInspiration,
   orderItemsFromDiscoveryFeed,
 } from "@/lib/feed/discovery-feed-client";
-import {
-  getActivityCardsFromDiscovery,
+import { getActivityCardsFromDiscovery,
   getActivityCardSlotMeta,
   interleaveDesktopActivityCards,
   interleaveMobileActivityCards,
 } from "@/lib/feed/activity-card-feed-rows";
+import { getSurfacePlanFromDiscovery } from "@/lib/discovery/surfaces/surface-discovery-helpers";
 import { ActivityCardFeedBand } from "@/components/discovery/activity-cards";
 import { filterCardsForSession } from "@/lib/discovery/activity-cards/activity-card-client-storage";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -774,6 +774,7 @@ type GeoFeedProps = {
 type GeoFeedHomeLayoutValue = {
   filtersPanel: ReactNode;
   feedContent: ReactNode;
+  surfacePlan: import('@/lib/discovery/surfaces/surface-contract').ResolvedSurfacePlan | null;
 };
 
 const GeoFeedHomeLayoutContext = createContext<GeoFeedHomeLayoutValue | null>(null);
@@ -788,6 +789,12 @@ export function FeedFiltersPanel() {
 export function FeedContent() {
   const ctx = useContext(GeoFeedHomeLayoutContext);
   return ctx?.feedContent ?? null;
+}
+
+/** Surface plan from discovery.futureSlots.surfaces — Phase 3E. */
+export function useHomeSurfacePlan() {
+  const ctx = useContext(GeoFeedHomeLayoutContext);
+  return ctx?.surfacePlan ?? null;
 }
 
 export default function GeoFeed({
@@ -1970,6 +1977,11 @@ export default function GeoFeed({
 
   const activityCardSlotMeta = useMemo(
     () => getActivityCardSlotMeta(discoveryFeed),
+    [discoveryFeed],
+  );
+
+  const surfacePlan = useMemo(
+    () => getSurfacePlanFromDiscovery(discoveryFeed),
     [discoveryFeed],
   );
 
@@ -3368,7 +3380,7 @@ export default function GeoFeed({
     if (homeComposedLayout && children) {
       return (
         <GeoFeedHomeLayoutContext.Provider
-          value={{ filtersPanel: filterCardEl, feedContent }}
+          value={{ filtersPanel: filterCardEl, feedContent, surfacePlan }}
         >
           {children}
         </GeoFeedHomeLayoutContext.Provider>

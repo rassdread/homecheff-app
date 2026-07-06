@@ -11,6 +11,8 @@ import type { DiscoverySectionId } from '@/lib/discovery/sections';
 import type { ActivityCardInsertionPlan } from '@/lib/discovery/activity-cards/activity-card-types';
 import type { ActivityCardFeedItem } from '@/lib/discovery/activity-cards/activity-card-types';
 import { PHASE_3B_ACTIVITY_CARD_INSERTION } from '@/lib/discovery/activity-cards/activity-card-insertion-planner';
+import type { ResolvedSurfacePlan } from '@/lib/discovery/surfaces/surface-contract';
+import { SURFACE_ROUTER_SPEC_VERSION } from '@/lib/discovery/surfaces/surface-contract';
 
 /** Activity cards slot — Phase 3B via discovery.futureSlots.activity_cards. */
 export type DiscoveryActivityCardsSlot =
@@ -42,9 +44,24 @@ export type DiscoveryFeedSectionBlock = {
   sellerIds: string[];
 };
 
+/** Surface router slot — Phase 3E via discovery.futureSlots.surfaces. */
+export type DiscoverySurfacesSlot =
+  | {
+      kind: 'surfaces';
+      enabled: false;
+      specVersion: typeof SURFACE_ROUTER_SPEC_VERSION;
+    }
+  | {
+      kind: 'surfaces';
+      enabled: true;
+      specVersion: typeof SURFACE_ROUTER_SPEC_VERSION;
+      plan: ResolvedSurfacePlan;
+    };
+
 /** Reserved slot types for future feed extensions. */
 export type DiscoveryFeedFutureSlot =
   | DiscoveryActivityCardsSlot
+  | DiscoverySurfacesSlot
   | { kind: 'recommendations'; enabled: false };
 
 export type DiscoveryFeedInsertionSurface = 'mobile' | 'desktop';
@@ -95,6 +112,11 @@ export const DISCOVERY_FEED_FUTURE_SLOTS: DiscoveryFeedFutureSlot[] = [
     enabled: false,
     specVersion: 2,
     insertion: PHASE_3B_ACTIVITY_CARD_INSERTION,
+  },
+  {
+    kind: 'surfaces',
+    enabled: false,
+    specVersion: SURFACE_ROUTER_SPEC_VERSION,
   },
   { kind: 'recommendations', enabled: false },
 ];

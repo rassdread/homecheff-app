@@ -673,6 +673,154 @@
       }
     }
   },
+  "activations": {
+    "realWorld": {
+      "practical": {
+        "repairBicycleTire": { "title": "Help met een lekke band", "description": "Iemand in de buurt zoekt hulp met een fietsband — misschien kun jij helpen.", "action": "Bekijk verzoeken" },
+        "fixBicycleLights": { "title": "Fietsverlichting repareren", "description": "Een buur heeft hulp nodig met fietsverlichting.", "action": "Bekijk verzoeken" },
+        "helpWithGroceries": { "title": "Help met boodschappen", "description": "Iemand in de buurt kan hulp gebruiken bij boodschappen.", "action": "Bekijk verzoeken" },
+        "helpElderlyNeighbors": { "title": "Help een buur", "description": "Ouderen of kwetsbare buren in de buurt zoeken praktische hulp.", "action": "Bekijk verzoeken" },
+        "assembleFurniture": { "title": "Meubels monteren", "description": "Iemand zoekt hulp bij het in elkaar zetten van meubels.", "action": "Bekijk verzoeken" },
+        "hangShelves": { "title": "Planken ophangen", "description": "Een buur heeft hulp nodig bij klusjes in huis.", "action": "Bekijk verzoeken" },
+        "wifiHelp": { "title": "Wifi-hulp", "description": "Iemand in de buurt zoekt hulp met wifi of internet.", "action": "Bekijk verzoeken" },
+        "printerHelp": { "title": "Printer-hulp", "description": "Een buur heeft hulp nodig met een printer of computer.", "action": "Bekijk verzoeken" },
+        "computerCleanup": { "title": "Computer opschonen", "description": "Iemand zoekt hulp bij het opschonen van een computer.", "action": "Bekijk verzoeken" },
+        "gardenCleanup": { "title": "Tuin opruimen", "description": "Een buur zoekt hulp bij tuinwerk of opruimen.", "action": "Bekijk verzoeken" },
+        "movingAssistance": { "title": "Verhuishulp", "description": "Iemand in de buurt zoekt hulp bij verhuizen.", "action": "Bekijk verzoeken" },
+        "smallRepairs": { "title": "Kleine reparaties", "description": "Een buur heeft hulp nodig bij een kleine klus.", "action": "Bekijk verzoeken" }
+      },
+      "discovery": {
+        "buyFromNewMaker": { "title": "Koop van een nieuwe maker", "description": "Ondersteun een nieuwe maker in je buurt met je eerste aankoop.", "action": "Ontdek makers" },
+        "visitWorkshop": { "title": "Bezoek een workshop", "description": "Er is een workshop bij jou in de buurt — ontdek en doe mee.", "action": "Workshops bekijken" },
+        "pickupOrderInPerson": { "title": "Haal je bestelling op", "description": "Je hebt een bestelling die je persoonlijk kunt ophalen bij een buur.", "action": "Naar bestellingen" },
+        "visitLocalBusiness": { "title": "Bezoek een lokale ondernemer", "description": "Ontdek ondernemers en makers bij jou in de buurt.", "action": "Ontdekken" },
+        "meetNewCommunityMember": { "title": "Verwelkom een nieuwe buur", "description": "Er zijn nieuwe leden in je buurt — stel je voor.", "action": "Bekijk de buurt" },
+        "discoverHiddenCreator": { "title": "Ontdek een lokale maker", "description": "Er is een maker in je buurt die je misschien nog niet kent.", "action": "Ontdekken" },
+        "visitTrustedMaker": { "title": "Bezoek een vertrouwde maker", "description": "Haal je volgende aankoop op bij een maker die je buurt vertrouwt.", "action": "Ontdekken" },
+        "exploreFavoriteMaker": { "title": "Stuur een bericht naar een favoriet", "description": "Je hebt favorieten — start een gesprek voordat je koopt.", "action": "Naar favorieten" }
+      },
+      "support": {
+        "supportSomeoneNearby": { "title": "Steun iemand in de buurt", "description": "Er zijn mensen bij jou in de buurt die hulp zoeken.", "action": "Bekijk verzoeken" },
+        "buyMealForSomeone": { "title": "Een maaltijd delen", "description": "Overweeg een maaltijd te delen of lokaal te kopen voor iemand die hulp kan gebruiken.", "action": "Ontdek aanbod" },
+        "donateTime": { "title": "Tijd doneren", "description": "Bied vrijwillig tijd aan voor een buur die hulp zoekt.", "action": "Bekijk verzoeken" },
+        "offerPracticalHelp": { "title": "Praktische hulp aanbieden", "description": "Iemand in de buurt zoekt praktische hulp — misschien past jouw skill.", "action": "Bekijk verzoeken" },
+        "joinNeighborhoodInitiative": { "title": "Doe mee met een buurtinitiatief", "description": "Sluit je aan bij een lokaal initiatief in je buurt.", "action": "Meer lezen" },
+        "supportLocalEvent": { "title": "Steun een lokaal evenement", "description": "Er is een workshop of evenement bij jou in de buurt.", "action": "Bekijk evenement" },
+        "supportNewSeller": { "title": "Steun een startende maker", "description": "Help een nieuwe maker in de buurt met je eerste aankoop.", "action": "Ontdekken" },
+        "reconnectPastSeller": { "title": "Herhaal bij een bekende maker", "description": "Je hebt eerder lokaal gekocht — bezoek die maker opnieuw.", "action": "Naar bestellingen" }
+      }
+    }
+  },
+  "surfaces": {
+    "opportunity": {
+      "band": {
+        "label": "Kans in je buurt"
+      }
+    },
+    "sidebar": {
+      "showMore": "Meer acties tonen",
+      "showLess": "Minder tonen"
+    },
+    "opportunities": {
+      "becomePartner": {
+        "title": "Word partner op HomeCheff",
+        "description": "Deel wat je maakt of aanbiedt en bereik buren in je buurt.",
+        "action": "Partner worden"
+      },
+      "becomeAmbassador": {
+        "title": "Word buurtambassadeur",
+        "description": "Help HomeCheff groeien in jouw buurt en verdien erkenning.",
+        "action": "Ambassadeur worden"
+      },
+      "hostWorkshop": {
+        "title": "Geef een workshop",
+        "description": "Deel je kennis via een workshop of kookles bij jou in de buurt.",
+        "action": "Workshop starten"
+      },
+      "inviteLocalBusiness": {
+        "title": "Nodig een lokale ondernemer uit",
+        "description": "Ken je een bakker, slager of winkel? Nodig ze uit voor het dorpsplein.",
+        "action": "Uitnodiging delen"
+      },
+      "inviteSportsClub": {
+        "title": "Nodig je sportclub uit",
+        "description": "Samen koken, samen halen — groei als club op HomeCheff.",
+        "action": "Club uitnodigen"
+      },
+      "supportNearby": {
+        "title": "Steun iemand in de buurt",
+        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken — misschien kun jij iets betekenen.",
+        "action": "Bekijk verzoeken"
+      }
+    },
+    "events": {
+      "workshopNearby": {
+        "title": "Workshop bij jou in de buurt",
+        "description": "Er is binnenkort een workshop in jouw omgeving — ontdek en doe mee.",
+        "action": "Workshops bekijken"
+      }
+    },
+    "community": {
+      "peopleNearby": {
+        "title": "Makers actief in je buurt",
+        "description": "Er zijn meerdere makers bij jou in de buurt — ontdek wat ze delen.",
+        "action": "Bekijk de buurt"
+      },
+      "newMakersNearby": {
+        "title": "Nieuwe makers in de buurt",
+        "description": "Er zijn nieuwe makers gestart bij jou in de buurt.",
+        "action": "Ontdek nieuw"
+      },
+      "newWorkshopsNearby": {
+        "title": "Nieuwe workshops in de buurt",
+        "description": "Er zijn workshops gepland bij jou in de buurt.",
+        "action": "Workshops bekijken"
+      },
+      "localGrowthUpdate": {
+        "title": "Je buurt groeit",
+        "description": "Er komt meer leven op het dorpsplein bij jou in de buurt.",
+        "action": "Meer lezen"
+      },
+      "communityMilestone": {
+        "title": "Mijlpaal in de community",
+        "description": "Je bent onderdeel van een groeiende buurtcommunity op HomeCheff.",
+        "action": "Naar profiel"
+      }
+    },
+    "workshops": {
+      "band": {
+        "label": "Workshop"
+      },
+      "hostWorkshop": {
+        "title": "Geef een workshop",
+        "description": "Deel je kennis via een workshop of kookles bij jou in de buurt.",
+        "action": "Workshop starten"
+      },
+      "upcomingWorkshop": {
+        "title": "Binnenkort een workshop",
+        "description": "Er staat binnenkort een workshop gepland in jouw omgeving.",
+        "action": "Bekijk agenda"
+      },
+      "nearbyWorkshop": {
+        "title": "Workshop in de buurt",
+        "description": "Ontdek workshops bij jou in de buurt en doe mee.",
+        "action": "Workshops bekijken"
+      },
+      "workshopWaitlist": {
+        "title": "Wachtlijst workshop",
+        "description": "Een workshop bij jou in de buurt heeft een wachtlijst — meld je aan.",
+        "action": "Bekijk workshop"
+      }
+    },
+    "profile": {
+      "sections": {
+        "partner_opportunities": "Partner & groei",
+        "community_opportunities": "Community",
+        "activation_suggestions": "Suggesties voor jou",
+        "trust_growth": "Vertrouwen opbouwen"
+      }
+    }
+  },
   "filters": {
     "all": "Alles",
     "allDelivery": "Alle",
