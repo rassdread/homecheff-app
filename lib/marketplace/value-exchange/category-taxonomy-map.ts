@@ -29,7 +29,11 @@ const CATEGORY_TO_MAIN: Record<MarketplaceCategory, ValueExchangeMainCategory> =
 };
 
 /** Knowledge items that map to coaching main category. */
-const COACHING_TAXONOMY_IDS = new Set(['knowledge.coaching']);
+const COACHING_TAXONOMY_IDS = new Set([
+  'knowledge.coaching',
+  'knowledge.coaching_lifestyle',
+  'knowledge.coaching_sport',
+]);
 
 /** Knowledge items that map to workshops main category. */
 const WORKSHOP_TAXONOMY_IDS = new Set([

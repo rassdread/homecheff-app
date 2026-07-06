@@ -9,6 +9,7 @@ import MarketplaceEntryFlow, {
   type MarketplaceEntryResult,
 } from './marketplace/MarketplaceEntryFlow';
 import type { MarketplaceCategory } from '@prisma/client';
+import type { ListingIntentValue } from '@/lib/marketplace/listing-taxonomy';
 import {
   entryPrefillIsComplete,
   type MarketplaceEntryPrefill,
@@ -56,8 +57,8 @@ export default function CategoryFormSelector({
         : null,
   );
 
-  if (platform === 'dorpsplein' && useMarketplaceV2 && !editMode) {
-    if (!entryResult) {
+  if (platform === 'dorpsplein' && useMarketplaceV2) {
+    if (!editMode && !entryResult) {
       return (
         <MarketplaceEntryFlow
           onComplete={setEntryResult}
@@ -72,15 +73,27 @@ export default function CategoryFormSelector({
 
     return (
       <MarketplaceOfferForm
-        editMode={false}
+        editMode={editMode}
         existingProduct={existingProduct}
         onSave={onSave}
         onCancel={onCancel}
         initialPhoto={initialPhoto}
-        initialListingIntent={entryResult.listingIntent}
-        initialMarketplaceCategory={entryResult.marketplaceCategory}
-        initialSpecializations={entryResult.specializations}
-        onRestartEntry={() => setEntryResult(null)}
+        initialLegacyCategory={category}
+        initialListingIntent={
+          entryResult?.listingIntent ??
+          (existingProduct?.listingIntent as ListingIntentValue | undefined)
+        }
+        initialMarketplaceCategory={
+          entryResult?.marketplaceCategory ??
+          (existingProduct?.marketplaceCategory as MarketplaceCategory | undefined)
+        }
+        initialSpecializations={
+          entryResult?.specializations ??
+          (Array.isArray(existingProduct?.specializations)
+            ? existingProduct.specializations
+            : [])
+        }
+        onRestartEntry={editMode ? undefined : () => setEntryResult(null)}
       />
     );
   }

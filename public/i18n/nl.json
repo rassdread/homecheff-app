@@ -676,38 +676,150 @@
   "activations": {
     "realWorld": {
       "practical": {
-        "repairBicycleTire": { "title": "Help met een lekke band", "description": "Iemand in de buurt zoekt hulp met een fietsband — misschien kun jij helpen.", "action": "Bekijk verzoeken" },
-        "fixBicycleLights": { "title": "Fietsverlichting repareren", "description": "Een buur heeft hulp nodig met fietsverlichting.", "action": "Bekijk verzoeken" },
-        "helpWithGroceries": { "title": "Help met boodschappen", "description": "Iemand in de buurt kan hulp gebruiken bij boodschappen.", "action": "Bekijk verzoeken" },
-        "helpElderlyNeighbors": { "title": "Help een buur", "description": "Ouderen of kwetsbare buren in de buurt zoeken praktische hulp.", "action": "Bekijk verzoeken" },
-        "assembleFurniture": { "title": "Meubels monteren", "description": "Iemand zoekt hulp bij het in elkaar zetten van meubels.", "action": "Bekijk verzoeken" },
-        "hangShelves": { "title": "Planken ophangen", "description": "Een buur heeft hulp nodig bij klusjes in huis.", "action": "Bekijk verzoeken" },
-        "wifiHelp": { "title": "Wifi-hulp", "description": "Iemand in de buurt zoekt hulp met wifi of internet.", "action": "Bekijk verzoeken" },
-        "printerHelp": { "title": "Printer-hulp", "description": "Een buur heeft hulp nodig met een printer of computer.", "action": "Bekijk verzoeken" },
-        "computerCleanup": { "title": "Computer opschonen", "description": "Iemand zoekt hulp bij het opschonen van een computer.", "action": "Bekijk verzoeken" },
-        "gardenCleanup": { "title": "Tuin opruimen", "description": "Een buur zoekt hulp bij tuinwerk of opruimen.", "action": "Bekijk verzoeken" },
-        "movingAssistance": { "title": "Verhuishulp", "description": "Iemand in de buurt zoekt hulp bij verhuizen.", "action": "Bekijk verzoeken" },
-        "smallRepairs": { "title": "Kleine reparaties", "description": "Een buur heeft hulp nodig bij een kleine klus.", "action": "Bekijk verzoeken" }
+        "repairBicycleTire": {
+          "title": "Help met een lekke band",
+          "description": "Iemand in de buurt zoekt hulp met een fietsband — misschien kun jij helpen.",
+          "action": "Bekijk verzoeken"
+        },
+        "fixBicycleLights": {
+          "title": "Fietsverlichting repareren",
+          "description": "Een buur heeft hulp nodig met fietsverlichting.",
+          "action": "Bekijk verzoeken"
+        },
+        "helpWithGroceries": {
+          "title": "Help met boodschappen",
+          "description": "Iemand in de buurt kan hulp gebruiken bij boodschappen.",
+          "action": "Bekijk verzoeken"
+        },
+        "helpElderlyNeighbors": {
+          "title": "Help een buur",
+          "description": "Ouderen of kwetsbare buren in de buurt zoeken praktische hulp.",
+          "action": "Bekijk verzoeken"
+        },
+        "assembleFurniture": {
+          "title": "Meubels monteren",
+          "description": "Iemand zoekt hulp bij het in elkaar zetten van meubels.",
+          "action": "Bekijk verzoeken"
+        },
+        "hangShelves": {
+          "title": "Planken ophangen",
+          "description": "Een buur heeft hulp nodig bij klusjes in huis.",
+          "action": "Bekijk verzoeken"
+        },
+        "wifiHelp": {
+          "title": "Wifi-hulp",
+          "description": "Iemand in de buurt zoekt hulp met wifi of internet.",
+          "action": "Bekijk verzoeken"
+        },
+        "printerHelp": {
+          "title": "Printer-hulp",
+          "description": "Een buur heeft hulp nodig met een printer of computer.",
+          "action": "Bekijk verzoeken"
+        },
+        "computerCleanup": {
+          "title": "Computer opschonen",
+          "description": "Iemand zoekt hulp bij het opschonen van een computer.",
+          "action": "Bekijk verzoeken"
+        },
+        "gardenCleanup": {
+          "title": "Tuin opruimen",
+          "description": "Een buur zoekt hulp bij tuinwerk of opruimen.",
+          "action": "Bekijk verzoeken"
+        },
+        "movingAssistance": {
+          "title": "Verhuishulp",
+          "description": "Iemand in de buurt zoekt hulp bij verhuizen.",
+          "action": "Bekijk verzoeken"
+        },
+        "smallRepairs": {
+          "title": "Kleine reparaties",
+          "description": "Een buur heeft hulp nodig bij een kleine klus.",
+          "action": "Bekijk verzoeken"
+        }
       },
       "discovery": {
-        "buyFromNewMaker": { "title": "Koop van een nieuwe maker", "description": "Ondersteun een nieuwe maker in je buurt met je eerste aankoop.", "action": "Ontdek makers" },
-        "visitWorkshop": { "title": "Bezoek een workshop", "description": "Er is een workshop bij jou in de buurt — ontdek en doe mee.", "action": "Workshops bekijken" },
-        "pickupOrderInPerson": { "title": "Haal je bestelling op", "description": "Je hebt een bestelling die je persoonlijk kunt ophalen bij een buur.", "action": "Naar bestellingen" },
-        "visitLocalBusiness": { "title": "Bezoek een lokale ondernemer", "description": "Ontdek ondernemers en makers bij jou in de buurt.", "action": "Ontdekken" },
-        "meetNewCommunityMember": { "title": "Verwelkom een nieuwe buur", "description": "Er zijn nieuwe leden in je buurt — stel je voor.", "action": "Bekijk de buurt" },
-        "discoverHiddenCreator": { "title": "Ontdek een lokale maker", "description": "Er is een maker in je buurt die je misschien nog niet kent.", "action": "Ontdekken" },
-        "visitTrustedMaker": { "title": "Bezoek een vertrouwde maker", "description": "Haal je volgende aankoop op bij een maker die je buurt vertrouwt.", "action": "Ontdekken" },
-        "exploreFavoriteMaker": { "title": "Stuur een bericht naar een favoriet", "description": "Je hebt favorieten — start een gesprek voordat je koopt.", "action": "Naar favorieten" }
+        "buyFromNewMaker": {
+          "title": "Koop van een nieuwe maker",
+          "description": "Ondersteun een nieuwe maker in je buurt met je eerste aankoop.",
+          "action": "Ontdek makers"
+        },
+        "visitWorkshop": {
+          "title": "Bezoek een workshop",
+          "description": "Er is een workshop bij jou in de buurt — ontdek en doe mee.",
+          "action": "Workshops bekijken"
+        },
+        "pickupOrderInPerson": {
+          "title": "Haal je bestelling op",
+          "description": "Je hebt een bestelling die je persoonlijk kunt ophalen bij een buur.",
+          "action": "Naar bestellingen"
+        },
+        "visitLocalBusiness": {
+          "title": "Bezoek een lokale ondernemer",
+          "description": "Ontdek ondernemers en makers bij jou in de buurt.",
+          "action": "Ontdekken"
+        },
+        "meetNewCommunityMember": {
+          "title": "Verwelkom een nieuwe buur",
+          "description": "Er zijn nieuwe leden in je buurt — stel je voor.",
+          "action": "Bekijk de buurt"
+        },
+        "discoverHiddenCreator": {
+          "title": "Ontdek een lokale maker",
+          "description": "Er is een maker in je buurt die je misschien nog niet kent.",
+          "action": "Ontdekken"
+        },
+        "visitTrustedMaker": {
+          "title": "Bezoek een vertrouwde maker",
+          "description": "Haal je volgende aankoop op bij een maker die je buurt vertrouwt.",
+          "action": "Ontdekken"
+        },
+        "exploreFavoriteMaker": {
+          "title": "Stuur een bericht naar een favoriet",
+          "description": "Je hebt favorieten — start een gesprek voordat je koopt.",
+          "action": "Naar favorieten"
+        }
       },
       "support": {
-        "supportSomeoneNearby": { "title": "Steun iemand in de buurt", "description": "Er zijn mensen bij jou in de buurt die hulp zoeken.", "action": "Bekijk verzoeken" },
-        "buyMealForSomeone": { "title": "Een maaltijd delen", "description": "Overweeg een maaltijd te delen of lokaal te kopen voor iemand die hulp kan gebruiken.", "action": "Ontdek aanbod" },
-        "donateTime": { "title": "Tijd doneren", "description": "Bied vrijwillig tijd aan voor een buur die hulp zoekt.", "action": "Bekijk verzoeken" },
-        "offerPracticalHelp": { "title": "Praktische hulp aanbieden", "description": "Iemand in de buurt zoekt praktische hulp — misschien past jouw skill.", "action": "Bekijk verzoeken" },
-        "joinNeighborhoodInitiative": { "title": "Doe mee met een buurtinitiatief", "description": "Sluit je aan bij een lokaal initiatief in je buurt.", "action": "Meer lezen" },
-        "supportLocalEvent": { "title": "Steun een lokaal evenement", "description": "Er is een workshop of evenement bij jou in de buurt.", "action": "Bekijk evenement" },
-        "supportNewSeller": { "title": "Steun een startende maker", "description": "Help een nieuwe maker in de buurt met je eerste aankoop.", "action": "Ontdekken" },
-        "reconnectPastSeller": { "title": "Herhaal bij een bekende maker", "description": "Je hebt eerder lokaal gekocht — bezoek die maker opnieuw.", "action": "Naar bestellingen" }
+        "supportSomeoneNearby": {
+          "title": "Steun iemand in de buurt",
+          "description": "Er zijn mensen bij jou in de buurt die hulp zoeken.",
+          "action": "Bekijk verzoeken"
+        },
+        "buyMealForSomeone": {
+          "title": "Een maaltijd delen",
+          "description": "Overweeg een maaltijd te delen of lokaal te kopen voor iemand die hulp kan gebruiken.",
+          "action": "Ontdek aanbod"
+        },
+        "donateTime": {
+          "title": "Tijd doneren",
+          "description": "Bied vrijwillig tijd aan voor een buur die hulp zoekt.",
+          "action": "Bekijk verzoeken"
+        },
+        "offerPracticalHelp": {
+          "title": "Praktische hulp aanbieden",
+          "description": "Iemand in de buurt zoekt praktische hulp — misschien past jouw skill.",
+          "action": "Bekijk verzoeken"
+        },
+        "joinNeighborhoodInitiative": {
+          "title": "Doe mee met een buurtinitiatief",
+          "description": "Sluit je aan bij een lokaal initiatief in je buurt.",
+          "action": "Meer lezen"
+        },
+        "supportLocalEvent": {
+          "title": "Steun een lokaal evenement",
+          "description": "Er is een workshop of evenement bij jou in de buurt.",
+          "action": "Bekijk evenement"
+        },
+        "supportNewSeller": {
+          "title": "Steun een startende maker",
+          "description": "Help een nieuwe maker in de buurt met je eerste aankoop.",
+          "action": "Ontdekken"
+        },
+        "reconnectPastSeller": {
+          "title": "Herhaal bij een bekende maker",
+          "description": "Je hebt eerder lokaal gekocht — bezoek die maker opnieuw.",
+          "action": "Naar bestellingen"
+        }
       }
     }
   },
@@ -717,36 +829,61 @@
         "title": "Word partner op HomeCheff",
         "description": "Deel wat je maakt of aanbiedt en bereik buren in je buurt.",
         "action": "Partner worden",
-        "benefit": { "reach": "Bereik buren lokaal", "growth": "Groei met erkenning in de community" },
-        "req": { "profile": "Vul je profiel aan" }
+        "benefit": {
+          "reach": "Bereik buren lokaal",
+          "growth": "Groei met erkenning in de community"
+        },
+        "req": {
+          "profile": "Vul je profiel aan"
+        }
       },
       "ambassador": {
         "title": "Word buurtambassadeur",
         "description": "Help HomeCheff groeien in jouw buurt en verdien erkenning.",
         "action": "Ambassadeur worden",
-        "benefit": { "recognition": "Verdien buurterkenning", "status": "Bouw communitystatus op" },
-        "req": { "age": "Account minstens 7 dagen actief" }
+        "benefit": {
+          "recognition": "Verdien buurterkenning",
+          "status": "Bouw communitystatus op"
+        },
+        "req": {
+          "age": "Account minstens 7 dagen actief"
+        }
       },
       "courier": {
         "title": "Word buurtbezorger",
         "description": "Bezorg lokaal en draag bij aan je community — verdiensten komen later.",
         "action": "Start als bezorger",
-        "benefit": { "earn": "Toekomstig verdienpotentieel", "recognition": "Bezorger-erkenningsbadge" },
-        "req": { "location": "Stel je locatie in" }
+        "benefit": {
+          "earn": "Toekomstig verdienpotentieel",
+          "recognition": "Bezorger-erkenningsbadge"
+        },
+        "req": {
+          "location": "Stel je locatie in"
+        }
       },
       "workshopHost": {
         "title": "Geef een workshop",
         "description": "Deel je kennis via een workshop of kookles bij jou in de buurt.",
         "action": "Workshop starten",
-        "benefit": { "teach": "Leer je community", "status": "Workshophost-status" },
-        "req": { "listing": "Minstens één actieve listing" }
+        "benefit": {
+          "teach": "Leer je community",
+          "status": "Workshophost-status"
+        },
+        "req": {
+          "listing": "Minstens één actieve listing"
+        }
       },
       "communityHelper": {
         "title": "Steun iemand in de buurt",
         "description": "Er zijn mensen bij jou in de buurt die hulp zoeken — misschien kun jij iets betekenen.",
         "action": "Bekijk verzoeken",
-        "benefit": { "help": "Versterk buurtbanden", "recognition": "Helper-erkenning" },
-        "req": { "nearby": "Actieve hulpverzoeken in de buurt" },
+        "benefit": {
+          "help": "Versterk buurtbanden",
+          "recognition": "Helper-erkenning"
+        },
+        "req": {
+          "nearby": "Actieve hulpverzoeken in de buurt"
+        },
         "variants": {
           "bikeRepair": {
             "title": "Help met een fiets in de buurt",
@@ -794,36 +931,62 @@
         "title": "Nodig een lokale ondernemer uit",
         "description": "Ken je een bakker, slager of winkel? Nodig ze uit voor het dorpsplein.",
         "action": "Uitnodiging delen",
-        "benefit": { "grow": "Laat de lokale marktplaats groeien", "recognition": "Partner-uitnodiger-erkenning" },
-        "req": { "products": "Minstens 3 actieve listings" }
+        "benefit": {
+          "grow": "Laat de lokale marktplaats groeien",
+          "recognition": "Partner-uitnodiger-erkenning"
+        },
+        "req": {
+          "products": "Minstens 3 actieve listings"
+        }
       },
       "sportsClubInviter": {
         "title": "Nodig je sportclub uit",
         "description": "Samen koken, samen halen — groei als club op HomeCheff.",
         "action": "Club uitnodigen",
-        "benefit": { "community": "Bouw clubcommunity op", "recognition": "Clubambassadeur-erkenning" },
-        "req": { "location": "Locatie ingesteld in je buurt" }
+        "benefit": {
+          "community": "Bouw clubcommunity op",
+          "recognition": "Clubambassadeur-erkenning"
+        },
+        "req": {
+          "location": "Locatie ingesteld in je buurt"
+        }
       },
       "schoolInviter": {
         "title": "Nodig een school of klas uit",
         "description": "Help een school of klas lokale makers en workshops ontdekken.",
         "action": "Uitnodiging delen",
-        "benefit": { "community": "Verbind scholen met lokale makers", "recognition": "Schoolambassadeur-erkenning" },
-        "req": { "activity": "Actief in je lokale community" }
+        "benefit": {
+          "community": "Verbind scholen met lokale makers",
+          "recognition": "Schoolambassadeur-erkenning"
+        },
+        "req": {
+          "activity": "Actief in je lokale community"
+        }
       },
       "municipalityInviter": {
         "title": "Nodig je gemeente uit",
         "description": "Help je gemeente HomeCheff ontdekken als lokaal platform.",
         "action": "Uitnodiging delen",
-        "benefit": { "grow": "Breid lokaal platformbereik uit", "status": "Gemeente-ambassadeurstatus" },
-        "req": { "tier": "Gevestigde verkopersstatus", "deals": "Minstens 5 afgeronde deals" }
+        "benefit": {
+          "grow": "Breid lokaal platformbereik uit",
+          "status": "Gemeente-ambassadeurstatus"
+        },
+        "req": {
+          "tier": "Gevestigde verkopersstatus",
+          "deals": "Minstens 5 afgeronde deals"
+        }
       },
       "eventOrganizer": {
         "title": "Organiseer een lokaal evenement",
         "description": "Breng buren samen via een workshop, markt of buurtactiviteit.",
         "action": "Plan evenement",
-        "benefit": { "learn": "Deel vaardigheden met buren", "status": "Evenementorganisator-erkenning" },
-        "req": { "workshops": "Workshop- of evenementervaring in de buurt" }
+        "benefit": {
+          "learn": "Deel vaardigheden met buren",
+          "status": "Evenementorganisator-erkenning"
+        },
+        "req": {
+          "workshops": "Workshop- of evenementervaring in de buurt"
+        }
       }
     }
   },
@@ -5523,135 +5686,38 @@
     "registrationSuccess": "Registratie succesvol! Log nu in met je nieuwe account."
   },
   "delivery": {
-    "setupNow": "Nu Opzetten",
-    "onlyLastReminder": "Alleen laatste herinnering (+€0.10/bericht)",
-    "requiredAgreements": "Vereiste Akkoorden",
-    "requiredAgreementsMissing": "Vereiste akkoorden ontbreken",
-    "acceptAllRequiredConditions": "Accepteer alle vereiste voorwaarden (gemarkeerd met",
-    "availability": "Beschikbaarheid",
-    "deliverySettings": "Bezorger Instellingen",
-    "manageDeliveryProfile": "Beheer je bezorger profiel en beschikbaarheid",
-    "howFarMaxDelivery": "Hoe ver wil je maximaal bezorgen?",
-    "addRegionPlaceholder": "Voeg regio toe (bijv. Amsterdam, Utrecht)",
-    "saveSettings": "Instellingen Opslaan",
-    "becomeDelivery": "Word Bezorger",
-    "ageRange": "Tussen 15 en 25 jaar",
-    "activeAvailable": "Actief beschikbaar",
-    "deliveryModeAndLocation": "Bezorgmodus & Locatie",
-    "fixedPoint": "Vast Punt",
-    "dynamic": "Dynamisch",
-    "idealDistanceForDeliveries": "Ideale afstand voor bezorgingen",
-    "dashboardTitle": "Bezorg Dashboard",
-    "dashboardSubtitle": "Beheer je bezorgingen en verdien extra",
-    "sellerDeliveryDashboard": "Je eigen bezorgingen",
-    "sellerDeliveryDescription": "Hier zie je alle bestellingen die je zelf kunt bezorgen. De radius is al ingesteld bij het plaatsen van je producten.",
-    "myProfile": "Mijn Profiel",
-    "profile": "Profiel",
-    "myEarnings": "Mijn Verdiensten",
-    "earningsShort": "Verdiensten",
-    "settings": "Instellingen",
-    "settingsShort": "Instellingen",
-    "online": "Online",
-    "offline": "Offline",
-    "gpsActive": "GPS Actief",
-    "goOffline": "Ga Offline",
-    "goOnline": "Ga Online",
-    "today": "Vandaag",
-    "thisWeek": "Deze Week",
-    "available": "Beschikbaar",
-    "newOrders": "Nieuwe bestellingen",
-    "rating": "Beoordeling",
-    "deliveries": "bezorgingen",
-    "availableDeliveryOrders": "Beschikbare Bezorgingen",
-    "withinWorkArea": "Binnen {radius} km van je werkgebied",
-    "refresh": "Verversen",
-    "from": "Van",
-    "deliveryCosts": "Bezorgkosten",
-    "youGet": "Jij krijgt",
-    "accepting": "Accepteren...",
-    "acceptOrder": "Bestelling Accepteren",
-    "currentOrder": "Huidige Bestelling",
-    "pending": "In Afwachting",
-    "accepted": "Geaccepteerd",
-    "pickedUp": "Opgehaald",
-    "delivered": "Bezorgd",
-    "cancelled": "Geannuleerd",
-    "pickupAddress": "Ophaaladres",
-    "deliveryAddress": "Bezorgadres",
-    "notes": "Notities",
-    "acceptOrderButton": "Bestelling Accepteren",
-    "reject": "Weigeren",
-    "productPickedUp": "Product Opgehaald",
-    "productDelivered": "Product Bezorgd",
-    "sendMessageToCustomer": "Bericht Sturen naar Klant",
-    "youAreOffline": "Je bent offline",
-    "goOnlineToReceive": "Ga online om bestellingen binnen {radius} km te ontvangen",
-    "ordersAvailable": "Er zijn {count} bestellingen beschikbaar",
-    "scrollUpToSee": "Scroll omhoog om ze te zien",
-    "youAreOnline": "Je bent online",
-    "waitingForOrders": "Wachten op bestellingen binnen {radius} km",
-    "searchingOrders": "Zoeken naar bestellingen...",
-    "withinRadiusSeller": "Verkoper binnen {radius} km",
-    "withinRadiusBuyer": "Koper binnen {radius} km",
-    "availableInTimeSlot": "Beschikbaar in je tijdslot",
-    "workArea": "Werkgebied",
-    "deliveryRadius": "Bezorgradius",
-    "gpsValidation": "GPS Validatie",
-    "withinRadiusSellerShort": "Verkoper binnen {radius} km",
-    "withinRadiusBuyerShort": "Koper binnen {radius} km",
-    "availableInYourTimeSlot": "Beschikbaar in je tijdslot",
-    "onlineTime": "Online Tijd",
-    "completed": "Voltooid",
-    "totalEarned": "Totaal Verdiend",
-    "totalEarnedDesc": "Totaal verdiend met bezorgen",
-    "recentOrders": "Recente Bestellingen",
-    "paymentStatus": "Betalingsstatus",
-    "stripeConnectActive": "Stripe Connect Actief",
-    "stripeConnectActiveDesc": "Je uitbetalingen worden automatisch verwerkt",
-    "stripeConnectRequired": "Stripe Connect Vereist",
-    "stripeConnectRequiredDesc": "Stel Stripe Connect in om betalingen te ontvangen",
-    "delivererTips": "Tips voor Bezorgers",
-    "keepPhoneCharged": "Houd je telefoon opgeladen",
-    "locationAlwaysOn": "Houd locatie altijd aan",
-    "checkVehicle": "Controleer je voertuig voor vertrek",
-    "beFriendly": "Wees vriendelijk tegen klanten",
-    "timeWindow": "Respecteer de bezorgtijd",
-    "errorChangingStatus": "Fout bij wijzigen van status",
-    "error": "Fout",
-    "couldNotAcceptOrder": "Kon bestelling niet accepteren",
-    "errorAcceptingOrder": "Fout bij accepteren van bestelling",
-    "errorStripeConnect": "Fout bij Stripe Connect",
-    "errorSettingUpStripe": "Fout bij opzetten van Stripe",
-    "warning": "Waarschuwing: {message}",
-    "maxDistanceLabel": "Maximale afstand",
-    "workAreaTitle": "Werkgebied",
-    "safetyBenefits": "Veiligheidsvoordelen",
-    "safetyBenefit1": "Altijd dicht bij huis en bekende omgeving",
-    "safetyBenefit2": "Ouders kunnen je route volgen via de app",
-    "safetyBenefit3": "Snelle hulp mogelijk bij problemen",
-    "safetyBenefit4": "Korte reistijden = minder risico",
-    "deliveryModeLabel": "Bezorgmodus",
-    "fixedArea": "Vast Gebied",
-    "dynamicGps": "Dynamisch GPS",
-    "dynamicGpsTitle": "Dynamische GPS Locatie",
-    "dynamicGpsBullet1": "Je locatie wordt continu bijgewerkt tijdens bezorgen",
-    "dynamicGpsBullet2": "Radius beweegt mee met jouw positie",
-    "dynamicGpsBullet3": "Ontvang orders in gebieden waar je rijdt",
-    "dynamicGpsBullet4": "Meer flexibiliteit = meer verdiensten",
-    "dynamicGpsBullet5": "GPS actief wanneer je online bent",
-    "deliveryRadiusLabel": "Bezorgradius (maximale afstand)",
-    "kmMax": "km max",
-    "maxDistanceBasedOnTransport": "gebaseerd op je vervoersmiddel",
-    "maxDistanceBasedOnTransportPlural": "gebaseerd op je vervoersmiddelen",
-    "howItWorksBullet1": "Je moet binnen {km}km van de verkoper zijn (ophalen)",
-    "howItWorksBullet2": "Je moet binnen {km}km van de koper zijn (bezorgen)",
-    "howItWorksBullet3": "Beide afstanden moeten kloppen om de bestelling te zien",
-    "withChosenTransport": "Met je gekozen vervoersmiddel kun je tot {km}km bezorgen",
-    "withChosenTransportPlural": "Met je gekozen vervoersmiddelen kun je tot {km}km bezorgen",
-    "hoursUnit": "u",
-    "minutesUnit": "m",
-    "warningCanStillGoOnline": "Je kunt nog steeds online gaan, maar je ontvangt mogelijk minder bestellingen.",
-    "onlineGoError": "Er is een fout opgetreden bij het online gaan"
+    "request": {
+      "heading": "Bezorgverzoek",
+      "status": {
+        "open": "Open",
+        "claimed": "Geclaimd",
+        "assigned": "Toegewezen",
+        "completed": "Afgerond",
+        "cancelled": "Geannuleerd"
+      }
+    },
+    "assignment": {
+      "status": {
+        "pending": "In afwachting",
+        "accepted": "Geaccepteerd",
+        "completed": "Afgerond",
+        "cancelled": "Geannuleerd"
+      }
+    },
+    "errors": {
+      "accessDenied": "Geen toegang tot dit bezorgverzoek.",
+      "communityOrderNotFound": "Afspraak niet gevonden.",
+      "deliveryNotRequested": "Voor deze order is geen bezorging gevraagd.",
+      "activeRequestExists": "Er is al een actief bezorgverzoek.",
+      "requestNotFound": "Bezorgverzoek niet gevonden.",
+      "requestNotActive": "Dit bezorgverzoek is niet meer actief.",
+      "courierRequired": "Selecteer een bezorger.",
+      "courierNotActive": "Deze bezorger is niet actief.",
+      "activeAssignmentExists": "Er is al een actieve toewijzing.",
+      "noPendingAssignment": "Geen openstaande toewijzing.",
+      "courierOnly": "Alleen de toegewezen bezorger kan accepteren.",
+      "noAcceptedAssignment": "Geen geaccepteerde toewijzing."
+    }
   },
   "chat": {
     "backToConversations": "Terug naar gesprekken",
@@ -8015,6 +8081,18 @@
         "catering": {
           "label": "Catering"
         },
+        "bbq": {
+          "label": "BBQ"
+        },
+        "cuisine_surinamese": {
+          "label": "Surinaams"
+        },
+        "cuisine_indonesian": {
+          "label": "Indonesisch"
+        },
+        "cuisine_caribbean": {
+          "label": "Antilliaans / Caribisch"
+        },
         "clothing": {
           "label": "Kleding"
         },
@@ -8143,6 +8221,12 @@
         "plants": {
           "label": "Planten"
         },
+        "houseplants": {
+          "label": "Kamerplanten"
+        },
+        "cuttings": {
+          "label": "Stekjes"
+        },
         "honey": {
           "label": "Honing"
         }
@@ -8238,6 +8322,12 @@
         },
         "assembly": {
           "label": "Montage"
+        },
+        "childcare": {
+          "label": "Oppas"
+        },
+        "bike_repair": {
+          "label": "Fietsreparatie"
         }
       },
       "knowledge": {
@@ -8258,6 +8348,12 @@
         },
         "coaching": {
           "label": "Coaching"
+        },
+        "coaching_lifestyle": {
+          "label": "Lifestyle-coaching"
+        },
+        "coaching_sport": {
+          "label": "Sportcoaching"
         }
       }
     },
@@ -8378,13 +8474,34 @@
       "checkoutCta": "Betaal via HomeCheff"
     },
     "notifications": {
-      "received": { "title": "Nieuw voorstel ontvangen", "body": "{{title}}" },
-      "accepted": { "title": "Afspraak bevestigd", "body": "\"{{title}}\" is bevestigd als afspraak." },
-      "rejected": { "title": "Voorstel afgewezen", "body": "\"{{title}}\" is afgewezen." },
-      "countered": { "title": "Tegenvoorstel ontvangen", "body": "Nieuw tegenvoorstel: {{title}}" },
-      "alternativeValue": { "title": "Voorstel met ruil ontvangen", "body": "\"{{title}}\" bevat ruilwaarde." },
-      "mixedAccepted": { "title": "Afspraak bevestigd", "body": "\"{{title}}\" — afspraak bevestigd." },
-      "communityOrderCreated": { "title": "Afspraak bevestigd", "body": "Jullie afspraak voor \"{{title}}\" is vastgelegd." }
+      "received": {
+        "title": "Nieuw voorstel ontvangen",
+        "body": "{{title}}"
+      },
+      "accepted": {
+        "title": "Afspraak bevestigd",
+        "body": "\"{{title}}\" is bevestigd als afspraak."
+      },
+      "rejected": {
+        "title": "Voorstel afgewezen",
+        "body": "\"{{title}}\" is afgewezen."
+      },
+      "countered": {
+        "title": "Tegenvoorstel ontvangen",
+        "body": "Nieuw tegenvoorstel: {{title}}"
+      },
+      "alternativeValue": {
+        "title": "Voorstel met ruil ontvangen",
+        "body": "\"{{title}}\" bevat ruilwaarde."
+      },
+      "mixedAccepted": {
+        "title": "Afspraak bevestigd",
+        "body": "\"{{title}}\" — afspraak bevestigd."
+      },
+      "communityOrderCreated": {
+        "title": "Afspraak bevestigd",
+        "body": "Jullie afspraak voor \"{{title}}\" is vastgelegd."
+      }
     },
     "actions": {
       "accept": "Accepteren",
@@ -8553,40 +8670,6 @@
   "profile": {
     "deals": {
       "navLabel": "Mijn afspraken"
-    }
-  },
-  "delivery": {
-    "request": {
-      "heading": "Bezorgverzoek",
-      "status": {
-        "open": "Open",
-        "claimed": "Geclaimd",
-        "assigned": "Toegewezen",
-        "completed": "Afgerond",
-        "cancelled": "Geannuleerd"
-      }
-    },
-    "assignment": {
-      "status": {
-        "pending": "In afwachting",
-        "accepted": "Geaccepteerd",
-        "completed": "Afgerond",
-        "cancelled": "Geannuleerd"
-      }
-    },
-    "errors": {
-      "accessDenied": "Geen toegang tot dit bezorgverzoek.",
-      "communityOrderNotFound": "Afspraak niet gevonden.",
-      "deliveryNotRequested": "Voor deze order is geen bezorging gevraagd.",
-      "activeRequestExists": "Er is al een actief bezorgverzoek.",
-      "requestNotFound": "Bezorgverzoek niet gevonden.",
-      "requestNotActive": "Dit bezorgverzoek is niet meer actief.",
-      "courierRequired": "Selecteer een bezorger.",
-      "courierNotActive": "Deze bezorger is niet actief.",
-      "activeAssignmentExists": "Er is al een actieve toewijzing.",
-      "noPendingAssignment": "Geen openstaande toewijzing.",
-      "courierOnly": "Alleen de toegewezen bezorger kan accepteren.",
-      "noAcceptedAssignment": "Geen geaccepteerde toewijzing."
     }
   },
   "courier": {

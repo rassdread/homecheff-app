@@ -48,6 +48,13 @@ export default function EditProductPage() {
           category: category,
           deliveryMode: data.product.delivery,
           subcategory: data.product.subcategory,
+          marketplaceCategory: data.product.marketplaceCategory ?? null,
+          specializations: data.product.specializations ?? [],
+          acceptedSpecializations: data.product.acceptedSpecializations ?? [],
+          listingIntent: data.product.listingIntent ?? 'OFFER',
+          priceModel: data.product.priceModel ?? 'FIXED',
+          barterOpenness: data.product.barterOpenness ?? null,
+          fulfillmentOptions: data.product.fulfillmentOptions ?? null,
           unit: data.product.unit,
           displayNameType: data.product.displayNameType || 'full',
           isFutureProduct: data.product.isFutureProduct || false,
@@ -202,6 +209,7 @@ export default function EditProductPage() {
             onSave={handleSave}
             onCancel={handleCancel}
             platform="dorpsplein"
+            useMarketplaceV2={true}
           />
         )}
 

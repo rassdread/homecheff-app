@@ -7,6 +7,7 @@ import {
   legacySpecializationToTaxonomyId,
   legacySpecializationsToTaxonomyIds,
 } from './taxonomy-migrate';
+import { legacyDutchSubcategoryToTaxonomyId } from './legacy-subcategory-map';
 import {
   getMarketplaceTaxonomyItem,
   getMarketplaceTaxonomyRegistryMap,
@@ -33,6 +34,8 @@ export function toCanonicalTaxonomyId(raw: string): string | null {
       ? item.id
       : null;
   }
+  const dariDutch = legacyDutchSubcategoryToTaxonomyId(trimmed);
+  if (dariDutch) return dariDutch;
   return legacySpecializationToTaxonomyId(trimmed);
 }
 

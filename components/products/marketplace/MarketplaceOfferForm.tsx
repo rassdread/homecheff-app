@@ -13,6 +13,7 @@ import {
   defaultFulfillmentForCategory,
   legacyUrlCategoryToMarketplace,
   normalizeSpecializations,
+  parseFulfillmentOptions,
   primarySpecialization,
   PRICE_MODELS,
   type FulfillmentOptions,
@@ -25,6 +26,7 @@ import {
   specializationI18nKey,
 } from '@/lib/marketplace/i18n-keys';
 import AcceptedValuesPicker from '@/components/products/marketplace/AcceptedValuesPicker';
+import TaxonomySpecializationPicker from '@/components/products/marketplace/TaxonomySpecializationPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
@@ -181,9 +183,72 @@ export default function MarketplaceOfferForm({
     }
     if (existingProduct.marketplaceCategory) {
       setMarketplaceCategory(existingProduct.marketplaceCategory as MarketplaceCategory);
+    } else if (existingProduct.category) {
+      setMarketplaceCategory(
+        legacyUrlCategoryToMarketplace(
+          String(existingProduct.category) as 'CHEFF' | 'GARDEN' | 'DESIGNER',
+        ),
+      );
     }
     if (existingProduct.priceCents != null) {
       setPrice(String(Number(existingProduct.priceCents) / 100));
+    }
+    if (existingProduct.priceModel) {
+      setPriceModel(existingProduct.priceModel as PriceModel);
+    }
+    if (existingProduct.stock != null) {
+      setStock(String(existingProduct.stock));
+    }
+    if (existingProduct.maxStock != null) {
+      setMaxStock(String(existingProduct.maxStock));
+    }
+    if (existingProduct.isActive != null) {
+      setIsActive(Boolean(existingProduct.isActive));
+    }
+    if (existingProduct.sellerCanDeliver != null) {
+      setSellerCanDeliver(Boolean(existingProduct.sellerCanDeliver));
+    }
+    if (existingProduct.deliveryRadiusKm != null) {
+      setDeliveryRadiusKm(String(existingProduct.deliveryRadiusKm));
+    }
+    if (existingProduct.pickupAddress) {
+      setPickupAddress(String(existingProduct.pickupAddress));
+    }
+    if (existingProduct.pickupLat != null) {
+      setPickupLat(Number(existingProduct.pickupLat));
+    }
+    if (existingProduct.pickupLng != null) {
+      setPickupLng(Number(existingProduct.pickupLng));
+    }
+    if (existingProduct.fulfillmentOptions) {
+      setFulfillment(
+        parseFulfillmentOptions(existingProduct.fulfillmentOptions) as FulfillmentOptions,
+      );
+    } else if (existingProduct.deliveryMode) {
+      const dm = String(existingProduct.deliveryMode).toUpperCase();
+      setFulfillment({
+        pickup: dm === 'PICKUP' || dm === 'BOTH',
+        delivery: dm === 'DELIVERY' || dm === 'BOTH',
+        shipping: false,
+        digital: false,
+        onSiteClient: false,
+        onSiteProvider: false,
+      });
+    }
+    const imgs = existingProduct.Image ?? existingProduct.images;
+    if (Array.isArray(imgs) && imgs.length > 0) {
+      setImages(
+        imgs.map((img: { fileUrl?: string; url?: string }) => ({
+          url: String(img.fileUrl ?? img.url ?? ''),
+        })),
+      );
+    }
+    const vid = existingProduct.Video ?? existingProduct.video;
+    if (vid && typeof vid === 'object' && 'url' in vid) {
+      setVideo({
+        url: String((vid as { url: string }).url),
+        thumbnail: (vid as { thumbnail?: string }).thumbnail ?? null,
+      });
     }
   }, [editMode, existingProduct, marketplaceCategory]);
 
@@ -222,6 +287,10 @@ export default function MarketplaceOfferForm({
     }
     if (!title.trim() || !description.trim()) {
       setMessage(t(MARKETPLACE_ERROR_KEYS.titleDescriptionRequired));
+      return;
+    }
+    if (specializations.length === 0) {
+      setMessage(t(MARKETPLACE_ERROR_KEYS.specializationsRequired));
       return;
     }
     if (images.length === 0 || images.some((i) => i.uploading)) {
@@ -404,6 +473,15 @@ export default function MarketplaceOfferForm({
             </button>
           ) : null}
         </div>
+      ) : null}
+
+      {editMode ? (
+        <TaxonomySpecializationPicker
+          marketplaceCategory={marketplaceCategory}
+          role={listingIntent === 'REQUEST' ? 'request' : 'offer'}
+          value={specializations}
+          onChange={setSpecializations}
+        />
       ) : null}
 
       <div>

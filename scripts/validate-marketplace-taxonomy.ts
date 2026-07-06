@@ -134,7 +134,7 @@ function validateRegistry(): void {
   }
 
   assert(
-    Object.keys(TAXONOMY_ITEM_LABELS).length >= 88,
+    Object.keys(TAXONOMY_ITEM_LABELS).length >= 96,
     'Label data should cover all non-blocked taxonomy items',
   );
   assert(

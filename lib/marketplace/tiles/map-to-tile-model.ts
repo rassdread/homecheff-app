@@ -22,6 +22,7 @@ import type {
 } from './types';
 import { mapDiscoveryTrustToTileTrust } from './map-trust';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
+import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
 
 let legacyWarned = false;
 
@@ -94,6 +95,20 @@ export function mapGeoFeedCardToTileModel(
 
   const listingKind = resolveListingKind(item, mode);
 
+  const marketplaceCategory = getDiscoveryMarketplaceCategory(item);
+  const specializations = getDiscoverySpecializations(item);
+  const acceptedSpecializations =
+    d?.acceptedSpecializations ?? item.acceptedSpecializations ?? [];
+
+  const valueExchange = resolveTileValueExchangeFields({
+    marketplaceCategory,
+    specializations,
+    acceptedSpecializations,
+    listingKind,
+    listingIntent:
+      (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null,
+  });
+
   return {
     id: item.id,
     href,
@@ -108,10 +123,9 @@ export function mapGeoFeedCardToTileModel(
 
     listingKind,
     listingIntent,
-    marketplaceCategory: getDiscoveryMarketplaceCategory(item),
-    specializations: getDiscoverySpecializations(item),
-    acceptedSpecializations:
-      d?.acceptedSpecializations ?? item.acceptedSpecializations ?? [],
+    marketplaceCategory,
+    specializations,
+    acceptedSpecializations,
     barterOpenness: d?.barterOpenness != null ? String(d.barterOpenness) : null,
     availabilityDate: d?.availabilityDate ?? null,
 
@@ -151,5 +165,11 @@ export function mapGeoFeedCardToTileModel(
       (mode === 'inspiration'
         ? getDiscoveryLegacyVerticalCategory(item) ?? item.category ?? undefined
         : undefined),
+
+    offerMainCategory: valueExchange.offerMainCategory,
+    offerSubCategory: valueExchange.offerSubCategory,
+    offerSubCategoryIcon: valueExchange.offerSubCategoryIcon,
+    acceptedValueCategories: valueExchange.acceptedValueCategories,
+    acceptedValueSubcategories: valueExchange.acceptedValueSubcategories,
   };
 }

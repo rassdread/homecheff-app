@@ -191,6 +191,44 @@ for (const kind of TILE_FIXTURE_LISTING_KINDS) {
 
 assert(TILE_BADGE_PRIORITY.includes('request'), 'request in badge priority');
 
+const bbqModel = mapGeoFeedCardToTileModel(
+  {
+    ...baseItem('PRODUCT'),
+    specializations: ['create.bbq'],
+    discovery: {
+      ...baseItem('PRODUCT').discovery!,
+      specializations: ['create.bbq'],
+      marketplaceCategory: 'CREATE',
+    },
+  },
+  { href: '/product/bbq', mode: 'sale' },
+);
+const bbqBadges = buildTileBadges(bbqModel, t, 'compact');
+const specBadge = bbqBadges.badges.find((b) => b.kind === 'specialization');
+assert(!!specBadge?.icon, 'BBQ specialization badge has icon');
+assert(specBadge?.icon === 'Flame', 'BBQ uses Flame taxonomy icon');
+assert(specBadge?.taxonomyId === 'create.bbq', 'BBQ badge uses canonical taxonomy id');
+
+const acceptedModel = mapGeoFeedCardToTileModel(
+  {
+    ...baseItem('PRODUCT'),
+    acceptedSpecializations: ['grow.houseplants'],
+    discovery: {
+      ...baseItem('PRODUCT').discovery!,
+      acceptedSpecializations: ['grow.houseplants'],
+    },
+  },
+  { href: '/product/plants', mode: 'sale' },
+);
+const acceptedBadges = buildTileBadges(acceptedModel, t, 'standard');
+const acceptedBadge = acceptedBadges.badges.find((b) => b.kind === 'accepted_value');
+assert(!!acceptedBadge?.icon, 'accepted value badge has icon');
+assert(
+  acceptedBadge?.taxonomyId === 'grow.houseplants',
+  'accepted badge uses taxonomy id',
+);
+assert(!!acceptedBadges.barterSlot?.reserved, 'barter slot reserved when accepted values');
+
 const componentsDir = path.join(process.cwd(), 'components/marketplace/tiles');
 const variantFiles = [
   'MarketplaceTileCompact.tsx',
@@ -225,6 +263,13 @@ for (const file of variantFiles) {
   assert(!src.includes('UserStatsTile'), `${file} no UserStatsTile`);
   assert(!src.includes('averageRating'), `${file} no averageRating`);
 }
+
+const badgeRowSrc = fs.readFileSync(
+  path.join(componentsDir, 'primitives', 'TileBadgeRow.tsx'),
+  'utf8',
+);
+assert(badgeRowSrc.includes('TaxonomyLucideIcon'), 'TileBadgeRow renders Lucide icons');
+assert(badgeRowSrc.includes('taxonomyId'), 'TileBadgeRow keys by taxonomyId');
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
 process.exit(failed > 0 ? 1 : 0);

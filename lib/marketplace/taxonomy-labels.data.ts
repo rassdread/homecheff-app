@@ -39,6 +39,10 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'create.pasta': { nl: 'Pasta', en: 'Pasta' },
   'create.rice': { nl: 'Rijst', en: 'Rice' },
   'create.catering': { nl: 'Catering', en: 'Catering' },
+  'create.bbq': { nl: 'BBQ', en: 'BBQ' },
+  'create.cuisine_surinamese': { nl: 'Surinaams', en: 'Surinamese' },
+  'create.cuisine_indonesian': { nl: 'Indonesisch', en: 'Indonesian' },
+  'create.cuisine_caribbean': { nl: 'Antilliaans / Caribisch', en: 'Caribbean' },
   // CREATE — craft
   'create.clothing': { nl: 'Kleding', en: 'Clothing' },
   'create.jewelry': { nl: 'Sieraden', en: 'Jewelry' },
@@ -87,6 +91,8 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'grow.thyme': { nl: 'Tijm', en: 'Thyme' },
   'grow.oregano': { nl: 'Oregano', en: 'Oregano' },
   'grow.plants': { nl: 'Planten', en: 'Plants' },
+  'grow.houseplants': { nl: 'Kamerplanten', en: 'Houseplants' },
+  'grow.cuttings': { nl: 'Stekjes', en: 'Cuttings' },
   'grow.honey': { nl: 'Honing', en: 'Honey' },
 
   // DESIGN
@@ -123,6 +129,8 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'practical.repair': { nl: 'Reparatie', en: 'Repair' },
   'practical.handyman': { nl: 'Klushulp', en: 'Handyman' },
   'practical.assembly': { nl: 'Montage', en: 'Assembly' },
+  'practical.childcare': { nl: 'Oppas', en: 'Childcare' },
+  'practical.bike_repair': { nl: 'Fietsreparatie', en: 'Bike repair' },
 
   // KNOWLEDGE
   'knowledge.workshop': { nl: 'Workshop', en: 'Workshop' },
@@ -131,6 +139,8 @@ export const TAXONOMY_ITEM_LABELS: Record<string, TaxonomyLabelPair> = {
   'knowledge.tutoring': { nl: 'Bijles', en: 'Tutoring' },
   'knowledge.language': { nl: 'Taalles', en: 'Language lessons' },
   'knowledge.coaching': { nl: 'Coaching', en: 'Coaching' },
+  'knowledge.coaching_lifestyle': { nl: 'Lifestyle-coaching', en: 'Lifestyle coaching' },
+  'knowledge.coaching_sport': { nl: 'Sportcoaching', en: 'Sport coaching' },
 };
 
 export const BLOCKLIST_LABELS: Record<string, BlocklistLabelPair> = {

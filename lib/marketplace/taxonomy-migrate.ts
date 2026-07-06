@@ -4,13 +4,18 @@
  */
 
 import { getMarketplaceTaxonomyItem } from './taxonomy-resolve';
+import { legacyDutchSubcategoryToTaxonomyId } from './legacy-subcategory-map';
 
 /** V3 flat slug → canonical dot-id */
 const LEGACY_SPECIALIZATION_TO_TAXONOMY_ID: Record<string, string> = {
   meal: 'create.meal',
   meals: 'create.meal',
   baking: 'create.baking',
+  bbq: 'create.bbq',
   catering: 'create.catering',
+  cuisine_surinamese: 'create.cuisine_surinamese',
+  cuisine_indonesian: 'create.cuisine_indonesian',
+  cuisine_caribbean: 'create.cuisine_caribbean',
   clothing: 'create.clothing',
   jewelry: 'create.jewelry',
   decoration: 'create.decoration',
@@ -19,6 +24,8 @@ const LEGACY_SPECIALIZATION_TO_TAXONOMY_ID: Record<string, string> = {
   fruit: 'grow.fruit',
   herbs: 'grow.herbs',
   plants: 'grow.plants',
+  houseplants: 'grow.houseplants',
+  cuttings: 'grow.cuttings',
   honey: 'grow.honey',
   logo: 'design.logo',
   website: 'design.website',
@@ -41,12 +48,16 @@ const LEGACY_SPECIALIZATION_TO_TAXONOMY_ID: Record<string, string> = {
   computerhelp: 'practical.computerhelp',
   repair: 'practical.repair',
   handyman: 'practical.handyman',
+  childcare: 'practical.childcare',
+  bike_repair: 'practical.bike_repair',
   workshop: 'knowledge.workshop',
   cookingclass: 'knowledge.cookingclass',
   musicclass: 'knowledge.musicclass',
   musiclesson: 'knowledge.musicclass',
   tutoring: 'knowledge.tutoring',
   coaching: 'knowledge.coaching',
+  coaching_lifestyle: 'knowledge.coaching_lifestyle',
+  coaching_sport: 'knowledge.coaching_sport',
 };
 
 const LEGACY_LOOKUP: Record<string, string> = Object.fromEntries(
@@ -63,6 +74,8 @@ function normalizeLegacySlug(slug: string): string {
 export function legacySpecializationToTaxonomyId(slug: string): string | null {
   const normalized = normalizeLegacySlug(slug);
   if (!normalized) return null;
+  const dariDutch = legacyDutchSubcategoryToTaxonomyId(slug);
+  if (dariDutch) return dariDutch;
   const mapped = LEGACY_LOOKUP[normalized];
   if (!mapped) return null;
   return getMarketplaceTaxonomyItem(mapped) ? mapped : null;

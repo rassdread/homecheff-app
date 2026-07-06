@@ -1,12 +1,8 @@
 /**
  * Badge builder — priority queue with max N badges.
+ * Phase 5B-B — taxonomy icons + normalized labels on all tile badges.
  */
 
-import type { MarketplaceCategory } from '@prisma/client';
-import {
-  resolveAcceptedBadges,
-  resolveOfferBadges,
-} from '@/lib/marketplace/taxonomy-badges';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import {
   TILE_BADGE_MAX,
@@ -14,10 +10,17 @@ import {
   type TileBadgeVariant,
 } from './tile-badge-priority';
 import { formatWorkshopDateCompact } from './format-workshop-date';
+import {
+  resolveTileAcceptedTaxonomyBadges,
+  resolveTileOfferTaxonomyBadge,
+} from './resolve-tile-badge-icon';
 import type {
+  BuildTileBadgesResult,
   MarketplaceTileModel,
   TileBadge,
+  TileBadgeIconKind,
   TileBadgeKind,
+  TileBarterRenderSlot,
   TranslateFn,
 } from './types';
 
@@ -42,7 +45,37 @@ function kindLabelKey(kind: ListingKind): string | null {
   }
 }
 
-type Candidate = { kind: TileBadgeKind; label: string; tone: TileBadge['tone'] };
+type Candidate = {
+  kind: TileBadgeKind;
+  label: string;
+  tone: TileBadge['tone'];
+  taxonomyId?: string | null;
+  icon?: string;
+  iconKind?: TileBadgeIconKind;
+  taxonomyTone?: TileBadge['taxonomyTone'];
+};
+
+function taxonomyCandidate(
+  kind: TileBadgeKind,
+  resolved: {
+    taxonomyId: string | null;
+    labelKey: string;
+    icon: string;
+    iconKind: TileBadgeIconKind;
+    taxonomyTone: TileBadge['taxonomyTone'];
+  },
+  t: TranslateFn,
+): Candidate {
+  return {
+    kind,
+    label: t(resolved.labelKey),
+    tone: 'default',
+    taxonomyId: resolved.taxonomyId,
+    icon: resolved.icon,
+    iconKind: resolved.iconKind,
+    taxonomyTone: resolved.taxonomyTone,
+  };
+}
 
 function collectCandidates(
   model: MarketplaceTileModel,
@@ -62,6 +95,8 @@ function collectCandidates(
       kind: 'request',
       label: t('marketplace.tile.badge.request'),
       tone: 'request',
+      icon: 'Hand',
+      iconKind: 'lucide',
     });
   }
 
@@ -70,6 +105,8 @@ function collectCandidates(
       kind: 'workshop_date',
       label: formatWorkshopDateCompact(model.availabilityDate, locale),
       tone: 'date',
+      icon: 'Calendar',
+      iconKind: 'lucide',
     });
   }
 
@@ -83,6 +120,8 @@ function collectCandidates(
       kind: 'listing_kind',
       label: t(kindKey),
       tone: 'kind',
+      icon: 'Tag',
+      iconKind: 'lucide',
     });
   }
 
@@ -93,31 +132,21 @@ function collectCandidates(
         kind: 'specialization',
         label: vertical,
         tone: 'default',
+        icon: 'Lightbulb',
+        iconKind: 'lucide',
       });
     }
   } else {
-    const offerBadges = resolveOfferBadges({
-      specializations: model.specializations,
-      marketplaceCategory: model.marketplaceCategory as MarketplaceCategory | null,
-      legacyCategory: null,
-    });
-    if (offerBadges[0]) {
-      out.push({
-        kind: 'specialization',
-        label: t(offerBadges[0].labelKey),
-        tone: 'default',
-      });
+    const offer = resolveTileOfferTaxonomyBadge(model);
+    if (offer) {
+      out.push(taxonomyCandidate('specialization', offer, t));
     }
   }
 
   if (showAcceptedValue) {
-    const accepted = resolveAcceptedBadges(model.acceptedSpecializations);
-    if (accepted[0]) {
-      out.push({
-        kind: 'accepted_value',
-        label: t(accepted[0].labelKey),
-        tone: 'default',
-      });
+    const accepted = resolveTileAcceptedTaxonomyBadges(model);
+    for (const badge of accepted) {
+      out.push(taxonomyCandidate('accepted_value', badge, t));
     }
   }
 
@@ -127,16 +156,26 @@ function collectCandidates(
       kind: 'trust_badge',
       label: trustBadge.name,
       tone: 'trust',
+      icon: 'Award',
+      iconKind: 'lucide',
     });
   }
 
   return out;
 }
 
-export type BuildTileBadgesResult = {
-  badges: TileBadge[];
-  overflowCount: number;
-};
+function resolveBarterSlot(model: MarketplaceTileModel): TileBarterRenderSlot | undefined {
+  const openness = String(model.barterOpenness ?? 'MONEY').toUpperCase();
+  const hasAccepted =
+    (model.acceptedValueSubcategories?.length ?? 0) > 0 ||
+    model.acceptedSpecializations.length > 0;
+  if (openness === 'MONEY' && !hasAccepted) return undefined;
+  return {
+    reserved: true,
+    barterOpenness: model.barterOpenness,
+    hasAcceptedValues: hasAccepted,
+  };
+}
 
 export function buildTileBadges(
   model: MarketplaceTileModel,
@@ -149,6 +188,10 @@ export function buildTileBadges(
 
   const ordered: Candidate[] = [];
   for (const kind of TILE_BADGE_PRIORITY) {
+    if (kind === 'accepted_value') {
+      ordered.push(...candidates.filter((c) => c.kind === 'accepted_value'));
+      continue;
+    }
     const found = candidates.find((c) => c.kind === kind);
     if (found) ordered.push(found);
   }
@@ -157,17 +200,21 @@ export function buildTileBadges(
   const seen = new Set<string>();
   for (const c of ordered) {
     if (c.kind === 'listing_kind' && seen.has('request')) continue;
-    const key = `${c.kind}:${c.label}`;
+    const key = `${c.kind}:${c.taxonomyId ?? c.label}`;
     if (seen.has(key)) continue;
     seen.add(key);
     if (c.kind === 'request') seen.add('listing_kind');
     deduped.push(c);
   }
 
-  let badges = deduped.slice(0, max).map((c) => ({
+  let badges: TileBadge[] = deduped.slice(0, max).map((c) => ({
     kind: c.kind,
     label: c.label,
     tone: c.tone,
+    taxonomyId: c.taxonomyId,
+    icon: c.icon,
+    iconKind: c.iconKind,
+    taxonomyTone: c.taxonomyTone,
   }));
 
   if (variant === 'standard') {
@@ -183,5 +230,6 @@ export function buildTileBadges(
   return {
     badges,
     overflowCount: Math.max(0, deduped.length - max),
+    barterSlot: resolveBarterSlot(model),
   };
 }

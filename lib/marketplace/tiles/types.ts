@@ -5,6 +5,8 @@
 
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { DiscoveryTrustBadge } from '@/lib/discovery/contracts/discovery-read-model';
+import type { ValueExchangeMainCategory } from '@/lib/marketplace/value-exchange/value-exchange-contract';
+import type { TaxonomyTone } from '@/lib/marketplace/taxonomy-types';
 
 export type MarketplaceTileMode = 'sale' | 'inspiration';
 
@@ -91,6 +93,13 @@ export type MarketplaceTileModel = {
   mode: MarketplaceTileMode;
   inspirationCategoryLabel?: string;
 
+  /** Phase 5B-A — derived for future tile icon surfaces (not rendered yet). */
+  offerMainCategory?: ValueExchangeMainCategory | null;
+  offerSubCategory?: string | null;
+  offerSubCategoryIcon?: string | null;
+  acceptedValueCategories?: ValueExchangeMainCategory[];
+  acceptedValueSubcategories?: string[];
+
   sponsored?: false;
 };
 
@@ -105,10 +114,31 @@ export type TileBadgeKind =
 
 export type TileBadgeTone = 'request' | 'default' | 'date' | 'trust' | 'kind';
 
+export type TileBadgeIconKind = 'lucide' | 'emoji' | 'none';
+
 export type TileBadge = {
   kind: TileBadgeKind;
   label: string;
   tone: TileBadgeTone;
+  /** Canonical taxonomy dot-id when badge is registry-backed */
+  taxonomyId?: string | null;
+  icon?: string;
+  iconKind?: TileBadgeIconKind;
+  taxonomyTone?: TaxonomyTone | null;
+};
+
+/** Reserved for Phase 5B+ barter badge row — not rendered in 5B-B */
+export type TileBarterRenderSlot = {
+  reserved: true;
+  barterOpenness: string | null;
+  hasAcceptedValues: boolean;
+};
+
+export type BuildTileBadgesResult = {
+  badges: TileBadge[];
+  overflowCount: number;
+  /** Extensibility hook for barter badges; UI wiring deferred */
+  barterSlot?: TileBarterRenderSlot;
 };
 
 export type TileTrustCue = {

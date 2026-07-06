@@ -7,6 +7,9 @@ export type {
   MarketplaceTileTrust,
   TileBadge,
   TileBadgeKind,
+  TileBadgeIconKind,
+  TileBarterRenderSlot,
+  BuildTileBadgesResult,
   TileTrustCue,
   TranslateFn,
 } from './types';
@@ -26,7 +29,6 @@ export {
 } from './tile-trust-rules';
 
 export { buildTileBadges } from './build-tile-badges';
-export type { BuildTileBadgesResult } from './build-tile-badges';
 
 export {
   buildTileTrustCue,
@@ -37,6 +39,13 @@ export { formatWorkshopDateCompact } from './format-workshop-date';
 
 export { mapGeoFeedCardToTileModel } from './map-to-tile-model';
 export type { MapToTileModelOptions } from './map-to-tile-model';
+export { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
+export type { TileValueExchangeFields } from './resolve-tile-value-exchange';
+export {
+  resolveTileOfferTaxonomyBadge,
+  resolveTileAcceptedTaxonomyBadges,
+} from './resolve-tile-badge-icon';
+export type { ResolvedTileTaxonomyBadge } from './resolve-tile-badge-icon';
 
 export { mapProfileListingToTileModel } from './map-profile-listing-to-tile-model';
 export type {

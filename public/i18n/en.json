@@ -1623,135 +1623,38 @@
     "descriptionCancelled": "Your order has been cancelled"
   },
   "delivery": {
-    "setupNow": "Set Up Now",
-    "onlyLastReminder": "Only last reminder (+€0.10/message)",
-    "requiredAgreements": "Required Agreements",
-    "requiredAgreementsMissing": "Required agreements missing",
-    "acceptAllRequiredConditions": "Accept all required conditions (marked with",
-    "availability": "Availability",
-    "deliverySettings": "Delivery Settings",
-    "manageDeliveryProfile": "Manage your delivery profile and availability",
-    "howFarMaxDelivery": "How far do you want to deliver maximum?",
-    "addRegionPlaceholder": "Add region (e.g. Amsterdam, Utrecht)",
-    "saveSettings": "Save Settings",
-    "becomeDelivery": "Become Delivery",
-    "ageRange": "Between 15 and 25 years",
-    "activeAvailable": "Actively available",
-    "deliveryModeAndLocation": "Delivery Mode & Location",
-    "fixedPoint": "Fixed Point",
-    "dynamic": "Dynamic",
-    "idealDistanceForDeliveries": "Ideal distance for deliveries",
-    "dashboardTitle": "Delivery Dashboard",
-    "dashboardSubtitle": "Manage your deliveries and earn extra",
-    "sellerDeliveryDashboard": "Your own deliveries",
-    "sellerDeliveryDescription": "Here you can see all orders that you can deliver yourself. The radius is already set when placing your products.",
-    "myProfile": "My Profile",
-    "profile": "Profile",
-    "myEarnings": "My Earnings",
-    "earningsShort": "Earnings",
-    "settings": "Settings",
-    "settingsShort": "Settings",
-    "online": "Online",
-    "offline": "Offline",
-    "gpsActive": "GPS Active",
-    "goOffline": "Go Offline",
-    "goOnline": "Go Online",
-    "today": "Today",
-    "thisWeek": "This Week",
-    "available": "Available",
-    "newOrders": "New orders",
-    "rating": "Rating",
-    "deliveries": "deliveries",
-    "availableDeliveryOrders": "Available Deliveries",
-    "withinWorkArea": "Within {radius} km of your work area",
-    "refresh": "Refresh",
-    "from": "From",
-    "deliveryCosts": "Delivery Costs",
-    "youGet": "You get",
-    "accepting": "Accepting...",
-    "acceptOrder": "Accept Order",
-    "currentOrder": "Current Order",
-    "pending": "Pending",
-    "accepted": "Accepted",
-    "pickedUp": "Picked Up",
-    "delivered": "Delivered",
-    "cancelled": "Cancelled",
-    "pickupAddress": "Pickup Address",
-    "deliveryAddress": "Delivery Address",
-    "notes": "Notes",
-    "acceptOrderButton": "Accept Order",
-    "reject": "Reject",
-    "productPickedUp": "Product Picked Up",
-    "productDelivered": "Product Delivered",
-    "sendMessageToCustomer": "Send Message to Customer",
-    "youAreOffline": "You are offline",
-    "goOnlineToReceive": "Go online to receive orders within {radius} km",
-    "ordersAvailable": "There are {count} orders available",
-    "scrollUpToSee": "Scroll up to see them",
-    "youAreOnline": "You are online",
-    "waitingForOrders": "Waiting for orders within {radius} km",
-    "searchingOrders": "Searching for orders...",
-    "withinRadiusSeller": "Seller within {radius} km",
-    "withinRadiusBuyer": "Buyer within {radius} km",
-    "availableInTimeSlot": "Available in your time slot",
-    "workArea": "Work Area",
-    "deliveryRadius": "Delivery Radius",
-    "gpsValidation": "GPS Validation",
-    "withinRadiusSellerShort": "Seller within {radius} km",
-    "withinRadiusBuyerShort": "Buyer within {radius} km",
-    "availableInYourTimeSlot": "Available in your time slot",
-    "onlineTime": "Online Time",
-    "completed": "Completed",
-    "totalEarned": "Total Earned",
-    "totalEarnedDesc": "Total earned from deliveries",
-    "recentOrders": "Recent Orders",
-    "paymentStatus": "Payment Status",
-    "stripeConnectActive": "Stripe Connect Active",
-    "stripeConnectActiveDesc": "Your payouts are processed automatically",
-    "stripeConnectRequired": "Stripe Connect Required",
-    "stripeConnectRequiredDesc": "Set up Stripe Connect to receive payments",
-    "delivererTips": "Deliverer Tips",
-    "keepPhoneCharged": "Keep your phone charged",
-    "locationAlwaysOn": "Keep location always on",
-    "checkVehicle": "Check your vehicle before departure",
-    "beFriendly": "Be friendly to customers",
-    "timeWindow": "Respect the delivery time",
-    "errorChangingStatus": "Error changing status",
-    "error": "Error",
-    "couldNotAcceptOrder": "Could not accept order",
-    "errorAcceptingOrder": "Error accepting order",
-    "errorStripeConnect": "Error with Stripe Connect",
-    "errorSettingUpStripe": "Error setting up Stripe",
-    "warning": "Warning: {message}",
-    "maxDistanceLabel": "Maximum distance",
-    "workAreaTitle": "Work Area",
-    "safetyBenefits": "Safety benefits",
-    "safetyBenefit1": "Always close to home and familiar area",
-    "safetyBenefit2": "Parents can track your route via the app",
-    "safetyBenefit3": "Quick help possible if needed",
-    "safetyBenefit4": "Short travel times = less risk",
-    "deliveryModeLabel": "Delivery mode",
-    "fixedArea": "Fixed Area",
-    "dynamicGps": "Dynamic GPS",
-    "dynamicGpsTitle": "Dynamic GPS Location",
-    "dynamicGpsBullet1": "Your location is updated continuously during deliveries",
-    "dynamicGpsBullet2": "Radius moves with your position",
-    "dynamicGpsBullet3": "Receive orders in areas where you're driving",
-    "dynamicGpsBullet4": "More flexibility = more earnings",
-    "dynamicGpsBullet5": "GPS active when you're online",
-    "deliveryRadiusLabel": "Delivery radius (maximum distance)",
-    "kmMax": "km max",
-    "maxDistanceBasedOnTransport": "based on your vehicle",
-    "maxDistanceBasedOnTransportPlural": "based on your vehicles",
-    "howItWorksBullet1": "You must be within {km}km of the seller (pickup)",
-    "howItWorksBullet2": "You must be within {km}km of the buyer (delivery)",
-    "howItWorksBullet3": "Both distances must match to see the order",
-    "withChosenTransport": "With your chosen vehicle you can deliver up to {km}km",
-    "withChosenTransportPlural": "With your chosen vehicles you can deliver up to {km}km",
-    "hoursUnit": "h",
-    "minutesUnit": "m",
-    "warningCanStillGoOnline": "You can still go online, but you may receive fewer orders.",
-    "onlineGoError": "An error occurred while going online"
+    "request": {
+      "heading": "Delivery request",
+      "status": {
+        "open": "Open",
+        "claimed": "Claimed",
+        "assigned": "Assigned",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "assignment": {
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "errors": {
+      "accessDenied": "You do not have access to this delivery request.",
+      "communityOrderNotFound": "Deal not found.",
+      "deliveryNotRequested": "Delivery was not requested for this order.",
+      "activeRequestExists": "An active delivery request already exists.",
+      "requestNotFound": "Delivery request not found.",
+      "requestNotActive": "This delivery request is no longer active.",
+      "courierRequired": "Select a courier.",
+      "courierNotActive": "This courier is not active.",
+      "activeAssignmentExists": "An active assignment already exists.",
+      "noPendingAssignment": "No pending assignment.",
+      "courierOnly": "Only the assigned courier can accept.",
+      "noAcceptedAssignment": "No accepted assignment."
+    }
   },
   "products": {
     "pickup": "Pickup",
@@ -1908,38 +1811,150 @@
   "activations": {
     "realWorld": {
       "practical": {
-        "repairBicycleTire": { "title": "Help fix a flat tire", "description": "Someone nearby needs help with a bicycle tire — maybe you can assist.", "action": "View requests" },
-        "fixBicycleLights": { "title": "Fix bicycle lights", "description": "A neighbor needs help with bicycle lights.", "action": "View requests" },
-        "helpWithGroceries": { "title": "Help with groceries", "description": "Someone nearby could use help with groceries.", "action": "View requests" },
-        "helpElderlyNeighbors": { "title": "Help a neighbor", "description": "Elderly or vulnerable neighbors nearby are looking for practical help.", "action": "View requests" },
-        "assembleFurniture": { "title": "Assemble furniture", "description": "Someone needs help assembling furniture.", "action": "View requests" },
-        "hangShelves": { "title": "Hang shelves", "description": "A neighbor needs help with a small home project.", "action": "View requests" },
-        "wifiHelp": { "title": "Wifi help", "description": "Someone nearby needs help with wifi or internet.", "action": "View requests" },
-        "printerHelp": { "title": "Printer help", "description": "A neighbor needs help with a printer or computer.", "action": "View requests" },
-        "computerCleanup": { "title": "Computer cleanup", "description": "Someone needs help cleaning up their computer.", "action": "View requests" },
-        "gardenCleanup": { "title": "Garden cleanup", "description": "A neighbor needs help with garden work or cleanup.", "action": "View requests" },
-        "movingAssistance": { "title": "Moving assistance", "description": "Someone nearby needs help moving.", "action": "View requests" },
-        "smallRepairs": { "title": "Small repairs", "description": "A neighbor needs help with a small repair.", "action": "View requests" }
+        "repairBicycleTire": {
+          "title": "Help fix a flat tire",
+          "description": "Someone nearby needs help with a bicycle tire — maybe you can assist.",
+          "action": "View requests"
+        },
+        "fixBicycleLights": {
+          "title": "Fix bicycle lights",
+          "description": "A neighbor needs help with bicycle lights.",
+          "action": "View requests"
+        },
+        "helpWithGroceries": {
+          "title": "Help with groceries",
+          "description": "Someone nearby could use help with groceries.",
+          "action": "View requests"
+        },
+        "helpElderlyNeighbors": {
+          "title": "Help a neighbor",
+          "description": "Elderly or vulnerable neighbors nearby are looking for practical help.",
+          "action": "View requests"
+        },
+        "assembleFurniture": {
+          "title": "Assemble furniture",
+          "description": "Someone needs help assembling furniture.",
+          "action": "View requests"
+        },
+        "hangShelves": {
+          "title": "Hang shelves",
+          "description": "A neighbor needs help with a small home project.",
+          "action": "View requests"
+        },
+        "wifiHelp": {
+          "title": "Wifi help",
+          "description": "Someone nearby needs help with wifi or internet.",
+          "action": "View requests"
+        },
+        "printerHelp": {
+          "title": "Printer help",
+          "description": "A neighbor needs help with a printer or computer.",
+          "action": "View requests"
+        },
+        "computerCleanup": {
+          "title": "Computer cleanup",
+          "description": "Someone needs help cleaning up their computer.",
+          "action": "View requests"
+        },
+        "gardenCleanup": {
+          "title": "Garden cleanup",
+          "description": "A neighbor needs help with garden work or cleanup.",
+          "action": "View requests"
+        },
+        "movingAssistance": {
+          "title": "Moving assistance",
+          "description": "Someone nearby needs help moving.",
+          "action": "View requests"
+        },
+        "smallRepairs": {
+          "title": "Small repairs",
+          "description": "A neighbor needs help with a small repair.",
+          "action": "View requests"
+        }
       },
       "discovery": {
-        "buyFromNewMaker": { "title": "Buy from a new maker", "description": "Support a new maker in your area with your first purchase.", "action": "Discover makers" },
-        "visitWorkshop": { "title": "Visit a workshop", "description": "A workshop is happening near you — discover and join in.", "action": "Browse workshops" },
-        "pickupOrderInPerson": { "title": "Pick up your order", "description": "You have an order you can pick up in person from a neighbor.", "action": "Go to orders" },
-        "visitLocalBusiness": { "title": "Visit a local business", "description": "Discover entrepreneurs and makers near you.", "action": "Discover" },
-        "meetNewCommunityMember": { "title": "Welcome a new neighbor", "description": "New members joined your area — say hello.", "action": "Explore nearby" },
-        "discoverHiddenCreator": { "title": "Discover a local creator", "description": "There is a maker nearby you may not know yet.", "action": "Discover" },
-        "visitTrustedMaker": { "title": "Visit a trusted maker", "description": "Pick up your next purchase from a maker your community trusts.", "action": "Discover" },
-        "exploreFavoriteMaker": { "title": "Message a favorite", "description": "You have favorites — start a conversation before you buy.", "action": "Go to favorites" }
+        "buyFromNewMaker": {
+          "title": "Buy from a new maker",
+          "description": "Support a new maker in your area with your first purchase.",
+          "action": "Discover makers"
+        },
+        "visitWorkshop": {
+          "title": "Visit a workshop",
+          "description": "A workshop is happening near you — discover and join in.",
+          "action": "Browse workshops"
+        },
+        "pickupOrderInPerson": {
+          "title": "Pick up your order",
+          "description": "You have an order you can pick up in person from a neighbor.",
+          "action": "Go to orders"
+        },
+        "visitLocalBusiness": {
+          "title": "Visit a local business",
+          "description": "Discover entrepreneurs and makers near you.",
+          "action": "Discover"
+        },
+        "meetNewCommunityMember": {
+          "title": "Welcome a new neighbor",
+          "description": "New members joined your area — say hello.",
+          "action": "Explore nearby"
+        },
+        "discoverHiddenCreator": {
+          "title": "Discover a local creator",
+          "description": "There is a maker nearby you may not know yet.",
+          "action": "Discover"
+        },
+        "visitTrustedMaker": {
+          "title": "Visit a trusted maker",
+          "description": "Pick up your next purchase from a maker your community trusts.",
+          "action": "Discover"
+        },
+        "exploreFavoriteMaker": {
+          "title": "Message a favorite",
+          "description": "You have favorites — start a conversation before you buy.",
+          "action": "Go to favorites"
+        }
       },
       "support": {
-        "supportSomeoneNearby": { "title": "Support someone nearby", "description": "People near you are looking for help.", "action": "View requests" },
-        "buyMealForSomeone": { "title": "Share a meal", "description": "Consider sharing a meal or buying locally for someone who could use support.", "action": "Explore listings" },
-        "donateTime": { "title": "Donate time", "description": "Offer volunteer time to a neighbor who needs help.", "action": "View requests" },
-        "offerPracticalHelp": { "title": "Offer practical help", "description": "Someone nearby needs practical help — your skills may fit.", "action": "View requests" },
-        "joinNeighborhoodInitiative": { "title": "Join a neighborhood initiative", "description": "Join a local initiative in your area.", "action": "Read more" },
-        "supportLocalEvent": { "title": "Support a local event", "description": "A workshop or event is happening near you.", "action": "View event" },
-        "supportNewSeller": { "title": "Support a new seller", "description": "Help a new maker nearby with your first purchase.", "action": "Discover" },
-        "reconnectPastSeller": { "title": "Revisit a maker you know", "description": "You bought locally before — visit that maker again.", "action": "Go to orders" }
+        "supportSomeoneNearby": {
+          "title": "Support someone nearby",
+          "description": "People near you are looking for help.",
+          "action": "View requests"
+        },
+        "buyMealForSomeone": {
+          "title": "Share a meal",
+          "description": "Consider sharing a meal or buying locally for someone who could use support.",
+          "action": "Explore listings"
+        },
+        "donateTime": {
+          "title": "Donate time",
+          "description": "Offer volunteer time to a neighbor who needs help.",
+          "action": "View requests"
+        },
+        "offerPracticalHelp": {
+          "title": "Offer practical help",
+          "description": "Someone nearby needs practical help — your skills may fit.",
+          "action": "View requests"
+        },
+        "joinNeighborhoodInitiative": {
+          "title": "Join a neighborhood initiative",
+          "description": "Join a local initiative in your area.",
+          "action": "Read more"
+        },
+        "supportLocalEvent": {
+          "title": "Support a local event",
+          "description": "A workshop or event is happening near you.",
+          "action": "View event"
+        },
+        "supportNewSeller": {
+          "title": "Support a new seller",
+          "description": "Help a new maker nearby with your first purchase.",
+          "action": "Discover"
+        },
+        "reconnectPastSeller": {
+          "title": "Revisit a maker you know",
+          "description": "You bought locally before — visit that maker again.",
+          "action": "Go to orders"
+        }
       }
     }
   },
@@ -1949,36 +1964,61 @@
         "title": "Become a HomeCheff partner",
         "description": "Share what you make or offer and reach neighbors in your area.",
         "action": "Become a partner",
-        "benefit": { "reach": "Reach neighbors locally", "growth": "Grow with community recognition" },
-        "req": { "profile": "Complete your profile" }
+        "benefit": {
+          "reach": "Reach neighbors locally",
+          "growth": "Grow with community recognition"
+        },
+        "req": {
+          "profile": "Complete your profile"
+        }
       },
       "ambassador": {
         "title": "Become a neighborhood ambassador",
         "description": "Help HomeCheff grow locally and earn recognition.",
         "action": "Become ambassador",
-        "benefit": { "recognition": "Earn neighborhood recognition", "status": "Build community status" },
-        "req": { "age": "Account active for at least 7 days" }
+        "benefit": {
+          "recognition": "Earn neighborhood recognition",
+          "status": "Build community status"
+        },
+        "req": {
+          "age": "Account active for at least 7 days"
+        }
       },
       "courier": {
         "title": "Become a neighborhood courier",
         "description": "Deliver locally and contribute to your community — earnings framework coming later.",
         "action": "Start as courier",
-        "benefit": { "earn": "Future earning potential", "recognition": "Courier recognition badge" },
-        "req": { "location": "Set your location" }
+        "benefit": {
+          "earn": "Future earning potential",
+          "recognition": "Courier recognition badge"
+        },
+        "req": {
+          "location": "Set your location"
+        }
       },
       "workshopHost": {
         "title": "Host a workshop",
         "description": "Share your skills through a workshop or cooking class nearby.",
         "action": "Start workshop",
-        "benefit": { "teach": "Teach your community", "status": "Workshop host status" },
-        "req": { "listing": "At least one active listing" }
+        "benefit": {
+          "teach": "Teach your community",
+          "status": "Workshop host status"
+        },
+        "req": {
+          "listing": "At least one active listing"
+        }
       },
       "communityHelper": {
         "title": "Support someone nearby",
         "description": "People near you are looking for help — maybe you can make a difference.",
         "action": "View requests",
-        "benefit": { "help": "Strengthen neighborhood bonds", "recognition": "Helper recognition" },
-        "req": { "nearby": "Active help requests nearby" },
+        "benefit": {
+          "help": "Strengthen neighborhood bonds",
+          "recognition": "Helper recognition"
+        },
+        "req": {
+          "nearby": "Active help requests nearby"
+        },
         "variants": {
           "bikeRepair": {
             "title": "Help fix a bike nearby",
@@ -2026,36 +2066,62 @@
         "title": "Invite a local business",
         "description": "Know a baker, butcher, or shop? Invite them to the village square.",
         "action": "Share invite",
-        "benefit": { "grow": "Grow the local marketplace", "recognition": "Partner inviter recognition" },
-        "req": { "products": "At least 3 active listings" }
+        "benefit": {
+          "grow": "Grow the local marketplace",
+          "recognition": "Partner inviter recognition"
+        },
+        "req": {
+          "products": "At least 3 active listings"
+        }
       },
       "sportsClubInviter": {
         "title": "Invite your sports club",
         "description": "Cook together, pick up together — grow as a club on HomeCheff.",
         "action": "Invite club",
-        "benefit": { "community": "Build club community", "recognition": "Club ambassador recognition" },
-        "req": { "location": "Location set in your area" }
+        "benefit": {
+          "community": "Build club community",
+          "recognition": "Club ambassador recognition"
+        },
+        "req": {
+          "location": "Location set in your area"
+        }
       },
       "schoolInviter": {
         "title": "Invite a school or class",
         "description": "Help a school or class discover local makers and workshops.",
         "action": "Share invite",
-        "benefit": { "community": "Connect schools to local makers", "recognition": "School ambassador recognition" },
-        "req": { "activity": "Active in your local community" }
+        "benefit": {
+          "community": "Connect schools to local makers",
+          "recognition": "School ambassador recognition"
+        },
+        "req": {
+          "activity": "Active in your local community"
+        }
       },
       "municipalityInviter": {
         "title": "Invite your municipality",
         "description": "Help your municipality discover HomeCheff as a local platform.",
         "action": "Share invite",
-        "benefit": { "grow": "Expand local platform reach", "status": "Municipal ambassador status" },
-        "req": { "tier": "Established seller tier", "deals": "At least 5 completed deals" }
+        "benefit": {
+          "grow": "Expand local platform reach",
+          "status": "Municipal ambassador status"
+        },
+        "req": {
+          "tier": "Established seller tier",
+          "deals": "At least 5 completed deals"
+        }
       },
       "eventOrganizer": {
         "title": "Organize a local event",
         "description": "Bring neighbors together through a workshop, market, or community event.",
         "action": "Plan event",
-        "benefit": { "learn": "Share skills with neighbors", "status": "Event organizer recognition" },
-        "req": { "workshops": "Workshop or event experience nearby" }
+        "benefit": {
+          "learn": "Share skills with neighbors",
+          "status": "Event organizer recognition"
+        },
+        "req": {
+          "workshops": "Workshop or event experience nearby"
+        }
       }
     }
   },
@@ -8015,6 +8081,18 @@
         "catering": {
           "label": "Catering"
         },
+        "bbq": {
+          "label": "BBQ"
+        },
+        "cuisine_surinamese": {
+          "label": "Surinamese"
+        },
+        "cuisine_indonesian": {
+          "label": "Indonesian"
+        },
+        "cuisine_caribbean": {
+          "label": "Caribbean"
+        },
         "clothing": {
           "label": "Clothing"
         },
@@ -8143,6 +8221,12 @@
         "plants": {
           "label": "Plants"
         },
+        "houseplants": {
+          "label": "Houseplants"
+        },
+        "cuttings": {
+          "label": "Cuttings"
+        },
         "honey": {
           "label": "Honey"
         }
@@ -8238,6 +8322,12 @@
         },
         "assembly": {
           "label": "Assembly"
+        },
+        "childcare": {
+          "label": "Childcare"
+        },
+        "bike_repair": {
+          "label": "Bike repair"
         }
       },
       "knowledge": {
@@ -8258,6 +8348,12 @@
         },
         "coaching": {
           "label": "Coaching"
+        },
+        "coaching_lifestyle": {
+          "label": "Lifestyle coaching"
+        },
+        "coaching_sport": {
+          "label": "Sport coaching"
         }
       }
     },
@@ -8378,13 +8474,34 @@
       "checkoutCta": "Pay via HomeCheff"
     },
     "notifications": {
-      "received": { "title": "New proposal received", "body": "{{title}}" },
-      "accepted": { "title": "Deal confirmed", "body": "\"{{title}}\" was confirmed as your deal." },
-      "rejected": { "title": "Proposal declined", "body": "\"{{title}}\" was declined." },
-      "countered": { "title": "Counter offer received", "body": "New counter offer: {{title}}" },
-      "alternativeValue": { "title": "Proposal with trade value", "body": "\"{{title}}\" includes trade value." },
-      "mixedAccepted": { "title": "Deal confirmed", "body": "\"{{title}}\" — deal confirmed." },
-      "communityOrderCreated": { "title": "Deal confirmed", "body": "Your deal for \"{{title}}\" is recorded." }
+      "received": {
+        "title": "New proposal received",
+        "body": "{{title}}"
+      },
+      "accepted": {
+        "title": "Deal confirmed",
+        "body": "\"{{title}}\" was confirmed as your deal."
+      },
+      "rejected": {
+        "title": "Proposal declined",
+        "body": "\"{{title}}\" was declined."
+      },
+      "countered": {
+        "title": "Counter offer received",
+        "body": "New counter offer: {{title}}"
+      },
+      "alternativeValue": {
+        "title": "Proposal with trade value",
+        "body": "\"{{title}}\" includes trade value."
+      },
+      "mixedAccepted": {
+        "title": "Deal confirmed",
+        "body": "\"{{title}}\" — deal confirmed."
+      },
+      "communityOrderCreated": {
+        "title": "Deal confirmed",
+        "body": "Your deal for \"{{title}}\" is recorded."
+      }
     },
     "actions": {
       "accept": "Accept",
@@ -8553,40 +8670,6 @@
   "profile": {
     "deals": {
       "navLabel": "My deals"
-    }
-  },
-  "delivery": {
-    "request": {
-      "heading": "Delivery request",
-      "status": {
-        "open": "Open",
-        "claimed": "Claimed",
-        "assigned": "Assigned",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
-      }
-    },
-    "assignment": {
-      "status": {
-        "pending": "Pending",
-        "accepted": "Accepted",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
-      }
-    },
-    "errors": {
-      "accessDenied": "You do not have access to this delivery request.",
-      "communityOrderNotFound": "Deal not found.",
-      "deliveryNotRequested": "Delivery was not requested for this order.",
-      "activeRequestExists": "An active delivery request already exists.",
-      "requestNotFound": "Delivery request not found.",
-      "requestNotActive": "This delivery request is no longer active.",
-      "courierRequired": "Select a courier.",
-      "courierNotActive": "This courier is not active.",
-      "activeAssignmentExists": "An active assignment already exists.",
-      "noPendingAssignment": "No pending assignment.",
-      "courierOnly": "Only the assigned courier can accept.",
-      "noAcceptedAssignment": "No accepted assignment."
     }
   },
   "courier": {

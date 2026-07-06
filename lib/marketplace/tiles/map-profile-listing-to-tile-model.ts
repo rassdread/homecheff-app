@@ -15,6 +15,7 @@ import { deriveListingKind } from '@/lib/marketplace/listing-kind';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
+import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
 import type {
   MarketplaceTileMode,
   MarketplaceTileModel,
@@ -76,6 +77,19 @@ export function mapProfileListingToTileModel(
   const listingIntent =
     (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null;
 
+  const marketplaceCategory = getDiscoveryMarketplaceCategory(item);
+  const specializations = getDiscoverySpecializations(item);
+  const acceptedSpecializations =
+    d?.acceptedSpecializations ?? item.acceptedSpecializations ?? [];
+
+  const valueExchange = resolveTileValueExchangeFields({
+    marketplaceCategory,
+    specializations,
+    acceptedSpecializations,
+    listingKind,
+    listingIntent,
+  });
+
   return {
     id: item.id,
     href: options.href,
@@ -118,5 +132,11 @@ export function mapProfileListingToTileModel(
 
     mode,
     inspirationCategoryLabel: options.inspirationCategoryLabel,
+
+    offerMainCategory: valueExchange.offerMainCategory,
+    offerSubCategory: valueExchange.offerSubCategory,
+    offerSubCategoryIcon: valueExchange.offerSubCategoryIcon,
+    acceptedValueCategories: valueExchange.acceptedValueCategories,
+    acceptedValueSubcategories: valueExchange.acceptedValueSubcategories,
   };
 }

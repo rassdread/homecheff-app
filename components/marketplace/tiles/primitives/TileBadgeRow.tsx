@@ -1,5 +1,6 @@
 'use client';
 
+import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import { cn } from '@/lib/utils';
 import type { TileBadge } from '@/lib/marketplace/tiles';
 
@@ -10,6 +11,20 @@ const TONE_CLASS: Record<TileBadge['tone'], string> = {
   trust: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
   default: 'bg-white/95 text-gray-800 ring-gray-200',
 };
+
+function TileBadgeIcon({ badge }: { badge: TileBadge }) {
+  if (!badge.icon || badge.iconKind === 'none') return null;
+  if (badge.iconKind === 'emoji') {
+    return (
+      <span className="shrink-0 text-[10px] leading-none" aria-hidden>
+        {badge.icon}
+      </span>
+    );
+  }
+  return (
+    <TaxonomyLucideIcon name={badge.icon} className="h-3 w-3 shrink-0" />
+  );
+}
 
 export default function TileBadgeRow({
   badges,
@@ -36,13 +51,14 @@ export default function TileBadgeRow({
     >
       {badges.map((badge) => (
         <span
-          key={`${badge.kind}-${badge.label}`}
+          key={`${badge.kind}-${badge.taxonomyId ?? badge.label}`}
           className={cn(
-            'inline-flex max-w-full items-center truncate rounded-lg px-2 py-0.5 text-[10px] font-semibold shadow-sm ring-1',
+            'inline-flex max-w-full items-center gap-1 truncate rounded-lg px-2 py-0.5 text-[10px] font-semibold shadow-sm ring-1',
             TONE_CLASS[badge.tone],
           )}
         >
-          {badge.label}
+          <TileBadgeIcon badge={badge} />
+          <span className="truncate">{badge.label}</span>
         </span>
       ))}
       {overflowCount && overflowCount > 0 ? (
