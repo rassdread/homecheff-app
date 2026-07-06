@@ -10,6 +10,7 @@ import type {
   EconomyOpportunitySurfaceContract,
   OpportunityEconomySurfacePlan,
 } from './map-economy-opportunity-surface';
+import type { GrowthSurfacePlan } from '@/lib/discovery/growth/growth-surface-contract';
 
 /** Canonical surface kinds (3D architecture + 3F workshop). */
 export const SURFACE_KINDS = [
@@ -206,6 +207,7 @@ export type ResolvedSurfaceModule =
   | ResolvedPlatformModule;
 
 export type { EconomyOpportunitySurfaceContract, OpportunityEconomySurfacePlan };
+export type { GrowthSurfacePlan };
 
 /** Canonical desktop right-sidebar surface stack (3F). */
 export const SIDEBAR_STACK_SLOT_IDS = [
@@ -273,6 +275,8 @@ export type ResolvedSurfacePlan = {
   notificationsFuture: ResolvedSurfaceModule[];
   /** Opportunity Economy surfaces — Phase 3J. */
   opportunityEconomy: OpportunityEconomySurfacePlan;
+  /** Unified growth & action surfaces — Phase 3M. */
+  growthSurfaces: GrowthSurfacePlan;
   meta: {
     activitySidebarMaxStacked: number;
     activitySidebarCollapseThreshold: number;

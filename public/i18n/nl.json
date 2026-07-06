@@ -944,6 +944,57 @@
       }
     }
   },
+  "growth": {
+    "surfaces": {
+      "currentAction": {
+        "label": "Je volgende stap",
+        "cta": "Aan de slag"
+      },
+      "progress": {
+        "milestones": "{{count}} bevestigde mijlpalen"
+      },
+      "streak": {
+        "weeks": "{{count}} weken op rij"
+      },
+      "milestone": {
+        "next": "Volgende mijlpaal"
+      },
+      "hcp": {
+        "label": "HCP-voortgang",
+        "actionDescription": "Verdien erkenning voor echte deelname.",
+        "daily": "{{earned}} HCP vandaag · {{remaining}} resterend"
+      },
+      "profile": {
+        "title": "Groei & voortgang",
+        "levelProgress": "{{percent}}% naar volgend niveau",
+        "opportunities": "Actieve kansen",
+        "achievements": "Recente prestaties",
+        "actions": "Aanbevolen acties"
+      },
+      "achievements": {
+        "firstWorkshop": {
+          "label": "Eerste workshop",
+          "description": "Je nam deel aan of gaf je eerste workshop."
+        },
+        "firstHelper": {
+          "label": "Eerste hulpactie",
+          "description": "Je hielp een buur in de buurt."
+        },
+        "firstPartner": {
+          "label": "Eerste partneruitnodiging",
+          "description": "Je nodigde een lokale ondernemer uit voor HomeCheff."
+        },
+        "communityContributor": {
+          "label": "Community-bouwer",
+          "description": "Je bouwt mee aan buurtdeelname."
+        },
+        "localConnector": {
+          "label": "Lokale verbinder",
+          "description": "Je verbindt mensen en plekken in de buurt."
+        }
+      }
+    }
+  },
   "filters": {
     "all": "Alles",
     "allDelivery": "Alle",

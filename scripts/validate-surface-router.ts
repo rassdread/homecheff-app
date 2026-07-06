@@ -159,6 +159,8 @@ assert(
   'profile modules are activation/opportunity only',
 );
 assert(plan.opportunityEconomy !== undefined, 'opportunityEconomy on plan');
+assert(plan.growthSurfaces !== undefined, 'growthSurfaces on plan');
+assert(plan.growthSurfaces.desktopStack.length === 7, 'growth desktop stack 7 slots');
 
 console.log('\nVisibility');
 assert(maxModulesForTarget('OPPORTUNITY', 'desktop_right_sidebar') === 1, 'opportunity desktop cap');

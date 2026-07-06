@@ -2176,6 +2176,57 @@
       }
     }
   },
+  "growth": {
+    "surfaces": {
+      "currentAction": {
+        "label": "Your next step",
+        "cta": "Take action"
+      },
+      "progress": {
+        "milestones": "{{count}} verified milestones"
+      },
+      "streak": {
+        "weeks": "{{count}}-week streak"
+      },
+      "milestone": {
+        "next": "Next milestone"
+      },
+      "hcp": {
+        "label": "HCP progress",
+        "actionDescription": "Earn recognition for real-world participation.",
+        "daily": "{{earned}} HCP today · {{remaining}} remaining"
+      },
+      "profile": {
+        "title": "Growth & progress",
+        "levelProgress": "{{percent}}% to next level",
+        "opportunities": "Active opportunities",
+        "achievements": "Recent achievements",
+        "actions": "Recommended actions"
+      },
+      "achievements": {
+        "firstWorkshop": {
+          "label": "First workshop",
+          "description": "You joined or hosted your first workshop."
+        },
+        "firstHelper": {
+          "label": "First helper action",
+          "description": "You helped a neighbor nearby."
+        },
+        "firstPartner": {
+          "label": "First partner invite",
+          "description": "You invited a local business to HomeCheff."
+        },
+        "communityContributor": {
+          "label": "Community contributor",
+          "description": "You are building neighborhood participation."
+        },
+        "localConnector": {
+          "label": "Local connector",
+          "description": "You are connecting people and places nearby."
+        }
+      }
+    }
+  },
   "filters": {
     "all": "All",
     "allDelivery": "All",

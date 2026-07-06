@@ -205,3 +205,25 @@ export {
 } from './build-server-surface-context';
 
 export type { BuildServerSurfaceContextInput } from './build-server-surface-context';
+
+export type {
+  GrowthSurfacePlan,
+  GrowthSurfaceBundle,
+  GrowthActionStackSlot,
+  UnifiedRecommendedAction,
+  RecommendedActionPair,
+  GrowthMobileInsert,
+  GrowthProfileModulePlan,
+} from '@/lib/discovery/growth';
+
+export {
+  GROWTH_ACTION_STACK_SLOT_IDS,
+  isCanonicalGrowthStackOrder,
+  resolveGrowthSurfaces,
+  resolveGrowthSurfaceBundle,
+  resolveRecommendedActionPair,
+  buildGrowthActionStack,
+  visibleGrowthStackSlots,
+  buildGrowthMobileInserts,
+  growthMobileInsertIndices,
+} from '@/lib/discovery/growth';

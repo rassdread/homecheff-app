@@ -8,3 +8,6 @@ export { default as CommunityModuleCard } from './CommunityModuleCard';
 export { default as WorkshopModuleCard } from './WorkshopModuleCard';
 export { default as DesktopRightSidebarSurfaceStack } from './DesktopRightSidebarSurfaceStack';
 export { default as ProfileSurfaceStack } from './ProfileSurfaceStack';
+export { default as GrowthActionStack } from './GrowthActionStack';
+export { default as GrowthProgressProfileModule } from './GrowthProgressProfileModule';
+export { default as GrowthMobileInsertCard } from './GrowthMobileInsertCard';

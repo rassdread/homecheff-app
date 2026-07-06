@@ -7,6 +7,7 @@ import ActivityCard from '@/components/discovery/activity-cards/ActivityCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 import OpportunityEconomyCard from './OpportunityEconomyCard';
 import OpportunityProfileModule from './OpportunityProfileModule';
+import GrowthProgressProfileModule from './GrowthProgressProfileModule';
 
 export type ProfileSurfaceStackProps = {
   plan: ResolvedSurfacePlan | null;
@@ -24,11 +25,15 @@ export default function ProfileSurfaceStack({
 
   const sections = useMemo(() => plan?.profileStack ?? [], [plan]);
   const profileEconomy = plan?.opportunityEconomy?.profileModules ?? [];
+  const growthProfile = plan?.growthSurfaces?.profile ?? null;
 
-  if (sections.length === 0 && profileEconomy.length === 0) return null;
+  if (sections.length === 0 && profileEconomy.length === 0 && !growthProfile) {
+    return null;
+  }
 
   return (
     <div className={`flex flex-col gap-4 ${className}`} data-surface-stack="profile">
+      {growthProfile ? <GrowthProgressProfileModule plan={growthProfile} /> : null}
       {profileEconomy.length > 0 ? (
         <OpportunityProfileModule opportunities={profileEconomy} />
       ) : null}

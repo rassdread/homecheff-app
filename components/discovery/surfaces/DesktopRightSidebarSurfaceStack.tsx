@@ -15,6 +15,7 @@ import { ACTIVITY_CARD_SESSION_MAX } from '@/lib/discovery/activity-cards/resolv
 import ActivityCard from '@/components/discovery/activity-cards/ActivityCard';
 import CommunityModuleCard from './CommunityModuleCard';
 import OpportunitySurfaceStack from './OpportunitySurfaceStack';
+import GrowthActionStack from './GrowthActionStack';
 import WorkshopModuleCard from './WorkshopModuleCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 import { Calendar, X } from 'lucide-react';
@@ -173,6 +174,8 @@ export default function DesktopRightSidebarSurfaceStack({
           onDismiss={() => setDismissedCommunity(true)}
         />
       ) : null}
+
+      <GrowthActionStack plan={plan} />
 
       {visibleActivityCards.map((card) => (
         <ActivityCard

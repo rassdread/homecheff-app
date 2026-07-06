@@ -83,9 +83,13 @@ import {
   getOpportunityMobileInsertIndices,
   interleaveMobileOpportunitySurfaces,
 } from "@/lib/feed/opportunity-surface-feed-rows";
+import {
+  interleaveMobileGrowthSurfaces,
+} from "@/lib/feed/growth-surface-feed-rows";
 import { getSurfacePlanFromDiscovery } from "@/lib/discovery/surfaces/surface-discovery-helpers";
 import { ActivityCardFeedBand } from "@/components/discovery/activity-cards";
 import OpportunityEconomyCard from "@/components/discovery/surfaces/OpportunityEconomyCard";
+import GrowthMobileInsertCard from "@/components/discovery/surfaces/GrowthMobileInsertCard";
 import { filterCardsForSession } from "@/lib/discovery/activity-cards/activity-card-client-storage";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2049,11 +2053,15 @@ export default function GeoFeed({
         ? getOpportunityMobileInsertIndices(surfacePlan)
         : activityCardSlotMeta.mobileSlots;
 
-    return interleaveMobileOpportunitySurfaces(
-      withActivity,
-      mobileOpportunities,
-      oppIndices,
-      1,
+    return interleaveMobileGrowthSurfaces(
+      interleaveMobileOpportunitySurfaces(
+        withActivity,
+        mobileOpportunities,
+        oppIndices,
+        1,
+      ),
+      surfacePlan?.growthSurfaces,
+      surfacePlan?.growthSurfaces?.meta.maxMobileInserts ?? 2,
     );
   }, [
     feedChip,
@@ -3317,6 +3325,14 @@ export default function GeoFeed({
                       t={t}
                       surface="feed_mobile_insert"
                     />
+                  </div>
+                );
+                return;
+              }
+              if (row.row === "growth_surface") {
+                nodes.push(
+                  <div key={`growth-surface-${row.insert.afterSaleIndex}-${idx}`} className="col-span-full">
+                    <GrowthMobileInsertCard insert={row.insert} />
                   </div>
                 );
                 return;

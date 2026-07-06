@@ -40,6 +40,8 @@ import { filterModulesForTarget, maxModulesForTarget } from './surface-visibilit
 import { resolveOpportunityEconomySurfaces } from './resolve-opportunity-economy-surfaces';
 import { toEconomyOpportunityModule } from './map-economy-opportunity-surface';
 import { buildPrioritizedMobileInserts } from './resolve-mobile-opportunity-inserts';
+import { resolveGrowthSurfaces } from '@/lib/discovery/growth/resolve-growth-surface-bundle';
+import { emptyGrowthSurfacePlan } from '@/lib/discovery/growth/resolve-growth-surface-bundle';
 
 export type SurfaceRouterInput = SurfaceRouterContext;
 
@@ -309,6 +311,17 @@ export function resolveSurfaces(
     module,
   }));
 
+  const occupiedMobileSlots = mobileInserts.map((i) => i.afterSaleIndex);
+
+  const growthSurfaces = ctx.viewer.loggedIn
+    ? resolveGrowthSurfaces({
+        ctx,
+        activityItems,
+        opportunityEconomy: economySurfaces,
+        occupiedMobileSlots,
+      })
+    : emptyGrowthSurfacePlan();
+
   const notificationsFuture = eventModule
     ? filterModulesForTarget([eventModule], 'notification_future', ctx)
     : [];
@@ -323,6 +336,7 @@ export function resolveSurfaces(
     profileStack,
     notificationsFuture,
     opportunityEconomy: economySurfaces,
+    growthSurfaces,
     meta: {
       activitySidebarMaxStacked: ACTIVITY_CARD_SIDEBAR_PLACEMENT.maxStacked,
       activitySidebarCollapseThreshold:
@@ -353,6 +367,7 @@ export function emptySurfacePlan(): ResolvedSurfacePlan {
       mobileInserts: [],
       profileModules: [],
     },
+    growthSurfaces: emptyGrowthSurfacePlan(),
     meta: {
       activitySidebarMaxStacked: ACTIVITY_CARD_SIDEBAR_PLACEMENT.maxStacked,
       activitySidebarCollapseThreshold:
