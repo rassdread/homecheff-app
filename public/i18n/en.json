@@ -1825,6 +1825,15 @@
     "editChefProduct": "Edit chef product",
     "newChefProduct": "New chef product"
   },
+  "discovery": {
+    "sections": {
+      "nearby": "Near you",
+      "trusted_makers": "Trusted makers",
+      "top_rated": "Top rated",
+      "trending": "Trending",
+      "new_creators": "New creators"
+    }
+  },
   "filters": {
     "all": "All",
     "allDelivery": "All",

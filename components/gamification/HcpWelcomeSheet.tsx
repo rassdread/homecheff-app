@@ -30,7 +30,7 @@ export default function HcpWelcomeSheet({ open, onDismiss }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-end justify-center sm:items-center p-0 sm:p-4"
+      className="fixed inset-0 z-[110] flex items-end justify-center lg:items-center p-0 lg:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="hcp-welcome-title"
@@ -43,8 +43,8 @@ export default function HcpWelcomeSheet({ open, onDismiss }: Props) {
       />
       <div
         className={cn(
-          'relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl border border-gray-100',
-          'max-h-[min(88vh,560px)] overflow-y-auto p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
+          'relative w-full max-w-lg rounded-t-2xl lg:rounded-2xl bg-white shadow-2xl border border-gray-100',
+          'max-h-[min(88vh,560px)] overflow-y-auto p-5 sm:p-6 max-lg:pb-[max(1.25rem,env(safe-area-inset-bottom))] lg:pb-6'
         )}
       >
         <button

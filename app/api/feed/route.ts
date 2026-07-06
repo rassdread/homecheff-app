@@ -48,6 +48,12 @@ import {
 } from "@/lib/feed/marketplace-sale";
 import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope";
 import { geocodePlaceQuery } from "@/lib/global-geocoding";
+import {
+  buildDiscoveryFeed,
+  FEED_DISCOVERY_POOL_CAP,
+  reorderFeedItemsByDiscovery,
+} from "@/lib/feed/build-discovery-feed";
+import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   const listingKind = attachListingKindToRecord(item);
@@ -100,6 +106,7 @@ function extractItemLatLng(item: Record<string, unknown>): { lat: number; lng: n
 }
 
 const STATS_PREVIEW_SELLER_CAP = 9;
+const FEED_RESPONSE_ITEM_CAP = 40;
 
 /** Maps feed UI slugs (cheff, garden, …) to Prisma `ProductCategory` (GROWN, not GARDEN). */
 function resolveProductCategory(verticalRaw: string): ProductCategory | null {
@@ -549,10 +556,18 @@ export async function GET(req: NextRequest) {
     extractCoords: (item) => extractItemLatLng(item),
   });
 
-  const sortedItems = sortedPool.slice(0, 30) as typeof allItems;
+  const marketplacePool = sortedPool
+    .filter((item) => isMarketplaceSaleItem(item as Record<string, unknown>))
+    .slice(0, FEED_DISCOVERY_POOL_CAP) as typeof allItems;
 
-  // Get view counts, review counts, and average ratings only for returned items
-  const allItemIds = sortedItems.map(item => item.id);
+  const nonMarketplaceTail = sortedPool.filter(
+    (item) => !isMarketplaceSaleItem(item as Record<string, unknown>),
+  );
+
+  const enrichTargets = marketplacePool as typeof allItems;
+
+  // Get view counts, review counts, and average ratings for discovery pool
+  const allItemIds = enrichTargets.map(item => item.id);
   if (allItemIds.length > 0) {
     const [viewCounts, reviewCounts, avgRatings, favoriteCounts] = await Promise.all([
       // View counts from analytics
@@ -621,8 +636,8 @@ export async function GET(req: NextRequest) {
       }
     );
 
-    // Add stats to returned items
-    sortedItems.forEach(item => {
+    // Add stats to marketplace pool items
+    enrichTargets.forEach(item => {
       (item as any).viewCount = viewCountMap.get(item.id) || 0;
       (item as any).reviewCount = reviewCountMap.get(item.id) || 0;
       (item as any).averageRating = avgRatingMap.get(item.id) || 0;
@@ -632,7 +647,7 @@ export async function GET(req: NextRequest) {
   
   const sellerIdsForBadges: string[] = [];
   const seenBadges = new Set<string>();
-  for (const item of sortedItems) {
+  for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     if (!uid || seenBadges.has(uid)) continue;
     seenBadges.add(uid);
@@ -646,7 +661,7 @@ export async function GET(req: NextRequest) {
     sellerIdsForBadges.length > 0
       ? await fetchSellerTrustBundles(sellerIdsForBadges, badgeMap)
       : new Map();
-  for (const item of sortedItems) {
+  for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     if (!uid) continue;
     const chips = badgeMap.get(uid);
@@ -659,7 +674,7 @@ export async function GET(req: NextRequest) {
   try {
     const previewIds: string[] = [];
     const seen = new Set<string>();
-    for (const item of sortedItems) {
+    for (const item of enrichTargets) {
       const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
       if (!uid || seen.has(uid)) continue;
       seen.add(uid);
@@ -676,7 +691,7 @@ export async function GET(req: NextRequest) {
     console.error("[feed] statsPreview:", e);
   }
 
-  for (const item of sortedItems) {
+  for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     const bundle = uid ? trustBundles.get(uid) : undefined;
     attachFeedItemDiscovery(
@@ -688,14 +703,49 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  let discoveryFeed: DiscoveryFeedPayload | null = null;
+  try {
+    discoveryFeed = buildDiscoveryFeed({
+      items: enrichTargets as Record<string, unknown>[],
+      viewer: viewerGeo
+        ? { radiusKm: effectiveRadius > 0 ? effectiveRadius : undefined }
+        : undefined,
+      radiusKm: effectiveRadius,
+      extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
+    });
+  } catch (e) {
+    console.error("[feed] discovery sections:", e);
+  }
+
+  let orderedMarketplace = enrichTargets as typeof allItems;
+  if (discoveryFeed?.orderedListingIds.length) {
+    orderedMarketplace = reorderFeedItemsByDiscovery(
+      enrichTargets as Array<{ id: string }>,
+      discoveryFeed.orderedListingIds,
+    ) as typeof allItems;
+  }
+
+  const marketplaceCap = Math.max(
+    0,
+    FEED_RESPONSE_ITEM_CAP - Math.min(nonMarketplaceTail.length, 10),
+  );
+  const responseMarketplace = orderedMarketplace.slice(0, marketplaceCap);
+  const responseNonMarketplace = nonMarketplaceTail.slice(
+    0,
+    FEED_RESPONSE_ITEM_CAP - responseMarketplace.length,
+  );
+  let responseItems = [
+    ...responseMarketplace,
+    ...responseNonMarketplace,
+  ] as typeof allItems;
+
   const listingKindFilter = Array.isArray(searchFilters.listingKind)
     ? searchFilters.listingKind
     : searchFilters.listingKind
       ? [searchFilters.listingKind]
       : [];
-  let responseItems = sortedItems;
   if (listingKindFilter.length > 0) {
-    responseItems = sortedItems.filter((item) =>
+    responseItems = responseItems.filter((item) =>
       matchesSearchItem(item as Record<string, unknown>, {
         ...searchFilters,
         listingKind: listingKindFilter,
@@ -723,8 +773,14 @@ export async function GET(req: NextRequest) {
             finalFeedItems: responseItems.length,
             saleItemsInResponse: saleInResponse.length,
             saleSample: marketplaceSaleAuditSample(
-              sortedItems as Record<string, unknown>[]
+              responseItems as Record<string, unknown>[]
             ),
+            discoveryPool: enrichTargets.length,
+            discoverySections: discoveryFeed?.sections.map((s) => ({
+              id: s.sectionId,
+              count: s.listingIds.length,
+            })),
+            discoveryMetrics: discoveryFeed?.metrics,
           };
         })()
       : undefined;
@@ -751,6 +807,7 @@ export async function GET(req: NextRequest) {
       },
       count: responseItems.length,
       items: responseItems,
+      ...(discoveryFeed ? { discovery: discoveryFeed } : {}),
       ...(feedDebug ? { debug: feedDebug } : {}),
       ...(statsPreview ? { statsPreview } : {}),
     },

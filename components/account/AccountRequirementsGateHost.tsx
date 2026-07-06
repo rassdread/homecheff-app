@@ -43,7 +43,7 @@ export default function AccountRequirementsGateHost() {
 
   return (
     <div
-      className="fixed inset-0 z-[245] flex flex-col justify-end sm:items-center sm:justify-center sm:p-4"
+      className="fixed inset-0 z-[245] flex flex-col justify-end lg:items-center lg:justify-center lg:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="account-req-title"
@@ -55,9 +55,9 @@ export default function AccountRequirementsGateHost() {
         onClick={() => setOpen(false)}
       />
       <div
-        className={`relative z-[1] w-full max-w-md rounded-t-3xl border border-white/20 bg-white shadow-2xl animate-in slide-in-from-bottom duration-300 sm:rounded-3xl pb-[max(1rem,env(safe-area-inset-bottom))] ${nativeMounted ? 'max-h-[88dvh] overflow-y-auto' : ''}`}
+        className={`relative z-[1] w-full max-w-md rounded-t-3xl border border-white/20 bg-white shadow-2xl animate-in slide-in-from-bottom duration-300 lg:rounded-3xl max-lg:pb-[max(1rem,env(safe-area-inset-bottom))] lg:pb-6 ${nativeMounted ? 'max-h-[88dvh] overflow-y-auto' : ''}`}
       >
-        <div className="sticky top-0 z-[2] flex justify-center pt-2 sm:hidden">
+        <div className="sticky top-0 z-[2] flex justify-center pt-2 lg:hidden">
           <span className="h-1.5 w-10 rounded-full bg-slate-200" aria-hidden />
         </div>
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 pt-3 pb-3">

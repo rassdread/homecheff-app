@@ -97,3 +97,49 @@ export {
   toSearchableListingRecord,
   type WithOptionalDiscovery,
 } from './consumer-accessors';
+
+export type {
+  DiscoveryRankingProfileId,
+  RankDiscoveryOptions,
+  RankedDiscoveryItem,
+  RankingViewerContext,
+  DiscoveryRankingProfile,
+} from './ranking';
+
+export {
+  rankDiscoveryItems,
+  rankDiscoveryReadModels,
+  sortDiscoveryReadModels,
+  scoreDiscoveryItem,
+  getRankingProfile,
+  listRankingProfiles,
+  toDiscoveryRankingInput,
+  assertRankingInputPurity,
+  FAVORITE_RANK_CAP,
+  forbiddenRankingSignals,
+  LEGACY_FORBIDDEN_RANKING_KEYS,
+} from './ranking';
+
+export type {
+  DiscoverySectionId,
+  SectionEligibilitySpec,
+  DiscoverySectionDefinition,
+  BuildSectionOptions,
+  BuildAllSectionsOptions,
+  SectionEligibilityCounts,
+  TrustedMakersAudit,
+  DiscoverySectionAudit,
+  DiscoverySectionResult,
+} from './sections';
+
+export {
+  DISCOVERY_SECTION_REGISTRY,
+  DISCOVERY_SECTION_IDS,
+  getDiscoverySectionDefinition,
+  listDiscoverySectionDefinitions,
+  filterSectionCandidates,
+  buildDiscoverySection,
+  buildAllDiscoverySections,
+  auditDiscoverySection,
+  auditAllDiscoverySections,
+} from './sections';

@@ -24,7 +24,7 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
       className={cn(
         'min-w-0 w-full max-w-full',
         applyNavBottomPad &&
-          'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))]'
+          'max-lg:pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] max-lg:sm:pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))]'
       )}
     >
       {children}

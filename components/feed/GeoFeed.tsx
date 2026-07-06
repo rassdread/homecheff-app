@@ -66,6 +66,15 @@ import {
   pickTopThreeSales,
   type TopThreeSalesResult,
 } from "@/components/feed/feedSaleRanking";
+import DiscoveryFeedSectionHeading from "@/components/feed/DiscoveryFeedSectionHeading";
+import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
+import type { DiscoverySectionId } from "@/lib/discovery/sections";
+import {
+  buildDiscoverySectionSaleRows,
+  discoveryFeedActive,
+  interleaveDiscoverySectionsWithInspiration,
+  orderItemsFromDiscoveryFeed,
+} from "@/lib/feed/discovery-feed-client";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
@@ -121,6 +130,7 @@ import {
   feedVerticalSlugToCategoryEnum,
   matchesFeedClientPriceRange,
   sortFeedSaleItems,
+  isDiscoverySmartFeedSort,
   type FeedClientSortField,
   type FeedClientSortOrder,
 } from "@/lib/feed/feed-client-sort";
@@ -800,6 +810,8 @@ export default function GeoFeed({
     string,
     unknown
   > | null>(null);
+  const [discoveryFeed, setDiscoveryFeed] =
+    useState<DiscoveryFeedPayload | null>(null);
   /** Geocoded viewer from /api/feed filters (manual place search). */
   const [apiViewerCoords, setApiViewerCoords] = useState<ViewerCoords | null>(
     null
@@ -819,6 +831,7 @@ export default function GeoFeed({
   const itemsRef = useRef<FeedItem[]>([]);
   const inspiratiePoolRef = useRef<InspirationItem[]>(initialInspiratieItems);
   const apiViewerCoordsRef = useRef<ViewerCoords | null>(null);
+  const discoveryFeedRef = useRef<DiscoveryFeedPayload | null>(null);
   const nativeFeedRenderMoreRef = useRef(false);
   const [radius, setRadius] = useState(RADIUS_LOCAL_KM);
   const [q, setQ] = useState("");
@@ -1193,6 +1206,10 @@ export default function GeoFeed({
     apiViewerCoordsRef.current = apiViewerCoords;
   }, [apiViewerCoords]);
 
+  useEffect(() => {
+    discoveryFeedRef.current = discoveryFeed;
+  }, [discoveryFeed]);
+
   // Alleen URL-/server-chip toepassen wanneer die expliciet is meegegeven (anders: client restore / persist).
   useEffect(() => {
     if (initialFeedChip != null) setFeedChip(initialFeedChip);
@@ -1463,6 +1480,7 @@ export default function GeoFeed({
     if (cached) {
       feedRestoredFromCacheRef.current = true;
       setItems(cached.items as FeedItem[]);
+      setDiscoveryFeed(cached.discoveryFeed ?? null);
       setInspiratiePool(cached.inspiratiePool);
       if (cached.apiViewerCoords) {
         setApiViewerCoords(cached.apiViewerCoords);
@@ -1518,7 +1536,11 @@ export default function GeoFeed({
         if (cancelled) return;
 
         if (feedRes.ok) {
-          let data: { items?: unknown; statsPreview?: Record<string, unknown> };
+          let data: {
+            items?: unknown;
+            statsPreview?: Record<string, unknown>;
+            discovery?: DiscoveryFeedPayload;
+          };
           try {
             data = await feedRes.json();
           } catch {
@@ -1599,6 +1621,13 @@ export default function GeoFeed({
             reportAppDiagnostic('feed_items_filtered', { dropped });
           }
           setItems(valid);
+          setDiscoveryFeed(
+            data.discovery && data.discovery.version === 1
+              ? data.discovery
+              : null,
+          );
+        } else {
+          setDiscoveryFeed(null);
         }
 
         if (inspRes.ok) {
@@ -1649,6 +1678,7 @@ export default function GeoFeed({
           inspiratiePool: inspiratiePoolRef.current,
           apiViewerCoords: apiViewerCoordsRef.current,
           nativeFeedRenderMore: nativeFeedRenderMoreRef.current,
+          discoveryFeed: discoveryFeedRef.current,
         });
       }
     };
@@ -1766,9 +1796,14 @@ export default function GeoFeed({
   const useSmartRanking =
     feedChip !== "sale" &&
     appliedScope === FEED_SCOPE_NATIONAL &&
-    appliedSortBy === "newest" &&
-    appliedSortOrder === "desc" &&
-    !locationFilterActive;
+    isDiscoverySmartFeedSort(appliedSortBy, appliedSortOrder) &&
+    !locationFilterActive &&
+    !discoveryFeedActive(discoveryFeed);
+
+  const useDiscoverySections =
+    feedChip !== "inspiration" &&
+    isDiscoverySmartFeedSort(appliedSortBy, appliedSortOrder) &&
+    discoveryFeedActive(discoveryFeed);
 
   /** Vaste tijd per dataset zodat score-ranking niet verschuift tussen re-renders. */
   const rankNowMs = useMemo(
@@ -1810,6 +1845,29 @@ export default function GeoFeed({
   ]);
 
   const rankingResult = useMemo(() => {
+    const discoveryOrdered = orderItemsFromDiscoveryFeed(
+      salePoolForRanking,
+      discoveryFeed,
+    );
+
+    if (useDiscoverySections && discoveryFeed) {
+      const surface = isMobileFeedUi ? "mobile" : "desktop";
+      const sectionRows = buildDiscoverySectionSaleRows(
+        discoveryOrdered,
+        discoveryFeed,
+        surface,
+      );
+      const saleOnly = sectionRows
+        .filter((r): r is { row: "sale"; item: FeedItem } => r.row === "sale")
+        .map((r) => r.item);
+      return {
+        orderedForMix: saleOnly,
+        orderedSaleOnly: saleOnly,
+        topForMix: null as TopThreeSalesResult<FeedItem> | null,
+        discoverySectionRows: sectionRows,
+      };
+    }
+
     if (!useSmartRanking) {
       const ordered = sortFeedSaleItems(
         salePoolForRanking,
@@ -1820,6 +1878,7 @@ export default function GeoFeed({
         orderedForMix: ordered,
         orderedSaleOnly: ordered,
         topForMix: null as TopThreeSalesResult<FeedItem> | null,
+        discoverySectionRows: null,
       };
     }
 
@@ -1840,11 +1899,15 @@ export default function GeoFeed({
       orderedForMix: coldOrdered,
       orderedSaleOnly: orderedSaleOnlyFromTop(coldOrdered, topSaleOnly),
       topForMix,
+      discoverySectionRows: null,
     };
   }, [
     salePoolForRanking,
     rankNowMs,
     useSmartRanking,
+    useDiscoverySections,
+    discoveryFeed,
+    isMobileFeedUi,
     appliedSortBy,
     appliedSortOrder,
     inspirationSlots.length,
@@ -1866,6 +1929,13 @@ export default function GeoFeed({
   }, [sortedSales, feedChip, t]);
 
   const mixedRows = useMemo(() => {
+    if (useDiscoverySections && rankingResult.discoverySectionRows) {
+      return interleaveDiscoverySectionsWithInspiration(
+        rankingResult.discoverySectionRows,
+        inspirationSlots,
+        discoveryFeed?.insertion.itemsBetweenSections ?? 4,
+      );
+    }
     if (!useSmartRanking) {
       return interleaveSalesAndInspiration(
         rankingResult.orderedForMix,
@@ -1878,14 +1948,20 @@ export default function GeoFeed({
       rankingResult.topForMix
     );
   }, [
+    useDiscoverySections,
     useSmartRanking,
     rankingResult.orderedForMix,
     rankingResult.topForMix,
+    rankingResult.discoverySectionRows,
     inspirationSlots,
+    discoveryFeed?.insertion.itemsBetweenSections,
   ]);
 
   const displayRows = useMemo(() => {
     if (feedChip === "sale") {
+      if (useDiscoverySections && rankingResult.discoverySectionRows) {
+        return rankingResult.discoverySectionRows;
+      }
       return sortedSales.map((item) => ({
         row: "sale" as const,
         item,
@@ -1898,7 +1974,14 @@ export default function GeoFeed({
       }));
     }
     return mixedRows;
-  }, [feedChip, sortedSales, inspirationSlots, mixedRows]);
+  }, [
+    feedChip,
+    sortedSales,
+    inspirationSlots,
+    mixedRows,
+    useDiscoverySections,
+    rankingResult.discoverySectionRows,
+  ]);
 
   const displayCount = displayRows.length;
 
@@ -3126,6 +3209,17 @@ export default function GeoFeed({
             };
 
             feedRowsToRender.forEach((row, idx) => {
+              if (row.row === "section") {
+                nodes.push(
+                  <DiscoveryFeedSectionHeading
+                    key={`section-${row.sectionId}-${idx}`}
+                    sectionId={row.sectionId as DiscoverySectionId}
+                    titleKey={row.titleKey}
+                    t={t}
+                  />
+                );
+                return;
+              }
               if (row.row === "sale") {
                 const card = toCardItem(row.item, effectiveViewerForDistance);
                 if (useDiscoverGridTiles) {

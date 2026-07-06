@@ -93,7 +93,7 @@ export default function OperationsShell({
             'hc-operations-shell mx-auto w-full max-w-7xl',
             !fullBleed &&
               !bottomNavHidden &&
-              'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))]',
+              'max-lg:pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))]',
             fullBleed && 'pb-[env(safe-area-inset-bottom,0px)]',
           )}
         >

@@ -394,7 +394,7 @@ export default function InspiratieDetail({
   };
 
   return (
-    <main className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] md:pb-12" data-inspiratie-page>
+    <main className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-white to-slate-100 py-12 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-12" data-inspiratie-page>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
         {isOwner ? (
           <PublicItemOwnerActions

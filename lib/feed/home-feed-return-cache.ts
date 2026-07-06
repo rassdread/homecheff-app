@@ -1,4 +1,5 @@
 import type { InspirationItem } from '@/components/inspiratie/InspiratieContent';
+import type { DiscoveryFeedPayload } from '@/lib/feed/discovery-feed-contract';
 
 /** In-tab memory cache — survives GeoFeed remount on client navigations within the same tab. */
 const MAX_AGE_MS = 8 * 60 * 1000;
@@ -11,6 +12,7 @@ export type HomeFeedReturnCachePayload = {
   inspiratiePool: InspirationItem[];
   apiViewerCoords: HomeFeedViewerCoords | null;
   nativeFeedRenderMore: boolean;
+  discoveryFeed: DiscoveryFeedPayload | null;
   savedAt: number;
 };
 

@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
-import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download } from 'lucide-react';
+import { Home, User, LogOut, Settings, Menu, X, HelpCircle, Package, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Lightbulb, LayoutGrid, TrendingUp, Info, Smartphone, Download, Plus, Award } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -33,6 +33,8 @@ import {
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
+import { useCreateFlow } from '@/components/create/CreateFlowContext';
+import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 
 function resolveNavDashboardHref(user: Record<string, unknown> | null | undefined): string | null {
   if (!user) return null;
@@ -54,6 +56,8 @@ export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { count: unreadCount } = useCommsUnread(status === 'authenticated');
+  const { openCreateFlow } = useCreateFlow();
+  const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
   const [sellerOrdersUnread, setSellerOrdersUnread] = useState(0);
   const [userProfile, setUserProfile] = useState<{ image?: string; profileImage?: string; name?: string; username?: string } | null>(null);
   const hasFetchedProfileRef = useRef(false);
@@ -359,6 +363,55 @@ export default function NavBar() {
               <span>{t('bottomNav.profile')}</span>
             </Link>
 
+            {/* lg+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until lg). */}
+            <div className="hidden lg:flex items-center gap-0.5 shrink-0">
+              <Link
+                href={user ? '/messages' : '/login'}
+                prefetch={false}
+                className={cn(desktopNavGhostClass, 'relative flex items-center space-x-2 px-4 py-3')}
+                onClick={() =>
+                  navDebug('navbar:desktop', { href: user ? '/messages' : '/login' })
+                }
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>{t('navbar.messages')}</span>
+                {user && unreadCount > 0 ? (
+                  <span className="absolute -top-0.5 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
+              <Link
+                href={user ? '/mijn-hcp' : '/login'}
+                prefetch={false}
+                className={cn(desktopNavGhostClass, 'flex items-center space-x-2 px-4 py-3')}
+                onClick={() =>
+                  navDebug('navbar:desktop', { href: user ? '/mijn-hcp' : '/login' })
+                }
+              >
+                <Award className="w-4 h-4" />
+                <span>{t('bottomNav.reputationTab')}</span>
+              </Link>
+              <button
+                type="button"
+                className={cn(
+                  desktopNavGhostClass,
+                  'flex items-center space-x-2 px-4 py-3 bg-primary-brand text-white hover:bg-primary-700 hover:text-white',
+                )}
+                onClick={() => {
+                  if (user) {
+                    openCreateFlow();
+                  } else {
+                    requireAuthAction('create', '/sell/new');
+                  }
+                  navDebug('navbar:desktop', { action: 'create' });
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('homePhase1.ctaShare')}</span>
+              </button>
+            </div>
+
             <LanguageSwitcher />
 
             {status === 'unauthenticated' && !user && (
@@ -468,6 +521,16 @@ export default function NavBar() {
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}
+                      </Link>
+
+                      <Link
+                        href="/mijn-hcp"
+                        prefetch={false}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <Award className="w-4 h-4" />
+                        <span>{t('bottomNav.reputationTab')}</span>
                       </Link>
 
                       {dashboardHref ? (
@@ -839,6 +902,7 @@ export default function NavBar() {
           </div>
         )}
       </div>
+      {guestAuthPanel}
     </header>
   );
 }

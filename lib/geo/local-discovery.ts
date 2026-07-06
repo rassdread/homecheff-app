@@ -7,10 +7,6 @@ import { formatMarketplaceDistanceLabel } from '@/lib/geo/distance-format';
 import { haversineKm, bboxFromCenter } from '@/lib/community/geoDistance';
 import { safeDistanceKm } from '@/lib/geocoding';
 import { resolveSellerCoords } from '@/lib/delivery/delivery-position';
-import {
-  computeSaleScore,
-  type RankableSaleItem,
-} from '@/components/feed/feedSaleRanking';
 
 /** LOCAL preset — default feed radius (km). */
 export const RADIUS_LOCAL_KM = 25;
@@ -254,29 +250,20 @@ function compareRecencyFollowDistance<T extends Record<string, unknown>>(
   return String(b.id).localeCompare(String(a.id));
 }
 
-function toRankable<T extends Record<string, unknown>>(item: T): RankableSaleItem {
-  return {
-    id: String(item.id),
-    photo: null,
-    createdAt: String(item.createdAt),
-    viewCount: (item.viewCount as number | undefined) ?? 0,
-    propsCount: (item.propsCount as number | undefined) ?? 0,
-    favoriteCount: (item.favoriteCount as number | undefined) ?? 0,
-    distanceKm: item.distanceKm as number | undefined,
-  };
-}
-
-function sortLocalBucketByScore<T extends Record<string, unknown>>(
+function sortLocalBucketByDistance<T extends Record<string, unknown>>(
   local: T[],
-  nowMs: number
 ): T[] {
-  return local
-    .map((item) => ({ item, score: computeSaleScore(toRankable(item), nowMs) }))
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(b.item.id).localeCompare(String(a.item.id));
-    })
-    .map((x) => x.item);
+  return [...local].sort((a, b) => {
+    const da = a.distanceKm as number | undefined;
+    const db = b.distanceKm as number | undefined;
+    if (da != null && db != null && da !== db) return da - db;
+    if (da != null && db == null) return -1;
+    if (da == null && db != null) return 1;
+    const ta = new Date(String(a.createdAt)).getTime();
+    const tb = new Date(String(b.createdAt)).getTime();
+    if (tb !== ta) return tb - ta;
+    return String(b.id).localeCompare(String(a.id));
+  });
 }
 
 /**
@@ -298,7 +285,6 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
 ): T[] {
   const radius = normalizeFeedRadiusKm(opts.radiusKm);
   const radiusMode = opts.radiusMode ?? FEED_RADIUS_MODE_LOCAL_FIRST;
-  const nowMs = Date.now();
 
   for (const item of items) {
     const coords = opts.extractCoords(item);
@@ -332,7 +318,7 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     const within = items.filter((item) =>
       isWithinRadiusKm(item.distanceKm as number | undefined, radius)
     );
-    return sortLocalBucketByScore(within, nowMs);
+    return sortLocalBucketByDistance(within);
   }
 
   const local: T[] = [];
@@ -347,7 +333,7 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     }
   }
 
-  const localSorted = sortLocalBucketByScore(local, nowMs);
+  const localSorted = sortLocalBucketByDistance(local);
 
   const nationalSorted = [...national].sort((a, b) =>
     compareRecencyFollowDistance(a, b, { ...opts, viewerGeo: opts.viewerGeo })

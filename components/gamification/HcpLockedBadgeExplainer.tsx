@@ -137,7 +137,7 @@ export function HcpBadgeDetailSheet({
   const earnedAtFormatted = earnedAtIso ? formatEarnedAtNl(earnedAtIso) : '';
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center sm:items-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[120] flex items-end justify-center lg:items-center p-0 lg:p-4">
       <button
         type="button"
         className="absolute inset-0 z-0 bg-black/45"
@@ -149,7 +149,7 @@ export function HcpBadgeDetailSheet({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          'relative z-10 w-full max-w-md rounded-t-2xl border bg-white shadow-2xl sm:rounded-2xl outline-none',
+          'relative z-10 w-full max-w-md rounded-t-2xl border bg-white shadow-2xl lg:rounded-2xl outline-none',
           'max-h-[min(88vh,560px)] flex flex-col overflow-hidden',
           isEarned
             ? 'border-emerald-200/90 ring-2 ring-emerald-400/20 shadow-emerald-900/10'
@@ -201,8 +201,7 @@ export function HcpBadgeDetailSheet({
         <div
           className={cn(
             'min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:p-6 sm:pt-4',
-            /* Ruimte boven vaste bottom nav + safe area (WebView/mobiel) */
-            'pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+5.25rem))]'
+            'max-lg:pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+5.25rem))] lg:pb-6'
           )}
         >
           {isEarned ? (

@@ -161,6 +161,16 @@ export function sortFeedSaleItems<T extends FeedSortableSale>(
   );
 }
 
+/**
+ * True when client should defer to server discovery section order (Phase 2E).
+ */
+export function isDiscoverySmartFeedSort(
+  sortBy: FeedClientSortField,
+  sortOrder: FeedClientSortOrder,
+): boolean {
+  return sortBy === 'newest' && sortOrder === 'desc';
+}
+
 /** Dorpsplein sort keys include legacy aliases. */
 export function normalizeDorpspleinSortField(
   sortBy: string

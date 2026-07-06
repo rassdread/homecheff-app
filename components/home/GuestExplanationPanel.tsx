@@ -130,7 +130,7 @@ export default function GuestExplanationPanel({
 
   return (
     <div
-      className="fixed inset-0 z-[140] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/55 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[140] flex items-end lg:items-center justify-center p-0 lg:p-4 bg-black/55 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="guest-explanation-panel-title"
@@ -138,7 +138,7 @@ export default function GuestExplanationPanel({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-[#faf8f4] shadow-2xl border border-gray-200/80 overflow-hidden max-h-[92vh] overflow-y-auto">
+      <div className="w-full lg:max-w-lg rounded-t-3xl lg:rounded-3xl bg-[#faf8f4] shadow-2xl border border-gray-200/80 overflow-hidden max-h-[92vh] overflow-y-auto">
         <div className={cn('relative px-6 pt-8 pb-10 sm:pt-10 sm:pb-12 bg-gradient-to-br text-white', gradient)}>
           <div
             className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(circle_at_80%_20%,white_0%,transparent_50%)]"

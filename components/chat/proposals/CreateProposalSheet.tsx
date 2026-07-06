@@ -231,12 +231,12 @@ export default function CreateProposalSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end lg:items-center justify-center bg-black/40 p-0 lg:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-proposal-title"
     >
-      <div className="w-full max-w-md rounded-t-2xl sm:rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-md rounded-t-2xl lg:rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-indigo-600" aria-hidden />

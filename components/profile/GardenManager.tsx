@@ -1324,7 +1324,7 @@ export default function GardenManager({
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] shadow-sm sm:p-6 sm:pb-6">
+                <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-6 shadow-sm sm:p-6">
                   <button
                     type="button"
                     onClick={() => requestGardenFormClose("close")}

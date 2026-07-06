@@ -652,6 +652,13 @@ html.hc-native-capacitor .hc-native-messages-page .hc-native-chat-shell {
   flex-direction: column;
 }
 
+@media (min-width: 1024px) {
+  html:not(.hc-native-capacitor):not(.hc-pwa-standalone) .hc-messages-root {
+    height: calc(100svh - 4rem);
+    max-height: calc(100svh - 4rem);
+  }
+}
+
 /* Berichten-overzicht: één kolomhoogte minus navbar + bottom-nav chrome (match AppPageChrome pb) */
 .hc-messages-root {
   height: calc(100svh - 4rem - 5.75rem);
@@ -1126,8 +1133,19 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
   min-height: 2.5rem;
 }
 
-/** Reserve scroll space above fixed bottom nav (Profile V2 + sidepanel). */
+/** Reserve scroll space above fixed bottom nav (Profile V2 + sidepanel) — max-lg web only. */
 .hc-profile-v2-bottom-inset {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  html:not(.hc-native-capacitor):not(.hc-pwa-standalone) .hc-profile-v2-bottom-inset {
+    padding-bottom: 1.5rem;
+  }
+}
+
+html.hc-native-capacitor .hc-profile-v2-bottom-inset,
+html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
 }
 

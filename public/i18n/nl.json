@@ -593,6 +593,15 @@
     "editChefProduct": "Chef Product Bewerken",
     "newChefProduct": "Nieuw Chef Product"
   },
+  "discovery": {
+    "sections": {
+      "nearby": "In je buurt",
+      "trusted_makers": "Betrouwbare makers",
+      "top_rated": "Best beoordeeld",
+      "trending": "Trending",
+      "new_creators": "Nieuwe makers"
+    }
+  },
   "filters": {
     "all": "Alles",
     "allDelivery": "Alle",

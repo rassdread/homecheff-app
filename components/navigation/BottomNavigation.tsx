@@ -31,6 +31,10 @@ import { resetCreateFlowUiState } from '@/lib/reset-create-flow-ui';
 import { inspiratieLocationIdToProfileSlug } from '@/lib/create/offering-vertical';
 import { pushAndroidBackHandler } from '@/lib/native/androidCreateFlowBack';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
+import {
+  bottomNavBarWrapperClass,
+  bottomNavFlowSpacerClass,
+} from '@/lib/layout/bottomNavVisibility';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { cn } from '@/lib/utils';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
@@ -1285,7 +1289,7 @@ export default function BottomNavigation() {
       {/* Quick Add Menu Overlay */}
       {showQuickAddMenu && (
         <div 
-          className="fixed inset-0 z-[100] bg-black bg-opacity-50 flex items-end md:items-center justify-center p-4 md:p-0"
+          className="fixed inset-0 z-[100] bg-black bg-opacity-50 flex items-end lg:items-center justify-center p-4 lg:p-4"
           onClick={(e) => {
             // Only close if clicking directly on overlay background
             if (e.target !== e.currentTarget) return;
@@ -1301,7 +1305,7 @@ export default function BottomNavigation() {
           }}
         >
           <div 
-            className="bg-white rounded-t-3xl md:rounded-2xl w-full max-w-md md:max-w-sm shadow-2xl animate-in slide-in-from-bottom md:animate-none relative z-[101]"
+            className="bg-white rounded-t-3xl lg:rounded-2xl w-full max-w-md lg:max-w-lg max-h-[min(90dvh,720px)] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom lg:slide-in-from-bottom-0 lg:animate-none relative z-[101]"
             onClick={(e) => e.stopPropagation()}
             style={{ pointerEvents: 'auto' }}
           >
@@ -1653,9 +1657,10 @@ export default function BottomNavigation() {
         </div>
       )}
 
-      {/* Bottom nav: phone = full width; md+ = centered floating bar (tablet). */}
+      {/* Bottom nav: phone = full width; md–lg = centered floating bar; lg+ web hidden (native keeps). */}
       <div
         className={cn(
+          bottomNavBarWrapperClass(isNativeShell),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
           'pb-[env(safe-area-inset-bottom,0px)] md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] md:px-4'
         )}
@@ -1937,11 +1942,7 @@ export default function BottomNavigation() {
       <div
         className={cn(
           'pointer-events-none shrink-0',
-          suppressFlowSpacer
-            ? 'h-0'
-            : isNativeShell
-              ? 'h-[6.5rem] md:h-[7.25rem]'
-              : 'h-20 md:h-[5.75rem]'
+          bottomNavFlowSpacerClass(isNativeShell, suppressFlowSpacer),
         )}
         aria-hidden
       />

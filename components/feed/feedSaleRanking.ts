@@ -1,3 +1,11 @@
+/**
+ * @deprecated Phase 2E — legacy client smart ranking replaced by Discovery Section Registry.
+ * Server `/api/feed` returns `discovery.sections` + authoritative order.
+ * Retained for Dorpsplein popular sort and tests until fully removed.
+ * @see lib/feed/build-discovery-feed.ts
+ * @see docs/audits/LEGACY_RANKING_MIGRATION_PLAN.md
+ */
+
 import { hasUsableMediaUrl } from "@/components/feed/feedMedia";
 
 /** Minimale velden voor ranking (GeoFeed FeedItem is hiermee compatibel). */

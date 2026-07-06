@@ -145,7 +145,7 @@ export default function ProductSaleStickyCta({
     <div
       className={cn(
         'fixed inset-x-0 z-40 border-t border-gray-200 bg-white/95 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md lg:hidden',
-        'bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))]',
+        'max-lg:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))]',
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5">

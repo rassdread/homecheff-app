@@ -166,7 +166,7 @@ export default function MijnHcpClient() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl space-y-4 px-4 py-10 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))]">
+      <div className="mx-auto max-w-2xl space-y-4 px-4 py-10 max-lg:pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))] lg:pb-6">
         <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
         <div className="h-36 rounded-2xl bg-gray-100 animate-pulse" />
         <div className="h-28 rounded-xl bg-gray-100 animate-pulse" />
@@ -176,7 +176,7 @@ export default function MijnHcpClient() {
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))] text-center text-red-700">
+      <div className="mx-auto max-w-2xl px-4 py-10 max-lg:pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))] lg:pb-6 text-center text-red-700">
         {error ?? 'Kon je voortgang niet laden.'}
       </div>
     );
@@ -198,7 +198,7 @@ export default function MijnHcpClient() {
   const challenges = data.weeklyChallenges?.items ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-4 py-6 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))]">
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-6 max-lg:pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+6rem))] lg:pb-6">
       <AppBackBar
         fallbackUrl="/hcp-ranglijsten"
         label={t('navigation.backToRankings')}
