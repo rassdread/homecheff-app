@@ -16,12 +16,20 @@ export const EXCHANGE_SUGGESTION_MIN_SCORE: Record<
   detail: 55,
   profile_owner: 50,
   sidebar: 60,
+  exchange_feed_insert: 60,
+  mobile: 55,
 };
 
 export function isAllowedExchangeSuggestionSurface(
   surface: string,
 ): surface is ExchangeSuggestionSurface {
-  return surface === 'detail' || surface === 'profile_owner' || surface === 'sidebar';
+  return (
+    surface === 'detail' ||
+    surface === 'profile_owner' ||
+    surface === 'sidebar' ||
+    surface === 'exchange_feed_insert' ||
+    surface === 'mobile'
+  );
 }
 
 export function isForbiddenExchangeSuggestionSurface(surface: string): boolean {

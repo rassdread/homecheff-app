@@ -234,8 +234,8 @@ function assertDesktopMobileTriggers() {
     path.join(process.cwd(), 'components/marketplace/previews/MarketplacePreviewShell.tsx'),
     'utf8',
   );
-  assert(shellSrc.includes('HOVER_OPEN_MS = 300'), 'hover delay 300ms');
-  assert(shellSrc.includes('LONG_PRESS_MS = 500'), 'long press 500ms');
+  assert(shellSrc.includes('PREVIEW_HOVER_DELAY_MS'), 'uses centralized hover delay');
+  assert(shellSrc.includes('PREVIEW_LONG_PRESS_MS'), 'uses centralized long press');
   assert(
     shellSrc.includes('MarketplaceHoverPreview'),
     'desktop uses MarketplaceHoverPreview',

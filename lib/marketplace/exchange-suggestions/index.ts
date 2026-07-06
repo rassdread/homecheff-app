@@ -63,6 +63,20 @@ export {
 export {
   readExchangeSuggestionCapState,
   recordExchangeSuggestionDismissed,
+  recordExchangeSuggestionFeedInsert,
   recordExchangeSuggestionImpression,
   resetExchangeSuggestionSessionForTests,
 } from './exchange-suggestion-client-storage';
+
+export {
+  mainCategoryEmoji,
+  mainCategoryLabelKey,
+} from './exchange-suggestion-category-icon';
+
+export {
+  trackExchangeSuggestionCtaClick,
+  trackExchangeSuggestionImpression,
+  trackExchangeSuggestionOpen,
+} from './exchange-suggestion-analytics';
+
+export type { ExchangeSuggestionSidebarVariant } from './exchange-suggestion-contract';

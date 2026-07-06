@@ -6,6 +6,7 @@
 import type { ExchangeMatchType } from '@/lib/marketplace/exchange/exchange-match-types';
 import type { ExchangeSignalKind } from '@/lib/marketplace/exchange/exchange-signals';
 import { FORBIDDEN_EXCHANGE_SCORE_SIGNALS } from '@/lib/marketplace/exchange/exchange-contract';
+import type { ValueExchangeMainCategory } from '@/lib/marketplace/value-exchange/value-exchange-contract';
 
 export const EXCHANGE_SUGGESTION_SPEC_VERSION = 1 as const;
 
@@ -35,6 +36,8 @@ export const EXCHANGE_SUGGESTION_SURFACES = [
   'detail',
   'profile_owner',
   'sidebar',
+  'exchange_feed_insert',
+  'mobile',
 ] as const;
 
 export type ExchangeSuggestionSurface =
@@ -73,6 +76,7 @@ export type ExchangeSuggestionCard = {
   counterpartyUsername: string | null;
   counterpartyUserId: string;
   distanceKm: number | null;
+  mainCategory: ValueExchangeMainCategory;
   allowedCtas: ExchangeSuggestionCta[];
   signalKinds: ExchangeSignalKind[];
 };
@@ -90,6 +94,7 @@ export type ExchangeSuggestionSurfacePlan = {
 
 export type ExchangeSuggestionCapState = {
   sessionImpressionCount: number;
+  feedInsertSessionCount: number;
   dismissedSuggestionIds: string[];
   sellerImpressionsToday: Record<string, number>;
   globalSnoozeUntil: string | null;
@@ -97,10 +102,13 @@ export type ExchangeSuggestionCapState = {
 
 export const EMPTY_EXCHANGE_SUGGESTION_CAP_STATE: ExchangeSuggestionCapState = {
   sessionImpressionCount: 0,
+  feedInsertSessionCount: 0,
   dismissedSuggestionIds: [],
   sellerImpressionsToday: {},
   globalSnoozeUntil: null,
 };
+
+export type ExchangeSuggestionSidebarVariant = 'desktop' | 'mobile';
 
 export const EXCHANGE_SUGGESTION_FORBIDDEN_SIGNALS = [
   ...FORBIDDEN_EXCHANGE_SCORE_SIGNALS,

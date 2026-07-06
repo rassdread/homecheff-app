@@ -16,6 +16,7 @@ import type {
   ExchangeSuggestionCapState,
   ExchangeSuggestionCard,
   ExchangeSuggestionCta,
+  ExchangeSuggestionSidebarVariant,
   ExchangeSuggestionSurface,
 } from './exchange-suggestion-contract';
 import {
@@ -55,6 +56,8 @@ export type ResolveExchangeSuggestionsInput = {
   >;
   capState?: ExchangeSuggestionCapState;
   trustByUserId?: Record<string, DiscoveryTrustContract>;
+  sidebarVariant?: ExchangeSuggestionSidebarVariant;
+  feedBatch?: boolean;
   now?: number;
 };
 
@@ -140,6 +143,8 @@ function buildSuggestionCard(
   const distanceKm =
     counterparty.distanceKm ?? resolved.scoreSignals.distanceKm;
 
+  const mainCategory = counterparty.offer.mainCategory;
+
   const id = `${exchangeMatchId(viewerListing.listingId, counterparty.listingId)}:${primary}`;
 
   return {
@@ -164,6 +169,7 @@ function buildSuggestionCard(
     counterpartyUsername: meta.username,
     counterpartyUserId: meta.userId,
     distanceKm: distanceKm ?? null,
+    mainCategory,
     allowedCtas: [...ALL_CTAS],
     signalKinds: resolved.signals.map((s) => s.kind),
   };
@@ -196,7 +202,7 @@ function collectMatches(
     (c) => !input.viewerListingIds.includes(c.listingId),
   );
 
-  if (input.sourceListing && input.surface === 'detail') {
+  if (input.sourceListing && (input.surface === 'detail' || input.surface === 'mobile')) {
     const detailMatches = findExchangeMatchesForListing(
       input.sourceListing,
       pool,
@@ -280,7 +286,10 @@ export function resolveExchangeSuggestions(
 
   const capState = input.capState ?? EMPTY_EXCHANGE_SUGGESTION_CAP_STATE;
   const raw = collectMatches(input);
-  const capped = applyExchangeSuggestionCaps(raw, input.surface, capState);
+  const capped = applyExchangeSuggestionCaps(raw, input.surface, capState, {
+    sidebarVariant: input.sidebarVariant,
+    feedBatch: input.feedBatch,
+  });
 
   if (input.surface === 'profile_owner') {
     const viewerIds = new Set(input.viewerListingIds);

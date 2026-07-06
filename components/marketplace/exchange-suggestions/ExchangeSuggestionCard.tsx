@@ -1,12 +1,16 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRightLeft, MapPin, X } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import type { ExchangeSuggestionCard } from '@/lib/marketplace/exchange-suggestions';
 import {
+  mainCategoryEmoji,
   suggestionCtaLabelKey,
   suggestionSummaryKey,
   suggestionTypeLabelKey,
+  trackExchangeSuggestionCtaClick,
+  trackExchangeSuggestionImpression,
 } from '@/lib/marketplace/exchange-suggestions';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
@@ -15,6 +19,9 @@ export type ExchangeSuggestionCardProps = {
   t: (key: string, params?: Record<string, string>) => string;
   onDismiss?: (id: string) => void;
   compact?: boolean;
+  surface?: string;
+  position?: number;
+  listingId?: string;
 };
 
 export default function ExchangeSuggestionCardView({
@@ -22,7 +29,11 @@ export default function ExchangeSuggestionCardView({
   t,
   onDismiss,
   compact = false,
+  surface = 'detail',
+  position = 0,
+  listingId,
 }: ExchangeSuggestionCardProps) {
+  const tracked = useRef(false);
   const listingHref = `/product/${buildProductSlugPath(card.counterpartyTitle, null, card.counterpartyListingId)}`;
   const profileHref = card.counterpartyUsername
     ? `/user/${card.counterpartyUsername}`
@@ -30,6 +41,29 @@ export default function ExchangeSuggestionCardView({
   const messageHref = card.counterpartyUsername
     ? `/messages?user=${encodeURIComponent(card.counterpartyUsername)}`
     : '/messages';
+
+  useEffect(() => {
+    if (tracked.current) return;
+    tracked.current = true;
+    trackExchangeSuggestionImpression({
+      surface,
+      listingId: listingId ?? card.sourceListingId,
+      suggestedListingId: card.counterpartyListingId,
+      category: card.mainCategory,
+      position,
+    });
+  }, [card, listingId, position, surface]);
+
+  const trackCta = (cta: string) => {
+    trackExchangeSuggestionCtaClick({
+      surface,
+      listingId: listingId ?? card.sourceListingId,
+      suggestedListingId: card.counterpartyListingId,
+      category: card.mainCategory,
+      position,
+      cta,
+    });
+  };
 
   return (
     <article
@@ -51,8 +85,11 @@ export default function ExchangeSuggestionCardView({
       ) : null}
 
       <div className={`flex gap-3 ${onDismiss ? 'pr-8' : ''}`}>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-800">
-          <ArrowRightLeft className="h-5 w-5" aria-hidden />
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-xl"
+          aria-hidden
+        >
+          {mainCategoryEmoji(card.mainCategory)}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -79,6 +116,7 @@ export default function ExchangeSuggestionCardView({
             {card.allowedCtas.includes('view_listing') ? (
               <Link
                 href={listingHref}
+                onClick={() => trackCta('view_listing')}
                 className="inline-flex min-h-8 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800"
               >
                 {t(suggestionCtaLabelKey('view_listing'))}
@@ -87,6 +125,7 @@ export default function ExchangeSuggestionCardView({
             {card.allowedCtas.includes('view_profile') && card.counterpartyUsername ? (
               <Link
                 href={profileHref}
+                onClick={() => trackCta('view_profile')}
                 className="inline-flex min-h-8 items-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
               >
                 {t(suggestionCtaLabelKey('view_profile'))}
@@ -95,6 +134,7 @@ export default function ExchangeSuggestionCardView({
             {card.allowedCtas.includes('start_conversation') ? (
               <Link
                 href={messageHref}
+                onClick={() => trackCta('start_conversation')}
                 className="inline-flex min-h-8 items-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:bg-gray-50"
               >
                 {t(suggestionCtaLabelKey('start_conversation'))}

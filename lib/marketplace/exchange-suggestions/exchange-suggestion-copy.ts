@@ -14,7 +14,12 @@ export function suggestionTypeLabelKey(
 }
 
 export function suggestionSurfaceTitleKey(
-  surface: 'detail' | 'profile_owner' | 'sidebar',
+  surface:
+    | 'detail'
+    | 'profile_owner'
+    | 'sidebar'
+    | 'exchange_feed_insert'
+    | 'mobile',
 ): string {
   return `${ROOT}.surfaces.${surface}.title`;
 }
@@ -59,6 +64,14 @@ export const EXCHANGE_SUGGESTION_I18N_KEYS = [
   `${ROOT}.surfaces.detail.title`,
   `${ROOT}.surfaces.profile_owner.title`,
   `${ROOT}.surfaces.sidebar.title`,
+  `${ROOT}.surfaces.exchange_feed_insert.title`,
+  `${ROOT}.surfaces.mobile.title`,
+  `${ROOT}.feed.title`,
+  `${ROOT}.feed.matchText`,
+  `${ROOT}.feed.cta`,
+  `${ROOT}.mobile.title`,
+  `${ROOT}.mobile.matchText`,
+  `${ROOT}.mobile.cta`,
   `${ROOT}.types.direct`,
   `${ROOT}.types.reverse`,
   `${ROOT}.types.mutual`,

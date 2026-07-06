@@ -197,6 +197,7 @@ const manyCards = Array.from({ length: 10 }, (_, i) => ({
 }));
 const capped = applyExchangeSuggestionCaps(manyCards, 'detail', {
   sessionImpressionCount: 0,
+  feedInsertSessionCount: 0,
   dismissedSuggestionIds: [],
   sellerImpressionsToday: {},
   globalSnoozeUntil: null,
@@ -204,6 +205,7 @@ const capped = applyExchangeSuggestionCaps(manyCards, 'detail', {
 assert(capped.items.length <= EXCHANGE_SUGGESTION_CAPS.perPageDetail, 'page cap');
 const sessionCapped = applyExchangeSuggestionCaps(manyCards, 'detail', {
   sessionImpressionCount: EXCHANGE_SUGGESTION_CAPS.perSessionImpressions,
+  feedInsertSessionCount: 0,
   dismissedSuggestionIds: [],
   sellerImpressionsToday: {},
   globalSnoozeUntil: null,

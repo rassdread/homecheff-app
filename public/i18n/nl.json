@@ -7725,7 +7725,23 @@
         },
         "sidebar": {
           "title": "Ruilkansen in de buurt"
+        },
+        "exchange_feed_insert": {
+          "title": "Ruilkans"
+        },
+        "mobile": {
+          "title": "Ruilkansen"
         }
+      },
+      "feed": {
+        "title": "Ruilkans",
+        "matchText": "Een passende ruilkans in jouw buurt",
+        "cta": "Bekijk ruilmogelijkheid"
+      },
+      "mobile": {
+        "title": "Ruilkansen voor jou",
+        "matchText": "Ontdek passende ruilkansen",
+        "cta": "Bekijk ruilmogelijkheid"
       },
       "types": {
         "direct": "Directe ruil",
@@ -7793,6 +7809,8 @@
     },
     "preview": {
       "ariaLabel": "Aanbod preview",
+      "infoOpen": "Toon aanbod preview",
+      "infoClose": "Sluit aanbod preview",
       "sections": {
         "payment": "Waarde & betaling",
         "fulfillment": "Levering",

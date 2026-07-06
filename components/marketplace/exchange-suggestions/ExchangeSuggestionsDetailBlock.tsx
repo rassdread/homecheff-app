@@ -94,12 +94,15 @@ export default function ExchangeSuggestionsDetailBlock({
         {t('marketplace.exchangeSuggestions.hint')}
       </p>
       <div className="flex flex-col gap-3">
-        {plan.suggestions.map((card) => (
+        {plan.suggestions.map((card, index) => (
           <ExchangeSuggestionCardView
             key={card.id}
             card={card}
             t={t}
             onDismiss={handleDismiss}
+            surface="detail"
+            listingId={listingId}
+            position={index}
           />
         ))}
       </div>

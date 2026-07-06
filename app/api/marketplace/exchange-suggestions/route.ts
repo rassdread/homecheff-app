@@ -110,16 +110,28 @@ export async function GET(req: Request) {
     }
 
     const sourceListing =
-      listingId && surface === 'detail'
+      listingId &&
+      (surface === 'detail' || surface === 'mobile')
         ? profiles.find((p) => p.listingId === listingId) ?? null
         : null;
 
-    if (surface === 'detail' && listingId && !sourceListing) {
+    if (
+      (surface === 'detail' || surface === 'mobile') &&
+      listingId &&
+      !sourceListing
+    ) {
       return NextResponse.json(
         { error: 'Listing not eligible for exchange suggestions' },
         { status: 404 },
       );
     }
+
+    const sidebarVariantRaw = url.searchParams.get('sidebarVariant');
+    const sidebarVariant =
+      sidebarVariantRaw === 'mobile' || sidebarVariantRaw === 'desktop'
+        ? sidebarVariantRaw
+        : undefined;
+    const feedBatch = url.searchParams.get('feedBatch') === '1';
 
     const plan = resolveExchangeSuggestions({
       surface,
@@ -129,6 +141,8 @@ export async function GET(req: Request) {
       candidates: profiles,
       candidateMeta,
       capState,
+      sidebarVariant,
+      feedBatch,
     });
 
     return NextResponse.json({ plan });

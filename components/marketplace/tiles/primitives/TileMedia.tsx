@@ -3,6 +3,7 @@
 import { FeedCardPrimaryMedia } from '@/components/feed/feedMedia';
 import TileBadgeRow from '@/components/marketplace/tiles/primitives/TileBadgeRow';
 import TileFavoriteAction from '@/components/marketplace/tiles/primitives/TileFavoriteAction';
+import MarketplacePreviewInfoButton from '@/components/marketplace/previews/MarketplacePreviewInfoButton';
 import type {
   MarketplaceTileMediaRatio,
   MarketplaceTileMode,
@@ -28,6 +29,7 @@ export type TileMediaProps = {
   favoriteTitle?: string;
   mode?: MarketplaceTileMode;
   showFavorite?: boolean;
+  showPreviewInfo?: boolean;
   className?: string;
 };
 
@@ -44,6 +46,7 @@ export default function TileMedia({
   favoriteTitle,
   mode = 'sale',
   showFavorite = true,
+  showPreviewInfo = false,
   className = '',
 }: TileMediaProps) {
   return (
@@ -61,14 +64,19 @@ export default function TileMedia({
       {badges.length > 0 || overflowCount > 0 ? (
         <TileBadgeRow badges={badges} overflowCount={overflowCount} />
       ) : null}
-      {showFavorite && favoriteId && favoriteTitle ? (
-        <div data-preview-ignore>
-          <TileFavoriteAction
-            id={favoriteId}
-            title={favoriteTitle}
-            mode={mode}
-            className="absolute top-2 right-2 z-10"
-          />
+      {showPreviewInfo || (showFavorite && favoriteId && favoriteTitle) ? (
+        <div
+          className="absolute top-2 right-2 z-10 flex items-center gap-1.5"
+          data-preview-ignore
+        >
+          {showPreviewInfo ? <MarketplacePreviewInfoButton /> : null}
+          {showFavorite && favoriteId && favoriteTitle ? (
+            <TileFavoriteAction
+              id={favoriteId}
+              title={favoriteTitle}
+              mode={mode}
+            />
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -7725,7 +7725,23 @@
         },
         "sidebar": {
           "title": "Exchange opportunities nearby"
+        },
+        "exchange_feed_insert": {
+          "title": "Exchange opportunity"
+        },
+        "mobile": {
+          "title": "Exchange opportunities"
         }
+      },
+      "feed": {
+        "title": "Exchange opportunity",
+        "matchText": "A matching exchange chance in your area",
+        "cta": "View exchange opportunity"
+      },
+      "mobile": {
+        "title": "Exchange opportunities for you",
+        "matchText": "Discover matching exchange chances",
+        "cta": "View exchange opportunity"
       },
       "types": {
         "direct": "Direct exchange",
@@ -7793,6 +7809,8 @@
     },
     "preview": {
       "ariaLabel": "Listing preview",
+      "infoOpen": "Show listing preview",
+      "infoClose": "Close listing preview",
       "sections": {
         "payment": "Value & payment",
         "fulfillment": "Fulfillment",

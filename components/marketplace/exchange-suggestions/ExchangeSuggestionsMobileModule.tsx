@@ -6,28 +6,33 @@ import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ExchangeSuggestionSurfacePlan } from '@/lib/marketplace/exchange-suggestions';
 import {
+  EXCHANGE_SUGGESTION_CAPS,
   mainCategoryEmoji,
   readExchangeSuggestionCapState,
   recordExchangeSuggestionImpression,
   suggestionSummaryKey,
-  suggestionTypeLabelKey,
+  trackExchangeSuggestionCtaClick,
   trackExchangeSuggestionImpression,
   trackExchangeSuggestionOpen,
 } from '@/lib/marketplace/exchange-suggestions';
 import { buildProductSlugPath } from '@/lib/seo/productSlug';
 
-export type ExchangeSuggestionsSidebarModuleProps = {
+export type ExchangeSuggestionsMobileContext = 'profile' | 'detail' | 'discovery';
+
+export type ExchangeSuggestionsMobileModuleProps = {
+  context: ExchangeSuggestionsMobileContext;
+  listingId?: string;
   className?: string;
-  variant?: 'desktop' | 'mobile';
 };
 
 /**
- * Desktop sidebar compact exchange suggestions — read-only.
+ * Compact mobile exchange suggestions — max 2 visible.
  */
-export default function ExchangeSuggestionsSidebarModule({
+export default function ExchangeSuggestionsMobileModule({
+  context,
+  listingId,
   className = '',
-  variant = 'desktop',
-}: ExchangeSuggestionsSidebarModuleProps) {
+}: ExchangeSuggestionsMobileModuleProps) {
   const { status } = useSession();
   const { t } = useTranslation();
   const [plan, setPlan] = useState<ExchangeSuggestionSurfacePlan | null>(null);
@@ -41,10 +46,12 @@ export default function ExchangeSuggestionsSidebarModule({
     try {
       const capState = readExchangeSuggestionCapState();
       const params = new URLSearchParams({
-        surface: 'sidebar',
-        sidebarVariant: variant,
+        surface: 'mobile',
         capState: JSON.stringify(capState),
       });
+      if (context === 'detail' && listingId) {
+        params.set('listingId', listingId);
+      }
       const res = await fetch(`/api/marketplace/exchange-suggestions?${params}`);
       if (!res.ok) {
         setPlan(null);
@@ -58,46 +65,47 @@ export default function ExchangeSuggestionsSidebarModule({
     } catch {
       setPlan(null);
     }
-  }, [status, variant]);
+  }, [context, listingId, status]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
+  const suggestions = (plan?.suggestions ?? []).slice(
+    0,
+    EXCHANGE_SUGGESTION_CAPS.perPageMobile,
+  );
+
   useEffect(() => {
-    if (!plan?.suggestions) return;
-    for (const [index, card] of plan.suggestions.entries()) {
+    for (const [index, card] of suggestions.entries()) {
       if (trackedIds.current.has(card.id)) continue;
       trackedIds.current.add(card.id);
       trackExchangeSuggestionImpression({
-        surface: 'sidebar',
-        listingId: card.sourceListingId,
+        surface: 'mobile',
+        listingId: listingId ?? card.sourceListingId,
         suggestedListingId: card.counterpartyListingId,
         category: card.mainCategory,
         position: index,
       });
     }
-  }, [plan?.suggestions]);
+  }, [listingId, suggestions]);
 
-  if (!plan?.showModule || plan.suggestions.length === 0) {
+  if (!plan?.showModule || suggestions.length === 0) {
     return null;
   }
 
   return (
     <section
-      className={`rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/90 to-white p-4 shadow-sm ${className}`}
-      data-surface="exchange_suggestions_sidebar"
+      className={`rounded-2xl border border-teal-100 bg-white p-4 shadow-sm ${className}`}
+      data-surface="exchange_suggestions_mobile"
       data-surface-module="exchange_suggestion"
+      data-mobile-context={context}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100 text-lg">
-          <span aria-hidden>🔄</span>
-        </div>
-        <h3 className="text-sm font-bold text-gray-900">{t(plan.titleKey)}</h3>
-      </div>
-
+      <h3 className="text-sm font-bold text-gray-900 mb-3">
+        {t('marketplace.exchangeSuggestions.mobile.title')}
+      </h3>
       <div className="flex flex-col gap-2">
-        {plan.suggestions.map((card, index) => {
+        {suggestions.map((card, index) => {
           const href = `/product/${buildProductSlugPath(
             card.counterpartyTitle,
             null,
@@ -107,30 +115,39 @@ export default function ExchangeSuggestionsSidebarModule({
             <Link
               key={card.id}
               href={href}
-              onClick={() =>
+              onClick={() => {
                 trackExchangeSuggestionOpen({
-                  surface: 'sidebar',
-                  listingId: card.sourceListingId,
+                  surface: 'mobile',
+                  listingId: listingId ?? card.sourceListingId,
                   suggestedListingId: card.counterpartyListingId,
                   category: card.mainCategory,
                   position: index,
-                })
-              }
-              className="flex items-start gap-2 rounded-xl border border-teal-100 bg-white/80 px-3 py-2 hover:bg-white"
+                });
+                trackExchangeSuggestionCtaClick({
+                  surface: 'mobile',
+                  listingId: listingId ?? card.sourceListingId,
+                  suggestedListingId: card.counterpartyListingId,
+                  category: card.mainCategory,
+                  position: index,
+                  cta: 'view_exchange',
+                });
+              }}
+              className="flex items-start gap-3 rounded-xl border border-teal-100 bg-teal-50/40 px-3 py-2.5 hover:bg-teal-50"
+              data-exchange-suggestion={card.id}
             >
-              <span className="text-lg leading-none" aria-hidden>
+              <span className="text-xl leading-none" aria-hidden>
                 {mainCategoryEmoji(card.mainCategory)}
               </span>
               <span className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-teal-800">
-                  {t(suggestionTypeLabelKey(card.suggestionType))}
-                </p>
-                <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                <span className="block text-sm font-semibold text-gray-900 line-clamp-1">
                   {card.counterpartyTitle}
-                </p>
-                <p className="text-xs text-gray-600 line-clamp-1">
+                </span>
+                <span className="block text-xs text-gray-600 line-clamp-2">
                   {t(suggestionSummaryKey(card.suggestionType), card.summaryParams)}
-                </p>
+                </span>
+                <span className="mt-1 inline-block text-xs font-semibold text-teal-800">
+                  {t('marketplace.exchangeSuggestions.mobile.cta')}
+                </span>
               </span>
             </Link>
           );

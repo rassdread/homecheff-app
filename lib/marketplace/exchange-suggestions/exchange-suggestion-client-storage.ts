@@ -7,6 +7,7 @@ import { EXCHANGE_SUGGESTION_CAPS } from './exchange-suggestion-caps';
 
 const PREFIX = 'hc:exchange-suggestions';
 const SESSION_KEY = `${PREFIX}:session`;
+const FEED_INSERT_KEY = `${PREFIX}:feed-inserts`;
 const DISMISS_KEY = `${PREFIX}:dismissed`;
 const SELLER_DAY_KEY = `${PREFIX}:seller-day`;
 const SNOOZE_KEY = `${PREFIX}:snooze`;
@@ -50,9 +51,12 @@ export function readExchangeSuggestionCapState(): ExchangeSuggestionCapState {
     .map(([id]) => id);
 
   const snoozeUntil = readJson<string | null>(SNOOZE_KEY);
+  const feedInsertSessionCount =
+    readJson<{ count: number }>(FEED_INSERT_KEY)?.count ?? 0;
 
   return {
     sessionImpressionCount: session.impressionCount,
+    feedInsertSessionCount,
     dismissedSuggestionIds: activeDismissed,
     sellerImpressionsToday,
     globalSnoozeUntil: snoozeUntil,
@@ -83,6 +87,13 @@ export function recordExchangeSuggestionImpression(
   writeJson(SELLER_DAY_KEY, sellerDay);
 }
 
+export function recordExchangeSuggestionFeedInsert(count = 1): void {
+  const feed =
+    readJson<{ count: number }>(FEED_INSERT_KEY) ?? { count: 0 };
+  feed.count += count;
+  writeJson(FEED_INSERT_KEY, feed);
+}
+
 export function recordExchangeSuggestionDismissed(suggestionId: string): void {
   const session =
     readJson<{ impressionCount: number; dismissCount: number }>(SESSION_KEY) ?? {
@@ -110,6 +121,7 @@ export function recordExchangeSuggestionDismissed(suggestionId: string): void {
 export function resetExchangeSuggestionSessionForTests(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(FEED_INSERT_KEY);
   localStorage.removeItem(DISMISS_KEY);
   localStorage.removeItem(SELLER_DAY_KEY);
   localStorage.removeItem(SNOOZE_KEY);

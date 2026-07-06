@@ -13,13 +13,15 @@ export default function MarketplaceLongPressPreview({
   model,
   t,
   locale,
+  previewId,
   onClose,
 }: {
   open: boolean;
   model: MarketplaceTileModel;
   t: TranslateFn;
   locale?: string;
-  onClose: () => void;
+  previewId?: string;
+  onClose: (reason: 'backdrop' | 'swipe' | 'escape') => void;
 }) {
   const touchStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -31,7 +33,7 @@ export default function MarketplaceLongPressPreview({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onClose('escape');
       }
     };
     document.addEventListener('keydown', onKey);
@@ -48,9 +50,10 @@ export default function MarketplaceLongPressPreview({
       className="fixed inset-0 z-[150] flex items-end justify-center bg-black/50 backdrop-blur-[1px]"
       role="dialog"
       aria-modal="true"
+      id={previewId}
       aria-label={t('marketplace.preview.ariaLabel')}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) onClose('backdrop');
       }}
     >
       <div
@@ -65,7 +68,7 @@ export default function MarketplaceLongPressPreview({
           const delta = e.touches[0]!.clientY - touchStartY.current;
           if (delta > SWIPE_CLOSE_THRESHOLD) {
             touchStartY.current = null;
-            onClose();
+            onClose('swipe');
           }
         }}
         onTouchEnd={() => {
@@ -79,7 +82,7 @@ export default function MarketplaceLongPressPreview({
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => onClose('escape')}
               className="ml-auto rounded-full p-2 text-gray-500 hover:bg-gray-100"
               aria-label={t('buttons.close')}
             >
@@ -90,7 +93,7 @@ export default function MarketplaceLongPressPreview({
             model={model}
             t={t}
             locale={locale}
-            onClose={onClose}
+            onClose={() => onClose('escape')}
             className="max-h-none rounded-none border-0 shadow-none"
           />
         </div>

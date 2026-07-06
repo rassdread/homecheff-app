@@ -5,13 +5,19 @@
 import type {
   ExchangeSuggestionCapState,
   ExchangeSuggestionCard,
+  ExchangeSuggestionSidebarVariant,
   ExchangeSuggestionSurface,
 } from './exchange-suggestion-contract';
 
 export const EXCHANGE_SUGGESTION_CAPS = {
   perPageDetail: 3,
   perPageProfile: 5,
-  perPageSidebar: 2,
+  perPageSidebar: 3,
+  perPageSidebarMobile: 2,
+  perPageMobile: 2,
+  perPageFeedInsert: 1,
+  perSessionFeedInserts: 3,
+  feedInsertListingInterval: 20,
   perSessionImpressions: 8,
   perSellerPerDay: 3,
   perSellerPerPage: 1,
@@ -26,14 +32,23 @@ export type CapApplyResult = {
   reasons: string[];
 };
 
-function surfacePageLimit(surface: ExchangeSuggestionSurface): number {
+function surfacePageLimit(
+  surface: ExchangeSuggestionSurface,
+  sidebarVariant?: ExchangeSuggestionSidebarVariant,
+): number {
   switch (surface) {
     case 'detail':
       return EXCHANGE_SUGGESTION_CAPS.perPageDetail;
     case 'profile_owner':
       return EXCHANGE_SUGGESTION_CAPS.perPageProfile;
     case 'sidebar':
-      return EXCHANGE_SUGGESTION_CAPS.perPageSidebar;
+      return sidebarVariant === 'mobile'
+        ? EXCHANGE_SUGGESTION_CAPS.perPageSidebarMobile
+        : EXCHANGE_SUGGESTION_CAPS.perPageSidebar;
+    case 'mobile':
+      return EXCHANGE_SUGGESTION_CAPS.perPageMobile;
+    case 'exchange_feed_insert':
+      return EXCHANGE_SUGGESTION_CAPS.perPageFeedInsert;
     default:
       return EXCHANGE_SUGGESTION_CAPS.perPageDetail;
   }
@@ -43,6 +58,10 @@ export function applyExchangeSuggestionCaps(
   items: ExchangeSuggestionCard[],
   surface: ExchangeSuggestionSurface,
   capState: ExchangeSuggestionCapState,
+  options?: {
+    sidebarVariant?: ExchangeSuggestionSidebarVariant;
+    feedBatch?: boolean;
+  },
 ): CapApplyResult {
   const reasons: string[] = [];
 
@@ -53,6 +72,14 @@ export function applyExchangeSuggestionCaps(
     }
   }
 
+  const remainingFeedInserts =
+    EXCHANGE_SUGGESTION_CAPS.perSessionFeedInserts -
+    capState.feedInsertSessionCount;
+
+  if (surface === 'exchange_feed_insert' && remainingFeedInserts <= 0) {
+    return { items: [], capped: true, reasons: ['feed_session_cap'] };
+  }
+
   const remainingSession =
     EXCHANGE_SUGGESTION_CAPS.perSessionImpressions -
     capState.sessionImpressionCount;
@@ -60,7 +87,14 @@ export function applyExchangeSuggestionCaps(
     return { items: [], capped: true, reasons: ['session_cap'] };
   }
 
-  const pageLimit = Math.min(surfacePageLimit(surface), remainingSession);
+  const feedPageLimit =
+    surface === 'exchange_feed_insert'
+      ? options?.feedBatch
+        ? remainingFeedInserts
+        : EXCHANGE_SUGGESTION_CAPS.perPageFeedInsert
+      : surfacePageLimit(surface, options?.sidebarVariant);
+
+  const pageLimit = Math.min(feedPageLimit, remainingSession);
   const sellerCounts: Record<string, number> = {
     ...capState.sellerImpressionsToday,
   };

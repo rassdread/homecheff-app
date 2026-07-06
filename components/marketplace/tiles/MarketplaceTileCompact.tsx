@@ -57,6 +57,7 @@ export default function MarketplaceTileCompact({
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
+        showPreviewInfo={enablePreview}
       />
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-2.5">
         <TilePersonRow model={model} t={t} />

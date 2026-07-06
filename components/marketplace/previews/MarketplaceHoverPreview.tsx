@@ -12,6 +12,7 @@ export default function MarketplaceHoverPreview({
   model,
   t,
   locale,
+  previewId,
   onClose,
   onPreviewEnter,
   onPreviewLeave,
@@ -21,6 +22,7 @@ export default function MarketplaceHoverPreview({
   model: MarketplaceTileModel;
   t: TranslateFn;
   locale?: string;
+  previewId?: string;
   onClose: () => void;
   onPreviewEnter: () => void;
   onPreviewLeave: () => void;
@@ -65,6 +67,7 @@ export default function MarketplaceHoverPreview({
   return createPortal(
     <div
       ref={panelRef}
+      id={previewId}
       role="dialog"
       aria-label={t('marketplace.preview.ariaLabel')}
       className="fixed z-[140] animate-in fade-in zoom-in-95 duration-150"

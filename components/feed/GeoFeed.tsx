@@ -86,10 +86,18 @@ import {
 import {
   interleaveMobileGrowthSurfaces,
 } from "@/lib/feed/growth-surface-feed-rows";
+import {
+  interleaveExchangeFeedInserts,
+} from "@/lib/feed/exchange-suggestion-feed-rows";
 import { getSurfacePlanFromDiscovery } from "@/lib/discovery/surfaces/surface-discovery-helpers";
 import { ActivityCardFeedBand } from "@/components/discovery/activity-cards";
 import OpportunityEconomyCard from "@/components/discovery/surfaces/OpportunityEconomyCard";
 import GrowthMobileInsertCard from "@/components/discovery/surfaces/GrowthMobileInsertCard";
+import {
+  ExchangeSuggestionsFeedInsert,
+  ExchangeSuggestionsMobileModule,
+  useExchangeFeedInsertCards,
+} from "@/components/marketplace/exchange-suggestions";
 import { filterCardsForSession } from "@/lib/discovery/activity-cards/activity-card-client-storage";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -1995,6 +2003,8 @@ export default function GeoFeed({
     [discoveryFeed],
   );
 
+  const exchangeFeedInsertCards = useExchangeFeedInsertCards();
+
   const displayRows = useMemo(() => {
     let rows:
       | ReturnType<typeof interleaveMobileActivityCards<FeedItem>>
@@ -2043,10 +2053,19 @@ export default function GeoFeed({
       }
     }
 
-    if (!isMobileFeedUi) return withActivity;
+    let withExchange = withActivity;
+    if (exchangeFeedInsertCards.length > 0 && feedChip === "sale") {
+      withExchange = interleaveExchangeFeedInserts(
+        withActivity,
+        exchangeFeedInsertCards,
+        exchangeFeedInsertCards.length,
+      ) as typeof withActivity;
+    }
+
+    if (!isMobileFeedUi) return withExchange;
 
     const mobileOpportunities = getEconomyOpportunityMobileInserts(surfacePlan);
-    if (mobileOpportunities.length === 0) return withActivity;
+    if (mobileOpportunities.length === 0) return withExchange;
 
     const oppIndices =
       getOpportunityMobileInsertIndices(surfacePlan).length > 0
@@ -2055,7 +2074,7 @@ export default function GeoFeed({
 
     return interleaveMobileGrowthSurfaces(
       interleaveMobileOpportunitySurfaces(
-        withActivity,
+        withExchange,
         mobileOpportunities,
         oppIndices,
         1,
@@ -2075,6 +2094,7 @@ export default function GeoFeed({
     activityCardSlotMeta,
     isMobileFeedUi,
     surfacePlan,
+    exchangeFeedInsertCards,
   ]);
 
   const displayCount = displayRows.length;
@@ -3281,6 +3301,11 @@ export default function GeoFeed({
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
         >
+          {isMobileFeedUi && feedChip === "sale" && session?.user ? (
+            <div className="col-span-full">
+              <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
+            </div>
+          ) : null}
           {(() => {
             const nodes: ReactNode[] = [];
             let feedItemIndex = 0;
@@ -3324,6 +3349,18 @@ export default function GeoFeed({
                       contract={row.contract}
                       t={t}
                       surface="feed_mobile_insert"
+                    />
+                  </div>
+                );
+                return;
+              }
+              if (row.row === "exchange_feed_insert") {
+                nodes.push(
+                  <div key={`exchange-insert-${row.card.id}-${idx}`} className="col-span-full">
+                    <ExchangeSuggestionsFeedInsert
+                      card={row.card}
+                      position={row.position}
+                      t={t}
                     />
                   </div>
                 );

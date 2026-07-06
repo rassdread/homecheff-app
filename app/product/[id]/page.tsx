@@ -27,7 +27,7 @@ import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyC
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
 import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
 import ProductAcceptedBadgesSection from '@/components/product/detail/ProductAcceptedBadgesSection';
-import { ExchangeSuggestionsDetailBlock } from '@/components/marketplace/exchange-suggestions';
+import { ExchangeSuggestionsDetailBlock, ExchangeSuggestionsMobileModule } from '@/components/marketplace/exchange-suggestions';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
@@ -783,7 +783,12 @@ export default function ProductPage() {
                 priceModel={product.priceModel}
               />
 
-              <ExchangeSuggestionsDetailBlock listingId={product.id} />
+              <div className="lg:hidden">
+                <ExchangeSuggestionsMobileModule context="detail" listingId={product.id} />
+              </div>
+              <div className="hidden lg:block">
+                <ExchangeSuggestionsDetailBlock listingId={product.id} />
+              </div>
 
               <ProductSaleAboutSection
                 product={product}

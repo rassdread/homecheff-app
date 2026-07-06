@@ -124,13 +124,15 @@ export default function ExchangeSuggestionsProfileModule({
         <p className="text-sm text-gray-500">{t('marketplace.exchangeSuggestions.empty')}</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {items.map((card) => (
+          {items.map((card, index) => (
             <ExchangeSuggestionCardView
               key={card.id}
               card={card}
               t={t}
               onDismiss={handleDismiss}
               compact
+              surface="profile_owner"
+              position={index}
             />
           ))}
         </div>
