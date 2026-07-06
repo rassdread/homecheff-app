@@ -26,6 +26,7 @@ import {
   specializationI18nKey,
 } from '@/lib/marketplace/i18n-keys';
 import AcceptedValuesPicker from '@/components/products/marketplace/AcceptedValuesPicker';
+import BarterOpennessSelector from '@/components/products/marketplace/BarterOpennessSelector';
 import TaxonomySpecializationPicker from '@/components/products/marketplace/TaxonomySpecializationPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import StripeConnectPaymentsBanner from '@/components/seller/StripeConnectPaymentsBanner';
@@ -41,6 +42,13 @@ import {
   validateProductLocationForPublish,
 } from '@/lib/geo/product-location-requirements';
 import { fulfillmentIsDigitalOnly } from '@/lib/marketplace/listing-taxonomy';
+import {
+  barterOpennessRequiresAcceptedValues,
+  resolveBarterOpennessForFormPrefill,
+  resolveBarterOpennessForSave,
+  suggestBarterOpennessAfterAcceptedValuesChange,
+  type BarterOpennessValue,
+} from '@/lib/marketplace/resolve-barter-openness-for-save';
 import type { MarketplaceCategory, PriceModel } from '@prisma/client';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
@@ -94,6 +102,7 @@ export default function MarketplaceOfferForm({
   const [acceptedSpecializations, setAcceptedSpecializations] = useState<string[]>(
     [],
   );
+  const [barterOpenness, setBarterOpenness] = useState<BarterOpennessValue>('MONEY');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -175,8 +184,15 @@ export default function MarketplaceOfferForm({
       (existingProduct.marketplaceCategory as MarketplaceCategory) ?? marketplaceCategory,
     );
     setSpecializations(specs);
-    setAcceptedSpecializations(
-      normalizeAcceptedTaxonomyIds(existingProduct.acceptedSpecializations ?? []),
+    const normalizedAccepted = normalizeAcceptedTaxonomyIds(
+      existingProduct.acceptedSpecializations ?? [],
+    );
+    setAcceptedSpecializations(normalizedAccepted);
+    setBarterOpenness(
+      resolveBarterOpennessForFormPrefill(
+        existingProduct.barterOpenness,
+        normalizedAccepted,
+      ),
     );
     if (existingProduct.listingIntent) {
       setListingIntent(existingProduct.listingIntent as ListingIntentValue);
@@ -293,6 +309,13 @@ export default function MarketplaceOfferForm({
       setMessage(t(MARKETPLACE_ERROR_KEYS.specializationsRequired));
       return;
     }
+    if (
+      barterOpennessRequiresAcceptedValues(barterOpenness) &&
+      acceptedSpecializations.length === 0
+    ) {
+      setMessage(t(MARKETPLACE_ERROR_KEYS.barterAcceptedRequired));
+      return;
+    }
     if (images.length === 0 || images.some((i) => i.uploading)) {
       setMessage(t(MARKETPLACE_ERROR_KEYS.photosRequired));
       return;
@@ -357,6 +380,11 @@ export default function MarketplaceOfferForm({
       .filter((i) => i.url?.trim() && !i.uploading)
       .map((i) => i.url.trim());
 
+    const resolvedBarterOpenness = resolveBarterOpennessForSave({
+      barterOpenness,
+      acceptedSpecializations,
+    });
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -366,6 +394,7 @@ export default function MarketplaceOfferForm({
       marketplaceCategory,
       specializations,
       acceptedSpecializations,
+      barterOpenness: resolvedBarterOpenness,
       subcategory: primarySpecialization(specializations),
       acceptHomeCheffPayment,
       acceptDirectContact,
@@ -590,9 +619,19 @@ export default function MarketplaceOfferForm({
 
       <FulfillmentCheckboxes value={fulfillment} onChange={setFulfillment} />
 
+      <BarterOpennessSelector
+        value={barterOpenness}
+        onChange={setBarterOpenness}
+      />
+
       <AcceptedValuesPicker
         value={acceptedSpecializations}
-        onChange={setAcceptedSpecializations}
+        onChange={(ids) => {
+          setAcceptedSpecializations(ids);
+          setBarterOpenness((current) =>
+            suggestBarterOpennessAfterAcceptedValuesChange(current, ids.length),
+          );
+        }}
       />
 
       {fulfillment.delivery ? (

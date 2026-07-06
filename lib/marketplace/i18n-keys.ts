@@ -86,4 +86,5 @@ export const MARKETPLACE_ERROR_KEYS = {
   priceInvalidContact: 'marketplace.errors.priceInvalidContact',
   priceMissingOrInvalid: 'marketplace.errors.priceMissingOrInvalid',
   specializationsRequired: 'marketplace.errors.specializationsRequired',
+  barterAcceptedRequired: 'marketplace.errors.barterAcceptedRequired',
 } as const;

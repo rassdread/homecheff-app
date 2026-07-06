@@ -26,7 +26,7 @@ import ProductDetailTrustNote from '@/components/product/detail/ProductDetailTru
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
 import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
-import ProductAcceptedBadgesSection from '@/components/product/detail/ProductAcceptedBadgesSection';
+import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
 import { ExchangeSuggestionsDetailBlock, ExchangeSuggestionsMobileModule } from '@/components/marketplace/exchange-suggestions';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
@@ -49,7 +49,8 @@ type Product = {
   marketplaceCategory?: string | null;
   specializations?: string[];
   acceptedSpecializations?: string[];
-  acceptedSpecializations?: string[];
+  barterOpenness?: string | null;
+  listingIntent?: string | null;
   priceModel?: string | null;
   displayNameType?: string;
   delivery?: 'PICKUP' | 'DELIVERY' | 'BOTH';
@@ -312,6 +313,8 @@ export default function ProductPage() {
           acceptedSpecializations: Array.isArray(data.product.acceptedSpecializations)
             ? data.product.acceptedSpecializations
             : [],
+          barterOpenness: data.product.barterOpenness ?? null,
+          listingIntent: data.product.listingIntent ?? 'OFFER',
           priceModel: data.product.priceModel ?? 'FIXED',
           tags: Array.isArray(data.product.tags) ? data.product.tags : [],
           pickupAddress: data.product.pickupAddress ?? null,
@@ -777,10 +780,17 @@ export default function ProductPage() {
                 legacyCategory={product.category}
               />
 
-              <ProductAcceptedBadgesSection
-                acceptedSpecializations={product.acceptedSpecializations}
-                priceCents={product.priceCents}
+              <ProductValueExchangeSection
+                barterOpenness={product.barterOpenness}
                 priceModel={product.priceModel}
+                acceptedSpecializations={product.acceptedSpecializations}
+                specializations={product.specializations}
+                marketplaceCategory={
+                  (product.marketplaceCategory as MarketplaceCategory | null) ?? null
+                }
+                subcategory={product.subcategory}
+                listingIntent={product.listingIntent}
+                category={product.category}
               />
 
               <div className="lg:hidden">

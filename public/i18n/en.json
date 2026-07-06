@@ -7994,7 +7994,11 @@
       "validPhotoUrlRequired": "At least one valid photo URL is required.",
       "priceInvalidContact": "Price is invalid (leave empty for price on request).",
       "priceMissingOrInvalid": "Price is missing or invalid.",
-      "specializationsRequired": "Select at least one specialization."
+      "specializationsRequired": "Select at least one specialization.",
+      "barterAcceptedRequired": "Choose at least one accepted value for barter-only listings."
+    },
+    "barterOpenness": {
+      "hint": "Choose whether you sell for money only, accept money and barter, or barter only."
     },
     "taxonomy": {
       "groups": {

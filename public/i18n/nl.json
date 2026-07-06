@@ -7994,7 +7994,11 @@
       "validPhotoUrlRequired": "Minstens één geldige foto-URL is verplicht.",
       "priceInvalidContact": "Prijs is ongeldig (laat leeg voor prijs op aanvraag).",
       "priceMissingOrInvalid": "Prijs ontbreekt of is ongeldig.",
-      "specializationsRequired": "Selecteer minimaal één specialisatie."
+      "specializationsRequired": "Selecteer minimaal één specialisatie.",
+      "barterAcceptedRequired": "Kies minimaal één geaccepteerde waarde voor alleen ruil."
+    },
+    "barterOpenness": {
+      "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert."
     },
     "taxonomy": {
       "groups": {
