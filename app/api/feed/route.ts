@@ -657,10 +657,18 @@ export async function GET(req: NextRequest) {
     sellerIdsForBadges.length > 0
       ? await fetchAuthorBadgeSummariesByUserIds(sellerIdsForBadges, 2)
       : new Map<string, { key: string; name: string; icon: string }[]>();
-  const trustBundles =
-    sellerIdsForBadges.length > 0
-      ? await fetchSellerTrustBundles(sellerIdsForBadges, badgeMap)
-      : new Map();
+  let trustBundles: Awaited<ReturnType<typeof fetchSellerTrustBundles>> =
+    new Map();
+  if (sellerIdsForBadges.length > 0) {
+    try {
+      trustBundles = await fetchSellerTrustBundles(
+        sellerIdsForBadges,
+        badgeMap,
+      );
+    } catch (e) {
+      console.error("[feed] trust enrichment:", e);
+    }
+  }
   for (const item of enrichTargets) {
     const uid = extractFeedItemSellerUserId(item as Record<string, unknown>);
     if (!uid) continue;

@@ -123,8 +123,13 @@ assert(
   'ordered ids cover marketplace pool',
 );
 assert(
-  feed?.futureSlots.some((s) => s.kind === 'activity_cards' && !s.enabled),
-  'activity cards slot reserved',
+  feed?.futureSlots.some(
+    (s) =>
+      s.kind === 'activity_cards' &&
+      !s.enabled &&
+      s.specVersion === 1,
+  ),
+  'activity cards slot reserved with spec',
 );
 
 const idsInSections = new Set(feed?.sections.flatMap((s) => s.listingIds) ?? []);

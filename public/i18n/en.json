@@ -1834,6 +1834,17 @@
       "new_creators": "New creators"
     }
   },
+  "activityCards": {
+    "categories": {
+      "social": "Social",
+      "trust": "Trust",
+      "marketplace": "Marketplace",
+      "delivery": "Delivery",
+      "community": "Community",
+      "profile": "Profile",
+      "local": "Local"
+    }
+  },
   "filters": {
     "all": "All",
     "allDelivery": "All",

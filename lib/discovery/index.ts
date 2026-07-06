@@ -143,3 +143,36 @@ export {
   auditDiscoverySection,
   auditAllDiscoverySections,
 } from './sections';
+
+export type {
+  ActivityCardCategory,
+  ActivityCardId,
+  ActivityCardSurface,
+  ActivityCardDefinition,
+  ActivityCardTriggerId,
+  ActivityCardTriggerState,
+  ActivityCardEligibilityResult,
+  ActivityCardFeedItem,
+  ActivityCardInsertionPlan,
+  ActivityCardVisibilityRule,
+  ActivityCardAntiSpamConfig,
+  ActivityCardDataSignal,
+} from './activity-cards';
+
+export {
+  ACTIVITY_CARD_CATEGORIES,
+  ACTIVITY_CARD_REGISTRY,
+  ACTIVITY_CARD_IDS,
+  ACTIVITY_CARD_TRIGGER_MATRIX,
+  ACTIVITY_CARD_VISIBILITY_MATRIX,
+  ACTIVITY_CARDS_PUBLIC_VISIBILITY,
+  ACTIVITY_CARD_FEED_INTEGRATION,
+  ACTIVITY_CARD_SIDEBAR_PLACEMENT,
+  ACTIVITY_CARD_MOBILE_PLACEMENT,
+  DEFAULT_ACTIVITY_CARD_ANTI_SPAM,
+  ACTIVITY_CARD_DATA_SIGNALS,
+  FORBIDDEN_ACTIVITY_CARD_SIGNALS,
+  evaluateActivityCardEligibility,
+  selectEligibleActivityCards,
+  getVisibilityForSurface,
+} from './activity-cards';

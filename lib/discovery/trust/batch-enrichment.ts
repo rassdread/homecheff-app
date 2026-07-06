@@ -1,7 +1,7 @@
 import type { DiscoveryTrustBadge } from '../contracts/discovery-read-model';
 import type { DiscoveryEnrichment } from '../mappers/enrichment';
 import { fetchSellerTrustSnapshots } from './fetch-seller-trust-snapshots';
-import type { SellerTrustSnapshot } from './types';
+import { emptySellerTrustSnapshot, type SellerTrustSnapshot } from './types';
 
 export type SellerTrustBundle = {
   snapshot: SellerTrustSnapshot;
@@ -16,15 +16,36 @@ export async function fetchSellerTrustBundles(
   userIds: string[],
   badgeMap?: Map<string, DiscoveryTrustBadge[]>,
 ): Promise<Map<string, SellerTrustBundle>> {
-  const snapshots = await fetchSellerTrustSnapshots(userIds);
+  const unique = [...new Set(userIds.filter(Boolean))];
   const out = new Map<string, SellerTrustBundle>();
-  for (const [uid, snapshot] of snapshots) {
-    out.set(uid, {
-      snapshot,
-      trustBadges: badgeMap?.get(uid) ?? [],
-    });
+  if (unique.length === 0) return out;
+
+  try {
+    const snapshots = await fetchSellerTrustSnapshots(unique);
+    for (const [uid, snapshot] of snapshots) {
+      out.set(uid, {
+        snapshot,
+        trustBadges: badgeMap?.get(uid) ?? [],
+      });
+    }
+    for (const uid of unique) {
+      if (out.has(uid)) continue;
+      out.set(uid, {
+        snapshot: emptySellerTrustSnapshot(uid),
+        trustBadges: badgeMap?.get(uid) ?? [],
+      });
+    }
+    return out;
+  } catch (error) {
+    console.error('[discovery/trust] fetchSellerTrustBundles failed:', error);
+    for (const uid of unique) {
+      out.set(uid, {
+        snapshot: emptySellerTrustSnapshot(uid),
+        trustBadges: badgeMap?.get(uid) ?? [],
+      });
+    }
+    return out;
   }
-  return out;
 }
 
 export function discoveryEnrichmentFromBundle(

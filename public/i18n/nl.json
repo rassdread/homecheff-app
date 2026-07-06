@@ -602,6 +602,17 @@
       "new_creators": "Nieuwe makers"
     }
   },
+  "activityCards": {
+    "categories": {
+      "social": "Sociaal",
+      "trust": "Vertrouwen",
+      "marketplace": "Marktplaats",
+      "delivery": "Bezorging",
+      "community": "Community",
+      "profile": "Profiel",
+      "local": "Lokaal"
+    }
+  },
   "filters": {
     "all": "Alles",
     "allDelivery": "Alle",

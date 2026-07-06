@@ -1,6 +1,9 @@
 /**
  * Batch-fetch seller trust snapshots — avoids N+1 per listing.
  * Fixed query count regardless of listing batch size (Phase 2B-H).
+ *
+ * groupBy queries use direct id filters (no nested relation joins) to avoid
+ * Postgres "column reference id is ambiguous" errors.
  */
 
 import { prisma } from '@/lib/prisma';
@@ -9,8 +12,33 @@ import { emptySellerTrustSnapshot, type SellerTrustSnapshot } from './types';
 
 const DELIVERED_ORDER_STATUSES = ['DELIVERED', 'SHIPPED', 'CONFIRMED'] as const;
 
+type GroupCountRow = { _count: { _all: number } };
+
+function readGroupCount(row: GroupCountRow): number {
+  return row._count._all ?? 0;
+}
+
+async function countDeliveredOrderItemsByProductId(
+  productIds: string[],
+): Promise<Map<string, number>> {
+  if (productIds.length === 0) return new Map();
+  const rows = await prisma.orderItem.findMany({
+    where: {
+      productId: { in: productIds },
+      Order: { status: { in: [...DELIVERED_ORDER_STATUSES] } },
+    },
+    select: { productId: true },
+  });
+  const totals = new Map<string, number>();
+  for (const row of rows) {
+    totals.set(row.productId, (totals.get(row.productId) ?? 0) + 1);
+  }
+  return totals;
+}
+
 /**
  * Fetch trust evidence for many seller user IDs in O(1) query rounds (not O(n)).
+ * On failure returns empty snapshots per user — never throws.
  */
 export async function fetchSellerTrustSnapshots(
   userIds: string[],
@@ -23,240 +51,249 @@ export async function fetchSellerTrustSnapshots(
     out.set(uid, emptySellerTrustSnapshot(uid));
   }
 
-  const [
-    sellerProfiles,
-    deliveryProfiles,
-    activeListingCounts,
-    dealReviewAggs,
-    productReviewBySeller,
-    deliveryReviewAggs,
-    completedAsSeller,
-    completedAsBuyer,
-    completedDeliveries,
-    productOrderCounts,
-    dealPairsAsSeller,
-    dealPairsAsBuyer,
-    reviewsLeftProduct,
-    reviewsLeftDeal,
-    reviewsLeftDelivery,
-    userBadges,
-  ] = await Promise.all([
-    prisma.sellerProfile.findMany({
-      where: { userId: { in: unique } },
-      select: { id: true, userId: true },
-    }),
-    prisma.deliveryProfile.findMany({
-      where: { userId: { in: unique } },
-      select: { id: true, userId: true },
-    }),
-    prisma.product.groupBy({
-      by: ['sellerId'],
-      where: { isActive: true, seller: { User: { id: { in: unique } } } },
-      _count: { id: true },
-    }),
-    prisma.dealReview.groupBy({
-      by: ['revieweeId'],
-      where: { revieweeId: { in: unique } },
-      _count: { id: true },
-    }),
-    prisma.productReview.groupBy({
-      by: ['productId'],
-      where: {
-        reviewSubmittedAt: { not: null },
-        rating: { gt: 0 },
-        product: { seller: { User: { id: { in: unique } } } },
-      },
-      _count: { id: true },
-    }),
-    prisma.deliveryReview.groupBy({
-      by: ['deliveryProfileId'],
-      where: {
-        deliveryProfile: { userId: { in: unique } },
-      },
-      _count: { id: true },
-    }),
-    prisma.communityOrder.groupBy({
-      by: ['sellerId'],
-      where: { sellerId: { in: unique }, status: 'COMPLETED' },
-      _count: { id: true },
-    }),
-    prisma.communityOrder.groupBy({
-      by: ['buyerId'],
-      where: { buyerId: { in: unique }, status: 'COMPLETED' },
-      _count: { id: true },
-    }),
-    prisma.courierAssignment.groupBy({
-      by: ['courierId'],
-      where: { courierId: { in: unique }, status: 'COMPLETED' },
-      _count: { id: true },
-    }),
-    prisma.orderItem.groupBy({
-      by: ['productId'],
-      where: {
-        Order: { status: { in: [...DELIVERED_ORDER_STATUSES] } },
-        Product: { seller: { User: { id: { in: unique } } } },
-      },
-      _count: { id: true },
-    }),
-    prisma.communityOrder.groupBy({
-      by: ['sellerId', 'buyerId'],
-      where: { sellerId: { in: unique }, status: 'COMPLETED' },
-      _count: { id: true },
-    }),
-    prisma.communityOrder.groupBy({
-      by: ['buyerId', 'sellerId'],
-      where: { buyerId: { in: unique }, status: 'COMPLETED' },
-      _count: { id: true },
-    }),
-    prisma.productReview.groupBy({
-      by: ['buyerId'],
-      where: { buyerId: { in: unique }, reviewSubmittedAt: { not: null } },
-      _count: { id: true },
-    }),
-    prisma.dealReview.groupBy({
-      by: ['reviewerId'],
-      where: { reviewerId: { in: unique } },
-      _count: { id: true },
-    }),
-    prisma.deliveryReview.groupBy({
-      by: ['reviewerId'],
-      where: { reviewerId: { in: unique } },
-      _count: { id: true },
-    }),
-    prisma.userBadge.findMany({
-      where: { userId: { in: unique } },
-      include: { badge: { select: { slug: true } } },
-    }),
-  ]);
+  try {
+    const [sellerProfiles, deliveryProfiles] = await Promise.all([
+      prisma.sellerProfile.findMany({
+        where: { userId: { in: unique } },
+        select: { id: true, userId: true },
+      }),
+      prisma.deliveryProfile.findMany({
+        where: { userId: { in: unique } },
+        select: { id: true, userId: true },
+      }),
+    ]);
 
-  const sellerIdToUserId = new Map<string, string>();
-  for (const sp of sellerProfiles) {
-    sellerIdToUserId.set(sp.id, sp.userId);
-    const row = out.get(sp.userId)!;
-    row.hasSellerProfile = true;
-  }
+    const sellerProfileIds = sellerProfiles.map((sp) => sp.id);
+    const deliveryProfileIds = deliveryProfiles.map((dp) => dp.id);
 
-  const deliveryProfileToUser = new Map<string, string>();
-  for (const dp of deliveryProfiles) {
-    deliveryProfileToUser.set(dp.id, dp.userId);
-    const row = out.get(dp.userId)!;
-    row.hasDeliveryProfile = true;
-  }
+    const sellerProducts =
+      sellerProfileIds.length > 0
+        ? await prisma.product.findMany({
+            where: { sellerId: { in: sellerProfileIds } },
+            select: { id: true, sellerId: true },
+          })
+        : [];
+    const productIds = sellerProducts.map((p) => p.id);
+    const productSeller = new Map(sellerProducts.map((p) => [p.id, p.sellerId]));
 
-  for (const g of activeListingCounts) {
-    const uid = sellerIdToUserId.get(g.sellerId);
-    if (uid && g._count.id > 0) {
-      out.get(uid)!.hasActiveListing = true;
+    const [
+      activeListingCounts,
+      dealReviewAggs,
+      productReviewByProduct,
+      deliveryReviewAggs,
+      completedAsSeller,
+      completedAsBuyer,
+      completedDeliveries,
+      productOrderCounts,
+      dealPairsAsSeller,
+      dealPairsAsBuyer,
+      reviewsLeftProduct,
+      reviewsLeftDeal,
+      reviewsLeftDelivery,
+      userBadges,
+    ] = await Promise.all([
+      sellerProfileIds.length > 0
+        ? prisma.product.groupBy({
+            by: ['sellerId'],
+            where: { isActive: true, sellerId: { in: sellerProfileIds } },
+            _count: { _all: true },
+          })
+        : Promise.resolve([] as GroupCountRow[]),
+      prisma.dealReview.groupBy({
+        by: ['revieweeId'],
+        where: { revieweeId: { in: unique } },
+        _count: { _all: true },
+      }),
+      productIds.length > 0
+        ? prisma.productReview.groupBy({
+            by: ['productId'],
+            where: {
+              productId: { in: productIds },
+              reviewSubmittedAt: { not: null },
+              rating: { gt: 0 },
+            },
+            _count: { _all: true },
+          })
+        : Promise.resolve([] as GroupCountRow[]),
+      deliveryProfileIds.length > 0
+        ? prisma.deliveryReview.groupBy({
+            by: ['deliveryProfileId'],
+            where: { deliveryProfileId: { in: deliveryProfileIds } },
+            _count: { _all: true },
+          })
+        : Promise.resolve([] as GroupCountRow[]),
+      prisma.communityOrder.groupBy({
+        by: ['sellerId'],
+        where: { sellerId: { in: unique }, status: 'COMPLETED' },
+        _count: { _all: true },
+      }),
+      prisma.communityOrder.groupBy({
+        by: ['buyerId'],
+        where: { buyerId: { in: unique }, status: 'COMPLETED' },
+        _count: { _all: true },
+      }),
+      prisma.courierAssignment.groupBy({
+        by: ['courierId'],
+        where: { courierId: { in: unique }, status: 'COMPLETED' },
+        _count: { _all: true },
+      }),
+      countDeliveredOrderItemsByProductId(productIds),
+      prisma.communityOrder.groupBy({
+        by: ['sellerId', 'buyerId'],
+        where: { sellerId: { in: unique }, status: 'COMPLETED' },
+        _count: { _all: true },
+      }),
+      prisma.communityOrder.groupBy({
+        by: ['buyerId', 'sellerId'],
+        where: { buyerId: { in: unique }, status: 'COMPLETED' },
+        _count: { _all: true },
+      }),
+      prisma.productReview.groupBy({
+        by: ['buyerId'],
+        where: { buyerId: { in: unique }, reviewSubmittedAt: { not: null } },
+        _count: { _all: true },
+      }),
+      prisma.dealReview.groupBy({
+        by: ['reviewerId'],
+        where: { reviewerId: { in: unique } },
+        _count: { _all: true },
+      }),
+      prisma.deliveryReview.groupBy({
+        by: ['reviewerId'],
+        where: { reviewerId: { in: unique } },
+        _count: { _all: true },
+      }),
+      prisma.userBadge.findMany({
+        where: { userId: { in: unique } },
+        include: { badge: { select: { slug: true } } },
+      }),
+    ]);
+
+    const sellerIdToUserId = new Map<string, string>();
+    for (const sp of sellerProfiles) {
+      sellerIdToUserId.set(sp.id, sp.userId);
+      const row = out.get(sp.userId)!;
+      row.hasSellerProfile = true;
     }
-  }
 
-  for (const g of dealReviewAggs) {
-    const row = out.get(g.revieweeId);
-    if (row) row.dealReviewCount = g._count.id;
-  }
+    const deliveryProfileToUser = new Map<string, string>();
+    for (const dp of deliveryProfiles) {
+      deliveryProfileToUser.set(dp.id, dp.userId);
+      const row = out.get(dp.userId)!;
+      row.hasDeliveryProfile = true;
+    }
 
-  if (productReviewBySeller.length > 0) {
-    const productIds = productReviewBySeller.map((g) => g.productId);
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, sellerId: true },
-    });
-    const productSeller = new Map(products.map((p) => [p.id, p.sellerId]));
+    for (const g of activeListingCounts) {
+      const sellerId = (g as { sellerId: string }).sellerId;
+      const uid = sellerIdToUserId.get(sellerId);
+      if (uid && readGroupCount(g as GroupCountRow) > 0) {
+        out.get(uid)!.hasActiveListing = true;
+      }
+    }
+
+    for (const g of dealReviewAggs) {
+      const row = out.get((g as { revieweeId: string }).revieweeId);
+      if (row) row.dealReviewCount = readGroupCount(g as GroupCountRow);
+    }
+
     const sellerReviewTotals = new Map<string, number>();
-    for (const g of productReviewBySeller) {
-      const sid = productSeller.get(g.productId);
+    for (const g of productReviewByProduct) {
+      const productId = (g as { productId: string }).productId;
+      const sid = productSeller.get(productId);
       if (!sid) continue;
       sellerReviewTotals.set(
         sid,
-        (sellerReviewTotals.get(sid) ?? 0) + g._count.id,
+        (sellerReviewTotals.get(sid) ?? 0) + readGroupCount(g as GroupCountRow),
       );
     }
     for (const [sellerId, count] of sellerReviewTotals) {
       const uid = sellerIdToUserId.get(sellerId);
       if (uid) out.get(uid)!.productReviewCountSeller = count;
     }
-  }
 
-  for (const g of deliveryReviewAggs) {
-    const uid = deliveryProfileToUser.get(g.deliveryProfileId);
-    if (uid) out.get(uid)!.courierReviewCount = g._count.id;
-  }
+    for (const g of deliveryReviewAggs) {
+      const uid = deliveryProfileToUser.get(
+        (g as { deliveryProfileId: string }).deliveryProfileId,
+      );
+      if (uid) out.get(uid)!.courierReviewCount = readGroupCount(g as GroupCountRow);
+    }
 
-  for (const g of completedAsSeller) {
-    const row = out.get(g.sellerId);
-    if (row) row.completedDealsAsSeller = g._count.id;
-  }
+    for (const g of completedAsSeller) {
+      const row = out.get((g as { sellerId: string }).sellerId);
+      if (row) row.completedDealsAsSeller = readGroupCount(g as GroupCountRow);
+    }
 
-  for (const g of completedAsBuyer) {
-    const row = out.get(g.buyerId);
-    if (row) row.completedDealsAsBuyer = g._count.id;
-  }
+    for (const g of completedAsBuyer) {
+      const row = out.get((g as { buyerId: string }).buyerId);
+      if (row) row.completedDealsAsBuyer = readGroupCount(g as GroupCountRow);
+    }
 
-  for (const g of completedDeliveries) {
-    const row = out.get(g.courierId);
-    if (row) row.completedDeliveries = g._count.id;
-  }
+    for (const g of completedDeliveries) {
+      const row = out.get((g as { courierId: string }).courierId);
+      if (row) row.completedDeliveries = readGroupCount(g as GroupCountRow);
+    }
 
-  if (productOrderCounts.length > 0) {
-    const pids = productOrderCounts.map((g) => g.productId);
-    const products = await prisma.product.findMany({
-      where: { id: { in: pids } },
-      select: { id: true, sellerId: true },
-    });
-    const productSeller = new Map(products.map((p) => [p.id, p.sellerId]));
     const orderTotals = new Map<string, number>();
-    for (const g of productOrderCounts) {
-      const sid = productSeller.get(g.productId);
+    for (const [productId, count] of productOrderCounts) {
+      const sid = productSeller.get(productId);
       if (!sid) continue;
-      orderTotals.set(sid, (orderTotals.get(sid) ?? 0) + g._count.id);
+      orderTotals.set(sid, (orderTotals.get(sid) ?? 0) + count);
     }
     for (const [sellerId, count] of orderTotals) {
       const uid = sellerIdToUserId.get(sellerId);
       if (uid) out.get(uid)!.completedProductOrders = count;
     }
-  }
 
-  for (const g of dealPairsAsSeller) {
-    if (g._count.id < 2) continue;
-    const row = out.get(g.sellerId);
-    if (row) row.repeatCustomers += 1;
-  }
-  for (const g of dealPairsAsBuyer) {
-    if (g._count.id < 2) continue;
-    const row = out.get(g.buyerId);
-    if (row) row.repeatCustomers += 1;
-  }
+    for (const g of dealPairsAsSeller) {
+      if (readGroupCount(g as GroupCountRow) < 2) continue;
+      const row = out.get((g as { sellerId: string }).sellerId);
+      if (row) row.repeatCustomers += 1;
+    }
+    for (const g of dealPairsAsBuyer) {
+      if (readGroupCount(g as GroupCountRow) < 2) continue;
+      const row = out.get((g as { buyerId: string }).buyerId);
+      if (row) row.repeatCustomers += 1;
+    }
 
-  const reviewsLeft = new Map<string, number>();
-  for (const g of reviewsLeftProduct) {
-    reviewsLeft.set(g.buyerId, (reviewsLeft.get(g.buyerId) ?? 0) + g._count.id);
-  }
-  for (const g of reviewsLeftDeal) {
-    reviewsLeft.set(
-      g.reviewerId,
-      (reviewsLeft.get(g.reviewerId) ?? 0) + g._count.id,
-    );
-  }
-  for (const g of reviewsLeftDelivery) {
-    reviewsLeft.set(
-      g.reviewerId,
-      (reviewsLeft.get(g.reviewerId) ?? 0) + g._count.id,
-    );
-  }
-  for (const [uid, count] of reviewsLeft) {
-    const row = out.get(uid);
-    if (row) row.reviewsLeftCount = count;
-  }
+    const reviewsLeft = new Map<string, number>();
+    for (const g of reviewsLeftProduct) {
+      const buyerId = (g as { buyerId: string }).buyerId;
+      reviewsLeft.set(
+        buyerId,
+        (reviewsLeft.get(buyerId) ?? 0) + readGroupCount(g as GroupCountRow),
+      );
+    }
+    for (const g of reviewsLeftDeal) {
+      const reviewerId = (g as { reviewerId: string }).reviewerId;
+      reviewsLeft.set(
+        reviewerId,
+        (reviewsLeft.get(reviewerId) ?? 0) + readGroupCount(g as GroupCountRow),
+      );
+    }
+    for (const g of reviewsLeftDelivery) {
+      const reviewerId = (g as { reviewerId: string }).reviewerId;
+      reviewsLeft.set(
+        reviewerId,
+        (reviewsLeft.get(reviewerId) ?? 0) + readGroupCount(g as GroupCountRow),
+      );
+    }
+    for (const [uid, count] of reviewsLeft) {
+      const row = out.get(uid);
+      if (row) row.reviewsLeftCount = count;
+    }
 
-  const badgesByUser = new Map<string, string[]>();
-  for (const ub of userBadges) {
-    const list = badgesByUser.get(ub.userId) ?? [];
-    list.push(ub.badge.slug);
-    badgesByUser.set(ub.userId, list);
-  }
-  for (const [uid, slugs] of badgesByUser) {
-    const row = out.get(uid);
-    if (row) row.trustBadgeSlugs = filterTrustBadgeSlugs(slugs);
+    const badgesByUser = new Map<string, string[]>();
+    for (const ub of userBadges) {
+      const list = badgesByUser.get(ub.userId) ?? [];
+      list.push(ub.badge.slug);
+      badgesByUser.set(ub.userId, list);
+    }
+    for (const [uid, slugs] of badgesByUser) {
+      const row = out.get(uid);
+      if (row) row.trustBadgeSlugs = filterTrustBadgeSlugs(slugs);
+    }
+  } catch (error) {
+    console.error('[discovery/trust] fetchSellerTrustSnapshots failed:', error);
   }
 
   return out;
