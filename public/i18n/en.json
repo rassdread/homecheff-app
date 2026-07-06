@@ -7250,6 +7250,36 @@
       "hourly": "{{price}} / hour",
       "daily": "{{price}} / day"
     },
+    "tile": {
+      "badge": {
+        "request": "Wanted"
+      },
+      "kind": {
+        "product": "Product",
+        "service": "Service",
+        "task": "Task",
+        "workshop": "Workshop",
+        "coaching": "Coaching",
+        "request": "Wanted",
+        "inspiration": "Inspiration"
+      },
+      "price": {
+        "barterOnly": "Barter",
+        "moneyAndBarter": "{{price}} + barter",
+        "requestWelcome": "Proposals welcome",
+        "requestVoluntary": "Voluntary contribution",
+        "budget": "Budget {{price}}"
+      },
+      "trust": {
+        "productReviews": "⭐ {{count}} product reviews",
+        "deals": "🤝 {{count}} deals",
+        "deliveries": "🚚 {{count}} deliveries",
+        "established": "✓ Established maker"
+      },
+      "person": {
+        "maker": "Maker"
+      }
+    },
     "acceptedValues": {
       "heading": "What would you also accept as value?",
       "description": "Optional — indicate which other products or services you would also accept as trade or alternative value.",

@@ -1,17 +1,10 @@
 'use client';
 
 import type { InspirationItem } from '@/components/inspiratie/InspiratieContent';
-import {
-  FeedInspirationCardApi,
-  FeedInspirationCardFeed,
-  FeedSaleCard,
-  type GeoFeedCardItem,
-} from '@/components/feed/GeoFeedCards';
+import { MarketplaceTileRouter } from '@/components/marketplace/tiles';
+import type { GeoFeedCardItem } from '@/components/feed/GeoFeedCards';
 import { resolveFeedItemHref } from '@/lib/feed/feed-item-href';
-import {
-  deriveFeedTaxonomy,
-  type FeedTaxonomy,
-} from '@/lib/feed/feed-taxonomy';
+import type { MarketplaceTileMediaRatio } from '@/lib/marketplace/tiles';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -24,18 +17,13 @@ export type FeedMarketplaceCardProps = {
   item: GeoFeedCardItem;
   baseUrl: string;
   t: TFn;
-  /** Which renderer to use (derived from row layout until full taxonomy routing). */
   variant: FeedMarketplaceCardVariant;
   inspirationApiItem?: InspirationItem;
+  mediaRatio?: MarketplaceTileMediaRatio;
 };
 
-function resolveCardTaxonomy(item: GeoFeedCardItem): FeedTaxonomy {
-  return item.taxonomy ?? deriveFeedTaxonomy(item);
-}
-
 /**
- * Thin taxonomy-aware router — delegates to existing sale/inspiration cards.
- * REQUEST cards — TODO(Fase 5E+).
+ * Taxonomy-aware router — delegates to MarketplaceTileRouter (T1).
  */
 export function FeedMarketplaceCard({
   item,
@@ -43,29 +31,21 @@ export function FeedMarketplaceCard({
   t,
   variant,
   inspirationApiItem,
+  mediaRatio,
 }: FeedMarketplaceCardProps) {
-  const taxonomy = resolveCardTaxonomy(item);
+  const mode =
+    variant === 'sale' ? 'sale' : ('inspiration' as const);
 
-  if (taxonomy.direction === 'REQUEST') {
-    return <FeedSaleCard item={item} baseUrl={baseUrl} t={t} />;
-  }
-
-  switch (variant) {
-    case 'sale':
-      return <FeedSaleCard item={item} baseUrl={baseUrl} t={t} />;
-    case 'inspiration-api':
-      if (!inspirationApiItem) return null;
-      return (
-        <FeedInspirationCardApi
-          item={inspirationApiItem}
-          baseUrl={baseUrl}
-          t={t}
-        />
-      );
-    case 'inspiration-feed':
-    default:
-      return <FeedInspirationCardFeed item={item} baseUrl={baseUrl} t={t} />;
-  }
+  return (
+    <MarketplaceTileRouter
+      item={item}
+      baseUrl={baseUrl}
+      t={t}
+      mode={mode}
+      mediaRatio={mediaRatio}
+      inspirationApiItem={inspirationApiItem}
+    />
+  );
 }
 
 /** Href for discover grid tiles — uses central resolver. */

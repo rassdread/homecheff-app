@@ -49,9 +49,7 @@ import {
   useHomeDesktopFeedColumns,
   homeDesktopFeedGridClass,
 } from "@/lib/feed/homeDesktopFeedColumns";
-import DiscoverGridTile, {
-  inspirationApiToCardItem,
-} from "@/components/feed/DiscoverGridTile";
+import { inspirationApiToCardItem } from "@/lib/marketplace/tiles/map-inspiration-api";
 import {
   pickPrimaryImageUrl,
   pickPrimaryVideoUrl,
@@ -3222,79 +3220,45 @@ export default function GeoFeed({
               }
               if (row.row === "sale") {
                 const card = toCardItem(row.item, effectiveViewerForDistance);
-                if (useDiscoverGridTiles) {
-                  nodes.push(
-                    <DiscoverGridTile
-                      key={`sale-${row.item.id}-${idx}`}
-                      item={card}
-                      href={feedMarketplaceItemHref(card)}
-                      kind="sale"
-                      t={t}
-                    />
-                  );
-                } else {
-                  nodes.push(
-                    <FeedMarketplaceCard
-                      key={`sale-${row.item.id}-${idx}`}
-                      item={card}
-                      baseUrl={baseUrl}
-                      t={t}
-                      variant="sale"
-                    />
-                  );
-                }
+                nodes.push(
+                  <FeedMarketplaceCard
+                    key={`sale-${row.item.id}-${idx}`}
+                    item={card}
+                    baseUrl={baseUrl}
+                    t={t}
+                    variant="sale"
+                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                  />
+                );
                 feedItemIndex += 1;
                 pushInsertIfNeeded();
                 return;
               }
               const slot = row.slot;
               if (slot.kind === "api") {
-                if (useDiscoverGridTiles) {
-                  const card = inspirationApiToCardItem(slot.item);
-                  nodes.push(
-                    <DiscoverGridTile
-                      key={`insp-api-${slot.item.id}-${idx}`}
-                      item={card}
-                      href={inspirationDetailHrefApi(slot.item)}
-                      kind="inspiration"
-                      t={t}
-                    />
-                  );
-                } else {
-                  nodes.push(
-                    <FeedMarketplaceCard
-                      key={`insp-api-${slot.item.id}-${idx}`}
-                      item={inspirationApiToCardItem(slot.item)}
-                      baseUrl={baseUrl}
-                      t={t}
-                      variant="inspiration-api"
-                      inspirationApiItem={slot.item}
-                    />
-                  );
-                }
+                nodes.push(
+                  <FeedMarketplaceCard
+                    key={`insp-api-${slot.item.id}-${idx}`}
+                    item={inspirationApiToCardItem(slot.item)}
+                    baseUrl={baseUrl}
+                    t={t}
+                    variant="inspiration-api"
+                    inspirationApiItem={slot.item}
+                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                  />
+                );
               } else {
                 const card = toCardItem(slot.item, effectiveViewerForDistance);
-                if (useDiscoverGridTiles) {
-                  nodes.push(
-                    <DiscoverGridTile
-                      key={`insp-feed-${slot.item.id}-${idx}`}
-                      item={card}
-                      href={feedMarketplaceItemHref(card)}
-                      kind="inspiration"
-                      t={t}
-                    />
-                  );
-                } else {
-                  nodes.push(
-                    <FeedMarketplaceCard
-                      key={`insp-feed-${slot.item.id}-${idx}`}
-                      item={card}
-                      baseUrl={baseUrl}
-                      t={t}
-                      variant="inspiration-feed"
-                    />
-                  );
-                }
+                nodes.push(
+                  <FeedMarketplaceCard
+                    key={`insp-feed-${slot.item.id}-${idx}`}
+                    item={card}
+                    baseUrl={baseUrl}
+                    t={t}
+                    variant="inspiration-feed"
+                    mediaRatio={useDiscoverGridTiles ? "1:1" : undefined}
+                  />
+                );
               }
               feedItemIndex += 1;
               pushInsertIfNeeded();

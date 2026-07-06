@@ -7250,6 +7250,36 @@
       "hourly": "{{price}} / uur",
       "daily": "{{price}} / dag"
     },
+    "tile": {
+      "badge": {
+        "request": "Gezocht"
+      },
+      "kind": {
+        "product": "Product",
+        "service": "Dienst",
+        "task": "Taak",
+        "workshop": "Workshop",
+        "coaching": "Coaching",
+        "request": "Gezocht",
+        "inspiration": "Inspiratie"
+      },
+      "price": {
+        "barterOnly": "Ruil",
+        "moneyAndBarter": "{{price}} + ruil",
+        "requestWelcome": "Voorstel welkom",
+        "requestVoluntary": "Tegen vrijwillige bijdrage",
+        "budget": "Budget {{price}}"
+      },
+      "trust": {
+        "productReviews": "⭐ {{count}} productreviews",
+        "deals": "🤝 {{count}} afspraken",
+        "deliveries": "🚚 {{count}} bezorgingen",
+        "established": "✓ Ervaren maker"
+      },
+      "person": {
+        "maker": "Maker"
+      }
+    },
     "acceptedValues": {
       "heading": "Wat accepteer je eventueel ook als waarde?",
       "description": "Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.",
