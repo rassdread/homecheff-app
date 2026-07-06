@@ -20,6 +20,7 @@ import ProfileV2HeroPhotoEdit from '@/components/profile/v2/ProfileV2HeroPhotoEd
 import { ProfileV2RolePills } from '@/components/profile/v2/ProfileV2Ui';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
+import { sortBadgesByDisplayPriority } from '@/lib/gamification/badge-priority';
 import type { ProfileV2Context } from '@/lib/profile/profile-v2/types';
 
 type Props = {
@@ -117,7 +118,9 @@ export default function ProfileV2Header({
   );
 
   const fanCount = stats?.followers ?? 0;
-  const badgeCount = hcp?.badges?.length ?? 0;
+  const followingCount = stats?.following ?? 0;
+  const sortedBadges = hcp?.badges ? sortBadgesByDisplayPriority(hcp.badges, 3) : [];
+  const badgeCount = sortedBadges.length;
   const isOwnPublicView = Boolean(ctx.isOwnPublicUrl);
   const showContactSection =
     !viewerIsOwner && !isOwnPublicView && publicContact && publicContact.length > 0;
@@ -212,7 +215,7 @@ export default function ProfileV2Header({
                 <p className="mb-1.5 text-xs font-medium text-amber-900/90">
                   {hcp.levelTitle}
                 </p>
-                <UserBadgeChips badges={hcp.badges} max={3} size="sm" />
+                <UserBadgeChips badges={sortedBadges} max={3} size="sm" />
               </div>
             ) : null}
 
@@ -228,6 +231,12 @@ export default function ProfileV2Header({
                 <Users className="h-3.5 w-3.5" aria-hidden />
                 {t('profileV2.header.fans', { count: fanCount })}
               </span>
+              {followingCount > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
+                  <Users className="h-3.5 w-3.5" aria-hidden />
+                  {t('profileV2.header.following', { count: followingCount })}
+                </span>
+              ) : null}
               {typeof user.profileViews === 'number' && user.profileViews > 0 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1">
                   <Heart className="h-3.5 w-3.5" aria-hidden />

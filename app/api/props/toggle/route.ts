@@ -7,6 +7,11 @@ import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { tryAwardItemLikedOrSavedHcp } from '@/lib/gamification/interaction-hcp';
 
+/**
+ * @deprecated Phase 0 — use /api/favorites/toggle for products and dishes.
+ * Workspace props use WorkspaceContentProp (separate API).
+ * Kept for backward compatibility; writes the same Favorite rows as favorites.
+ */
 export async function POST(req: NextRequest) {
   const cors = getCorsHeaders(req);
   try {

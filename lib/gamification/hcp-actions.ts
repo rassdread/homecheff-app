@@ -25,6 +25,12 @@ export const HCP_ACTIONS = [
   'CHAT_QUICK_RESPONSE',
   /** Verkoperantwoord op review (eenmalig per response). */
   'REVIEW_REPLY_PUBLISHED',
+  /** Community deal afgerond (buyer + seller, idempotent per order). */
+  'COMMUNITY_DEAL_COMPLETED',
+  /** Positieve deal-review ontvangen (≥4★, idempotent per review). */
+  'COMMUNITY_DEAL_REVIEW_RECEIVED',
+  /** Community bezorging afgerond (courier, idempotent per assignment). */
+  'COMMUNITY_DELIVERY_COMPLETED',
 ] as const;
 
 export type HcpAction = (typeof HCP_ACTIONS)[number];
@@ -50,6 +56,9 @@ export const HCP_ACTION_POINTS: Record<HcpAction, number> = {
   ITEM_LIKED_OR_SAVED: 1,
   CHAT_QUICK_RESPONSE: 2,
   REVIEW_REPLY_PUBLISHED: 2,
+  COMMUNITY_DEAL_COMPLETED: 5,
+  COMMUNITY_DEAL_REVIEW_RECEIVED: 5,
+  COMMUNITY_DELIVERY_COMPLETED: 5,
 };
 
 export function isHcpAction(value: string): value is HcpAction {

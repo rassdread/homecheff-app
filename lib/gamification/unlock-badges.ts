@@ -64,6 +64,10 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
     hasAccountCreatedEvent,
     hasProfileCompletedEvent,
     hasFirstSaleEvent,
+    completedDealsTotal,
+    completedDealsAsSeller,
+    completedCourierAssignments,
+    hasRepeatPartner,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
@@ -100,6 +104,34 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
       where: { userId, action: 'FIRST_SALE' },
       select: { id: true },
     }),
+    prisma.communityOrder.count({
+      where: {
+        status: 'COMPLETED',
+        OR: [{ buyerId: userId }, { sellerId: userId }],
+      },
+    }),
+    prisma.communityOrder.count({
+      where: { sellerId: userId, status: 'COMPLETED' },
+    }),
+    prisma.courierAssignment.count({
+      where: { courierId: userId, status: 'COMPLETED' },
+    }),
+    prisma.communityOrder
+      .groupBy({
+        by: ['buyerId'],
+        where: { sellerId: userId, status: 'COMPLETED' },
+        _count: { id: true },
+      })
+      .then((rows) => rows.some((r) => r._count.id >= 2))
+      .then(async (asSeller) => {
+        if (asSeller) return true;
+        const asBuyer = await prisma.communityOrder.groupBy({
+          by: ['sellerId'],
+          where: { buyerId: userId, status: 'COMPLETED' },
+          _count: { id: true },
+        });
+        return asBuyer.some((r) => r._count.id >= 2);
+      }),
   ]);
 
   if (!user) return unlocked;
@@ -208,6 +240,10 @@ export async function unlockBadgesForUser(userId: string): Promise<UnlockedBadge
     ['community-actief', favCount >= 5 || propsReceived >= 5],
     ['early-homecheff', level >= 4],
     ['beta-tester', Boolean(user.betaTesterJoinedAt)],
+    ['eerste-afspraak', completedDealsTotal >= 1],
+    ['betrouwbare-verkoper', completedDealsAsSeller >= 5],
+    ['betrouwbare-bezorger', completedCourierAssignments >= 3],
+    ['vaste-klant', hasRepeatPartner],
   ];
 
   for (const [slug, ok] of checks) {

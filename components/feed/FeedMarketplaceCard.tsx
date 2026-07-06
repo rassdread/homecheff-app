@@ -47,8 +47,7 @@ export function FeedMarketplaceCard({
   const taxonomy = resolveCardTaxonomy(item);
 
   if (taxonomy.direction === 'REQUEST') {
-    // TODO(Fase 5E+): FeedRequestCard
-    return null;
+    return <FeedSaleCard item={item} baseUrl={baseUrl} t={t} />;
   }
 
   switch (variant) {

@@ -1295,7 +1295,7 @@
       "buyerRoles": "Buyer Roles",
       "interests": "Interests",
       "overview": "Overview",
-      "fansAndFollowers": "Fans & Followers",
+      "fansAndFollowers": "Fans",
       "adminProfile": "Admin Profile",
       "adminProfileDesc": "This is your admin profile page. You have access to all admin functions via the Admin Panel."
     },
@@ -1911,18 +1911,51 @@
     "typeYourQuestion": "Type your question here..."
   },
   "follow": {
-    "followers": "Followers",
-    "following": "Following",
-    "follow": "Follow",
-    "unfollow": "Following",
-    "followButton": "Follow",
-    "followingButton": "Following"
+    "followers": "Fans",
+    "following": "Fan",
+    "follow": "Become a fan",
+    "unfollow": "Fan",
+    "followButton": "Become a fan",
+    "followingButton": "Fan",
+    "followingCount": "Fan of {count}",
+    "fansCount": "{count} Fans"
+  },
+  "favorites": {
+    "label": "Favorites",
+    "save": "Favorite",
+    "saved": "Favorited",
+    "loading": "Loading…"
+  },
+  "communityFeedback": {
+    "label": "Feedback",
+    "heading": "Community feedback",
+    "count": "{count} responses",
+    "addCta": "Leave feedback",
+    "firstCta": "Be the first to leave feedback",
+    "empty": "No community feedback on this inspiration item yet.",
+    "submitError": "Could not submit feedback."
+  },
+  "stats": {
+    "aggregateLabel": "Totals across all items",
+    "productReviews": "Product reviews",
+    "productRating": "Product rating",
+    "views": "Views",
+    "tooltips": {
+      "fans": "Number of fans",
+      "favorites": "Favorites on products and inspiration",
+      "workspaceProps": "Props on studio content",
+      "productReviews": "Product reviews (trust)",
+      "productRating": "Average product rating",
+      "communityFeedback": "Community feedback on inspiration (not a trust score)",
+      "views": "Total views"
+    }
   },
   "props": {
     "giveProps": "Give appreciation",
     "propsGiven": "Appreciated!",
     "propsButton": "Appreciation",
-    "propsWithdrawn": "Props withdrawn"
+    "propsWithdrawn": "Props withdrawn",
+    "workspaceLabel": "Studio props"
   },
   "discover": {
     "hubTitle": "Discover",
@@ -5568,7 +5601,8 @@
     "header": {
       "makerOnMarketplace": "Maker on the marketplace",
       "hcp": "{count} HCP",
-      "fans": "{count} fans",
+      "fans": "{count} Fans",
+      "following": "Fan of {count}",
       "profileViews": "{count} profile views",
       "memberSince": "Member since {date}"
     },
@@ -5720,10 +5754,13 @@
         "chef": "Chef",
         "garden": "Garden",
         "designer": "Designer",
+        "products": "Products",
         "services": "Services",
         "trade": "Trade",
         "help": "Help requests",
-        "tasks": "Tasks"
+        "tasks": "Tasks",
+        "workshops": "Workshops",
+        "coaching": "Coaching"
       }
     },
     "inspiratie": {
@@ -7770,6 +7807,74 @@
       "statusActive": "Delivery requested",
       "courierAssigned": "Courier assigned",
       "detailsHeading": "Delivery"
+    }
+  },
+  "trust": {
+    "cta": {
+      "markComplete": "Mark deal complete",
+      "reviewDeal": "Review deal",
+      "reviewDelivery": "Review delivery"
+    },
+    "nextStep": {
+      "markComplete": "Mark the deal complete when you are done.",
+      "reviewDeal": "Leave a review for your counterpart.",
+      "reviewDelivery": "Delivery is complete — review the courier."
+    },
+    "profile": {
+      "heading": "Trust",
+      "channelProducts": "Products",
+      "channelDeals": "Deals",
+      "channelDeliveries": "Deliveries",
+      "rating": "Rating",
+      "reviews": "Reviews",
+      "completedDeals": "Completed deals",
+      "completedDeliveries": "Deliveries",
+      "repeatCustomers": "{{count}} repeat customer(s)",
+      "topSpecializations": "Top specializations",
+      "memberSince": "Member since {{date}}"
+    },
+    "deals": {
+      "filterAll": "All",
+      "filterOpen": "Open",
+      "filterCompleted": "Completed",
+      "filterCancelled": "Cancelled",
+      "empty": "No deals yet.",
+      "with": "With {{name}}",
+      "openChat": "Open chat"
+    },
+    "review": {
+      "dealHeading": "Review your deal",
+      "dealIntro": "Share your experience with your counterpart. Only available after a completed deal.",
+      "deliveryHeading": "Review the delivery",
+      "deliveryIntro": "How was the delivery? Your review helps other users.",
+      "ratingLabel": "Rating",
+      "titleLabel": "Title (optional)",
+      "messageLabel": "Comment (optional)",
+      "submit": "Submit review"
+    },
+    "notifications": {
+      "reviewDeal": {
+        "title": "Review your deal",
+        "body": "Leave a review for your completed deal."
+      },
+      "dealReviewReceived": {
+        "title": "New review",
+        "body": "You received a review for your deal."
+      },
+      "reviewDelivery": {
+        "title": "Review the delivery",
+        "body": "Delivery is complete. Leave a review for the courier."
+      }
+    },
+    "errors": {
+      "communityOrderNotFound": "Deal not found.",
+      "accessDenied": "Access denied.",
+      "orderCancelled": "This deal was cancelled.",
+      "dealNotCompleted": "Deal is not completed yet.",
+      "cannotReviewSelf": "You cannot review yourself.",
+      "deliveryNotCompleted": "Delivery is not completed yet.",
+      "noCourierAssignment": "No completed courier assignment.",
+      "courierProfileNotFound": "Courier profile not found."
     }
   },
   "communityOrder": {

@@ -6,7 +6,7 @@ import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { InspirationItem } from './InspiratieContent';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
-import PropsButton from '@/components/props/PropsButton';
+import FavoriteButton from '@/components/favorite/FavoriteButton';
 import { Eye } from 'lucide-react';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 
@@ -239,11 +239,10 @@ export default function InspirationCard({
                 <span>{item.viewCount}</span>
               </div>
             )}
-            <PropsButton
+            <FavoriteButton
               dishId={item.id}
               productTitle={item.title ?? t('common.dish')}
               size="sm"
-              variant="thumbs"
             />
           </div>
         </div>

@@ -17,6 +17,10 @@ export const HCP_V2_BADGE_SLUGS = [
   'community-actief',
   'early-homecheff',
   'beta-tester',
+  'eerste-afspraak',
+  'betrouwbare-verkoper',
+  'betrouwbare-bezorger',
+  'vaste-klant',
 ] as const;
 
 export type HcpV2BadgeSlug = (typeof HCP_V2_BADGE_SLUGS)[number];
@@ -105,5 +109,29 @@ export const BADGE_ROW_META: Record<HcpV2BadgeSlug, BadgeRowMeta> = {
     description: 'Je test mee met de HomeCheff Android-beta en helpt het platform verbeteren.',
     iconKey: 'rocket',
     unlockHint: catalogUnlockHint('beta-tester'),
+  },
+  'eerste-afspraak': {
+    name: 'Eerste afspraak',
+    description: 'Je eerste afgeronde community-afspraak.',
+    iconKey: 'medal',
+    unlockHint: catalogUnlockHint('eerste-afspraak'),
+  },
+  'betrouwbare-verkoper': {
+    name: 'Betrouwbare verkoper',
+    description: 'Minstens vijf afgeronde afspraken als verkoper.',
+    iconKey: 'star',
+    unlockHint: catalogUnlockHint('betrouwbare-verkoper'),
+  },
+  'betrouwbare-bezorger': {
+    name: 'Betrouwbare bezorger',
+    description: 'Minstens drie afgeronde community-bezorgingen.',
+    iconKey: 'cart',
+    unlockHint: catalogUnlockHint('betrouwbare-bezorger'),
+  },
+  'vaste-klant': {
+    name: 'Vaste klant',
+    description: 'Meerdere afgeronde afspraken met dezelfde maker of klant.',
+    iconKey: 'heart',
+    unlockHint: catalogUnlockHint('vaste-klant'),
   },
 };

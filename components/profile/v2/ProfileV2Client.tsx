@@ -38,6 +38,7 @@ import type {
   ProfileV2TabId,
 } from '@/lib/profile/profile-v2/types';
 import type { PublicProfileHcpPayload } from '@/lib/profile/public-profile-hcp';
+import { sortBadgesByDisplayPriority } from '@/lib/gamification/badge-priority';
 import { hcpPublicLevelTitle } from '@/lib/gamification/hcp-public-label';
 import { iconKeyToDisplayIcon } from '@/lib/gamification/author-badge-summaries';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
@@ -167,8 +168,22 @@ export default function ProfileV2Client({
           : `/api/user/${encodeURIComponent(user.id)}/stats`;
       const res = await fetch(endpoint);
       if (!res.ok) return;
-      const data = (await res.json()) as ProfileV2Stats;
-      setStats(data);
+      const data = await res.json();
+      if (variant === 'private') {
+        setStats(data as ProfileV2Stats);
+      } else {
+        setStats({
+          items: 0,
+          dishes: 0,
+          products: 0,
+          followers: data.fansCount ?? 0,
+          following: data.followingCount ?? 0,
+          favorites: data.totalFavorites ?? 0,
+          orders: 0,
+          reviews: data.totalReviews ?? 0,
+          props: data.totalProps ?? 0,
+        });
+      }
     } catch {
       /* ignore */
     }
@@ -198,11 +213,13 @@ export default function ProfileV2Client({
           level,
           levelTitle: hcpPublicLevelTitle(level),
           currentStreak: data.currentStreak ?? 0,
-          badges: (data.badges ?? []).map((b) => ({
-            key: b.slug,
-            name: b.name,
-            icon: iconKeyToDisplayIcon(b.iconKey),
-          })),
+          badges: sortBadgesByDisplayPriority(
+            (data.badges ?? []).map((b) => ({
+              key: b.slug,
+              name: b.name,
+              icon: iconKeyToDisplayIcon(b.iconKey),
+            })),
+          ),
         });
       } catch {
         /* ignore */

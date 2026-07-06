@@ -4,6 +4,9 @@
  */
 import { prisma } from '@/lib/prisma';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
+import { buildDishTextSearchWhere } from '@/lib/search';
+import { mapDishToDiscoveryReadModel } from '@/lib/discovery';
+import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 
 export type GetInspiratieOptions = {
   category?: string | null;
@@ -12,14 +15,16 @@ export type GetInspiratieOptions = {
   sortBy?: string;
   take?: number;
   skip?: number;
+  q?: string | null;
 };
 
 export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
-  const { category = 'all', subcategory, region = 'all', sortBy = 'newest', take = 24, skip = 0 } = options;
+  const { category = 'all', subcategory, region = 'all', sortBy = 'newest', take = 24, skip = 0, q } = options;
   const where: Record<string, unknown> = { status: 'PUBLISHED' };
   if (category && category !== 'all') where.category = category;
   if (subcategory) where.subcategory = subcategory;
   if (region && region !== 'all') where.tags = { has: region };
+  if (q?.trim()) Object.assign(where, buildDishTextSearchWhere(q.trim()));
 
   const dishes = await prisma.dish.findMany({
     where,
@@ -104,6 +109,11 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
     subcategory: dish.subcategory,
     status: dish.status,
     tags: dish.tags || [],
+    listingKind: INSPIRATION_LISTING_KIND,
+    listingIntent: null,
+    marketplaceCategory: null,
+    specializations: [] as string[],
+    entityType: 'dish' as const,
     createdAt: dish.createdAt.toISOString(),
     viewCount: viewCountMap.get(dish.id) || 0,
     propsCount: propsCountMap.get(dish.id) || 0,
@@ -141,6 +151,9 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
   items = items.map((it) => ({
     ...it,
+    discovery: mapDishToDiscoveryReadModel(it, {
+      favoriteCount: it.propsCount,
+    }),
     user: {
       ...it.user,
       badges: badgeMap.get(it.user.id) ?? [],

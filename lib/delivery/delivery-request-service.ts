@@ -500,6 +500,27 @@ export class DeliveryRequestService {
       row.CommunityOrder.conversationId,
     );
 
+    const { tryAwardCommunityDeliveryCompletedHcp } = await import(
+      '@/lib/gamification/trust-hcp'
+    );
+    await tryAwardCommunityDeliveryCompletedHcp(
+      assignment.courierId,
+      result.updatedAssignment.id,
+    );
+    const { unlockBadgesForUser } = await import('@/lib/gamification/unlock-badges');
+    void unlockBadgesForUser(assignment.courierId).catch(() => undefined);
+
+    const { promptDeliveryReviewAfterComplete } = await import(
+      '@/lib/trust/community-delivery-review-service'
+    );
+    await promptDeliveryReviewAfterComplete(
+      deliveryRequestId,
+      row.CommunityOrder.buyerId,
+      row.CommunityOrder.sellerId,
+      assignment.courierId,
+      row.CommunityOrder.conversationId,
+    );
+
     return {
       deliveryRequest: dto,
       assignment: serializeCourierAssignment(result.updatedAssignment),

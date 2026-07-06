@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2,
   CreditCard,
-  Handshake,
   Loader2,
   MessageCircle,
+  Star,
   Truck,
 } from 'lucide-react';
 import MarketplaceBadgeList from '@/components/marketplace/MarketplaceBadgeList';
@@ -24,6 +24,7 @@ type Props = {
   proposal: ProposalDTO;
   deliveryRequest?: DeliveryRequestDTO | null;
   onDeliveryRequestCreated?: (deliveryRequest: DeliveryRequestDTO) => void;
+  onCommunityOrderUpdated?: (order: CommunityOrderDTO) => void;
 };
 
 function ctaIcon(kind: DealPrimaryCtaKind) {
@@ -32,11 +33,14 @@ function ctaIcon(kind: DealPrimaryCtaKind) {
       return CreditCard;
     case 'DISCUSS_PAYMENT':
       return MessageCircle;
-    case 'COMPLETE_EXCHANGE':
-      return Handshake;
+    case 'MARK_COMPLETE':
+      return CheckCircle2;
     case 'REQUEST_DELIVERY':
     case 'VIEW_DELIVERY':
+    case 'REVIEW_DELIVERY':
       return Truck;
+    case 'REVIEW_DEAL':
+      return Star;
     case 'COMPLETE':
       return CheckCircle2;
     default:
@@ -49,13 +53,38 @@ export default function DealCard({
   proposal,
   deliveryRequest,
   onDeliveryRequestCreated,
+  onCommunityOrderUpdated,
 }: Props) {
   const { t } = useTranslation();
-  const [deliveryBusy, setDeliveryBusy] = useState(false);
-  const [deliveryError, setDeliveryError] = useState<string | null>(null);
+  const [order, setOrder] = useState(communityOrder);
+  const [canReviewDeal, setCanReviewDeal] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [showDeliveryDetails, setShowDeliveryDetails] = useState(false);
 
-  const deal = resolveDealUxState({ proposal, communityOrder, deliveryRequest });
+  useEffect(() => {
+    setOrder(communityOrder);
+  }, [communityOrder]);
+
+  useEffect(() => {
+    if (order.status !== 'COMPLETED') {
+      setCanReviewDeal(false);
+      return;
+    }
+    void fetch(`/api/community-orders/${order.id}/deal-review`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.canReview) setCanReviewDeal(true);
+      })
+      .catch(() => undefined);
+  }, [order.id, order.status]);
+
+  const deal = resolveDealUxState({
+    proposal,
+    communityOrder: order,
+    deliveryRequest,
+    canReviewDeal,
+  });
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
 
   const priceLabel = getMarketplacePriceDisplay(
@@ -74,20 +103,22 @@ export default function DealCard({
   );
 
   const requestDelivery = useCallback(async () => {
-    setDeliveryError(null);
-    setDeliveryBusy(true);
+    setActionError(null);
+    setActionBusy(true);
     try {
       const res = await fetch(
-        `/api/community-orders/${communityOrder.id}/delivery-request`,
+        `/api/community-orders/${order.id}/delivery-request`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' } },
       );
       const data = await res.json();
       if (!res.ok) {
         const errKey =
-          typeof data.error === 'string' && data.error.startsWith('delivery.')
-            ? data.error
-            : null;
-        setDeliveryError(errKey ? t(errKey) : data.error || t('common.error'));
+          typeof data.errorKey === 'string'
+            ? data.errorKey
+            : typeof data.error === 'string' && data.error.startsWith('delivery.')
+              ? data.error
+              : null;
+        setActionError(errKey ? t(errKey) : data.error || t('common.error'));
         return;
       }
       if (data.deliveryRequest) {
@@ -95,11 +126,39 @@ export default function DealCard({
         setShowDeliveryDetails(true);
       }
     } catch {
-      setDeliveryError(t('common.error'));
+      setActionError(t('common.error'));
     } finally {
-      setDeliveryBusy(false);
+      setActionBusy(false);
     }
-  }, [communityOrder.id, onDeliveryRequestCreated, t]);
+  }, [order.id, onDeliveryRequestCreated, t]);
+
+  const markComplete = useCallback(async () => {
+    setActionError(null);
+    setActionBusy(true);
+    try {
+      const res = await fetch(`/api/community-orders/${order.id}/complete`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errKey =
+          typeof data.errorKey === 'string' ? data.errorKey : null;
+        setActionError(errKey ? t(errKey) : data.error || t('common.error'));
+        return;
+      }
+      if (data.communityOrder) {
+        setOrder(data.communityOrder);
+        onCommunityOrderUpdated?.(data.communityOrder);
+        if (data.communityOrder.status === 'COMPLETED') {
+          setCanReviewDeal(true);
+        }
+      }
+    } catch {
+      setActionError(t('common.error'));
+    } finally {
+      setActionBusy(false);
+    }
+  }, [order.id, onCommunityOrderUpdated, t]);
 
   const CtaIcon = ctaIcon(deal.primaryCta.kind);
   const isCompleteCta = deal.primaryCta.kind === 'COMPLETE';
@@ -107,6 +166,10 @@ export default function DealCard({
   const handlePrimaryClick = () => {
     if (deal.primaryCta.kind === 'REQUEST_DELIVERY') {
       void requestDelivery();
+      return;
+    }
+    if (deal.primaryCta.kind === 'MARK_COMPLETE') {
+      void markComplete();
       return;
     }
     if (deal.primaryCta.kind === 'VIEW_DELIVERY') {
@@ -167,18 +230,18 @@ export default function DealCard({
         </p>
       ) : null}
 
-      {communityOrder.fulfillmentMode ? (
+      {order.fulfillmentMode ? (
         <p className="text-xs text-emerald-800">
-          {t(DEAL_I18N.fulfillment[communityOrder.fulfillmentMode])}
+          {t(DEAL_I18N.fulfillment[order.fulfillmentMode])}
         </p>
       ) : null}
 
-      {communityOrder.deliveryRequested ? (
+      {order.deliveryRequested ? (
         <p className="text-[10px] text-emerald-700">
           {deliveryRequest
             ? t(DEAL_I18N.delivery.statusActive)
             : t(DEAL_I18N.delivery.statusPending)}
-          {communityOrder.deliveryAssigned
+          {order.deliveryAssigned
             ? ` · ${t(DEAL_I18N.delivery.courierAssigned)}`
             : ''}
         </p>
@@ -202,14 +265,11 @@ export default function DealCard({
         ) : (
           <button
             type="button"
-            disabled={
-              deliveryBusy &&
-              deal.primaryCta.kind === 'REQUEST_DELIVERY'
-            }
+            disabled={actionBusy}
             onClick={handlePrimaryClick}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
           >
-            {deliveryBusy && deal.primaryCta.kind === 'REQUEST_DELIVERY' ? (
+            {actionBusy ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
               <CtaIcon className="h-4 w-4 shrink-0" aria-hidden />
@@ -222,9 +282,7 @@ export default function DealCard({
       {showDeliveryDetails && deliveryRequest ? (
         <div className="rounded-lg border border-emerald-200 bg-white/90 p-2 text-[11px] text-emerald-900 space-y-1">
           <p className="font-semibold">{t(DEAL_I18N.delivery.detailsHeading)}</p>
-          <p>
-            {t('delivery.request.status.' + deliveryRequest.status.toLowerCase())}
-          </p>
+          <p>{t(`delivery.request.status.${deliveryRequest.status.toLowerCase()}`)}</p>
           {deliveryRequest.deliveryAddress ? (
             <p>{deliveryRequest.deliveryAddress}</p>
           ) : null}
@@ -234,9 +292,9 @@ export default function DealCard({
         </div>
       ) : null}
 
-      {deliveryError ? (
+      {actionError ? (
         <p className="text-[11px] text-red-600" role="alert">
-          {deliveryError}
+          {actionError}
         </p>
       ) : null}
     </div>

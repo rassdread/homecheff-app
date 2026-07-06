@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
+import { mapProductToDiscoveryReadModel } from "@/lib/discovery";
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,24 +106,32 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform products to match expected format
-    const transformedProducts = products.map(product => ({
+    const transformedProducts = products.map(product => {
+      const row = {
       id: product.id,
       title: product.title,
       description: product.description,
       priceCents: product.priceCents,
       image: product.Image?.[0]?.fileUrl || null,
-      Image: product.Image, // Include full Image array for MyDishesManager
+      Image: product.Image,
       createdAt: product.createdAt,
       category: product.category,
       marketplaceCategory: product.marketplaceCategory ?? null,
       specializations: product.specializations ?? [],
+      listingIntent: product.listingIntent ?? null,
+      barterOpenness: product.barterOpenness ?? null,
       acceptedSpecializations: product.acceptedSpecializations ?? [],
       subcategory: product.subcategory,
       delivery: product.delivery,
       stock: product.stock,
       maxStock: product.maxStock,
-      isActive: product.isActive
-    }));
+      isActive: product.isActive,
+    };
+      return {
+        ...row,
+        discovery: mapProductToDiscoveryReadModel(row),
+      };
+    });
 
     return NextResponse.json({ products: transformedProducts });
   } catch (e) {

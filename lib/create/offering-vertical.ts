@@ -135,12 +135,19 @@ export function profileSlugToInspiratieFilter(
   return slug;
 }
 
-/** Live aanbod filters — future types hidden until backend exists. */
+/** Live aanbod filters — vertical + ListingKind type filters. */
 export const PROFILE_V2_LIVE_AANBOD_FILTERS = [
   'all',
   'chef',
   'garden',
   'designer',
+  'products',
+  'services',
+  'tasks',
+  'workshops',
+  'coaching',
+  'trade',
+  'help',
 ] as const satisfies readonly ProfileV2AanbodFilter[];
 
 export function isLiveAanbodFilter(

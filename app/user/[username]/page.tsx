@@ -10,6 +10,7 @@ import { mondayStartUtc } from "@/lib/gamification/leaderboard-queries";
 import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
 import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
 import { iconKeyToDisplayIcon } from "@/lib/gamification/author-badge-summaries";
+import { sortBadgesByDisplayPriority } from "@/lib/gamification/badge-priority";
 import PublicProfileClient, { type PublicProfileHcpPayload } from "./PublicProfileClient";
 import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-contact-channels";
 import { getDisplayName } from "@/lib/displayName";
@@ -460,11 +461,13 @@ export default async function PublicProfilePage({
     currentStreak: hcpStats?.currentStreak ?? 0,
     weeklyHcpEarned,
     activeThisWeek,
-    badges: badgeRows.map((ub) => ({
-      key: ub.badge.slug,
-      name: ub.badge.name,
-      icon: iconKeyToDisplayIcon(ub.badge.iconKey),
-    })),
+    badges: sortBadgesByDisplayPriority(
+      badgeRows.map((ub) => ({
+        key: ub.badge.slug,
+        name: ub.badge.name,
+        icon: iconKeyToDisplayIcon(ub.badge.iconKey),
+      })),
+    ),
   };
 
   const locality = formatCityLabel(user.place);

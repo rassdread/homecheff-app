@@ -27,6 +27,16 @@ import {
   resolveProductPlaceLabel,
 } from "@/lib/geo/item-location";
 import { deriveFeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+import { attachListingKindToRecord } from "@/lib/marketplace/listing-kind/feed-attach";
+import {
+  buildDishTextSearchWhere,
+  buildListingTextSearchWhere,
+  buildProductTextSearchWhere,
+  matchesSearchItem,
+  parseSearchFilterParams,
+} from "@/lib/search";
+import { attachSearchClassificationToRecord } from "@/lib/search/classify-result";
+import { attachDiscoveryReadModel } from "@/lib/discovery";
 import {
   isMarketplaceSaleItem,
   marketplaceSaleAuditSample,
@@ -35,6 +45,8 @@ import { normalizeFeedScope, scopeUsesRadiusFilter } from "@/lib/feed/feed-scope
 import { geocodePlaceQuery } from "@/lib/global-geocoding";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
+  const listingKind = attachListingKindToRecord(item);
+  attachSearchClassificationToRecord(item);
   item.taxonomy = deriveFeedTaxonomy({
     priceCents: item.priceCents as number | null | undefined,
     orderMethod: item.orderMethod as string | null | undefined,
@@ -45,7 +57,16 @@ function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
     listingIntent: item.listingIntent as string | null | undefined,
     priceModel: item.priceModel as string | null | undefined,
     feedSource: item.feedSource as string | null | undefined,
+    marketplaceCategory: item.marketplaceCategory as string | null | undefined,
+    specializations: item.specializations as string[] | null | undefined,
+    subcategory: item.subcategory as string | null | undefined,
+    listingKind,
   });
+}
+
+function attachFeedItemDiscovery(item: Record<string, unknown>): void {
+  attachFeedItemTaxonomy(item);
+  attachDiscoveryReadModel(item);
 }
 
 function toNumber(v: string | null, fallback: number) {
@@ -96,6 +117,7 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
+  const searchFilters = parseSearchFilterParams(searchParams);
   const q = searchParams.get("q") || "";
   const vertical = (searchParams.get("vertical") || "all").toLowerCase();
   const productCategory = resolveProductCategory(vertical);
@@ -174,12 +196,12 @@ export async function GET(req: NextRequest) {
             }
           }
         ],
-        ...(q ? {
-          OR: [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } }
-          ]
-        } : {}),
+        ...(q ? buildProductTextSearchWhere(q) : {}),
+        ...(searchFilters.listingIntent === 'REQUEST'
+          ? { listingIntent: 'REQUEST' as const }
+          : searchFilters.listingIntent === 'OFFER'
+            ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
+            : {}),
         ...(productCategory ? {
           category: productCategory as any
         } : {}),
@@ -199,6 +221,8 @@ export async function GET(req: NextRequest) {
         marketplaceCategory: true,
         specializations: true,
         acceptedSpecializations: true,
+        subcategory: true,
+        barterOpenness: true,
         createdAt: true,
         pickupAddress: true,
         pickupLat: true,
@@ -239,12 +263,7 @@ export async function GET(req: NextRequest) {
     prisma.listing.findMany({
       where: {
         isPublic: true,
-        ...(q ? {
-          OR: [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } }
-          ]
-        } : {}),
+        ...(q ? buildListingTextSearchWhere(q) : {}),
         ...(listingCategory ? {
           category: listingCategory
         } : {}),
@@ -280,12 +299,7 @@ export async function GET(req: NextRequest) {
     prisma.dish.findMany({
       where: {
         status: "PUBLISHED",
-        ...(q ? {
-          OR: [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } }
-          ]
-        } : {}),
+        ...(q ? buildDishTextSearchWhere(q) : {}),
         ...(lat && lng && effectiveRadius > 0 ? {
           lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
           lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
@@ -349,11 +363,12 @@ export async function GET(req: NextRequest) {
     return {
     id: dish.id,
     feedSource: 'DISH' as const,
+    type: 'dish' as const,
     title: dish.title || "",
     description: dish.description || "",
     priceCents: dish.priceCents || 0,
     delivery: dish.deliveryMode || "PICKUP",
-    category: "CHEFF", // Default category for dishes
+    category: dish.category || "CHEFF",
     createdAt: dish.createdAt,
     place: dishPlace,
     lat: dishCoords?.lat ?? null,
@@ -449,6 +464,8 @@ export async function GET(req: NextRequest) {
     category: product.category || "HOMECHEFF",
     marketplaceCategory: product.marketplaceCategory ?? null,
     specializations: product.specializations ?? [],
+    subcategory: product.subcategory ?? null,
+    barterOpenness: product.barterOpenness ?? null,
     acceptedSpecializations: product.acceptedSpecializations ?? [],
     status: "ACTIVE" as const,
     place: productPlace,
@@ -648,17 +665,34 @@ export async function GET(req: NextRequest) {
   }
 
   for (const item of sortedItems) {
-    attachFeedItemTaxonomy(item as Record<string, unknown>);
+    attachFeedItemDiscovery(item as Record<string, unknown>);
+  }
+
+  const listingKindFilter = Array.isArray(searchFilters.listingKind)
+    ? searchFilters.listingKind
+    : searchFilters.listingKind
+      ? [searchFilters.listingKind]
+      : [];
+  let responseItems = sortedItems;
+  if (listingKindFilter.length > 0) {
+    responseItems = sortedItems.filter((item) =>
+      matchesSearchItem(item as Record<string, unknown>, {
+        ...searchFilters,
+        listingKind: listingKindFilter,
+        q: null,
+      }),
+    );
   }
 
   const feedDebug =
     process.env.NODE_ENV === "development"
       ? (() => {
-          const saleInResponse = sortedItems.filter((item) =>
+          const saleInResponse = responseItems.filter((item) =>
             isMarketplaceSaleItem(item as Record<string, unknown>)
           );
           return {
             scope: feedScope,
+            searchFilters,
             activeProductsFromDb,
             productsWithPrice,
             productsAfterStripeFilter: allNewProducts.length,
@@ -666,7 +700,7 @@ export async function GET(req: NextRequest) {
             transformedListings: transformedListings.length,
             transformedDishes: transformedDishes.length,
             combinedBeforeSort: allItems.length,
-            finalFeedItems: sortedItems.length,
+            finalFeedItems: responseItems.length,
             saleItemsInResponse: saleInResponse.length,
             saleSample: marketplaceSaleAuditSample(
               sortedItems as Record<string, unknown>[]
@@ -692,9 +726,11 @@ export async function GET(req: NextRequest) {
         radius: effectiveRadius,
         lat: lat ? Number(lat) : null,
         lng: lng ? Number(lng) : null,
+        listingKind: listingKindFilter.length ? listingKindFilter : null,
+        listingIntent: searchFilters.listingIntent ?? null,
       },
-      count: sortedItems.length,
-      items: sortedItems,
+      count: responseItems.length,
+      items: responseItems,
       ...(feedDebug ? { debug: feedDebug } : {}),
       ...(statsPreview ? { statsPreview } : {}),
     },

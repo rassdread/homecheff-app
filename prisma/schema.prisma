@@ -114,6 +114,8 @@ model User {
   AgreementsAccepted                     Agreement[]               @relation("AgreementAcceptedBy")
   CommunityOrdersAsBuyer                 CommunityOrder[]          @relation("CommunityOrderBuyer")
   CommunityOrdersAsSeller                CommunityOrder[]          @relation("CommunityOrderSeller")
+  DealReviewsGiven                       DealReview[]              @relation("DealReviewReviewer")
+  DealReviewsReceived                    DealReview[]              @relation("DealReviewReviewee")
   CourierAvailabilities                  CourierAvailability[]
   CourierAssignmentsAsCourier            CourierAssignment[]       @relation("CourierAssignmentCourier")
   DeliveryProfile                        DeliveryProfile?
@@ -812,6 +814,8 @@ model CommunityOrder {
   deliveryRequested Boolean            @default(false)
   deliveryAssigned  Boolean            @default(false)
   checkoutOrderId String?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
   Agreement       Agreement            @relation(fields: [agreementId], references: [id], onDelete: Cascade)
@@ -821,12 +825,33 @@ model CommunityOrder {
   Seller          User                 @relation("CommunityOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   CheckoutOrder   Order?               @relation(fields: [checkoutOrderId], references: [id], onDelete: SetNull)
   DeliveryRequests DeliveryRequest[]
+  DealReviews     DealReview[]
 
   @@index([conversationId])
   @@index([proposalId])
   @@index([buyerId, status])
   @@index([sellerId, status])
   @@index([checkoutOrderId])
+}
+
+/// Party review after a completed community deal (buyer ↔ seller).
+model DealReview {
+  id               String         @id @default(uuid())
+  communityOrderId String
+  reviewerId       String
+  revieweeId       String
+  rating           Int
+  title            String?
+  message          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  CommunityOrder   CommunityOrder @relation(fields: [communityOrderId], references: [id], onDelete: Cascade)
+  Reviewer         User           @relation("DealReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  Reviewee         User           @relation("DealReviewReviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  @@unique([communityOrderId, reviewerId])
+  @@index([revieweeId])
+  @@index([communityOrderId])
 }
 
 /// Community-order delivery job — separate from checkout DeliveryOrder.
@@ -882,6 +907,7 @@ model CourierAssignment {
   updatedAt         DateTime                 @updatedAt
   DeliveryRequest   DeliveryRequest          @relation(fields: [deliveryRequestId], references: [id], onDelete: Cascade)
   Courier           User                     @relation("CourierAssignmentCourier", fields: [courierId], references: [id], onDelete: Cascade)
+  DeliveryReviews   DeliveryReview[]
 
   @@index([deliveryRequestId, status])
   @@index([courierId, status])
@@ -1629,21 +1655,27 @@ model VehiclePhoto {
 }
 
 model DeliveryReview {
-  id                String          @id @default(cuid())
-  deliveryProfileId String
-  reviewerId        String
-  orderId           String?
-  rating            Int
-  comment           String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
-  order             Order?          @relation(fields: [orderId], references: [id])
-  reviewer          User            @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  id                  String             @id @default(cuid())
+  deliveryProfileId   String
+  reviewerId          String
+  orderId             String?
+  courierAssignmentId String?
+  deliveryRequestId   String?
+  communityOrderId    String?
+  rating              Int
+  comment             String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deliveryProfile     DeliveryProfile    @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+  order               Order?             @relation(fields: [orderId], references: [id])
+  reviewer            User               @relation("DeliveryReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  CourierAssignment   CourierAssignment? @relation(fields: [courierAssignmentId], references: [id], onDelete: SetNull)
 
   @@unique([deliveryProfileId, reviewerId, orderId])
+  @@unique([courierAssignmentId, reviewerId])
   @@index([deliveryProfileId])
   @@index([reviewerId])
+  @@index([communityOrderId])
   @@map("DeliveryReview")
 }
 

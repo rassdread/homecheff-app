@@ -137,22 +137,17 @@ export function logFeedSaleVisibilityAudit(
   return audit;
 }
 
+import type { SearchableListingRecord } from '@/lib/search';
+
 export function countSaleAfterSearch(
-  saleCandidates: ReadonlyArray<{
-    title: string | null;
-    description: string | null;
-  }>,
+  saleCandidates: ReadonlyArray<SearchableListingRecord>,
   searchQuery: string,
-  matchesSearch: (
-    title: string | null,
-    description: string | null,
-    q: string
-  ) => boolean
+  matchesSearchFn: (item: SearchableListingRecord, q: string) => boolean
 ): number {
   const qn = searchQuery.trim();
   if (!qn) return saleCandidates.length;
   return saleCandidates.filter((item) =>
-    matchesSearch(item.title, item.description, qn)
+    matchesSearchFn(item, qn)
   ).length;
 }
 

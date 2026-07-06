@@ -10,9 +10,11 @@ export type DealPrimaryCtaKind =
   | 'COMPLETE'
   | 'PAY_CHECKOUT'
   | 'DISCUSS_PAYMENT'
-  | 'COMPLETE_EXCHANGE'
+  | 'MARK_COMPLETE'
   | 'REQUEST_DELIVERY'
-  | 'VIEW_DELIVERY';
+  | 'VIEW_DELIVERY'
+  | 'REVIEW_DEAL'
+  | 'REVIEW_DELIVERY';
 
 export type DealPrimaryCta = {
   kind: DealPrimaryCtaKind;
@@ -85,8 +87,9 @@ export function resolveDealUxState(input: {
   proposal: ProposalDTO;
   communityOrder: CommunityOrderDTO;
   deliveryRequest?: DeliveryRequestDTO | null;
+  canReviewDeal?: boolean;
 }): DealUxState {
-  const { proposal, communityOrder, deliveryRequest } = input;
+  const { proposal, communityOrder, deliveryRequest, canReviewDeal } = input;
   const paymentPath = paymentPathFromSummary(proposal.proposalSummary);
   const moneyLeg = hasMoneyLeg(proposal.settlementMode);
   const valueLeg = hasValueLeg(proposal);
@@ -102,6 +105,24 @@ export function resolveDealUxState(input: {
     communityOrder.deliveryRequested && deliveryRequest == null;
 
   if (communityOrder.status === 'COMPLETED') {
+    if (canReviewDeal) {
+      return {
+        statusLabelKey: 'deal.status.completed',
+        nextStepHintKey: 'trust.nextStep.reviewDeal',
+        primaryCta: {
+          kind: 'REVIEW_DEAL',
+          labelKey: 'trust.cta.reviewDeal',
+          hintKey: 'trust.nextStep.reviewDeal',
+          href: `/deal-review/${communityOrder.id}`,
+          deliveryRequestId: null,
+        },
+        nextAction: 'NONE',
+        checkoutUrl,
+        showPaymentRequired: false,
+        showDeliveryRequired: false,
+        dealComplete: true,
+      };
+    }
     return completeState(checkoutUrl);
   }
 
@@ -153,8 +174,8 @@ export function resolveDealUxState(input: {
       statusLabelKey: 'deal.status.exchangePending',
       nextStepHintKey: 'deal.nextStep.exchangeValue',
       primaryCta: {
-        kind: 'COMPLETE_EXCHANGE',
-        labelKey: 'deal.cta.completeExchange',
+        kind: 'MARK_COMPLETE',
+        labelKey: 'trust.cta.markComplete',
         hintKey: 'deal.nextStep.exchangeValue',
         href: null,
         deliveryRequestId: null,
@@ -187,6 +208,24 @@ export function resolveDealUxState(input: {
   }
 
   if (deliveryRequest) {
+    if (deliveryRequest.status === 'COMPLETED') {
+      return {
+        statusLabelKey: 'deal.status.deliveryActive',
+        nextStepHintKey: 'trust.nextStep.reviewDelivery',
+        primaryCta: {
+          kind: 'REVIEW_DELIVERY',
+          labelKey: 'trust.cta.reviewDelivery',
+          hintKey: 'trust.nextStep.reviewDelivery',
+          href: `/delivery-review/${deliveryRequest.id}`,
+          deliveryRequestId: deliveryRequest.id,
+        },
+        nextAction: 'DELIVERY_REQUEST_CREATED',
+        checkoutUrl,
+        showPaymentRequired: false,
+        showDeliveryRequired: false,
+        dealComplete: false,
+      };
+    }
     return {
       statusLabelKey: 'deal.status.deliveryActive',
       nextStepHintKey: 'deal.nextStep.viewDelivery',
@@ -229,8 +268,8 @@ export function resolveDealUxState(input: {
       statusLabelKey: 'deal.status.exchangePending',
       nextStepHintKey: 'deal.nextStep.exchangeValue',
       primaryCta: {
-        kind: 'COMPLETE_EXCHANGE',
-        labelKey: 'deal.cta.completeExchange',
+        kind: 'MARK_COMPLETE',
+        labelKey: 'trust.cta.markComplete',
         hintKey: 'deal.nextStep.exchangeValue',
         href: null,
         deliveryRequestId: null,
@@ -247,9 +286,9 @@ export function resolveDealUxState(input: {
     statusLabelKey: 'deal.status.confirmed',
     nextStepHintKey: 'deal.nextStep.discussDeal',
     primaryCta: {
-      kind: 'DISCUSS_PAYMENT',
-      labelKey: 'deal.cta.discussDeal',
-      hintKey: 'deal.nextStep.discussDeal',
+      kind: 'MARK_COMPLETE',
+      labelKey: 'trust.cta.markComplete',
+      hintKey: 'trust.nextStep.markComplete',
       href: null,
       deliveryRequestId: null,
     },

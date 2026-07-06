@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { sortBadgesByDisplayPriority } from './badge-priority';
 
 /** Lightweight badge row for tiles (no full badge history). */
 export type AuthorBadgeChip = { key: string; name: string; icon: string };
@@ -55,16 +56,20 @@ export async function fetchAuthorBadgeSummariesByUserIds(
     orderBy: { awardedAt: 'desc' },
   });
 
+  const grouped = new Map<string, AuthorBadgeChip[]>();
   for (const row of rows) {
     const uid = row.userId;
-    const list = out.get(uid) ?? [];
-    if (list.length >= maxPerUser) continue;
+    const list = grouped.get(uid) ?? [];
     list.push({
       key: row.badge.slug,
       name: row.badge.name,
       icon: iconKeyToDisplayIcon(row.badge.iconKey),
     });
-    out.set(uid, list);
+    grouped.set(uid, list);
+  }
+
+  for (const [uid, list] of grouped) {
+    out.set(uid, sortBadgesByDisplayPriority(list, maxPerUser));
   }
 
   return out;

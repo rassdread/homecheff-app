@@ -8,45 +8,55 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 
 interface FavoriteButtonProps {
-  productId: string;
+  productId?: string;
+  dishId?: string;
   productTitle?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'button' | 'icon';
-  initialFavorited?: boolean; // NEW: Accept initial favorite status to avoid API call
+  initialFavorited?: boolean;
+  showCount?: boolean;
+  onCountChange?: (count: number) => void;
 }
 
-export default function FavoriteButton({ 
-  productId, 
-  productTitle = 'dit product',
+export default function FavoriteButton({
+  productId,
+  dishId,
+  productTitle = 'dit item',
   className = '',
   size = 'md',
   variant = 'icon',
-  initialFavorited // NEW
+  initialFavorited,
+  showCount = false,
+  onCountChange,
 }: FavoriteButtonProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
   const { data: session } = useSession();
   const [favorited, setFavorited] = useState(initialFavorited ?? false);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(initialFavorited === undefined);
 
-  // Check favorite status on mount ONLY if initialFavorited not provided
+  const itemKey = productId ?? dishId;
+
   useEffect(() => {
-    // Skip if we already have the initial state
     if (initialFavorited !== undefined) {
       setCheckingStatus(false);
       return;
     }
 
-    if (!session?.user) {
+    if (!session?.user || !itemKey) {
       setCheckingStatus(false);
       return;
     }
 
     const checkFavoriteStatus = async () => {
       try {
-        const response = await fetch(`/api/favorites/status?productId=${productId}`);
+        const qs = productId
+          ? `productId=${productId}`
+          : `dishId=${encodeURIComponent(dishId!)}`;
+        const response = await fetch(`/api/favorites/status?${qs}`);
         if (response.ok) {
           const data = await response.json();
           setFavorited(data.favorited);
@@ -58,8 +68,8 @@ export default function FavoriteButton({
       }
     };
 
-    checkFavoriteStatus();
-  }, [productId, session?.user, initialFavorited]);
+    void checkFavoriteStatus();
+  }, [productId, dishId, itemKey, session?.user, initialFavorited]);
 
   const handleToggleFavorite = async (e?: React.MouseEvent) => {
     if (e) {
@@ -73,7 +83,7 @@ export default function FavoriteButton({
         copyKey: 'saveItem',
         intent: {
           type: 'save_item',
-          targetId: productId,
+          targetId: productId || dishId,
           returnPath,
           autoResume: true,
         },
@@ -81,27 +91,26 @@ export default function FavoriteButton({
       return;
     }
 
+    if (!productId && !dishId) return;
+
     setLoading(true);
     try {
       const response = await fetch('/api/favorites/toggle', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ productId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productId ? { productId } : { dishId }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setFavorited(data.favorited);
-        
-        // Show feedback
-        if (data.favorited) {
-        } else {
+        if (showCount) {
+          setFavoriteCount((c) => Math.max(0, c + (data.favorited ? 1 : -1)));
+          onCountChange?.(favoriteCount);
         }
       } else {
         const error = await response.json();
-        alert(error.error || 'Er is een fout opgetreden');
+        alert(error.error || t('errors.favoriteError'));
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -116,6 +125,7 @@ export default function FavoriteButton({
       <button
         disabled
         className={`p-2 bg-white/80 backdrop-blur-sm rounded-full cursor-not-allowed ${className}`}
+        aria-label={t('favorites.loading')}
       >
         <Heart className="w-4 h-4 text-gray-400" />
       </button>
@@ -125,14 +135,16 @@ export default function FavoriteButton({
   const sizeClasses = {
     sm: variant === 'button' ? 'px-3 py-1.5 text-sm' : 'p-1.5',
     md: variant === 'button' ? 'px-4 py-2 text-base' : 'p-2',
-    lg: variant === 'button' ? 'px-6 py-3 text-lg' : 'p-3'
+    lg: variant === 'button' ? 'px-6 py-3 text-lg' : 'p-3',
   };
 
   const iconSize = {
     sm: 'w-3 h-3',
     md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    lg: 'w-5 h-5',
   };
+
+  const label = favorited ? t('favorites.saved') : t('favorites.save');
 
   if (variant === 'button') {
     return (
@@ -142,16 +154,17 @@ export default function FavoriteButton({
         className={`
           ${sizeClasses[size]}
           flex items-center gap-2 rounded-lg font-medium transition-colors
-          ${favorited 
-            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }
+          ${favorited
+            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
           disabled:opacity-50 disabled:cursor-not-allowed
           ${className}
         `}
+        title={label}
+        aria-pressed={favorited}
       >
         <Heart className={`${iconSize[size]} ${favorited ? 'fill-current' : ''}`} />
-        <span>{favorited ? 'Favoriet' : 'Favorieten'}</span>
+        <span>{label}</span>
       </button>
     );
   }
@@ -164,20 +177,23 @@ export default function FavoriteButton({
         ${sizeClasses[size]}
         bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors
         disabled:opacity-50 disabled:cursor-not-allowed
+        inline-flex items-center gap-1
         ${className}
       `}
+      title={label}
+      aria-label={label}
+      aria-pressed={favorited}
     >
-      <Heart 
+      <Heart
         className={`
-          ${iconSize[size]} 
+          ${iconSize[size]}
           transition-colors
-          ${favorited 
-            ? 'text-red-500 fill-red-500' 
-            : 'text-neutral-600 hover:text-red-500'
-          }
-        `} 
+          ${favorited ? 'text-red-500 fill-red-500' : 'text-neutral-600 hover:text-red-500'}
+        `}
       />
+      {showCount && favoriteCount > 0 ? (
+        <span className="text-xs font-semibold text-gray-600">{favoriteCount}</span>
+      ) : null}
     </button>
   );
 }
-

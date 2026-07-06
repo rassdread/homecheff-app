@@ -29,6 +29,7 @@ export type MarketplaceSaleInput = {
   type?: string | null;
   kind?: string | null;
   feedSource?: MarketplaceSaleSource;
+  listingKind?: string | null;
   taxonomy?: FeedTaxonomy;
   status?: string | null;
   isActive?: boolean | null;
@@ -68,11 +69,23 @@ function isMarketplaceProductLike(item: MarketplaceSaleInput): boolean {
   );
 }
 
+function isInspirationFeedItem(item: MarketplaceSaleInput): boolean {
+  const source = String(item.feedSource ?? item.type ?? item.kind ?? '')
+    .trim()
+    .toUpperCase();
+  if (source === 'DISH') return true;
+  if (item.listingKind === 'INSPIRATION') return true;
+  if (item.taxonomy?.kind === 'INSPIRATION') return true;
+  return false;
+}
+
 /**
  * True when an item belongs in the Te koop / marketplace sale feed.
  * Based on listingIntent (OFFER or legacy null), not numeric price.
+ * Dishes are always inspiration — priced Dish must not leak into commerce.
  */
 export function isMarketplaceSaleItem(item: MarketplaceSaleInput): boolean {
+  if (isInspirationFeedItem(item)) return false;
   if (isRequestListing(item)) return false;
   if (item.taxonomy?.direction === 'REQUEST') return false;
 
@@ -109,6 +122,7 @@ export function marketplaceSaleAuditSample(
     feedSource: item.feedSource ?? explicitKind(item) ?? null,
     listingIntent: item.listingIntent ?? null,
     priceModel: item.priceModel ?? null,
+    listingKind: item.listingKind ?? null,
     taxonomyKind: item.taxonomy?.kind ?? null,
     isSale: isMarketplaceSaleItem(item),
   }));

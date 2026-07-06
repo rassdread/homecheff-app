@@ -1172,6 +1172,12 @@ export class NotificationService {
       LIMIT 1
     `.then(rows => rows[0]).catch(() => null);
 
+    const reviewDealUrl =
+      proposal.communityOrderId &&
+      proposal.bodyKey === 'trust.notifications.reviewDeal.body'
+        ? `/deal-review/${proposal.communityOrderId}`
+        : null;
+
     const message: NotificationMessage = {
       title,
       body,
@@ -1179,8 +1185,9 @@ export class NotificationService {
         type: kind,
         proposalId: proposal.id,
         conversationId: proposal.conversationId,
-        actionUrl: `/messages/${proposal.conversationId}/`,
-        route: `/messages/${proposal.conversationId}/`,
+        actionUrl:
+          reviewDealUrl ?? `/messages/${proposal.conversationId}/`,
+        route: reviewDealUrl ?? `/messages/${proposal.conversationId}/`,
         proposalTitle: proposal.title,
         ...(proposal.titleKey ? { titleKey: proposal.titleKey } : {}),
         ...(proposal.bodyKey ? { bodyKey: proposal.bodyKey } : {}),
@@ -1236,6 +1243,11 @@ export class NotificationService {
       LIMIT 1
     `.then(rows => rows[0]).catch(() => null);
 
+    const reviewDeliveryUrl =
+      deliveryRequest.bodyKey === 'trust.notifications.reviewDelivery.body'
+        ? `/delivery-review/${deliveryRequest.id}`
+        : null;
+
     const message: NotificationMessage = {
       title,
       body,
@@ -1244,8 +1256,12 @@ export class NotificationService {
         deliveryRequestId: deliveryRequest.id,
         communityOrderId: deliveryRequest.communityOrderId,
         conversationId: deliveryRequest.conversationId,
-        actionUrl: `/messages/${deliveryRequest.conversationId}/`,
-        route: `/messages/${deliveryRequest.conversationId}/`,
+        actionUrl:
+          reviewDeliveryUrl ??
+          `/messages/${deliveryRequest.conversationId}/`,
+        route:
+          reviewDeliveryUrl ??
+          `/messages/${deliveryRequest.conversationId}/`,
         ...(deliveryRequest.titleKey ? { titleKey: deliveryRequest.titleKey } : {}),
         ...(deliveryRequest.bodyKey ? { bodyKey: deliveryRequest.bodyKey } : {}),
         senderId,

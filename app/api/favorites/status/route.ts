@@ -15,39 +15,39 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
-    
-    if (!productId) {
-      return NextResponse.json({ error: 'Product ID is required' }, { status: 400, headers: cors });
+    const dishId = searchParams.get('dishId');
+
+    if (!productId && !dishId) {
+      return NextResponse.json(
+        { error: 'Product ID or Dish ID is required' },
+        { status: 400, headers: cors },
+      );
     }
 
-    // Get user from database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: cors });
     }
 
-    const userId = user.id;
-
-    // Check if user has favorited this product
     const favorite = await prisma.favorite.findFirst({
       where: {
-        userId,
-        productId,
+        userId: user.id,
+        ...(productId ? { productId } : { dishId: dishId! }),
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       favorited: !!favorite,
-      userId,
-      productId
+      userId: user.id,
+      productId: productId ?? null,
+      dishId: dishId ?? null,
     }, { headers: cors });
   } catch (error) {
     console.error('Favorite status error:', error);
     return NextResponse.json({ error: 'Failed to check favorite status' }, { status: 500, headers: cors });
   }
 }
-

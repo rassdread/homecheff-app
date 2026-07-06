@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ShareButton from "@/components/ui/ShareButton";
-import PropsButton from "@/components/props/PropsButton";
+import FavoriteButton from "@/components/favorite/FavoriteButton";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
@@ -21,6 +21,7 @@ import {
   type ProductOrderMethodValue,
 } from "@/lib/product/order-method";
 import type { FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
 import { formatItemPlaceDistanceLine } from "@/lib/geo/item-location";
 import { getDisplayName } from "@/lib/displayName";
 import {
@@ -146,6 +147,8 @@ export type GeoFeedCardItem = {
   sellerBadges?: Array<{ key: string; name: string; icon: string }>;
   /** Afgeleide V3 taxonomy (Fase 5D, optioneel). */
   taxonomy?: FeedTaxonomy;
+  /** Canonical ListingKind (Phase 1). */
+  listingKind?: ListingKind;
   marketplaceCategory?: string | null;
   specializations?: string[];
   acceptedSpecializations?: string[];
@@ -323,11 +326,10 @@ export function FeedSaleCard({
                 <span>{it.viewCount}</span>
               </div>
             )}
-            <PropsButton
+            <FavoriteButton
               productId={it.id}
               productTitle={it.title ?? t("common.dish")}
               size="sm"
-              variant="thumbs"
             />
           </div>
         </div>
@@ -520,11 +522,10 @@ function FeedInspirationCard({
                 <span>{data.viewCount}</span>
               </div>
             )}
-            <PropsButton
+            <FavoriteButton
               dishId={data.id}
               productTitle={fallbackTitle}
               size="sm"
-              variant="thumbs"
             />
           </div>
         </div>

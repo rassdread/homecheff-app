@@ -14,10 +14,13 @@ export type ProfileV2AanbodFilter =
   | 'chef'
   | 'garden'
   | 'designer'
+  | 'products'
   | 'services'
+  | 'tasks'
+  | 'workshops'
+  | 'coaching'
   | 'trade'
-  | 'help'
-  | 'tasks';
+  | 'help';
 
 /** Inspiratie-tab: filter op verticaal (geen services/trade/help/tasks). */
 export type ProfileV2InspiratieFilter = 'all' | 'chef' | 'garden' | 'designer';

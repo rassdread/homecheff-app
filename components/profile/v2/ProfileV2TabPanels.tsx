@@ -28,6 +28,7 @@ import {
   inspiratieFilterToRole,
 } from '@/components/profile/v2/ProfileV2InspirationActions';
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
+import ProfileTrustSummaryLoader from '@/components/profile/ProfileTrustSummaryLoader';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PROFILE_V2_LIVE_AANBOD_FILTERS } from '@/lib/create/offering-vertical';
 import type {
@@ -321,6 +322,8 @@ export function ProfileV2CommunityPanel({ ctx, onNavigateTab }: PanelProps) {
         subtitle={t('profileV2.community.subtitle')}
       />
 
+      <ProfileTrustSummaryLoader userId={user.id} />
+
       <ProfileV2SectionCard padding="compact">
         <ProfileV2SocialProofStrip
           items={[
@@ -401,6 +404,8 @@ export function ProfileV2VertrouwenPanel({ ctx }: PanelProps) {
           <p className="text-sm leading-relaxed text-gray-700">{t('profileV2.vertrouwen.visitorIntro')}</p>
         </ProfileV2SectionCard>
       ) : null}
+
+      <ProfileTrustSummaryLoader userId={ctx.user.id} />
 
       <ProfileV2TrustPhotoSections ctx={ctx} />
     </div>

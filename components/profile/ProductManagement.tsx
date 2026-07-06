@@ -5,6 +5,7 @@ import { Edit3, Trash2, Package, AlertCircle, Clock, Users, Plus, ShoppingCart }
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatProductPriceLabel } from '@/lib/product/order-method';
+import { matchesProfileAanbodFilter } from '@/lib/marketplace/listing-kind/profile-filter';
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 
@@ -15,6 +16,11 @@ type Product = {
   priceCents: number;
   priceModel?: string | null;
   orderMethod?: string | null;
+  listingIntent?: string | null;
+  marketplaceCategory?: string | null;
+  specializations?: string[];
+  subcategory?: string | null;
+  barterOpenness?: string | null;
   acceptedSpecializations?: string[];
   stock: number;
   maxStock?: number | null;
@@ -62,7 +68,7 @@ export default function ProductManagement({
 
   useEffect(() => {
     loadProducts();
-  }, [categoryFilter]); // Re-load when category filter changes
+  }, [categoryFilter, aanbodFilter]); // Re-load when filters change
 
   const loadProducts = async () => {
     try {
@@ -75,9 +81,24 @@ export default function ProductManagement({
         let filteredProducts = data.products || [];
 
         if (categoryFilter) {
-          const beforeCount = filteredProducts.length;
           filteredProducts = filteredProducts.filter((p: Product) => p.category === categoryFilter);
+        }
 
+        if (aanbodFilter && aanbodFilter !== 'all') {
+          filteredProducts = filteredProducts.filter((p: Product) =>
+            matchesProfileAanbodFilter(
+              {
+                entityType: 'product',
+                category: p.category ?? null,
+                listingIntent: p.listingIntent ?? null,
+                marketplaceCategory: p.marketplaceCategory ?? null,
+                specializations: p.specializations ?? null,
+                subcategory: p.subcategory ?? null,
+                barterOpenness: p.barterOpenness ?? null,
+              },
+              aanbodFilter,
+            ),
+          );
         }
         
         setProducts(filteredProducts);

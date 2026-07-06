@@ -35,6 +35,7 @@ import {
   matchesFeedClientPriceRange,
   sortDorpspleinProducts,
 } from "@/lib/feed/feed-client-sort";
+import { matchesSearchTextQuery } from "@/lib/search";
 
 import { CATEGORIES, CATEGORY_MAPPING } from "@/lib/categories";
 import { getDisplayName } from "@/lib/displayName";
@@ -656,7 +657,8 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       const userId = (session?.user as any)?.id || session?.user?.email; // Get user ID to fetch favorite status
       // Dorpsplein uses /api/products (not /api/feed). radiusMode strict/local-first
       // is GeoFeed-only; client radius filter here defaults to worldwide (radius=0).
-      const productsUrl = `/api/products?take=50${userId ? `&userId=${userId}` : ''}&mobile=${isMobile}&debug=true`;
+      const qParam = q.trim() ? `&q=${encodeURIComponent(q.trim())}` : '';
+      const productsUrl = `/api/products?take=50${userId ? `&userId=${userId}` : ''}&mobile=${isMobile}${qParam}&debug=true`;
       
       console.log('🔍 [DORPSPLEIN] Fetching products from:', productsUrl);
 
@@ -815,23 +817,8 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
         }
       };
     }).filter((it) => {
-      if (term) {
-        // Zoek in product titel, beschrijving EN verkoper informatie
-        const titleMatch = it.title.toLowerCase().includes(term);
-        const descriptionMatch = it.description?.toLowerCase().includes(term);
-        const sellerNameMatch = it.seller?.name?.toLowerCase().includes(term);
-        const sellerUsernameMatch = it.seller?.username?.toLowerCase().includes(term);
-        const placeMatch = it.location?.place?.toLowerCase().includes(term);
-        const cityMatch = it.location?.city?.toLowerCase().includes(term);
-        
-        // Zoek ook in individuele woorden van verkoper naam
-        const sellerNameParts = it.seller?.name?.toLowerCase().split(' ') || [];
-        const sellerNamePartMatch = sellerNameParts.some(part => part.includes(term) || term.includes(part));
-        
-        if (!titleMatch && !descriptionMatch && !sellerNameMatch && !sellerUsernameMatch && 
-            !placeMatch && !cityMatch && !sellerNamePartMatch) {
-          return false;
-        }
+      if (term && !matchesSearchTextQuery(it, term)) {
+        return false;
       }
       if (category !== "all" && it.category?.toLowerCase() !== category.toLowerCase()) {
         return false;

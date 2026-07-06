@@ -11,6 +11,13 @@ import {
   resolveDisplayPlace,
 } from "@/lib/geo/item-location";
 import { DISTANCE_UNKNOWN_LABEL } from "@/lib/geo/local-discovery";
+import {
+  attachSearchClassificationToRecord,
+  buildProductTextSearchWhere,
+  matchesSearchItem,
+  parseSearchFilterParams,
+} from "@/lib/search";
+import { attachDiscoveryReadModel } from "@/lib/discovery";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -25,6 +32,8 @@ export async function GET(req: Request) {
     console.log('[Products API] ========== REQUEST START ==========');
     console.log('[Products API] Request received');
     const { searchParams } = new URL(req.url);
+    const searchFilters = parseSearchFilterParams(searchParams);
+    const q = searchParams.get("q")?.trim() || "";
     const page = Math.max(Number(searchParams.get("page") ?? 0), 0);
     const take = Math.min(Math.max(Number(searchParams.get("take") ?? 10), 1), 100);
     const isMobile = searchParams.get("mobile") === "true";
@@ -42,7 +51,12 @@ export async function GET(req: Request) {
       console.log('[Products API] Executing Prisma query...');
       allProducts = await prisma.product.findMany({
         where: { 
-          // isActive: true // TEMPORARILY DISABLED FOR DEBUGGING
+          ...(q ? buildProductTextSearchWhere(q) : {}),
+          ...(searchFilters.listingIntent === 'REQUEST'
+            ? { listingIntent: 'REQUEST' as const }
+            : searchFilters.listingIntent === 'OFFER'
+              ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
+              : {}),
         },
         orderBy: [
           { createdAt: "desc" }
@@ -60,6 +74,9 @@ export async function GET(req: Request) {
           marketplaceCategory: true,
           specializations: true,
           acceptedSpecializations: true,
+          subcategory: true,
+          listingIntent: true,
+          barterOpenness: true,
           delivery: true,
           createdAt: true,
           isActive: true,
@@ -223,6 +240,30 @@ export async function GET(req: Request) {
       }
       return !isTest;
       });
+
+      const kindFilters = Array.isArray(searchFilters.listingKind)
+        ? searchFilters.listingKind
+        : searchFilters.listingKind
+          ? [searchFilters.listingKind]
+          : [];
+      if (kindFilters.length > 0) {
+        products = products.filter((product) =>
+          matchesSearchItem(
+            {
+              entityType: 'product',
+              title: product.title,
+              description: product.description,
+              listingIntent: product.listingIntent,
+              marketplaceCategory: product.marketplaceCategory,
+              specializations: product.specializations,
+              subcategory: product.subcategory,
+              category: product.category,
+              barterOpenness: product.barterOpenness,
+            },
+            { ...searchFilters, listingKind: kindFilters, q: null },
+          ),
+        );
+      }
     } catch (filterError) {
       console.error('[Products API] Error filtering products:', filterError);
       console.error('[Products API] Filter error details:', {
@@ -393,13 +434,15 @@ export async function GET(req: Request) {
       const coords = resolveProductCoords(p);
       const placeLabel = resolveProductPlaceLabel(p);
 
-      return {
+      const base = {
         id: p.id,
         title: p.title,
         description: p.description,
         priceCents: p.priceCents,
         orderMethod: p.orderMethod ?? 'HOMECHEFF_PAYMENT',
         priceModel: p.priceModel ?? 'FIXED',
+        listingIntent: p.listingIntent ?? 'OFFER',
+        barterOpenness: p.barterOpenness ?? null,
         image: allImages[0] || undefined,
         images: allImages,
         video: video ? {
@@ -413,7 +456,7 @@ export async function GET(req: Request) {
         marketplaceCategory: p.marketplaceCategory ?? null,
         specializations: p.specializations ?? [],
         acceptedSpecializations: p.acceptedSpecializations ?? [],
-        subcategory: null,
+        subcategory: p.subcategory ?? null,
         delivery: p.delivery,
         tags: (p as any).tags || [],
         pickupAddress: p.pickupAddress ?? null,
@@ -430,7 +473,7 @@ export async function GET(req: Request) {
           avatar: p.seller?.User?.profileImage ?? null,
           username: p.seller?.User?.username ?? null,
           buyerTypes: p.seller?.User?.buyerRoles ?? [],
-          followerCount: 0, // Skip expensive count for now
+          followerCount: 0,
           displayFullName: p.seller?.User?.displayFullName ?? undefined,
           displayNameOption: p.seller?.User?.displayNameOption ?? undefined,
           isBusiness: !!(p.seller?.kvk && p.seller?.companyName),
@@ -449,6 +492,19 @@ export async function GET(req: Request) {
         averageRating: avgRatingMap.get(p.id) || 0,
         viewCount: viewCountMap.get(p.id) || 0,
       };
+
+      const classified = { ...base } as Record<string, unknown>;
+      attachSearchClassificationToRecord(classified, 'product');
+      attachDiscoveryReadModel(classified, {
+        productReviewCount: reviewCountMap.get(p.id) || 0,
+        favoriteCount: favoriteCountMap.get(p.id) || 0,
+        trustBadges: (() => {
+          const uid = p.seller?.User?.id as string | undefined;
+          if (!uid) return undefined;
+          return sellerBadgeMap.get(uid);
+        })(),
+      });
+      return classified;
     });
 
     const hasNext = items.length === take;

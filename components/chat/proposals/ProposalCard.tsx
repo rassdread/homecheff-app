@@ -276,6 +276,9 @@ export default function ProposalCard({
               onDeliveryRequestCreated={(dr) =>
                 onUpdated?.(proposal, { deliveryRequest: dr })
               }
+              onCommunityOrderUpdated={(order) =>
+                onUpdated?.(proposal, { communityOrder: order })
+              }
             />
           ) : null}
 

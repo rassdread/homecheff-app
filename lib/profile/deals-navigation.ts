@@ -17,7 +17,7 @@ export type DealsNavItem = {
 export const PROFILE_DEALS_NAV: DealsNavItem = {
   labelKey: 'profile.deals.navLabel',
   href: DEALS_PROFILE_PATH,
-  enabled: false,
+  enabled: true,
 };
 
 /** Query key for a future React Query / SWR hook listing user deals */

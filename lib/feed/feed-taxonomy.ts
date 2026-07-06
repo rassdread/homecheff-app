@@ -9,6 +9,11 @@ import {
   isOfferListing,
   isRequestListing,
 } from '@/lib/marketplace/product-visibility';
+import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import {
+  buildListingKindInputFromFeedItem,
+  deriveListingKind,
+} from '@/lib/marketplace/listing-kind/derive-listing-kind';
 
 export type FeedDirection = 'OFFER' | 'REQUEST';
 
@@ -61,6 +66,10 @@ export type FeedTaxonomyInput = {
   listingIntent?: string | null;
   priceModel?: string | null;
   feedSource?: string | null;
+  marketplaceCategory?: string | null;
+  specializations?: string[] | null;
+  subcategory?: string | null;
+  listingKind?: ListingKind | null;
   /** Explicit overrides when REQUEST items exist (future). */
   direction?: FeedDirection | null;
   kind?: FeedKind | null;
@@ -146,30 +155,84 @@ function resolveExchange(
   return method === 'CONTACT' ? 'CONTACT' : 'MONEY';
 }
 
+function listingKindToFeedKind(kind: ListingKind): FeedKind {
+  switch (kind) {
+    case 'INSPIRATION':
+      return 'INSPIRATION';
+    case 'TASK':
+      return 'TASK';
+    case 'SERVICE':
+    case 'WORKSHOP':
+    case 'COACHING':
+      return 'SERVICE';
+    case 'REQUEST':
+    case 'PRODUCT':
+    default:
+      return 'PRODUCT';
+  }
+}
+
+function isDishFeedSource(input: FeedTaxonomyInput): boolean {
+  const source = String(input.feedSource ?? input.type ?? '')
+    .trim()
+    .toUpperCase();
+  return source === 'DISH' || String(input.type ?? '').trim().toLowerCase() === 'dish';
+}
+
+function resolveListingKind(input: FeedTaxonomyInput): ListingKind {
+  if (input.listingKind) return input.listingKind;
+  const { listingKind } = deriveListingKind(
+    buildListingKindInputFromFeedItem(input as Record<string, unknown>),
+  );
+  return listingKind;
+}
+
 /**
  * Derives V3 taxonomy from existing feed payload fields.
- * All current live items resolve to direction OFFER.
+ * ListingKind drives kind classification when marketplace fields are present.
  */
 export function deriveFeedTaxonomy(input: FeedTaxonomyInput): FeedTaxonomy {
+  const category = mapLegacyCategoryToFeedCategory(input.category);
+
+  if (isDishFeedSource(input) || resolveListingKind(input) === 'INSPIRATION') {
+    return {
+      direction: 'OFFER',
+      kind: 'INSPIRATION',
+      category,
+      exchange: 'CONTACT',
+    };
+  }
+
   if (input.direction && input.kind) {
     return {
       direction: input.direction,
       kind: input.kind,
-      category: mapLegacyCategoryToFeedCategory(input.category),
+      category,
       exchange:
         input.exchange ??
         resolveExchange(input.orderMethod, hasValidSalePrice(input)),
     };
   }
 
-  const category = mapLegacyCategoryToFeedCategory(input.category);
-
-  if (isRequestListing(input)) {
+  if (isRequestListing(input) || resolveListingKind(input) === 'REQUEST') {
     return {
       direction: 'REQUEST',
-      kind: 'PRODUCT',
+      kind: listingKindToFeedKind('REQUEST'),
       category,
       exchange: 'CONTACT',
+    };
+  }
+
+  const listingKind = resolveListingKind(input);
+  const derivedKind = listingKindToFeedKind(listingKind);
+
+  if (derivedKind !== 'PRODUCT' || listingKind === 'PRODUCT') {
+    const salePrice = hasValidSalePrice(input);
+    return {
+      direction: 'OFFER',
+      kind: derivedKind,
+      category,
+      exchange: resolveExchange(input.orderMethod, salePrice),
     };
   }
 
@@ -194,11 +257,13 @@ export function deriveFeedTaxonomy(input: FeedTaxonomyInput): FeedTaxonomy {
   };
 }
 
-/** Attach taxonomy to a feed item record (mutates optional field). */
+/** Attach taxonomy + listingKind to a feed item record. */
 export function withFeedTaxonomy<T extends FeedTaxonomyInput>(
   item: T
-): T & { taxonomy: FeedTaxonomy } {
-  return { ...item, taxonomy: deriveFeedTaxonomy(item) };
+): T & { taxonomy: FeedTaxonomy; listingKind: ListingKind } {
+  const listingKind = resolveListingKind(item);
+  const taxonomy = deriveFeedTaxonomy({ ...item, listingKind });
+  return { ...item, listingKind, taxonomy };
 }
 
 /**

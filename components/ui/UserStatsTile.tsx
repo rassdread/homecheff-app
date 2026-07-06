@@ -1,24 +1,27 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useRef } from "react";
-import { Users, Heart, Star, Eye, ThumbsUp } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect, useRef } from 'react';
+import { Users, Heart, Star, Eye, ThumbsUp, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
-import { getDisplayName } from "@/lib/displayName";
-import { useMobileOptimization } from "@/hooks/useMobileOptimization";
+import { getDisplayName } from '@/lib/displayName';
+import { useMobileOptimization } from '@/hooks/useMobileOptimization';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   fetchUserStatsDeduped,
   EMPTY_USER_STATS,
   getCachedUserStats,
-} from "@/lib/userStatsClientCache";
+} from '@/lib/userStatsClientCache';
 
 type UserStats = {
   fansCount: number;
+  followingCount?: number;
   totalFavorites: number;
   totalReviews: number;
   averageRating: number;
   totalViews: number;
   totalProps: number;
+  communityFeedbackCount?: number;
 };
 
 type UserStatsTileProps = {
@@ -31,21 +34,22 @@ type UserStatsTileProps = {
   className?: string;
 };
 
-export default function UserStatsTile({ 
-  userId, 
+export default function UserStatsTile({
+  userId,
   userName,
   userUsername,
   userAvatar,
   displayFullName,
   displayNameOption,
-  className = "" 
+  className = '',
 }: UserStatsTileProps) {
+  const { t } = useTranslation();
   const { isMobile } = useMobileOptimization();
   const [stats, setStats] = useState<UserStats | null>(() =>
-    userId ? getCachedUserStats(userId) : null
+    userId ? getCachedUserStats(userId) : null,
   );
   const [loading, setLoading] = useState(() =>
-    Boolean(userId && !getCachedUserStats(userId))
+    Boolean(userId && !getCachedUserStats(userId)),
   );
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,7 +71,7 @@ export default function UserStatsTile({
           if (!cancelled) setStats(data);
         });
       };
-      if (typeof requestIdleCallback !== "undefined") {
+      if (typeof requestIdleCallback !== 'undefined') {
         const id = requestIdleCallback(refresh, { timeout: 3500 });
         return () => {
           cancelled = true;
@@ -85,7 +89,7 @@ export default function UserStatsTile({
     setLoading(true);
 
     const el = rootRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
+    if (!el || typeof IntersectionObserver === 'undefined') {
       let cancelled = false;
       void fetchUserStatsDeduped(userId).then((data) => {
         if (!cancelled) {
@@ -111,7 +115,7 @@ export default function UserStatsTile({
           }
         });
       },
-      { root: null, rootMargin: "120px 0px", threshold: 0.01 }
+      { root: null, rootMargin: '120px 0px', threshold: 0.01 },
     );
     observer.observe(el);
     return () => {
@@ -120,34 +124,17 @@ export default function UserStatsTile({
     };
   }, [userId]);
 
-  if (!userId) {
-    return null;
-  }
+  if (!userId) return null;
 
-  const userDisplayName = userName || userUsername || "Gebruiker";
-  const profileSlug = (userUsername?.trim() || userId || "").trim();
+  const userDisplayName = userName || userUsername || 'Gebruiker';
+  const profileSlug = (userUsername?.trim() || userId || '').trim();
   const profileHref =
-    profileSlug.length > 0
-      ? `/user/${encodeURIComponent(profileSlug)}`
-      : "/profile";
+    profileSlug.length > 0 ? `/user/${encodeURIComponent(profileSlug)}` : '/profile';
 
   if (loading) {
     return (
       <div ref={rootRef} className={`pt-4 border-t border-gray-100 ${className}`}>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-          <div className="flex-1">
-            <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-6 gap-2">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-16 bg-gray-100 rounded-lg"></div>
-            </div>
-          ))}
-        </div>
+        <div className="h-24 animate-pulse rounded-lg bg-gray-100" />
       </div>
     );
   }
@@ -157,78 +144,60 @@ export default function UserStatsTile({
   const statsItems = [
     {
       icon: Users,
-      label: "Fans",
+      label: t('follow.followers'),
       value: effectiveStats.fansCount,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-100",
-      hoverColor: "hover:bg-blue-100",
-      tooltip: "Totaal aantal fans"
+      tooltip: t('stats.tooltips.fans'),
     },
     {
       icon: Heart,
-      label: "Favorieten",
+      label: t('favorites.label'),
       value: effectiveStats.totalFavorites,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
-      borderColor: "border-pink-100",
-      hoverColor: "hover:bg-pink-100",
-      tooltip: "Totaal favorieten over alle items"
+      tooltip: t('stats.tooltips.favorites'),
     },
     {
       icon: ThumbsUp,
-      label: "Props",
+      label: t('props.workspaceLabel'),
       value: effectiveStats.totalProps,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-100",
-      hoverColor: "hover:bg-purple-100",
-      tooltip: "Totaal props over alle items"
+      tooltip: t('stats.tooltips.workspaceProps'),
     },
     {
       icon: Star,
-      label: "Reviews",
+      label: t('stats.productReviews'),
       value: effectiveStats.totalReviews,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
-      borderColor: "border-yellow-100",
-      hoverColor: "hover:bg-yellow-100",
-      tooltip: "Totaal reviews over alle items"
+      tooltip: t('stats.tooltips.productReviews'),
     },
     {
       icon: Star,
-      label: "Rating",
+      label: t('stats.productRating'),
       value:
         effectiveStats.averageRating > 0
           ? effectiveStats.averageRating.toFixed(1)
-          : "-",
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-      borderColor: "border-amber-100",
-      hoverColor: "hover:bg-amber-100",
-      tooltip: "Gemiddelde rating over alle items"
+          : '—',
+      tooltip: t('stats.tooltips.productRating'),
+    },
+    {
+      icon: MessageCircle,
+      label: t('communityFeedback.label'),
+      value: effectiveStats.communityFeedbackCount ?? 0,
+      tooltip: t('stats.tooltips.communityFeedback'),
     },
     {
       icon: Eye,
-      label: "Views",
+      label: t('stats.views'),
       value:
         effectiveStats.totalViews > 0
           ? formatViews(effectiveStats.totalViews)
-          : "0",
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      borderColor: "border-emerald-100",
-      hoverColor: "hover:bg-emerald-100",
-      tooltip: "Totaal views over alle items"
-    }
-  ];
+          : '0',
+      tooltip: t('stats.tooltips.views'),
+    },
+  ].filter((item) => {
+    if (item.label === t('props.workspaceLabel') && item.value === 0) return false;
+    if (item.label === t('communityFeedback.label') && item.value === 0) return false;
+    return true;
+  });
 
   return (
-    <div
-      ref={rootRef}
-      className={`pt-4 border-t border-gray-200 ${className}`}
-    >
-      {/* Alleen header is navigatie — voorkomt nested &lt;a&gt; en maakt stats-blok semantisch neutraal */}
+    <div ref={rootRef} className={`pt-4 border-t border-gray-200 ${className}`}>
       <Link
         href={profileHref}
         className="mb-3 block rounded-lg px-1 py-1 transition-colors hover:bg-gray-50"
@@ -256,21 +225,20 @@ export default function UserStatsTile({
         </div>
       </Link>
 
-      {/* Stats Grid */}
       <div className="space-y-2">
-        <p className="text-xs text-gray-500 text-center font-medium">Totaal over alle items</p>
-        <div className="grid grid-cols-6 gap-2">
+        <p className="text-xs text-gray-500 text-center font-medium">{t('stats.aggregateLabel')}</p>
+        <div className={`grid gap-2 ${statsItems.length >= 6 ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-3'}`}>
           {statsItems.map((item, index) => {
             const Icon = item.icon;
             return (
               <div
                 key={index}
-                className={`relative flex flex-col items-center justify-center p-2.5 rounded-xl border-2 ${item.bgColor} ${item.borderColor} ${item.hoverColor} hover:shadow-lg hover:scale-105 transition-all duration-200 group cursor-pointer`}
-                title={item.tooltip || `${item.label}: ${typeof item.value === 'string' ? item.value : formatNumber(item.value)}`}
+                className="relative flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-gray-100 bg-gray-50 hover:bg-gray-100 transition-all"
+                title={item.tooltip}
               >
-                <Icon className={`w-5 h-5 ${item.color} ${isMobile ? 'mb-0' : 'mb-1.5'} group-hover:scale-110 transition-transform`} />
-                <div className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold ${item.color} leading-tight`}>
-                  {typeof item.value === 'string' ? item.value : formatNumber(item.value)}
+                <Icon className={`w-5 h-5 text-gray-600 ${isMobile ? 'mb-0' : 'mb-1.5'}`} />
+                <div className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-800 leading-tight`}>
+                  {typeof item.value === 'string' ? item.value : formatNumber(item.value as number)}
                 </div>
                 {!isMobile && (
                   <div className="text-[10px] text-gray-600 mt-0.5 truncate w-full text-center font-medium">
@@ -287,22 +255,13 @@ export default function UserStatsTile({
 }
 
 function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k';
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
   return num.toString();
 }
 
 function formatViews(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k';
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
   return num.toString();
 }
-

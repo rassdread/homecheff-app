@@ -29,7 +29,7 @@ import {
 } from '@/lib/inspiratie/media-fit';
 import DishReviewSection from './DishReviewSection';
 import ShareButton from '@/components/ui/ShareButton';
-import PropsButton from '@/components/props/PropsButton';
+import FavoriteButton from '@/components/favorite/FavoriteButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getDisplayName } from '@/lib/displayName';
@@ -606,11 +606,11 @@ export default function InspiratieDetail({
                       {item.viewCount}
                     </span>
                   ) : null}
-                  <PropsButton
+                  <FavoriteButton
                     dishId={item.id}
                     productTitle={item.title || t('common.dish')}
                     size="sm"
-                    variant="thumbs"
+                    variant="button"
                   />
                 </div>
               </div>

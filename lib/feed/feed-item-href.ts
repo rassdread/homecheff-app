@@ -67,8 +67,7 @@ export function resolveFeedItemHref(
   const tax = taxonomy ?? deriveFeedTaxonomy(item as FeedTaxonomyInput);
 
   if (tax.direction === 'REQUEST') {
-    // TODO(Fase 5E+): /request/[id] or category-specific request routes
-    return '/inspiratie';
+    return productHrefFromFeedItem(item);
   }
 
   switch (tax.kind) {
@@ -79,9 +78,9 @@ export function resolveFeedItemHref(
     case 'INSPIRATION':
       return inspirationHrefFromLegacyFields(item);
     case 'TASK':
+      return productHrefFromFeedItem(item);
     case 'BARTER':
-      // TODO(Fase 5E+): task/barter detail routes
-      return '/inspiratie';
+      return productHrefFromFeedItem(item);
     default:
       return inspirationHrefFromLegacyFields(item);
   }

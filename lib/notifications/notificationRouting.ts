@@ -45,6 +45,30 @@ export function resolveNotificationTargetUrl(
     (typeof p.conversationId === 'string' && p.conversationId) ||
     (typeof data.conversationId === 'string' && data.conversationId);
 
+  const communityOrderId =
+    (typeof p.communityOrderId === 'string' && p.communityOrderId) ||
+    (typeof data.communityOrderId === 'string' && data.communityOrderId);
+  const deliveryRequestId =
+    (typeof p.deliveryRequestId === 'string' && p.deliveryRequestId) ||
+    (typeof data.deliveryRequestId === 'string' && data.deliveryRequestId);
+  const bodyKey =
+    (typeof p.bodyKey === 'string' && p.bodyKey) ||
+    (typeof data.bodyKey === 'string' && data.bodyKey);
+
+  if (
+    communityOrderId &&
+    bodyKey === 'trust.notifications.reviewDeal.body'
+  ) {
+    return `/deal-review/${encodeURIComponent(communityOrderId)}`;
+  }
+
+  if (
+    deliveryRequestId &&
+    bodyKey === 'trust.notifications.reviewDelivery.body'
+  ) {
+    return `/delivery-review/${encodeURIComponent(deliveryRequestId)}`;
+  }
+
   if (
     typeUpper === 'MESSAGE_RECEIVED' ||
     typeUpper === 'NEW_CONVERSATION' ||

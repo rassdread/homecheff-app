@@ -30,6 +30,10 @@ import {
 } from "@/components/feed/FeedMarketplaceCard";
 import type { FeedChip, FeedViewFilterId } from "@/lib/feed/feed-taxonomy";
 import { deriveFeedTaxonomy, type FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
+import { matchesSearchTextQuery } from "@/lib/search";
+import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
+import type { DiscoveryReadModel } from "@/lib/discovery/contracts/discovery-read-model";
+import { attachListingKind } from "@/lib/marketplace/listing-kind/feed-attach";
 import FeedLayoutToggle from "@/components/feed/FeedLayoutToggle";
 import FeedDesktopColumnToggle from "@/components/feed/FeedDesktopColumnToggle";
 import {
@@ -208,6 +212,10 @@ type FeedItem = {
   sellerBadges?: AuthorBadgeChip[];
   /** Afgeleide V3 taxonomy (Fase 5D). */
   taxonomy?: FeedTaxonomy;
+  /** Canonical ListingKind (Phase 1). */
+  listingKind?: ListingKind;
+  /** Unified discovery read model (Phase 1B). */
+  discovery?: DiscoveryReadModel;
   marketplaceCategory?: string | null;
   specializations?: string[];
   acceptedSpecializations?: string[];
@@ -356,8 +364,20 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
         : raw.kind != null
           ? String(raw.kind)
           : null,
+    marketplaceCategory:
+      raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
+    specializations: Array.isArray(raw.specializations)
+      ? raw.specializations.filter((v): v is string => typeof v === 'string')
+      : null,
+    subcategory: raw.subcategory != null ? String(raw.subcategory) : null,
   };
-  const taxonomy = rawTaxonomy ?? deriveFeedTaxonomy(taxonomyInput);
+  const withKind = attachListingKind(taxonomyInput);
+  const taxonomy =
+    rawTaxonomy ??
+    deriveFeedTaxonomy({
+      ...taxonomyInput,
+      listingKind: withKind.listingKind,
+    });
 
   const resolvedCoords = resolveFeedItemCoordsFromRaw(raw);
 
@@ -414,6 +434,8 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       raw.favoriteCount != null ? Number(raw.favoriteCount) : undefined,
     sellerBadges: sellerBadges?.length ? sellerBadges : undefined,
     taxonomy,
+    listingKind: withKind.listingKind,
+    discovery: raw.discovery as DiscoveryReadModel | undefined,
     feedSource:
       raw.feedSource != null
         ? String(raw.feedSource)
@@ -449,17 +471,10 @@ function isVisible(item: FeedItem) {
 }
 
 function matchesSearch(
-  title: string | null,
-  description: string | null,
+  item: Pick<FeedItem, 'title' | 'description' | 'listingKind' | 'listingIntent' | 'specializations' | 'marketplaceCategory' | 'category' | 'feedSource' | 'type'>,
   q: string
 ) {
-  if (!q.trim()) return true;
-  const n = q.toLowerCase();
-  return (
-    (title && title.toLowerCase().includes(n)) ||
-    (description && description.toLowerCase().includes(n)) ||
-    false
-  );
+  return matchesSearchTextQuery(item, q);
 }
 
 function inspSlotToSortable(slot: InspSlot) {
@@ -657,6 +672,7 @@ function toCardItem(
     sellerDisplayNameOption: it.sellerDisplayNameOption,
     sellerBadges: it.sellerBadges,
     taxonomy: it.taxonomy,
+    listingKind: it.listingKind,
     marketplaceCategory: it.marketplaceCategory,
     specializations: it.specializations,
     acceptedSpecializations: it.acceptedSpecializations,
@@ -1446,6 +1462,9 @@ export default function GeoFeed({
           sortBy: "newest",
           category: inspCategory,
         });
+        if (appliedQ.trim()) {
+          inspParams.set("q", appliedQ.trim());
+        }
         const inspP = fetch(`/api/inspiratie?${inspParams.toString()}`, {
           signal: ac.signal,
           cache: "no-store",
@@ -1671,7 +1690,7 @@ export default function GeoFeed({
   const filteredSaleBase = useMemo(() => {
     const qn = appliedSearchQuery.trim();
     return saleCandidates.filter((item) => {
-      if (!matchesSearch(item.title, item.description, qn)) return false;
+      if (!matchesSearch(item, qn)) return false;
       return matchesFeedClientPriceRange(
         item,
         appliedPriceRange.min,
@@ -1714,7 +1733,7 @@ export default function GeoFeed({
     const qn = appliedSearchQuery.trim();
     return inspiratiePool.filter((item) => {
       if (categoryEnum && item.category !== categoryEnum) return false;
-      return matchesSearch(item.title, item.description, qn);
+      return matchesSearch(item, qn);
     });
   }, [inspiratiePool, appliedSearchQuery, categoryEnum]);
 
@@ -1725,7 +1744,7 @@ export default function GeoFeed({
         const itemCat = feedItemCategoryEnum(item.category);
         if (itemCat !== categoryEnum) return false;
       }
-      return matchesSearch(item.title, item.description, qn);
+      return matchesSearch(item, qn);
     });
   }, [feedOnlyInspiration, appliedSearchQuery, categoryEnum]);
 

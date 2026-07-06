@@ -34,10 +34,12 @@ interface ItemWithReviews {
 }
 
 interface ItemsWithReviewsProps {
-  userId?: string; // Optional: if provided, fetch for public profile
+  userId?: string;
+  /** Profile trust: product reviews only (excludes inspiration feedback). */
+  productsOnly?: boolean;
 }
 
-export default function ItemsWithReviews({ userId }: ItemsWithReviewsProps) {
+export default function ItemsWithReviews({ userId, productsOnly = true }: ItemsWithReviewsProps) {
   const [items, setItems] = useState<ItemWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +72,11 @@ export default function ItemsWithReviews({ userId }: ItemsWithReviewsProps) {
         const response = await fetch(apiUrl);
         if (response.ok) {
           const data = await response.json();
-          setItems(data.items || []);
+          let list: ItemWithReviews[] = data.items || [];
+          if (productsOnly) {
+            list = list.filter((item) => item.type === 'product');
+          }
+          setItems(list);
         }
       } catch (error) {
         console.error('Error fetching items with reviews:', error);

@@ -2,7 +2,6 @@
 
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ShareButton from '@/components/ui/ShareButton';
-import PropsButton from '@/components/props/PropsButton';
 import ProductDetailLocality from '@/components/product/detail/ProductDetailLocality';
 import ProductDetailDelivery from '@/components/product/detail/ProductDetailDelivery';
 import ProductMakerTrustStrip from '@/components/product/detail/ProductMakerTrustStrip';
@@ -301,19 +300,17 @@ export default function ProductSaleCommerceZone({
         <ProductDetailTags tags={product.tags} subcategory={product.subcategory} />
         {!isOwner ? (
           <div className="flex items-center gap-2">
-            <FavoriteButton productId={product.id} productTitle={product.title} size="sm" />
+            <FavoriteButton
+              productId={product.id}
+              productTitle={product.title}
+              size="sm"
+              variant="button"
+            />
             <ShareButton
               url={shareUrl}
               title={product.title}
               description={product.description || ''}
               className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
-            />
-            <PropsButton
-              productId={product.id}
-              productTitle={product.title}
-              className="flex-1"
-              size="sm"
-              variant="star"
             />
           </div>
         ) : null}

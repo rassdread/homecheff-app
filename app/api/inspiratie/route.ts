@@ -15,12 +15,13 @@ export async function GET(req: NextRequest) {
     const subcategory = searchParams.get('subcategory') || null;
     const region = searchParams.get('region') || 'all';
     const sortBy = searchParams.get('sortBy') || 'newest';
+    const q = searchParams.get('q')?.trim() || null;
     const takeParam = searchParams.get('take');
     const take = Math.min(Math.max(parseInt(takeParam || '24', 10) || 24, 1), 100);
     const skipParam = searchParams.get('skip');
     const skip = Math.max(parseInt(skipParam || '0', 10) || 0, 0);
 
-    const { items } = await getInspiratieItems({ category, subcategory, region, sortBy, take, skip });
+    const { items } = await getInspiratieItems({ category, subcategory, region, sortBy, take, skip, q });
     return NextResponse.json({ items, total: items.length }, { headers });
   } catch (error) {
     console.error('❌ Error fetching inspiration items:', error);

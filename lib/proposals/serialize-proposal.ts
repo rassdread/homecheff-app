@@ -66,6 +66,8 @@ export function serializeCommunityOrder(row: CommunityOrder): CommunityOrderDTO 
     deliveryRequested: row.deliveryRequested,
     deliveryAssigned: row.deliveryAssigned,
     checkoutOrderId: row.checkoutOrderId,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    cancelledAt: row.cancelledAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

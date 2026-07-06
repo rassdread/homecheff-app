@@ -98,6 +98,34 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
     iconKey: 'rocket',
     unlockHint: 'Word tester via homecheff.eu/app (Google Play Open Testing) en voltooi de beta-startflow.',
   },
+  {
+    slug: 'eerste-afspraak',
+    name: 'Eerste afspraak',
+    description: 'Je eerste afgeronde community-afspraak.',
+    iconKey: 'medal',
+    unlockHint: 'Rond je eerste afspraak via de chat af.',
+  },
+  {
+    slug: 'betrouwbare-verkoper',
+    name: 'Betrouwbare verkoper',
+    description: 'Minstens vijf afgeronde afspraken als verkoper.',
+    iconKey: 'star',
+    unlockHint: 'Rond vijf afspraken af waarbij jij de verkoper bent.',
+  },
+  {
+    slug: 'betrouwbare-bezorger',
+    name: 'Betrouwbare bezorger',
+    description: 'Minstens drie afgeronde community-bezorgingen.',
+    iconKey: 'cart',
+    unlockHint: 'Rond drie community-bezorgopdrachten succesvol af.',
+  },
+  {
+    slug: 'vaste-klant',
+    name: 'Vaste klant',
+    description: 'Meerdere afgeronde afspraken met dezelfde maker of klant.',
+    iconKey: 'heart',
+    unlockHint: 'Rond minstens twee afspraken af met dezelfde tegenpartij.',
+  },
 ];
 
 export function badgeCatalogEntryBySlug(slug: string): BadgeCatalogEntry | undefined {

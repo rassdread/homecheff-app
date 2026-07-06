@@ -16,6 +16,9 @@ export type GeoFeedApiParamsInput = {
   lng?: number | null;
   place?: string;
   locationSource?: 'gps' | 'manual' | 'profile' | null;
+  /** Comma-separated ListingKind filter — no ranking impact. */
+  listingKind?: string | null;
+  listingIntent?: 'OFFER' | 'REQUEST' | null;
 };
 
 /** Build `/api/feed` search params from GeoFeed filter state. */
@@ -55,6 +58,8 @@ export function buildGeoFeedApiParams(input: GeoFeedApiParamsInput): URLSearchPa
   }
 
   if (input.q?.trim()) params.set('q', input.q.trim());
+  if (input.listingKind?.trim()) params.set('listingKind', input.listingKind.trim());
+  if (input.listingIntent) params.set('listingIntent', input.listingIntent);
   if (input.category && input.category !== 'all') {
     params.set('vertical', input.category);
   }

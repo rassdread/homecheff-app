@@ -684,13 +684,46 @@
     "follow": "Fan worden",
     "unfollow": "Fan",
     "followButton": "Fan worden",
-    "followingButton": "Fan"
+    "followingButton": "Fan",
+    "followingCount": "Fan van {count}",
+    "fansCount": "{count} Fans"
+  },
+  "favorites": {
+    "label": "Favorieten",
+    "save": "Favoriet",
+    "saved": "Favoriet",
+    "loading": "Laden…"
+  },
+  "communityFeedback": {
+    "label": "Feedback",
+    "heading": "Community feedback",
+    "count": "{count} reacties",
+    "addCta": "Feedback geven",
+    "firstCta": "Wees de eerste met feedback",
+    "empty": "Nog geen community feedback op dit inspiratie-item.",
+    "submitError": "Feedback kon niet worden geplaatst."
+  },
+  "stats": {
+    "aggregateLabel": "Totaal over alle items",
+    "productReviews": "Productreviews",
+    "productRating": "Productscore",
+    "views": "Views",
+    "tooltips": {
+      "fans": "Aantal fans",
+      "favorites": "Favorieten op producten en inspiratie",
+      "workspaceProps": "Props op studio-content",
+      "productReviews": "Productreviews (vertrouwen)",
+      "productRating": "Gemiddelde productscore",
+      "communityFeedback": "Community feedback op inspiratie (geen vertrouwensscore)",
+      "views": "Totaal views"
+    }
   },
   "props": {
     "giveProps": "Waardering geven",
     "propsGiven": "Waardering!",
     "propsButton": "Waardering",
-    "propsWithdrawn": "Waardering ingetrokken"
+    "propsWithdrawn": "Waardering ingetrokken",
+    "workspaceLabel": "Studio props"
   },
   "dorpsplein": {
     "greeting": "Hey {firstName},",
@@ -1483,7 +1516,7 @@
       "buyerRoles": "Koperrollen",
       "interests": "Interesses",
       "overview": "Overzicht",
-      "fansAndFollowers": "Fans & Volgers",
+      "fansAndFollowers": "Fans",
       "adminProfile": "Admin Profiel",
       "adminProfileDesc": "Dit is je admin profiel pagina. Je hebt toegang tot alle admin functies via het Admin Panel."
     },
@@ -4195,7 +4228,8 @@
     "header": {
       "makerOnMarketplace": "Maker op het dorpsplein",
       "hcp": "{count} HCP",
-      "fans": "{count} fans",
+      "fans": "{count} Fans",
+      "following": "Fan van {count}",
       "profileViews": "{count} profielbezoeken",
       "memberSince": "Lid sinds {date}"
     },
@@ -4347,10 +4381,13 @@
         "chef": "Chef",
         "garden": "Garden",
         "designer": "Designer",
+        "products": "Producten",
         "services": "Diensten",
         "trade": "Ruilen",
         "help": "Hulpvragen",
-        "tasks": "Klusjes"
+        "tasks": "Klusjes",
+        "workshops": "Workshops",
+        "coaching": "Coaching"
       }
     },
     "inspiratie": {
@@ -7770,6 +7807,74 @@
       "statusActive": "Bezorging aangevraagd",
       "courierAssigned": "Bezorger toegewezen",
       "detailsHeading": "Bezorging"
+    }
+  },
+  "trust": {
+    "cta": {
+      "markComplete": "Afspraak afronden",
+      "reviewDeal": "Beoordeel afspraak",
+      "reviewDelivery": "Beoordeel bezorging"
+    },
+    "nextStep": {
+      "markComplete": "Rond de afspraak af wanneer jullie klaar zijn.",
+      "reviewDeal": "Laat een beoordeling achter voor je tegenpartij.",
+      "reviewDelivery": "De bezorging is afgerond — beoordeel de bezorger."
+    },
+    "profile": {
+      "heading": "Vertrouwen",
+      "channelProducts": "Producten",
+      "channelDeals": "Afspraken",
+      "channelDeliveries": "Bezorgingen",
+      "rating": "Beoordeling",
+      "reviews": "Reviews",
+      "completedDeals": "Afgeronde afspraken",
+      "completedDeliveries": "Bezorgingen",
+      "repeatCustomers": "{{count}} terugkerende klant(en)",
+      "topSpecializations": "Top specialisaties",
+      "memberSince": "Lid sinds {{date}}"
+    },
+    "deals": {
+      "filterAll": "Alle",
+      "filterOpen": "Open",
+      "filterCompleted": "Afgerond",
+      "filterCancelled": "Geannuleerd",
+      "empty": "Nog geen afspraken.",
+      "with": "Met {{name}}",
+      "openChat": "Open chat"
+    },
+    "review": {
+      "dealHeading": "Beoordeel jullie afspraak",
+      "dealIntro": "Deel je ervaring met je tegenpartij. Alleen zichtbaar na een afgeronde afspraak.",
+      "deliveryHeading": "Beoordeel de bezorging",
+      "deliveryIntro": "Hoe was de bezorging? Je beoordeling helpt andere gebruikers.",
+      "ratingLabel": "Score",
+      "titleLabel": "Titel (optioneel)",
+      "messageLabel": "Toelichting (optioneel)",
+      "submit": "Beoordeling versturen"
+    },
+    "notifications": {
+      "reviewDeal": {
+        "title": "Beoordeel jullie afspraak",
+        "body": "Laat een beoordeling achter voor jullie afgeronde afspraak."
+      },
+      "dealReviewReceived": {
+        "title": "Nieuwe beoordeling",
+        "body": "Je ontving een beoordeling voor jullie afspraak."
+      },
+      "reviewDelivery": {
+        "title": "Beoordeel de bezorging",
+        "body": "De bezorging is afgerond. Laat een beoordeling achter."
+      }
+    },
+    "errors": {
+      "communityOrderNotFound": "Afspraak niet gevonden.",
+      "accessDenied": "Geen toegang.",
+      "orderCancelled": "Deze afspraak is geannuleerd.",
+      "dealNotCompleted": "De afspraak is nog niet afgerond.",
+      "cannotReviewSelf": "Je kunt jezelf niet beoordelen.",
+      "deliveryNotCompleted": "Bezorging is nog niet afgerond.",
+      "noCourierAssignment": "Geen afgeronde bezorgtoewijzing.",
+      "courierProfileNotFound": "Bezorgerprofiel niet gevonden."
     }
   },
   "communityOrder": {
