@@ -7703,6 +7703,15 @@
         "title": "Betaling & ruil"
       }
     },
+    "exchange": {
+      "signals": {
+        "exactDesiredMatch": "Exacte match voor wat je zoekt",
+        "strongCategoryOverlap": "Sterke categorie-overlap",
+        "potentialBarter": "Mogelijke ruilkans",
+        "mutualReadiness": "Wederzijdse ruilbereidheid",
+        "futureRecommendationReady": "Klaar voor ruilsuggesties"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Gezocht"

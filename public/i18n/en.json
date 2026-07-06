@@ -7703,6 +7703,15 @@
         "title": "Payment & exchange"
       }
     },
+    "exchange": {
+      "signals": {
+        "exactDesiredMatch": "Exact match for what you want",
+        "strongCategoryOverlap": "Strong category overlap",
+        "potentialBarter": "Potential barter opportunity",
+        "mutualReadiness": "Mutual exchange readiness",
+        "futureRecommendationReady": "Ready for exchange suggestions"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Wanted"
