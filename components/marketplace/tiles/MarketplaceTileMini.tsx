@@ -5,7 +5,6 @@ import {
   buildTileBadges,
   buildTilePriceLine,
   buildTileTrustCue,
-  type MarketplaceTileMediaRatio,
   type MarketplaceTileModel,
   type TranslateFn,
 } from '@/lib/marketplace/tiles';
@@ -16,48 +15,53 @@ import {
   TileTrustCue,
 } from '@/components/marketplace/tiles/primitives';
 
-export type MarketplaceTileCompactProps = {
+export type MarketplaceTileMiniProps = {
   model: MarketplaceTileModel;
   t: TranslateFn;
-  mediaRatio?: MarketplaceTileMediaRatio;
   locale?: string;
 };
 
-export default function MarketplaceTileCompact({
+/**
+ * Profile grids, favorites, collections — max 1 badge, favorite only.
+ */
+export default function MarketplaceTileMini({
   model,
   t,
-  mediaRatio = '4:5',
   locale = 'nl-NL',
-}: MarketplaceTileCompactProps) {
-  const { badges, overflowCount } = buildTileBadges(model, t, 'compact', locale);
+}: MarketplaceTileMiniProps) {
+  const { badges, overflowCount } = buildTileBadges(model, t, 'mini', locale);
   const priceLine = buildTilePriceLine(model, t);
   const trustCue = buildTileTrustCue(model, t, 1);
   const title = model.title || t('common.dish');
 
   return (
-    <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex flex-col overflow-hidden border-primary-brand/15">
+    <article className="hc-dorpsplein-card flex flex-col overflow-hidden rounded-xl border border-primary-brand/10 bg-white shadow-sm transition-shadow hover:shadow-md">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
         imageUrl={model.coverImage}
-        videoUrl={model.videoUrl}
-        videoPoster={model.videoPoster}
-        mediaRatio={mediaRatio}
+        mediaRatio="1:1"
         badges={badges}
         overflowCount={overflowCount}
         favoriteId={model.id}
         favoriteTitle={title}
         mode={model.mode}
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-2.5">
+      <div className="flex flex-col gap-1 p-2.5">
         <TilePersonRow model={model} t={t} />
         <Link href={model.href} prefetch className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
             {title}
           </h3>
         </Link>
-        <TilePriceLine line={priceLine} />
-        <TileTrustCue trustCue={trustCue} />
+        <TilePriceLine
+          line={priceLine}
+          className="truncate text-xs font-semibold tabular-nums text-primary-brand"
+        />
+        <TileTrustCue
+          trustCue={trustCue}
+          className="truncate text-[10px] font-medium text-gray-500"
+        />
       </div>
     </article>
   );

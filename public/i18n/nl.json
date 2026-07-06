@@ -7277,7 +7277,12 @@
         "established": "✓ Ervaren maker"
       },
       "person": {
-        "maker": "Maker"
+        "maker": "Maker",
+        "requester": "Gezochte",
+        "requestedBy": "Gezocht door"
+      },
+      "sidebar": {
+        "viewLink": "Bekijk"
       }
     },
     "acceptedValues": {

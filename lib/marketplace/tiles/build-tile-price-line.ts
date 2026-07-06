@@ -5,6 +5,7 @@
 import { isContactOnlyProduct } from '@/lib/product/order-method';
 import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { formatWorkshopDateCompact } from './format-workshop-date';
 import type { MarketplaceTileModel, TranslateFn } from './types';
 
 function formatEuroAmount(cents: number): string {
@@ -72,7 +73,7 @@ export function buildTilePriceLine(
     });
   }
 
-  if (isContactOnlyProduct(model)) {
+  if (model.listingIntent !== 'REQUEST' && isContactOnlyProduct(model)) {
     line = `${line} · ${t('productOrder.badgeViaContact')}`;
   }
 
@@ -86,15 +87,7 @@ export function buildTilePriceLine(
     model.availabilityDate &&
     !hasWorkshopDateBadge(model)
   ) {
-    const d = new Date(model.availabilityDate);
-    if (!Number.isNaN(d.getTime())) {
-      const short = d.toLocaleDateString('nl-NL', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-      });
-      line = `${line} · ${short}`;
-    }
+    line = `${line} · ${formatWorkshopDateCompact(model.availabilityDate)}`;
   }
 
   return line;

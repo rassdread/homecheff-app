@@ -255,7 +255,7 @@ export function ProfileV2AanbodPanel({
             contentSubTab="dorpsplein"
             userSellerRoles={user.sellerRoles ?? []}
             hideCreateActions={viewerIsOwner}
-            ownerUser={viewerIsOwner ? user : undefined}
+            ownerUser={user}
             aanbodFilter={aanbodFilter}
           />
         </Suspense>

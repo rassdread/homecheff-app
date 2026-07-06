@@ -7277,7 +7277,12 @@
         "established": "✓ Established maker"
       },
       "person": {
-        "maker": "Maker"
+        "maker": "Maker",
+        "requester": "Requester",
+        "requestedBy": "Requested by"
+      },
+      "sidebar": {
+        "viewLink": "View"
       }
     },
     "acceptedValues": {

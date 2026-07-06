@@ -12,33 +12,33 @@ import {
   inspirationApiToCardItem,
   mapGeoFeedCardToTileModel,
   type MarketplaceTileMediaRatio,
+  type MarketplaceTileModel,
   type MarketplaceTileVariant,
   type TranslateFn,
 } from '@/lib/marketplace/tiles';
 import MarketplaceTileCompact from '@/components/marketplace/tiles/MarketplaceTileCompact';
 import MarketplaceTileStandard from '@/components/marketplace/tiles/MarketplaceTileStandard';
+import MarketplaceTileMini from '@/components/marketplace/tiles/MarketplaceTileMini';
+import MarketplaceTileSidebar from '@/components/marketplace/tiles/MarketplaceTileSidebar';
 
 export type MarketplaceTileRouterProps = {
   item: GeoFeedCardItem;
   baseUrl: string;
   t: TranslateFn;
   mode: 'sale' | 'inspiration';
-  /** Override auto variant selection when set. */
   variant?: MarketplaceTileVariant;
   mediaRatio?: MarketplaceTileMediaRatio;
   inspirationApiItem?: InspirationItem;
   href?: string;
+  /** Pass pre-built model for profile/favorites surfaces. */
+  model?: MarketplaceTileModel;
+  locale?: string;
 };
 
-function useMarketplaceTileVariant(
-  override?: MarketplaceTileVariant,
-): 'compact' | 'standard' {
+function useAutoFeedVariant(): 'compact' | 'standard' {
   const nativeMounted = useIsNativeAppMounted();
   const narrowViewport = useNarrowViewport();
-  const isMobileFeedUi = nativeMounted || narrowViewport;
-
-  if (override === 'compact' || override === 'standard') return override;
-  return isMobileFeedUi ? 'compact' : 'standard';
+  return nativeMounted || narrowViewport ? 'compact' : 'standard';
 }
 
 function resolveHref(
@@ -66,9 +66,6 @@ function resolveInspirationLabel(
   return inspirationContentLabel({ category: cat } as InspirationItem, t);
 }
 
-/**
- * Single source of truth for feed/discovery tile variant selection.
- */
 export default function MarketplaceTileRouter({
   item,
   baseUrl,
@@ -78,8 +75,12 @@ export default function MarketplaceTileRouter({
   mediaRatio,
   inspirationApiItem,
   href: hrefOverride,
+  model: modelOverride,
+  locale,
 }: MarketplaceTileRouterProps) {
-  const variant = useMarketplaceTileVariant(variantOverride);
+  const autoVariant = useAutoFeedVariant();
+  const variant = variantOverride ?? autoVariant;
+
   const cardItem =
     mode === 'inspiration' && inspirationApiItem
       ? inspirationApiToCardItem(inspirationApiItem)
@@ -91,26 +92,42 @@ export default function MarketplaceTileRouter({
       ? resolveInspirationLabel(cardItem, inspirationApiItem, t)
       : undefined;
 
-  const model = mapGeoFeedCardToTileModel(cardItem, {
-    href,
-    mode,
-    inspirationCategoryLabel,
-  });
+  const model =
+    modelOverride ??
+    mapGeoFeedCardToTileModel(cardItem, {
+      href,
+      mode,
+      inspirationCategoryLabel,
+    });
 
-  const effectiveMediaRatio: MarketplaceTileMediaRatio =
-    mediaRatio ?? (variant === 'compact' ? '4:5' : '4:3');
+  if (variant === 'mini') {
+    return <MarketplaceTileMini model={model} t={t} locale={locale} />;
+  }
+
+  if (variant === 'sidebar') {
+    return <MarketplaceTileSidebar model={model} t={t} locale={locale} />;
+  }
 
   if (variant === 'standard') {
     return (
-      <MarketplaceTileStandard model={model} t={t} baseUrl={baseUrl} />
+      <MarketplaceTileStandard
+        model={model}
+        t={t}
+        baseUrl={baseUrl}
+        locale={locale}
+      />
     );
   }
+
+  const effectiveMediaRatio: MarketplaceTileMediaRatio =
+    mediaRatio ?? '4:5';
 
   return (
     <MarketplaceTileCompact
       model={model}
       t={t}
       mediaRatio={effectiveMediaRatio}
+      locale={locale}
     />
   );
 }

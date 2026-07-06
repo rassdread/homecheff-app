@@ -55,3 +55,7 @@ export function usesDealTrustChannel(kind: ListingKind): boolean {
     kind === 'REQUEST'
   );
 }
+
+export function usesRequesterTrustChannel(kind: ListingKind): boolean {
+  return kind === 'REQUEST';
+}

@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
+import MarketplaceTileMini from "@/components/marketplace/tiles/MarketplaceTileMini";
+import {
+  mapFavoriteRecordToTileModel,
+  type FavoriteApiRecord,
+} from "@/lib/marketplace/tiles";
 
-type Favorite = {
-  id: string;
-  createdAt: string;
-  listing?: { id: string; title?: string | null; price?: number | null; image?: string | null };
-};
+type FavoriteRow = FavoriteApiRecord & { id: string; createdAt: string };
 
 export default function FavoritesGrid() {
-  const [items, setItems] = useState<Favorite[]>([]);
+  const { t } = useTranslation();
+  const [items, setItems] = useState<FavoriteRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,22 +27,24 @@ export default function FavoritesGrid() {
     })();
   }, []);
 
-  if (loading) return <div className="rounded-xl border p-4 bg-white animate-pulse h-32" />;
-  if (!items.length) return <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">Nog geen favorieten.</div>;
+  if (loading) {
+    return <div className="h-32 animate-pulse rounded-xl border bg-white p-4" />;
+  }
+  if (!items.length) {
+    return (
+      <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+        Nog geen favorieten.
+      </div>
+    );
+  }
 
   return (
-    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {items.map(f => (
-        <div key={f.id} className="rounded-xl border bg-white overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={f.listing?.image ?? "/placeholder.webp"} alt="listing" className="w-full h-36 object-cover" />
-          <div className="p-3 space-y-1">
-            <p className="font-medium truncate">{f.listing?.title ?? "Item"}</p>
-            <p className="text-sm text-muted-foreground">€ {((f.listing?.price ?? 0) / 100).toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Toegevoegd: {new Date(f.createdAt).toLocaleDateString()}</p>
-          </div>
-        </div>
-      ))}
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {items.map((f) => {
+        const model = mapFavoriteRecordToTileModel(f, null);
+        if (!model) return null;
+        return <MarketplaceTileMini key={f.id} model={model} t={t} />;
+      })}
     </div>
   );
 }

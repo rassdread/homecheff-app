@@ -15,8 +15,14 @@ export const TILE_BADGE_PRIORITY: TileBadgeKind[] = [
   'trust_badge',
 ];
 
-export const TILE_BADGE_MAX: Record<'compact' | 'standard' | 'mini', number> = {
+export const TILE_BADGE_MAX: Record<
+  'compact' | 'standard' | 'mini' | 'sidebar',
+  number
+> = {
   compact: 2,
   standard: 3,
   mini: 1,
+  sidebar: 1,
 };
+
+export type TileBadgeVariant = keyof typeof TILE_BADGE_MAX;

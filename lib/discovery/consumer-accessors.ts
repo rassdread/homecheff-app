@@ -107,6 +107,35 @@ export function getDiscoverySpecializations(
   return item.discovery?.specializations ?? item.specializations ?? [];
 }
 
+export function getDiscoveryDealReviewCount(item: WithOptionalDiscovery): number {
+  return item.discovery?.trust.deal.reviewCount ?? 0;
+}
+
+export function getDiscoveryCompletedDeals(item: WithOptionalDiscovery): number {
+  return item.discovery?.trust.completedDeals ?? 0;
+}
+
+export function getDiscoveryCourierReviewCount(item: WithOptionalDiscovery): number {
+  return item.discovery?.trust.courier.reviewCount ?? 0;
+}
+
+export function getDiscoveryCompletedDeliveries(item: WithOptionalDiscovery): number {
+  return item.discovery?.trust.completedDeliveries ?? 0;
+}
+
+export function getDiscoveryAvailabilityDate(
+  item: WithOptionalDiscovery,
+): string | null {
+  return item.discovery?.availabilityDate ?? null;
+}
+
+export function getDiscoveryBarterOpenness(
+  item: WithOptionalDiscovery & { barterOpenness?: string | null },
+): string | null {
+  const raw = item.discovery?.barterOpenness ?? item.barterOpenness ?? null;
+  return raw != null ? String(raw) : null;
+}
+
 export function matchesDiscoveryVerticalSlug(
   item: WithOptionalDiscovery & {
     category?: string | null;

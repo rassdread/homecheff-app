@@ -8,7 +8,12 @@ import {
   resolveOfferBadges,
 } from '@/lib/marketplace/taxonomy-badges';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
-import { TILE_BADGE_MAX, TILE_BADGE_PRIORITY } from './tile-badge-priority';
+import {
+  TILE_BADGE_MAX,
+  TILE_BADGE_PRIORITY,
+  type TileBadgeVariant,
+} from './tile-badge-priority';
+import { formatWorkshopDateCompact } from './format-workshop-date';
 import type {
   MarketplaceTileModel,
   TileBadge,
@@ -37,24 +42,16 @@ function kindLabelKey(kind: ListingKind): string | null {
   }
 }
 
-function formatWorkshopDateBadge(iso: string, locale: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  });
-}
-
 type Candidate = { kind: TileBadgeKind; label: string; tone: TileBadge['tone'] };
 
 function collectCandidates(
   model: MarketplaceTileModel,
   t: TranslateFn,
+  variant: TileBadgeVariant,
   locale: string,
 ): Candidate[] {
   const out: Candidate[] = [];
+  const showAcceptedValue = variant === 'standard';
 
   if (model.sponsored === true) {
     out.push({ kind: 'sponsored', label: 'Sponsored', tone: 'default' });
@@ -71,7 +68,7 @@ function collectCandidates(
   if (model.listingKind === 'WORKSHOP' && model.availabilityDate) {
     out.push({
       kind: 'workshop_date',
-      label: formatWorkshopDateBadge(model.availabilityDate, locale),
+      label: formatWorkshopDateCompact(model.availabilityDate, locale),
       tone: 'date',
     });
   }
@@ -113,13 +110,15 @@ function collectCandidates(
     }
   }
 
-  const accepted = resolveAcceptedBadges(model.acceptedSpecializations);
-  if (accepted[0]) {
-    out.push({
-      kind: 'accepted_value',
-      label: t(accepted[0].labelKey),
-      tone: 'default',
-    });
+  if (showAcceptedValue) {
+    const accepted = resolveAcceptedBadges(model.acceptedSpecializations);
+    if (accepted[0]) {
+      out.push({
+        kind: 'accepted_value',
+        label: t(accepted[0].labelKey),
+        tone: 'default',
+      });
+    }
   }
 
   const trustBadge = model.trust.trustBadges[0];
@@ -142,11 +141,11 @@ export type BuildTileBadgesResult = {
 export function buildTileBadges(
   model: MarketplaceTileModel,
   t: TranslateFn,
-  variant: 'compact' | 'standard' | 'mini',
+  variant: TileBadgeVariant,
   locale = 'nl-NL',
 ): BuildTileBadgesResult {
   const max = TILE_BADGE_MAX[variant];
-  const candidates = collectCandidates(model, t, locale);
+  const candidates = collectCandidates(model, t, variant, locale);
 
   const ordered: Candidate[] = [];
   for (const kind of TILE_BADGE_PRIORITY) {
@@ -165,11 +164,21 @@ export function buildTileBadges(
     deduped.push(c);
   }
 
-  const badges = deduped.slice(0, max).map((c) => ({
+  let badges = deduped.slice(0, max).map((c) => ({
     kind: c.kind,
     label: c.label,
     tone: c.tone,
   }));
+
+  if (variant === 'standard') {
+    const acceptedCount = badges.filter((b) => b.kind === 'accepted_value').length;
+    if (acceptedCount > 1) {
+      const firstAcceptedIdx = badges.findIndex((b) => b.kind === 'accepted_value');
+      badges = badges.filter(
+        (b, i) => b.kind !== 'accepted_value' || i === firstAcceptedIdx,
+      );
+    }
+  }
 
   return {
     badges,

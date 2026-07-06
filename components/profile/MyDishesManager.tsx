@@ -13,6 +13,7 @@ import SmartFitMediaImage from "@/components/inspiratie/SmartFitMediaImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
+import ProfilePublicAanbodTileGrid from "@/components/marketplace/tiles/ProfilePublicAanbodTileGrid";
 import type { MarketplaceCategory } from "@prisma/client";
 
 type Dish = {
@@ -921,83 +922,89 @@ export default function MyDishesManager({
                     : t('profileV2.empty.aanbodPublic')}
                 </p>
               </div>
+            ) : contentSubTab === 'dorpsplein' && ownerUser ? (
+              <ProfilePublicAanbodTileGrid
+                items={roleFilteredItems.filter((i) => (i.priceCents ?? 0) > 0)}
+                owner={{
+                  userId: ownerUser.id,
+                  name: ownerUser.name,
+                  username: ownerUser.username,
+                  avatar: ownerUser.profileImage ?? ownerUser.image ?? null,
+                  displayFullName: ownerUser.displayFullName,
+                  displayNameOption: ownerUser.displayNameOption ?? null,
+                }}
+              />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {roleFilteredItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => {
-                    // Check if this is a recipe (has ingredients/instructions but no price)
-                    if (!item.priceCents && (item as any).ingredients && (item as any).instructions) {
-                      handleRecipeClick(item.id);
-                    }
-                  }}
-                >
-                  {item.photos && item.photos.length > 0 && (
-                    <div 
-                      className="relative h-48 cursor-pointer bg-neutral-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Open image in modal
-                        const event = new CustomEvent('openImageModal', { 
-                          detail: { imageUrl: item.photos[0].url } 
-                        });
-                        window.dispatchEvent(event);
-                      }}
-                    >
-                      <SmartFitMediaImage
-                        src={item.photos[0].url}
-                        alt={item.title || 'Item'}
-                        mode="preview"
-                        fill
-                        className="hover:opacity-90 transition-opacity"
-                      />
-                      {/* Recipe indicator - show for all users if it's a recipe */}
-                      {!item.priceCents && (item as any).ingredients && (
-                        <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                          Recept
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
-                    {item.priceCents ? (
-                      <MarketplaceBadgeList
-                        specializations={item.specializations}
-                        marketplaceCategory={item.marketplaceCategory}
-                        legacyCategory={item.category}
-                        maxVisible={2}
-                        size="sm"
-                        className="mb-2"
-                      />
-                    ) : null}
-                    {item.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                  <div
+                    key={item.id}
+                    className="cursor-pointer overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-md"
+                    onClick={() => {
+                      if (
+                        !item.priceCents &&
+                        (item as { ingredients?: unknown }).ingredients &&
+                        (item as { instructions?: unknown }).instructions
+                      ) {
+                        handleRecipeClick(item.id);
+                      }
+                    }}
+                  >
+                    {item.photos && item.photos.length > 0 && (
+                      <div
+                        className="relative h-48 cursor-pointer bg-neutral-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const event = new CustomEvent('openImageModal', {
+                            detail: { imageUrl: item.photos[0].url },
+                          });
+                          window.dispatchEvent(event);
+                        }}
+                      >
+                        <SmartFitMediaImage
+                          src={item.photos[0].url}
+                          alt={item.title || 'Item'}
+                          mode="preview"
+                          fill
+                          className="transition-opacity hover:opacity-90"
+                        />
+                        {!item.priceCents &&
+                          (item as { ingredients?: unknown }).ingredients && (
+                            <div className="absolute right-2 top-2 rounded-full bg-emerald-500 px-2 py-1 text-xs font-medium text-white">
+                              Recept
+                            </div>
+                          )}
+                      </div>
                     )}
-                    <div className="flex items-center justify-between">
-                      {item.priceCents ? (
-                        <span className="font-semibold text-emerald-600">
-                          €{(item.priceCents / 100).toFixed(2)}
-                        </span>
-                      ) : (item as any).ingredients ? (
-                        <span className="text-sm text-emerald-600 font-medium">
-                          {role === 'garden' ? 'Bekijk kweek' : role === 'designer' ? 'Bekijk design' : 'Bekijk recept'}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-500">
-                          {CATEGORIES[item.category || 'CHEFF']?.label || item.category}
-                        </span>
+                    <div className="p-4">
+                      <h3 className="mb-2 font-semibold text-gray-900">{item.title}</h3>
+                      {item.description && (
+                        <p className="mb-3 line-clamp-2 text-sm text-gray-600">
+                          {item.description}
+                        </p>
                       )}
-                      <span className="text-xs text-gray-500">
-                        {new Date(item.createdAt).toLocaleDateString('nl-NL')}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        {(item as { ingredients?: unknown }).ingredients ? (
+                          <span className="text-sm font-medium text-emerald-600">
+                            {role === 'garden'
+                              ? 'Bekijk kweek'
+                              : role === 'designer'
+                                ? 'Bekijk design'
+                                : 'Bekijk recept'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-500">
+                            {CATEGORIES[item.category || 'CHEFF']?.label || item.category}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {new Date(item.createdAt).toLocaleDateString('nl-NL')}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             );
           })()}
         </div>
