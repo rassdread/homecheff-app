@@ -9,6 +9,37 @@ export type {
   WithDiscoveryReadModel,
 } from './contracts/discovery-read-model';
 
+export type {
+  TrustTierLevel,
+  DiscoveryTrustChannelBlock,
+  DiscoveryTrustContract,
+  DiscoveryTrustForbiddenSignal,
+} from './contracts/discovery-trust-contract';
+
+export {
+  TRUST_TIER_UNKNOWN,
+  TRUST_TIER_PRESENT,
+  TRUST_TIER_ACTIVE,
+  TRUST_TIER_REVIEWED,
+  TRUST_TIER_ESTABLISHED,
+  TRUST_TIER_EXPERT,
+  EMPTY_TRUST_CHANNEL,
+  EMPTY_DISCOVERY_TRUST_CONTRACT,
+  DISCOVERY_TRUST_FORBIDDEN_SIGNALS,
+} from './contracts/discovery-trust-contract';
+
+export type {
+  DiscoveryRankingSignalId,
+  DiscoveryRankingForbiddenSignalId,
+  DiscoveryRankingInput,
+  RankingSignalUse,
+  DiscoveryRankingSignalRule,
+} from './contracts/discovery-ranking-contract';
+
+export {
+  DISCOVERY_RANKING_FORBIDDEN_SIGNALS,
+} from './contracts/discovery-ranking-contract';
+
 export {
   EMPTY_DISCOVERY_TRUST,
   EMPTY_DISCOVERY_SOCIAL,
