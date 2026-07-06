@@ -3,7 +3,10 @@
  */
 
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { deriveListingKind } from '@/lib/marketplace/listing-kind';
+import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import type { MarketplaceTileModel, MarketplaceTilePerson } from './types';
+import { EMPTY_TILE_TRUST } from './map-trust';
 
 type FavoriteProduct = {
   id: string;
@@ -77,17 +80,12 @@ export function mapFavoriteRecordToTileModel(
       person: owner,
       place: null,
       distanceKm: null,
-      trust: {
-        productReviewCount: 0,
-        dealReviewCount: 0,
-        courierReviewCount: 0,
-        completedDeals: 0,
-        completedDeliveries: 0,
-        trustBadges: [],
-        sellerTier: 0,
-      },
+      trust: { ...EMPTY_TILE_TRUST },
       favoriteCount: 0,
       fulfillmentMode: null,
+      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: kind }),
+      capacityRemaining: null,
+      neededBy: null,
       mode: 'sale',
     };
   }
@@ -117,17 +115,12 @@ export function mapFavoriteRecordToTileModel(
       person: owner,
       place: null,
       distanceKm: null,
-      trust: {
-        productReviewCount: 0,
-        dealReviewCount: 0,
-        courierReviewCount: 0,
-        completedDeals: 0,
-        completedDeliveries: 0,
-        trustBadges: [],
-        sellerTier: 0,
-      },
+      trust: { ...EMPTY_TILE_TRUST },
       favoriteCount: 0,
       fulfillmentMode: null,
+      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: kind }),
+      capacityRemaining: null,
+      neededBy: null,
       mode: 'inspiration',
       inspirationCategoryLabel: d.category ?? undefined,
     };
@@ -158,17 +151,12 @@ export function mapFavoriteRecordToTileModel(
       person: owner,
       place: l.place ?? null,
       distanceKm: null,
-      trust: {
-        productReviewCount: 0,
-        dealReviewCount: 0,
-        courierReviewCount: 0,
-        completedDeals: 0,
-        completedDeliveries: 0,
-        trustBadges: [],
-        sellerTier: 0,
-      },
+      trust: { ...EMPTY_TILE_TRUST },
       favoriteCount: 0,
       fulfillmentMode: null,
+      fulfillmentFlags: resolveFulfillmentFlags({ listingKind: kind }),
+      capacityRemaining: null,
+      neededBy: null,
       mode: 'sale',
     };
   }

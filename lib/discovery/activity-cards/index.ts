@@ -14,6 +14,61 @@ export type {
   ActivityCardInsertionPlan,
 } from './activity-card-types';
 
+export type {
+  ActivityCardType,
+  ActivityCardContract,
+  ActivityCardEligibilityInput,
+  ActivityCardEligibilityMeta,
+  ActivityCardTypeDefinition,
+} from './activity-card-contract';
+
+export {
+  ACTIVITY_CARD_TYPES,
+  activityCardInstanceId,
+} from './activity-card-contract';
+
+export {
+  ACTIVITY_CARD_TYPE_REGISTRY,
+  listActivityCardTypeDefinitions,
+} from './activity-card-type-registry';
+
+export {
+  evaluateActivityCardTypeEligibility,
+  resolveActivityCardContracts,
+  ACTIVITY_CARD_SESSION_MAX,
+  ACTIVITY_CARD_VISIBLE_MAX,
+} from './resolve-activity-card-contracts';
+
+export type {
+  ActivityCardCooldownState,
+  ResolveActivityCardsOptions,
+} from './resolve-activity-card-contracts';
+
+export { buildActivityCardsFeedSlot } from './build-activity-cards-feed-slot';
+
+export {
+  fetchActivityCardEligibilityInput,
+  countNearbyRequestsInPool,
+} from './fetch-activity-card-eligibility';
+
+export {
+  PHASE_3B_ACTIVITY_CARD_INSERTION,
+  ACTIVITY_CARD_MOBILE_INSERTION,
+  ACTIVITY_CARD_DESKTOP_INSERTION,
+  shouldInsertActivityCardAfterSaleIndex,
+} from './activity-card-insertion-planner';
+
+export {
+  readActivityCardSessionState,
+  recordActivityCardShown,
+  recordActivityCardDismissed,
+  filterCardsForSession,
+  readActivityCardCooldownState,
+} from './activity-card-client-storage';
+
+export { trackActivityCardEvent } from './activity-card-analytics';
+export type { ActivityCardAnalyticsEvent } from './activity-card-analytics';
+
 export {
   ACTIVITY_CARD_CATEGORIES,
   ACTIVITY_CARD_REGISTRY,

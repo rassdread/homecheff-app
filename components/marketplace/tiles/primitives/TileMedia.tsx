@@ -62,12 +62,14 @@ export default function TileMedia({
         <TileBadgeRow badges={badges} overflowCount={overflowCount} />
       ) : null}
       {showFavorite && favoriteId && favoriteTitle ? (
-        <TileFavoriteAction
-          id={favoriteId}
-          title={favoriteTitle}
-          mode={mode}
-          className="absolute top-2 right-2 z-10"
-        />
+        <div data-preview-ignore>
+          <TileFavoriteAction
+            id={favoriteId}
+            title={favoriteTitle}
+            mode={mode}
+            className="absolute top-2 right-2 z-10"
+          />
+        </div>
       ) : null}
     </div>
   );

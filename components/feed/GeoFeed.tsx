@@ -73,6 +73,14 @@ import {
   interleaveDiscoverySectionsWithInspiration,
   orderItemsFromDiscoveryFeed,
 } from "@/lib/feed/discovery-feed-client";
+import {
+  getActivityCardsFromDiscovery,
+  getActivityCardSlotMeta,
+  interleaveDesktopActivityCards,
+  interleaveMobileActivityCards,
+} from "@/lib/feed/activity-card-feed-rows";
+import { ActivityCardFeedBand } from "@/components/discovery/activity-cards";
+import { filterCardsForSession } from "@/lib/discovery/activity-cards/activity-card-client-storage";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { InspirationItem } from "@/components/inspiratie/InspiratieContent";
@@ -1955,23 +1963,65 @@ export default function GeoFeed({
     discoveryFeed?.insertion.itemsBetweenSections,
   ]);
 
+  const activityCardsFromFeed = useMemo(
+    () => getActivityCardsFromDiscovery(discoveryFeed),
+    [discoveryFeed],
+  );
+
+  const activityCardSlotMeta = useMemo(
+    () => getActivityCardSlotMeta(discoveryFeed),
+    [discoveryFeed],
+  );
+
   const displayRows = useMemo(() => {
+    let rows:
+      | ReturnType<typeof interleaveMobileActivityCards<FeedItem>>
+      | Array<{ row: "sale"; item: FeedItem }>
+      | Array<{ row: "insp"; slot: (typeof inspirationSlots)[number] }>;
+
     if (feedChip === "sale") {
       if (useDiscoverySections && rankingResult.discoverySectionRows) {
-        return rankingResult.discoverySectionRows;
+        rows = rankingResult.discoverySectionRows;
+      } else {
+        rows = sortedSales.map((item) => ({
+          row: "sale" as const,
+          item,
+        }));
       }
-      return sortedSales.map((item) => ({
-        row: "sale" as const,
-        item,
-      }));
-    }
-    if (feedChip === "inspiration") {
+    } else if (feedChip === "inspiration") {
       return inspirationSlots.map((slot) => ({
         row: "insp" as const,
         slot,
       }));
+    } else {
+      rows = mixedRows;
     }
-    return mixedRows;
+
+    if (
+      !session?.user ||
+      activityCardsFromFeed.length === 0 ||
+      feedChip === "inspiration"
+    ) {
+      return rows;
+    }
+
+    const eligible = filterCardsForSession(
+      activityCardsFromFeed,
+      activityCardSlotMeta.maxSession,
+      activityCardSlotMeta.maxVisible,
+    );
+    if (eligible.length === 0) return rows;
+
+    if (isMobileFeedUi) {
+      return interleaveMobileActivityCards(
+        rows,
+        eligible,
+        activityCardSlotMeta.mobileSlots,
+        activityCardSlotMeta.maxSession,
+      );
+    }
+
+    return interleaveDesktopActivityCards(rows, eligible, 2);
   }, [
     feedChip,
     sortedSales,
@@ -1979,6 +2029,10 @@ export default function GeoFeed({
     mixedRows,
     useDiscoverySections,
     rankingResult.discoverySectionRows,
+    session?.user,
+    activityCardsFromFeed,
+    activityCardSlotMeta,
+    isMobileFeedUi,
   ]);
 
   const displayCount = displayRows.length;
@@ -3207,6 +3261,20 @@ export default function GeoFeed({
             };
 
             feedRowsToRender.forEach((row, idx) => {
+              if (row.row === "activity_card") {
+                nodes.push(
+                  <ActivityCardFeedBand
+                    key={`activity-card-${row.card.id}-${idx}`}
+                    cards={[row.card]}
+                    maxVisible={activityCardSlotMeta.maxVisible}
+                    maxSession={activityCardSlotMeta.maxSession}
+                    t={t}
+                    surface={isMobileFeedUi ? "feed_mobile_insert" : "home_feed"}
+                    className="col-span-full"
+                  />
+                );
+                return;
+              }
               if (row.row === "section") {
                 nodes.push(
                   <DiscoveryFeedSectionHeading

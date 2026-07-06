@@ -5,16 +5,11 @@
 
 import type { ActivityCardInsertionPlan } from './activity-card-types';
 import type { ActivityCardSurface } from './activity-card-types';
+import { PHASE_3B_ACTIVITY_CARD_INSERTION } from './activity-card-insertion-planner';
 
 /** Default insertion when activity_cards slot is enabled (Phase 3B). */
-export const DEFAULT_ACTIVITY_CARD_INSERTION: ActivityCardInsertionPlan = {
-  /** Mobile: one card band every 8 feed items (after discovery section inserts). */
-  cadenceItems: 8,
-  maxPerSession: 3,
-  /** Never before item 4 — avoid competing with hero discovery sections. */
-  minItemsBeforeFirst: 4,
-  sidebarMaxVisible: 3,
-};
+export const DEFAULT_ACTIVITY_CARD_INSERTION: ActivityCardInsertionPlan =
+  PHASE_3B_ACTIVITY_CARD_INSERTION;
 
 /**
  * Feed insert positions (mobile) — complements discovery section bands.
@@ -29,7 +24,7 @@ export const MOBILE_ACTIVITY_CARD_FEED_SLOTS = [
 export type ActivityCardFeedIntegrationSpec = {
   /** Maps to DiscoveryFeedFutureSlot.kind === 'activity_cards' */
   contractSlot: 'activity_cards';
-  enabled: false;
+  enabled: boolean;
   insertion: ActivityCardInsertionPlan;
   /** Dedup: same card id not shown twice in one feed render. */
   dedupeByCardId: true;
@@ -45,8 +40,8 @@ export type ActivityCardFeedIntegrationSpec = {
 
 export const ACTIVITY_CARD_FEED_INTEGRATION: ActivityCardFeedIntegrationSpec = {
   contractSlot: 'activity_cards',
-  enabled: false,
-  insertion: DEFAULT_ACTIVITY_CARD_INSERTION,
+  enabled: true,
+  insertion: PHASE_3B_ACTIVITY_CARD_INSERTION,
   dedupeByCardId: true,
   dedupeByCategory: true,
   excludeDiscoveryListingIds: true,

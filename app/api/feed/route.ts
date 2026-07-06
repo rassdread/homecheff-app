@@ -54,6 +54,13 @@ import {
   reorderFeedItemsByDiscovery,
 } from "@/lib/feed/build-discovery-feed";
 import type { DiscoveryFeedPayload } from "@/lib/feed/discovery-feed-contract";
+import {
+  buildActivityCardsFeedSlot,
+} from "@/lib/discovery/activity-cards/build-activity-cards-feed-slot";
+import {
+  countNearbyRequestsInPool,
+  fetchActivityCardEligibilityInput,
+} from "@/lib/discovery/activity-cards/fetch-activity-card-eligibility";
 
 function attachFeedItemTaxonomy(item: Record<string, unknown>): void {
   const listingKind = attachListingKindToRecord(item);
@@ -723,6 +730,32 @@ export async function GET(req: NextRequest) {
     });
   } catch (e) {
     console.error("[feed] discovery sections:", e);
+  }
+
+  if (discoveryFeed && userId) {
+    try {
+      const eligibility = await fetchActivityCardEligibilityInput({
+        userId,
+        nearbyRequestCount: countNearbyRequestsInPool(
+          enrichTargets as Array<{
+            discovery?: { listingKind?: string; listingIntent?: string } | null;
+          }>,
+        ),
+      });
+      const activitySlot = buildActivityCardsFeedSlot({
+        eligibility,
+        enabled: true,
+      });
+      discoveryFeed = {
+        ...discoveryFeed,
+        futureSlots: [
+          activitySlot,
+          ...discoveryFeed.futureSlots.filter((s) => s.kind !== "activity_cards"),
+        ],
+      };
+    } catch (e) {
+      console.error("[feed] activity cards:", e);
+    }
   }
 
   let orderedMarketplace = enrichTargets as typeof allItems;

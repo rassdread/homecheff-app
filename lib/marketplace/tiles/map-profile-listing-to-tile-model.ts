@@ -14,11 +14,13 @@ import {
 import { deriveListingKind } from '@/lib/marketplace/listing-kind';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import type {
   MarketplaceTileMode,
   MarketplaceTileModel,
   MarketplaceTilePerson,
 } from './types';
+import { mapDiscoveryTrustToTileTrust } from './map-trust';
 
 export type ProfileListingInput = {
   id: string;
@@ -70,6 +72,10 @@ export function mapProfileListingToTileModel(
   const cover =
     d?.coverImage ?? item.photos?.[0]?.url ?? null;
 
+  const listingKind = resolveKind(item, mode);
+  const listingIntent =
+    (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null;
+
   return {
     id: item.id,
     href: options.href,
@@ -82,9 +88,8 @@ export function mapProfileListingToTileModel(
     videoPoster: null,
     imageAlt: item.title ?? '',
 
-    listingKind: resolveKind(item, mode),
-    listingIntent:
-      (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null,
+    listingKind,
+    listingIntent,
     marketplaceCategory: getDiscoveryMarketplaceCategory(item),
     specializations: getDiscoverySpecializations(item),
     acceptedSpecializations:
@@ -100,18 +105,16 @@ export function mapProfileListingToTileModel(
     place: d?.city ?? item.place ?? null,
     distanceKm: d?.distanceKm ?? null,
 
-    trust: {
-      productReviewCount: trustContract.product.reviewCount,
-      dealReviewCount: trustContract.deal.reviewCount,
-      courierReviewCount: trustContract.courier.reviewCount,
-      completedDeals: trustContract.completedDeals,
-      completedDeliveries: trustContract.completedDeliveries,
-      trustBadges: trustContract.trustBadges,
-      sellerTier: trustContract.sellerTier,
-    },
+    trust: mapDiscoveryTrustToTileTrust(trustContract),
 
     favoriteCount: getDiscoveryFavoriteCount(item),
     fulfillmentMode: null,
+    fulfillmentFlags: resolveFulfillmentFlags({
+      deliveryMode: item.deliveryMode,
+      listingKind,
+    }),
+    capacityRemaining: null,
+    neededBy: listingIntent === 'REQUEST' ? d?.availabilityDate ?? null : null,
 
     mode,
     inspirationCategoryLabel: options.inspirationCategoryLabel,

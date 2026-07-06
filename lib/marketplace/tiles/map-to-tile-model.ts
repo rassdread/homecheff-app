@@ -20,6 +20,8 @@ import type {
   MarketplaceTileModel,
   MarketplaceTileMode,
 } from './types';
+import { mapDiscoveryTrustToTileTrust } from './map-trust';
+import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 
 let legacyWarned = false;
 
@@ -90,19 +92,21 @@ export function mapGeoFeedCardToTileModel(
   const listingIntent =
     (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null;
 
+  const listingKind = resolveListingKind(item, mode);
+
   return {
     id: item.id,
     href,
     entityType: resolveEntityType(item, mode),
     title: item.title ?? '',
-    description: item.description ?? null,
+    description: d?.description ?? item.description ?? null,
 
     coverImage: d?.coverImage ?? item.photo ?? null,
     videoUrl: item.videoUrl ?? null,
     videoPoster: item.videoThumbnail ?? null,
     imageAlt: item.title ?? '',
 
-    listingKind: resolveListingKind(item, mode),
+    listingKind,
     listingIntent,
     marketplaceCategory: getDiscoveryMarketplaceCategory(item),
     specializations: getDiscoverySpecializations(item),
@@ -129,18 +133,17 @@ export function mapGeoFeedCardToTileModel(
     place: d?.city ?? item.place ?? null,
     distanceKm: d?.distanceKm ?? item.distanceKm ?? null,
 
-    trust: {
-      productReviewCount: trustContract.product.reviewCount,
-      dealReviewCount: trustContract.deal.reviewCount,
-      courierReviewCount: trustContract.courier.reviewCount,
-      completedDeals: trustContract.completedDeals,
-      completedDeliveries: trustContract.completedDeliveries,
-      trustBadges: trustContract.trustBadges,
-      sellerTier: trustContract.sellerTier,
-    },
+    trust: mapDiscoveryTrustToTileTrust(trustContract),
 
     favoriteCount: getDiscoveryFavoriteCount(item),
     fulfillmentMode: resolveFulfillmentMode(item.deliveryMode),
+    fulfillmentFlags: resolveFulfillmentFlags({
+      deliveryMode: item.deliveryMode,
+      listingKind,
+      fulfillmentMode: resolveFulfillmentMode(item.deliveryMode),
+    }),
+    capacityRemaining: null,
+    neededBy: listingIntent === 'REQUEST' ? d?.availabilityDate ?? null : null,
 
     mode,
     inspirationCategoryLabel:

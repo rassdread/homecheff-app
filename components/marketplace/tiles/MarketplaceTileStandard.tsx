@@ -9,6 +9,7 @@ import {
   type MarketplaceTileModel,
   type TranslateFn,
 } from '@/lib/marketplace/tiles';
+import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
   TileMedia,
   TilePersonRow,
@@ -21,6 +22,7 @@ export type MarketplaceTileStandardProps = {
   t: TranslateFn;
   baseUrl: string;
   locale?: string;
+  enablePreview?: boolean;
 };
 
 export default function MarketplaceTileStandard({
@@ -28,6 +30,7 @@ export default function MarketplaceTileStandard({
   t,
   baseUrl,
   locale = 'nl-NL',
+  enablePreview = true,
 }: MarketplaceTileStandardProps) {
   const { badges, overflowCount } = buildTileBadges(model, t, 'standard', locale);
   const priceLine = buildTilePriceLine(model, t);
@@ -35,7 +38,13 @@ export default function MarketplaceTileStandard({
   const title = model.title || t('common.dish');
 
   return (
-    <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex flex-col overflow-hidden border-primary-brand/15">
+    <MarketplacePreviewShell
+      model={model}
+      t={t}
+      locale={locale}
+      enabled={enablePreview}
+    >
+      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex flex-col overflow-hidden border-primary-brand/15">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
@@ -71,5 +80,6 @@ export default function MarketplaceTileStandard({
         />
       </div>
     </article>
+    </MarketplacePreviewShell>
   );
 }

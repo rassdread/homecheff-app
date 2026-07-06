@@ -1835,6 +1835,9 @@
     }
   },
   "activityCards": {
+    "band": {
+      "label": "Tip for you"
+    },
     "categories": {
       "social": "Social",
       "trust": "Trust",
@@ -1843,6 +1846,63 @@
       "community": "Community",
       "profile": "Profile",
       "local": "Local"
+    },
+    "types": {
+      "profileCompletion": {
+        "title": "Complete your profile",
+        "description": "Add missing details so others can find and trust you more easily.",
+        "action": "Complete profile"
+      },
+      "requestReview": {
+        "title": "Share your experience",
+        "description": "You completed a deal — a short review helps the community.",
+        "action": "Leave review"
+      },
+      "shareQr": {
+        "title": "Share your QR code",
+        "description": "Let neighbors and friends scan your profile and discover what you offer.",
+        "action": "Share QR"
+      },
+      "nearbyHelp": {
+        "title": "Someone nearby needs help",
+        "description": "There are requests near you — maybe you can help.",
+        "action": "View requests"
+      },
+      "uploadListing": {
+        "title": "Publish your first listing",
+        "description": "Share what you make, grow, or offer — your village square is waiting.",
+        "action": "Create listing"
+      },
+      "uploadInspiration": {
+        "title": "Share your first inspiration",
+        "description": "Let others peek into your kitchen, garden, or studio.",
+        "action": "Share inspiration"
+      },
+      "completeWorkspace": {
+        "title": "Show your workspace",
+        "description": "Add photos of where you work — it builds buyer trust.",
+        "action": "Add workspace"
+      },
+      "verifyAccount": {
+        "title": "Verify your email",
+        "description": "Confirm your account to message others and trade safely.",
+        "action": "Verify email"
+      },
+      "addWorkshop": {
+        "title": "Host a workshop",
+        "description": "Share your skills through a workshop or cooking class nearby.",
+        "action": "Create workshop"
+      },
+      "becomeCourier": {
+        "title": "Become a local courier",
+        "description": "Help makers and buyers by delivering locally when it suits you.",
+        "action": "Become courier"
+      },
+      "inviteFriend": {
+        "title": "Invite a neighbor",
+        "description": "Grow the community by inviting someone to HomeCheff.",
+        "action": "Invite"
+      }
     }
   },
   "filters": {
@@ -7283,6 +7343,65 @@
       },
       "sidebar": {
         "viewLink": "View"
+      }
+    },
+    "preview": {
+      "ariaLabel": "Listing preview",
+      "sections": {
+        "payment": "Value & payment",
+        "fulfillment": "Fulfillment",
+        "acceptedValues": "Accepted values",
+        "trust": "Trust"
+      },
+      "actions": {
+        "view": "View listing",
+        "message": "Send message",
+        "favorite": "Favorite"
+      },
+      "payment": {
+        "fixed": "Fixed price",
+        "onRequest": "Contact seller",
+        "voluntary": "You decide the amount",
+        "barterOnly": "Other value negotiable",
+        "moneyAndBarter": "Combination possible",
+        "alternativeValue": "Other value negotiable",
+        "requestBudget": "Budget indication",
+        "requestOpen": "Proposals welcome",
+        "inspiration": "Inspiration — not for sale"
+      },
+      "fulfillment": {
+        "onSite": "On-site",
+        "onlineSession": "Online session"
+      },
+      "trust": {
+        "productReviews": "⭐ {{count}} product reviews",
+        "dealReviews": "🤝 {{count}} deal reviews",
+        "courierReviews": "🚚 {{count}} courier reviews",
+        "completedDeals": "🤝 {{count}} completed deals",
+        "completedDeliveries": "🚚 {{count}} completed deliveries",
+        "repeatCustomers": "🔁 {{count}} repeat customers"
+      },
+      "service": {
+        "availability": "Availability",
+        "response": "Usually responds within 24 hours"
+      },
+      "workshop": {
+        "date": "Date",
+        "location": "Location",
+        "capacity": "Spots left"
+      },
+      "coaching": {
+        "mode": "Format",
+        "online": "Online session",
+        "onSite": "On-site"
+      },
+      "request": {
+        "neededBy": "Needed by",
+        "compensation": "Accepted compensation"
+      },
+      "inspiration": {
+        "creator": "Creator",
+        "category": "Category"
       }
     },
     "acceptedValues": {

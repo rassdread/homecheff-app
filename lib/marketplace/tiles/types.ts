@@ -35,8 +35,18 @@ export type MarketplaceTileTrust = {
   courierReviewCount: number;
   completedDeals: number;
   completedDeliveries: number;
+  repeatCustomers: number;
   trustBadges: DiscoveryTrustBadge[];
   sellerTier: number;
+};
+
+export type MarketplaceTileFulfillmentFlags = {
+  pickup: boolean;
+  delivery: boolean;
+  shipping: boolean;
+  digital: boolean;
+  onSite: boolean;
+  onlineSession: boolean;
 };
 
 /** Presentation-only view model for discovery tiles. */
@@ -71,6 +81,12 @@ export type MarketplaceTileModel = {
   trust: MarketplaceTileTrust;
   favoriteCount: number;
   fulfillmentMode: MarketplaceTileFulfillmentMode;
+  fulfillmentFlags: MarketplaceTileFulfillmentFlags;
+
+  /** Workshop capacity — only when present on discovery transport (future). */
+  capacityRemaining: number | null;
+  /** Request needed-by — uses availabilityDate when set. */
+  neededBy: string | null;
 
   mode: MarketplaceTileMode;
   inspirationCategoryLabel?: string;

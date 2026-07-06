@@ -127,7 +127,7 @@ assert(
     (s) =>
       s.kind === 'activity_cards' &&
       !s.enabled &&
-      s.specVersion === 1,
+      s.specVersion === 2,
   ),
   'activity cards slot reserved with spec',
 );

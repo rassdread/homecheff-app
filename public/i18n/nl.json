@@ -603,6 +603,9 @@
     }
   },
   "activityCards": {
+    "band": {
+      "label": "Tip voor jou"
+    },
     "categories": {
       "social": "Sociaal",
       "trust": "Vertrouwen",
@@ -611,6 +614,63 @@
       "community": "Community",
       "profile": "Profiel",
       "local": "Lokaal"
+    },
+    "types": {
+      "profileCompletion": {
+        "title": "Maak je profiel compleet",
+        "description": "Voeg ontbrekende gegevens toe zodat anderen je beter kunnen vinden en vertrouwen.",
+        "action": "Profiel aanvullen"
+      },
+      "requestReview": {
+        "title": "Deel je ervaring",
+        "description": "Je hebt een afspraak afgerond — een korte review helpt de community.",
+        "action": "Review plaatsen"
+      },
+      "shareQr": {
+        "title": "Deel je QR-code",
+        "description": "Laat buren en vrienden je profiel scannen en ontdekken wat je aanbiedt.",
+        "action": "QR delen"
+      },
+      "nearbyHelp": {
+        "title": "Iemand in de buurt zoekt hulp",
+        "description": "Er zijn gezochte aanvragen bij jou in de buurt — misschien kun jij helpen.",
+        "action": "Bekijk verzoeken"
+      },
+      "uploadListing": {
+        "title": "Plaats je eerste aanbod",
+        "description": "Deel wat je maakt, kweekt of aanbiedt — je dorpsplein wacht op je.",
+        "action": "Aanbod plaatsen"
+      },
+      "uploadInspiration": {
+        "title": "Deel je eerste inspiratie",
+        "description": "Laat anderen meekijken in je keuken, tuin of atelier.",
+        "action": "Inspiratie delen"
+      },
+      "completeWorkspace": {
+        "title": "Toon je werkplek",
+        "description": "Voeg foto's toe van je werkruimte — dat wekt vertrouwen bij kopers.",
+        "action": "Werkplek toevoegen"
+      },
+      "verifyAccount": {
+        "title": "Bevestig je e-mail",
+        "description": "Verifieer je account om berichten te sturen en veilig te handelen.",
+        "action": "E-mail bevestigen"
+      },
+      "addWorkshop": {
+        "title": "Organiseer een workshop",
+        "description": "Deel je kennis via een workshop of kookles in de buurt.",
+        "action": "Workshop aanmaken"
+      },
+      "becomeCourier": {
+        "title": "Word bezorger in de buurt",
+        "description": "Help makers en kopers door lokaal te bezorgen wanneer het jou past.",
+        "action": "Bezorger worden"
+      },
+      "inviteFriend": {
+        "title": "Nodig een buur uit",
+        "description": "Groei de community door iemand uit te nodigen voor HomeCheff.",
+        "action": "Uitnodigen"
+      }
     }
   },
   "filters": {
@@ -7283,6 +7343,65 @@
       },
       "sidebar": {
         "viewLink": "Bekijk"
+      }
+    },
+    "preview": {
+      "ariaLabel": "Aanbod preview",
+      "sections": {
+        "payment": "Waarde & betaling",
+        "fulfillment": "Levering",
+        "acceptedValues": "Geaccepteerde waarden",
+        "trust": "Vertrouwen"
+      },
+      "actions": {
+        "view": "Bekijk aanbod",
+        "message": "Bericht sturen",
+        "favorite": "Favoriet"
+      },
+      "payment": {
+        "fixed": "Vaste prijs",
+        "onRequest": "Contact aanbieder",
+        "voluntary": "Jij bepaalt bedrag",
+        "barterOnly": "Andere waarde bespreekbaar",
+        "moneyAndBarter": "Combinatie mogelijk",
+        "alternativeValue": "Andere waarde bespreekbaar",
+        "requestBudget": "Budgetindicatie",
+        "requestOpen": "Voorstel welkom",
+        "inspiration": "Inspiratie — geen verkoop"
+      },
+      "fulfillment": {
+        "onSite": "Op locatie",
+        "onlineSession": "Online sessie"
+      },
+      "trust": {
+        "productReviews": "⭐ {{count}} productreviews",
+        "dealReviews": "🤝 {{count}} afspraakreviews",
+        "courierReviews": "🚚 {{count}} koerierreviews",
+        "completedDeals": "🤝 {{count}} voltooide afspraken",
+        "completedDeliveries": "🚚 {{count}} voltooide bezorgingen",
+        "repeatCustomers": "🔁 {{count}} terugkerende klanten"
+      },
+      "service": {
+        "availability": "Beschikbaarheid",
+        "response": "Reactie meestal binnen 24 uur"
+      },
+      "workshop": {
+        "date": "Datum",
+        "location": "Locatie",
+        "capacity": "Plaatsen over"
+      },
+      "coaching": {
+        "mode": "Vorm",
+        "online": "Online sessie",
+        "onSite": "Op locatie"
+      },
+      "request": {
+        "neededBy": "Nodig voor",
+        "compensation": "Geaccepteerde vergoeding"
+      },
+      "inspiration": {
+        "creator": "Maker",
+        "category": "Categorie"
       }
     },
     "acceptedValues": {

@@ -23,19 +23,19 @@ export type ActivityCardAntiSpamConfig = {
 };
 
 export const DEFAULT_ACTIVITY_CARD_ANTI_SPAM: ActivityCardAntiSpamConfig = {
-  maxVisibleGlobal: 4,
+  maxVisibleGlobal: 2,
   maxPerSurface: {
     home_feed: 2,
     feed_mobile_insert: 1,
-    desktop_sidebar: 3,
+    desktop_sidebar: 1,
     profile_owner: 4,
     messages_inbox: 1,
     messages_thread: 1,
   },
-  dismissCooldownDays: 14,
+  dismissCooldownDays: 7,
   snoozeCooldownDays: 3,
   completionCooldownDays: 90,
-  maxImpressionsPerWeek: 5,
+  maxImpressionsPerWeek: 2,
   onePerCategoryPerBand: true,
 };
 

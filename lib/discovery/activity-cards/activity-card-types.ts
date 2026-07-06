@@ -152,7 +152,9 @@ export type ActivityCardFeedPayload = {
 };
 
 export type ActivityCardFeedItem = {
-  id: ActivityCardId;
+  id: string;
+  /** Phase 3B canonical type (e.g. UPLOAD_FIRST_LISTING). */
+  type?: string;
   category: ActivityCardCategory;
   titleKey: string;
   descriptionKey: string;
@@ -160,6 +162,9 @@ export type ActivityCardFeedItem = {
   ctaKind: ActivityCardCtaKind;
   ctaHref?: string;
   priority: ActivityCardPriority;
+  icon?: string;
+  dismissible?: boolean;
+  cooldownDays?: number;
 };
 
 export type ActivityCardInsertionPlan = {

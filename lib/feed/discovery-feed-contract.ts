@@ -4,11 +4,32 @@
  */
 
 import type { DiscoverySectionId } from '@/lib/discovery/sections';
-import type {
-  ActivityCardFeedItem,
-  ActivityCardInsertionPlan,
-} from '@/lib/discovery/activity-cards/activity-card-types';
-import { DEFAULT_ACTIVITY_CARD_INSERTION } from '@/lib/discovery/activity-cards/activity-card-feed-integration';
+/**
+ * Discovery activity cards slot — Phase 3B enabled.
+ */
+
+import type { ActivityCardInsertionPlan } from '@/lib/discovery/activity-cards/activity-card-types';
+import type { ActivityCardFeedItem } from '@/lib/discovery/activity-cards/activity-card-types';
+import { PHASE_3B_ACTIVITY_CARD_INSERTION } from '@/lib/discovery/activity-cards/activity-card-insertion-planner';
+
+/** Activity cards slot — Phase 3B via discovery.futureSlots.activity_cards. */
+export type DiscoveryActivityCardsSlot =
+  | {
+      kind: 'activity_cards';
+      enabled: false;
+      specVersion: 1 | 2;
+      insertion: ActivityCardInsertionPlan;
+    }
+  | {
+      kind: 'activity_cards';
+      enabled: true;
+      specVersion: 2;
+      cards: ActivityCardFeedItem[];
+      maxVisible: number;
+      insertion: ActivityCardInsertionPlan;
+      mobileSlots?: readonly number[];
+      desktopBetweenSections?: { betweenSections: boolean; maxBands: number };
+    };
 
 /** One ranked discovery section in the feed payload. */
 export type DiscoveryFeedSectionBlock = {
@@ -20,23 +41,6 @@ export type DiscoveryFeedSectionBlock = {
   /** Seller user ids represented in this section (audit / dedup). */
   sellerIds: string[];
 };
-
-/** Activity cards slot — Phase 3A architecture (disabled until 3B). */
-export type DiscoveryActivityCardsSlot =
-  | {
-      kind: 'activity_cards';
-      enabled: false;
-      specVersion: 1;
-      insertion: ActivityCardInsertionPlan;
-    }
-  | {
-      kind: 'activity_cards';
-      enabled: true;
-      specVersion: 1;
-      cards: ActivityCardFeedItem[];
-      maxVisible: number;
-      insertion: ActivityCardInsertionPlan;
-    };
 
 /** Reserved slot types for future feed extensions. */
 export type DiscoveryFeedFutureSlot =
@@ -89,8 +93,8 @@ export const DISCOVERY_FEED_FUTURE_SLOTS: DiscoveryFeedFutureSlot[] = [
   {
     kind: 'activity_cards',
     enabled: false,
-    specVersion: 1,
-    insertion: DEFAULT_ACTIVITY_CARD_INSERTION,
+    specVersion: 2,
+    insertion: PHASE_3B_ACTIVITY_CARD_INSERTION,
   },
   { kind: 'recommendations', enabled: false },
 ];

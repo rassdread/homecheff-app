@@ -18,6 +18,8 @@ interface StartChatButtonProps {
   onMessageSent?: (conversationId: string) => void;
   className?: string;
   showSuccessMessage?: boolean;
+  /** Override default button label (e.g. marketplace preview). */
+  label?: string;
 }
 
 export default function StartChatButton({
@@ -28,6 +30,7 @@ export default function StartChatButton({
   onMessageSent,
   className = '',
   showSuccessMessage = false,
+  label,
 }: StartChatButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -159,6 +162,8 @@ export default function StartChatButton({
     }
   };
 
+  const buttonLabel = label ?? t('common.startChat');
+
   const quickMessages = productId
     ? [
         'Hoi! Is dit product nog beschikbaar?',
@@ -256,7 +261,7 @@ export default function StartChatButton({
             ? t('common.sending')
             : status === 'loading'
               ? t('common.loadingDots')
-              : t('common.startChat')}
+              : buttonLabel}
         </span>
       </button>
 

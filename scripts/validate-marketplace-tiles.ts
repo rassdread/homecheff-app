@@ -124,7 +124,7 @@ function modelForKind(kind: ListingKind): MarketplaceTileModel {
 console.log('=== Marketplace Tile Validation (Phase T1) ===\n');
 
 assert(TILE_FIXTURE_LISTING_KINDS.length === 7, 'seven listing kinds in fixtures');
-assert(TILE_VARIANTS.length === 2, 'compact + standard variants');
+assert(TILE_VARIANTS.length === 4, 'compact + standard + mini + sidebar variants');
 
 for (const kind of TILE_FIXTURE_LISTING_KINDS) {
   const model = modelForKind(kind);
