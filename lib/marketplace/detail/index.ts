@@ -16,6 +16,7 @@ export {
   DETAIL_PAGE_KINDS,
   DETAIL_FORBIDDEN_SIGNALS,
   DETAIL_ACTION_IDS,
+  DETAIL_EXCHANGE_SUGGESTIONS_SLOT,
   listingKindToDetailKind,
   isCanonicalDetailSectionOrder,
 } from './detail-page-contract';

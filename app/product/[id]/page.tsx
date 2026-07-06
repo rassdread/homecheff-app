@@ -27,6 +27,7 @@ import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyC
 import ProductSaleAboutSection from '@/components/product/detail/ProductSaleAboutSection';
 import ProductOfferedBadgesSection from '@/components/product/detail/ProductOfferedBadgesSection';
 import ProductAcceptedBadgesSection from '@/components/product/detail/ProductAcceptedBadgesSection';
+import { ExchangeSuggestionsDetailBlock } from '@/components/marketplace/exchange-suggestions';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import { resolveProductDetailVideo } from '@/lib/product/normalize-product-video';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
@@ -781,6 +782,8 @@ export default function ProductPage() {
                 priceCents={product.priceCents}
                 priceModel={product.priceModel}
               />
+
+              <ExchangeSuggestionsDetailBlock listingId={product.id} />
 
               <ProductSaleAboutSection
                 product={product}

@@ -16,6 +16,7 @@ import ActivityCard from '@/components/discovery/activity-cards/ActivityCard';
 import CommunityModuleCard from './CommunityModuleCard';
 import OpportunitySurfaceStack from './OpportunitySurfaceStack';
 import GrowthActionStack from './GrowthActionStack';
+import { ExchangeSuggestionsSidebarModule } from '@/components/marketplace/exchange-suggestions';
 import WorkshopModuleCard from './WorkshopModuleCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 import { Calendar, X } from 'lucide-react';
@@ -199,6 +200,8 @@ export default function DesktopRightSidebarSurfaceStack({
       ) : null}
 
       <OpportunitySurfaceStack plan={plan} />
+
+      <ExchangeSuggestionsSidebarModule />
 
       {showWorkshop && workshopSlot.module?.kind === 'WORKSHOP' ? (
         <WorkshopModuleCard

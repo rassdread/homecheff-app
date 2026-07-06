@@ -1,0 +1,108 @@
+'use client';
+
+import Link from 'next/link';
+import { ArrowRightLeft, MapPin, X } from 'lucide-react';
+import type { ExchangeSuggestionCard } from '@/lib/marketplace/exchange-suggestions';
+import {
+  suggestionCtaLabelKey,
+  suggestionSummaryKey,
+  suggestionTypeLabelKey,
+} from '@/lib/marketplace/exchange-suggestions';
+import { buildProductSlugPath } from '@/lib/seo/productSlug';
+
+export type ExchangeSuggestionCardProps = {
+  card: ExchangeSuggestionCard;
+  t: (key: string, params?: Record<string, string>) => string;
+  onDismiss?: (id: string) => void;
+  compact?: boolean;
+};
+
+export default function ExchangeSuggestionCardView({
+  card,
+  t,
+  onDismiss,
+  compact = false,
+}: ExchangeSuggestionCardProps) {
+  const listingHref = `/product/${buildProductSlugPath(card.counterpartyTitle, null, card.counterpartyListingId)}`;
+  const profileHref = card.counterpartyUsername
+    ? `/user/${card.counterpartyUsername}`
+    : listingHref;
+  const messageHref = card.counterpartyUsername
+    ? `/messages?user=${encodeURIComponent(card.counterpartyUsername)}`
+    : '/messages';
+
+  return (
+    <article
+      className={`relative rounded-xl border border-teal-100 bg-teal-50/40 ${
+        compact ? 'p-3' : 'p-4'
+      }`}
+      data-exchange-suggestion={card.id}
+      data-suggestion-type={card.suggestionType}
+    >
+      {onDismiss ? (
+        <button
+          type="button"
+          onClick={() => onDismiss(card.id)}
+          className="absolute right-2 top-2 rounded-full p-1 text-gray-400 hover:bg-white/80 hover:text-gray-600"
+          aria-label={t('marketplace.exchangeSuggestions.dismiss')}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : null}
+
+      <div className={`flex gap-3 ${onDismiss ? 'pr-8' : ''}`}>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-800">
+          <ArrowRightLeft className="h-5 w-5" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-teal-800">
+              {t(suggestionTypeLabelKey(card.suggestionType))}
+            </span>
+            {card.modifierTypes.includes('LOCAL_EXCHANGE') &&
+            card.distanceKm != null ? (
+              <span className="inline-flex items-center gap-0.5 text-xs text-gray-600">
+                <MapPin className="h-3 w-3" aria-hidden />
+                {t('marketplace.exchangeSuggestions.modifier.local', {
+                  distance: String(Math.round(card.distanceKm)),
+                })}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2">
+            {card.counterpartyTitle}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-600 line-clamp-2">
+            {t(suggestionSummaryKey(card.suggestionType), card.summaryParams)}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {card.allowedCtas.includes('view_listing') ? (
+              <Link
+                href={listingHref}
+                className="inline-flex min-h-8 items-center rounded-lg bg-teal-700 px-3 text-xs font-semibold text-white hover:bg-teal-800"
+              >
+                {t(suggestionCtaLabelKey('view_listing'))}
+              </Link>
+            ) : null}
+            {card.allowedCtas.includes('view_profile') && card.counterpartyUsername ? (
+              <Link
+                href={profileHref}
+                className="inline-flex min-h-8 items-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
+              >
+                {t(suggestionCtaLabelKey('view_profile'))}
+              </Link>
+            ) : null}
+            {card.allowedCtas.includes('start_conversation') ? (
+              <Link
+                href={messageHref}
+                className="inline-flex min-h-8 items-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {t(suggestionCtaLabelKey('start_conversation'))}
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}

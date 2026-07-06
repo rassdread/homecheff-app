@@ -19,6 +19,9 @@ export const DETAIL_SECTION_IDS = [
   'action_block',
 ] as const;
 
+/** Optional 4F slot between value_exchange and trust_block — not in canonical section order. */
+export const DETAIL_EXCHANGE_SUGGESTIONS_SLOT = 'exchange_suggestions' as const;
+
 export type DetailSectionId = (typeof DETAIL_SECTION_IDS)[number];
 
 export const DETAIL_LAYOUT_TIERS = ['mobile', 'desktop'] as const;

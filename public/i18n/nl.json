@@ -7712,6 +7712,50 @@
         "futureRecommendationReady": "Klaar voor ruilsuggesties"
       }
     },
+    "exchangeSuggestions": {
+      "hint": "Optionele ruilkansen — ze beïnvloeden de discovery-ranking niet.",
+      "empty": "Geen ruilkansen op dit moment.",
+      "dismiss": "Sluiten",
+      "surfaces": {
+        "detail": {
+          "title": "Interessante ruilmogelijkheden"
+        },
+        "profile_owner": {
+          "title": "Ruilkansen voor jou"
+        },
+        "sidebar": {
+          "title": "Ruilkansen in de buurt"
+        }
+      },
+      "types": {
+        "direct": "Directe ruil",
+        "reverse": "Omgekeerde ruil",
+        "mutual": "Wederzijdse ruil",
+        "local": "Lokale ruil",
+        "community": "Community-ruil"
+      },
+      "summaries": {
+        "direct": "Jij biedt iets wat iemand zoekt",
+        "reverse": "Iemand biedt iets wat jij zoekt",
+        "mutual": "Jullie kunnen waarde met elkaar ruilen",
+        "local": "Een kans in je buurt",
+        "community": "Een interessante kans in de community"
+      },
+      "ctas": {
+        "viewListing": "Bekijk aanbod",
+        "viewProfile": "Bekijk profiel",
+        "startConversation": "Start gesprek"
+      },
+      "profile": {
+        "tabs": {
+          "outbound": "Jij biedt iets dat iemand zoekt",
+          "inbound": "Iemand biedt wat jij zoekt"
+        }
+      },
+      "modifier": {
+        "local": "{{distance}} km verderop"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Gezocht"

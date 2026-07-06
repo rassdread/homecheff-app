@@ -7712,6 +7712,50 @@
         "futureRecommendationReady": "Ready for exchange suggestions"
       }
     },
+    "exchangeSuggestions": {
+      "hint": "Optional exchange opportunities — they do not affect discovery ranking.",
+      "empty": "No exchange opportunities right now.",
+      "dismiss": "Dismiss",
+      "surfaces": {
+        "detail": {
+          "title": "Interesting exchange opportunities"
+        },
+        "profile_owner": {
+          "title": "Exchange opportunities for you"
+        },
+        "sidebar": {
+          "title": "Exchange opportunities nearby"
+        }
+      },
+      "types": {
+        "direct": "Direct exchange",
+        "reverse": "Reverse exchange",
+        "mutual": "Mutual exchange",
+        "local": "Local exchange",
+        "community": "Community exchange"
+      },
+      "summaries": {
+        "direct": "You offer something they are looking for",
+        "reverse": "They offer something you are looking for",
+        "mutual": "You can exchange value with each other",
+        "local": "An opportunity within your neighbourhood",
+        "community": "An interesting opportunity in the community"
+      },
+      "ctas": {
+        "viewListing": "View listing",
+        "viewProfile": "View profile",
+        "startConversation": "Start conversation"
+      },
+      "profile": {
+        "tabs": {
+          "outbound": "You offer what someone wants",
+          "inbound": "Someone offers what you want"
+        }
+      },
+      "modifier": {
+        "local": "{{distance}} km away"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Wanted"

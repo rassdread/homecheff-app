@@ -28,6 +28,7 @@ import {
   inspiratieFilterToRole,
 } from '@/components/profile/v2/ProfileV2InspirationActions';
 import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodActions';
+import { ExchangeSuggestionsProfileModule } from '@/components/marketplace/exchange-suggestions';
 import ProfileTrustSummaryLoader from '@/components/profile/ProfileTrustSummaryLoader';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PROFILE_V2_LIVE_AANBOD_FILTERS } from '@/lib/create/offering-vertical';
@@ -143,6 +144,8 @@ export function ProfileV2OverviewPanel({ ctx, onNavigateTab }: PanelProps) {
       </ProfileV2SectionCard>
 
       <ProfileV2RolesSection ctx={ctx} />
+
+      {viewerIsOwner ? <ExchangeSuggestionsProfileModule /> : null}
 
       {!viewerIsOwner || stats ? (
         <ProfileV2SectionCard padding="compact">
