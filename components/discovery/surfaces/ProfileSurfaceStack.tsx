@@ -5,6 +5,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { ResolvedSurfacePlan } from '@/lib/discovery/surfaces/surface-contract';
 import ActivityCard from '@/components/discovery/activity-cards/ActivityCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
+import OpportunityEconomyCard from './OpportunityEconomyCard';
+import OpportunityProfileModule from './OpportunityProfileModule';
 
 export type ProfileSurfaceStackProps = {
   plan: ResolvedSurfacePlan | null;
@@ -21,11 +23,15 @@ export default function ProfileSurfaceStack({
   const { t } = useTranslation();
 
   const sections = useMemo(() => plan?.profileStack ?? [], [plan]);
+  const profileEconomy = plan?.opportunityEconomy?.profileModules ?? [];
 
-  if (sections.length === 0) return null;
+  if (sections.length === 0 && profileEconomy.length === 0) return null;
 
   return (
     <div className={`flex flex-col gap-4 ${className}`} data-surface-stack="profile">
+      {profileEconomy.length > 0 ? (
+        <OpportunityProfileModule opportunities={profileEconomy} />
+      ) : null}
       {sections.map((section) => (
         <section key={section.sectionId} data-profile-section={section.sectionId}>
           <h3 className="text-sm font-semibold text-gray-900 mb-2">
@@ -51,6 +57,17 @@ export default function ProfileSurfaceStack({
                     contract={mod.contract}
                     t={t}
                     surface="profile_owner"
+                  />
+                );
+              }
+              if (mod.kind === 'ECONOMY_OPPORTUNITY') {
+                return (
+                  <OpportunityEconomyCard
+                    key={mod.contract.instanceId}
+                    contract={mod.contract}
+                    t={t}
+                    surface="profile_owner"
+                    compact
                   />
                 );
               }

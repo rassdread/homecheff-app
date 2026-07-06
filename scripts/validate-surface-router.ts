@@ -60,7 +60,7 @@ const baseEligibility = {
 console.log('=== SurfaceRouter Foundation Validation (Phase 3E) ===\n');
 
 console.log('Contracts');
-assert(SURFACE_KINDS.length === 7, 'seven canonical surface kinds');
+assert(SURFACE_KINDS.length === 8, 'eight canonical surface kinds (incl. ECONOMY_OPPORTUNITY)');
 assert(OPPORTUNITY_MODULE_IDS.length === 6, 'six opportunity modules');
 for (const id of OPPORTUNITY_MODULE_IDS) {
   const def = OPPORTUNITY_MODULE_REGISTRY[id];
@@ -154,10 +154,11 @@ assert(
 );
 assert(
   plan.profileModules.every((m) =>
-    ['ACTIVITY', 'OPPORTUNITY', 'PARTNER'].includes(m.kind),
+    ['ACTIVITY', 'OPPORTUNITY', 'PARTNER', 'ECONOMY_OPPORTUNITY', 'COMMUNITY'].includes(m.kind),
   ),
   'profile modules are activation/opportunity only',
 );
+assert(plan.opportunityEconomy !== undefined, 'opportunityEconomy on plan');
 
 console.log('\nVisibility');
 assert(maxModulesForTarget('OPPORTUNITY', 'desktop_right_sidebar') === 1, 'opportunity desktop cap');

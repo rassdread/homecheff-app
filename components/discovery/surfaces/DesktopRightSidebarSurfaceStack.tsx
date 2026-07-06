@@ -14,7 +14,7 @@ import {
 import { ACTIVITY_CARD_SESSION_MAX } from '@/lib/discovery/activity-cards/resolve-activity-card-contracts';
 import ActivityCard from '@/components/discovery/activity-cards/ActivityCard';
 import CommunityModuleCard from './CommunityModuleCard';
-import OpportunityModuleStack from './OpportunityModuleStack';
+import OpportunitySurfaceStack from './OpportunitySurfaceStack';
 import WorkshopModuleCard from './WorkshopModuleCard';
 import OpportunityModuleCard from './OpportunityModuleCard';
 import { Calendar, X } from 'lucide-react';
@@ -195,7 +195,7 @@ export default function DesktopRightSidebarSurfaceStack({
         </button>
       ) : null}
 
-      <OpportunityModuleStack plan={plan} />
+      <OpportunitySurfaceStack plan={plan} />
 
       {showWorkshop && workshopSlot.module?.kind === 'WORKSHOP' ? (
         <WorkshopModuleCard

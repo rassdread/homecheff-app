@@ -711,6 +711,122 @@
       }
     }
   },
+  "opportunities": {
+    "economy": {
+      "partner": {
+        "title": "Word partner op HomeCheff",
+        "description": "Deel wat je maakt of aanbiedt en bereik buren in je buurt.",
+        "action": "Partner worden",
+        "benefit": { "reach": "Bereik buren lokaal", "growth": "Groei met erkenning in de community" },
+        "req": { "profile": "Vul je profiel aan" }
+      },
+      "ambassador": {
+        "title": "Word buurtambassadeur",
+        "description": "Help HomeCheff groeien in jouw buurt en verdien erkenning.",
+        "action": "Ambassadeur worden",
+        "benefit": { "recognition": "Verdien buurterkenning", "status": "Bouw communitystatus op" },
+        "req": { "age": "Account minstens 7 dagen actief" }
+      },
+      "courier": {
+        "title": "Word buurtbezorger",
+        "description": "Bezorg lokaal en draag bij aan je community — verdiensten komen later.",
+        "action": "Start als bezorger",
+        "benefit": { "earn": "Toekomstig verdienpotentieel", "recognition": "Bezorger-erkenningsbadge" },
+        "req": { "location": "Stel je locatie in" }
+      },
+      "workshopHost": {
+        "title": "Geef een workshop",
+        "description": "Deel je kennis via een workshop of kookles bij jou in de buurt.",
+        "action": "Workshop starten",
+        "benefit": { "teach": "Leer je community", "status": "Workshophost-status" },
+        "req": { "listing": "Minstens één actieve listing" }
+      },
+      "communityHelper": {
+        "title": "Steun iemand in de buurt",
+        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken — misschien kun jij iets betekenen.",
+        "action": "Bekijk verzoeken",
+        "benefit": { "help": "Versterk buurtbanden", "recognition": "Helper-erkenning" },
+        "req": { "nearby": "Actieve hulpverzoeken in de buurt" },
+        "variants": {
+          "bikeRepair": {
+            "title": "Help met een fiets in de buurt",
+            "description": "Iemand bij jou in de buurt heeft hulp nodig met een fiets — misschien kun jij helpen.",
+            "action": "Bekijk verzoeken"
+          },
+          "smallJobs": {
+            "title": "Kleine klusjes in de buurt",
+            "description": "Er zijn praktische hulpverzoeken open bij jou in de buurt.",
+            "action": "Bekijk verzoeken"
+          },
+          "computerHelp": {
+            "title": "Computerhulp in de buurt",
+            "description": "Een buurman of buurvrouw heeft hulp nodig met een computer of printer.",
+            "action": "Bekijk verzoeken"
+          },
+          "moving": {
+            "title": "Verhuis hulp in de buurt",
+            "description": "Iemand bij jou in de buurt heeft hulp nodig bij verhuizen.",
+            "action": "Bekijk verzoeken"
+          },
+          "elderly": {
+            "title": "Steun een oudere buur",
+            "description": "Ouderen of kwetsbare buren in de buurt kunnen praktische hulp gebruiken.",
+            "action": "Bekijk verzoeken"
+          },
+          "garden": {
+            "title": "Tuinhulp in de buurt",
+            "description": "Een buur heeft hulp nodig met tuinwerk of opruimen.",
+            "action": "Bekijk verzoeken"
+          },
+          "wifiPrinter": {
+            "title": "Wifi- of printerhulp",
+            "description": "Iemand in de buurt heeft hulp nodig met wifi of een printer.",
+            "action": "Bekijk verzoeken"
+          },
+          "volunteer": {
+            "title": "Lokale vrijwilligersactie",
+            "description": "Doe mee met een buurtinitiatief of hulpverzoek bij jou in de buurt.",
+            "action": "Bekijk verzoeken"
+          }
+        }
+      },
+      "localBusinessInviter": {
+        "title": "Nodig een lokale ondernemer uit",
+        "description": "Ken je een bakker, slager of winkel? Nodig ze uit voor het dorpsplein.",
+        "action": "Uitnodiging delen",
+        "benefit": { "grow": "Laat de lokale marktplaats groeien", "recognition": "Partner-uitnodiger-erkenning" },
+        "req": { "products": "Minstens 3 actieve listings" }
+      },
+      "sportsClubInviter": {
+        "title": "Nodig je sportclub uit",
+        "description": "Samen koken, samen halen — groei als club op HomeCheff.",
+        "action": "Club uitnodigen",
+        "benefit": { "community": "Bouw clubcommunity op", "recognition": "Clubambassadeur-erkenning" },
+        "req": { "location": "Locatie ingesteld in je buurt" }
+      },
+      "schoolInviter": {
+        "title": "Nodig een school of klas uit",
+        "description": "Help een school of klas lokale makers en workshops ontdekken.",
+        "action": "Uitnodiging delen",
+        "benefit": { "community": "Verbind scholen met lokale makers", "recognition": "Schoolambassadeur-erkenning" },
+        "req": { "activity": "Actief in je lokale community" }
+      },
+      "municipalityInviter": {
+        "title": "Nodig je gemeente uit",
+        "description": "Help je gemeente HomeCheff ontdekken als lokaal platform.",
+        "action": "Uitnodiging delen",
+        "benefit": { "grow": "Breid lokaal platformbereik uit", "status": "Gemeente-ambassadeurstatus" },
+        "req": { "tier": "Gevestigde verkopersstatus", "deals": "Minstens 5 afgeronde deals" }
+      },
+      "eventOrganizer": {
+        "title": "Organiseer een lokaal evenement",
+        "description": "Breng buren samen via een workshop, markt of buurtactiviteit.",
+        "action": "Plan evenement",
+        "benefit": { "learn": "Deel vaardigheden met buren", "status": "Evenementorganisator-erkenning" },
+        "req": { "workshops": "Workshop- of evenementervaring in de buurt" }
+      }
+    }
+  },
   "surfaces": {
     "opportunity": {
       "band": {
@@ -818,6 +934,13 @@
         "community_opportunities": "Community",
         "activation_suggestions": "Suggesties voor jou",
         "trust_growth": "Vertrouwen opbouwen"
+      },
+      "opportunities": {
+        "title": "Jouw kansen",
+        "requirements": "Vereisten",
+        "benefits": "Voordelen",
+        "progress": "Voortgang",
+        "completed": "Afgerond"
       }
     }
   },

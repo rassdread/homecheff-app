@@ -9,6 +9,7 @@ import type { ResolvedSurfaceModule } from './surface-contract';
 export const SURFACE_KIND_BASE_PRIORITY: Record<SurfaceKind, number> = {
   ACTIVITY: 90,
   OPPORTUNITY: 75,
+  ECONOMY_OPPORTUNITY: 76,
   WORKSHOP: 73,
   EVENT: 70,
   PARTNER: 65,
@@ -20,6 +21,7 @@ export const SURFACE_KIND_BASE_PRIORITY: Record<SurfaceKind, number> = {
 export const DESKTOP_SIDEBAR_SURFACE_ANCHOR: Record<SurfaceKind, number> = {
   ACTIVITY: 80,
   OPPORTUNITY: 75,
+  ECONOMY_OPPORTUNITY: 76,
   WORKSHOP: 74,
   EVENT: 72,
   PARTNER: 70,
@@ -50,6 +52,8 @@ function modulePriorityScore(module: ResolvedSurfaceModule): number {
     case 'OPPORTUNITY':
     case 'PARTNER':
       return module.contract.priority;
+    case 'ECONOMY_OPPORTUNITY':
+      return module.contract.effectivePriority;
     case 'COMMUNITY':
     case 'WORKSHOP':
     case 'EVENT':
@@ -84,6 +88,7 @@ function moduleStableId(module: ResolvedSurfaceModule): string {
       return module.contract.id;
     case 'OPPORTUNITY':
     case 'PARTNER':
+    case 'ECONOMY_OPPORTUNITY':
       return module.contract.id;
     case 'COMMUNITY':
     case 'WORKSHOP':

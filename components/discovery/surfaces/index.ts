@@ -1,6 +1,9 @@
 export { default as ActivityCardSidebarStack } from './ActivityCardSidebarStack';
 export { default as OpportunityModuleCard } from './OpportunityModuleCard';
 export { default as OpportunityModuleStack } from './OpportunityModuleStack';
+export { default as OpportunitySurfaceStack } from './OpportunitySurfaceStack';
+export { default as OpportunityEconomyCard } from './OpportunityEconomyCard';
+export { default as OpportunityProfileModule } from './OpportunityProfileModule';
 export { default as CommunityModuleCard } from './CommunityModuleCard';
 export { default as WorkshopModuleCard } from './WorkshopModuleCard';
 export { default as DesktopRightSidebarSurfaceStack } from './DesktopRightSidebarSurfaceStack';

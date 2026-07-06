@@ -1943,6 +1943,122 @@
       }
     }
   },
+  "opportunities": {
+    "economy": {
+      "partner": {
+        "title": "Become a HomeCheff partner",
+        "description": "Share what you make or offer and reach neighbors in your area.",
+        "action": "Become a partner",
+        "benefit": { "reach": "Reach neighbors locally", "growth": "Grow with community recognition" },
+        "req": { "profile": "Complete your profile" }
+      },
+      "ambassador": {
+        "title": "Become a neighborhood ambassador",
+        "description": "Help HomeCheff grow locally and earn recognition.",
+        "action": "Become ambassador",
+        "benefit": { "recognition": "Earn neighborhood recognition", "status": "Build community status" },
+        "req": { "age": "Account active for at least 7 days" }
+      },
+      "courier": {
+        "title": "Become a neighborhood courier",
+        "description": "Deliver locally and contribute to your community — earnings framework coming later.",
+        "action": "Start as courier",
+        "benefit": { "earn": "Future earning potential", "recognition": "Courier recognition badge" },
+        "req": { "location": "Set your location" }
+      },
+      "workshopHost": {
+        "title": "Host a workshop",
+        "description": "Share your skills through a workshop or cooking class nearby.",
+        "action": "Start workshop",
+        "benefit": { "teach": "Teach your community", "status": "Workshop host status" },
+        "req": { "listing": "At least one active listing" }
+      },
+      "communityHelper": {
+        "title": "Support someone nearby",
+        "description": "People near you are looking for help — maybe you can make a difference.",
+        "action": "View requests",
+        "benefit": { "help": "Strengthen neighborhood bonds", "recognition": "Helper recognition" },
+        "req": { "nearby": "Active help requests nearby" },
+        "variants": {
+          "bikeRepair": {
+            "title": "Help fix a bike nearby",
+            "description": "Someone near you needs help with a bicycle — maybe you can assist.",
+            "action": "View requests"
+          },
+          "smallJobs": {
+            "title": "Small neighborhood jobs",
+            "description": "Practical help requests are open near you.",
+            "action": "View requests"
+          },
+          "computerHelp": {
+            "title": "Computer help nearby",
+            "description": "A neighbor needs help with a computer or printer.",
+            "action": "View requests"
+          },
+          "moving": {
+            "title": "Moving assistance nearby",
+            "description": "Someone nearby needs help moving.",
+            "action": "View requests"
+          },
+          "elderly": {
+            "title": "Support an elderly neighbor",
+            "description": "Elderly or vulnerable neighbors nearby may need practical help.",
+            "action": "View requests"
+          },
+          "garden": {
+            "title": "Garden help nearby",
+            "description": "A neighbor needs help with garden work or cleanup.",
+            "action": "View requests"
+          },
+          "wifiPrinter": {
+            "title": "Wifi or printer help",
+            "description": "Someone nearby needs help with wifi or a printer.",
+            "action": "View requests"
+          },
+          "volunteer": {
+            "title": "Local volunteer action",
+            "description": "Join a neighborhood initiative or help request near you.",
+            "action": "View requests"
+          }
+        }
+      },
+      "localBusinessInviter": {
+        "title": "Invite a local business",
+        "description": "Know a baker, butcher, or shop? Invite them to the village square.",
+        "action": "Share invite",
+        "benefit": { "grow": "Grow the local marketplace", "recognition": "Partner inviter recognition" },
+        "req": { "products": "At least 3 active listings" }
+      },
+      "sportsClubInviter": {
+        "title": "Invite your sports club",
+        "description": "Cook together, pick up together — grow as a club on HomeCheff.",
+        "action": "Invite club",
+        "benefit": { "community": "Build club community", "recognition": "Club ambassador recognition" },
+        "req": { "location": "Location set in your area" }
+      },
+      "schoolInviter": {
+        "title": "Invite a school or class",
+        "description": "Help a school or class discover local makers and workshops.",
+        "action": "Share invite",
+        "benefit": { "community": "Connect schools to local makers", "recognition": "School ambassador recognition" },
+        "req": { "activity": "Active in your local community" }
+      },
+      "municipalityInviter": {
+        "title": "Invite your municipality",
+        "description": "Help your municipality discover HomeCheff as a local platform.",
+        "action": "Share invite",
+        "benefit": { "grow": "Expand local platform reach", "status": "Municipal ambassador status" },
+        "req": { "tier": "Established seller tier", "deals": "At least 5 completed deals" }
+      },
+      "eventOrganizer": {
+        "title": "Organize a local event",
+        "description": "Bring neighbors together through a workshop, market, or community event.",
+        "action": "Plan event",
+        "benefit": { "learn": "Share skills with neighbors", "status": "Event organizer recognition" },
+        "req": { "workshops": "Workshop or event experience nearby" }
+      }
+    }
+  },
   "surfaces": {
     "opportunity": {
       "band": {
@@ -2050,6 +2166,13 @@
         "community_opportunities": "Community",
         "activation_suggestions": "Suggestions for you",
         "trust_growth": "Build trust"
+      },
+      "opportunities": {
+        "title": "Your opportunities",
+        "requirements": "Requirements",
+        "benefits": "Benefits",
+        "progress": "Progress",
+        "completed": "Completed"
       }
     }
   },

@@ -167,7 +167,33 @@ export {
   readOpportunityCooldownState,
   recordOpportunityDismissed,
   recordOpportunityShown,
+  readEconomyOpportunityCooldownState,
+  recordEconomyOpportunityDismissed,
+  recordEconomyOpportunityShown,
 } from './surface-client-storage';
+
+export type {
+  EconomyOpportunitySurfaceContract,
+  OpportunityEconomySurfacePlan,
+  ResolvedEconomyOpportunityModule,
+} from './map-economy-opportunity-surface';
+
+export {
+  toEconomyOpportunityModule,
+  isPartnerEconomyType,
+} from './map-economy-opportunity-surface';
+
+export { resolveOpportunityEconomySurfaces } from './resolve-opportunity-economy-surfaces';
+
+export {
+  buildPrioritizedMobileInserts,
+  economyOpportunityInsertIndices,
+} from './resolve-mobile-opportunity-inserts';
+
+export type {
+  PrioritizedMobileInsert,
+  MobileSurfaceInsertTier,
+} from './resolve-mobile-opportunity-inserts';
 
 export {
   buildServerSurfaceContext,

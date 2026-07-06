@@ -22,6 +22,7 @@ function moduleKey(module: ResolvedSurfaceModule): string {
     case 'COMMUNITY':
     case 'WORKSHOP':
     case 'EVENT':
+    case 'ECONOMY_OPPORTUNITY':
       return module.contract.id;
     default:
       return '';
@@ -52,6 +53,7 @@ function mobileTargetForSlot(
 export type BuildMobileSurfaceMappingInput = {
   sidebarStack: SidebarStackSlot[];
   profileModules: ResolvedSurfaceModule[];
+  economyMobileModules?: ResolvedSurfaceModule[];
 };
 
 export function buildMobileSurfaceMapping(
@@ -85,14 +87,18 @@ export function buildMobileSurfaceMapping(
     });
   }
 
-  const activityCardModules = mobileCandidates.filter(
-    (m) =>
-      m.kind === 'ACTIVITY' ||
-      m.kind === 'OPPORTUNITY' ||
-      m.kind === 'WORKSHOP' ||
-      m.kind === 'PARTNER' ||
-      m.kind === 'EVENT',
-  );
+  const activityCardModules = [
+    ...mobileCandidates.filter(
+      (m) =>
+        m.kind === 'ACTIVITY' ||
+        m.kind === 'OPPORTUNITY' ||
+        m.kind === 'WORKSHOP' ||
+        m.kind === 'PARTNER' ||
+        m.kind === 'EVENT' ||
+        m.kind === 'ECONOMY_OPPORTUNITY',
+    ),
+    ...(input.economyMobileModules ?? []),
+  ];
 
   const inserts = resolveMobileSurfaceInserts({
     modules: activityCardModules,

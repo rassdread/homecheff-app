@@ -6,11 +6,16 @@
 import type { ActivityCardCtaKind } from '@/lib/discovery/activity-cards/activity-card-types';
 import type { ActivityCardFeedItem } from '@/lib/discovery/activity-cards/activity-card-types';
 import type { ActivityCardType } from '@/lib/discovery/activity-cards/activity-card-contract';
+import type {
+  EconomyOpportunitySurfaceContract,
+  OpportunityEconomySurfacePlan,
+} from './map-economy-opportunity-surface';
 
 /** Canonical surface kinds (3D architecture + 3F workshop). */
 export const SURFACE_KINDS = [
   'ACTIVITY',
   'OPPORTUNITY',
+  'ECONOMY_OPPORTUNITY',
   'COMMUNITY',
   'PARTNER',
   'WORKSHOP',
@@ -184,14 +189,23 @@ export type ResolvedPlatformModule = {
   moduleId: string;
 };
 
+export type ResolvedEconomyOpportunityModule = {
+  kind: 'ECONOMY_OPPORTUNITY';
+  size: SurfaceModuleSize;
+  contract: EconomyOpportunitySurfaceContract;
+};
+
 export type ResolvedSurfaceModule =
   | ResolvedActivityModule
   | ResolvedOpportunityModule
+  | ResolvedEconomyOpportunityModule
   | ResolvedCommunityModule
   | ResolvedPartnerModule
   | ResolvedWorkshopModule
   | ResolvedEventModule
   | ResolvedPlatformModule;
+
+export type { EconomyOpportunitySurfaceContract, OpportunityEconomySurfacePlan };
 
 /** Canonical desktop right-sidebar surface stack (3F). */
 export const SIDEBAR_STACK_SLOT_IDS = [
@@ -257,6 +271,8 @@ export type ResolvedSurfacePlan = {
   profileModules: ResolvedSurfaceModule[];
   profileStack: ProfileStackSection[];
   notificationsFuture: ResolvedSurfaceModule[];
+  /** Opportunity Economy surfaces — Phase 3J. */
+  opportunityEconomy: OpportunityEconomySurfacePlan;
   meta: {
     activitySidebarMaxStacked: number;
     activitySidebarCollapseThreshold: number;

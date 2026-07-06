@@ -34,6 +34,16 @@ export const SURFACE_VISIBILITY_RULES: SurfaceVisibilityRule[] = [
     },
   },
   {
+    kind: 'ECONOMY_OPPORTUNITY',
+    targets: ['desktop_right_sidebar', 'mobile_insert', 'profile_owner'],
+    guestVisible: false,
+    maxPerTarget: {
+      desktop_right_sidebar: 1,
+      mobile_insert: 1,
+      profile_owner: 3,
+    },
+  },
+  {
     kind: 'PARTNER',
     targets: ['desktop_right_sidebar', 'profile_owner'],
     guestVisible: false,

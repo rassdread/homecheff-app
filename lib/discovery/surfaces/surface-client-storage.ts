@@ -3,10 +3,12 @@
  */
 
 import type { OpportunityModuleId } from './surface-contract';
+import type { OpportunityType } from '@/lib/discovery/opportunities/opportunity-contract';
 import type { OpportunityCooldownState } from './surface-context';
 
 const STORAGE_PREFIX = 'hc:surfaces:opportunity';
 const COOLDOWN_KEY = `${STORAGE_PREFIX}:cooldowns`;
+const ECONOMY_COOLDOWN_KEY = `${STORAGE_PREFIX}:economy-cooldowns`;
 
 function readJson<T>(key: string): T | null {
   if (typeof window === 'undefined') return null;
@@ -48,4 +50,56 @@ export function recordOpportunityShown(moduleId: OpportunityModuleId): void {
     lastShownAt: new Date().toISOString(),
   };
   writeJson(COOLDOWN_KEY, cooldowns);
+}
+
+export function readEconomyOpportunityCooldownState(): Partial<
+  Record<
+    OpportunityType,
+    {
+      dismissedAt: string | null;
+      lastShownAt: string | null;
+      acceptedAt: string | null;
+      completedAt: string | null;
+      lifecycle: string;
+    }
+  >
+> {
+  return readJson<EconomyOpportunityCooldownState>(ECONOMY_COOLDOWN_KEY) ?? {};
+}
+
+type EconomyOpportunityCooldownState = Partial<
+  Record<
+    OpportunityType,
+    {
+      dismissedAt: string | null;
+      lastShownAt: string | null;
+      acceptedAt: string | null;
+      completedAt: string | null;
+      lifecycle: string;
+    }
+  >
+>;
+
+export function recordEconomyOpportunityDismissed(type: OpportunityType): void {
+  const cooldowns = readEconomyOpportunityCooldownState();
+  cooldowns[type] = {
+    dismissedAt: new Date().toISOString(),
+    lastShownAt: cooldowns[type]?.lastShownAt ?? null,
+    acceptedAt: cooldowns[type]?.acceptedAt ?? null,
+    completedAt: cooldowns[type]?.completedAt ?? null,
+    lifecycle: 'archived',
+  };
+  writeJson(ECONOMY_COOLDOWN_KEY, cooldowns);
+}
+
+export function recordEconomyOpportunityShown(type: OpportunityType): void {
+  const cooldowns = readEconomyOpportunityCooldownState();
+  cooldowns[type] = {
+    dismissedAt: cooldowns[type]?.dismissedAt ?? null,
+    lastShownAt: new Date().toISOString(),
+    acceptedAt: cooldowns[type]?.acceptedAt ?? null,
+    completedAt: cooldowns[type]?.completedAt ?? null,
+    lifecycle: 'shown',
+  };
+  writeJson(ECONOMY_COOLDOWN_KEY, cooldowns);
 }

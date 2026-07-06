@@ -10,9 +10,6 @@ import type {
   SidebarStackSlot,
   WorkshopModuleContract,
 } from './surface-contract';
-import {
-  OPPORTUNITY_STACK_COOLDOWN_DAYS,
-} from './surface-contract';
 import { CANONICAL_SIDEBAR_STACK_ORDER } from './sidebar-stack-order';
 import type { SurfaceRouterContext } from './surface-context';
 import { resolveSidebarSlotVisibility } from './resolve-sidebar-visibility';
@@ -21,7 +18,8 @@ export type BuildSidebarStackInput = {
   ctx: SurfaceRouterContext;
   activityModules: ResolvedActivityModule[];
   communityModule: CommunityModuleContract | null;
-  opportunityModule: OpportunityModuleContract | null;
+  /** Legacy opportunity contract or economy opportunity module — Phase 3J. */
+  opportunityModule: ResolvedSurfaceModule | null;
   partnerModule: OpportunityModuleContract | null;
   workshopModule: WorkshopModuleContract | null;
   eventModule: ResolvedSurfaceModule | null;
@@ -85,7 +83,7 @@ export function buildSidebarStack(
           module = null;
           break;
         case 'opportunity_module':
-          module = opportunityModule ? toOpportunityResolved(opportunityModule) : null;
+          module = opportunityModule;
           moduleCount = opportunityModule ? 1 : 0;
           break;
         case 'workshop_module':
@@ -151,5 +149,3 @@ export function flattenSidebarStackModules(
 
   return out;
 }
-
-export { OPPORTUNITY_STACK_COOLDOWN_DAYS };

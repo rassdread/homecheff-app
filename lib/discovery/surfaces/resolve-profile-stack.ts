@@ -59,12 +59,13 @@ export type BuildProfileStackInput = {
   activityItems: ActivityCardFeedItem[];
   opportunities: OpportunityModuleContract[];
   communityModules: CommunityModuleContract[];
+  economyProfileModules?: import('./surface-contract').ResolvedEconomyOpportunityModule[];
 };
 
 export function buildProfileStack(
   input: BuildProfileStackInput,
 ): ProfileStackSection[] {
-  const { ctx, activityItems, opportunities, communityModules } = input;
+  const { ctx, activityItems, opportunities, communityModules, economyProfileModules = [] } = input;
 
   const partnerOpps = opportunities
     .filter((o) =>
@@ -92,15 +93,49 @@ export function buildProfileStack(
   const sections: ProfileStackSection[] = [
     {
       sectionId: 'partner_opportunities',
-      modules: filterModulesForTarget(partnerOpps, 'profile_owner', ctx),
+      modules: filterModulesForTarget(
+        [...partnerOpps, ...economyProfileModules.filter(
+          (m) =>
+            m.contract.opportunityType === 'PARTNER' ||
+            m.contract.opportunityType === 'AMBASSADOR' ||
+            m.contract.opportunityType === 'LOCAL_BUSINESS_INVITER' ||
+            m.contract.opportunityType === 'SPORTS_CLUB_INVITER' ||
+            m.contract.opportunityType === 'SCHOOL_INVITER' ||
+            m.contract.opportunityType === 'MUNICIPALITY_INVITER',
+        )],
+        'profile_owner',
+        ctx,
+      ),
     },
     {
       sectionId: 'community_opportunities',
-      modules: filterModulesForTarget(communityOpps, 'profile_owner', ctx),
+      modules: filterModulesForTarget(
+        [
+          ...communityOpps,
+          ...economyProfileModules.filter(
+            (m) =>
+              m.contract.opportunityType === 'COMMUNITY_HELPER' ||
+              m.contract.opportunityType === 'COURIER',
+          ),
+        ],
+        'profile_owner',
+        ctx,
+      ),
     },
     {
       sectionId: 'activation_suggestions',
-      modules: filterModulesForTarget(activation, 'profile_owner', ctx),
+      modules: filterModulesForTarget(
+        [
+          ...activation,
+          ...economyProfileModules.filter(
+            (m) =>
+              m.contract.opportunityType === 'WORKSHOP_HOST' ||
+              m.contract.opportunityType === 'EVENT_ORGANIZER',
+          ),
+        ],
+        'profile_owner',
+        ctx,
+      ),
     },
     {
       sectionId: 'trust_growth',

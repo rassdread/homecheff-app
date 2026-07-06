@@ -78,8 +78,14 @@ import { getActivityCardsFromDiscovery,
   interleaveDesktopActivityCards,
   interleaveMobileActivityCards,
 } from "@/lib/feed/activity-card-feed-rows";
+import {
+  getEconomyOpportunityMobileInserts,
+  getOpportunityMobileInsertIndices,
+  interleaveMobileOpportunitySurfaces,
+} from "@/lib/feed/opportunity-surface-feed-rows";
 import { getSurfacePlanFromDiscovery } from "@/lib/discovery/surfaces/surface-discovery-helpers";
 import { ActivityCardFeedBand } from "@/components/discovery/activity-cards";
+import OpportunityEconomyCard from "@/components/discovery/surfaces/OpportunityEconomyCard";
 import { filterCardsForSession } from "@/lib/discovery/activity-cards/activity-card-client-storage";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -2009,11 +2015,7 @@ export default function GeoFeed({
       rows = mixedRows;
     }
 
-    if (
-      !session?.user ||
-      activityCardsFromFeed.length === 0 ||
-      feedChip === "inspiration"
-    ) {
+    if (!session?.user || feedChip === "inspiration") {
       return rows;
     }
 
@@ -2022,18 +2024,37 @@ export default function GeoFeed({
       activityCardSlotMeta.maxSession,
       activityCardSlotMeta.maxVisible,
     );
-    if (eligible.length === 0) return rows;
 
-    if (isMobileFeedUi) {
-      return interleaveMobileActivityCards(
-        rows,
-        eligible,
-        activityCardSlotMeta.mobileSlots,
-        activityCardSlotMeta.maxSession,
-      );
+    let withActivity = rows;
+    if (eligible.length > 0) {
+      if (isMobileFeedUi) {
+        withActivity = interleaveMobileActivityCards(
+          rows,
+          eligible,
+          activityCardSlotMeta.mobileSlots,
+          activityCardSlotMeta.maxSession,
+        );
+      } else {
+        withActivity = interleaveDesktopActivityCards(rows, eligible, 2);
+      }
     }
 
-    return interleaveDesktopActivityCards(rows, eligible, 2);
+    if (!isMobileFeedUi) return withActivity;
+
+    const mobileOpportunities = getEconomyOpportunityMobileInserts(surfacePlan);
+    if (mobileOpportunities.length === 0) return withActivity;
+
+    const oppIndices =
+      getOpportunityMobileInsertIndices(surfacePlan).length > 0
+        ? getOpportunityMobileInsertIndices(surfacePlan)
+        : activityCardSlotMeta.mobileSlots;
+
+    return interleaveMobileOpportunitySurfaces(
+      withActivity,
+      mobileOpportunities,
+      oppIndices,
+      1,
+    );
   }, [
     feedChip,
     sortedSales,
@@ -2045,6 +2066,7 @@ export default function GeoFeed({
     activityCardsFromFeed,
     activityCardSlotMeta,
     isMobileFeedUi,
+    surfacePlan,
   ]);
 
   const displayCount = displayRows.length;
@@ -3284,6 +3306,18 @@ export default function GeoFeed({
                     surface={isMobileFeedUi ? "feed_mobile_insert" : "home_feed"}
                     className="col-span-full"
                   />
+                );
+                return;
+              }
+              if (row.row === "economy_opportunity") {
+                nodes.push(
+                  <div key={`economy-opp-${row.contract.instanceId}-${idx}`} className="col-span-full">
+                    <OpportunityEconomyCard
+                      contract={row.contract}
+                      t={t}
+                      surface="feed_mobile_insert"
+                    />
+                  </div>
                 );
                 return;
               }

@@ -12,7 +12,9 @@ import { ACTIVITY_CARD_SIDEBAR_PLACEMENT } from '@/lib/discovery/activity-cards/
 import type { ActivityCardFeedItem } from '@/lib/discovery/activity-cards/activity-card-types';
 import type { ActivityCardType } from '@/lib/discovery/activity-cards/activity-card-contract';
 import type {
+  OpportunityModuleContract,
   ResolvedActivityModule,
+  ResolvedOpportunityModule,
   ResolvedSurfaceModule,
   ResolvedSurfacePlan,
 } from './surface-contract';
@@ -35,6 +37,9 @@ import { resolveMobileSurfaceInserts } from './resolve-mobile-surface-inserts';
 import { ACTIVITY_CARD_MOBILE_INSERTION } from '@/lib/discovery/activity-cards/activity-card-insertion-planner';
 import { sortSurfaceModules } from './surface-priority';
 import { filterModulesForTarget, maxModulesForTarget } from './surface-visibility';
+import { resolveOpportunityEconomySurfaces } from './resolve-opportunity-economy-surfaces';
+import { toEconomyOpportunityModule } from './map-economy-opportunity-surface';
+import { buildPrioritizedMobileInserts } from './resolve-mobile-opportunity-inserts';
 
 export type SurfaceRouterInput = SurfaceRouterContext;
 
@@ -100,6 +105,12 @@ function toActivityModule(
   size: 'standard' | 'compact' = 'standard',
 ): ResolvedActivityModule {
   return { kind: 'ACTIVITY', size, contract: item };
+}
+
+function toLegacyOpportunityModule(
+  contract: OpportunityModuleContract,
+): ResolvedOpportunityModule {
+  return { kind: 'OPPORTUNITY', size: 'standard', contract };
 }
 
 function buildEventModule(
@@ -180,8 +191,24 @@ export function resolveSurfaces(
   };
 
   const allOpportunities = resolveOpportunityModules({ ...oppOptions, limit: 6 });
-  const opportunityModule = resolveOpportunityStackModule(oppOptions);
-  const partnerModule = resolvePartnerStackModule(oppOptions);
+  const economySurfaces = resolveOpportunityEconomySurfaces(ctx);
+  const economyDesktopModule = economySurfaces.desktopSidebar
+    ? toEconomyOpportunityModule(economySurfaces.desktopSidebar)
+    : null;
+
+  const legacyOpportunity = resolveOpportunityStackModule(oppOptions);
+  const opportunityModule: ResolvedSurfaceModule | null =
+    economyDesktopModule ??
+    (legacyOpportunity ? toLegacyOpportunityModule(legacyOpportunity) : null);
+
+  const legacyPartner = resolvePartnerStackModule(oppOptions);
+  const partnerModule =
+    economyDesktopModule &&
+    (economySurfaces.desktopSidebar?.opportunityType ===
+      'LOCAL_BUSINESS_INVITER' ||
+      economySurfaces.desktopSidebar?.opportunityType === 'SPORTS_CLUB_INVITER')
+      ? null
+      : legacyPartner;
 
   const communityModules = resolveCommunityModules({
     input: communityEligibility(ctx),
@@ -229,11 +256,16 @@ export function resolveSurfaces(
     ),
   );
 
+  const economyProfileModules = economySurfaces.profileModules.map((c) =>
+    toEconomyOpportunityModule(c, 'compact'),
+  );
+
   const profileStack = buildProfileStack({
     ctx,
     activityItems,
     opportunities: allOpportunities,
     communityModules,
+    economyProfileModules,
   });
 
   const profileModules = flattenProfileStack(profileStack);
@@ -241,15 +273,41 @@ export function resolveSurfaces(
   const mobileMapping = buildMobileSurfaceMapping({
     sidebarStack,
     profileModules,
+    economyMobileModules: economySurfaces.mobileInserts.map((c) =>
+      toEconomyOpportunityModule(c),
+    ),
   });
 
-  const mobileInserts = resolveMobileSurfaceInserts({
-    modules: mobileMapping
+  const activityMobileCandidates = mobileMapping
+    .filter((m) => m.mobileTarget === 'activity_card' && m.module)
+    .map((m) => m.module!)
+    .filter((m) => m.kind === 'ACTIVITY');
+
+  const opportunityMobileCandidates = [
+    ...economySurfaces.mobileInserts.map((c) => toEconomyOpportunityModule(c)),
+    ...mobileMapping
       .filter((m) => m.mobileTarget === 'activity_card' && m.module)
-      .map((m) => m.module!),
+      .map((m) => m.module!)
+      .filter(
+        (m) =>
+          m.kind === 'OPPORTUNITY' ||
+          m.kind === 'PARTNER' ||
+          m.kind === 'ECONOMY_OPPORTUNITY',
+      ),
+  ];
+
+  const prioritizedMobile = buildPrioritizedMobileInserts({
+    activityModules: activityMobileCandidates,
+    opportunityModules: opportunityMobileCandidates.slice(0, 1),
     mobileSlots: ACTIVITY_CARD_MOBILE_INSERTION,
-    maxInserts: maxModulesForTarget('ACTIVITY', 'mobile_insert'),
+    maxActivityInserts: maxModulesForTarget('ACTIVITY', 'mobile_insert'),
+    maxOpportunityInserts: 1,
   });
+
+  const mobileInserts = prioritizedMobile.map(({ afterSaleIndex, module }) => ({
+    afterSaleIndex,
+    module,
+  }));
 
   const notificationsFuture = eventModule
     ? filterModulesForTarget([eventModule], 'notification_future', ctx)
@@ -264,6 +322,7 @@ export function resolveSurfaces(
     profileModules,
     profileStack,
     notificationsFuture,
+    opportunityEconomy: economySurfaces,
     meta: {
       activitySidebarMaxStacked: ACTIVITY_CARD_SIDEBAR_PLACEMENT.maxStacked,
       activitySidebarCollapseThreshold:
@@ -289,6 +348,11 @@ export function emptySurfacePlan(): ResolvedSurfacePlan {
     profileModules: [],
     profileStack: [],
     notificationsFuture: [],
+    opportunityEconomy: {
+      desktopSidebar: null,
+      mobileInserts: [],
+      profileModules: [],
+    },
     meta: {
       activitySidebarMaxStacked: ACTIVITY_CARD_SIDEBAR_PLACEMENT.maxStacked,
       activitySidebarCollapseThreshold:

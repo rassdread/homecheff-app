@@ -139,8 +139,10 @@ assert(
 );
 const oppSlot = plan.sidebarStack.find((s) => s.slotId === 'opportunity_module');
 assert(
-  !oppSlot?.module || oppSlot.module.kind === 'OPPORTUNITY',
-  'opportunity slot is OPPORTUNITY kind',
+  !oppSlot?.module ||
+    oppSlot.module.kind === 'OPPORTUNITY' ||
+    oppSlot.module.kind === 'ECONOMY_OPPORTUNITY',
+  'opportunity slot is opportunity kind',
 );
 const partnerSlot = plan.sidebarStack.find((s) => s.slotId === 'partner_module');
 assert(
