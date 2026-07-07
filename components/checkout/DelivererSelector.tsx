@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * Teen/platform checkout courier picker — uses Stripe Order `match-deliverers` API.
+ *
+ * Phase 5G-D decision: **not wired** to community `DeliveryRequest` flow.
+ * Community deals use self-claim via `CommunityDeliveryPanel` (5G-C); party-assign
+ * exists at `POST /api/delivery-requests/[id]/assign` but pre-select at deal time
+ * would be half-connected. Revisit when roster matching UI is scoped.
+ */
+
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, Star, Truck, Bike, Car, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';

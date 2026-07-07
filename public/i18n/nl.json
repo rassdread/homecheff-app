@@ -7860,6 +7860,64 @@
         "local": "{{distance}} km verderop"
       }
     },
+    "deals": {
+      "status": {
+        "proposal": {
+          "confirmed": "Afspraak bevestigd",
+          "completed": "Afspraak afgerond",
+          "cancelled": "Afspraak geannuleerd"
+        },
+        "payment": {
+          "waitingHomecheff": "Wacht op betaling",
+          "paid": "Betaald via HomeCheff",
+          "directContact": "Spreek betaling onderling af",
+          "voluntary": "Vrijwillige bijdrage",
+          "free": "Gratis afspraak"
+        },
+        "exchange": {
+          "confirmed": "Ruilafspraak bevestigd",
+          "completed": "Ruil afgerond"
+        },
+        "delivery": {
+          "available": "Bezorging mogelijk",
+          "requestedPending": "Bezorging aangevraagd — wacht op koppeling",
+          "requested": "Bezorging aangevraagd",
+          "courierAssigned": "Bezorger toegewezen",
+          "courierAssignedNamed": "Bezorger: {{name}}",
+          "inProgress": "Bezorging onderweg",
+          "inProgressNamed": "Onderweg — {{name}}",
+          "completed": "Bezorging afgerond",
+          "cancelled": "Bezorging geannuleerd"
+        }
+      },
+      "delivery": {
+        "sectionHeading": "Bezorging",
+        "pickup": "Ophalen: {{label}}",
+        "dropoff": "Bezorgen: {{label}}",
+        "window": "Tijdslot: {{label}}"
+      },
+      "actions": {
+        "openChat": "Open chat",
+        "reviewDeal": "Beoordeel afspraak",
+        "reviewDelivery": "Beoordeel bezorging",
+        "requestDelivery": "Bezorging aanvragen",
+        "viewDelivery": "Bekijk bezorging",
+        "payHomecheff": "Betaal via HomeCheff",
+        "markComplete": "Afspraak afronden",
+        "discussPayment": "Bespreek betaling"
+      },
+      "role": {
+        "buyer": "Koper",
+        "seller": "Verkoper"
+      },
+      "blocks": {
+        "proposal": "Afspraak",
+        "payment": "Betaling",
+        "exchange": "Ruil",
+        "delivery": "Bezorging",
+        "nextAction": "Volgende stap"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Gezocht"

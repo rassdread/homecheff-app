@@ -3,7 +3,7 @@ import {
   handleTrustServiceError,
   resolveTrustApiUser,
 } from '@/lib/trust/trust-api';
-import { listCommunityOrdersForUser } from '@/lib/trust/community-order-service';
+import { listProfileDealsForUser } from '@/lib/proposals/profile-deal-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
         ? status
         : undefined;
 
-    const deals = await listCommunityOrdersForUser(authResult.userId, filter);
+    const deals = await listProfileDealsForUser(authResult.userId, filter);
     return NextResponse.json({ deals });
   } catch (error) {
     return handleTrustServiceError(error);

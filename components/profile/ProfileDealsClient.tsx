@@ -1,36 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-
-type DealRow = {
-  id: string;
-  status: string;
-  proposalTitle: string;
-  counterpartName: string | null;
-  canReview: boolean;
-  conversationId: string;
-  createdAt: string;
-  completedAt: string | null;
-};
+import type { ProfileDealDTO } from '@/lib/proposals/profile-deal-types';
+import ProfileDealCard from '@/components/profile/ProfileDealCard';
 
 export default function ProfileDealsClient() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<'OPEN' | 'COMPLETED' | 'CANCELLED' | ''>('');
-  const [deals, setDeals] = useState<DealRow[]>([]);
+  const [deals, setDeals] = useState<ProfileDealDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadDeals = useCallback(async (status: typeof filter) => {
     setLoading(true);
-    const qs = filter ? `?status=${filter}` : '';
-    void fetch(`/api/profile/deals${qs}`)
-      .then((r) => (r.ok ? r.json() : { deals: [] }))
-      .then((data) => setDeals(data.deals ?? []))
-      .catch(() => setDeals([]))
-      .finally(() => setLoading(false));
-  }, [filter]);
+    const qs = status ? `?status=${status}` : '';
+    try {
+      const res = await fetch(`/api/profile/deals${qs}`);
+      const data = res.ok ? await res.json() : { deals: [] };
+      setDeals(data.deals ?? []);
+    } catch {
+      setDeals([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadDeals(filter);
+  }, [filter, loadDeals]);
+
+  const handleDealUpdated = useCallback((updated: ProfileDealDTO) => {
+    setDeals((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
+  }, []);
 
   const filters: Array<{ id: typeof filter; label: string }> = [
     { id: '', label: t('trust.deals.filterAll') },
@@ -69,37 +71,11 @@ export default function ProfileDealsClient() {
       ) : (
         <ul className="divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white">
           {deals.map((deal) => (
-            <li key={deal.id} className="p-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-gray-900">{deal.proposalTitle}</p>
-                  {deal.counterpartName ? (
-                    <p className="text-xs text-gray-600">
-                      {t('trust.deals.with', { name: deal.counterpartName })}
-                    </p>
-                  ) : null}
-                </div>
-                <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                  {t(`communityOrder.status.${deal.status.toLowerCase()}`)}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={`/messages/${deal.conversationId}`}
-                  className="text-xs font-semibold text-emerald-700 underline"
-                >
-                  {t('trust.deals.openChat')}
-                </Link>
-                {deal.canReview ? (
-                  <Link
-                    href={`/deal-review/${deal.id}`}
-                    className="text-xs font-semibold text-emerald-700 underline"
-                  >
-                    {t('trust.cta.reviewDeal')}
-                  </Link>
-                ) : null}
-              </div>
-            </li>
+            <ProfileDealCard
+              key={deal.id}
+              deal={deal}
+              onUpdated={handleDealUpdated}
+            />
           ))}
         </ul>
       )}

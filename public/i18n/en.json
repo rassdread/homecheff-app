@@ -7860,6 +7860,64 @@
         "local": "{{distance}} km away"
       }
     },
+    "deals": {
+      "status": {
+        "proposal": {
+          "confirmed": "Deal confirmed",
+          "completed": "Deal completed",
+          "cancelled": "Deal cancelled"
+        },
+        "payment": {
+          "waitingHomecheff": "Awaiting payment",
+          "paid": "Paid via HomeCheff",
+          "directContact": "Arrange payment between yourselves",
+          "voluntary": "Voluntary contribution",
+          "free": "Free deal"
+        },
+        "exchange": {
+          "confirmed": "Trade deal confirmed",
+          "completed": "Trade completed"
+        },
+        "delivery": {
+          "available": "Delivery available",
+          "requestedPending": "Delivery requested — awaiting match",
+          "requested": "Delivery requested",
+          "courierAssigned": "Courier assigned",
+          "courierAssignedNamed": "Courier: {{name}}",
+          "inProgress": "Delivery in progress",
+          "inProgressNamed": "On the way — {{name}}",
+          "completed": "Delivery completed",
+          "cancelled": "Delivery cancelled"
+        }
+      },
+      "delivery": {
+        "sectionHeading": "Delivery",
+        "pickup": "Pickup: {{label}}",
+        "dropoff": "Drop-off: {{label}}",
+        "window": "Time window: {{label}}"
+      },
+      "actions": {
+        "openChat": "Open chat",
+        "reviewDeal": "Review deal",
+        "reviewDelivery": "Review delivery",
+        "requestDelivery": "Request delivery",
+        "viewDelivery": "View delivery",
+        "payHomecheff": "Pay via HomeCheff",
+        "markComplete": "Mark deal complete",
+        "discussPayment": "Discuss payment"
+      },
+      "role": {
+        "buyer": "Buyer",
+        "seller": "Seller"
+      },
+      "blocks": {
+        "proposal": "Deal",
+        "payment": "Payment",
+        "exchange": "Trade",
+        "delivery": "Delivery",
+        "nextAction": "Next step"
+      }
+    },
     "tile": {
       "badge": {
         "request": "Wanted"
