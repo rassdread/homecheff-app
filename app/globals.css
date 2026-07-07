@@ -474,6 +474,57 @@ html.hc-pwa-standalone
   }
 }
 
+/*
+ * Play migration strip above tab icons — extra bottom reserve (~2.5rem).
+ */
+html:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+  [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+    [data-messages-route="true"]
+  ) {
+  padding-bottom: calc(
+    8.25rem + env(safe-area-inset-bottom, 0px)
+  ) !important;
+}
+
+@media (min-width: 640px) {
+  html:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+    [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+      [data-messages-route="true"]
+    ) {
+    padding-bottom: calc(
+      7.75rem + env(safe-area-inset-bottom, 0px)
+    ) !important;
+  }
+}
+
+html.hc-native-capacitor:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+  [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+    [data-messages-route="true"]
+  ),
+html.hc-pwa-standalone:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+  [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+    [data-messages-route="true"]
+  ) {
+  padding-bottom: calc(
+    9.25rem + env(safe-area-inset-bottom, 0px)
+  ) !important;
+}
+
+@media (min-width: 640px) {
+  html.hc-native-capacitor:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+    [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+      [data-messages-route="true"]
+    ),
+  html.hc-pwa-standalone:has([data-hc-bottom-nav][data-play-migration-strip="true"])
+    [data-homecheff-app-chrome][data-bottom-nav-visible="true"]:not(
+      [data-messages-route="true"]
+    ) {
+    padding-bottom: calc(
+      8.85rem + env(safe-area-inset-bottom, 0px)
+    ) !important;
+  }
+}
+
 /* Native feed: compact filter grid + grotere mediavlakken + dichtere kaarten (web ongewijzigd). */
 /* Discover grid tiles (feed layout toggle). */
 .feed-discover-tile-media.feed-card-primary-media {

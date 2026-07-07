@@ -66,7 +66,7 @@ export default function FeedMobileToolbar({
   ] as const;
 
   return (
-    <div className="sticky top-[3.25rem] z-[2] -mx-0.5 mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white/95 px-2 py-2 shadow-sm backdrop-blur-sm">
+    <div className="sticky top-[3.25rem] z-30 -mx-0.5 mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm">
       <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button type="button" className={chipClass(feedChip === 'all')} onClick={() => onFeedChipChange('all')}>
           {t('filters.all')}

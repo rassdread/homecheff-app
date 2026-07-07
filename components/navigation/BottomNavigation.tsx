@@ -1662,14 +1662,16 @@ export default function BottomNavigation() {
         className={cn(
           bottomNavBarWrapperClass(isNativeShell),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
+          'max-lg:bg-white md:bg-transparent',
           'pb-[env(safe-area-inset-bottom,0px)] md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] md:px-4'
         )}
       >
       <div
         data-hc-bottom-nav
+        data-play-migration-strip={appUpdateStatus.showPlayMigrationStrip ? 'true' : 'false'}
         className={cn(
           'pointer-events-auto mx-auto w-full transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
-          'bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/88',
+          'bg-white',
           'border-t border-emerald-100/70 shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
           'md:max-w-[760px] md:rounded-2xl md:border md:shadow-[0_8px_40px_-12px_rgba(13,148,136,0.18),0_12px_32px_-10px_rgba(0,0,0,0.12)]',
           isNativeShell
