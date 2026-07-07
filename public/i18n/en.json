@@ -7946,8 +7946,10 @@
         "viewDelivery": "View delivery",
         "payHomecheff": "Pay via HomeCheff",
         "markComplete": "Mark deal complete",
-        "discussPayment": "Discuss payment"
+        "discussPayment": "Discuss payment",
+        "cancel": "Cancel agreement"
       },
+      "cancelConfirm": "Are you sure you want to cancel this agreement? This cannot be undone.",
       "role": {
         "buyer": "Buyer",
         "seller": "Seller"
@@ -7958,6 +7960,71 @@
         "exchange": "Trade",
         "delivery": "Delivery",
         "nextAction": "Next step"
+      }
+    },
+    "agreements": {
+      "title": "My agreements",
+      "subtitle": "Proposals, deals, payments and deliveries in one place",
+      "empty": "No agreements yet. Start a proposal from a listing or chat.",
+      "nextStepHeading": "Next step",
+      "filters": {
+        "aria": "Filter agreements",
+        "all": "All",
+        "open": "Open",
+        "actionRequired": "Action required",
+        "inProgress": "In progress",
+        "waitingPayment": "Awaiting payment",
+        "waitingDelivery": "Awaiting delivery",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "kind": {
+        "REQUEST": "Request",
+        "SERVICE": "Service",
+        "PRODUCT": "Product",
+        "TASK": "Task",
+        "COACHING": "Coaching",
+        "WORKSHOP": "Workshop",
+        "DELIVERY": "Delivery",
+        "INSPIRATION": "Inspiration"
+      },
+      "timeline": {
+        "aria": "Agreement progress",
+        "proposal": "Proposal",
+        "accepted": "Accepted",
+        "payment": "Payment",
+        "delivery": "Delivery",
+        "complete": "Complete"
+      },
+      "proposal": {
+        "nextRespond": "Respond to the proposal in chat",
+        "nextWaiting": "Waiting for the other party",
+        "ctaRespond": "Respond in chat"
+      },
+      "actions": {
+        "openChat": "Open chat"
+      },
+      "courier": {
+        "heading": "Delivering",
+        "mine": "{{count}} for you to deliver",
+        "available": "{{count}} available nearby",
+        "dashboard": "Open delivery dashboard"
+      },
+      "view": {
+        "aria": "View",
+        "list": "List",
+        "agenda": "Agenda"
+      },
+      "agenda": {
+        "today": "Today",
+        "thisWeek": "This week",
+        "later": "Later",
+        "unscheduled": "To be scheduled",
+        "completed": "Completed"
+      },
+      "calendar": {
+        "title": "{title} · {counterpart}",
+        "description": "Agreement with {counterpart} · {status} · {time} · {location}"
       }
     },
     "proposals": {
@@ -8803,6 +8870,7 @@
       "communityOrderNotFound": "Deal not found.",
       "accessDenied": "Access denied.",
       "orderCancelled": "This deal was cancelled.",
+      "cannotCancelCompleted": "A completed agreement cannot be cancelled.",
       "dealNotCompleted": "Deal is not completed yet.",
       "cannotReviewSelf": "You cannot review yourself.",
       "deliveryNotCompleted": "Delivery is not completed yet.",
@@ -8860,7 +8928,15 @@
   },
   "profile": {
     "deals": {
-      "navLabel": "My deals"
+      "navLabel": "My agreements"
+    }
+  },
+  "community": {
+    "agreements": {
+      "title": "My agreements",
+      "subtitle": "Track proposals, deals, payments and deliveries",
+      "navLabel": "My agreements",
+      "withCounterpart": "With {{name}}"
     }
   },
   "courier": {
@@ -9186,6 +9262,7 @@
   "roleQuickLinks": {
     "title": "Quick actions",
     "profileTitle": "Quick links",
+    "agreements": "My agreements",
     "showQr": "Show my QR",
     "showQrDesc": "Open your partner QR and link",
     "sharePartnerLink": "Share partner link",

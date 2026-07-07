@@ -5,6 +5,7 @@ import ProfileDealsClient from '@/components/profile/ProfileDealsClient';
 
 export const dynamic = 'force-dynamic';
 
+/** Unified operational hub "Mijn Afspraken" (CE-2A). */
 export default async function ProfileDealsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {

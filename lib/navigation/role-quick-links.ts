@@ -36,6 +36,13 @@ function isAffiliate(ctx: SettingsHubContext): boolean {
 /** Growth block only — link/QR/promo. Network invite lives in sidepanel block 2. */
 const BASE_LINKS: RoleQuickLink[] = [
   {
+    id: 'agreements',
+    labelKey: 'roleQuickLinks.agreements',
+    href: '/profile/deals',
+    priority: 85,
+    surfaces: ['home', 'profile'],
+  },
+  {
     id: 'affiliate-qr',
     labelKey: 'partners.actions.showQr',
     action: 'openAffiliateQr',
@@ -136,6 +143,7 @@ function sectionPriorityBoost(
 }
 
 function linkAllowedForRoles(link: RoleQuickLink, ctx: SettingsHubContext): boolean {
+  if (link.id === 'agreements') return true;
   if (link.id.startsWith('affiliate-')) return isAffiliate(ctx);
   if (link.id.startsWith('seller-')) return isSeller(ctx);
   if (link.id.startsWith('delivery-')) return isDelivery(ctx);

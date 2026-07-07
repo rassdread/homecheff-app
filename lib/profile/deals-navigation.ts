@@ -1,24 +1,25 @@
 /**
- * Future "Mijn afspraken" profile section — navigation hooks only (UX Slice 1 prep).
- * Full deal history UI is out of scope; wire profile nav when the page ships.
+ * Unified agreements hub — CE-2A "Mijn Afspraken".
+ *
+ * The hub lives at /profile/deals (the strongest existing base). /agreements is a
+ * thin redirect alias only (CE-2A.7, Option A) — no parallel second hub.
  */
 
 export const DEALS_PROFILE_PATH = '/profile/deals' as const;
 
+/** @deprecated Legacy alias — /agreements redirects to DEALS_PROFILE_PATH. */
+export const AGREEMENTS_HUB_PATH = '/agreements' as const;
+
 export type DealsNavItem = {
-  /** i18n key for menu label */
-  labelKey: 'profile.deals.navLabel';
+  labelKey: 'community.agreements.navLabel';
   href: typeof DEALS_PROFILE_PATH;
-  /** Gate full navigation until the deals page exists */
   enabled: boolean;
 };
 
-/** Profile sidebar / settings entry — disabled until deals history page ships */
 export const PROFILE_DEALS_NAV: DealsNavItem = {
-  labelKey: 'profile.deals.navLabel',
+  labelKey: 'community.agreements.navLabel',
   href: DEALS_PROFILE_PATH,
   enabled: true,
 };
 
-/** Query key for a future React Query / SWR hook listing user deals */
-export const USER_DEALS_QUERY_KEY = ['profile', 'deals'] as const;
+export const USER_DEALS_QUERY_KEY = ['agreements', 'hub'] as const;

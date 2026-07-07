@@ -194,7 +194,9 @@ export const PROFILE_DEALS_I18N = {
     payHomecheff: 'marketplace.deals.actions.payHomecheff',
     markComplete: 'marketplace.deals.actions.markComplete',
     discussPayment: 'marketplace.deals.actions.discussPayment',
+    cancel: 'marketplace.deals.actions.cancel',
   },
+  cancelConfirm: 'marketplace.deals.cancelConfirm',
   role: {
     buyer: 'marketplace.deals.role.buyer',
     seller: 'marketplace.deals.role.seller',

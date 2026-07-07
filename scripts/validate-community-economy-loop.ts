@@ -167,10 +167,19 @@ assert(
   exists('app/profile/deals/page.tsx'),
   '/profile/deals page exists',
 );
+assert(
+  exists('app/agreements/page.tsx'),
+  '/agreements unified hub exists',
+);
 const sidepanel = read('components/profile/v2/ProfileV2OwnerSidepanel.tsx');
 assert(
-  sidepanel.includes('PROFILE_DEALS_NAV') && sidepanel.includes('/profile/deals'),
-  'profile sidepanel links to deals dashboard',
+  sidepanel.includes('PROFILE_DEALS_NAV') &&
+    sidepanel.includes('PROFILE_DEALS_NAV.href'),
+  'profile sidepanel links to agreements hub via PROFILE_DEALS_NAV',
+);
+assert(
+  PROFILE_DEALS_NAV.href === '/agreements',
+  'PROFILE_DEALS_NAV points to /agreements',
 );
 const deliveryDash = read('components/delivery/DeliveryDashboard.tsx');
 assert(deliveryDash.includes('CommunityDeliveryPanel'), 'delivery dashboard has community tab');

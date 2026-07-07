@@ -25,6 +25,7 @@ import { getMarketplacePriceDisplay } from '@/lib/marketplace/price-display';
 type Props = {
   deal: ProfileDealDTO;
   onUpdated: (deal: ProfileDealDTO) => void;
+  as?: 'li' | 'div';
 };
 
 function ctaIcon(kind: DealPrimaryCtaKind) {
@@ -75,7 +76,7 @@ function statusLabel(
   return t(block.labelKey);
 }
 
-export default function ProfileDealCard({ deal, onUpdated }: Props) {
+export default function ProfileDealCard({ deal, onUpdated, as = 'li' }: Props) {
   const { t } = useTranslation();
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -155,6 +156,36 @@ export default function ProfileDealCard({ deal, onUpdated }: Props) {
     }
   }, [deal.id, refreshDeal, t]);
 
+  const cancelOrder = useCallback(async () => {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(t(PROFILE_DEALS_I18N.cancelConfirm))
+    ) {
+      return;
+    }
+    setActionError(null);
+    setActionBusy(true);
+    try {
+      const res = await fetch(`/api/community-orders/${deal.id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errKey =
+          typeof data.errorKey === 'string' ? data.errorKey : null;
+        setActionError(errKey ? t(errKey) : data.error || t('common.error'));
+        return;
+      }
+      await refreshDeal();
+    } catch {
+      setActionError(t('common.error'));
+    } finally {
+      setActionBusy(false);
+    }
+  }, [deal.id, refreshDeal, t]);
+
   const ux = deal.dealUx;
   const CtaIcon = ctaIcon(ux.primaryCta.kind);
   const paymentPath = deal.paymentPath;
@@ -173,8 +204,10 @@ export default function ProfileDealCard({ deal, onUpdated }: Props) {
     }
   };
 
+  const Wrapper = as === 'div' ? 'div' : 'li';
+
   return (
-    <li className="p-4 space-y-3">
+    <Wrapper className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-0.5">
           <p className="font-semibold text-gray-900">{deal.proposalTitle}</p>
@@ -337,6 +370,16 @@ export default function ProfileDealCard({ deal, onUpdated }: Props) {
             {t(PROFILE_DEALS_I18N.actions.reviewDelivery)}
           </Link>
         ) : null}
+        {deal.status === 'OPEN' ? (
+          <button
+            type="button"
+            disabled={actionBusy}
+            onClick={() => void cancelOrder()}
+            className="text-xs font-semibold text-red-600 underline hover:text-red-700 disabled:opacity-50"
+          >
+            {t(PROFILE_DEALS_I18N.actions.cancel)}
+          </button>
+        ) : null}
       </div>
 
       {actionError ? (
@@ -344,6 +387,6 @@ export default function ProfileDealCard({ deal, onUpdated }: Props) {
           {actionError}
         </p>
       ) : null}
-    </li>
+    </Wrapper>
   );
 }

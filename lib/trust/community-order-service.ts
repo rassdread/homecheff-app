@@ -97,6 +97,79 @@ export async function completeCommunityOrder(
   return { communityOrder: dto, alreadyCompleted: false };
 }
 
+export type CancelCommunityOrderResult = {
+  communityOrder: CommunityOrderDTO;
+  alreadyCancelled: boolean;
+};
+
+/**
+ * Cancel an OPEN community order (CE-2A.4). Only an involved party may cancel and
+ * only while the order is still OPEN — completed orders can never be cancelled.
+ * Any active delivery request + courier assignment is cancelled alongside it,
+ * matching the existing delivery model. Idempotent for already-cancelled orders.
+ */
+export async function cancelCommunityOrder(
+  userId: string,
+  communityOrderId: string,
+  _reason?: string | null,
+): Promise<CancelCommunityOrderResult> {
+  const existing = await loadOrderForParty(communityOrderId, userId);
+
+  if (existing.status === 'CANCELLED') {
+    return {
+      communityOrder: serializeCommunityOrder(existing),
+      alreadyCancelled: true,
+    };
+  }
+
+  if (existing.status === 'COMPLETED') {
+    throw new CommunityOrderServiceError(
+      'Completed orders cannot be cancelled',
+      409,
+      'trust.errors.cannotCancelCompleted',
+    );
+  }
+
+  const now = new Date();
+  const updated = await prisma.$transaction(async (tx) => {
+    const order = await tx.communityOrder.update({
+      where: { id: communityOrderId },
+      data: { status: 'CANCELLED', cancelledAt: now },
+    });
+
+    const deliveryRequests = await tx.deliveryRequest.findMany({
+      where: { communityOrderId },
+      select: { id: true },
+    });
+    const deliveryRequestIds = deliveryRequests.map((d) => d.id);
+
+    if (deliveryRequestIds.length > 0) {
+      await tx.deliveryRequest.updateMany({
+        where: {
+          id: { in: deliveryRequestIds },
+          status: { in: ['OPEN', 'CLAIMED', 'ASSIGNED'] },
+        },
+        data: { status: 'CANCELLED' },
+      });
+
+      await tx.courierAssignment.updateMany({
+        where: {
+          deliveryRequestId: { in: deliveryRequestIds },
+          status: { in: ['PENDING', 'ACCEPTED'] },
+        },
+        data: { status: 'CANCELLED' },
+      });
+    }
+
+    return order;
+  });
+
+  return {
+    communityOrder: serializeCommunityOrder(updated),
+    alreadyCancelled: false,
+  };
+}
+
 export async function listCommunityOrdersForUser(
   userId: string,
   status?: 'OPEN' | 'COMPLETED' | 'CANCELLED',

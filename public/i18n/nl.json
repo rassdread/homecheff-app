@@ -7946,8 +7946,10 @@
         "viewDelivery": "Bekijk bezorging",
         "payHomecheff": "Betaal via HomeCheff",
         "markComplete": "Afspraak afronden",
-        "discussPayment": "Bespreek betaling"
+        "discussPayment": "Bespreek betaling",
+        "cancel": "Afspraak annuleren"
       },
+      "cancelConfirm": "Weet je zeker dat je deze afspraak wilt annuleren? Dit kan niet ongedaan worden gemaakt.",
       "role": {
         "buyer": "Koper",
         "seller": "Verkoper"
@@ -7958,6 +7960,71 @@
         "exchange": "Ruil",
         "delivery": "Bezorging",
         "nextAction": "Volgende stap"
+      }
+    },
+    "agreements": {
+      "title": "Mijn afspraken",
+      "subtitle": "Voorstellen, deals, betalingen en bezorgingen op één plek",
+      "empty": "Nog geen afspraken. Start een voorstel via een listing of chat.",
+      "nextStepHeading": "Volgende stap",
+      "filters": {
+        "aria": "Filter afspraken",
+        "all": "Alles",
+        "open": "Open",
+        "actionRequired": "Actie vereist",
+        "inProgress": "Lopend",
+        "waitingPayment": "Wacht op betaling",
+        "waitingDelivery": "Wacht op bezorging",
+        "completed": "Afgerond",
+        "cancelled": "Geannuleerd"
+      },
+      "kind": {
+        "REQUEST": "Verzoek",
+        "SERVICE": "Dienst",
+        "PRODUCT": "Product",
+        "TASK": "Klus",
+        "COACHING": "Coaching",
+        "WORKSHOP": "Workshop",
+        "DELIVERY": "Bezorging",
+        "INSPIRATION": "Inspiratie"
+      },
+      "timeline": {
+        "aria": "Voortgang afspraak",
+        "proposal": "Voorstel",
+        "accepted": "Geaccepteerd",
+        "payment": "Betaling",
+        "delivery": "Bezorging",
+        "complete": "Afgerond"
+      },
+      "proposal": {
+        "nextRespond": "Reageer op het voorstel in de chat",
+        "nextWaiting": "Wacht op de tegenpartij",
+        "ctaRespond": "Reageer in chat"
+      },
+      "actions": {
+        "openChat": "Open gesprek"
+      },
+      "courier": {
+        "heading": "Bezorgen",
+        "mine": "{{count}} door jou te bezorgen",
+        "available": "{{count}} beschikbaar in de buurt",
+        "dashboard": "Open bezorgdashboard"
+      },
+      "view": {
+        "aria": "Weergave",
+        "list": "Lijst",
+        "agenda": "Agenda"
+      },
+      "agenda": {
+        "today": "Vandaag",
+        "thisWeek": "Deze week",
+        "later": "Later",
+        "unscheduled": "Nog te plannen",
+        "completed": "Afgerond"
+      },
+      "calendar": {
+        "title": "{title} · {counterpart}",
+        "description": "Afspraak met {counterpart} · {status} · {time} · {location}"
       }
     },
     "proposals": {
@@ -8803,6 +8870,7 @@
       "communityOrderNotFound": "Afspraak niet gevonden.",
       "accessDenied": "Geen toegang.",
       "orderCancelled": "Deze afspraak is geannuleerd.",
+      "cannotCancelCompleted": "Een afgeronde afspraak kan niet worden geannuleerd.",
       "dealNotCompleted": "De afspraak is nog niet afgerond.",
       "cannotReviewSelf": "Je kunt jezelf niet beoordelen.",
       "deliveryNotCompleted": "Bezorging is nog niet afgerond.",
@@ -8861,6 +8929,14 @@
   "profile": {
     "deals": {
       "navLabel": "Mijn afspraken"
+    }
+  },
+  "community": {
+    "agreements": {
+      "title": "Mijn afspraken",
+      "subtitle": "Volg voorstellen, deals, betalingen en bezorgingen",
+      "navLabel": "Mijn afspraken",
+      "withCounterpart": "Met {{name}}"
     }
   },
   "courier": {
@@ -9186,6 +9262,7 @@
   "roleQuickLinks": {
     "title": "Snelle acties",
     "profileTitle": "Snel naar",
+    "agreements": "Mijn afspraken",
     "showQr": "Toon mijn QR",
     "showQrDesc": "Open je partner-QR en link",
     "sharePartnerLink": "Partnerlink delen",
