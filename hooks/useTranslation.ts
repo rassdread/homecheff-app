@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { addLocalePrefix } from '@/lib/locale';
 import { useSession } from 'next-auth/react';
+import { interpolateTranslation } from '@/lib/i18n/interpolate';
 
 export type Language = 'nl' | 'en';
 
@@ -690,9 +691,8 @@ export function useTranslation() {
       // If value is a string, return it (with parameter replacement if needed)
       if (typeof value === 'string') {
         if (params) {
-          return value.replace(/\{(\w+)\}/g, (match, paramKey) => {
-            return params[paramKey]?.toString() || match;
-          });
+          // Één veilige helper voor zowel {x} als {{x}} (UX-FIN-3A.1).
+          return interpolateTranslation(value, params);
         }
         return value;
       }

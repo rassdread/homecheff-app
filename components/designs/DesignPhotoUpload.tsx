@@ -253,7 +253,7 @@ export default function DesignPhotoUpload({
                 {/* Remove button */}
                 <button
                   type="button"
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   onClick={() => removePhoto(photo.id)}
                   aria-label={t('common.removePhoto')}
                 >
@@ -264,7 +264,7 @@ export default function DesignPhotoUpload({
                 {!photo.isMain && (
                   <button
                     type="button"
-                    className="absolute bottom-1 left-1 bg-yellow-600 text-white text-xs px-2 py-1 rounded hover:bg-yellow-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute bottom-1 left-1 bg-yellow-600 text-white text-xs px-2 py-1 rounded hover:bg-yellow-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     onClick={() => setMainPhoto(photo.id)}
                   >
                     Hoofd

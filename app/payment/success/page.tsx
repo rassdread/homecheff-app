@@ -4,12 +4,17 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle, ArrowLeft, Package, CreditCard, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 
 type ViewState = 'loading' | 'missing' | 'error' | 'success';
+
+type PolledOrderItem = {
+  product?: { id?: string; title?: string | null } | null;
+};
 
 function firstListingIdFromStripeMetadata(
   metadata: Record<string, string> | null | undefined,
@@ -29,6 +34,7 @@ function firstListingIdFromStripeMetadata(
 }
 
 function PaymentSuccessContent() {
+  const { t, language } = useTranslation();
   const searchParams = useSearchParams();
   const sessionId = searchParams?.get('session_id');
   const { clearCart } = useCart();
@@ -42,6 +48,7 @@ function PaymentSuccessContent() {
   const [session, setSession] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderItems, setOrderItems] = useState<PolledOrderItem[]>([]);
   const [isPollingOrder, setIsPollingOrder] = useState(false);
   const checkoutCompletedTracked = useRef(false);
 
@@ -62,7 +69,7 @@ function PaymentSuccessContent() {
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(payload?.error || 'Kon betalingsgegevens niet ophalen.');
+          throw new Error(payload?.error || t('paymentSuccess.couldNotLoad'));
         }
 
         if (cancelled) return;
@@ -91,7 +98,7 @@ function PaymentSuccessContent() {
       } catch (err) {
         if (cancelled) return;
         const message =
-          err instanceof Error ? err.message : 'Kon betalingsgegevens niet ophalen.';
+          err instanceof Error ? err.message : t('paymentSuccess.couldNotLoad');
         setErrorMessage(message);
         setViewState('error');
       }
@@ -117,6 +124,7 @@ function PaymentSuccessContent() {
           const data = await response.json();
           if (data.orders && data.orders.length > 0) {
             setOrderId(data.orders[0].id);
+            setOrderItems(data.orders[0].items || []);
             setIsPollingOrder(false);
             return;
           }
@@ -170,12 +178,23 @@ function PaymentSuccessContent() {
       .filter((item) => item.quantity > 0);
   }, [metadata]);
 
+  // Map productId → title from the polled order (Stripe metadata has no titles).
+  const productTitleById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const item of orderItems) {
+      const id = item.product?.id;
+      const title = item.product?.title;
+      if (id && title) map[id] = title;
+    }
+    return map;
+  }, [orderItems]);
+
   if (viewState === 'loading') {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-neutral-600">We verwerken je betaling...</p>
+          <p className="text-neutral-600">{t('paymentSuccess.processing')}</p>
         </div>
       </main>
     );
@@ -185,16 +204,16 @@ function PaymentSuccessContent() {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Geen betalingssessie gevonden</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-4">{t('paymentSuccess.missingTitle')}</h1>
           <p className="text-neutral-600 mb-6">
-            Het lijkt erop dat we geen betaalinformatie konden vinden. Controleer of je via de juiste link bent teruggekeerd of neem contact op met onze support.
+            {t('paymentSuccess.missingBody')}
           </p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Terug naar home
+            {t('paymentSuccess.backToHome')}
           </Link>
         </div>
       </main>
@@ -206,9 +225,9 @@ function PaymentSuccessContent() {
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center max-w-md px-6">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Betaling kon niet worden opgehaald</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-4">{t('paymentSuccess.errorTitle')}</h1>
           <p className="text-neutral-600 mb-6">
-            {errorMessage || 'Er ging iets mis bij het ophalen van de betaling. Probeer het later opnieuw of neem contact op met support.'}
+            {errorMessage || t('paymentSuccess.errorBody')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -216,14 +235,14 @@ function PaymentSuccessContent() {
               className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Terug naar home
+              {t('paymentSuccess.backToHome')}
             </Link>
             <Link
               href="/checkout"
               className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-xl hover:bg-neutral-50 transition-colors"
             >
               <CreditCard className="w-4 h-4" />
-              Naar afrekenen
+              {t('paymentSuccess.toCheckout')}
             </Link>
           </div>
         </div>
@@ -235,13 +254,13 @@ function PaymentSuccessContent() {
     return (
       <main className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-4">Betalingsgegevens niet beschikbaar</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-4">{t('paymentSuccess.unavailableTitle')}</h1>
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Terug naar home
+            {t('paymentSuccess.backToHome')}
           </Link>
         </div>
       </main>
@@ -253,7 +272,7 @@ function PaymentSuccessContent() {
   const currency = (session.currency || 'eur').toUpperCase();
   const formattedAmount =
     amountTotal !== null
-      ? new Intl.NumberFormat('nl-NL', {
+      ? new Intl.NumberFormat(language === 'en' ? 'en-GB' : 'nl-NL', {
           style: 'currency',
           currency,
         }).format(amountTotal)
@@ -272,23 +291,23 @@ function PaymentSuccessContent() {
           </div>
 
           <h1 className="text-3xl font-bold text-neutral-900 mb-4">
-            Betaling succesvol!
+            {t('paymentSuccess.successTitle')}
           </h1>
           <p className="text-lg text-neutral-600 mb-8">
-            Je betaling is verwerkt en de verkoper is op de hoogte gesteld.
+            {t('paymentSuccess.successSubtitle')}
           </p>
 
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-neutral-200 mb-8 text-left">
-            <h2 className="text-xl font-semibold text-neutral-900 mb-6">Betalingsgegevens</h2>
+            <h2 className="text-xl font-semibold text-neutral-900 mb-6">{t('paymentSuccess.detailsTitle')}</h2>
 
             <dl className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <dt className="text-neutral-600">Totaalbedrag</dt>
+                <dt className="text-neutral-600">{t('paymentSuccess.totalAmount')}</dt>
                 <dd className="font-semibold text-lg">{formattedAmount}</dd>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <dt className="text-neutral-600">Status</dt>
+                <dt className="text-neutral-600">{t('paymentSuccess.status')}</dt>
                 <dd className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium capitalize">
                   <CheckCircle className="w-4 h-4" />
                   {paymentStatus.replace(/_/g, ' ')}
@@ -296,7 +315,7 @@ function PaymentSuccessContent() {
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <dt className="text-neutral-600">Betalingsreferentie</dt>
+                <dt className="text-neutral-600">{t('paymentSuccess.reference')}</dt>
                 <dd className="font-medium text-neutral-900 break-all">
                   {session.id}
                 </dd>
@@ -304,14 +323,14 @@ function PaymentSuccessContent() {
 
               {customerEmail && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <dt className="text-neutral-600">Contact e-mail</dt>
+                  <dt className="text-neutral-600">{t('paymentSuccess.contactEmail')}</dt>
                   <dd className="font-medium text-neutral-900">{customerEmail}</dd>
                 </div>
               )}
 
               {deliveryMode && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <dt className="text-neutral-600">Bezorgmethode</dt>
+                  <dt className="text-neutral-600">{t('paymentSuccess.deliveryMethod')}</dt>
                   <dd className="font-medium text-neutral-900">
                     {deliveryMode.replace(/_/g, ' ').toLowerCase()}
                   </dd>
@@ -320,7 +339,7 @@ function PaymentSuccessContent() {
 
               {orderNotes && (
                 <div>
-                  <dt className="text-neutral-600 mb-1">Opmerkingen</dt>
+                  <dt className="text-neutral-600 mb-1">{t('paymentSuccess.notes')}</dt>
                   <dd className="font-medium text-neutral-900 whitespace-pre-line">
                     {orderNotes}
                   </dd>
@@ -331,14 +350,16 @@ function PaymentSuccessContent() {
 
           {lineItems.length > 0 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200 mb-8 text-left">
-              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Bestelling</h2>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">{t('paymentSuccess.orderTitle')}</h2>
               <ul className="space-y-3">
                 {lineItems.map((item, index) => (
                   <li key={`${item.productId}-${index}`} className="flex justify-between items-center border border-neutral-100 rounded-xl px-4 py-3">
                     <div>
-                      <p className="font-semibold text-neutral-900">Product ID: {item.productId}</p>
+                      <p className="font-semibold text-neutral-900">
+                        {productTitleById[item.productId] || t('paymentSuccess.productFallback')}
+                      </p>
                       <p className="text-sm text-neutral-600">
-                        Aantal: {item.quantity}
+                        {t('paymentSuccess.quantity', { count: item.quantity })}
                       </p>
                     </div>
                     <span className="text-sm text-neutral-500">
@@ -351,25 +372,25 @@ function PaymentSuccessContent() {
           )}
 
           <div className="bg-blue-50 rounded-2xl p-6 mb-8 text-left">
-            <h3 className="text-lg font-semibold text-blue-900 mb-4">Wat gebeurt er nu?</h3>
+            <h3 className="text-lg font-semibold text-blue-900 mb-4">{t('paymentSuccess.whatNextTitle')}</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 text-sm font-semibold">1</span>
                 </div>
-                <p className="text-blue-800">De verkoper ontvangt direct een melding van je bestelling.</p>
+                <p className="text-blue-800">{t('paymentSuccess.step1')}</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 text-sm font-semibold">2</span>
                 </div>
-                <p className="text-blue-800">Je ontvangt een bevestigingsmail met alle details.</p>
+                <p className="text-blue-800">{t('paymentSuccess.step2')}</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 text-sm font-semibold">3</span>
                 </div>
-                <p className="text-blue-800">De verkoper neemt contact op voor levering of afhalen.</p>
+                <p className="text-blue-800">{t('paymentSuccess.step3')}</p>
               </div>
             </div>
           </div>
@@ -377,7 +398,7 @@ function PaymentSuccessContent() {
           {isPollingOrder && (
             <div className="bg-blue-50 rounded-xl p-4 mb-6 flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-              <p className="text-blue-800 text-sm">Je bestelling wordt verwerkt...</p>
+              <p className="text-blue-800 text-sm">{t('paymentSuccess.orderProcessing')}</p>
             </div>
           )}
 
@@ -387,14 +408,14 @@ function PaymentSuccessContent() {
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold"
             >
               <CreditCard className="w-5 h-5" />
-              Naar Mijn Aankopen
+              {t('paymentSuccess.toMyPurchases')}
             </Link>
             <Link
               href="/?chip=sale#homecheff-feed"
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 border border-neutral-200 text-neutral-700 rounded-xl hover:bg-neutral-50 transition-colors font-semibold"
             >
               <Package className="w-5 h-5" />
-              Verder Winkelen
+              {t('paymentSuccess.continueShopping')}
             </Link>
           </div>
         </div>

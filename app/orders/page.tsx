@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { Package, Clock, CheckCircle, XCircle, Truck, MapPin, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import OrderMessageButton from '@/components/chat/OrderMessageButton';
+import OrderStatusChip from '@/components/orders/OrderStatusChip';
 import OnboardingTour from '@/components/onboarding/OnboardingTour';
 import TourTrigger from '@/components/onboarding/TourTrigger';
 import InfoIcon from '@/components/onboarding/InfoIcon';
@@ -69,22 +70,11 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      console.log('🔍 Mijn Aankopen: Fetching orders with status filter:', statusFilter);
       const response = await fetch(`/api/orders?status=${statusFilter}`, {
         cache: 'no-store',
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Mijn Aankopen: Orders fetched:', data.orders?.length || 0, 'orders');
-        if (data.orders && data.orders.length > 0) {
-          console.log('📦 Sample order:', {
-            id: data.orders[0].id,
-            orderNumber: data.orders[0].orderNumber,
-            status: data.orders[0].status,
-            totalAmount: data.orders[0].totalAmount,
-            itemsCount: data.orders[0].items?.length || 0
-          });
-        }
         // Sort orders consistently (newest first)
         const sortedOrders = (data.orders || []).sort((a, b) => {
           // First by creation date (newest first)
@@ -142,25 +132,6 @@ export default function OrdersPage() {
         return 'Geannuleerd';
       default:
         return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800';
-      case 'PROCESSING':
-        return 'bg-purple-100 text-purple-800';
-      case 'SHIPPED':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -273,9 +244,7 @@ export default function OrdersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                      {getStatusText(order.status)}
-                    </span>
+                    <OrderStatusChip status={order.status} />
                     <span className="text-lg font-semibold text-neutral-900">
                       €{(order.totalAmount / 100).toFixed(2)}
                     </span>

@@ -74,10 +74,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
               <div>
               <h2 className="text-xl font-bold text-neutral-900">
-                Winkelwagen ({totalItems})
+                {t('cart.titleWithCount', { count: totalItems })}
               </h2>
               <p className="text-sm text-neutral-600">
-                {totalItems > 0 ? 'Klaar om af te rekenen?' : 'Voeg producten toe aan je winkelwagen'}
+                {totalItems > 0 ? t('cart.headerReady') : t('cart.headerAddPrompt')}
               </p>
               </div>
             </div>
@@ -97,17 +97,17 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   <ShoppingCart className="w-10 h-10 text-primary-brand" />
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-3">
-                  Je winkelwagen is leeg
+                  {t('cart.emptyTitle')}
                 </h3>
                 <p className="text-neutral-600 text-center mb-8 max-w-sm">
-                  Voeg producten toe aan je winkelwagen om verder te gaan
+                  {t('cart.emptyHint')}
                 </p>
                 <Link
                   href="/#homecheff-feed"
                   onClick={onClose}
                   className="px-8 py-4 bg-primary-brand text-white rounded-xl hover:bg-primary-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
                 >
-                  <span>Verder winkelen</span>
+                  <span>{t('cart.continueShopping')}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -145,7 +145,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           {item.title}
                         </h3>
                         <p className="text-sm text-neutral-600 mb-2">
-                          van Verkoper
+                          {t('cart.soldBy', {
+                            name:
+                              item.sellerName && item.sellerName !== 'Verkoper'
+                                ? item.sellerName
+                                : t('cart.providerFallback'),
+                          })}
                         </p>
                         
                         {/* Quantity Controls */}
@@ -193,7 +198,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     onClick={handleClearCart}
                     className="w-full py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    Alle items verwijderen
+                    {t('cart.clearAll')}
                   </button>
                 )}
               </div>
@@ -206,7 +211,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-xl font-bold">
-                  <span className="text-neutral-900">Totaal:</span>
+                  <span className="text-neutral-900">{t('cart.totalLabel')}</span>
                   <span className="text-primary-brand">€{((totalAmount + fees.stripeFee) / 100).toFixed(2)}</span>
                 </div>
               </div>
@@ -217,7 +222,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={onClose}
                 className="w-full bg-primary-brand text-white py-4 rounded-xl hover:bg-primary-700 transition-all duration-200 font-semibold text-center block shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                Afrekenen ({totalItems} items)
+                {t('cart.checkoutWithCount', { count: totalItems })}
               </Link>
             </div>
           )}

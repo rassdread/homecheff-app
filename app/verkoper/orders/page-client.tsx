@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 import OperationsShell from '@/components/operations/OperationsShell';
+import OrderStatusChip from '@/components/orders/OrderStatusChip';
 import {
   orderMatchesSellerTab,
   orderStatusToSellerLabel,
@@ -76,6 +77,7 @@ export default function SellerOrdersPageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<SellerOrderTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -195,32 +197,26 @@ export default function SellerOrdersPageClient() {
     if (statusLower === 'shipped' || statusLower === 'verzonden') return t('seller.shipped');
     if (statusLower === 'delivered' || statusLower === 'voltooid') return t('seller.completed');
     if (statusLower === 'cancelled' || statusLower === 'geannuleerd') return t('seller.cancelled');
-    if (statusLower === 'refunded' || statusLower === 'terugbetaald') return 'Terugbetaald';
+    if (statusLower === 'refunded' || statusLower === 'terugbetaald') return t('seller.refunded');
     return t('seller.pending');
   };
 
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'confirmed' || statusLower === 'bevestigd') {
-      return 'bg-blue-100 text-blue-800';
-    }
-    if (statusLower === 'processing' || statusLower === 'in behandeling') {
-      return 'bg-purple-100 text-purple-800';
-    }
-    if (statusLower === 'shipped' || statusLower === 'verzonden') {
-      return 'bg-indigo-100 text-indigo-800';
-    }
-    if (statusLower === 'delivered' || statusLower === 'voltooid') {
-      return 'bg-green-100 text-green-800';
-    }
-    if (statusLower === 'cancelled' || statusLower === 'geannuleerd') {
-      return 'bg-red-100 text-red-800';
-    }
-    if (statusLower === 'refunded' || statusLower === 'terugbetaald') {
-      return 'bg-orange-100 text-orange-900';
-    }
-    return 'bg-yellow-100 text-yellow-800';
-  };
+  /**
+   * Statusbeslissing op de ruwe enum (statusRaw). Valt alleen terug op het
+   * label wanneer geen enum beschikbaar is (UX-FIN-3A.6) — geen Nederlandse
+   * statuslogica voor business-beslissingen.
+   */
+  const orderIsInEnumState = (
+    order: Order,
+    enums: string[],
+    fallbackLabels: string[],
+  ): boolean =>
+    order.statusRaw
+      ? enums.includes(order.statusRaw)
+      : fallbackLabels.includes(order.status);
+
+  /** Prefereer de ruwe enum voor render (nooit de ruwe enum tonen). */
+  const orderDisplayStatus = (order: Order): string => order.statusRaw || order.status;
 
   const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const formatCurrency = (amount: number) => {
@@ -241,6 +237,7 @@ export default function SellerOrdersPageClient() {
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    setStatusError(null);
     try {
       const response = await fetch(`/api/orders/${orderId}/update`, {
         method: 'PATCH',
@@ -267,18 +264,12 @@ export default function SellerOrdersPageClient() {
         
         // Show success message with better UX
         const statusText = getStatusText(newStatus);
-        
+        const successMessage = t('seller.orderUpdatedTo', { status: statusText });
+
         // Show a non-blocking success message
         const successDiv = document.createElement('div');
         successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-        successDiv.innerHTML = `
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-            <span>Bestelling bijgewerkt naar: ${statusText}</span>
-          </div>
-        `;
+        successDiv.textContent = successMessage;
         document.body.appendChild(successDiv);
         
         // Remove success message after 3 seconds
@@ -292,22 +283,22 @@ export default function SellerOrdersPageClient() {
         const errorData = await response.json().catch(() => ({}));
         console.error('Error updating order:', response.status, response.statusText, errorData);
         
-        let errorMessage = t('orders.updateError') || 'Fout bij bijwerken van bestelling';
+        let errorMessage = t('orders.updateError');
         if (response.status === 401) {
-          errorMessage = 'Je bent niet ingelogd. Log opnieuw in.';
+          errorMessage = t('errors.notLoggedIn');
         } else if (response.status === 403) {
-          errorMessage = 'Je hebt geen toegang tot deze bestelling.';
+          errorMessage = t('errors.noAccessOrder');
         } else if (response.status === 404) {
-          errorMessage = 'Bestelling niet gevonden.';
+          errorMessage = t('errors.orderNotFound');
         } else if (errorData.error) {
-          errorMessage = `Fout: ${errorData.error}`;
+          errorMessage = errorData.error;
         }
-        
-        alert(errorMessage);
+
+        setStatusError(errorMessage);
       }
     } catch (error) {
       console.error('Network error updating order:', error);
-      alert(t('errors.networkError'));
+      setStatusError(t('errors.networkError'));
     }
   };
 
@@ -341,8 +332,8 @@ export default function SellerOrdersPageClient() {
               {(
                 [
                   ['all', t('seller.all')],
-                  ['new', 'Nieuw'],
-                  ['ongoing', 'Lopend'],
+                  ['new', t('seller.new')],
+                  ['ongoing', t('seller.ongoing')],
                   ['shipped', t('seller.shipped')],
                   ['completed', t('seller.completed')],
                   ['cancelled', t('seller.cancelled')],
@@ -364,6 +355,22 @@ export default function SellerOrdersPageClient() {
             </div>
           </div>
         </div>
+
+        {statusError ? (
+          <div
+            role="alert"
+            className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          >
+            <span>{statusError}</span>
+            <button
+              type="button"
+              onClick={() => setStatusError(null)}
+              className="shrink-0 font-semibold underline"
+            >
+              {t('common.close')}
+            </button>
+          </div>
+        ) : null}
 
         {/* Orders List */}
         {isLoading ? (
@@ -418,7 +425,7 @@ export default function SellerOrdersPageClient() {
                 {/* Order Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(order.status)}
+                    {getStatusIcon(orderDisplayStatus(order))}
                     <div>
                       <h3 className="font-semibold text-neutral-900">
                         🛍️ {order.orderNumber || `HC-${order.id.slice(-6).toUpperCase()}`}
@@ -429,9 +436,7 @@ export default function SellerOrdersPageClient() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                      {getStatusText(order.status)}
-                    </span>
+                    <OrderStatusChip status={orderDisplayStatus(order)} />
                     <span className="text-lg font-semibold text-neutral-900">
                       {formatCurrency(order.amount)}
                     </span>
@@ -557,7 +562,7 @@ export default function SellerOrdersPageClient() {
                 {/* Actions */}
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-neutral-200">
                   {/* Status Update Buttons */}
-                  {(order.status === 'Bevestigd' || order.status === 'CONFIRMED') && (
+                  {orderIsInEnumState(order, ['CONFIRMED'], ['Bevestigd']) && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'PROCESSING')}
                       className="px-4 py-2 bg-primary-600 text-white hover:bg-primary-700"
@@ -566,7 +571,7 @@ export default function SellerOrdersPageClient() {
                       {t('seller.productReady')}
                     </Button>
                   )}
-                  {(order.status === 'In behandeling' || order.status === 'PROCESSING') && order.deliveryMode === 'PICKUP' && (
+                  {orderIsInEnumState(order, ['PROCESSING'], ['In behandeling']) && order.deliveryMode === 'PICKUP' && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'SHIPPED')}
                       className="px-4 py-2 bg-green-600 text-white hover:bg-green-700"
@@ -575,7 +580,7 @@ export default function SellerOrdersPageClient() {
                       {t('seller.readyForPickup')}
                     </Button>
                   )}
-                  {(order.status === 'In behandeling' || order.status === 'PROCESSING') &&
+                  {orderIsInEnumState(order, ['PROCESSING'], ['In behandeling']) &&
                     (order.deliveryMode === 'DELIVERY' || order.deliveryMode === 'SHIPPING') && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'SHIPPED')}
@@ -583,11 +588,11 @@ export default function SellerOrdersPageClient() {
                     >
                       <Truck className="w-4 h-4 mr-2" />
                       {order.deliveryMode === 'SHIPPING'
-                        ? t('seller.shipped') || 'Verzonden'
+                        ? t('seller.shipped')
                         : t('seller.readyForDelivery')}
                     </Button>
                   )}
-                  {(order.status === 'Verzonden' || order.status === 'SHIPPED') && order.sellerCanSetDelivered && (
+                  {orderIsInEnumState(order, ['SHIPPED'], ['Verzonden']) && order.sellerCanSetDelivered && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'DELIVERED')}
                       className="px-4 py-2 bg-green-600 text-white hover:bg-green-700"

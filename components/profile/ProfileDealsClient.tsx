@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CalendarClock, List, Loader2 } from 'lucide-react';
+import { AlertCircle, CalendarClock, List } from 'lucide-react';
+import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 import { useTranslation } from '@/hooks/useTranslation';
 import type {
   AgreementAgendaBucket,
@@ -289,9 +290,7 @@ export default function ProfileDealsClient() {
       ) : null}
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-        </div>
+        <CardListLoadingSkeleton rows={3} />
       ) : view === 'agenda' ? (
         agendaIsEmpty ? (
           <p className="text-sm text-gray-600">

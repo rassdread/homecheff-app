@@ -29,8 +29,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('🔍 Orders API: Fetching orders for user:', user.id, 'email:', session.user.email, 'status:', status, 'stripeSessionId:', stripeSessionId);
-
     const where: any = {
       userId: user.id,
     };
@@ -102,11 +100,6 @@ export async function GET(req: NextRequest) {
         },
       },
     });
-
-    console.log(`✅ Orders API: Found ${orders.length} orders for user ${user.id}`);
-    if (orders.length > 0) {
-      console.log(`📦 Orders:`, orders.map(o => ({ id: o.id, orderNumber: o.orderNumber, status: o.status, stripeSessionId: o.stripeSessionId })));
-    }
 
     // Transform orders for frontend
     const transformedOrders = orders.map(order => ({

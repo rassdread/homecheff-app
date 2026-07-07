@@ -75,6 +75,7 @@ export default function ProductSaleStickyCta({
     listingIntent: product.listingIntent,
     specializations: product.specializations,
   });
+  const isRequest = listingKind === 'REQUEST';
   const detailActions = resolveDetailPageActions({
     listingKind,
     barterOpenness: product.barterOpenness,
@@ -188,7 +189,13 @@ export default function ProductSaleStickyCta({
   let showCartIcon = true;
   let showCheck = false;
 
-  if (checkoutMode && !contactOnly && !paymentsBlocked && !isOutOfStock) {
+  if (isRequest) {
+    // A request is never "added to cart" — route to the proposal/contact block.
+    actionLabel = t('marketplace.detail.actions.requestProposal');
+    onAction = () => scrollToCta();
+    disabled = false;
+    showCartIcon = false;
+  } else if (checkoutMode && !contactOnly && !paymentsBlocked && !isOutOfStock) {
     actionLabel = t('cart.goToCheckout');
     onAction = () => {
       trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.stickyCheckoutClick, {

@@ -833,7 +833,8 @@ export default function ListingDetailPage() {
             </div>
           ) : null}
 
-        {/* Reviews Section */}
+        {/* Reviews Section — hidden for requests (a request is a help post, not a product). */}
+          {!isRequestListing ? (
           <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
@@ -890,6 +891,7 @@ export default function ListingDetailPage() {
           />
           ) : null}
         </div>
+          ) : null}
         </div>
       </section>
 

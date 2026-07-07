@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import OperationsShell from '@/components/operations/OperationsShell';
+import OrderStatusChip from '@/components/orders/OrderStatusChip';
 import SellerActionCenter from '@/components/seller/SellerActionCenter';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
@@ -68,7 +69,10 @@ interface RecentOrder {
   customerName: string;
   productTitle: string;
   amount: number;
+  /** Gelokaliseerde weergavelabel (mag NIET voor business-logica gebruikt worden). */
   status: string;
+  /** Ruwe Prisma OrderStatus enum — gebruik dit voor status-beslissingen. */
+  statusRaw?: string;
   createdAt: string;
 }
 
@@ -265,26 +269,6 @@ export default function SellerDashboardClient() {
     return t('seller.pending');
   };
 
-  const getOrderStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'confirmed' || statusLower === 'bevestigd') {
-      return 'bg-blue-100 text-blue-800';
-    }
-    if (statusLower === 'processing' || statusLower === 'in behandeling') {
-      return 'bg-purple-100 text-purple-800';
-    }
-    if (statusLower === 'shipped' || statusLower === 'verzonden') {
-      return 'bg-indigo-100 text-indigo-800';
-    }
-    if (statusLower === 'delivered' || statusLower === 'voltooid') {
-      return 'bg-green-100 text-green-800';
-    }
-    if (statusLower === 'cancelled' || statusLower === 'geannuleerd') {
-      return 'bg-red-100 text-red-800';
-    }
-    return 'bg-yellow-100 text-yellow-800';
-  };
-
   const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const formatOrderDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(locale, {
@@ -373,6 +357,24 @@ export default function SellerDashboardClient() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  /**
+   * Statusbeslissing op de ruwe enum (statusRaw). Valt alleen terug op het
+   * (gelokaliseerde) label wanneer geen enum beschikbaar is — zo hangen
+   * business-beslissingen niet af van Nederlandse teksten (UX-FIN-3A.6).
+   */
+  const orderIsInEnumState = (
+    order: { statusRaw?: string; status?: string },
+    enums: string[],
+    fallbackLabels: string[],
+  ): boolean =>
+    order.statusRaw
+      ? enums.includes(order.statusRaw)
+      : fallbackLabels.includes(order.status ?? '');
+
+  /** Prefereer de ruwe enum voor kleur/label-rendering; nooit de ruwe enum tonen. */
+  const orderDisplayStatus = (order: { statusRaw?: string; status?: string }): string =>
+    order.statusRaw || order.status || '';
 
   if (isLoading) {
     return (
@@ -560,7 +562,9 @@ export default function SellerDashboardClient() {
         )}
         {/* Nieuwe Verkooporders Preview - BOVENAAN */}
         {(() => {
-          const newOrders = recentOrders.filter(o => o.status === 'Bevestigd' || o.status === 'Wachtend');
+          const newOrders = recentOrders.filter(o =>
+            orderIsInEnumState(o, ['CONFIRMED', 'PENDING'], ['Bevestigd', 'Wachtend']),
+          );
           return newOrders.length > 0 && (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 mb-6 sm:mb-8 p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
@@ -598,11 +602,11 @@ export default function SellerDashboardClient() {
                         <p className="text-xs text-gray-600 mt-1">{order.customerName}</p>
                       </div>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        order.status === 'Bevestigd' 
-                          ? 'bg-green-100 text-green-800' 
+                        orderIsInEnumState(order, ['CONFIRMED'], ['Bevestigd'])
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {order.status}
+                        {getStatusText(orderDisplayStatus(order))}
                       </span>
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
@@ -802,9 +806,7 @@ export default function SellerDashboardClient() {
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
                         <p className="font-semibold text-gray-900 text-sm sm:text-base">{formatCurrency(order.amount)}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
+                        <OrderStatusChip status={orderDisplayStatus(order)} size="sm" />
                       </div>
                     </Link>
                   ))}
@@ -1014,9 +1016,7 @@ export default function SellerDashboardClient() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
-                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getOrderStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
+                        <OrderStatusChip status={orderDisplayStatus(order)} />
                         <span className="text-base sm:text-lg font-semibold text-emerald-600">
                           {formatCurrency(order.deliveryFee || 300)}
                         </span>
@@ -1057,7 +1057,7 @@ export default function SellerDashboardClient() {
                     <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-neutral-200">
                       {/* Status Update Buttons */}
                       <div className="flex flex-wrap gap-2 sm:gap-3 flex-1">
-                        {(order.status === 'Bevestigd' || order.status === 'CONFIRMED' || order.status === 'PENDING') && (
+                        {orderIsInEnumState(order, ['CONFIRMED', 'PENDING'], ['Bevestigd', 'Wachtend']) && (
                           <button
                             onClick={() => handleStatusUpdate(order.id || order.orderId, 'PROCESSING')}
                             className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
@@ -1066,7 +1066,7 @@ export default function SellerDashboardClient() {
                             <span>{t('seller.startDelivery') || 'Start bezorging'}</span>
                           </button>
                         )}
-                        {(order.status === 'In behandeling' || order.status === 'PROCESSING') && (
+                        {orderIsInEnumState(order, ['PROCESSING'], ['In behandeling']) && (
                           <button
                             onClick={() => handleStatusUpdate(order.id || order.orderId, 'SHIPPED')}
                             className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"

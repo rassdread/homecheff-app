@@ -98,6 +98,32 @@ export function SellerDashboardLoadingSkeleton() {
   );
 }
 
+/**
+ * Generic card-list skeleton (UX-FIN-3B.2). Reused for inline loading states
+ * that previously showed a bare spinner (profile deals, delivery dashboard).
+ */
+export function CardListLoadingSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-3" aria-busy aria-label="Laden">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-2xl border border-gray-200 bg-white p-4"
+        >
+          <div className="flex gap-4">
+            <div className="h-12 w-12 shrink-0 rounded-xl bg-gray-200" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="h-4 w-2/3 rounded bg-gray-200" />
+              <div className="h-3 w-1/2 rounded bg-gray-100" />
+              <div className="h-3 w-1/3 rounded bg-gray-100" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SellerOrdersLoadingSkeleton() {
   return (
     <main className="min-h-screen bg-neutral-50">

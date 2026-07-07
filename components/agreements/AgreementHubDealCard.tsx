@@ -23,9 +23,7 @@ export default function AgreementHubDealCard({
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
             {t(agreementKindLabelKey(item.displayKind))}
           </span>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-            {t(`communityOrder.status.${item.deal.status.toLowerCase()}`)}
-          </span>
+          {/* Status chip is rendered once by ProfileDealCard (UX-FIN-3B.7). */}
         </div>
         <AgreementAgendaMeta agenda={item.agenda} />
         <AgreementTimeline steps={item.timeline} />

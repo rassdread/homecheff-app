@@ -176,7 +176,7 @@ export default function RecipeStepPhotos({
                       />
                       
                       {/* Action Buttons */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                         <button
                           onClick={() => removePhoto(photo.id)}
                           className="p-1 bg-white text-red-600 rounded-full hover:bg-red-50 transition-colors"

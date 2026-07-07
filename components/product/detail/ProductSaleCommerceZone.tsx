@@ -114,9 +114,13 @@ export default function ProductSaleCommerceZone({
 }: Props) {
   const { t } = useTranslation();
 
+  // A request is a help/wanted post, not a sale — hide stock/quantity/VAT chrome.
+  const isRequest = listingKind === 'REQUEST';
+
   const commerceActions = resolveProductCommerceActions(product.barterOpenness);
 
   const showQuantity =
+    !isRequest &&
     commerceActions.showOrderCheckout &&
     !isContactOnlyProduct(product) &&
     !isOwner &&
@@ -124,6 +128,7 @@ export default function ProductSaleCommerceZone({
     availableStock > 0;
 
   const stockBadge = (() => {
+    if (isRequest) return null;
     if (availableStock === null) return null;
     if (availableStock === 0) {
       return (
@@ -191,7 +196,7 @@ export default function ProductSaleCommerceZone({
             </span>
           ) : null}
         </div>
-        {!isContactOnlyProduct(product) && commerceActions.showOrderCheckout ? (
+        {!isRequest && !isContactOnlyProduct(product) && commerceActions.showOrderCheckout ? (
           <p className="mt-0.5 text-xs text-gray-500">{t('productOrder.priceIncludesVat')}</p>
         ) : isContactOnlyProduct(product) ? (
           <p className="mt-1 text-sm text-gray-600">{t('productOrder.buyerContactIntro')}</p>

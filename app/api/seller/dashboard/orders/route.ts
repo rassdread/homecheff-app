@@ -39,8 +39,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 });
     }
 
-    console.log(`🔍 Seller Dashboard Orders API: Fetching orders for seller ${sellerProfile.id}, period: ${period}, limit: ${limit}`);
-
     // Calculate date range
     const now = new Date();
     const periodDays = {
@@ -136,8 +134,6 @@ export async function GET(request: Request) {
       }
     });
 
-    console.log(`📊 Seller Dashboard Orders API: Found ${orders.length} orders matching criteria (with stripeSessionId, period: ${period})`);
-
     // Filter orders to only include items from this seller + nogmaals Stripe-modus (legacy id’s)
     const filteredOrders = orders
       .filter((o) => o.stripeSessionId && matchesCurrentMode(o.stripeSessionId))
@@ -187,16 +183,6 @@ export async function GET(request: Request) {
         } : null
       };
     });
-
-    console.log(`✅ Seller Dashboard Orders API: Found ${orders.length} total orders, ${filteredOrders.length} after filtering, ${transformedOrders.length} transformed`);
-    if (transformedOrders.length > 0) {
-      console.log(`📦 Sample transformed order:`, {
-        id: transformedOrders[0].id,
-        orderNumber: transformedOrders[0].orderNumber,
-        status: transformedOrders[0].status,
-        amount: transformedOrders[0].amount
-      });
-    }
 
     return NextResponse.json({ orders: transformedOrders });
   } catch (error) {

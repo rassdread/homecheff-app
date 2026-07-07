@@ -150,6 +150,7 @@ export default function CheckoutPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
   const hasPrefilledAddressRef = useRef(false);
@@ -555,7 +556,7 @@ export default function CheckoutPage() {
       description: t('checkout.shippingDescription') || t('checkout.dhlPostnl'),
       icon: <Truck className="w-6 h-6" />,
       price: actualDeliveryFee?.deliveryFeeCents ? actualDeliveryFee.deliveryFeeCents / 100 : 8, // Use calculated price or default
-      estimatedTime: t('checkout.shippingEstimatedTime') || '1-3 werkdagen',
+      estimatedTime: t('checkout.shippingEstimatedTime'),
       available: availableDeliveryModes.hasShipping // Only available if at least one product supports shipping
     }
   ];
@@ -607,8 +608,9 @@ export default function CheckoutPage() {
     (!checkoutDraft.coordinates || !isDeliveryAvailable);
 
   const handleCheckout = async () => {
+    setCheckoutError(null);
     if (!checkoutDraft.selectedDelivery) {
-      alert(t('checkout.selectDeliveryOption'));
+      setCheckoutError(t('checkout.selectDeliveryOption'));
       return;
     }
 
@@ -617,12 +619,12 @@ export default function CheckoutPage() {
       (checkoutDraft.selectedDelivery === 'local_delivery' || checkoutDraft.selectedDelivery === 'teen_delivery') &&
       (!checkoutDraft.coordinates || !checkoutDraft.addressValidated)
     ) {
-      alert(t('checkout.validateAddressFirst') || 'Valideer eerst je adres voordat je doorgaat');
+      setCheckoutError(t('checkout.validateAddressFirst'));
       return;
     }
 
     if (isTeenDeliveryUnavailable) {
-      alert(t('checkout.teenDeliveryUnavailable'));
+      setCheckoutError(t('checkout.teenDeliveryUnavailable'));
       return;
     }
 
@@ -709,7 +711,7 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Checkout error:', error);
       const errorMessage = error instanceof Error ? error.message : t('checkout.checkoutErrorGeneric');
-      alert(t('checkout.checkoutError', { error: errorMessage }));
+      setCheckoutError(t('checkout.checkoutError', { error: errorMessage }));
     } finally {
       if (!didRedirect) {
         setIsProcessing(false);
@@ -855,7 +857,7 @@ export default function CheckoutPage() {
                   className="flex items-center gap-2"
                 >
                   <Navigation className="w-4 h-4" />
-                  {t('common.useCurrentGPS') || 'Gebruik huidige locatie'}
+                  {t('common.useCurrentGPS')}
                 </Button>
               </div>
 
@@ -874,7 +876,7 @@ export default function CheckoutPage() {
                       {t('checkout.addressValidatedCalculating')}
                     </p>
                     <p className="text-xs text-green-600 mt-1">
-                      Locatie: {[
+                      {t('checkout.locationPrefix')}: {[
                         checkoutDraft.street,
                         checkoutDraft.houseNumber,
                         checkoutDraft.postalCode,
@@ -883,7 +885,7 @@ export default function CheckoutPage() {
                         .filter(Boolean)
                         .join(', ') || (checkoutDraft.coordinates
                           ? `${checkoutDraft.coordinates.lat.toFixed(4)}, ${checkoutDraft.coordinates.lng.toFixed(4)}`
-                          : 'Onbekend adres')}
+                          : t('checkout.unknownAddress'))}
                     </p>
                   </div>
                 </div>
@@ -964,19 +966,19 @@ export default function CheckoutPage() {
                               )}
                               {showFallbackFee && (
                                 <span className="text-lg font-bold text-gray-500">
-                                  {displayPrice === 0 ? 'Gratis' : `€${displayPrice.toFixed(2)}`}
+                                  {displayPrice === 0 ? t('checkout.free') : `€${displayPrice.toFixed(2)}`}
                                 </span>
                               )}
                               {!isTeenDelivery && !isLocalDelivery && !isShipping && (
                                 <span className="text-lg font-bold text-primary-brand">
-                                  {displayPrice === 0 ? 'Gratis' : `€${displayPrice.toFixed(2)}`}
+                                  {displayPrice === 0 ? t('checkout.free') : `€${displayPrice.toFixed(2)}`}
                                 </span>
                               )}
                             </div>
                             <p className="text-sm text-gray-600 mt-1">{option.description}</p>
                             {!option.available && (
                               <p className="text-sm text-red-600 mt-2 font-medium">
-                                Deze optie is niet beschikbaar voor alle producten in je winkelwagen
+                                {t('checkout.optionUnavailableAllProducts')}
                               </p>
                             )}
                             <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
@@ -1009,10 +1011,10 @@ export default function CheckoutPage() {
                                 }`}
                               >
                                 {isLoading
-                                  ? 'Beschikbaarheid wordt gecontroleerd…'
+                                  ? t('checkout.checkingAvailability')
                                   : teenNeedsLocation
-                                  ? 'Valideer je adres om jongeren bezorging te controleren.'
-                                  : availability.message || 'Bezorgersstatus onbekend.'}
+                                  ? t('checkout.teenAvailabilityValidate')
+                                  : availability.message || t('checkout.teenAvailabilityUnknown')}
                               </div>
                             )}
                           </div>
@@ -1102,7 +1104,7 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Tijd
+                          {t('checkout.timeLabel')}
                         </label>
                         <select
                           value={checkoutDraft.deliveryTime}
@@ -1164,7 +1166,7 @@ export default function CheckoutPage() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
-                  Bestelling Overzicht
+                  {t('checkout.summaryTitle')}
                 </h2>
 
                 <div className="bg-gray-50 rounded-xl p-6">
@@ -1183,7 +1185,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium text-gray-900">{item.title}</h3>
-                          <p className="text-sm text-gray-600">Aantal: {item.quantity}</p>
+                          <p className="text-sm text-gray-600">{t('checkout.itemQuantity', { count: item.quantity })}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-gray-900">
@@ -1197,12 +1199,12 @@ export default function CheckoutPage() {
                   {/* Totals */}
                   <div className="space-y-2 border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-sm">
-                      <span>Subtotaal</span>
+                      <span>{t('checkout.subtotal')}</span>
                       <span>€{(productsTotalCents / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>
-                        Bezorgkosten
+                        {t('checkout.deliveryFee')}
                         {actualDeliveryFee && checkoutDraft.addressValidated && (
                           <span className="text-xs text-gray-500 ml-2">
                             ({actualDeliveryFee.distance.toFixed(1)} km
@@ -1210,7 +1212,7 @@ export default function CheckoutPage() {
                           </span>
                         )}
                         {isCalculatingFee && (
-                          <span className="text-xs text-gray-500 ml-2">(berekenen...)</span>
+                          <span className="text-xs text-gray-500 ml-2">({t('common.calculating')}...)</span>
                         )}
                       </span>
                       <span>
@@ -1223,23 +1225,32 @@ export default function CheckoutPage() {
                     </div>
                     {smsNotificationCostCents > 0 && (
                       <div className="flex justify-between text-sm text-blue-600">
-                        <span>SMS Notificatie ({uniqueSellerCount} verkoper{uniqueSellerCount > 1 ? 's' : ''})</span>
+                        <span>{t('checkout.smsNotificationSummary', { count: uniqueSellerCount })}</span>
                         <span>€{(smsNotificationCostCents / 100).toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span>Transactiekosten (Stripe)</span>
+                      <span>{t('checkout.transactionFeeStripe')}</span>
                       <span>€{(stripeFeeCents / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
-                      <span>Totaal</span>
+                      <span>{t('checkout.total')}</span>
                       <span className="text-primary-brand">€{(buyerTotalCents / 100).toFixed(2)}</span>
                     </div>
                   </div>
 
                   <p className="text-xs text-gray-500 mt-3">
-                    Stripe-kosten worden doorberekend aan de koper. HomeCheff-kosten worden verrekend met de verkoper.
+                    {t('checkout.feeDisclaimer')}
                   </p>
+
+                  {checkoutError ? (
+                    <div
+                      role="alert"
+                      className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                    >
+                      {checkoutError}
+                    </div>
+                  ) : null}
 
                   {/* Checkout Button */}
                   <Button
@@ -1253,17 +1264,17 @@ export default function CheckoutPage() {
                     className="w-full mt-6 py-4 text-lg"
                   >
                     {isProcessing ? (
-                      'Verwerken...'
+                      t('checkout.processing')
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5 mr-2" />
-                        Afrekenen - €{(buyerTotalCents / 100).toFixed(2)}
+                        {t('checkout.payNow', { amount: (buyerTotalCents / 100).toFixed(2) })}
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center mt-3">
-                    {t('checkout.redirectingToStripe') || 'Je wordt doorgestuurd naar Stripe voor veilige betaling'}
+                    {t('checkout.redirectingToStripe')}
                   </p>
                   <p className="text-xs text-emerald-700 text-center mt-1 font-medium">
                     {t('checkout.trustLine')}

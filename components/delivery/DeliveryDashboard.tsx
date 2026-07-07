@@ -32,6 +32,7 @@ import {
   Wallet
 } from 'lucide-react';
 import OperationsShell from '@/components/operations/OperationsShell';
+import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 
 interface DeliveryStats {
   todayEarnings: number;
@@ -108,6 +109,7 @@ export default function DeliveryDashboard() {
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'delivery' | 'orders'>('delivery');
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
+  const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
 
   useEffect(() => {
     fetchDeliveryData();
@@ -334,16 +336,16 @@ export default function DeliveryDashboard() {
         
         // Show warning if going online outside available times
         if (data.warning) {
-          alert(t('delivery.warning', { message: data.warning }));
+          setFeedback({ type: 'warning', message: t('delivery.warning', { message: data.warning }) });
         }
       } else {
         const error = await response.json();
         // Show error message to user
-        alert(error.error || t('delivery.errorChangingStatus'));
+        setFeedback({ type: 'error', message: error.error || t('delivery.errorChangingStatus') });
       }
     } catch (error) {
       console.error('Error toggling status:', error);
-      alert(t('delivery.errorChangingStatus'));
+      setFeedback({ type: 'error', message: t('delivery.errorChangingStatus') });
     }
   };
 
@@ -393,11 +395,11 @@ export default function DeliveryDashboard() {
         await fetchDeliveryData();
       } else {
         const error = await response.json();
-        alert(`${t('delivery.error')} ${error.error || t('delivery.couldNotAcceptOrder')}`);
+        setFeedback({ type: 'error', message: `${t('delivery.error')} ${error.error || t('delivery.couldNotAcceptOrder')}` });
       }
     } catch (error) {
       console.error('Error accepting order:', error);
-        alert(t('delivery.errorAcceptingOrder'));
+        setFeedback({ type: 'error', message: t('delivery.errorAcceptingOrder') });
     } finally {
       setAcceptingOrder(null);
     }
@@ -451,14 +453,12 @@ export default function DeliveryDashboard() {
   const handleStripeOnboard = async () => {
     setStripeLoading(true);
     try {
-      console.log('🔍 Starting Stripe Connect onboarding...');
       const response = await fetch('/api/stripe/connect/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
 
       const data = await response.json();
-      console.log('📥 Response:', { ok: response.ok, status: response.status, data });
 
       if (!response.ok) {
         const errorMsg = data.error || t('delivery.errorStripeConnect');
@@ -468,7 +468,6 @@ export default function DeliveryDashboard() {
       }
 
       if (data.onboardingUrl) {
-        console.log('✅ Redirecting to Stripe onboarding:', data.onboardingUrl);
         window.location.href = data.onboardingUrl;
       } else {
         console.error('❌ No onboardingUrl in response:', data);
@@ -493,8 +492,8 @@ export default function DeliveryDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <CardListLoadingSkeleton rows={4} />
       </div>
     );
   }
@@ -586,6 +585,26 @@ export default function DeliveryDashboard() {
       contentClassName="py-0"
     >
       <DeliveryNotificationListener />
+
+      {feedback ? (
+        <div
+          role="alert"
+          className={`mt-4 flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
+            feedback.type === 'error'
+              ? 'border-red-200 bg-red-50 text-red-800'
+              : 'border-amber-200 bg-amber-50 text-amber-900'
+          }`}
+        >
+          <span>{feedback.message}</span>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            className="shrink-0 font-semibold underline"
+          >
+            {t('common.close')}
+          </button>
+        </div>
+      ) : null}
 
       <div className="py-4 sm:py-6">
         {/* Stats Cards */}

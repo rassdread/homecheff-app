@@ -70,16 +70,17 @@ type Favorite = {
 
 interface FansAndFollowsListProps {
   userId?: string; // Optional userId for viewing other users' profiles
+  initialTab?: 'follows' | 'fans' | 'favorites';
 }
 
-export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) {
+export default function FansAndFollowsList({ userId, initialTab = 'follows' }: FansAndFollowsListProps) {
   const { t, language } = useTranslation();
   const locale = language === 'en' ? 'en-GB' : 'nl-NL';
   const [follows, setFollows] = useState<Follow[]>([]);
   const [fans, setFans] = useState<Follow[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'follows' | 'fans' | 'favorites'>('follows');
+  const [activeTab, setActiveTab] = useState<'follows' | 'fans' | 'favorites'>(initialTab);
 
   useEffect(() => {
     (async () => {
@@ -94,12 +95,6 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
       if (followsRes.ok) {
         const followsData = await followsRes.json();
         const items = followsData.items || [];
-        // Debug: log data om structuur te zien
-        console.log('Follows API response:', {
-          total: items.length,
-          sample: items[0] || null,
-          allItems: items
-        });
         setFollows(items);
       } else {
         const errorData = await followsRes.json().catch(() => ({}));
@@ -111,12 +106,6 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
       if (fansRes.ok) {
         const fansData = await fansRes.json();
         const fans = fansData.fans || [];
-        // Debug: log data om structuur te zien
-        console.log('Fans API response:', {
-          total: fans.length,
-          sample: fans[0] || null,
-          allFans: fans
-        });
         setFans(fans);
       } else {
         const errorData = await fansRes.json().catch(() => ({}));
@@ -163,7 +152,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
             }`}
           >
             <UserPlus className={`w-4 h-4 ${activeTab === 'follows' ? 'text-white' : 'text-gray-500'}`} />
-            <span>Fan ({follows.length})</span>
+            <span>{t('favoritesHub.tabFollowing')} ({follows.length})</span>
             {activeTab === 'follows' && (
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full"></div>
             )}
@@ -177,7 +166,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
             }`}
           >
             <Users className={`w-4 h-4 ${activeTab === 'fans' ? 'text-white' : 'text-gray-500'}`} />
-            <span>Fans ({fans.length})</span>
+            <span>{t('favoritesHub.tabFans')} ({fans.length})</span>
             {activeTab === 'fans' && (
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full"></div>
             )}
@@ -191,7 +180,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
             }`}
           >
             <Heart className={`w-4 h-4 ${activeTab === 'favorites' ? 'text-white' : 'text-gray-500'}`} />
-            <span>Favorieten ({favorites.length})</span>
+            <span>{t('favoritesHub.tabFavorites')} ({favorites.length})</span>
             {activeTab === 'favorites' && (
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-500 rounded-full"></div>
             )}
@@ -412,10 +401,18 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                         </p>
                       )}
                       <p className="text-xs text-gray-500 mt-2">
-                        {activeTab === 'follows' 
-                          ? `Fan sinds ${new Date(item.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                          : `Fan sinds ${new Date(item.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                        }
+                        {t(
+                          activeTab === 'follows'
+                            ? 'favoritesHub.followingSince'
+                            : 'favoritesHub.fanSince',
+                          {
+                            date: new Date(item.createdAt).toLocaleDateString(locale, {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            }),
+                          },
+                        )}
                       </p>
                     </div>
 
@@ -426,7 +423,7 @@ export default function FansAndFollowsList({ userId }: FansAndFollowsListProps) 
                           ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
                           : 'text-blue-700 bg-blue-50 border border-blue-200'
                       }`}>
-                        {activeTab === 'fans' ? 'Fan' : 'Jij volgt'}
+                        {activeTab === 'fans' ? t('favoritesHub.badgeFan') : t('favoritesHub.badgeFollowing')}
                       </span>
                     </div>
                   </div>
