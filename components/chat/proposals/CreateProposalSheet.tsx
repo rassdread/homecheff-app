@@ -6,6 +6,7 @@ import type { SettlementMode } from "@prisma/client";
 import AcceptedValuesPicker from "@/components/products/marketplace/AcceptedValuesPicker";
 import { useTranslation } from "@/hooks/useTranslation";
 import { deriveSettlementModeFromProduct } from "@/lib/proposals/proposal-settlement";
+import { allowedSettlementModesForBarterOpenness } from "@/lib/marketplace/commerce/barter-commerce-alignment";
 import { PROPOSAL_I18N } from "@/lib/proposals/proposal-i18n-keys";
 import { resolveProposalSendLabelKey } from "@/lib/proposals/proposal-send-label";
 import type { ResolvedConversationHeader } from "@/lib/communication/resolveConversationHeader";
@@ -112,10 +113,24 @@ export default function CreateProposalSheet({
 
   useEffect(() => {
     if (open) {
-      setForm(initialFromHeader(contextHeader));
+      const next = initialFromHeader(contextHeader);
+      if (contextHeader?.kind === "PRODUCT") {
+        const allowed = allowedSettlementModesForBarterOpenness(
+          contextHeader.product.barterOpenness,
+        );
+        if (!allowed.includes(next.settlementMode)) {
+          next.settlementMode = allowed[0] ?? "MONEY";
+        }
+      }
+      setForm(next);
       setError(null);
     }
   }, [open, contextHeader]);
+
+  const allowedSettlementModes = useMemo(() => {
+    if (!product) return SETTLEMENT_MODES;
+    return allowedSettlementModesForBarterOpenness(product.barterOpenness);
+  }, [product]);
 
   const showMoneyField = useMemo(
     () =>
@@ -268,7 +283,7 @@ export default function CreateProposalSheet({
               {t("proposal.create.settlementHint")}
             </p>
             <div className="flex flex-wrap gap-2">
-              {SETTLEMENT_MODES.map((mode) => (
+              {allowedSettlementModes.map((mode) => (
                 <button
                   key={mode}
                   type="button"

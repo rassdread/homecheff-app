@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AddToCartButtonProps {
@@ -15,6 +16,7 @@ interface AddToCartButtonProps {
     sellerId: string;
     deliveryMode: string;
     stock?: number | null;
+    barterOpenness?: string | null;
   };
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -44,10 +46,14 @@ export default function AddToCartButton({
   const productInCart = items.some(
     (item) => item.productId === product.id || item.id === product.id,
   );
-  const showCheckout = isAdded || productInCart;
+  const showCheckout = (isAdded || productInCart) && !blocksHomecheffCartCheckout(product.barterOpenness);
 
   const handleAddToCart = async () => {
     setErrorMessage(null);
+    if (blocksHomecheffCartCheckout(product.barterOpenness)) {
+      setErrorMessage(t('checkout.errors.barterOnly'));
+      return;
+    }
     setIsAdding(true);
 
     await new Promise((resolve) => setTimeout(resolve, 500));

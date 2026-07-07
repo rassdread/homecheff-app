@@ -13,11 +13,14 @@ import { useProductStoryCopy } from '@/components/product/detail/ProductSaleAbou
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import type { UserBadgeChipItem } from '@/components/gamification/UserBadgeChips';
 import {
-  formatProductPriceLabel,
   hasPublicDisplayPrice,
   isContactOnlyProduct,
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  formatCommercePriceLabel,
+  resolveProductCommerceActions,
+} from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import type { PublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
@@ -29,6 +32,9 @@ type ProductShape = {
   description?: string | null;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  barterOpenness?: string | null;
+  priceModel?: string | null;
+  acceptedSpecializations?: string[];
   category?: string;
   subcategory?: string;
   tags?: string[];
@@ -129,7 +135,10 @@ export default function ProductSaleCommerceZone({
     sellerBadgeCount,
   });
 
+  const commerceActions = resolveProductCommerceActions(product.barterOpenness);
+
   const showQuantity =
+    commerceActions.showOrderCheckout &&
     !isContactOnlyProduct(product) &&
     !isOwner &&
     availableStock !== null &&
@@ -140,20 +149,20 @@ export default function ProductSaleCommerceZone({
     if (availableStock === 0) {
       return (
         <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
-          Uitverkocht
+          {t('productDetail.outOfStock')}
         </span>
       );
     }
     if (availableStock <= 5) {
       return (
         <span className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-800">
-          Nog {availableStock} beschikbaar
+          {t('productOrder.stockLow', { count: availableStock })}
         </span>
       );
     }
     return (
       <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-        {availableStock} op voorraad
+        {t('productOrder.stockAvailable', { count: availableStock })}
       </span>
     );
   })();
@@ -200,7 +209,7 @@ export default function ProductSaleCommerceZone({
               hasPublicDisplayPrice(product) ? 'text-3xl sm:text-4xl' : 'text-xl',
             )}
           >
-            {formatProductPriceLabel(product, t)}
+            {formatCommercePriceLabel(product, t)}
           </div>
           {isContactOnlyProduct(product) ? (
             <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
@@ -208,11 +217,11 @@ export default function ProductSaleCommerceZone({
             </span>
           ) : null}
         </div>
-        {!isContactOnlyProduct(product) ? (
+        {!isContactOnlyProduct(product) && commerceActions.showOrderCheckout ? (
           <p className="mt-0.5 text-xs text-gray-500">{t('productOrder.priceIncludesVat')}</p>
-        ) : (
+        ) : isContactOnlyProduct(product) ? (
           <p className="mt-1 text-sm text-gray-600">{t('productOrder.buyerContactIntro')}</p>
-        )}
+        ) : null}
       </div>
 
       {showQuantity ? (
@@ -276,11 +285,13 @@ export default function ProductSaleCommerceZone({
         onAdded={onAddedToCart}
       />
 
-      <ProductSaleSecondaryContact
-        product={product}
-        sellerName={sellerName}
-        publicContactChannels={publicContactChannels}
-      />
+      {!commerceActions.showProposalCta && !isContactOnlyProduct(product) ? (
+        <ProductSaleSecondaryContact
+          product={product}
+          sellerName={sellerName}
+          publicContactChannels={publicContactChannels}
+        />
+      ) : null}
 
       <ProductMakerTrustStrip
         sellerUser={product.seller?.User}

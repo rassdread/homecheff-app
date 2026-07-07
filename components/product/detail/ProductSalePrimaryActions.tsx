@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { Edit3 } from 'lucide-react';
 import AddToCartButton from '@/components/cart/AddToCartButton';
 import MakerContactSection from '@/components/profile/MakerContactSection';
+import ProductSaleProposalAction from '@/components/product/detail/ProductSaleProposalAction';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import {
   isContactOnlyProduct,
   requiresStripeForHomecheffCheckout,
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import { resolveProductCommerceActions } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import {
   getBuyerPaymentWarningKey,
   type PublicPaymentStatus,
@@ -23,6 +25,7 @@ type ProductShape = {
   title: string;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  barterOpenness?: string | null;
   delivery?: string | null;
   image?: string | null;
   seller?: {
@@ -64,14 +67,16 @@ export default function ProductSalePrimaryActions({
 }: Props) {
   const { t, tOr } = useTranslation();
   const isOutOfStock = availableStock !== null && availableStock === 0;
+  const commerceActions = resolveProductCommerceActions(product.barterOpenness);
+  const sellerId = product.seller?.User?.id;
 
   if (isContactOnlyProduct(product) && !isOwner) {
-    if (product.seller?.User?.id && publicContactChannels.length > 0) {
+    if (sellerId && publicContactChannels.length > 0) {
       return (
         <div id="commerce-cta" className={cn(className)}>
           <MakerContactSection
             variant="product"
-            makerId={product.seller.User.id}
+            makerId={sellerId}
             makerName={sellerName}
             channels={publicContactChannels}
             productId={product.id}
@@ -100,6 +105,7 @@ export default function ProductSalePrimaryActions({
 
   if (
     !isOwner &&
+    commerceActions.showOrderCheckout &&
     requiresStripeForHomecheffCheckout(product) &&
     !checkoutAvailable
   ) {
@@ -115,10 +121,10 @@ export default function ProductSalePrimaryActions({
         >
           {t(warningKey)}
         </div>
-        {product.seller?.User?.id && hasContactChannels ? (
+        {sellerId && hasContactChannels ? (
           <MakerContactSection
             variant="product"
-            makerId={product.seller.User.id}
+            makerId={sellerId}
             makerName={sellerName}
             channels={publicContactChannels}
             productId={product.id}
@@ -146,7 +152,7 @@ export default function ProductSalePrimaryActions({
           className,
         )}
       >
-        Uitverkocht
+        {t('productDetail.outOfStock')}
       </div>
     );
   }
@@ -168,37 +174,62 @@ export default function ProductSalePrimaryActions({
     );
   }
 
+  if (!commerceActions.showOrderCheckout && commerceActions.showProposalCta) {
+    return (
+      <div id="commerce-cta" className={cn(className)}>
+        {sellerId ? (
+          <ProductSaleProposalAction
+            productId={product.id}
+            sellerId={sellerId}
+            sellerName={sellerName}
+            publicContactChannels={publicContactChannels}
+            primary
+          />
+        ) : null}
+      </div>
+    );
+  }
+
   return (
-    <div id="commerce-cta" className={cn('space-y-2', className)}>
-      <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-900">
-        {tOr(
-          'productDetail.commercePathCheckout',
-          'Order directly via HomeCheff — secure payment and order tracking.',
-          'Bestel direct via HomeCheff — veilig betalen en bestelling volgen.',
-        )}
-      </p>
-      <AddToCartButton
-        product={{
-          id: product.id,
-          title: product.title,
-          priceCents: product.priceCents,
-          image: carouselImageUrl || product.image || undefined,
-          sellerName,
-          sellerId: product.seller?.User?.id || '',
-          deliveryMode: (product.delivery as string) || 'PICKUP',
-          stock: availableStock,
-        }}
-        className={cn(
-          compact
-            ? '!rounded-xl !py-2 !text-sm !bg-primary-brand !text-white hover:!bg-primary-700'
-            : 'w-full !bg-primary-brand !text-white font-bold shadow-lg hover:!bg-primary-700 hover:!scale-[1.02]',
-        )}
-        size={compact ? 'sm' : 'lg'}
-        variant="outline"
-        quantity={quantity}
-        onAdded={onAdded}
-        surface="light"
-      />
+    <div id="commerce-cta" className={cn('space-y-3', className)}>
+      {commerceActions.showOrderCheckout ? (
+        <>
+          <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs font-medium leading-relaxed text-emerald-900">
+            {t('productDetail.commercePathCheckout')}
+          </p>
+          <AddToCartButton
+            product={{
+              id: product.id,
+              title: product.title,
+              priceCents: product.priceCents,
+              image: carouselImageUrl || product.image || undefined,
+              sellerName,
+              sellerId: sellerId || '',
+              deliveryMode: (product.delivery as string) || 'PICKUP',
+              stock: availableStock,
+              barterOpenness: product.barterOpenness ?? null,
+            }}
+            className={cn(
+              compact
+                ? '!rounded-xl !py-2 !text-sm !bg-primary-brand !text-white hover:!bg-primary-700'
+                : 'w-full !bg-primary-brand !text-white font-bold shadow-lg hover:!bg-primary-700 hover:!scale-[1.02]',
+            )}
+            size={compact ? 'sm' : 'lg'}
+            variant="outline"
+            quantity={quantity}
+            onAdded={onAdded}
+            surface="light"
+          />
+        </>
+      ) : null}
+      {commerceActions.showProposalCta && sellerId ? (
+        <ProductSaleProposalAction
+          productId={product.id}
+          sellerId={sellerId}
+          sellerName={sellerName}
+          publicContactChannels={publicContactChannels}
+        />
+      ) : null}
     </div>
   );
 }

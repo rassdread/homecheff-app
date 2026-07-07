@@ -3646,6 +3646,8 @@
     "askMaker": "Ask the maker a question",
     "commercePathCheckout": "Order directly via HomeCheff — secure payment and order tracking.",
     "commercePathChat": "Make arrangements first via chat — send a proposal or quote.",
+    "commercePathProposal": "Send an exchange proposal via chat — agree on what you will trade.",
+    "outOfStock": "Sold out",
     "contactNotConfigured": "This maker has not set up contact options yet.",
     "viewLinkedStory": "View the story behind this product",
     "aboutProduct": "About this product",
@@ -4139,7 +4141,8 @@
   "checkout": {
     "errors": {
       "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
-      "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff."
+      "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
+      "barterOnly": "This listing is barter only — use chat and send a proposal instead of checkout."
     }
   },
   "camera": {
@@ -8447,7 +8450,9 @@
     "errors": {
       "moneyAmountRequired": "Enter an amount for a money proposal.",
       "valueRequired": "Select at least one value.",
-      "quantityRequired": "Enter a valid quantity."
+      "quantityRequired": "Enter a valid quantity.",
+      "barterNotAllowedOnMoneyListing": "This listing is for sale only — barter proposals are not allowed here.",
+      "moneyNotAllowedOnBarterListing": "This listing is barter only — money proposals are not allowed here."
     },
     "productBinding": {
       "summaryHeading": "Linked listing",
@@ -8664,7 +8669,20 @@
       "requestCreated": "Delivery request created",
       "requestReady": "Delivery can be requested",
       "checkoutRequired": "Checkout required for delivery"
-    }
+    },
+    "checkoutUnavailableTitle": "Checkout unavailable",
+    "checkoutBackToChat": "Back to chat",
+    "checkoutNotFound": "This deal was not found.",
+    "checkoutForbidden": "You do not have access to this checkout.",
+    "checkoutAlreadyPaid": "This deal has already been paid.",
+    "checkoutNotOpen": "This deal can no longer be checked out.",
+    "checkoutMissingProduct": "No product is linked to this deal.",
+    "checkoutProposalNotAccepted": "The proposal has not been accepted yet.",
+    "checkoutNoMoneyLeg": "This deal does not require online payment.",
+    "checkoutNotRequired": "HomeCheff checkout is not required for this deal.",
+    "checkoutMissingSeller": "Seller details are missing for checkout.",
+    "checkoutInvalidAmount": "The checkout amount is invalid.",
+    "checkoutItemMismatch": "Checkout does not match the accepted proposal."
   },
   "agreement": {
     "snapshot": {
@@ -8736,6 +8754,8 @@
     "priceLabel": "Price",
     "priceIncludesVat": "Including VAT",
     "quantityLabel": "Quantity",
+    "stockLow": "Only {count} left",
+    "stockAvailable": "{count} in stock",
     "badgeContactOnly": "Order via contact",
     "badgeViaContact": "Via contact",
     "buyerContactIntro": "This maker handles orders directly. Contact them to agree on price, availability, and pickup or delivery.",

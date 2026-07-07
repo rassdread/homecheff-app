@@ -10,6 +10,7 @@ import {
   CartItem as LibCartItem,
   Cart
 } from '@/lib/cart';
+import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 
 export interface CartItem extends LibCartItem {}
 
@@ -81,6 +82,16 @@ export function useCart() {
   }, [session, status]);
 
   const addItem = (item: Omit<CartItem, 'quantity'>, quantity: number = 1): AddItemResult => {
+    if (blocksHomecheffCartCheckout(item.barterOpenness)) {
+      return {
+        success: false,
+        addedQuantity: 0,
+        newQuantity: 0,
+        availableQuantity: null,
+        reason: 'OUT_OF_STOCK',
+      };
+    }
+
     const normalizedQuantity = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1;
     const cart = getCart();
     const existingItemIndex = cart.items.findIndex(i => i.productId === item.id);

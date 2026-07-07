@@ -3108,6 +3108,8 @@
     "askMaker": "Vraag iets aan maker",
     "commercePathCheckout": "Bestel direct via HomeCheff — veilig betalen en bestelling volgen.",
     "commercePathChat": "Maak eerst afspraken via de chat — stuur een voorstel of offerte.",
+    "commercePathProposal": "Stuur een ruilvoorstel via de chat — spreek af wat jullie uitwisselen.",
+    "outOfStock": "Uitverkocht",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
     "viewLinkedStory": "Bekijk het verhaal achter dit product",
     "aboutProduct": "Over dit product",
@@ -5534,7 +5536,8 @@
   "checkout": {
     "errors": {
       "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
-      "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen."
+      "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
+      "barterOnly": "Dit aanbod is alleen te ruil — gebruik chat en stuur een voorstel in plaats van afrekenen."
     }
   },
   "deliverySignup": {
@@ -8447,7 +8450,9 @@
     "errors": {
       "moneyAmountRequired": "Voer een bedrag in voor een geldvoorstel.",
       "valueRequired": "Selecteer minstens één waarde.",
-      "quantityRequired": "Voer een geldig aantal in."
+      "quantityRequired": "Voer een geldig aantal in.",
+      "barterNotAllowedOnMoneyListing": "Dit aanbod is alleen te koop — ruilvoorstellen zijn hier niet toegestaan.",
+      "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil — geldbod is hier niet toegestaan."
     },
     "productBinding": {
       "summaryHeading": "Gekoppeld aanbod",
@@ -8664,7 +8669,20 @@
       "requestCreated": "Bezorgverzoek aangemaakt",
       "requestReady": "Bezorging kan worden aangevraagd",
       "checkoutRequired": "Checkout vereist voor bezorging"
-    }
+    },
+    "checkoutUnavailableTitle": "Afrekenen niet beschikbaar",
+    "checkoutBackToChat": "Terug naar chat",
+    "checkoutNotFound": "Deze afspraak is niet gevonden.",
+    "checkoutForbidden": "Je hebt geen toegang tot deze checkout.",
+    "checkoutAlreadyPaid": "Deze afspraak is al betaald.",
+    "checkoutNotOpen": "Deze afspraak kan niet meer worden afgerekend.",
+    "checkoutMissingProduct": "Er is geen product gekoppeld aan deze afspraak.",
+    "checkoutProposalNotAccepted": "Het voorstel is nog niet geaccepteerd.",
+    "checkoutNoMoneyLeg": "Deze afspraak vereist geen online betaling.",
+    "checkoutNotRequired": "Voor deze afspraak is geen HomeCheff-checkout nodig.",
+    "checkoutMissingSeller": "Verkopergegevens ontbreken voor checkout.",
+    "checkoutInvalidAmount": "Het bedrag voor checkout is ongeldig.",
+    "checkoutItemMismatch": "Checkout komt niet overeen met het geaccepteerde voorstel."
   },
   "agreement": {
     "snapshot": {
@@ -8736,6 +8754,8 @@
     "priceLabel": "Prijs",
     "priceIncludesVat": "Inclusief BTW",
     "quantityLabel": "Aantal",
+    "stockLow": "Nog {count} beschikbaar",
+    "stockAvailable": "{count} op voorraad",
     "badgeContactOnly": "Bestellen via contact",
     "badgeViaContact": "Via contact",
     "buyerContactIntro": "Deze maker handelt bestellingen rechtstreeks af. Neem contact op om prijs, beschikbaarheid en ophalen of bezorgen af te spreken.",

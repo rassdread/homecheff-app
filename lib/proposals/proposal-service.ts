@@ -25,6 +25,7 @@ import {
   validatePaymentPath,
   validateProposalQuantityAgainstStock,
 } from './proposal-product-binding';
+import { validateSettlementAgainstBarterOpenness } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { DeliveryRequestService } from '@/lib/delivery/delivery-request-service';
 import { serializeDeliveryRequest } from '@/lib/delivery/serialize-delivery-marketplace';
 import type { DeliveryRequestDTO } from '@/lib/delivery/delivery-marketplace-types';
@@ -163,6 +164,16 @@ async function resolveProposalFields(
   });
   if (!validation.ok) {
     throw new ProposalServiceError(validation.errorKey, 400);
+  }
+
+  if (productCtx) {
+    const barterValidation = validateSettlementAgainstBarterOpenness({
+      barterOpenness: productCtx.barterOpenness,
+      settlementMode,
+    });
+    if (!barterValidation.ok) {
+      throw new ProposalServiceError(barterValidation.errorKey, 400);
+    }
   }
 
   const paymentValidation = validatePaymentPath({

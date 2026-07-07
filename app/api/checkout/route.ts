@@ -11,6 +11,8 @@ import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
+import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
+import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
 import { isContactOnlyProduct, requiresStripeForHomecheffCheckout, sellerPaymentsReady } from '@/lib/product/order-method';
 
 const prisma = new PrismaClient();
@@ -27,7 +29,8 @@ export async function POST(req: NextRequest) {
       deliveryTime,
       coordinates, // { lat, lng } for delivery location
       country, // Buyer's country code
-      enableSmsNotification // SMS notification option for sellers
+      enableSmsNotification, // SMS notification option for sellers
+      communityOrderId,
     } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -66,6 +69,24 @@ export async function POST(req: NextRequest) {
     if (checkoutBlock) return checkoutBlock;
 
     const buyerId = buyer.id;
+
+    if (communityOrderId && typeof communityOrderId === 'string') {
+      const dealValidation = await validateCommunityOrderCheckoutItems(
+        communityOrderId,
+        buyerId,
+        items.map((item: { productId: string; quantity: number; priceCents: number }) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          priceCents: item.priceCents,
+        })),
+      );
+      if (!dealValidation.ok) {
+        return NextResponse.json(
+          { errorKey: dealValidation.errorKey },
+          { status: dealValidation.status },
+        );
+      }
+    }
 
     // Get all products from cart with ATOMIC stock check to prevent race conditions
     const productIds = items.map((item: any) => item.productId);
@@ -109,6 +130,18 @@ export async function POST(req: NextRequest) {
           errorKey: 'checkout.errors.contactOnly',
           products: null,
           contactOnlyProductIds: contactOnlyProducts.map((p) => p.id),
+        };
+      }
+
+      const barterOnlyProducts = products.filter((p) =>
+        blocksHomecheffCartCheckout(p.barterOpenness),
+      );
+      if (barterOnlyProducts.length > 0) {
+        return {
+          error: 'BARTER_ONLY_NOT_CHECKOUT',
+          errorKey: 'checkout.errors.barterOnly',
+          products: null,
+          barterOnlyProductIds: barterOnlyProducts.map((p) => p.id),
         };
       }
 
@@ -234,10 +267,19 @@ export async function POST(req: NextRequest) {
     });
 
     if (stockCheckResult.error) {
-      return NextResponse.json(
-        { error: stockCheckResult.error },
-        { status: 404 }
-      );
+      const payload: Record<string, unknown> = {
+        error: stockCheckResult.error,
+      };
+      if ('errorKey' in stockCheckResult && stockCheckResult.errorKey) {
+        payload.errorKey = stockCheckResult.errorKey;
+      }
+      const clientErrors = new Set([
+        'CONTACT_ONLY_NOT_CHECKOUT',
+        'BARTER_ONLY_NOT_CHECKOUT',
+        'PAYMENTS_NOT_READY',
+      ]);
+      const status = clientErrors.has(stockCheckResult.error) ? 400 : 404;
+      return NextResponse.json(payload, { status });
     }
 
     if (stockCheckResult.insufficientStock && stockCheckResult.insufficientStock.length > 0) {
@@ -507,6 +549,10 @@ export async function POST(req: NextRequest) {
       enableSmsNotification: enableSmsNotification ? 'true' : 'false',
       smsNotificationCostCents: smsNotificationCostCents.toString(),
     };
+
+    if (communityOrderId && typeof communityOrderId === 'string') {
+      metadataBase.communityOrderId = communityOrderId;
+    }
 
     if (deliveryFeeBreakdown) {
       metadataBase.deliveryFeeBreakdown = JSON.stringify(deliveryFeeBreakdown);

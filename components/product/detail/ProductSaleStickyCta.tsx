@@ -2,15 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Check, ArrowRight, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Check, ArrowRight, ClipboardList } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import type { PublicContactChannel } from '@/lib/profile/maker-contact-preferences';
 import {
-  formatProductPriceLabel,
   isContactOnlyProduct,
   requiresStripeForHomecheffCheckout,
 } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
+import {
+  formatCommercePriceLabel,
+  resolveProductCommerceActions,
+} from '@/lib/marketplace/commerce/barter-commerce-alignment';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +22,9 @@ type ProductShape = {
   title: string;
   priceCents: number;
   orderMethod?: ProductOrderMethodValue;
+  barterOpenness?: string | null;
+  priceModel?: string | null;
+  acceptedSpecializations?: string[];
   delivery?: string | null;
   image?: string | null;
   seller?: { User?: { id?: string } } | null;
@@ -47,7 +53,7 @@ export default function ProductSaleStickyCta({
   publicContactChannels,
   hidden = false,
 }: Props) {
-  const { t, tOr } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const { addItem, items } = useCart();
   const [isAdding, setIsAdding] = useState(false);
@@ -55,24 +61,29 @@ export default function ProductSaleStickyCta({
 
   if (hidden || isOwner) return null;
 
+  const commerceActions = resolveProductCommerceActions(product.barterOpenness);
   const isOutOfStock = availableStock !== null && availableStock === 0;
   const contactOnly = isContactOnlyProduct(product);
   const contactOnlyWithChannels =
     contactOnly && product.seller?.User?.id && publicContactChannels.length > 0;
   const contactOnlyNoChannels = contactOnly && !contactOnlyWithChannels;
   const paymentsBlocked =
-    requiresStripeForHomecheffCheckout(product) && !checkoutAvailable;
+    commerceActions.showOrderCheckout &&
+    requiresStripeForHomecheffCheckout(product) &&
+    !checkoutAvailable;
   const paymentsBlockedWithChannels =
     paymentsBlocked && product.seller?.User?.id && publicContactChannels.length > 0;
   const productInCart = items.some(
     (item) => item.productId === product.id || item.id === product.id,
   );
-  const checkoutMode = productInCart || justAdded;
+  const checkoutMode =
+    commerceActions.showOrderCheckout && (productInCart || justAdded);
 
-  const scrollToCta = () => {
-    document
-      .getElementById('commerce-cta')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const scrollToCta = (targetId = 'commerce-cta') => {
+    document.getElementById(targetId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
   };
 
   const handleAdd = async () => {
@@ -89,6 +100,7 @@ export default function ProductSaleStickyCta({
         sellerId: product.seller?.User?.id || '',
         deliveryMode: (product.delivery as string) || 'PICKUP',
         stock: availableStock,
+        barterOpenness: product.barterOpenness ?? null,
         maxQuantity:
           typeof availableStock === 'number' && availableStock >= 0
             ? availableStock
@@ -102,44 +114,51 @@ export default function ProductSaleStickyCta({
     }
   };
 
-  let actionLabel = tOr('cart.addToCart', 'Add to cart', 'In winkelwagen');
+  let actionLabel = t('cart.addToCart');
   let onAction: () => void = handleAdd;
   let disabled = isAdding || isOutOfStock;
   let showCartIcon = true;
   let showCheck = false;
 
-  if (checkoutMode && !contactOnly && !paymentsBlocked && !isOutOfStock) {
-    actionLabel = tOr('cart.goToCheckout', 'Go to checkout', 'Afrekenen');
+  if (!commerceActions.showOrderCheckout && commerceActions.showProposalCta) {
+    actionLabel = t('marketplace.detail.actions.requestProposal');
+    onAction = () => scrollToCta('commerce-proposal-cta');
+    disabled = false;
+    showCartIcon = false;
+  } else if (checkoutMode && !contactOnly && !paymentsBlocked && !isOutOfStock) {
+    actionLabel = t('cart.goToCheckout');
     onAction = () => router.push('/checkout');
     disabled = false;
     showCartIcon = false;
   } else if (contactOnlyWithChannels) {
-    actionLabel = tOr('productDetail.contactMaker', 'Contact maker', 'Bericht sturen');
-    onAction = scrollToCta;
+    actionLabel = t('productDetail.contactMaker');
+    onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;
   } else if (contactOnlyNoChannels) {
-    actionLabel = tOr('productDetail.viewOffer', 'View offer', 'Bekijk aanbod');
-    onAction = scrollToCta;
+    actionLabel = t('productDetail.viewOffer');
+    onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;
   } else if (paymentsBlockedWithChannels) {
-    actionLabel = tOr('productDetail.contactMaker', 'Contact maker', 'Bericht sturen');
-    onAction = scrollToCta;
+    actionLabel = t('productDetail.contactMaker');
+    onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;
   } else if (paymentsBlocked) {
-    actionLabel = tOr('productDetail.viewOffer', 'View offer', 'Bekijk aanbod');
-    onAction = scrollToCta;
+    actionLabel = t('productDetail.viewOffer');
+    onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;
   } else if (isOutOfStock) {
-    actionLabel = 'Uitverkocht';
+    actionLabel = t('productDetail.outOfStock');
     onAction = () => {};
     disabled = true;
   } else if (justAdded) {
     showCheck = true;
   }
+
+  const priceLabel = formatCommercePriceLabel(product, t);
 
   return (
     <div
@@ -150,9 +169,7 @@ export default function ProductSaleStickyCta({
     >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5">
         <div className="min-w-0 shrink-0">
-          <div className="text-lg font-bold leading-none text-gray-900">
-            {formatProductPriceLabel(product, t)}
-          </div>
+          <div className="text-lg font-bold leading-none text-gray-900">{priceLabel}</div>
         </div>
         <button
           type="button"
@@ -166,8 +183,10 @@ export default function ProductSaleStickyCta({
             <Check className="h-4 w-4" aria-hidden />
           ) : checkoutMode && !contactOnly ? (
             <ArrowRight className="h-4 w-4" aria-hidden />
+          ) : !commerceActions.showOrderCheckout && commerceActions.showProposalCta ? (
+            <ClipboardList className="h-4 w-4" aria-hidden />
           ) : contactOnlyWithChannels || contactOnlyNoChannels || paymentsBlockedWithChannels ? (
-            <MessageCircle className="h-4 w-4" aria-hidden />
+            <MessageCircleIcon />
           ) : showCartIcon ? (
             <ShoppingCart className="h-4 w-4" aria-hidden />
           ) : null}
@@ -175,5 +194,20 @@ export default function ProductSaleStickyCta({
         </button>
       </div>
     </div>
+  );
+}
+
+function MessageCircleIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
   );
 }

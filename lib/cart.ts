@@ -12,6 +12,7 @@ export interface CartItem {
   sellerId: string;
   deliveryMode: string; // Can be 'PICKUP', 'DELIVERY', 'SHIPPING', 'BOTH', or comma-separated like 'PICKUP,SHIPPING'
   maxQuantity?: number | null;
+  barterOpenness?: string | null;
 }
 
 export interface Cart {

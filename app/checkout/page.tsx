@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
+import type { CartItem } from '@/lib/cart';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Clock, Package, Truck, Users, CreditCard, CheckCircle, Navigation, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
@@ -42,10 +44,15 @@ type CheckoutDraft = {
 
 export default function CheckoutPage() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const dealCommunityOrderId = searchParams.get('communityOrderId');
   const { items: cartItems, clearCart } = useCart();
   const { data: session, status } = useSession();
   const cartIdentifier = getActiveCartIdentifier();
   const checkoutStorageKey = `homecheff_checkout_draft_${cartIdentifier}`;
+  const [dealLoading, setDealLoading] = useState(Boolean(dealCommunityOrderId));
+  const [dealErrorKey, setDealErrorKey] = useState<string | null>(null);
+  const [dealItem, setDealItem] = useState<CartItem | null>(null);
 
   const checkoutDraftDefaults = useMemo<CheckoutDraft>(() => ({
     selectedDelivery: '',
@@ -67,6 +74,68 @@ export default function CheckoutPage() {
       storage: 'session',
       ttl: 12 * 60 * 60 * 1000, // 12 uur
     });
+
+  const checkoutItems = useMemo(
+    () => (dealItem ? [dealItem] : cartItems),
+    [dealItem, cartItems],
+  );
+  const isDealCheckout = Boolean(dealCommunityOrderId && dealItem);
+
+  useEffect(() => {
+    if (!dealCommunityOrderId || status !== 'authenticated') {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadDealCheckout = async () => {
+      setDealLoading(true);
+      setDealErrorKey(null);
+      try {
+        const response = await fetch(
+          `/api/community-orders/${encodeURIComponent(dealCommunityOrderId)}/checkout-context`,
+          { cache: 'no-store' },
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          if (!cancelled) {
+            setDealErrorKey(
+              typeof data.errorKey === 'string' ? data.errorKey : 'common.error',
+            );
+          }
+          return;
+        }
+
+        if (!cancelled && data.item) {
+          setDealItem({
+            id: data.item.productId,
+            productId: data.item.productId,
+            title: data.item.title,
+            priceCents: data.item.priceCents,
+            quantity: data.item.quantity,
+            image: data.item.image,
+            sellerName: data.item.sellerName,
+            sellerId: data.item.sellerId,
+            deliveryMode: data.item.deliveryMode,
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setDealErrorKey('common.error');
+        }
+      } finally {
+        if (!cancelled) {
+          setDealLoading(false);
+        }
+      }
+    };
+
+    void loadDealCheckout();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dealCommunityOrderId, status]);
 
   const updateDraft = useCallback(
     (updates: Partial<CheckoutDraft>) => {
@@ -97,14 +166,14 @@ export default function CheckoutPage() {
   // Fetch product locations when cart items change
   useEffect(() => {
     const fetchProductLocations = async () => {
-      if (cartItems.length === 0) {
+      if (checkoutItems.length === 0) {
         setSellerLocations([]);
         setProductDataMap(new Map());
         return;
       }
 
       try {
-        const productIds = cartItems.map(item => item.productId);
+        const productIds = checkoutItems.map(item => item.productId);
         const locations: Array<{lat: number, lng: number, productId: string}> = [];
         const productMap = new Map<string, {sellerCanDeliver?: boolean}>();
         
@@ -140,17 +209,17 @@ export default function CheckoutPage() {
     };
     
     fetchProductLocations();
-  }, [cartItems]);
+  }, [checkoutItems]);
 
   useEffect(() => {
-    if (!isCheckoutHydrated) {
+    if (!isCheckoutHydrated || dealCommunityOrderId) {
       return;
     }
 
-    if (cartItems.length === 0) {
+    if (checkoutItems.length === 0) {
       resetCheckoutDraft();
     }
-  }, [cartItems.length, isCheckoutHydrated, resetCheckoutDraft]);
+  }, [checkoutItems.length, isCheckoutHydrated, resetCheckoutDraft, dealCommunityOrderId]);
 
   const hasExistingAddressDraft = useMemo(() => {
     return Boolean(
@@ -297,7 +366,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: cartItems, // API will get seller address from products
+            items: checkoutItems, // API will get seller address from products
             destination: {
               postalCode: checkoutDraft.postalCode,
               country: checkoutDraft.country || 'NL'
@@ -330,7 +399,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: cartItems,
+            items: checkoutItems,
             coordinates: checkoutDraft.coordinates,
             deliveryMode: checkoutDraft.selectedDelivery,
             country: checkoutDraft.country || 'NL'
@@ -351,7 +420,7 @@ export default function CheckoutPage() {
     } finally {
       setIsCalculatingFee(false);
     }
-  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, cartItems]);
+  }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, checkoutItems]);
 
   // Recalculate fee when coordinates, delivery mode, or address changes
   useEffect(() => {
@@ -428,7 +497,7 @@ export default function CheckoutPage() {
   const availableDeliveryModes = useMemo(() => {
     const allModes = new Set<string>();
     
-    cartItems.forEach(item => {
+    checkoutItems.forEach(item => {
       const deliveryMode = item.deliveryMode || 'PICKUP';
       const parsedModes = parseDeliveryMode(deliveryMode);
       parsedModes.forEach(mode => allModes.add(mode));
@@ -440,13 +509,13 @@ export default function CheckoutPage() {
     const hasShipping = Array.from(allModes).some(mode => mode === 'SHIPPING');
     
     // For delivery: check if products support delivery AND if at least one product has sellerCanDeliver === true
-    const hasSellerDelivery = cartItems.some(item => {
+    const hasSellerDelivery = checkoutItems.some(item => {
       const productData = productDataMap.get(item.productId);
       return productData?.sellerCanDeliver === true;
     });
     
     return { hasPickup, hasDelivery, hasSellerDelivery, hasShipping };
-  }, [cartItems, productDataMap]);
+  }, [checkoutItems, productDataMap]);
 
   const deliveryOptions: DeliveryOption[] = [
     {
@@ -498,8 +567,8 @@ export default function CheckoutPage() {
   }, [availableDeliveryModes, checkoutDraft.selectedDelivery, selectedOption, updateDraft]);
 
   const productsTotalCents = useMemo(
-    () => cartItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0),
-    [cartItems]
+    () => checkoutItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0),
+    [checkoutItems]
   );
 
   // Use actual calculated fee if available, otherwise use estimated fee
@@ -514,9 +583,9 @@ export default function CheckoutPage() {
   // SMS provider cost: ~€0.05 per SMS, platform fee: 20% = €0.01, total: €0.06 per seller
   const smsCostPerSellerCents = 6; // €0.06 per seller
   const uniqueSellerCount = useMemo(() => {
-    const sellerIds = new Set(cartItems.map(item => item.sellerId).filter(Boolean));
+    const sellerIds = new Set(checkoutItems.map(item => item.sellerId).filter(Boolean));
     return sellerIds.size;
-  }, [cartItems]);
+  }, [checkoutItems]);
   
   const smsNotificationCostCents = useMemo(
     () => checkoutDraft.enableSmsNotification ? smsCostPerSellerCents * uniqueSellerCount : 0,
@@ -570,7 +639,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cartItems,
+          items: checkoutItems,
           deliveryMode: checkoutDraft.selectedDelivery.toUpperCase(),
           address: fullAddress,
           street: checkoutDraft.street,
@@ -582,24 +651,30 @@ export default function CheckoutPage() {
           pickupDate: checkoutDraft.selectedDelivery === 'pickup' ? checkoutDraft.deliveryDate : null,
           deliveryDate: checkoutDraft.selectedDelivery !== 'pickup' ? checkoutDraft.deliveryDate : null,
           deliveryTime: checkoutDraft.deliveryTime,
-          coordinates: checkoutDraft.coordinates
-        })
+          coordinates: checkoutDraft.coordinates,
+          ...(isDealCheckout && dealCommunityOrderId
+            ? { communityOrderId: dealCommunityOrderId }
+            : {}),
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        const details = data?.details ? `: ${data.details}` : '';
-        throw new Error(
-          data.error
-            ? `${data.error}${details}`
-            : `HTTP ${response.status}: ${response.statusText}`
-        );
+        const message =
+          typeof data.errorKey === 'string'
+            ? t(data.errorKey)
+            : data.error
+              ? `${data.error}${data?.details ? `: ${data.details}` : ''}`
+              : `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
       }
 
       if (data.url) {
         resetCheckoutDraft();
-        clearCart();
+        if (!isDealCheckout) {
+          clearCart();
+        }
         setIsRedirecting(true);
         didRedirect = true;
         window.location.href = data.url;
@@ -607,7 +682,9 @@ export default function CheckoutPage() {
       } else if (data.sessionId) {
         // For development mode
         resetCheckoutDraft();
-        clearCart();
+        if (!isDealCheckout) {
+          clearCart();
+        }
         setIsRedirecting(true);
         didRedirect = true;
         window.location.href = `/payment/success?session_id=${data.sessionId}`;
@@ -649,7 +726,35 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!isProcessing && !isRedirecting && cartItems.length === 0) {
+  if (!isProcessing && !isRedirecting && checkoutItems.length === 0) {
+    if (dealLoading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-primary-brand animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">{t('checkout.sessionLoading')}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (dealErrorKey) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('communityOrder.checkoutUnavailableTitle')}
+            </h1>
+            <p className="text-gray-600 mb-8">{t(dealErrorKey)}</p>
+            <Link href="/messages">
+              <Button>{t('communityOrder.checkoutBackToChat')}</Button>
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -1051,7 +1156,7 @@ export default function CheckoutPage() {
                 <div className="bg-gray-50 rounded-xl p-6">
                   {/* Items */}
                   <div className="space-y-4 mb-6">
-                    {cartItems.map((item) => (
+                    {checkoutItems.map((item) => (
                       <div key={item.id} className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
                           {item.image && (

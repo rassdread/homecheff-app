@@ -789,6 +789,33 @@ export async function POST(req: NextRequest) {
         const createdOrder = order.order;
         const createdOrderItems = order.orderItems;
 
+        const linkedCommunityOrderId = metadata.communityOrderId?.trim();
+        if (linkedCommunityOrderId) {
+          try {
+            const linked = await prisma.communityOrder.updateMany({
+              where: {
+                id: linkedCommunityOrderId,
+                checkoutOrderId: null,
+              },
+              data: { checkoutOrderId: createdOrder.id },
+            });
+            if (linked.count === 1) {
+              console.log(
+                `✅ Webhook: Linked CommunityOrder ${linkedCommunityOrderId} → Order ${createdOrder.id}`,
+              );
+            } else {
+              console.warn(
+                `⚠️ Webhook: CommunityOrder ${linkedCommunityOrderId} not linked (already paid or missing)`,
+              );
+            }
+          } catch (linkErr) {
+            console.error(
+              `❌ Webhook: Failed to link CommunityOrder ${linkedCommunityOrderId}:`,
+              linkErr,
+            );
+          }
+        }
+
         // Get unique seller IDs from items
         let sellerIds = [...new Set(items.map((item: any) => item.sellerId).filter(Boolean))] as string[];
         if (sellerIds.length === 0) {
