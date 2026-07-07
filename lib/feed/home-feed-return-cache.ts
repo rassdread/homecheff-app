@@ -4,6 +4,15 @@ import type { DiscoveryFeedPayload } from '@/lib/feed/discovery-feed-contract';
 /** In-tab memory cache — survives GeoFeed remount on client navigations within the same tab. */
 const MAX_AGE_MS = 8 * 60 * 1000;
 
+/**
+ * Freshness window for instant returns (UX-FIN-4.3/4.4). Within this window a
+ * cache hit is served instantly with no network call. Between this and
+ * MAX_AGE_MS the cache is still shown instantly but a background refresh
+ * (stale-while-revalidate) is triggered so content quietly updates without a
+ * loading flash.
+ */
+export const HOME_FEED_STALE_MS = 60 * 1000;
+
 export type HomeFeedViewerCoords = { lat: number; lng: number };
 
 export type HomeFeedReturnCachePayload = {
@@ -38,6 +47,16 @@ export function peekFreshHomeFeedReturnCache(): HomeFeedReturnCachePayload | nul
   if (!memoryCache) return null;
   if (Date.now() - memoryCache.savedAt > MAX_AGE_MS) return null;
   return memoryCache;
+}
+
+/**
+ * True when a cache payload is old enough to warrant a background refresh but
+ * still young enough to display instantly (stale-while-revalidate window).
+ */
+export function isHomeFeedReturnCacheStale(
+  payload: Pick<HomeFeedReturnCachePayload, 'savedAt'>,
+): boolean {
+  return Date.now() - payload.savedAt > HOME_FEED_STALE_MS;
 }
 
 export function clearHomeFeedReturnCache(): void {

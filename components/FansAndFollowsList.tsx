@@ -83,48 +83,59 @@ export default function FansAndFollowsList({ userId, initialTab = 'follows' }: F
   const [activeTab, setActiveTab] = useState<'follows' | 'fans' | 'favorites'>(initialTab);
 
   useEffect(() => {
+    let cancelled = false;
+    const ac = new AbortController();
     (async () => {
       setLoading(true);
-      
+
       // Build API URLs with userId if provided
       const followsUrl = userId ? `/api/profile/follows?userId=${userId}` : "/api/profile/follows";
       const fansUrl = userId ? `/api/follows/fans?userId=${userId}` : "/api/follows/fans";
-      
-      // Fetch follows (people you follow)
-      const followsRes = await fetch(followsUrl);
+
+      // Fetch follows, fans and favorites in parallel (UX-FIN-4C.7) — was serial.
+      const [followsRes, fansRes, favoritesRes] = await Promise.all([
+        fetch(followsUrl, { signal: ac.signal }),
+        fetch(fansUrl, { signal: ac.signal }),
+        // Favorieten: altijd van ingelogde gebruiker (Product + Listing + Dish)
+        fetch("/api/profile/favorites", { signal: ac.signal }),
+      ]);
+      if (cancelled) return;
+
       if (followsRes.ok) {
         const followsData = await followsRes.json();
-        const items = followsData.items || [];
-        setFollows(items);
+        if (!cancelled) setFollows(followsData.items || []);
       } else {
         const errorData = await followsRes.json().catch(() => ({}));
         console.error('Failed to fetch follows:', errorData);
       }
-      
-      // Fetch fans (people who follow you)
-      const fansRes = await fetch(fansUrl);
+
       if (fansRes.ok) {
         const fansData = await fansRes.json();
-        const fans = fansData.fans || [];
-        setFans(fans);
+        if (!cancelled) setFans(fansData.fans || []);
       } else {
         const errorData = await fansRes.json().catch(() => ({}));
         console.error('Failed to fetch fans:', errorData);
       }
-      
-      // Favorieten: altijd van ingelogde gebruiker (Product + Listing + Dish)
-      const favoritesRes = await fetch("/api/profile/favorites");
+
       if (favoritesRes.ok) {
         const favoritesData = await favoritesRes.json();
-        const favs = favoritesData.items || [];
-        setFavorites(favs);
+        if (!cancelled) setFavorites(favoritesData.items || []);
       } else {
         const errorData = await favoritesRes.json().catch(() => ({}));
         console.error('Failed to fetch favorites:', errorData);
       }
-      
-      setLoading(false);
-    })();
+
+      if (!cancelled) setLoading(false);
+    })().catch((e) => {
+      if ((e as Error)?.name !== 'AbortError') {
+        console.error('Failed to load fans/follows:', e);
+        if (!cancelled) setLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
   }, [userId]);
 
   if (loading) {

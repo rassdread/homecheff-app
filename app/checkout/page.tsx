@@ -181,39 +181,53 @@ export default function CheckoutPage() {
         const productIds = checkoutItems.map(item => item.productId);
         const locations: Array<{lat: number, lng: number, productId: string}> = [];
         const productMap = new Map<string, {sellerCanDeliver?: boolean}>();
-        
-        for (const productId of productIds) {
-          const response = await fetch(`/api/products/${productId}`);
-          if (response.ok) {
-            const data = await response.json();
-            const product = data.product || data;
-            // Seller location can be in product.seller.User.lat/lng or product.seller.lat/lng
-            const sellerLat = product.seller?.User?.lat || product.seller?.lat;
-            const sellerLng = product.seller?.User?.lng || product.seller?.lng;
-            
-            // Store product data for sellerCanDeliver check
-            productMap.set(productId, {
-              sellerCanDeliver: product.sellerCanDeliver || false
-            });
-            
-            if (sellerLat && sellerLng) {
-              locations.push({
-                lat: sellerLat,
-                lng: sellerLng,
-                productId: productId
+
+        // Fetch all product locations in parallel (UX-FIN-4C.10) — was a serial loop.
+        const responses = await Promise.all(
+          productIds.map(async (productId) => {
+            try {
+              const response = await fetch(`/api/products/${productId}`, {
+                signal: ac.signal,
               });
+              if (!response.ok) return null;
+              return { productId, data: await response.json() };
+            } catch (e) {
+              if ((e as Error)?.name === 'AbortError') throw e;
+              return null;
             }
+          }),
+        );
+        if (ac.signal.aborted) return;
+
+        for (const entry of responses) {
+          if (!entry) continue;
+          const { productId, data } = entry;
+          const product = data.product || data;
+          // Seller location can be in product.seller.User.lat/lng or product.seller.lat/lng
+          const sellerLat = product.seller?.User?.lat || product.seller?.lat;
+          const sellerLng = product.seller?.User?.lng || product.seller?.lng;
+
+          // Store product data for sellerCanDeliver check
+          productMap.set(productId, {
+            sellerCanDeliver: product.sellerCanDeliver || false
+          });
+
+          if (sellerLat && sellerLng) {
+            locations.push({ lat: sellerLat, lng: sellerLng, productId });
           }
         }
-        
+
         setSellerLocations(locations);
         setProductDataMap(productMap);
       } catch (error) {
+        if ((error as Error)?.name === 'AbortError') return;
         console.error('Error fetching product locations:', error);
       }
     };
-    
+
+    const ac = new AbortController();
     fetchProductLocations();
+    return () => ac.abort();
   }, [checkoutItems]);
 
   useEffect(() => {
@@ -427,27 +441,32 @@ export default function CheckoutPage() {
     }
   }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.country, checkoutDraft.postalCode, checkoutItems]);
 
-  // Recalculate fee when coordinates, delivery mode, or address changes
+  // Recalculate fee when coordinates, delivery mode, or address changes.
+  // Debounced (UX-FIN-4C.10) so typing a postal code no longer fires a shipping
+  // POST on every keystroke — only after input settles (300ms).
   useEffect(() => {
     if (!checkoutDraft.selectedDelivery) {
       setActualDeliveryFee(null);
       return;
     }
-    
+
     const isShipping = checkoutDraft.selectedDelivery === 'shipping';
     const isDelivery = checkoutDraft.selectedDelivery === 'teen_delivery' || 
                        checkoutDraft.selectedDelivery === 'local_delivery';
-    
-    // For shipping: need postal code and country
-    if (isShipping && checkoutDraft.postalCode && checkoutDraft.country) {
-      calculateDeliveryFee();
-    }
-    // For delivery: need coordinates and validated address
-    else if (isDelivery && checkoutDraft.coordinates && checkoutDraft.addressValidated) {
-      calculateDeliveryFee();
-    } else {
+
+    const shouldCalc =
+      (isShipping && !!checkoutDraft.postalCode && !!checkoutDraft.country) ||
+      (isDelivery && !!checkoutDraft.coordinates && !!checkoutDraft.addressValidated);
+
+    if (!shouldCalc) {
       setActualDeliveryFee(null);
+      return;
     }
+
+    const timer = setTimeout(() => {
+      calculateDeliveryFee();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.addressValidated, checkoutDraft.postalCode, checkoutDraft.country, calculateDeliveryFee]);
 
   // Handle address change from DynamicAddressFields

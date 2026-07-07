@@ -28,6 +28,7 @@ import {
   loadImageAspectRatio,
 } from '@/lib/inspiratie/media-fit';
 import DishReviewSection from './DishReviewSection';
+import PropsButton from '@/components/props/PropsButton';
 import ShareButton from '@/components/ui/ShareButton';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -606,6 +607,7 @@ export default function InspiratieDetail({
                       {item.viewCount}
                     </span>
                   ) : null}
+                  <PropsButton dishId={item.id} productTitle={item.title || t('common.dish')} size="sm" />
                   <FavoriteButton
                     dishId={item.id}
                     productTitle={item.title || t('common.dish')}

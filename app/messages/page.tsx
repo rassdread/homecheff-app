@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useCallback } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { MessageCircle } from 'lucide-react';
@@ -43,6 +43,10 @@ function MessagesPageContent() {
   const isLargeDisplay = useMediaQuery('(min-width: 1024px)');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [contextHeader, setContextHeader] = useState<ResolvedConversationHeader | null>(null);
+  // Dedupe deep-link fetch (UX-FIN-4C.5): the ?conversation= effect already
+  // fetches /api/conversations/{id} (which includes contextHeader), so the
+  // header effect skips a second identical request for that same id.
+  const deepLinkHeaderAppliedIdRef = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const initialOpenProposal = parseOpenProposalFromSearchParams(searchParams);
 
@@ -87,6 +91,12 @@ function MessagesPageContent() {
     const id = selectedConversation?.id;
     if (!id) {
       setContextHeader(null);
+      return;
+    }
+    // Skip the fetch when the deep-link effect already resolved the header for
+    // this exact conversation id (avoids a duplicate /api/conversations/{id}).
+    if (deepLinkHeaderAppliedIdRef.current === id) {
+      deepLinkHeaderAppliedIdRef.current = null;
       return;
     }
     let cancelled = false;
@@ -155,6 +165,12 @@ function MessagesPageContent() {
               });
               return;
             }
+            // Reuse this response for the header too, and mark the id so the
+            // header effect does not re-fetch the same conversation.
+            deepLinkHeaderAppliedIdRef.current = conversationId;
+            setContextHeader(
+              (data.conversation.contextHeader as ResolvedConversationHeader | null) ?? null,
+            );
             setSelectedConversation(n);
             window.dispatchEvent(
               new CustomEvent('conversationUpdated', {

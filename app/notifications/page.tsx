@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import NotificationFeedItems, {
@@ -9,42 +9,47 @@ import NotificationFeedItems, {
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { useTranslation } from '@/hooks/useTranslation';
 import { savePendingIntent } from '@/lib/onboarding/pending-intent';
+import { useSessionSwr } from '@/hooks/useSessionSwr';
+
+function mapApiToFeed(raw: unknown[]): NotificationFeedItem[] {
+  return (raw as any[]).map((n) => ({
+    id: n.id,
+    type: n.type || 'notice',
+    title: n.title || 'Melding',
+    message: n.message || '',
+    link: n.link || n.targetRoute,
+    isRead: !!n.isRead,
+    createdAt: n.createdAt,
+  }));
+}
 
 export default function NotificationsPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { data: session, status } = useSession();
-  const [items, setItems] = useState<NotificationFeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const mapApiToFeed = useCallback((raw: unknown[]): NotificationFeedItem[] => {
-    return (raw as any[]).map((n) => ({
-      id: n.id,
-      type: n.type || 'notice',
-      title: n.title || 'Melding',
-      message: n.message || '',
-      link: n.link || n.targetRoute,
-      isRead: !!n.isRead,
-      createdAt: n.createdAt,
-    }));
-  }, []);
+  const isAuthed = status === 'authenticated' && !!session?.user?.email;
 
-  const load = useCallback(async () => {
-    if (status !== 'authenticated' || !session?.user?.email) return;
-    setLoading(true);
-    try {
+  // Instant reopen from session cache, background refresh (UX-FIN-4C.2/4C.6).
+  const {
+    data: items,
+    loading,
+    refresh,
+    mutate,
+  } = useSessionSwr<NotificationFeedItem[]>(
+    isAuthed ? `notifications:${session!.user!.email}` : '',
+    async (signal) => {
       const res = await fetch('/api/notifications?limit=100', {
         cache: 'no-store',
         credentials: 'same-origin',
+        signal,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setItems(mapApiToFeed(data.notifications || []));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [status, session?.user?.email, mapApiToFeed]);
+      if (!res.ok) throw new Error(`notifications ${res.status}`);
+      const data = await res.json();
+      return mapApiToFeed(data.notifications || []);
+    },
+    { enabled: isAuthed },
+  );
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -53,42 +58,58 @@ export default function NotificationsPage() {
         returnPath: '/notifications',
       });
       router.replace('/login?callbackUrl=/notifications');
-      return;
     }
-    if (status === 'authenticated' && session?.user?.email) void load();
-  }, [status, session?.user?.email, router, load]);
+  }, [status, router]);
 
-  const markRead = async (ids: string[]) => {
-    if (ids.length === 0) return;
-    const res = await fetch('/api/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notificationIds: ids }),
-    });
+  const markRead = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return;
+      mutate((prev) =>
+        (prev ?? []).map((n) =>
+          ids.includes(n.id) ? { ...n, isRead: true } : n,
+        ),
+      );
+      window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+      try {
+        const res = await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notificationIds: ids }),
+        });
+        if (!res.ok) await refresh();
+      } catch {
+        await refresh();
+      }
+    },
+    [mutate, refresh],
+  );
+
+  const markAllRead = useCallback(async () => {
+    mutate((prev) => (prev ?? []).map((n) => ({ ...n, isRead: true })));
     window.dispatchEvent(new CustomEvent('notificationsUpdated'));
-    if (res.ok) {
-      await load();
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+      if (!res.ok) await refresh();
+    } catch {
+      await refresh();
     }
-  };
+  }, [mutate, refresh]);
 
-  const markAllRead = async () => {
-    await fetch('/api/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ markAllAsRead: true }),
-    });
-    window.dispatchEvent(new CustomEvent('notificationsUpdated'));
-    await load();
-  };
-
-  const handleSelect = async (n: NotificationFeedItem) => {
-    if (!n.isRead) await markRead([n.id]);
-    const dest = n.link?.trim();
-    if (dest) {
-      if (dest.startsWith('http')) window.location.href = dest;
-      else router.push(dest);
-    }
-  };
+  const handleSelect = useCallback(
+    (n: NotificationFeedItem) => {
+      if (!n.isRead) void markRead([n.id]);
+      const dest = n.link?.trim();
+      if (dest) {
+        if (dest.startsWith('http')) window.location.href = dest;
+        else router.push(dest);
+      }
+    },
+    [markRead, router],
+  );
 
   if (status === 'loading') {
     return (
@@ -123,7 +144,7 @@ export default function NotificationsPage() {
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <NotificationFeedItems
-          items={items}
+          items={items ?? []}
           loading={loading}
           onSelect={handleSelect}
         />

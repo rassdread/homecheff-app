@@ -1,4 +1,7 @@
 {
+  "agreements": {
+    "myAgreements": "My Agreements"
+  },
   "share": {
     "button": "Share",
     "via": "Share via",
@@ -2449,6 +2452,7 @@
     "propsGiven": "Appreciated!",
     "propsButton": "Appreciation",
     "propsWithdrawn": "Props withdrawn",
+    "retract": "Withdraw appreciation",
     "workspaceLabel": "Studio props"
   },
   "discover": {
@@ -4323,6 +4327,15 @@
   "home": {
     "loading": "Loading...",
     "welcomeFirstName": "Welcome, {name}!",
+    "ecosystem": {
+      "title": "Explore HomeCheff",
+      "ariaLabel": "Explore the HomeCheff pillars",
+      "food": "Food",
+      "garden": "Garden",
+      "creations": "Creations",
+      "gezocht": "Wanted",
+      "services": "Services"
+    },
     "profileProgress": {
       "title": "Claim your space",
       "start": "Add a few basics so neighbors recognize you.",
@@ -4353,8 +4366,10 @@
     "heroSubtitle": "From inspiration to the village square: meet locally, with clear expectations.",
     "reputationCompact": {
       "title": "Your reputation",
+      "guestTitle": "Trust in the neighborhood",
       "body": "You build trust by sharing, responding and helping people in your neighborhood.",
       "cta": "View",
+      "guestCta": "Explore",
       "levelLabel": "Level {level}"
     },
     "heroCtaSecondary": "Discover listings",
@@ -5496,6 +5511,13 @@
     "sortDistance": "Distance",
     "chipSale": "For sale",
     "chipInspiration": "Inspiration",
+    "chipServices": "Services",
+    "verticalAxisLabel": "Category",
+    "verticalFood": "Food",
+    "verticalGarden": "Garden",
+    "verticalCreations": "Creations",
+    "emptyServicesTitle": "No services here yet",
+    "emptyServicesBody": "There are no services, tasks, workshops or coaching in this area right now. Widen your search area or explore other pillars.",
     "discoverFiltersHeading": "Discover near you",
     "viewModeLabel": "View",
     "layoutModeLabel": "Feed layout",
@@ -5511,7 +5533,7 @@
     "desktopColumns2Hint": "Two columns — HomeCheff default",
     "desktopColumns3Hint": "Three columns — marketplace grid",
     "locationSectionLabel": "Location and feed search",
-    "refineSectionLabel": "Refine (search, sort, price)",
+    "refineSectionLabel": "Refine these results (search, sort, price)",
     "chipSectionIntro": "All, for sale, or inspiration — one place. Below you set location, category and filters for the whole feed.",
     "locationErrorShort": "Could not determine location",
     "locationUsingGps": "Your location is being used",
@@ -7503,10 +7525,11 @@
     "messagesUrgentCta": "Open messages",
     "browseMakers": "Makers nearby",
     "communityCardTitle": "Growing locally together",
-    "communityCardBody": "HomeCheff connects makers, neighbors, and lovers of local offerings in one warm community.",
+    "communityCardBody": "Make arrangements, build trust with reviews and props, and sell or barter with makers and neighbors close by.",
     "communityCardCta": "More about HomeCheff",
-    "spotlightLabel": "Spotlight",
-    "spotlightPlaceholder": "Coming soon: local makers and offers from your neighborhood.",
+    "spotlightLabel": "Help each other",
+    "spotlightPlaceholder": "Someone looking for a product, service or help nearby? See what neighbors are asking for and offer yours.",
+    "spotlightCta": "Browse Wanted",
     "viewAllActivity": "View all",
     "buurtmomentenTitle": "Neighborhood moments",
     "heroLiveLabel": "Something's happening nearby",
@@ -7543,13 +7566,14 @@
     "heroTitleBefore": "Discover what people ",
     "heroTitleHighlight": "nearby",
     "heroTitleAfter": " make, cook and create",
-    "heroSubtitle": "From homemade meals and garden produce to art, chores and barter. Discover people in your neighborhood or share something with the community.",
+    "heroSubtitle": "Discover, buy, sell or barter homemade meals, garden harvest and creations. Post a request, share inspiration or find help in your neighborhood.",
     "heroChipFood": "Food",
     "heroChipGarden": "Garden",
     "heroChipCreations": "Creations",
     "heroChipInspiration": "Inspiration",
     "heroChipChores": "Chores",
     "heroChipBarter": "Barter",
+    "heroChipRequests": "Wanted",
     "heroChipNearby": "Nearby",
     "heroOrbitHomeCheff": "HomeCheff",
     "heroOrbitHomeGarden": "HomeGarden",
@@ -7564,7 +7588,7 @@
     "heroStripCommunity": "Stronger together locally",
     "heroStripCommunityHint": "For makers. By the neighborhood.",
     "ctaDiscover": "Discover nearby",
-    "ctaShare": "Share what you make",
+    "ctaShare": "Sell or share",
     "schemaWebsiteDescription": "HomeCheff — the digital village square to discover and share local food, harvest and crafts.",
     "verticals": {
       "cheff": {
@@ -7613,19 +7637,19 @@
     "ctaLogin": "Log in",
     "earn": {
       "title": "Earn from what you already do",
-      "body": "Sell meals, share your harvest, offer creations or soon help people nearby with small services.",
-      "bullet1": "List something for sale",
+      "body": "Sell meals, share your harvest, offer creations or help people nearby with services and chores.",
+      "bullet1": "List something for sale or offer a service",
       "bullet2": "Let people contact you directly",
       "bullet3": "Earn via HomeCheff payments when you want",
-      "bullet4": "Help & chores coming soon"
+      "bullet4": "Respond to requests (Wanted) in your area"
     },
     "create": {
       "title": "Share what you make or offer",
       "body": "Post a meal, garden product, creation or inspiration. You choose whether people pay via HomeCheff or contact you directly.",
-      "bullet1": "List something for sale",
-      "bullet2": "Share inspiration",
+      "bullet1": "List something for sale or post a request (Wanted)",
+      "bullet2": "Share inspiration or offer a service",
       "bullet3": "Use direct contact or HomeCheff checkout",
-      "bullet4": "Services, help requests and swaps coming soon"
+      "bullet4": "Show you're open to bartering"
     },
     "messages": {
       "title": "Get in touch directly",
@@ -9087,14 +9111,14 @@
   },
   "profile": {
     "deals": {
-      "navLabel": "My agreements"
+      "navLabel": "My Agreements"
     }
   },
   "community": {
     "agreements": {
-      "title": "My agreements",
+      "title": "My Agreements",
       "subtitle": "Track proposals, deals, payments and deliveries",
-      "navLabel": "My agreements",
+      "navLabel": "My Agreements",
       "withCounterpart": "With {{name}}"
     }
   },
@@ -9421,7 +9445,7 @@
   "roleQuickLinks": {
     "title": "Quick actions",
     "profileTitle": "Quick links",
-    "agreements": "My agreements",
+    "agreements": "My Agreements",
     "showQr": "Show my QR",
     "showQrDesc": "Open your partner QR and link",
     "sharePartnerLink": "Share partner link",

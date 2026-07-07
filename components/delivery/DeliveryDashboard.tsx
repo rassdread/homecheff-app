@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -95,6 +95,10 @@ export default function DeliveryDashboard() {
   const [recentOrders, setRecentOrders] = useState<DeliveryOrder[]>([]);
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  // Diff guard (UX-FIN-4C.9): skip all setState on a background poll when the
+  // payload is byte-identical, so the dashboard/order cards don't re-render every
+  // 30s for unchanged data.
+  const lastDeliveryPayloadRef = useRef<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
   const [gpsEnabled, setGpsEnabled] = useState(false);
@@ -303,6 +307,22 @@ export default function DeliveryDashboard() {
       const data = await response.json();
       
       if (response.ok) {
+        // On a background refresh, bail out early if nothing changed — avoids a
+        // full re-render of the dashboard + every order card each poll cycle.
+        const signature = JSON.stringify({
+          stats: data.stats,
+          recentOrders: data.recentOrders,
+          currentOrder: data.currentOrder,
+          availableOrders: data.availableOrders || [],
+          isOnline: data.isOnline || false,
+          isSeller: data.isSeller || false,
+          shippingOrders: data.shippingOrders || [],
+          allOrders: data.allOrders || [],
+        });
+        if (isRefresh && signature === lastDeliveryPayloadRef.current) {
+          return;
+        }
+        lastDeliveryPayloadRef.current = signature;
         setStats(data.stats);
         setRecentOrders(data.recentOrders);
         setCurrentOrder(data.currentOrder);

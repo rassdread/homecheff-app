@@ -148,17 +148,20 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           </Link>
         </div>
 
-        <div
-          className="hc-dorpsplein-card border-dashed border-amber-200/80 bg-gradient-to-br from-amber-50/60 to-orange-50/40 px-4 py-4 opacity-90"
-          aria-hidden
+        <Link
+          href="/?chip=gezocht#homecheff-feed"
+          className="hc-dorpsplein-card block border-amber-200/80 bg-gradient-to-br from-amber-50/60 to-orange-50/40 px-4 py-4 transition-colors hover:border-amber-300"
         >
           <p className="text-[11px] font-medium uppercase tracking-wide text-amber-800/70 mb-1">
             {t('homeDorpsplein.spotlightLabel')}
           </p>
-          <p className="text-xs text-gray-600 leading-relaxed">
+          <p className="text-xs text-gray-600 leading-relaxed mb-2">
             {t('homeDorpsplein.spotlightPlaceholder')}
           </p>
-        </div>
+          <span className="inline-flex text-xs font-semibold text-amber-800 hover:text-amber-900">
+            {t('homeDorpsplein.spotlightCta')} →
+          </span>
+        </Link>
       </div>
       {guestAuthPanel}
       {guestBottomNavPanelEl}

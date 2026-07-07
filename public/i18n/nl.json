@@ -1,4 +1,7 @@
 {
+  "agreements": {
+    "myAgreements": "Mijn Afspraken"
+  },
   "share": {
     "button": "Deel",
     "via": "Deel via",
@@ -1298,6 +1301,7 @@
     "propsGiven": "Waardering!",
     "propsButton": "Waardering",
     "propsWithdrawn": "Waardering ingetrokken",
+    "retract": "Waardering intrekken",
     "workspaceLabel": "Studio props"
   },
   "dorpsplein": {
@@ -6044,6 +6048,15 @@
   "home": {
     "loading": "Laden...",
     "welcomeFirstName": "Welkom, {name}!",
+    "ecosystem": {
+      "title": "Ontdek HomeCheff",
+      "ariaLabel": "Ontdek de pijlers van HomeCheff",
+      "food": "Eten",
+      "garden": "Tuin",
+      "creations": "Creaties",
+      "gezocht": "Gezocht",
+      "services": "Diensten"
+    },
     "profileProgress": {
       "title": "Claim je plek",
       "start": "Vul een paar basics in zodat buren je herkennen.",
@@ -6074,8 +6087,10 @@
     "heroSubtitle": "Van inspiratie tot het dorpsplein: lokaal ontmoeten, duidelijke afspraken.",
     "reputationCompact": {
       "title": "Jouw reputatie",
+      "guestTitle": "Vertrouwen in de buurt",
       "body": "Je bouwt vertrouwen op door te delen, reageren en mensen in je buurt te helpen.",
       "cta": "Bekijk",
+      "guestCta": "Ontdek",
       "levelLabel": "Niveau {level}"
     },
     "heroCtaSecondary": "Ontdek aanbod",
@@ -6667,6 +6682,13 @@
     "sortDistance": "Afstand",
     "chipSale": "Te koop",
     "chipInspiration": "Inspiratie",
+    "chipServices": "Diensten",
+    "verticalAxisLabel": "Categorie",
+    "verticalFood": "Eten",
+    "verticalGarden": "Tuin",
+    "verticalCreations": "Creaties",
+    "emptyServicesTitle": "Nog geen diensten in beeld",
+    "emptyServicesBody": "Er staan nu geen diensten, klussen, workshops of coaching in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
     "discoverFiltersHeading": "Ontdekken in jouw buurt",
     "viewModeLabel": "Weergave",
     "layoutModeLabel": "Feedweergave",
@@ -6682,7 +6704,7 @@
     "desktopColumns2Hint": "Twee kolommen — HomeCheff standaard",
     "desktopColumns3Hint": "Drie kolommen — marketplace raster",
     "locationSectionLabel": "Locatie en zoeken in de feed",
-    "refineSectionLabel": "Verfijnen (producten, sorteren, prijs)",
+    "refineSectionLabel": "Verfijn deze resultaten (zoeken, sorteren, prijs)",
     "chipSectionIntro": "Alles, te koop of inspiratie: één plek. Hieronder stel je locatie, categorie en filters in voor de hele feed.",
     "locationErrorShort": "Locatie kon niet worden bepaald",
     "locationUsingGps": "Jouw locatie wordt gebruikt",
@@ -7503,10 +7525,11 @@
     "messagesUrgentCta": "Berichten openen",
     "browseMakers": "Makers in de buurt",
     "communityCardTitle": "Samen groeien we lokaal",
-    "communityCardBody": "HomeCheff verbindt makers, buren en liefhebbers van lokaal aanbod in één warme community.",
+    "communityCardBody": "Maak afspraken, bouw vertrouwen op met reviews en props, en verkoop of ruil met makers en buren dichtbij.",
     "communityCardCta": "Meer over HomeCheff",
-    "spotlightLabel": "Uitgelicht",
-    "spotlightPlaceholder": "Binnenkort: lokale makers en aanbiedingen uit je buurt.",
+    "spotlightLabel": "Help elkaar",
+    "spotlightPlaceholder": "Iemand zoekt een product, dienst of hulp in de buurt? Bekijk wat buurtgenoten zoeken en bied je aan.",
+    "spotlightCta": "Bekijk Gezocht",
     "viewAllActivity": "Bekijk alles",
     "buurtmomentenTitle": "Buurtmomenten",
     "heroLiveLabel": "Er gebeurt iets in je buurt",
@@ -7543,13 +7566,14 @@
     "heroTitleBefore": "Ontdek wat mensen ",
     "heroTitleHighlight": "dichtbij",
     "heroTitleAfter": " maken, koken en creëren",
-    "heroSubtitle": "Van huisgemaakte maaltijden en tuinproducten tot kunst, klusjes en ruilhandel. Ontdek mensen in jouw buurt of deel zelf iets met de community.",
+    "heroSubtitle": "Ontdek, koop, verkoop of ruil huisgemaakte maaltijden, tuinoogst en creaties. Plaats een oproep, deel inspiratie of vind hulp in je buurt.",
     "heroChipFood": "Eten",
     "heroChipGarden": "Tuin",
     "heroChipCreations": "Creaties",
     "heroChipInspiration": "Inspiratie",
     "heroChipChores": "Klusjes",
-    "heroChipBarter": "Ruilhandel",
+    "heroChipBarter": "Ruilen",
+    "heroChipRequests": "Gezocht",
     "heroChipNearby": "Dichtbij",
     "heroOrbitHomeCheff": "HomeCheff",
     "heroOrbitHomeGarden": "HomeGarden",
@@ -7564,7 +7588,7 @@
     "heroStripCommunity": "Samen lokaal sterker",
     "heroStripCommunityHint": "Voor makers. Door de buurt.",
     "ctaDiscover": "Ontdek in je buurt",
-    "ctaShare": "Deel wat je maakt",
+    "ctaShare": "Verkoop of deel",
     "schemaWebsiteDescription": "HomeCheff — het digitale dorpsplein om lokaal eten, oogst en creaties te ontdekken en te delen.",
     "verticals": {
       "cheff": {
@@ -7613,19 +7637,19 @@
     "ctaLogin": "Inloggen",
     "earn": {
       "title": "Verdien met wat je al doet",
-      "body": "Verkoop maaltijden, deel je oogst, bied creaties aan of help straks mensen uit je buurt met kleine diensten.",
-      "bullet1": "Plaats iets te koop",
+      "body": "Verkoop maaltijden, deel je oogst, bied creaties aan of help mensen uit je buurt met diensten en klusjes.",
+      "bullet1": "Plaats iets te koop of bied een dienst aan",
       "bullet2": "Laat mensen direct contact opnemen",
       "bullet3": "Verdien via HomeCheff-betalingen wanneer je dat wilt",
-      "bullet4": "Binnenkort ook hulp & klusjes"
+      "bullet4": "Reageer ook op oproepen (Gezocht) in je buurt"
     },
     "create": {
       "title": "Deel wat jij maakt of aanbiedt",
       "body": "Plaats een maaltijd, tuinproduct, creatie of inspiratie. Je kiest zelf of mensen via HomeCheff betalen of direct contact opnemen.",
-      "bullet1": "Zet iets te koop",
-      "bullet2": "Deel inspiratie",
+      "bullet1": "Zet iets te koop of plaats een oproep (Gezocht)",
+      "bullet2": "Deel inspiratie of bied een dienst aan",
       "bullet3": "Gebruik direct contact of HomeCheff betalen",
-      "bullet4": "Straks ook diensten, hulpvragen en ruilen"
+      "bullet4": "Geef aan dat je open staat voor ruilen"
     },
     "messages": {
       "title": "Kom direct in contact",
@@ -9087,14 +9111,14 @@
   },
   "profile": {
     "deals": {
-      "navLabel": "Mijn afspraken"
+      "navLabel": "Mijn Afspraken"
     }
   },
   "community": {
     "agreements": {
-      "title": "Mijn afspraken",
+      "title": "Mijn Afspraken",
       "subtitle": "Volg voorstellen, deals, betalingen en bezorgingen",
-      "navLabel": "Mijn afspraken",
+      "navLabel": "Mijn Afspraken",
       "withCounterpart": "Met {{name}}"
     }
   },
@@ -9421,7 +9445,7 @@
   "roleQuickLinks": {
     "title": "Snelle acties",
     "profileTitle": "Snel naar",
-    "agreements": "Mijn afspraken",
+    "agreements": "Mijn Afspraken",
     "showQr": "Toon mijn QR",
     "showQrDesc": "Open je partner-QR en link",
     "sharePartnerLink": "Partnerlink delen",

@@ -11,6 +11,7 @@ import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomeDesktopSidebar from "@/components/home/HomeDesktopSidebar";
 import HomeMobileFeedInsert from "@/components/home/HomeMobileFeedInserts";
 import UserActionCenter from "@/components/home/UserActionCenter";
+import HomeMobileEcosystemStrip from "@/components/home/HomeMobileEcosystemStrip";
 import GeoFeed, { FeedContent, FeedFiltersPanel } from "@/components/feed/GeoFeed";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
@@ -22,7 +23,7 @@ import {
 import { useVisibleHomePromotionIds } from "@/hooks/useVisibleHomePromotions";
 import { useNarrowViewportResolved } from "@/hooks/useNarrowViewport";
 
-type HomeFeedChip = 'all' | 'sale' | 'inspiration';
+type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht' | 'services';
 
 function pickFirstName(
   user: { name?: string | null; email?: string | null } | undefined
@@ -196,6 +197,10 @@ export default function HomePageClient({
                   <UserActionCenter variant="mobileCompact" />
                 </div>
               ) : null}
+              <HomeMobileEcosystemStrip
+                isLoggedIn={Boolean(session?.user)}
+                className="mb-3"
+              />
               <GeoFeed {...geoFeedProps} />
             </div>
           ) : null}

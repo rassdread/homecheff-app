@@ -114,12 +114,12 @@ assert(
   'CommunityPulseBar component exists (guest-visible activity)',
 );
 
-// --- 5B.7 Services discoverability gap documented ------------------------
+// --- 5B.7 Services discoverability (gap closed in Phase 5C) --------------
 console.log('\n5B.7 Services discoverability');
 assert(
   exists('lib/marketplace/listing-kind/derive-listing-kind.ts') &&
-    !/chip.*service|serviceChip|chipService|chipDiensten/i.test(geoFeed),
-  'services are classifiable but have NO dedicated feed chip today (documented gap)',
+    /feed\.chipServices/.test(geoFeed),
+  'services are classifiable AND now have a dedicated Diensten chip (closed in Phase 5C)',
 );
 
 // --- Deliverables --------------------------------------------------------

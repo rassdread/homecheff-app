@@ -44,7 +44,9 @@ export type AppDiagCode =
   | 'push_token_refresh'
   | 'push_received'
   | 'push_opened'
-  | 'push_deep_link_resolved';
+  | 'push_deep_link_resolved'
+  | 'perf_web_vital'
+  | 'perf_navigation';
 
 export function reportAppDiagnostic(
   code: AppDiagCode,

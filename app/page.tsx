@@ -1,7 +1,7 @@
 import { getInspiratieItems } from '@/lib/getInspiratieItems';
 import HomePageClient from '@/components/home/HomePageClient';
 
-type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht';
+type HomeFeedChip = 'all' | 'sale' | 'inspiration' | 'gezocht' | 'services';
 export const revalidate = 60;
 
 function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefined {
@@ -9,6 +9,15 @@ function normalizeHomeFeedChip(raw: string | undefined): HomeFeedChip | undefine
   const v = raw.toLowerCase().trim();
   if (v === 'sale' || v === 'shop' || v === 'koop' || v === 'dorpsplein') return 'sale';
   if (v === 'all' || v === 'mixed' || v === 'everything') return 'all';
+  if (
+    v === 'services' ||
+    v === 'service' ||
+    v === 'diensten' ||
+    v === 'dienst' ||
+    v === 'klussen'
+  ) {
+    return 'services';
+  }
   if (
     v === 'inspiration' ||
     v === 'inspiratie' ||

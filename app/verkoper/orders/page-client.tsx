@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Package, 
@@ -73,7 +73,6 @@ export default function SellerOrdersPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<SellerOrderTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,10 +99,6 @@ export default function SellerOrdersPageClient() {
   }, []);
 
   useEffect(() => {
-    filterOrders();
-  }, [orders, statusFilter, searchQuery]);
-
-  useEffect(() => {
     const hid = searchParams.get('highlight');
     if (!hid || isLoading || filteredOrders.length === 0) return;
     requestAnimationFrame(() => {
@@ -114,9 +109,10 @@ export default function SellerOrdersPageClient() {
     });
   }, [searchParams, filteredOrders, isLoading]);
 
-  const loadOrders = async () => {
+  const loadOrders = async (opts?: { background?: boolean }) => {
+    const background = opts?.background ?? false;
     try {
-      setIsLoading(true);
+      if (!background) setIsLoading(true);
       const response = await fetch('/api/seller/dashboard/orders?limit=200&period=all', {
         cache: 'no-store',
       });
@@ -130,12 +126,14 @@ export default function SellerOrdersPageClient() {
     } catch (error) {
       console.error('Error loading orders:', error);
     } finally {
-      setIsLoading(false);
+      if (!background) setIsLoading(false);
     }
   };
 
-  const filterOrders = () => {
-    let filtered = [...orders]; // Create copy to avoid mutating original
+  // Derived, not state+effect (UX-FIN-4C.3/4C.13): filtering/sorting on tab or
+  // search no longer triggers an extra render pass through a second state array.
+  const filteredOrders = useMemo(() => {
+    let filtered = [...orders];
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter((order) =>
@@ -152,18 +150,14 @@ export default function SellerOrdersPageClient() {
       );
     }
 
-    // Sort filtered orders consistently
     filtered.sort((a, b) => {
-      // First by creation date (newest first)
       const dateCompare = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       if (dateCompare !== 0) return dateCompare;
-      
-      // Then by order number (newest first)
       return (b.orderNumber || '').localeCompare(a.orderNumber || '');
     });
 
-    setFilteredOrders(filtered);
-  };
+    return filtered;
+  }, [orders, statusFilter, searchQuery]);
 
   const getStatusIcon = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -259,8 +253,9 @@ export default function SellerOrdersPageClient() {
           )
         );
         
-        // Also reload orders to get any server-side changes
-        await loadOrders();
+        // Reconcile with server-side changes in the background — the optimistic
+        // patch already reflects the new status, so no loading skeleton (UX-FIN-4C.8).
+        void loadOrders({ background: true });
         
         // Show success message with better UX
         const statusText = getStatusText(newStatus);

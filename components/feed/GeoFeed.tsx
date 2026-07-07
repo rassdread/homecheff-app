@@ -147,6 +147,7 @@ import {
   readHomeFeedReturnCache,
   saveHomeFeedReturnCache,
   peekFreshHomeFeedReturnCache,
+  isHomeFeedReturnCacheStale,
 } from "@/lib/feed/home-feed-return-cache";
 import {
   compareFeedSaleItems,
@@ -185,6 +186,7 @@ import {
   countMarketplaceRequestItems,
   isMarketplaceRequestItem,
   isMarketplaceSaleItem,
+  isMarketplaceServiceItem,
 } from "@/lib/feed/marketplace-sale";
 import { trackOnboardingEvent } from "@/lib/onboarding/onboarding-analytics";
 import { reportAppDiagnostic } from "@/lib/diagnostics/appDiagnostics";
@@ -817,6 +819,14 @@ export function useHomeSurfacePlan() {
   return ctx?.surfacePlan ?? null;
 }
 
+/** Vertical discovery axis — mirrors the category select (slugs map via feedVerticalSlugToCategoryEnum). */
+const VERTICAL_CHIP_OPTIONS = [
+  { slug: "all", labelKey: "filters.all" },
+  { slug: "cheff", labelKey: "feed.verticalFood" },
+  { slug: "garden", labelKey: "feed.verticalGarden" },
+  { slug: "designer", labelKey: "feed.verticalCreations" },
+] as const;
+
 export default function GeoFeed({
   initialInspiratieItems = [],
   initialFeedChip,
@@ -1248,6 +1258,14 @@ export default function GeoFeed({
     if (initialFeedChip != null) setFeedChip(initialFeedChip);
   }, [initialFeedChip]);
 
+  // Server-/deep-link vertical (?vertical=…) toepassen — instant, mirrors the vertical select.
+  useEffect(() => {
+    if (initialFeedCategory == null) return;
+    const slug = initialDorpspleinCategoryFromServer(initialFeedCategory);
+    setCategory(slug);
+    setAppliedCategory(slug);
+  }, [initialFeedCategory]);
+
   useEffect(() => {
     if (!feedHydrated) return;
     if (typeof window === "undefined") return;
@@ -1510,6 +1528,11 @@ export default function GeoFeed({
         ? peekFreshHomeFeedReturnCache() ??
           readHomeFeedReturnCache(requestKey)
         : readHomeFeedReturnCache(requestKey);
+
+    // Stale-while-revalidate (UX-FIN-4.3/4.4/4.9): show cached feed instantly,
+    // and only when it is stale quietly refresh in the background — no loading
+    // flash, feed stays visible, content updates calmly.
+    let backgroundRefresh = false;
     if (cached) {
       feedRestoredFromCacheRef.current = true;
       setItems(cached.items as FeedItem[]);
@@ -1525,10 +1548,13 @@ export default function GeoFeed({
       setLoading(false);
       feedInteractionStartedRef.current = true;
       setFeedHydrated(true);
-      return;
+      if (!isHomeFeedReturnCacheStale(cached)) {
+        return;
+      }
+      backgroundRefresh = true;
     }
 
-    if (feedInteractionStartedRef.current) {
+    if (feedInteractionStartedRef.current && !backgroundRefresh) {
       setLoading(true);
     }
 
@@ -1966,6 +1992,12 @@ export default function GeoFeed({
 
   const sortedSales = rankingResult.orderedSaleOnly;
 
+  /** Diensten pillar — client-side subset of the sale pool (no extra fetch). */
+  const sortedServices = useMemo(
+    () => sortedSales.filter(isMarketplaceServiceItem),
+    [sortedSales]
+  );
+
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
     if (feedChip === "inspiration") return;
@@ -2062,11 +2094,21 @@ export default function GeoFeed({
         row: "sale" as const,
         item,
       }));
+    } else if (feedChip === "services") {
+      return sortedServices.map((item) => ({
+        row: "sale" as const,
+        item,
+      }));
     } else {
       rows = mixedRows;
     }
 
-    if (!session?.user || feedChip === "inspiration" || feedChip === "gezocht") {
+    if (
+      !session?.user ||
+      feedChip === "inspiration" ||
+      feedChip === "gezocht" ||
+      feedChip === "services"
+    ) {
       return rows;
     }
 
@@ -2122,6 +2164,7 @@ export default function GeoFeed({
   }, [
     feedChip,
     sortedSales,
+    sortedServices,
     inspirationSlots,
     mixedRows,
     useDiscoverySections,
@@ -2293,6 +2336,12 @@ export default function GeoFeed({
       setPlace("");
     }
   }, [profileCoords, profileLocation]);
+
+  /** Vertical chip = instant apply of the vertical axis (same state as the select; one intended refetch, no loop). */
+  const selectVerticalChip = useCallback((slug: string) => {
+    setCategory(slug);
+    setAppliedCategory(slug);
+  }, []);
 
   const resetDraftFilters = useCallback(() => {
     setRadius(appliedRadius);
@@ -2575,6 +2624,11 @@ export default function GeoFeed({
     !loading &&
     feedHydrated &&
     filteredRequestBase.length === 0;
+  const emptyServices =
+    feedChip === "services" &&
+    !loading &&
+    feedHydrated &&
+    sortedServices.length === 0;
   const emptyAll =
     !emptyRadiusNoLocal &&
     feedChip === "all" &&
@@ -2653,18 +2707,46 @@ export default function GeoFeed({
         </button>
         <button
           type="button"
-          className={chipBtn(feedChip === "inspiration")}
-          onClick={() => setFeedChip("inspiration")}
-        >
-          {t("feed.chipInspiration")}
-        </button>
-        <button
-          type="button"
           className={chipBtn(feedChip === "gezocht")}
           onClick={() => setFeedChip("gezocht")}
         >
           {t("marketplace.discovery.requests.chip")}
         </button>
+        <button
+          type="button"
+          className={chipBtn(feedChip === "services")}
+          onClick={() => setFeedChip("services")}
+        >
+          {t("feed.chipServices")}
+        </button>
+        <button
+          type="button"
+          className={chipBtn(feedChip === "inspiration")}
+          onClick={() => setFeedChip("inspiration")}
+        >
+          {t("feed.chipInspiration")}
+        </button>
+      </div>
+      <p
+        className={
+          filterChrome
+            ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-2 mb-1.5"
+            : "text-xs font-medium text-gray-500 uppercase tracking-wide mt-3 mb-2"
+        }
+      >
+        {t("feed.verticalAxisLabel")}
+      </p>
+      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        {VERTICAL_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+          <button
+            key={slug}
+            type="button"
+            className={chipBtn(appliedCategory === slug)}
+            onClick={() => selectVerticalChip(slug)}
+          >
+            {t(labelKey)}
+          </button>
+        ))}
       </div>
     </>
   );
@@ -3336,6 +3418,29 @@ export default function GeoFeed({
               className="inline-flex items-center rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700"
             >
               {t("marketplace.request.actions.create")}
+            </button>
+          </div>
+        </div>
+      ) : emptyServices ? (
+        <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
+          <p className="text-base font-semibold text-gray-900">
+            {t("feed.emptyServicesTitle")}
+          </p>
+          <p className="mt-1">{t("feed.emptyServicesBody")}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFeedChip("all")}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("filters.all")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeedChip("gezocht")}
+              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              {t("marketplace.discovery.requests.chip")}
             </button>
           </div>
         </div>

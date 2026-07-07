@@ -39,19 +39,19 @@ export type FeedTaxonomy = {
 export type FeedViewFilterId =
   | 'all'
   | 'sale'
-  | 'inspiration'
-  | 'gezocht';
+  | 'gezocht'
+  | 'services'
+  | 'inspiration';
 
 /**
  * Future chips (documented, not active in UI):
- * 'offer' | 'request' | 'for_sale' | 'services' | 'barter'
+ * 'offer' | 'request' | 'for_sale' | 'barter'
  */
 export type FeedViewFilterIdFuture =
   | FeedViewFilterId
   | 'offer'
   | 'request'
   | 'for_sale'
-  | 'services'
   | 'barter';
 
 /** Legacy GeoFeed chip values — alias for view filter ids in use today. */
@@ -280,6 +280,10 @@ export function matchesFeedViewFilter(
   const tax = deriveFeedTaxonomy(item);
   if (filter === 'inspiration') {
     return tax.direction === 'OFFER' && tax.kind === 'INSPIRATION';
+  }
+  if (filter === 'services') {
+    // Diensten pillar — SERVICE/WORKSHOP/COACHING map to SERVICE, klussen to TASK.
+    return tax.direction === 'OFFER' && (tax.kind === 'SERVICE' || tax.kind === 'TASK');
   }
   return true;
 }

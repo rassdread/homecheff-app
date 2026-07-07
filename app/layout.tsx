@@ -201,6 +201,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         {/* app/icon.png + app/apple-icon.png: extra Next metadata links. Manifest: generateMetadata. */}
         {/* DNS prefetch for external resources (preconnect met wildcard geeft certificaatwaarschuwing) */}
+        {/* Primaire media-CDN (feed-afbeeldingen/video's): DNS vroeg resolven zodat media sneller verbindt (UX-FIN-4B.16). */}
+        <link rel="dns-prefetch" href="https://blob.vercel-storage.com" />
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         <link rel="dns-prefetch" href="https://platform-lookaside.fbsbx.com" />
       </head>

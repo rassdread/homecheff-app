@@ -41,11 +41,11 @@ export default function HomeReputationCompactCard({
             <div className="flex min-w-0 items-center gap-2">
               <Award className="h-4 w-4 shrink-0 text-primary-brand/60" aria-hidden />
               <h2 id="home-reputation-heading" className="text-sm font-medium text-gray-900">
-                {t('home.reputationCompact.title')}
+                {t('home.reputationCompact.guestTitle')}
               </h2>
             </div>
             <button type="button" onClick={onGuestClick} className={ctaClass}>
-              {t('home.reputationCompact.cta')} →
+              {t('home.reputationCompact.guestCta')} →
             </button>
           </div>
         </section>

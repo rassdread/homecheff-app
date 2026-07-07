@@ -7,6 +7,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { InspirationItem } from './InspiratieContent';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
+import ShareButton from '@/components/ui/ShareButton';
 import { Eye } from 'lucide-react';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
 

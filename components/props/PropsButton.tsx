@@ -135,14 +135,9 @@ export default function PropsButton({
             newCount: newCount
           }
         }));
-        
-        // Show feedback
-        if (data.propsGiven) {
-        } else {
-        }
       } else {
         const error = await response.json();
-        alert(error.error || 'Er is een fout opgetreden');
+        alert(error.error || t('errors.propsError'));
       }
     } catch (error) {
       console.error('Error toggling props:', error);
@@ -203,11 +198,11 @@ export default function PropsButton({
             : 'bg-white text-emerald-600 hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow-md'
           }
         `}
-        title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
+        title={propsGiven ? t('props.retract') : t('props.giveProps')}
       >
         <Icon className={`w-4 h-4 ${propsGiven ? 'animate-bounce' : ''} transition-transform`} />
         <span className="font-bold">
-          {propsGiven ? 'Props!' : 'Props'}
+          {propsGiven ? t('props.propsGiven') : t('props.propsButton')}
           {propsCount > 0 && (
             <span className={`ml-1 ${propsGiven ? 'text-white' : 'text-emerald-500'}`}>
               {propsCount > 1000 ? `${(propsCount / 1000).toFixed(1)}k` : propsCount}
@@ -234,11 +229,11 @@ export default function PropsButton({
         disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
         ${propsGiven ? 'animate-pulse' : ''}
       `}
-      title={propsGiven ? 'Props ingetrekken' : 'Props geven'}
+      title={propsGiven ? t('props.retract') : t('props.giveProps')}
     >
       <Icon className={`${iconSize[size]} ${propsGiven ? 'animate-bounce' : ''} transition-transform`} />
       <span className="font-bold">
-        {propsGiven ? 'Props!' : 'Props'}
+        {propsGiven ? t('props.propsGiven') : t('props.propsButton')}
         {propsCount > 0 && (
           <span className={`ml-1 ${propsGiven ? 'text-white' : 'text-emerald-500'}`}>
             {propsCount > 1000 ? `${(propsCount / 1000).toFixed(1)}k` : propsCount}

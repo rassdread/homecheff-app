@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useState, type CSSProperties } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Compass, Heart, Plus, Sparkles } from 'lucide-react';
@@ -19,6 +19,7 @@ const HERO_CHIP_KEYS = [
   { key: 'heroChipInspiration', emoji: '✨' },
   { key: 'heroChipChores', emoji: '🔧' },
   { key: 'heroChipBarter', emoji: '⇄' },
+  { key: 'heroChipRequests', emoji: '🙋' },
   { key: 'heroChipNearby', emoji: '📍' },
 ] as const;
 
@@ -64,10 +65,6 @@ const mobileActionClass =
 
 function HeroVisualCluster() {
   const { t } = useTranslation();
-
-  useEffect(() => {
-    console.log('orbit image src', GLOBEMAN_SRC);
-  }, []);
 
   return (
     <div

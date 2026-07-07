@@ -187,8 +187,12 @@ export default function SellerDashboardClient() {
         }
       }
 
-      // Load dashboard stats
-      const statsResponse = await fetch(`/api/seller/dashboard/stats?period=${selectedPeriod}`);
+      // Load dashboard stats, recent orders, and top products in parallel (UX-FIN-4B.10).
+      const [statsResponse, ordersResponse, productsResponse] = await Promise.all([
+        fetch(`/api/seller/dashboard/stats?period=${selectedPeriod}`),
+        fetch(`/api/seller/dashboard/orders?period=${selectedPeriod}&limit=10`),
+        fetch(`/api/seller/dashboard/products?period=${selectedPeriod}&limit=5`),
+      ]);
       let nextStats: DashboardStats | null = null;
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
@@ -196,8 +200,6 @@ export default function SellerDashboardClient() {
         setStats(statsData);
       }
 
-      // Load recent orders
-      const ordersResponse = await fetch(`/api/seller/dashboard/orders?period=${selectedPeriod}&limit=10`);
       let nextRecent: RecentOrder[] = [];
       if (ordersResponse.ok) {
         const ordersData = await ordersResponse.json();
@@ -205,8 +207,6 @@ export default function SellerDashboardClient() {
         setRecentOrders(nextRecent);
       }
 
-      // Load top products
-      const productsResponse = await fetch(`/api/seller/dashboard/products?period=${selectedPeriod}&limit=5`);
       let nextTop: TopProduct[] = [];
       if (productsResponse.ok) {
         const productsData = await productsResponse.json();

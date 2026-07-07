@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -124,7 +125,9 @@ type Props = {
   ) => void;
 };
 
-export default function ChatThreadMessageRow({
+export default memo(ChatThreadMessageRow);
+
+function ChatThreadMessageRow({
   msg,
   currentUserId,
   formatTime,

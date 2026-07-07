@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { AlertCircle, CalendarClock, List } from 'lucide-react';
 import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useSessionSwr } from '@/hooks/useSessionSwr';
 import type {
   AgreementAgendaBucket,
   AgreementHubDealItem,
@@ -17,6 +19,7 @@ import {
   AGREEMENT_AGENDA_BUCKETS,
   AGREEMENTS_HUB_FILTERS,
 } from '@/lib/agreements/agreements-hub-types';
+import { itemMatchesFilter } from '@/lib/agreements/agreements-hub-filters';
 import AgreementHubDealCard from '@/components/agreements/AgreementHubDealCard';
 import AgreementHubProposalCard from '@/components/agreements/AgreementHubProposalCard';
 import CourierAgreementsStrip from '@/components/agreements/CourierAgreementsStrip';
@@ -99,62 +102,66 @@ function itemActionLabelKey(item: AgreementHubItem): string {
  * a next-up cockpit strip, an "action required" section, filters, and an
  * agenda/planning view grouped by today → history.
  */
+const EMPTY_HUB: AgreementsHubResponse = {
+  items: [],
+  counts: EMPTY_COUNTS,
+  agenda: EMPTY_AGENDA,
+  summary: EMPTY_SUMMARY,
+};
+
 export default function ProfileDealsClient() {
   const { t } = useTranslation();
+  const { data: session } = useSession();
   const [view, setView] = useState<HubView>('list');
   const [filter, setFilter] = useState<AgreementsHubFilter>('');
-  const [items, setItems] = useState<AgreementHubItem[]>([]);
-  const [counts, setCounts] =
-    useState<AgreementsHubResponse['counts']>(EMPTY_COUNTS);
-  const [agenda, setAgenda] = useState<AgreementsHubAgenda>(EMPTY_AGENDA);
-  const [summary, setSummary] = useState<AgreementsHubSummary>(EMPTY_SUMMARY);
-  const [loading, setLoading] = useState(true);
 
-  // Single refresh path (CE-2B.7): every mutation re-runs loadHub, which refreshes
-  // items + counts + agenda + summary together — no divergent cache updates.
-  const loadHub = useCallback(async (activeFilter: AgreementsHubFilter) => {
-    setLoading(true);
-    const qs = activeFilter ? `?filter=${activeFilter}` : '';
-    try {
-      const res = await fetch(`/api/agreements${qs}`);
-      const data: AgreementsHubResponse = res.ok
-        ? await res.json()
-        : {
-            items: [],
-            counts: EMPTY_COUNTS,
-            agenda: EMPTY_AGENDA,
-            summary: EMPTY_SUMMARY,
-          };
-      setItems(data.items ?? []);
-      setCounts(data.counts ?? EMPTY_COUNTS);
-      setAgenda(data.agenda ?? EMPTY_AGENDA);
-      setSummary(data.summary ?? EMPTY_SUMMARY);
-    } catch {
-      setItems([]);
-      setCounts(EMPTY_COUNTS);
-      setAgenda(EMPTY_AGENDA);
-      setSummary(EMPTY_SUMMARY);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Fetch the FULL (unfiltered) hub once and cache it (UX-FIN-4C.11): counts,
+  // agenda and summary are filter-independent, and client filtering reuses the
+  // exact same predicate (itemMatchesFilter) as the server. Filter switches are
+  // therefore instant and cause no new API call. Revisits show instantly from
+  // the session cache, then refresh in the background (UX-FIN-4C.2).
+  const cacheKey = session?.user?.email
+    ? `agreements-hub:${session.user.email}`
+    : 'agreements-hub';
+  const {
+    data: hub,
+    loading,
+    refresh,
+    mutate,
+  } = useSessionSwr<AgreementsHubResponse>(cacheKey, async (signal) => {
+    const res = await fetch('/api/agreements', { signal });
+    if (!res.ok) throw new Error(`agreements ${res.status}`);
+    return (await res.json()) as AgreementsHubResponse;
+  });
 
-  useEffect(() => {
-    void loadHub(filter);
-  }, [filter, loadHub]);
+  const allItems = hub?.items ?? EMPTY_HUB.items;
+  const counts = hub?.counts ?? EMPTY_COUNTS;
+  const agenda = hub?.agenda ?? EMPTY_AGENDA;
+  const summary = hub?.summary ?? EMPTY_SUMMARY;
+
+  const items = useMemo(
+    () => (filter ? allItems.filter((it) => itemMatchesFilter(it, filter)) : allItems),
+    [allItems, filter],
+  );
 
   const handleDealUpdated = useCallback(
     (updated: AgreementHubDealItem['deal']) => {
-      setItems((prev) =>
-        prev.map((row) =>
-          row.kind === 'deal' && row.id === updated.id
-            ? { ...row, deal: updated, updatedAt: updated.updatedAt }
-            : row,
-        ),
-      );
-      void loadHub(filter);
+      // Optimistic local patch on the cached full dataset, then background refresh
+      // so counts/agenda/summary reconcile without a skeleton.
+      mutate((prev) => {
+        const base = prev ?? EMPTY_HUB;
+        return {
+          ...base,
+          items: base.items.map((row) =>
+            row.kind === 'deal' && row.id === updated.id
+              ? { ...row, deal: updated, updatedAt: updated.updatedAt }
+              : row,
+          ),
+        };
+      });
+      void refresh();
     },
-    [filter, loadHub],
+    [mutate, refresh],
   );
 
   const renderItem = (item: AgreementHubItem) =>

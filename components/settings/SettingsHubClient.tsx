@@ -140,7 +140,7 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
       const err = await response.json().catch(() => ({}));
       throw new Error(typeof err.error === 'string' ? err.error : 'Save failed');
     }
-    window.location.reload();
+    router.refresh();
   };
 
   const handlePasswordUpdate = async (currentPassword: string, newPassword: string) => {

@@ -116,6 +116,32 @@ export function countMarketplaceSaleItems(
   return items.filter(isMarketplaceSaleItem).length;
 }
 
+/** Listing kinds that make up the Diensten pillar (services + klussen + workshops + coaching). */
+const SERVICE_LISTING_KINDS = new Set(['SERVICE', 'TASK', 'WORKSHOP', 'COACHING']);
+
+export function isServiceListingKind(kind?: string | null): boolean {
+  return kind != null && SERVICE_LISTING_KINDS.has(String(kind).trim().toUpperCase());
+}
+
+/**
+ * True when a sale/offer item belongs in the Diensten pillar.
+ * Reuses the marketplace-sale pool (no separate fetch); classification only.
+ */
+export function isMarketplaceServiceItem(item: MarketplaceSaleInput): boolean {
+  if (!isMarketplaceSaleItem(item)) return false;
+  const kind =
+    item.discovery?.listingKind ?? item.listingKind ?? null;
+  if (isServiceListingKind(kind)) return true;
+  const taxKind = item.taxonomy?.kind;
+  return taxKind === 'SERVICE' || taxKind === 'TASK';
+}
+
+export function countMarketplaceServiceItems(
+  items: MarketplaceSaleInput[]
+): number {
+  return items.filter(isMarketplaceServiceItem).length;
+}
+
 /**
  * True when item is an open REQUEST listing (Gezocht bucket).
  */

@@ -76,17 +76,24 @@ export default function FeedMobileToolbar({
         </button>
         <button
           type="button"
-          className={chipClass(feedChip === 'inspiration')}
-          onClick={() => onFeedChipChange('inspiration')}
-        >
-          {t('feed.chipInspiration')}
-        </button>
-        <button
-          type="button"
           className={chipClass(feedChip === 'gezocht')}
           onClick={() => onFeedChipChange('gezocht')}
         >
           {t('marketplace.discovery.requests.chip')}
+        </button>
+        <button
+          type="button"
+          className={chipClass(feedChip === 'services')}
+          onClick={() => onFeedChipChange('services')}
+        >
+          {t('feed.chipServices')}
+        </button>
+        <button
+          type="button"
+          className={chipClass(feedChip === 'inspiration')}
+          onClick={() => onFeedChipChange('inspiration')}
+        >
+          {t('feed.chipInspiration')}
         </button>
       </div>
 
