@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Users } from "lucide-react";
 import ClickableName from '@/components/ui/ClickableName';
 import SafeImage from '@/components/ui/SafeImage';
+import EmptyState from '@/components/ui/EmptyState';
+import { useTranslation } from '@/hooks/useTranslation';
 import { getDisplayName } from '@/lib/displayName';
 
 type Fan = { 
@@ -23,6 +26,7 @@ interface FansListProps {
 }
 
 export default function FansList({ userId }: FansListProps) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +47,11 @@ export default function FansList({ userId }: FansListProps) {
 
   if (!items.length) {
     return (
-      <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">
-        Nog geen fans. Zodra mensen jouw fan worden, verschijnen ze hier.
-      </div>
+      <EmptyState
+        icon={<Users />}
+        title={t("emptyStates.fans.title")}
+        description={t("emptyStates.fans.description")}
+      />
     );
   }
 

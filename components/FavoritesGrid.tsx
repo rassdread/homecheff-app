@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Heart } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import EmptyState from "@/components/ui/EmptyState";
 import MarketplaceTileMini from "@/components/marketplace/tiles/MarketplaceTileMini";
 import {
   mapFavoriteRecordToTileModel,
@@ -32,9 +34,13 @@ export default function FavoritesGrid() {
   }
   if (!items.length) {
     return (
-      <div className="rounded-xl border bg-white p-4 text-sm text-muted-foreground">
-        Nog geen favorieten.
-      </div>
+      <EmptyState
+        icon={<Heart />}
+        title={t("emptyStates.favorites.title")}
+        description={t("emptyStates.favorites.description")}
+        actionLabel={t("emptyStates.favorites.cta")}
+        actionHref="/"
+      />
     );
   }
 

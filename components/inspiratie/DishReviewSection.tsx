@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, AlertCircle } from 'lucide-react';
 import ReviewList from '@/components/reviews/ReviewList';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { useSession } from 'next-auth/react';
@@ -44,6 +44,7 @@ export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
   const [loading, setLoading] = useState(true);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
   const fetchReviews = async () => {
     try {
@@ -92,6 +93,7 @@ export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
     comment: string;
     images?: string[];
   }) => {
+    setFeedbackError(null);
     try {
       const response = await fetch(`/api/inspiratie/${dishId}/reviews`, {
         method: 'POST',
@@ -109,11 +111,11 @@ export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
         await hcpRewardUi?.refetchGamification();
       } else {
         const error = await response.json();
-        alert(error.error || error.details || t('communityFeedback.submitError'));
+        setFeedbackError(error.error || error.details || t('communityFeedback.submitError'));
       }
     } catch (error) {
       console.error('Error submitting community feedback:', error);
-      alert(t('communityFeedback.submitError'));
+      setFeedbackError(t('communityFeedback.submitError'));
     }
   };
 
@@ -169,12 +171,25 @@ export default function DishReviewSection({ dishId }: DishReviewSectionProps) {
         )}
       </div>
 
+      {feedbackError && (
+        <div
+          role="alert"
+          className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{feedbackError}</span>
+        </div>
+      )}
+
       {showFeedbackForm && (
         <div className="mb-6 pb-6 border-b border-gray-200">
           <ReviewForm
             productId={dishId}
             onSubmit={handleFeedbackSubmit}
-            onCancel={() => setShowFeedbackForm(false)}
+            onCancel={() => {
+              setShowFeedbackForm(false);
+              setFeedbackError(null);
+            }}
             isSubmitting={false}
           />
         </div>

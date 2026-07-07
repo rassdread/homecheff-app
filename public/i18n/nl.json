@@ -1272,6 +1272,22 @@
     "saved": "Favoriet",
     "loading": "Laden…"
   },
+  "emptyStates": {
+    "favorites": {
+      "title": "Nog geen favorieten",
+      "description": "Bewaar producten, diensten en inspiratie die je later wilt terugvinden.",
+      "cta": "Ontdek het aanbod"
+    },
+    "orders": {
+      "title": "Nog geen bestellingen",
+      "description": "Zodra je iets koopt, verschijnt je bestelling hier.",
+      "cta": "Verder winkelen"
+    },
+    "fans": {
+      "title": "Nog geen fans",
+      "description": "Zodra mensen jouw fan worden, verschijnen ze hier."
+    }
+  },
   "communityFeedback": {
     "label": "Feedback",
     "heading": "Community feedback",

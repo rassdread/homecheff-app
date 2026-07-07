@@ -2423,6 +2423,22 @@
     "saved": "Favorited",
     "loading": "Loading…"
   },
+  "emptyStates": {
+    "favorites": {
+      "title": "No favorites yet",
+      "description": "Save products, services and inspiration you want to find back later.",
+      "cta": "Explore the marketplace"
+    },
+    "orders": {
+      "title": "No orders yet",
+      "description": "As soon as you buy something, your order shows up here.",
+      "cta": "Continue shopping"
+    },
+    "fans": {
+      "title": "No fans yet",
+      "description": "As soon as people become your fan, they appear here."
+    }
+  },
   "communityFeedback": {
     "label": "Feedback",
     "heading": "Community feedback",

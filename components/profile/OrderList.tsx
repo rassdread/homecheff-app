@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ShoppingBag } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import EmptyState from "@/components/ui/EmptyState";
 
 type Order = {
   id: string;
@@ -12,6 +15,7 @@ type Order = {
 };
 
 export default function OrderList() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -40,7 +44,17 @@ export default function OrderList() {
   useEffect(() => { load(page); }, [page]);
 
   if (loading) return <div className="rounded-xl border p-4 bg-white animate-pulse h-32" />;
-  if (!orders.length) return <div className="rounded-xl border p-4 bg-white text-sm text-muted-foreground">Nog geen bestellingen.</div>;
+  if (!orders.length) {
+    return (
+      <EmptyState
+        icon={<ShoppingBag />}
+        title={t("emptyStates.orders.title")}
+        description={t("emptyStates.orders.description")}
+        actionLabel={t("emptyStates.orders.cta")}
+        actionHref="/"
+      />
+    );
+  }
 
   return (
     <div className="rounded-xl border bg-white">
